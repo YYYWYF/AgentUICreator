@@ -1,0 +1,76 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "前端能力概览"
+  },
+  {
+    "type": "custom-link",
+    "label": "对话交互",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "消息与流式回复",
+        "link": "/agent-ui/messages"
+      },
+      {
+        "type": "custom-link",
+        "label": "附件、语音与快捷输入",
+        "link": "/agent-ui/input-features"
+      },
+      {
+        "type": "custom-link",
+        "label": "停止、重试与编辑",
+        "link": "/agent-ui/stop-retry-edit"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "执行过程",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "思考、工具与任务进度",
+        "link": "/agent-ui/reasoning-and-tools"
+      },
+      {
+        "type": "custom-link",
+        "label": "提问、表单与审批",
+        "link": "/agent-ui/approval-and-questions"
+      },
+      {
+        "type": "custom-link",
+        "label": "运行状态与恢复",
+        "link": "/agent-ui/run-lifecycle"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "结果与体验",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "来源、文件与图表",
+        "link": "/agent-ui/results-and-actions"
+      },
+      {
+        "type": "custom-link",
+        "label": "会话与历史记录",
+        "link": "/agent-ui/history"
+      },
+      {
+        "type": "custom-link",
+        "label": "主题、语言与账号",
+        "link": "/agent-ui/appearance-and-account"
+      }
+    ]
+  }
+]

@@ -1,0 +1,17 @@
+---
+title: 配置会话与恢复
+---
+
+# 配置会话与恢复
+
+应用通过 Agent 的 `initialThreadId` 指定初始化时打开的会话；需要继续未完成运行时，传入业务实现的 `runResumeProvider`：
+
+```tsx
+<Agent initialThreadId={threadId} runResumeProvider={runResumeProvider} />
+```
+
+其中 `threadId` 是业务保存的会话身份，恢复服务由项目接入。历史加载、选择和删除沿用同一套会话导航，不需要单独配置一个“会话管理”界面。
+
+参数见[Agent 参数与配置](./agent-options)，接口和恢复条件见[历史服务接入](./history-backend)。
+
+> 截图待补：重新打开历史会话，以及支持恢复时继续运行的效果。

@@ -1,0 +1,60 @@
+---
+title: "查看一组工具调用（tool-group）"
+---
+
+# 查看一组工具调用（tool-group）
+
+把同一段工作中的工具调用组织为可展开的组。
+
+## 界面与功能
+
+多项工具操作归在同一组内，可以展开阅读各项结果和错误。
+
+## 如何启用和使用
+
+在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+
+当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+
+可以把下面的需求发给 Creator：
+
+> 在当前工程中配置「查看一组工具调用」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+
+## 使用前提
+
+Agent 需要返回工具调用。卡片只展示过程，不会自行运行工具或替用户批准操作。
+
+## 属性
+
+优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
+
+| 参数 | 用途 |
+| --- | --- |
+| `children` | 替换或补充组件内容。 |
+| `rootProps` | 最外层区域的样式和 DOM 属性。 |
+| `triggerProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| `contentProps` | 定制对应区域的 DOM、样式或交互参数。 |
+
+下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+
+```tsx
+import type { ComponentProps } from "react";
+import { ConversationCanonicalToolGroup } from "@za38.03/agent-ui-plugins";
+
+type Props = ComponentProps<typeof ConversationCanonicalToolGroup>;
+export function ProjectView(props: Props) {
+  return <ConversationCanonicalToolGroup {...props} />;
+}
+```
+
+## 验证结果
+
+在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+
+如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+
+> 截图待补：多工具成组。展示用户实际入口和操作结果；服务配置类通过受影响的对话、列表、主题或账号区域展示。
+
+## 继续阅读
+
+[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)

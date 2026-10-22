@@ -17,7 +17,7 @@ import {
   createConversationServiceThreadBinding,
   type ConversationServiceThreadBinding,
 } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createMockConversationApiHandler } from "../../../creator/src/mock-agent/conversations/handler";
+import { createMockConversationApiHandler } from "../../../operator/src/mock-agent/conversations/handler";
 import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
 import {
   createConversationService,

@@ -20,6 +20,8 @@ core 0.3.27 官方依赖要求 assistant-stream ^0.3.50，以及 store ^0.3.19�
 
 ## Windows PowerShell
 
+以下为源码仓库开发步骤，需要本地 Python。已安装的 Creator npm 工具由平台依赖提供 Python，无需系统 Python 或 pip，不能将下文仓库引导步骤作为 npm 用户安装要求。分离构建/发布与平台验收见 [Creator Python 发行](../packages/creator/docs/python-distribution.md)。
+
 最低支持 Node.js 20.19.0，锁定 pnpm 8.12.0；建议 Python 3.12。pnpm 11 不支持 Node 20，因此不用于当前启动流程。图片中的 Node 16.14.2 不适用：Vite 8.3.0 要求 Node ^20.19.0 或 >=22.12.0。项目放在可写目录，Git 和 Python 必须可通过 PATH 调用。
 
 ```powershell
@@ -38,7 +40,7 @@ pnpm verify:creator-distribution
 
 从源码拷贝后，在根目录直接执行 `pnpm dev`；该入口自动冻结安装 JS 依赖、构建开发包、初始化平台 Host，并由 Creator 自动准备 Python 环境。UI 启动不需要模型密钥，发起真实模型请求前配置根目录 `.env.agentui.local`（参考 `.env.agentui.example`）。使用独立 sidecar 时，先运行 `pnpm test:python:setup`，再在一个 PowerShell 窗口执行 `pnpm creator:python`，另一个窗口执行 `pnpm dev`。`creator:python` 已使用 Node 跨平台入口，无需 Bash。模型/API 地址和凭据必须使用公司环境的可访问配置。
 
-Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，不能视作 Windows 实机验收通过。公司网络、镜像完整性和真实模型交互仍需在公司环境验收。
+Creator distribution CI 已分离 Python 平台构建与 Node 验收任务，并覆盖 Windows x64、Linux glibc x64/arm64、macOS x64/arm64。各平台 CI 未实际执行时不能视作通过；本机 Windows 的 npm 安装/启动结果不代表其他平台。公司网络、镜像完整性和真实模型交互仍需在公司环境验收。
 
 ## 后续启动修复
 

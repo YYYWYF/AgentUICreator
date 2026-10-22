@@ -499,7 +499,7 @@ def test_real_managed_host_source_apply_and_internal_remove_contract(tmp_path):
     (source / "app-ui").mkdir()
     (metadata / "project.json").write_text(json.dumps({"mode": "platform", "sourceRoot": "custom-ui"}))
     (source / "app-ui/app-ui.json").write_text(json.dumps({"root": {"type": "slot", "plugins": []}}))
-    runtime = REPOSITORY_ROOT / "packages/creator/operator/dist/runtime/operator-runtime.mjs"
+    runtime = REPOSITORY_ROOT / "packages/operator/control/dist/runtime/operator-runtime.mjs"
     assert runtime.is_file(), "Build @za38.03/agent-ui-creator/operator before cross-language integration tests."
     entry = metadata / "operator/entry.mjs"
     entry.parent.mkdir()

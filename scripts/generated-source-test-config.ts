@@ -2,7 +2,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { existsSync, readdirSync, realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { generatedProjectFixture } from "../packages/creator/operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../packages/operator/control/tests/support/generated-project";
 import pluginDeliveries from "../packages/plugins/src/catalog/plugin-delivery.json";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const itemsRoot = path.join(root, "packages/plugins/resources/registry/items");
@@ -27,7 +27,8 @@ export function generatedSourceTestConfig(packageRoot: string) {
     root: packageRoot,
     resolve: { dedupe: ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/core"], alias: [
       { find: "@za38.03/agent-ui-plugins/catalog", replacement: path.join(root, "packages/plugins/src/catalog/index.ts") },
-      { find: "@za38.03/agent-ui-creator/source-registry", replacement: path.join(root, "packages/creator/operator/src/source-catalog/index.ts") },
+      { find: "@za38.03/agent-ui-creator/source-registry", replacement: path.join(root, "packages/operator/control/src/source-catalog/index.ts") },
+      { find: "@za38.03/agent-ui-operator/source-registry", replacement: path.join(root, "packages/operator/control/src/source-catalog/index.ts") },
       { find: "@za38.03/agent-ui-plugins/composer-support", replacement: path.join(root, "packages/plugins/src/composer-support.ts") },
       { find: "@za38.03/agent-ui-plugins/plugin-support", replacement: path.join(root, "packages/plugins/src/plugin-support.ts") },
       ...pluginDeliveries.map(delivery => ({
@@ -42,8 +43,10 @@ export function generatedSourceTestConfig(packageRoot: string) {
       { find: "@za38.03/agent-ui-plugins/lexical", replacement: path.join(root, "packages/plugins/src/lexical.tsx") },
       { find: "@za38.03/agent-ui-plugins/styles.css", replacement: path.join(root, "packages/plugins/src/styles.css") },
       { find: "@za38.03/agent-ui-core/testing", replacement: path.join(root, "packages/core/src/testing/index.ts") },
-      { find: "@za38.03/agent-ui-creator/bootstrap", replacement: path.join(root, "packages/creator/operator/src/bootstrap/index.ts") },
-      { find: "@za38.03/agent-ui-creator/mock-agent", replacement: path.join(root, "packages/creator/src/mock-agent/index.ts") },
+      { find: "@za38.03/agent-ui-creator/bootstrap", replacement: path.join(root, "packages/operator/control/src/bootstrap/index.ts") },
+      { find: "@za38.03/agent-ui-creator/mock-agent", replacement: path.join(root, "packages/operator/src/mock-agent/index.ts") },
+      { find: "@za38.03/agent-ui-operator/bootstrap", replacement: path.join(root, "packages/operator/control/src/bootstrap/index.ts") },
+      { find: "@za38.03/agent-ui-operator/mock-agent", replacement: path.join(root, "packages/operator/src/mock-agent/index.ts") },
       ...["plugins", "core", "renderer", "runtime"].map(name => ({
         find: `@za38.03/agent-ui-${name}`, replacement: path.join(root, `packages/${name}/src/index.ts`),
       })),
@@ -58,7 +61,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
         }
         // DOM tests also use Node filesystem fixtures. Preserve their physical
         // module URL before Vite's browser asset transform rewrites new URL().
-        if ((id.includes("/tests/") || id.endsWith("/src/bootstrap/default-presets.ts") || id.endsWith("/source-catalog/loader.ts") || id.endsWith("/operator/src/install.mjs") || id.includes("/scripts/")) && code.includes("import.meta.url")) {
+        if ((id.includes("/tests/") || id.endsWith("/src/bootstrap/default-presets.ts") || id.endsWith("/source-catalog/loader.ts") || id.endsWith("/control/src/install.mjs") || id.includes("/scripts/")) && code.includes("import.meta.url")) {
           return { code: code.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|import\.meta\.url/g, token => token === "import.meta.url" ? JSON.stringify(pathToFileURL(id.split("?")[0]!).href) : token), map: null };
         }
       },
@@ -73,7 +76,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
         }
         // Templates use the test host's installed frontend stack, rather than
         // requiring UI dependencies on the Source Registry package itself.
-        if (importer.includes("/dist/sources/takeover/") && source === "../../framework/contracts/ui-plugin") return path.join(root,"packages/creator/operator/src/framework/contracts/ui-plugin.ts");
+        if (importer.includes("/dist/sources/takeover/") && source === "../../framework/contracts/ui-plugin") return path.join(root,"packages/operator/control/src/framework/contracts/ui-plugin.ts");
         if (!source.startsWith(".")) {
           if (!asPosixPath(importer).includes("/registry/items/")) return;
           return await this.resolve(source, path.join(packageRoot, "package.json"), { skipSelf: true })
@@ -99,6 +102,6 @@ export function generatedSourceTestConfig(packageRoot: string) {
         }
       },
     }],
-    test: { environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/creator/operator/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
+    test: { environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/operator/control/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
   };
 }

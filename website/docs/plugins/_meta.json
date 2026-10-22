@@ -1,0 +1,235 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "插件总览与选用"
+  },
+  {
+    "type": "custom-link",
+    "label": "对话与会话管理",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "显示完整对话区",
+        "link": "/plugins/conversation-surface.html"
+      },
+      {
+        "label": "查找与切换会话",
+        "link": "/plugins/conversation-thread-list.html"
+      },
+      {
+        "label": "新建会话",
+        "link": "/plugins/conversation-new.html"
+      },
+      {
+        "label": "使用开场建议",
+        "link": "/plugins/conversation-suggestions.html"
+      },
+      {
+        "type": "custom-link",
+        "label": "临时提示消息",
+        "link": "/plugins/transient-assistant-messages"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "消息输入与编辑",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "输入消息",
+        "link": "/plugins/composer.html"
+      },
+      {
+        "label": "发送与停止",
+        "link": "/plugins/submit-action.html"
+      },
+      {
+        "label": "添加附件",
+        "link": "/plugins/add-attachment-action.html"
+      },
+      {
+        "label": "引用消息",
+        "link": "/plugins/conversation-quote.html"
+      },
+      {
+        "label": "编辑带提及标签的消息",
+        "link": "/plugins/lexical-edit-composer.html"
+      },
+      {
+        "label": "语音输入",
+        "link": "/plugins/dictation-action.html"
+      },
+      {
+        "label": "输入 @ 搜索对象",
+        "link": "/plugins/mention-trigger.html"
+      },
+      {
+        "label": "输入 / 使用命令",
+        "link": "/plugins/slash-command-trigger.html"
+      },
+      {
+        "label": "使用带提及标签的输入框",
+        "link": "/plugins/lexical-composer-input.html"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "回复操作",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "使用回复底部操作",
+        "link": "/plugins/response-footer.html"
+      },
+      {
+        "label": "复制回复",
+        "link": "/plugins/copy-action.html"
+      },
+      {
+        "label": "重新生成回复",
+        "link": "/plugins/reload-action.html"
+      },
+      {
+        "label": "导出回复",
+        "link": "/plugins/export-markdown-action.html"
+      },
+      {
+        "label": "评价回复",
+        "link": "/plugins/feedback-actions.html"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "思考、工具与任务",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "查看思考过程",
+        "link": "/plugins/reasoning.html"
+      },
+      {
+        "label": "查看一组工具调用",
+        "link": "/plugins/tool-group.html"
+      },
+      {
+        "label": "查看通用工具与审批",
+        "link": "/plugins/tool-fallback.html"
+      },
+      {
+        "label": "查看等待提示",
+        "link": "/plugins/thinking-indicator.html"
+      },
+      {
+        "label": "查看工具进度",
+        "link": "/plugins/tool-timeline.html"
+      },
+      {
+        "label": "查看子任务",
+        "link": "/plugins/task-group.html"
+      },
+      {
+        "label": "查看 Agent 状态",
+        "link": "/plugins/agent-status-message.html"
+      },
+      {
+        "label": "查看执行计划",
+        "link": "/plugins/agent-plan-message.html"
+      },
+      {
+        "label": "查看任务进度",
+        "link": "/plugins/job-progress-message.html"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "结果、来源与检索",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "查看上下文检索结果",
+        "link": "/plugins/context-retrieval-message.html"
+      },
+      {
+        "label": "获取生成文件",
+        "link": "/plugins/generated-file-message.html"
+      },
+      {
+        "label": "查看图表",
+        "link": "/plugins/chart-message.html"
+      },
+      {
+        "label": "查看引用来源",
+        "link": "/plugins/source-citations-message.html"
+      },
+      {
+        "label": "查看文档检索片段",
+        "link": "/plugins/retrieval-chunks.html"
+      },
+      {
+        "label": "查看网页搜索结果",
+        "link": "/plugins/web-search.html"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "外观、语言与账号",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "label": "显示 Agent 名称与头像",
+        "link": "/plugins/agent-identity.html"
+      },
+      {
+        "label": "切换主题",
+        "link": "/plugins/theme-switch.html"
+      },
+      {
+        "label": "切换界面语言",
+        "link": "/plugins/locale-switch.html"
+      },
+      {
+        "label": "显示登录门禁",
+        "link": "/plugins/auth-gate.html"
+      },
+      {
+        "label": "查看账号与登录操作",
+        "link": "/plugins/auth-account.html"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "开发自定义插件",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "开发能力与示例",
+        "link": "/plugins/development"
+      },
+      {
+        "type": "custom-link",
+        "label": "创建与注册 UI Plugin",
+        "link": "/plugins/create-plugin"
+      },
+      {
+        "type": "custom-link",
+        "label": "定义、生命周期与服务",
+        "link": "/plugins/plugin-contract"
+      }
+    ]
+  }
+]

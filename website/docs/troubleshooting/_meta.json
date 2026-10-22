@@ -1,0 +1,63 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "故障排查入口"
+  },
+  {
+    "type": "custom-link",
+    "label": "Creator 开发故障",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "安装与启动",
+        "link": "/troubleshooting/startup"
+      },
+      {
+        "type": "custom-link",
+        "label": "页面入口与工具连接",
+        "link": "/troubleshooting/creator-connection"
+      },
+      {
+        "type": "custom-link",
+        "label": "模型请求与任务中断",
+        "link": "/troubleshooting/model-and-run"
+      },
+      {
+        "type": "custom-link",
+        "label": "工程与预览",
+        "link": "/troubleshooting/project-and-preview"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "应用与发布故障",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Agent、历史与恢复",
+        "link": "/troubleshooting/agent-and-history"
+      },
+      {
+        "type": "custom-link",
+        "label": "插件、附件与输入",
+        "link": "/troubleshooting/plugins-and-input"
+      },
+      {
+        "type": "custom-link",
+        "label": "更新、构建与部署",
+        "link": "/troubleshooting/updates-and-build"
+      }
+    ]
+  },
+  {
+    "type": "file",
+    "name": "diagnostics",
+    "label": "收集诊断信息"
+  }
+]

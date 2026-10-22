@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-creator/source-registry";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../packages/creator/operator/src/project/source-registry/lock";
-import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "../../packages/creator/operator/src/project/source-registry/transaction";
-import { uiOperatorConfig } from "../../packages/creator/operator/src/project/project-config";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../packages/operator/control/src/project/source-registry/lock";
+import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "../../packages/operator/control/src/project/source-registry/transaction";
+import { uiOperatorConfig } from "../../packages/operator/control/src/project/project-config";
 
 const itemId = "foundation/core-adapters";
 const target = "agent-ui/conversation/threads/conversation-service-thread-binding.ts";

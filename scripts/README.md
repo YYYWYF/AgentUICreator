@@ -15,6 +15,10 @@
 | 国际化与视觉 | `audit-ui-copy.mjs`、`test-i18n-plugin-visual.mjs`、`report-i18n-plugin-visual.mjs` |
 | 手动维护 | `audit-packed-plugin-sources.mts`（包内容审计）、`verify-project-upgrades.mjs`（升级验证）、`package-repository.mjs` / `.py`（仓库打包） |
 
+Creator 的现行发行由 `packages/creator/python/build_sidecar.py` 在 Python 构建任务生成平台 npm artifact，再由 `restore-creator-sidecars.mjs` 在 Node 任务还原；`--all` 可单独使用默认产物目录，也可与显式目录组合。`creator-sidecar-audit.mjs` 从平台 tarball 的 `dist/agent` 读取 Python 源码；`creator-node-artifact-audit.mjs` 分别检查 Creator 的薄入口和 Operator 的实际 bundle、presets、更新 UI/API，完整审计使用七包清单。`verify-creator-python-wheel.mjs` 仅供 Python 开发包验收，不是 Node 发行的前置依赖。
+
+`pnpm verify:creator-workbench --skip-build --npm` 用全新 npm 缓存和仓库外消费者验证只安装 Creator。安装只提供 Node PATH，CLI/Python 启动使用空 PATH；`creator-installed-runtime-smoke.mjs` 被复制到消费者内独立执行，检查包内 Python 的真实路径、健康状态、重启和退出，避免测试进程复用仓库模块。
+
 `.d.mts` 是 JavaScript 模块的 TypeScript 类型声明，不是独立执行入口。没有 package 命令直接引用的 helper 和测试也不能据此删除。
 
 ## 历史验收

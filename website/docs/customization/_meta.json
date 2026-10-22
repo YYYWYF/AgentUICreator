@@ -1,0 +1,101 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "定制方式与文件位置"
+  },
+  {
+    "type": "custom-link",
+    "label": "布局与外观",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "布局与 Plugin 组合",
+        "link": "/customization/layout-and-composition"
+      },
+      {
+        "type": "custom-link",
+        "label": "AppUIModel 字段参考",
+        "link": "/customization/app-ui-model"
+      },
+      {
+        "type": "custom-link",
+        "label": "默认主题配置",
+        "link": "/customization/default-theme"
+      },
+      {
+        "type": "custom-link",
+        "label": "品牌、样式与主题",
+        "link": "/customization/themes"
+      },
+      {
+        "type": "custom-link",
+        "label": "语言文案与翻译",
+        "link": "/customization/localization"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "组件与交互扩展",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "应用层 Props 与组件组合",
+        "link": "/customization/application-layer"
+      },
+      {
+        "type": "custom-link",
+        "label": "应用命令来源配置",
+        "link": "/customization/command-source"
+      },
+      {
+        "type": "custom-link",
+        "label": "提及与命令扩展",
+        "link": "/customization/mention-and-commands"
+      },
+      {
+        "type": "custom-link",
+        "label": "共享状态与应用事件",
+        "link": "/customization/state-and-events"
+      },
+      {
+        "type": "custom-link",
+        "label": "工具与结构化结果渲染",
+        "link": "/customization/custom-renderers"
+      },
+      {
+        "type": "custom-link",
+        "label": "受控 Generative UI",
+        "link": "/customization/generative-ui"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "实现维护与验证",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Plugin 源码接管",
+        "link": "/customization/source-takeover"
+      },
+      {
+        "type": "custom-link",
+        "label": "可选实现与依赖选择",
+        "link": "/customization/testing-and-optional-entries"
+      },
+      {
+        "type": "custom-link",
+        "label": "验证定制与 Plugin",
+        "link": "/customization/test-customizations"
+      }
+    ]
+  }
+]

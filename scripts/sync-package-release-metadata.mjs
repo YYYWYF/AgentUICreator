@@ -3,7 +3,7 @@ import {readFile,writeFile,mkdir} from "node:fs/promises";
 import {fileURLToPath,pathToFileURL} from "node:url";
 import path from "node:path";
 const repositoryRoot=fileURLToPath(new URL("..",import.meta.url));
-const modules=["core","renderer","runtime","plugins","creator","web-component"];
+const modules=["core","renderer","runtime","plugins","operator","creator","web-component"];
 export async function syncPackageReleaseMetadata(id,root=repositoryRoot,{publishing=false,checkOnly=false}={}){
  if(!modules.includes(id))throw new Error("Unknown public package");
  const file=path.join(root,"packages",id,"package.json");

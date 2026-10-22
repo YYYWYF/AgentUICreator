@@ -1,6 +1,6 @@
 # Agent UI Plugin Creator 最终设计与启动计划
 
-> 2026-10-21 发布边界更新：Operator 已合入 `@za38.03/agent-ui-creator`，源码在 `packages/creator/operator`，协议与共享测试数据在 `packages/creator/contracts`。Operator 保留独立内部职责，通过 `/operator`、`/operator/*`、`/bootstrap`、`/source-registry` 公开；不再独立发包或维护版本。公共包由七个变为六个。本更新取代本文旧的 Creator/Operator 独立发布描述；生产前端仍不得依赖 Creator。
+> 2026-10-22 发布边界更新（取代此前合包决定）：TS 工具实现位于 `packages/operator`，Python Agent、canonical contracts 和 npm 入口位于 `packages/creator`。用户只安装 Creator，自动依赖独立 Operator 与 `@za38.03/agent-ui-creator-<平台>` Python 运行产物。原有 Creator subpaths 继续转发，公共 API 包恢复为七个独立版本。Python 和 Node 分开构建，以平台压缩包交接；生产前端不依赖这些开发工具。
 
 > 文档状态：Canonical。本文合并原始启动设计、当前代码实现、DeepSeek Harness Creator/Cordis 机制评估，以及 Creator 控制面复核结论。若专题实施细节与本文冲突，以本文和仓库根目录 `AGENTS.md` 为准。
 >
@@ -555,6 +555,28 @@ interface AppUIPluginNode {
 
 Plugin content and implementation configuration are owned by application or
 Plugin source, not by this composition node.
+
+持久化的 `app-ui.json` 中，Plugin 节点可省略 `enabled`，默认启用。
+解析器在布局 Slot、插件子 Slot 和 `applicationPlugins` 中统一补齐为 `true`；
+显式 `enabled: false` 保持禁用。上面的 TypeScript 接口描述解析后的模型，
+因此 `enabled` 仍是必需的布尔值，Compiler 和 Runtime 无需推断缺省状态。
+Creator 操作中嵌入的 Plugin 节点遵循同一规则；`set_plugin_enabled` 操作
+仍必须明确传入布尔值。
+Operator 新建、修改和修复 AppUIModel 时统一省略默认的 `enabled: true`，
+只在禁用时持久化 `enabled: false`；语义无变化的操作仍保留原文件字节。
+
+Plugin 节点的 `id` 也可以省略，默认模板与新插入节点只声明 `pluginId`。
+解析器按模型逻辑路径和 `pluginId` 生成确定性的运行时身份，不使用随机数、
+系统文件路径或 Creator 服务。相同 JSON 在独立构建和运行时得到相同身份；
+移动节点、改变前面的数组成员或更换 Plugin 可能改变自动身份并重新挂载组件。
+需要跨结构调整保持身份时仍可显式填写 `id`；已有值继续兼容并原样保存。
+上面的 TypeScript 接口描述规范化模型，因此 `id` 仍为必需字段。
+
+Creator 的 Composition observation 将自动身份预处理为临时 `pN` 引用，
+既有显式 ID 保持可用并避免与临时引用冲突。事务先验证 `appUIModelHash`，
+再把整批引用解析到该快照，编辑完成后重新规范化运行时身份。
+临时引用和自动 ID 都不写回 `app-ui.json`；显式 ID 不因保存而删除。
+Sidebar 导航项的 `id` / `defaultActive` 属于导航合同，不在此省略规则内。
 
 Plugin child Slot 使用 manifest 声明的 instance-local name。Plugin implementation 调用 `renderSlot(localName)`；Compiler/Runtime 使用 `plugin:<instance.id>:<localName>` 生成全局 identity，因此同一个 Plugin 可以安全创建多个实例。
 
@@ -1221,9 +1243,17 @@ workspace/
 │   └── docs/                    # 用户手册、Plugin 展示和公开 API 的唯一内容源
 ├── docs/                        # 内部架构、设计和实现记录
 ├── packages/
-│   └── creator/                 # 独立发行的开发工具（包含 Mock）
-│       ├── src/                 # Agent、CLI、Vite 适配、Creator UI
-│       ├── skills/
+│   ├── creator/                 # Python Agent 与用户安装的 npm 入口
+│   │   ├── python/              # Agent 实现、依赖锁和 Python-only 构建
+│   │   ├── contracts/           # 两种语言共享的 canonical schemas/fixtures
+│   │   ├── platforms/           # 分平台 Python npm 产物定义
+│   │   ├── scripts/             # 薄 npm 入口生成与产物校验
+│   │   ├── skills/
+│   │   └── package.json
+│   └── operator/                # 由 Creator 自动依赖的 TS 开发工具
+│       ├── src/                 # CLI、Vite 适配、Workbench、Mock 与进程宿主
+│       ├── browser/             # 独立浏览器构建入口
+│       ├── control/             # 项目操作、Bootstrap、校验和更新
 │       └── package.json
 ├── examples/
 │   ├── creator-host-sandbox/    # platform Host
@@ -1238,7 +1268,7 @@ workspace/
     └── creator-workbench/       # 仅开发时组合 Creator 与目标应用
 ```
 
-Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用同一 Creator Core，但都不进入目标前端的生产 Bundle。
+Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用 Operator 的 TS 工具宿主，但都不进入目标前端的生产 Bundle。
 
 对外文档站位于根目录 `website/`，作为私有 workspace 管理，与开发组合壳分离。Rspress 同时生成供人浏览的 HTML 和供 AI 读取的 Markdown；完整网站静态部署。Creator 的构建、prepack 和发布准备阶段从同一内容源生成离线 Markdown、索引及图片，收录至 `dist/documentation/`，并校验版本、源摘要及文件摘要。离线文档不是第二份手工维护的内容，Rspress 和网站应用不成为 Creator 或生成前端的运行依赖；npm 包内文档读取工具另行实现。
 
@@ -1246,17 +1276,17 @@ Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Cr
 
 用户侧采用同一个 [统一更新中心](architecture/unified-update-center.md)：官方兼容版本清单给出经过验证的跨包组合，默认展示当前到目标的累计变更并允许展开逐版本记录；用户确认具体计划后，由 Creator/Operator 在正确安装位置更新依赖、实际安装、更新锁文件和验证。统一入口不改变包的独立版本，也不把 Creator/Operator 装入应用生产依赖。2026-10-18 已实现真实版本来源、配置式只读在线发现与变更展示；npm 产物核验、安装/恢复及工具升级仍待实现。
 目标将 `packages/source-registry` 的资源、目录和源码快照合入 `packages/plugins`，不再独立发包；独立目录/发布项已移除，通用接管另行实现；
-`packages/creator/operator` 随 `@za38.03/agent-ui-creator` 发行，通过 `/operator/*` 提供操作接口，Bootstrap 使用 Creator 的 `/bootstrap` 子路径，负责项目初始化、安装、检查和升级；
-`packages/creator` 包含 Mock Agent（`/mock-agent` 子路径），负责 Creator CLI、工作台和开发模拟服务。
+`packages/operator` 以 `@za38.03/agent-ui-operator` 独立发行，由 Creator 精确依赖；其 `control/` 通过 `/project/*` 提供操作接口，Bootstrap 通过 `/bootstrap` 提供项目初始化、安装、检查和升级；Creator 原有 `/operator/*` 和 `/bootstrap` 子路径继续兼容转发。
+Operator 的 `src/mock-agent` 提供 Mock Agent，CLI、工作台和开发模拟服务也归 Operator；Creator 保留对应 npm 子路径作为安装入口与兼容 API。
 Core、Renderer、Runtime 保持生产 npm 底座职责，Plugins 是默认官方插件实现的统一 npm 包；用户明确同意后可按插件接管完整源码。Plugins 包内目录提供匹配版本的源码快照，Web Component 保持兼容宿主职责；以文末当前交付边界为准。
 
-只修改 Bootstrap 编排时只发布 Operator，无需更新 Plugins 的资源版本。
+只修改 Bootstrap 编排时更新 Operator，并由 Creator 绑定兼容版本，无需更新 Plugins 的资源版本。
 目标中 Operator 读取 Plugins 包的公开目录/源码资产，不另分发一份资源，也不从 React 根入口加载 Node 读取器；独立 Source Registry 依赖在调用方与历史迁移验证完成后移除。Plugins 的运行产物、目录与源码快照同包发布，不存在独立 Registry 升级。
 第一方依赖由各包独立声明，发行时固定到各自依赖版本，不使用统一版本替换。
 只有接口、契约或资源兼容要求发生变化时，才更新关联依赖版本。
 
 生成项目只安装和导入需要的生产包。Plugins 是生产 npm 依赖，但其源码快照/目录读取器与 Creator、Operator 均不得进入浏览器运行模块图；资产在 tarball 内不等于应由前端打包。
-Mock 的服务端入口在 Creator 下；示例使用的纯浏览器附件适配器位于 React 的 `/demo-attachments` 独立入口。
+Mock 的服务端实现在 Operator 下，仍可通过 Creator 的 `/mock-agent` 兼容入口使用；示例使用的纯浏览器附件适配器位于 Plugins 的 `/demo-attachments` 独立入口。
 生成前端仍可独立构建部署。发行验证覆盖每个包的实际 tarball、类型、CLI、Registry、初始化和生产 bundle。
 
 权限：
@@ -1437,6 +1467,8 @@ HMR 先验证现有 Vite / React Fast Refresh 行为，再决定是否增加机�
 ---
 
 # 22. Phase 6：Creator Agent 基础版
+
+> 2026-10-22 发行更新：Python Agent 保留，通过 Creator 自动依赖的 sidecar 平台 npm 包交付独立解释器、锁定依赖、源码和协议；用户只安装 Creator，无需系统 Python。Python 构建任务与 Node 打包/发布任务分开。TS 工具实现独立位于 packages/operator，由 Creator 自动依赖。以下 Python-only 控制面职责不变；旧的随 Creator dist/python 分发源码并在用户机器 bootstrap venv 的发行描述已被取代。详见 [Python sidecar npm 发行](../packages/creator/docs/python-distribution.md)。
 
 接入 DeepAgents。
 

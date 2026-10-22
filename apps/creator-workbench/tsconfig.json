@@ -25,16 +25,16 @@
     "skipLibCheck": true,
     "paths": {
       "@za38.03/agent-ui-creator/ui": [
-        "../../packages/creator/src/ui/CreatorWorkbench.tsx"
+        "../../packages/operator/src/ui/CreatorWorkbench.tsx"
       ],
       "@za38.03/agent-ui-creator/runtime-diagnostics": [
-        "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts"
+        "../../packages/operator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts"
       ],
       "@za38.03/agent-ui-creator/visual-observation": [
-        "../../packages/creator/src/visual-observation/VisualObservationReporter.ts"
+        "../../packages/operator/src/visual-observation/VisualObservationReporter.ts"
       ],
       "@za38.03/agent-ui-creator/mock-agent": [
-        "../../packages/creator/src/mock-agent/index.ts"
+        "../../packages/operator/src/mock-agent/index.ts"
       ],
       "@za38.03/agent-ui-plugins": [
         "../../packages/plugins/src/index.ts"
@@ -52,10 +52,10 @@
         "../../packages/core/src/testing/index.ts"
       ],
       "@za38.03/agent-ui-creator/host-preview": [
-        "../../packages/creator/src/host-preview/hostPreviewWorkbench.ts"
+        "../../packages/operator/src/host-preview/hostPreviewWorkbench.ts"
       ],
       "@za38.03/agent-ui-creator/host-preview/vite": [
-        "../../packages/creator/src/host-preview/vite.ts"
+        "../../packages/operator/src/host-preview/vite.ts"
       ]
     }
   },
@@ -64,11 +64,11 @@
     "src/**/*.tsx",
     "vite.config.ts",
     "host-preview.vite.config.ts",
-    "../../packages/creator/src/ui/**/*.tsx",
-    "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
-    "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",
-    "../../packages/creator/src/shared.ts",
-    "../../packages/creator/src/mock-agent/**/*.ts",
+    "../../packages/operator/src/ui/**/*.tsx",
+    "../../packages/operator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
+    "../../packages/operator/src/visual-observation/VisualObservationReporter.ts",
+    "../../packages/operator/src/shared.ts",
+    "../../packages/operator/src/mock-agent/**/*.ts",
     "../../packages/runtime/src/**/*.ts",
     "../../packages/runtime/src/**/*.tsx",
     "../../packages/core/src/**/*.ts",

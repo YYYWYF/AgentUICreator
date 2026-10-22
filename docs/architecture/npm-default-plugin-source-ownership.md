@@ -1,6 +1,6 @@
 # 统一 Plugins 包、内置源码目录与按需源码托管
 
-> 2026-10-21 开发工具合包：Operator 的 Node 加载、接管、三方合并、校验与更新职责保留在 `packages/creator/operator`，随 Creator 发布；使用 `@za38.03/agent-ui-creator/source-registry` 和 `/operator/*`。公共包现为六个，本文早期“七包”记录为历史阶段；Plugins 仍是独立生产包，源码所有权与显式确认要求不变。
+> 2026-10-22 开发工具拆包：TS 实现位于 packages/operator，Python Agent 和 npm 入口位于 packages/creator；用户只安装 Creator，自动带上 Operator 和 Python 平台产物。原有 Creator tooling subpaths 继续转发，七个 API 包独立版本。Plugins 仍是独立生产包，源码所有权与显式确认要求不变。
 
 > 当前未发版的交付统一：官方插件仅保留 43 个无前缀 ID。删除 19 个重复的 `assistant-ui-*` 插件及 `message-footer`，仅保留 `response-footer` / `assistantResponseFooter`。Footer 依然按用户请求划分整轮，只渲染于该轮最后一条 assistant 消息下；复制、导出、重新生成与分支操作继续使用整轮作用域。本文下方此前关于保留双套插件 ID 的实施记录不再作为当前约束。上游源码、来源记录、同步映射、应用层与实现源码的所有权边界不变。
 
@@ -221,7 +221,7 @@ Plugins 的唯一官方实现（每个插件包含 upstream 与 adapters）
               提取 source/ 实现，只切换应用层 import
 ```
 
-源码快照与 catalog 是自动生成的发布资产，不是第二处可独立编辑的实现。模板、项目初始化资源和 Demo 可由 Plugins 包内的 `resources/` 维护；Bootstrap 编排仍归 Operator，Mock 仍归 Creator。不因合包删除旧 Registry 中的非插件资源，也不把它们变成默认运行的官方插件。
+源码快照与 catalog 是自动生成的发布资产，不是第二处可独立编辑的实现。模板、项目初始化资源和 Demo 可由 Plugins 包内的 `resources/` 维护；Bootstrap 编排和 Mock 实现归 Operator，Creator 保留对应兼容入口。不因合包删除旧 Registry 中的非插件资源，也不把它们变成默认运行的官方插件。
 
 npm tarball 同时包含运行产物和开发工具要读的资产；这不等于浏览器 bundle 必须包含源码。运行入口不得反向导入目录读取器、快照、Node fs/crypto、Operator 或 Creator。工具读取通过独立公开资产入口完成，不从 React 根 barrel 加载。准确 exports 与目录 Schema 在实现阶段落地。
 
@@ -348,7 +348,7 @@ Core、Renderer、canonical Runtime、React Context 和稳定公共服务不复�
 
 ## 6. 版本与更新：一个总览，两种执行
 
-整个产品通过统一更新中心提供“项目 Agent UI”和“Creator 开发工具”两类更新。六个包继续独立发布，Operator 随 Creator 发布，官方兼容清单维护可共同使用的精确版本；用户不需要自己决定依赖联动。项目包在选定 React 生产工程升级，Creator/Operator 在其工具安装位置升级并处理必要重启，不把工具放进应用生产依赖。Vue/HTML 仅通过 Web Component 嵌入，不增加原生 Vue 生成或业务工程改造。
+整个产品通过统一更新中心提供“项目 Agent UI”和“Creator 开发工具”两类更新。七个 API 包继续独立发布，Creator 自动依赖精确 Operator 与平台 Python 包，官方兼容清单维护可共同使用的精确版本；用户不需要自己决定依赖联动。项目包在选定 React 生产工程升级，Creator/Operator 在其工具安装位置升级并处理必要重启，不把工具放进应用生产依赖。Vue/HTML 仅通过 Web Component 嵌入，不增加原生 Vue 生成或业务工程改造。
 
 | 身份 | 含义 |
 | --- | --- |

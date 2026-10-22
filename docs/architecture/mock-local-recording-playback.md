@@ -38,7 +38,7 @@ frontend resources; they do not install or enable plugins automatically.
   symlinks and directories that resolve outside the project, bounds reads,
   and caches valid and invalid parse results by path, timestamp and size.
   Cache retention is bounded; there is no filesystem watcher.
-- `@agent-ui/mock-agent` only validates loaded data and replays events. It does
+- Operator's Mock module (`@za38.03/agent-ui-creator/mock-agent` for Creator consumers) only validates loaded data and replays events. It does
   not read project files or turn recordings into `MockScenarioStep` values.
 - Recording playback uses the same abortable delay and `timingScale` semantics
   as scenarios: `(current.atMs - previous.atMs) * timingScale`, starting at zero.

@@ -1,34 +1,34 @@
 /* Approval choices use a soft brand fill to match the surrounding tool card. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="button"][data-agent-ui-approval-action="allow"] {
   background: var(--agent-brand-surface);
   color: var(--agent-brand-solid);
   border-color: var(--agent-brand-border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"]:enabled:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="button"][data-agent-ui-approval-action="allow"]:enabled:hover {
   background: var(--agent-brand-selected);
   border-color: var(--agent-brand-hover-border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"]:focus-visible {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="button"][data-agent-ui-approval-action="allow"]:focus-visible {
   border-color: var(--agent-brand-focus-border);
 }
 
 /* Stable presentation seams only. No vendor class matching;
- * light/dark retain their upstream presentation. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-code-header"] {
+ * all presets retain the same product geometry and use their own palette. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-code-header"] {
   background: var(--card);
   border-color: var(--border);
   border-bottom: 1px solid var(--border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-code-language"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-code-language"] {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: 13px;
   line-height: 20px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"] {
   background: var(--card);
   background-image: none;
   border-color: var(--input);
@@ -38,16 +38,16 @@
   box-shadow: var(--agent-composer-shadow);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-actions"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-actions"] {
   margin-top: auto;
   padding-top: 4px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_composer-leading-actions"], [data-slot="aui_composer-trailing-actions"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="aui_composer-leading-actions"], [data-slot="aui_composer-trailing-actions"]) {
   gap: 4px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]) {
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
@@ -58,53 +58,53 @@
   box-shadow: none;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-composer-tool"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-composer-tool"] {
   color: var(--muted-foreground);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-composer-tool-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-composer-tool-icon"] {
   width: 18px;
   height: 18px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-composer-recording-stop-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-composer-recording-stop-icon"] {
   width: 14px;
   height: 14px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-composer-tool"]:enabled:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-composer-tool"]:enabled:hover {
   color: var(--foreground);
   background: var(--muted);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-composer-tool"][aria-pressed="true"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-composer-tool"][aria-pressed="true"] {
   color: var(--agent-brand-solid);
   background: var(--agent-brand-selected);
 }
 
 /* Hover changes only the border; focus follows it in the cascade. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"]:hover {
   border-color: var(--agent-brand-hover-border);
 }
 
 /* Composer focus uses a translucent brand treatment rather than action color. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:focus-within {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"]:focus-within {
   border-color: var(--agent-composer-focus-border);
   box-shadow: 0 0 0 1px var(--agent-composer-focus-ring), var(--agent-composer-shadow);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-plan"] [role="progressbar"] {
   background-color: var(--agent-brand-subtle);
 }
 
 /* The pinned upstream progressbar has one direct aria-hidden span for its fill.
  * The contract test guards that narrow dependency; width/animation stay upstream. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] > span[aria-hidden="true"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-plan"] [role="progressbar"] > span[aria-hidden="true"] {
   background-color: var(--agent-brand-active);
 }
 
 /* Product hooks keep selected surfaces stronger than generic muted surfaces. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_user-message-content"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_user-message-content"] {
   background-color: var(--agent-brand-surface);
   padding: 10px 14px;
   border-radius: 10px;
@@ -112,52 +112,52 @@
   line-height: 1.75;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_user-message-root"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_user-message-root"] {
   padding-inline: 0;
   grid-template-columns: minmax(22%, 1fr) auto;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_assistant-message-content"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_assistant-message-content"] {
   padding-inline: 0;
   font-size: 14px;
   line-height: 1.75;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_message-group"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_message-group"] {
   --agent-ui-message-gap: 28px;
   row-gap: 28px;
   margin-bottom: 32px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-item"]:hover {
   background-color: var(--muted);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:is(:focus-visible, :has(:focus-visible), :has([data-state="open"])) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-item"]:is(:focus-visible, :has(:focus-visible), :has([data-state="open"])) {
   background-color: var(--muted);
 }
 
 /* Selection wins over hover, keyboard focus and an open menu. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"][data-active="true"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-item"][data-active="true"] {
   background-color: var(--agent-brand-selected);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-search"] [data-slot="input"]:focus {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-search"] [data-slot="input"]:focus {
   border-color: var(--agent-composer-focus-border);
   box-shadow: 0 0 0 1px var(--agent-composer-focus-ring);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-thread-search-clear"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-thread-search-clear"] {
   color: var(--muted-foreground);
   border-radius: 6px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-thread-search-clear"]:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-thread-search-clear"]:hover {
   color: var(--agent-brand);
   background: var(--agent-brand-selected);
 }
 
 /* Conversation menus share product hooks within the scoped portal boundary. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-thread-action-menu"], [data-slot="agent-ui-message-action-menu"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="agent-ui-thread-action-menu"], [data-slot="agent-ui-message-action-menu"]) {
   padding: 4px;
   border-radius: 10px;
   border-color: var(--border);
@@ -165,7 +165,7 @@
   box-shadow: var(--aui-shadow-md);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-thread-action-menu"], [data-slot="agent-ui-message-action-menu"]) [role="menuitem"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="agent-ui-thread-action-menu"], [data-slot="agent-ui-message-action-menu"]) [role="menuitem"] {
   min-height: 32px;
   padding: 6px 10px;
   border-radius: 6px;
@@ -175,24 +175,24 @@
 
 /* Compact phone gutters leave more room for messages and the composer. */
 @media (max-width: 40rem) {
-  :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-thread-content"] {
+  :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-thread-content"] {
     padding-inline: 12px;
   }
 }
 
 /* Phase 4A — High-Fidelity Surfaces. State comes from product adapters,
- * never inferred from vendor markup. Static surfaces stay white/neutral. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-thinking-dot"], [data-slot="agent-status"][data-agent-state="working"] [data-slot="agent-ui-status-dot"], [data-slot="job-progress"][data-state="running"] [data-slot="agent-ui-job-progress-fill"], [data-slot="agent-ui-retrieval-score-fill"]) {
+ * never inferred from vendor markup. Surfaces follow the active card palette. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="agent-ui-thinking-dot"], [data-slot="agent-status"][data-agent-state="working"] [data-slot="agent-ui-status-dot"], [data-slot="job-progress"][data-state="running"] [data-slot="agent-ui-job-progress-fill"], [data-slot="agent-ui-retrieval-score-fill"]) {
   background-color: var(--agent-brand);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-root"] {
   background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-message-error"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-message-error"] {
   background-color: var(--agent-error-surface);
   border-color: var(--agent-error-border);
   border-radius: 8px;
@@ -201,7 +201,7 @@
   line-height: 1.6;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-message-error-text"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-message-error-text"] {
   display: block;
   -webkit-line-clamp: unset;
   max-height: 160px;
@@ -210,20 +210,20 @@
   overflow-wrap: anywhere;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-root"][data-agent-state="running"] {
   background-color: var(--card);
   border-color: var(--border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] [data-slot="reasoning-trigger-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-root"][data-agent-state="running"] [data-slot="reasoning-trigger-icon"] {
   color: var(--agent-brand-active);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="idle"] [data-slot="reasoning-fade"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-root"][data-agent-state="idle"] [data-slot="reasoning-fade"] {
   display: none;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-text"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-text"] {
   font-size: 14px;
   line-height: 1.75;
   padding-inline-end: 8px;
@@ -231,75 +231,75 @@
   overflow-wrap: anywhere;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-text"] :is(p, li) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="reasoning-text"] :is(p, li) {
   line-height: inherit;
 }
 
 /* Paint-only running decoration keeps the upstream ghost geometry unchanged
  * when the group completes. The inset border does not affect the box model. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="tool-group-root"][data-agent-state="running"] {
   background-color: var(--card);
   box-shadow: inset 0 0 0 1px var(--border);
   border-radius: var(--radius);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] [data-slot="tool-group-trigger-loader"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="tool-group-root"][data-agent-state="running"] [data-slot="tool-group-trigger-loader"] {
   color: var(--agent-brand-active);
 }
 
 /* Generic fallback only: upstream does not expose a root status seam. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-fallback-root"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="tool-fallback-root"] {
   background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.25rem 0.5rem;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"]) {
   background-color: var(--card);
   border-radius: calc(var(--radius) - 2px);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-trigger-popover"] {
   background-color: var(--popover);
   border-color: var(--border);
   box-shadow: var(--aui-shadow-md);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]) {
   color: var(--foreground);
   border-radius: 0;
 }
 
 /* The product-owned list seams remove the unhighlighted gutter. The existing
  * popover clips each full-width row to its outer radius; anatomy stays intact. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item-list"], [data-slot="composer-trigger-popover-categories"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="composer-trigger-popover-item-list"], [data-slot="composer-trigger-popover-categories"]) {
   padding-block: 0;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]):is(:hover, :focus-visible) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]):is(:hover, :focus-visible) {
   background-color: var(--muted);
 }
 
 /* Keyboard highlight wins over hover and covers the complete item row. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"])[data-highlighted] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"])[data-highlighted] {
   background-color: var(--agent-brand-selected);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-trigger-popover-icon"] {
   color: var(--agent-brand-active);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-trigger-popover-back"] {
   color: var(--muted-foreground);
   border-color: var(--border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"]:is(:hover, :focus-visible) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-trigger-popover-back"]:is(:hover, :focus-visible) {
   background-color: var(--muted);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-directive-chip"] {
   background: var(--agent-brand-surface);
   border-color: var(--agent-brand-border);
   color: var(--agent-brand-solid);
@@ -307,65 +307,65 @@
 
 /* Match the existing product input's focus seam with enough specificity to
  * override the generic Lexical CSS imported later. No editor internals. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input):focus-within [data-slot="composer-directive-chip"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input):focus-within [data-slot="composer-directive-chip"] {
   background: var(--agent-brand-selected);
   border-color: var(--agent-brand-focus-border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"]:focus-visible {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-directive-chip"]:focus-visible {
   background: var(--agent-brand-selected);
   border-color: var(--agent-brand-focus-border);
   outline: 1px solid var(--agent-brand-border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"]::selection {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-directive-chip"]::selection {
   background: var(--agent-brand-selected);
   color: var(--foreground);
 }
 
-/* Reference, file, job and option surfaces: product Violet presentation only.
+/* Reference, file, job and option surfaces follow the active semantic palette.
  * Stable slots and semantic checkbox state preserve upstream structure/events. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source-icon"],
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="quote-block-icon"],
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="source-icon"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="quote-block-icon"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="file-icon"] {
   color: var(--agent-brand-solid);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="file-icon"] {
   background-color: var(--muted);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-root"],
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="option-list"],
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="job-progress"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="file-root"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="option-list"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="job-progress"] {
   background-color: var(--card);
   border-color: var(--border);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="source"] {
   background-color: var(--card);
   border-color: var(--border);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source"]:hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="source"]:hover {
   background-color: var(--muted);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="option-list"] [role="checkbox"][aria-checked="true"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="option-list"] [role="checkbox"][aria-checked="true"] {
   background-color: var(--agent-brand-selected);
 }
 
 /* Media, tasks and charts retain their existing dimensions and behavior. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-root"], [data-slot="image-generating"], [data-slot="task-card"], [data-slot="task-card-transcript"], [data-slot="task-card-result"], [data-slot="chart-message"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="image-root"], [data-slot="image-generating"], [data-slot="task-card"], [data-slot="task-card-transcript"], [data-slot="task-card-result"], [data-slot="chart-message"]) {
   background-color: var(--card);
   border-color: var(--border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-preview-loading"], [data-slot="image-preview-error"], [data-slot="image-content-filter-error"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="image-preview-loading"], [data-slot="image-preview-error"], [data-slot="image-content-filter-error"]) {
   background-color: var(--muted);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-copy"], [data-slot="image-download"], [data-slot="image-regenerate"]):hover {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="image-copy"], [data-slot="image-download"], [data-slot="image-regenerate"]):hover {
   background-color: var(--muted);
   color: var(--agent-brand-solid);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-quote"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-quote"] {
   background-color: var(--agent-brand-surface);
   border-color: var(--border);
   border-inline-start: 2px solid var(--agent-brand-border);
@@ -374,83 +374,83 @@
   border-radius: 8px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-quote-text"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-quote-text"] {
   font-size: 13px;
   line-height: 1.5;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-quote-icon"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-quote-icon"] {
   color: var(--agent-brand-solid);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="chart-message-track"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="chart-message-track"] {
   background-color: var(--muted);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="chart-message-fill"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="chart-message-fill"] {
   background-color: var(--agent-brand-active);
 }
 
 /* Optional frontend plugins own these hooks; their service lifecycles stay intact. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="frontend-tool-form"], [data-slot="frontend-tool-dialog-content"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="frontend-tool-form"], [data-slot="frontend-tool-dialog-content"]) {
   background-color: var(--card);
   color: var(--card-foreground);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-input"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-input"] {
   background-color: var(--card);
   border-color: var(--input);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-input"]:focus-visible {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-input"]:focus-visible {
   border-color: var(--agent-brand-focus-border);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"]) {
   background-color: var(--agent-brand-solid);
   color: var(--primary-foreground);
   border: 1px solid var(--agent-brand-solid);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-reset"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-reset"] {
   background-color: var(--card);
   color: var(--foreground);
   border: 1px solid var(--border);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] [role="alert"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form"] [role="alert"] {
   color: var(--destructive);
 }
 
 /* A solid outline remains legible even where upstream uses a half-opacity ring.
  * These existing slots cover actual keyboard controls, without changing events. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="button"], [data-slot="popover-trigger"], [data-slot="tooltip-trigger"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="composer-trigger-popover-back"], [data-slot="frontend-tool-form-input"], [data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"], [data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]):focus-visible {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="button"], [data-slot="popover-trigger"], [data-slot="tooltip-trigger"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="composer-trigger-popover-back"], [data-slot="frontend-tool-form-input"], [data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"], [data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]):focus-visible {
   outline: 2px solid var(--agent-brand-focus-border);
   outline-offset: 2px;
 }
 
 /* Semantic Markdown elements inside the product-owned presentation boundary. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] {
   min-width: 0;
   color: var(--foreground);
   font-size: 14px;
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] p {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] p {
   margin-block: 8px;
   line-height: inherit;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] :is(h1, h2, h3, h4, h5, h6) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(h1, h2, h3, h4, h5, h6) {
   margin-block: 16px 6px;
   font-weight: 600;
   line-height: 1.4;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] h1 { font-size: 20px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] h2 { font-size: 18px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] h3 { font-size: 16px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] :is(h4, h5, h6) { font-size: 14px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] :is(ul, ol) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h1 { font-size: 20px; }
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h2 { font-size: 18px; }
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h3 { font-size: 16px; }
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(h4, h5, h6) { font-size: 14px; }
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(ul, ol) {
   margin-block: 8px;
   margin-inline-start: 20px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] li { line-height: inherit; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] blockquote {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] li { line-height: inherit; }
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] blockquote {
   margin-block: 12px;
   padding: 4px 12px;
   color: var(--muted-foreground);
@@ -458,33 +458,33 @@
   border-inline-start: 3px solid var(--border);
   border-radius: 0 8px 8px 0;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-markdown"], [data-slot="agent-ui-markdown"] *, [data-slot="reasoning-text"], [data-slot="reasoning-text"] *, [data-slot="aui_user-message-content"], [data-slot="aui_user-message-content"] *)::selection {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="agent-ui-markdown"], [data-slot="agent-ui-markdown"] *, [data-slot="reasoning-text"], [data-slot="reasoning-text"] *, [data-slot="aui_user-message-content"], [data-slot="aui_user-message-content"] *)::selection {
   background: var(--agent-brand-border);
   color: var(--foreground);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_composer-shell"], [data-slot="agent-ui-edit-composer"]) :is(textarea, [contenteditable="true"], [contenteditable="true"] *, [data-slot="composer-quote-text"])::selection {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="aui_composer-shell"], [data-slot="agent-ui-edit-composer"]) :is(textarea, [contenteditable="true"], [contenteditable="true"] *, [data-slot="composer-quote-text"])::selection {
   background: var(--agent-brand-border);
   color: var(--foreground);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] code {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] code {
   padding: 1px 5px;
   font-size: 0.9em;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: 4px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] a {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] a {
   color: var(--agent-brand);
   text-decoration-color: var(--agent-brand-border);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] a:is(:hover, :focus-visible) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] a:is(:hover, :focus-visible) {
   text-decoration-color: currentColor;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] pre {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] pre {
   padding: 12px 14px;
   font-size: 13px;
   line-height: 1.65;
@@ -493,7 +493,7 @@
   overflow-x: auto;
   overflow-wrap: normal;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] pre code {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] pre code {
   padding: 0;
   font-size: inherit;
   background: transparent;
@@ -501,22 +501,22 @@
   border-radius: 0;
   white-space: pre;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] :is(th, td) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(th, td) {
   padding: 8px 12px;
   font-size: 13px;
   border-color: var(--border);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-markdown"] th {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] th {
   background: var(--agent-brand-surface);
   font-weight: 600;
   box-shadow: inset 0 -1px 0 var(--border);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"])::selection {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"])::selection {
   background: var(--agent-brand-border);
   color: var(--foreground);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"]) *::selection {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"]) *::selection {
   background: var(--agent-brand-border);
   color: var(--foreground);
 }

@@ -1,5 +1,9 @@
 # Current theme architecture
 
+> 2026-10-23 presentation update: at the user's request, current product geometry and typography are shared across light, dark and violet. Product color seams derive from each preset's semantic palette; the existing Violet and compact Violet palette values remain preserved. Earlier notes below about leaving light/dark product presentation unchanged describe the historical review, not this updated presentation boundary. Runtime, upstream vendor files and the three preset identities remain unchanged.
+
+> Historical review snapshot: source paths below belong to the revision recorded under “Revision and target caveat”. The Source Registry workspace has since merged into Plugins, and official Plugin owners moved to `packages/plugins/src/plugins/<id>/` and `src/shared/`. For current paths and ownership, use [the accepted delivery architecture](../../architecture/npm-default-plugin-source-ownership.md); do not treat the old paths below as current edit targets.
+
 Scope: deployed Agent frontend plugins. Creator Agent and Creator workbench are outside this design task. No theme values or product files were edited.
 
 ```text

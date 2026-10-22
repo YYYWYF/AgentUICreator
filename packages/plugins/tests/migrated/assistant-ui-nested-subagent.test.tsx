@@ -35,7 +35,7 @@ import { ConversationAdapter } from "../../resources/registry/items/foundation/c
 import { createConversationToolkit } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/toolkit/index";
 import { ConversationResponseFooterPlugin } from "../../resources/registry/items/plugin/response-footer/files/plugins/response-footer/index";
 import { TaskGroupPlugin } from "../../resources/registry/items/plugin/task-group/files/plugins/task-group/index";
-import type { UIPluginRenderScope } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import type { UIPluginRenderScope } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   PluginServiceRuntime,

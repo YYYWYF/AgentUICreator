@@ -46,6 +46,8 @@ import { Assistant } from './Assistant';
 
 ## 2. 配置演示对话服务
 
+本教程将 Mock 加入现有 Vite 开发服务，在 `/agent` 返回预设回复。也可以使用 [Creator 独立模拟服务](../guide/mock/)，两种方式选择一种即可。
+
 先用演示服务试发一条消息。已有可用的 AG-UI 接口时，可以直接跳到[接入自己的对话接口](#4-接入自己的对话接口)。
 
 打开 `vite.config.ts`，找到安装 Creator 时添加的 `if (creatorEntry)` 分支。在分支内部、现有 Creator 插件代码后加入：
@@ -62,7 +64,7 @@ plugins.push(mocks.createMockConversationApiVitePlugin({
 }));
 ```
 
-保存文件，重启工程开发服务器，再刷新页面。`Agent` 默认使用 `/agent`，与上面的演示服务地址一致。
+保存文件，重启工程开发服务器，再刷新页面。该演示地址为 `/agent`；若项目已配置其他开发 endpoint，在本节的 `Agent` 上显式传入 `endpoint="/agent"`，避免请求另一套 Mock 服务。
 
 ## 3. 发送消息并查看回复
 
@@ -88,3 +90,5 @@ plugins.push(mocks.createMockConversationApiVitePlugin({
 最后运行工程原有的测试和构建命令，确认助理和原有页面都能正常使用。
 
 接下来[用 AI 修改界面](./ai-assisted)。需要手动修改时，查看[文件位置](./generated-files)。
+
+> 截图待补：完整操作截图。使用当前实际工程，保留操作入口和预期结果。

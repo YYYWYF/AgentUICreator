@@ -5,18 +5,50 @@
     "activeMatch": "^/start/"
   },
   {
-    "text": "用户手册",
-    "link": "/guide/",
-    "activeMatch": "^/guide/"
+    "text": "使用指南",
+    "activeMatch": "^/(guide|agent-ui)/",
+    "items": [
+      {
+        "text": "Creator 开发指南",
+        "link": "/guide/"
+      },
+      {
+        "text": "Agent 前端能力",
+        "link": "/agent-ui/"
+      }
+    ]
   },
   {
-    "text": "Plugins",
+    "text": "插件",
     "link": "/plugins/",
     "activeMatch": "^/plugins/"
   },
   {
-    "text": "接入与部署",
-    "link": "/integration/",
-    "activeMatch": "^/integration/"
+    "text": "接入与定制",
+    "activeMatch": "^/(integration|customization)/",
+    "items": [
+      {
+        "text": "应用接入与部署",
+        "link": "/integration/"
+      },
+      {
+        "text": "定制与扩展",
+        "link": "/customization/"
+      }
+    ]
+  },
+  {
+    "text": "帮助与维护",
+    "activeMatch": "^/(updates|troubleshooting)/",
+    "items": [
+      {
+        "text": "版本与更新",
+        "link": "/updates/"
+      },
+      {
+        "text": "故障排查",
+        "link": "/troubleshooting/"
+      }
+    ]
   }
 ]

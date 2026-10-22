@@ -50,6 +50,11 @@ previous interpretation or plan. An ordinary clarification is not development or
 takeover approval; a valid bound approval remains relevant to its approved work.
 
 AppUIModel owns layout and semantic Plugin composition, not React props/renderers.
+New Plugin nodes normally specify pluginId without id or enabled: true. Runtime
+normalization supplies deterministic identities and default enablement. Existing
+explicit IDs stay supported. For existing nodes use the current Composition
+snapshot's pN ref (or its legacy explicit ID) in instanceId/parentInstanceId/
+anchorInstanceId; refs belong to that model hash and never belong in saved JSON.
 Use mutate_app_ui_model for healthy composition; never edit app-ui/app-ui.json,
 app-ui/composition-revision.generated.json, or plugins/registry.generated.ts.
 Host-confirmed invalid models use inspect_app_ui_model_source and repair_app_ui_model.

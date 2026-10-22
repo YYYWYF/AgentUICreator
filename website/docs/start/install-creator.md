@@ -6,6 +6,8 @@ title: 安装并启动 Creator
 
 :::tip 环境要求
 Node.js `^20.19.0 || >=22.12.0`。以下步骤使用 React + Vite 工程，命令以 pnpm 为例；包管理器沿用工程现有配置。
+
+正常安装 Creator 后直接启动，无需另装 Python。内网镜像需要提供完整依赖，失败时参考[启动排障](../troubleshooting/startup)。
 :::
 
 ## 1. 安装
@@ -82,3 +84,5 @@ export default defineConfig(async ({ command }) => {
 点击这个按钮，右侧应展开 Creator 面板。继续[创建助理界面](./project-modes)。
 
 如果没有看到入口，检查工程开发服务器是否已重启，以及 Vite 配置中是否加入 `createCreatorDockVitePlugin`；展开后无法连接时，检查 Creator 服务是否仍在运行。
+
+> 截图待补：配置代码、入口截图。使用当前实际工程，保留操作入口和预期结果。

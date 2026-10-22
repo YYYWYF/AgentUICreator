@@ -1,0 +1,17 @@
+---
+title: 配置历史服务地址
+---
+
+# 配置历史服务地址
+
+生成的 React 工程在 `agent-ui/conversation/config/conversation-runtime-config.ts` 中设置历史 API 地址：
+
+```ts
+export const conversationDataEndpoint: string | undefined = '/api';
+```
+
+保留该文件中的其他配置。历史服务需提供列表、读取和删除接口；Web Component 使用 `conversationDataEndpoint` 属性配置。
+
+当前 React `Agent` 不接收同名参数。可传入的会话参数和配置位置见[Agent 参数与配置](./agent-options)，接口要求见[历史服务接入](./history-backend)。
+
+> 截图待补：历史地址配置与列表加载成功、失败重试的效果。

@@ -2,7 +2,7 @@
 
 首次接入请先阅读 [三步接入指引](../README.md)。本文面向需要自定义配置或维护 Creator 的开发者。
 
-Creator 源码统一位于本目录：`src/` 是 Node Host、CLI 和 UI，`python/` 是 Python Agent sidecar（含独立 `pyproject.toml`、依赖锁和测试），`skills/` 是共享技能。Python 代码随 npm 包复制到 `dist/python`，部署产物不依赖仓库目录。
+`packages/creator/python` 是 Python Agent，`packages/creator/skills` 是 Agent 技能。Node Host、CLI、UI 和项目操作等 TS 实现位于 `packages/operator`。用户只安装 Creator，Operator 和含解释器/全部 Python 依赖的平台包自动安装，部署产物不依赖仓库目录。详见 [Creator Python 发行](python-distribution.md)。
 
 Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Workbench。模型、Agent loop、项目工具、验证、回执和运行时诊断状态都由 `packages/creator/python` 负责；目标前端不需要把 Creator 打进生产 Bundle。
 
@@ -168,22 +168,26 @@ CLI 端口占用而改用其他端口时，将实际地址填入 `creatorUrl`，
 公司若有统一 HTML 注入封装，也可让它在开发时加载 `http://127.0.0.1:47832/dock-client.js`；
 使用现成适配器还能携带工程身份，并接通 Preview 的开发转发。
 
-当前 `scripts/build-browser.mjs` 仅在构建阶段调用 Vite，安装后启动不需要 Vite。
+当前 `packages/operator/scripts/build-browser.mjs` 仅在构建阶段调用 Vite，安装后启动不需要 Vite。
 接入公司 Rsbuild 时，用公司构建命令替换这一段，输出保持为：
 
 ```text
-dist/cli.js                 # package.json bin 指向的 Node 入口
-dist/standaloneServer.js    # 本地服务与工程操作装配
-dist/browser/index.html    # Creator 界面
-dist/browser/dock.html     # 浮层 iframe 中的 Creator 界面
-dist/browser/dock-client.js # 注入宿主页面的 classic script
-dist/browser/assets/*      # index.html 引用的静态资源（目录名可由构建工具决定）
-dist/python/*              # Python 源码与 requirements.lock
-skills/*                   # Creator Skills
+packages/creator/
+  dist/cli.js              # package.json bin 指向的薄 Node 启动入口
+  dist/standaloneServer.js # 兼容转发入口
+  dist/python-sidecar.json # 平台包所需 Agent/依赖锁/协议源摘要
+  skills/*                 # Creator Skills
+packages/operator/
+  dist/cli.js              # CLI 实现，由 Creator 入口加载
+  dist/standaloneServer.js # 本地服务与工程操作装配
+  dist/browser/index.html  # Creator 界面
+  dist/browser/dock.html   # 浮层 iframe 中的 Creator 界面
+  dist/browser/dock-client.js # 注入宿主页面的 classic script
+  dist/browser/assets/*   # HTML 引用的静态资源
 ```
 
-Rsbuild 浏览器入口对应 `browser/main.tsx` 与 `browser/dock.tsx`，HTML 对应 `index.html` 与
-`dock.html`。`browser/dock-client.ts` 需单独输出一个无外部 imports 的 classic/IIFE
+浏览器源码均归 `packages/operator/browser/`。Rsbuild 入口对应其中的 `main.tsx` 与 `dock.tsx`，HTML 对应 `index.html` 与
+`dock.html`。其中的 `dock-client.ts` 需单独输出一个无外部 imports 的 classic/IIFE
 `dock-client.js`，供宿主开发页面加载；其内容包含顶部标签和 Preview bridge。界面的 React
 依赖应打入浏览器产物，不要求目标工程安装 Creator 的 React 版本。静态资源引用使用相对
 路径或本站绝对路径。Node 入口目前保留 TypeScript 编译产物的目录结构；如果再改成单文件
@@ -192,16 +196,16 @@ Node bundle，须一并调整 package.json、Python、Skills、更新服务等�
 
 CLI 默认监听 `127.0.0.1:47832`，端口占用时自动选择空闲端口。
 测试时可设置 `CREATOR_PORT=0` 和 `CREATOR_OPEN_BROWSER=0`；普通用户无需设置。
-机器仍需安装 Node.js 与 Python 3.11+，首次 Python 安装需要可用的 pip 源。
+用户机器只需安装受支持的 Node.js；Creator 自动依赖匹配平台的完整 Python 执行包，启动不需要 pip 源。
 Creator 以 `@za38.03/agent-ui-creator` 独立发行，包含开发用 Mock Agent。
 通过 `@za38.03/agent-ui-creator/mock-agent` 导入场景、HTTP handler 和 Vite Mock 集成。
-Operator 已合入 Creator，源码在 `packages/creator/operator`，通过 `/operator/*`、`/bootstrap` 和 `/source-registry` 公开。两者共享一个 npm 身份与版本；Plugins 的资源与 catalog 仍独立交付。
+Operator 的 TS 实现位于 `packages/operator`，拥有独立 npm 身份和版本，由 Creator 自动依赖。项目操作模块位于 `control/`，通过 Operator `/project/*`、`/bootstrap` 和 `/source-registry` 公开；Creator 原有导入路径继续转发。Plugins 的资源与 catalog 仍独立交付。
 更新 Creator 不会自动修改已经生成的项目源码。
 
 `pnpm verify:creator-workbench` 会构建、打包本仓库的 npm 包，用本地 tarball 模拟内部
 Registry，然后在仓库外的新工程中仅直接安装 Creator，验证图形资产、工程选择、
 初始化设置、dock 资产和退出清理。该验收不发送模型请求，也不修改已有工程。
-已构建时可加 `--skip-build`；npm 元数据与依赖缓存完整时可加 `--offline`。
+已构建时可加 `--skip-build`。验收通过本地临时 registry 提供未发布的官方包；第三方依赖继续使用配置的 npm 源与缓存。
 
 ## API
 
@@ -242,12 +246,9 @@ Host 静态验证，Workbench 也不会发送 Runtime diagnostics 或 compositio
 
 ### Installed @za38.03/agent-ui-creator
 
-安装 npm 包后，机器需要 Python 3.11+。第一次真正启动 Creator 时，会自动创建
-isolated managed Python environment 并安装随包发布的 `requirements.lock`；首次安装需要
-访问 Python package index。npm install 本身不安装 Python dependencies。
-系统 Python 只用于创建 venv，Sidecar 始终通过 venv 的 Python 启动。
+安装 npm 包时，npm 自动安装匹配 OS/CPU 的平台 optionalDependency，包含解释器、锁定依赖和 Agent 源码。首次与后续启动都直接使用平台包，不查找系统 Python、不创建 venv、不执行 pip。请启用可选依赖，并确保公司 npm 镜像提供所有声明的平台包。
 
-默认缓存位置为 macOS 的 `~/Library/Caches/agent-ui-creator/python/`、Linux 的
+以下缓存仅用于源码仓库开发：macOS 的 `~/Library/Caches/agent-ui-creator/python/`、Linux 的
 `$XDG_CACHE_HOME/agent-ui-creator/python/`（未设置时使用 `~/.cache/agent-ui-creator/python/`），
 以及 Windows 的 `%LOCALAPPDATA%/agent-ui-creator/python/`。可通过
 `CREATOR_PYTHON_ENV_ROOT` 或 host config 中的同名配置指定缓存根目录。环境按 Creator
@@ -265,15 +266,10 @@ Creator 检查版本并启动，不创建 venv，也不修改用户环境。缺�
 
 ### Distribution gate
 
-发布前执行 `pnpm test:python:setup`，再执行 `pnpm verify:creator-distribution`。
-该门禁包含 managed environment 单测、npm tarball 结构与完整 Contract parity、脱离仓库
-运行的 Contract / Sidecar health smoke、isolated wheel 安装与 validator 初始化，以及真实
-system Python → 临时缓存 venv → locked dependencies → Sidecar health 的 bootstrap。
+发布前先在各平台 Python 构建任务生成完整 sidecar npm artifact，再在 Node 任务还原并执行 `pnpm verify:creator-distribution`。该门禁包含平台解析单测、npm tarball 结构与完整 Contract parity、脱离仓库的 Sidecar health，以及清空 PATH 后不依赖系统 Python/pip 的真实启动与重启。
 测试不发送模型请求。Creator distribution CI 使用此门禁；独立 npm 包发行还执行 `pnpm verify:package`。
 
-可分别执行 `pnpm verify:creator-package`、`pnpm verify:creator-python-wheel` 或较重的
-`pnpm test:creator-package-runtime`。Contract 的唯一源码是 `packages/creator/contracts/creator`；npm
-和 wheel 都自动打包为 `agent_ui_creator/_contracts/creator`，不依赖仓库目录结构。
+可分别执行 `pnpm verify:creator-package`、`pnpm test:creator-package-runtime`。`pnpm verify:creator-python-wheel` 保留用于 Python 开发包验收，不再是 Node 发布任务的前置条件。Contract 的唯一源码是 `packages/creator/contracts/creator`；平台包和 wheel 都打包为 `agent_ui_creator/_contracts/creator`，不依赖仓库目录结构。
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
 并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败；工程中

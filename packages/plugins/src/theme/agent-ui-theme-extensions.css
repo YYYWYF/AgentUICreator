@@ -1,5 +1,23 @@
-/* Agent UI owns only semantics missing from the shadcn palette. */
+/* Product presentation shares semantic tokens across every preset. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] {
+  /* Neutral presets derive interaction colors from their own primary color.
+   * Violet replaces the brand values in its palette without changing geometry. */
+  --agent-brand: var(--primary);
+  --agent-brand-solid: var(--primary);
+  --agent-brand-subtle: color-mix(in oklab, var(--background) 97%, var(--agent-brand));
+  --agent-brand-surface: color-mix(in oklab, var(--background) 94%, var(--agent-brand));
+  --agent-brand-hover: color-mix(in oklab, var(--background) 92%, var(--agent-brand));
+  --agent-brand-selected: color-mix(in oklab, var(--background) 90%, var(--agent-brand));
+  --agent-brand-border: color-mix(in oklab, var(--background) 82%, var(--agent-brand));
+  --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
+  --agent-brand-focus-border: var(--agent-brand-solid);
+  --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 20%, transparent);
+  --agent-brand-active: var(--agent-brand);
+  --agent-composer-focus-border: color-mix(in srgb, var(--agent-brand) 34%, var(--background));
+  --agent-composer-focus-ring: color-mix(in srgb, var(--agent-brand) 7%, transparent);
+  --agent-composer-shadow: 0 8px 26px rgb(0 0 0 / 7%);
+  --agent-error-surface: color-mix(in oklab, var(--card) 95%, var(--destructive));
+  --agent-error-border: color-mix(in oklab, var(--card) 75%, var(--destructive));
   /* Runtime aliases resolve here, alongside each scoped semantic palette. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -53,6 +71,7 @@
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-color-scheme="dark"] {
+  --agent-composer-shadow: 0 8px 26px rgb(0 0 0 / 28%);
   --success: oklch(0.765 0.177 163.223);
   --success-foreground: oklch(0.262 0.051 172.552);
   --warning: oklch(0.828 0.189 84.429);

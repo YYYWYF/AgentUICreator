@@ -13,8 +13,8 @@ import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
 } from "@za38.03/agent-ui-runtime";
-import type { AppUIModel } from "../../../creator/operator/src/framework/contracts/app-ui-model";
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import type { AppUIModel } from "../../../operator/control/src/framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
@@ -33,7 +33,7 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { createStaticAgentRuntime } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { createStaticAgentRuntime } from "../../../operator/control/tests/support/agent-runtime-fixture";
 import { ThemeSwitchPlugin } from "../../resources/registry/items/plugin/theme-switch/files/plugins/theme-switch/index";
 import { themeProviderPlugin } from "../../resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
 import { localeProviderPlugin } from "../../resources/registry/items/plugin/locale-provider/files/plugins/locale-provider/definition";

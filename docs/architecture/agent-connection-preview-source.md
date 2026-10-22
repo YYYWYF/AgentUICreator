@@ -52,7 +52,7 @@ workspace, even if both projects use the same thread ID.
 Both list/detail and deletion use the workspace routing
 header and require Mock Source. The Host preview plugin explicitly proxies this
 path to Creator. The workbench overlay removes example-owned Mock conversation
-plugins; ordinary user Hosts need neither that plugin nor `@agent-ui/mock-agent`.
+plugins; ordinary user Hosts need neither that plugin nor a Mock npm dependency. The tooling Mock implementation is delivered by Operator and forwarded through `@za38.03/agent-ui-creator/mock-agent`.
 
 The connected proxy reads its target only from the workspace store. Query strings,
 methods, end-to-end headers, bodies, status and streamed response bytes are
@@ -97,7 +97,7 @@ header/body/query preservation, locked switching, fixed-target redirects,
 workspace isolation, persistence and auxiliary path routing.
 
 The isolated Playwright suite runs with
-`pnpm --filter @agent-ui/creator-workbench test:e2e:agent-connection`.
+`pnpm --filter @za38.03/agent-ui-creator-workbench test:e2e:agent-connection`.
 It creates a disposable generated Host without Mock dependencies or Mock Vite
 plugins. Only unrelated Creator workspace metadata is supplied by the test;
 the Creator UI, preview bridge, generated Plugins and HTTP routes are real.

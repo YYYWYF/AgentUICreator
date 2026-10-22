@@ -463,9 +463,7 @@ class CreatorDomainReadAgent:
                 operations=[{
                     "type": "insert_plugin_default",
                     "plugin": {
-                        "id": f"{record.target_plugin_id}-main",
                         "pluginId": record.target_plugin_id,
-                        "enabled": True,
                     },
                 }],
             )

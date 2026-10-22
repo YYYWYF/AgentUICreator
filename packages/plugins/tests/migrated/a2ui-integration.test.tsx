@@ -10,8 +10,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { A2uiConversationIntegration } from "../../resources/registry/items/integration/a2ui/files/integrations/a2ui/A2uiConversationIntegration";
 import { createA2uiConversationToolkit } from "../../resources/registry/items/integration/a2ui/files/integrations/a2ui/create-a2ui-toolkit";
 import { createAgentUIGenerativeUI } from "../../resources/registry/items/integration/generative-ui/files/integrations/generative-ui/index";
-import { a2uiFormControlsSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-form-controls";
-import { a2uiOrderSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-interactive-order";
+import { a2uiFormControlsSnapshot } from "../../../operator/src/mock-agent/builtins/a2ui-form-controls";
+import { a2uiOrderSnapshot } from "../../../operator/src/mock-agent/builtins/a2ui-interactive-order";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const disposers: (() => Promise<void>)[] = [];

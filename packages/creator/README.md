@@ -3,7 +3,7 @@
 在你自己的开发页面里，用对话检查和修改 Agent UI。
 业务工程照常启动，需要 Creator 时再单独启动它。
 
-以下适用于 React + Vite 项目。需要 Node.js 22.12 或更新版本，以及 Python 3.11 或更新版本。
+以下适用于 React + Vite 项目。需要 Node.js 22.12 或更新版本；Operator 与匹配平台的 Python 执行环境随 npm 依赖自动安装，无需另行安装。支持的平台与工程结构见 [Creator Python 发行](docs/python-distribution.md)。
 
 ## 1. 安装
 
@@ -137,8 +137,8 @@ export default function SelfPage() {
 
 ## Project Operator and contracts
 
-Creator is one development-tool package, including the internal `operator/` module and canonical `contracts/` schemas/fixtures. There is no separate Operator npm package. Agent orchestration stays in Creator; project inspection, controlled mutations, validation, transactions, source operations and update planning stay in Operator. The Python sidecar and Node implementation share the same protocol, shipped in the npm artifact and Python wheel.
+Creator has one user-facing npm installation entry. `packages/creator` owns the Python Agent, skills, canonical contracts and thin Node entry; `packages/operator` owns the TypeScript CLI, Workbench, integrations and project-control implementation under `control/`. Creator automatically depends on the independently versioned `@za38.03/agent-ui-operator` and matching Python platform package, including its interpreter, dependencies and contracts. Users do not install either dependency separately. Python wheels remain a development distribution.
 
 Public Node entry points: `/operator` (managed entry installer), `/operator/dev`, `/operator/protocol`, `/operator/host`, `/operator/resources`, `/operator/updates`, `/operator/commands`, `/bootstrap`, and `/source-registry`. Import these subpaths to use project tools without starting the Creator UI or Python sidecar. Production frontends must remain independent of Creator.
 
-`pnpm --filter @za38.03/agent-ui-creator build` builds both modules and packages Operator runtime/types/presets. `test:operator` and `typecheck:operator` run the internal module checks; the main `test` and `typecheck` include them.
+`pnpm --filter @za38.03/agent-ui-creator build` builds Operator and the Creator npm entry. Operator's runtime/types/presets and browser assets ship only in the Operator package; Creator's existing subpaths forward to it. Run `pnpm --filter @za38.03/agent-ui-operator test:operator` or `typecheck:operator` for project-control checks, and its main `test` / `typecheck` for the full TS tool. Creator's `typecheck` checks the generated npm entry.

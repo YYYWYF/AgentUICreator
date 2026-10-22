@@ -9,7 +9,7 @@ import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationAgentFactory } from "@za38.03/agent-ui-runtime";
 import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createMockConversationApiHandler } from "../../../creator/src/mock-agent/conversations/handler";
+import { createMockConversationApiHandler } from "../../../operator/src/mock-agent/conversations/handler";
 import { AGENT_UI_LOCALE_SERVICE } from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-locale";
 import { createAgentUILocaleService } from "../../resources/registry/items/plugin/locale-provider/files/plugins/locale-provider/locale-service";
 import { enUS } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/i18n/locales/en-US";
@@ -18,7 +18,7 @@ import { PolicyThreadList } from "../../resources/registry/items/plugin/conversa
 import { createConversationService, createHttpConversationDataSource } from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 import { PluginServiceProvider, createPluginRegistry, UIPluginRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
 import { AgentRuntimeProvider } from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/AgentRuntimeProvider";
 import { conversationThreadListPlugin } from "../../resources/registry/items/plugin/conversation-thread-list/files/plugins/conversation-thread-list/definition";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../resources/registry/items/foundation/core-application/files/services/conversations";

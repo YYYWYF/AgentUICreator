@@ -1,4 +1,4 @@
-import { generatedProjectFixture, repositoryRoot } from "../../../creator/operator/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../operator/control/tests/support/generated-project";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

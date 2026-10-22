@@ -1,0 +1,27 @@
+---
+title: 设置主题
+---
+
+# 设置主题
+
+页面可以直接传入主题：
+
+```tsx
+<Agent theme="dark" />
+```
+
+`theme` 支持 `light`、`dark`、`violet`，动态修改时保留当前会话和输入草稿。需要与界面主题选择器联动时，见[主题参数与切换回调](../integration/agent-options#切换主题)。
+
+不传 `theme` 时，在项目的 `agent-ui/theme/theme-config.ts` 中调整 `agentUIThemeConfig.theme`，支持 `light`、`dark`、`violet`：
+
+```ts
+export const agentUIThemeConfig = {
+  theme: 'dark',
+};
+```
+
+保留原文件的类型声明和其他配置。需要用户在界面选择主题时，再加入[主题切换控件](../plugins/theme-switch)。
+
+语言、账号与适配器等接入统一见[Agent 参数与配置](../integration/agent-options)。
+
+> 截图待补：主题配置文件与同一对话在不同主题下的效果。

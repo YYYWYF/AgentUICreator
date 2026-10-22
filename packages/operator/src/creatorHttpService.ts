@@ -1,0 +1,213 @@
+import { createCreatorCommandHandler } from "./commands/command-api.js";
+import { CREATOR_COMMANDS_API_PATH } from "./commands/types.js";
+import { createConnectionHandler } from "./agent-connection/connection-api.js";
+import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
+import { createCreatorUpdateHandler, CREATOR_UPDATES_API_PATH } from "./updates/update-api.js";
+import type { UpdateSourceProvider } from "@za38.03/agent-ui-operator/project/updates";
+import type { IncomingMessage, ServerResponse } from "node:http";
+
+import {
+  PythonCreatorProcessManager,
+  type PythonCreatorProcessManagerOptions,
+} from "./PythonCreatorProcessManager.js";
+import { proxyPythonCreatorRequest } from "./PythonCreatorProxy.js";
+import { CreatorWorkspaceManager, CreatorWorkspaceError } from "./workspace/CreatorWorkspaceManager.js";
+import { CREATOR_WORKSPACE_API_PATH, handleCreatorWorkspaceRequest } from "./workspace/workspace-api.js";
+import { CREATOR_WORKSPACE_ID_HEADER } from "./workspace/types.js";
+import { CreatorMockService } from "./mock/CreatorMockService.js";
+import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
+import type { MockProjectInspector } from "./mock/demo-compatibility.js";
+import { handleCreatorMockRequest } from "./mock/mock-api.js";
+import { resolveOfficialResource } from "@za38.03/agent-ui-operator/project/resources";
+import {
+  resolveCreatorPythonAgentMode,
+  resolveCreatorVerificationMode,
+} from "./creatorRuntimeConfig.js";
+import {
+  CREATOR_API_PATH,
+  CREATOR_CONTROL_API_PATH,
+  CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+  CREATOR_VISUAL_OBSERVATION_API_PATH,
+} from "./shared.js";
+
+export type CreatorMiddleware = (request: IncomingMessage, response: ServerResponse, next: (error?: unknown) => void) => void | Promise<void>;
+export interface CreatorMiddlewareRegistry {
+  use(handler: CreatorMiddleware): unknown;
+  use(route: string, handler: CreatorMiddleware): unknown;
+}
+
+export interface CreatorHttpServiceOptions {
+  updateSourceProvider?: UpdateSourceProvider | undefined;
+  inspectMockProject?: MockProjectInspector | undefined;
+  installOfficialAgentUIResource?: ((projectRoot: string, resourceId: string) => Promise<void>) | undefined;
+  /** @deprecated Internal compatibility adapter. Use installOfficialAgentUIResource. */
+  installMockResource?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
+  /** @deprecated Internal compatibility adapter. Use installOfficialAgentUIResource. */
+  installScenarioResources?: ((projectRoot: string, sourceItemId: string) => Promise<void>) | undefined;
+  installMockPlugin?: ((projectRoot: string, pluginId: string) => Promise<void>) | undefined;
+  projectRoot?: string | undefined;
+  workspaceManager?: CreatorWorkspaceManager | undefined;
+  configRoot?: string | undefined;
+  python?:
+    | Omit<
+        PythonCreatorProcessManagerOptions,
+        "projectRoot" | "configRoot"
+      >
+    | undefined;
+}
+
+export function createCreatorHttpService({
+  projectRoot,
+  workspaceManager,
+  configRoot,
+  python,
+  installMockPlugin,
+  installOfficialAgentUIResource,
+  installMockResource,
+  installScenarioResources,
+  inspectMockProject,
+  updateSourceProvider,
+}: CreatorHttpServiceOptions) {
+  const legacyInstaller = installMockResource ?? installScenarioResources;
+  const installResource = installOfficialAgentUIResource ?? (legacyInstaller === undefined ? undefined : async (root: string, resourceId: string) => {
+    const implementation = resolveOfficialResource(resourceId).implementation;
+    if (implementation.type === "plugin") {
+      if (!installMockPlugin) throw new Error("Resource installation is unavailable in this Host.");
+      await installMockPlugin(root, implementation.pluginId);
+    } else await legacyInstaller(root, implementation.sourceItemId);
+  });
+  const creatorLog =
+    python?.log ?? ((message: string) => console.error(`[Creator] ${message}`));
+  const environment = python?.environment ?? process.env;
+  const agentMode = resolveCreatorPythonAgentMode({
+    configRoot,
+    environment,
+  });
+  const runtimeDiagnosticsEnabled =
+    resolveCreatorVerificationMode({ configRoot, environment }) ===
+    "static_and_runtime";
+  creatorLog(`runtime=python agentMode=${agentMode}`);
+
+  if (workspaceManager === undefined && projectRoot === undefined) {
+    throw new Error("Creator Dev Server requires a workspace manager or a legacy projectRoot.");
+  }
+  const legacyPythonManager = projectRoot === undefined ? undefined : new PythonCreatorProcessManager({
+    projectRoot, ...(configRoot === undefined ? {} : { configRoot }),
+    ...(python ?? {}), environment, log: creatorLog,
+  });
+  const mockService = new CreatorMockService();
+
+  function gateError(response: ServerResponse, error: unknown): void {
+    response.statusCode = 409;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify({
+      code: error instanceof CreatorWorkspaceError ? error.code : "CREATOR_WORKSPACE_INVALID",
+      error: error instanceof Error ? error.message : String(error),
+    }));
+  }
+
+  let disposed: Promise<void> | undefined;
+  const dispose = () => disposed ??= (async () => {
+    await Promise.all([mockService.dispose(), workspaceManager?.clear(), legacyPythonManager?.dispose()]);
+  })();
+  return {
+    runtimeDiagnosticsEnabled,
+    dispose,
+    mount(middlewares: CreatorMiddlewareRegistry) {
+      const connectionWorkspace = () => {
+        if (workspaceManager) {
+          const state = workspaceManager.getState();
+          return state.status === "ready" ? state.workspace : undefined;
+        }
+        return projectRoot ? { projectRoot, id: createHash("sha256").update(realpathSync(projectRoot)).digest("hex") } : undefined;
+      };
+      mockService.setProjectResolver(connectionWorkspace);
+      const connectionHandler = createConnectionHandler(connectionWorkspace, (request, response) => mockService.handlePreviewRequest(request, response), workspace => mockService.getDurableStore(workspace.projectRoot));
+      middlewares.use((request, response, next) => { return connectionHandler(request, response, next); });
+
+      middlewares.use(CREATOR_COMMANDS_API_PATH, createCreatorCommandHandler(workspaceManager, projectRoot, legacyPythonManager));
+      middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider, { configRoot, environment }));
+      middlewares.use(CREATOR_MOCK_API_PATH, (request, response) => {
+        return handleCreatorMockRequest(request, response, mockService, () => {
+          if (workspaceManager !== undefined) {
+            const state = workspaceManager.getState();
+            if (state.status !== "ready") return undefined;
+            return { id: state.workspace.id, projectRoot: state.workspace.projectRoot,
+              ...(state.project.sourceRoot === undefined ? {} : { sourceRoot: state.project.sourceRoot }) };
+          }
+          return projectRoot === undefined ? undefined : { id: projectRoot, projectRoot };
+        }, installMockPlugin === undefined ? undefined : async (id, pluginId) => {
+          if (workspaceManager !== undefined) {
+            await workspaceManager.runProjectOperation(id, root => installMockPlugin(root, pluginId));
+          } else {
+            if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
+            await installMockPlugin(projectRoot, pluginId);
+          }
+        }, inspectMockProject, installResource === undefined ? undefined : async (id, resourceId) => {
+          if (workspaceManager !== undefined) {
+            await workspaceManager.runProjectOperation(id, root => installResource(root, resourceId));
+          } else {
+            if (projectRoot === undefined || id !== projectRoot) throw new Error("当前项目已改变。");
+            await installResource(projectRoot, resourceId);
+          }
+        }, resourceId => installOfficialAgentUIResource !== undefined || resolveOfficialResource(resourceId).implementation.type !== "plugin" || installMockPlugin !== undefined);
+      });
+      if (workspaceManager !== undefined) {
+        middlewares.use(CREATOR_WORKSPACE_API_PATH, (request, response) => {
+          return handleCreatorWorkspaceRequest(request, response, workspaceManager, configRoot);
+        });
+      }
+      const proxy = async (
+        request: Parameters<typeof proxyPythonCreatorRequest>[0],
+        response: ServerResponse,
+        route: Parameters<typeof proxyPythonCreatorRequest>[3],
+      ) => {
+        let manager: PythonCreatorProcessManager;
+        try {
+          manager = workspaceManager?.ensureCreatorRuntime() ?? legacyPythonManager!;
+          if (workspaceManager !== undefined) {
+            const state = workspaceManager.getState();
+            const selectedId = state.status === "none" ? undefined : state.workspace.id;
+            if (request.headers[CREATOR_WORKSPACE_ID_HEADER] !== selectedId) {
+              throw new CreatorWorkspaceError("CREATOR_WORKSPACE_CHANGED", "The selected Project Root changed. Refresh the workspace and retry.");
+            }
+          }
+        } catch (error) {
+          gateError(response, error);
+          return;
+        }
+        let untrack: (() => void) | undefined;
+        try { untrack = workspaceManager?.trackRequest(() => response.destroy()); }
+        catch (error) { gateError(response, error); return; }
+        if (untrack !== undefined) response.once("close", untrack);
+        await proxyPythonCreatorRequest(request, response, manager, route);
+        untrack?.();
+      };
+      middlewares.use(
+        CREATOR_VISUAL_OBSERVATION_API_PATH,
+        async (request, response) => {
+          await proxy(request, response, "/visual-observation");
+        },
+      );
+      middlewares.use(
+        CREATOR_RUNTIME_DIAGNOSTICS_API_PATH,
+        async (request, response) => {
+          await proxy(request, response, "/runtime-diagnostics");
+        },
+      );
+      middlewares.use(
+        CREATOR_CONTROL_API_PATH,
+        async (request, response) => {
+          await proxy(request, response, "/creator-control");
+        },
+      );
+      middlewares.use(
+        CREATOR_API_PATH,
+        async (request, response) => {
+          await proxy(request, response, "/creator");
+        },
+      );
+    },
+  };
+}

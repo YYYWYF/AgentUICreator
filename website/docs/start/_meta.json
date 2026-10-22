@@ -2,7 +2,7 @@
   {
     "type": "file",
     "name": "index",
-    "label": "开始使用"
+    "label": "快速上手"
   },
   {
     "type": "file",
@@ -17,21 +17,21 @@
   {
     "type": "file",
     "name": "first-agent-ui",
-    "label": "把助理放到页面中"
-  },
-  {
-    "type": "file",
-    "name": "generated-files",
-    "label": "认识生成的文件"
-  },
-  {
-    "type": "file",
-    "name": "read-documentation",
-    "label": "阅读网站与 AI 文档"
+    "label": "挂载界面与首次对话"
   },
   {
     "type": "file",
     "name": "ai-assisted",
-    "label": "用 AI 修改界面"
+    "label": "首次使用 Creator 修改界面"
+  },
+  {
+    "type": "file",
+    "name": "generated-files",
+    "label": "生成文件与修改位置"
+  },
+  {
+    "type": "file",
+    "name": "read-documentation",
+    "label": "文档导航与 AI 阅读"
   }
 ]

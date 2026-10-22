@@ -6,7 +6,7 @@ import { pluginResourceViewsReadyEnv, withPluginResourceViews } from "./plugin-r
 const [action, ...providedArgs] = process.argv.slice(2);
 const extraArgs = providedArgs[0] === "--" ? providedArgs.slice(1) : providedArgs;
 const operator = action?.startsWith("operator-");
-const workingDirectory = operator ? path.join(process.cwd(), "operator") : process.cwd();
+const workingDirectory = operator ? path.join(process.cwd(), "control") : process.cwd();
 const operation = operator ? action.slice("operator-".length) : action;
 const environment = { ...process.env, [pluginResourceViewsReadyEnv]: "1" };
 

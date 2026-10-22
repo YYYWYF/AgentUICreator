@@ -8,7 +8,7 @@ locale explicitly to `Agent`; browser language does not select product locale.
 Run from the workspace root:
 
 ```sh
-pnpm --filter @agent-ui/creator-workbench test:e2e:i18n-plugin-visual
+pnpm --filter @za38.03/agent-ui-creator-workbench test:e2e:i18n-plugin-visual
 ```
 
 `playwright.i18n-plugin-visual.config.ts` defines `zh-CN-desktop`, `zh-CN-narrow`,

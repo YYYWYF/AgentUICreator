@@ -1,0 +1,22 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "模拟联调"
+  },
+  {
+    "type": "file",
+    "name": "builtin-scenarios",
+    "label": "内置场景与资源要求"
+  },
+  {
+    "type": "file",
+    "name": "local-recordings",
+    "label": "本地 JSONL 回放"
+  },
+  {
+    "type": "file",
+    "name": "author-scenarios",
+    "label": "编写自定义场景"
+  }
+]

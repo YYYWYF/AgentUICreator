@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const agentUIOnly = process.argv.includes("--agent-ui-only");
-const scopes = agentUIOnly ? ["packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items"] : ["packages/creator/src/ui", "packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items", "examples", "apps/creator-workbench/src"];
+const scopes = agentUIOnly ? ["packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items"] : ["packages/operator/src/ui", "packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items", "examples", "apps/creator-workbench/src"];
 const excluded = /\/(?:vendor|vendors|fixtures|node_modules|dist|dev)\/|(?:\.test|\.spec)\.[cm]?[jt]sx?$|\.generated\./;
 async function collect(directory) {
   const results = [];
@@ -39,7 +39,7 @@ function flatten(value, prefix = "") {
   }));
 }
 const dictionaries = [
-  ["creator", "packages/creator/src/ui/i18n"],
+  ["creator", "packages/operator/src/ui/i18n"],
   ["presentation", "packages/plugins/src/locales"],
   ["generated", "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/i18n/locales"],
 ];

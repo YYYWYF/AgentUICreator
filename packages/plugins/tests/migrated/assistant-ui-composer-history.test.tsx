@@ -9,12 +9,12 @@ import {
   type ConversationAgentFactory,
   type ConversationThreadBinding,
 } from "@za38.03/agent-ui-runtime";
-import type { UIPluginComponentProps, UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import type { UIPluginComponentProps, UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import { resolveRuntimePluginSlotId } from "../../../creator/operator/src/framework/contracts/app-ui-composition";
+} from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../../operator/control/src/framework/contracts/app-ui-composition";
 import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
 import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
@@ -24,7 +24,7 @@ import {
 import { conversationComposerPlugin } from "../../resources/registry/items/plugin/composer/files/plugins/composer/definition";
 import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin/submit-action/files/plugins/submit-action/definition";
 import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/control/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
 const rootSlotId = "composer-history-test-root";

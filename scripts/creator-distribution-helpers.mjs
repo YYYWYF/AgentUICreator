@@ -9,6 +9,7 @@ import { assertContractParity } from "../packages/creator/scripts/contract-integ
 
 import { verifyDocumentation } from "./creator-documentation.mjs";
 import { readFile } from "node:fs/promises";
+import { sidecarRoot, verifySidecarPackage } from "../packages/creator/scripts/verify-sidecar-package.mjs";
 
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const pythonRoot = path.join(repositoryRoot, "packages/creator/python");
@@ -52,15 +53,41 @@ print("Packaged Creator contracts and Operator validator initialized.")
 `;
 
 export async function unpackCreator(temporary) {
-  await run(pnpm, ["--filter", "@za38.03/agent-ui-creator", "build"], { cwd: repositoryRoot });
+  if (process.env.CREATOR_DISTRIBUTION_SKIP_BUILD !== "1") await run(pnpm, ["--filter", "@za38.03/agent-ui-creator", "build"], { cwd: repositoryRoot });
   await run(pnpm, ["pack", "--pack-destination", temporary], { cwd: distributionRoot, env: { ...process.env, npm_config_ignore_scripts: "true" } });
   const archives = (await readdir(temporary)).filter((name) => name.endsWith(".tgz"));
   assert.equal(archives.length, 1);
   await run("tar", ["-xzf", path.join(temporary, archives[0]), "-C", temporary], { cwd: temporary });
   const unpacked = path.join(temporary, "package");
-  for (const file of ["dist/cli.js", "dist/standaloneServer.js", "dist/browser/index.html", "dist/browser/dock.html", "dist/browser/dock-client.js", "dist/python/agent_ui_creator/server.py", "dist/python/pyproject.toml", "dist/python/requirements.lock", "skills"]) await access(path.join(unpacked, file));
+  for (const file of ["dist/cli.js", "dist/standaloneServer.js", "dist/python-sidecar.json", "skills"]) await access(path.join(unpacked, file));
   assert((await readdir(path.join(unpacked, "skills"))).length > 0);
-  await assertContractParity(path.join(repositoryRoot, "packages/creator/contracts/creator"), path.join(unpacked, "dist/python/agent_ui_creator/_contracts/creator"));
+  await assert.rejects(access(path.join(unpacked, "dist/python/agent_ui_creator")), { code: "ENOENT" });
+  const platformRoot = sidecarRoot(`${process.platform}-${process.arch}`);
+  const sidecar = await verifySidecarPackage(platformRoot);
+  const dependencies = path.join(unpacked, "node_modules");
+  const { mkdir } = await import("node:fs/promises");
+  const operatorArchive = path.join(temporary, "operator-archive");
+  await mkdir(operatorArchive);
+  await run(pnpm, ["pack", "--pack-destination", operatorArchive], { cwd: path.join(repositoryRoot, "packages/operator"), env: { ...process.env, npm_config_ignore_scripts: "true" } });
+  const [operatorFile] = (await readdir(operatorArchive)).filter(file => file.endsWith(".tgz"));
+  const operatorParent = path.join(dependencies, "@za38.03");
+  await mkdir(operatorParent, { recursive: true });
+  await run("tar", ["-xzf", path.join(operatorArchive, operatorFile), "-C", operatorParent], { cwd: temporary });
+  const { rename: renameOperator } = await import("node:fs/promises");
+  await renameOperator(path.join(operatorParent, "package"), path.join(operatorParent, "agent-ui-operator"));
+  for (const file of ["dist/browser/index.html", "dist/browser/dock.html", "dist/browser/dock-client.js"]) await access(path.join(operatorParent, "agent-ui-operator", file));
+  const artifacts = path.join(temporary, "sidecar-archive");
+  await mkdir(artifacts);
+  await run(pnpm, ["pack", "--pack-destination", artifacts], { cwd: platformRoot, env: { ...process.env, npm_config_ignore_scripts: "true" } });
+  const [filename] = (await readdir(artifacts)).filter(file => file.endsWith(".tgz"));
+  const installParent = path.join(dependencies, path.dirname(sidecar.name));
+  await mkdir(installParent, { recursive: true });
+  await run("tar", ["-xzf", path.join(artifacts, filename), "-C", installParent], { cwd: temporary });
+  const { rename } = await import("node:fs/promises");
+  const installedSidecar = path.join(dependencies, sidecar.name);
+  await rename(path.join(installParent, "package"), installedSidecar);
+  await verifySidecarPackage(installedSidecar);
+  await assertContractParity(path.join(repositoryRoot, "packages/creator/contracts/creator"), path.join(installedSidecar, sidecar.pythonPackageRoot, "agent_ui_creator/_contracts/creator"));
   const manifest = JSON.parse(await readFile(path.join(unpacked, "package.json"), "utf8"));
   await verifyDocumentation(path.join(unpacked, "dist/documentation"), { version: manifest.version });
   return unpacked;
@@ -85,7 +112,7 @@ export async function sidecarSmoke(unpacked, temporary, environment, pythonExecu
 }
 
 export function artifactEnvironment(pythonPackageRoot) {
-  const environment = { ...process.env, PYTHONPATH: pythonPackageRoot, PYTHONNOUSERSITE: "1" };
+  const environment = { ...process.env, PYTHONPATH: pythonPackageRoot, PYTHONNOUSERSITE: "1", PYTHONDONTWRITEBYTECODE: "1" };
   for (const name of ["CREATOR_PYTHON_ENDPOINT", "CREATOR_PYTHON_AUTH_TOKEN", "CREATOR_PYTHON_EXECUTABLE", "CREATOR_PYTHON_AGENT_MODE", "PYTHONHOME", "VIRTUAL_ENV"]) delete environment[name];
   return environment;
 }

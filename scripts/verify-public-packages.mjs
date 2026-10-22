@@ -7,7 +7,6 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
-import { assertContractParity } from "../packages/creator/scripts/contract-integrity.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const consumer = await realpath(await mkdtemp(path.join(tmpdir(), "agent-ui independent packages 中文 ")));
 const manifests = {};
@@ -80,7 +79,7 @@ try {
   await symlink(source, link, "junction");
  }
  await readFile(path.join(consumer, "node_modules/@za38.03/agent-ui-creator/skills/ui-debugging/references/runtime-debugging.md"));
- await assertContractParity(path.join(root, "packages/creator/contracts/creator"), path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/python/agent_ui_creator/_contracts/creator"));
+ await readFile(path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/python-sidecar.json"));
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-public-consumer", private: true, type: "module", dependencies: Object.fromEntries(publicModules.map(name => [manifests[name].name, manifests[name].version])) }));
  await mkdir(path.join(consumer, "src"));
  await writeFile(path.join(consumer, "consumer.tsx"), `
@@ -204,11 +203,11 @@ console.log("Packaged takeover: exact installed source, Host typecheck/build, st
   run(["takeover-check.mjs"]);
  }
  // Deployment consumer physically excludes every development package and control entry.
- for (const name of ["creator"]) {
+ for (const name of ["creator", "operator"]) {
   await rm(path.join(consumer, "node_modules", manifests[name].name), { recursive: true });
  }
  await rm(path.join(consumer, ".agent-ui"), { recursive: true, force: true });
- const frontendModules = publicModules.filter(name => !["creator"].includes(name));
+ const frontendModules = publicModules.filter(name => !["creator", "operator"].includes(name));
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-frontend-consumer", private: true, type: "module", dependencies: Object.fromEntries(frontendModules.map(name => [manifests[name].name, manifests[name].version])) }));
  const configFile = path.join(consumer, "tsconfig.json");
  const config = JSON.parse(await readFile(configFile, "utf8"));
@@ -223,7 +222,7 @@ import tailwind from "@tailwindcss/vite";
 const inputs = new Set();
 await build({ configFile: false, plugins: [react(), tailwind(), { name: "production-boundary", generateBundle(_, bundle) { for (const chunk of Object.values(bundle)) if (chunk.type === "chunk") for (const file of Object.keys(chunk.modules)) inputs.add(file); } }], resolve: { dedupe: ["react", "react-dom"] }, build: { lib: { entry: "app.tsx", formats: ["es"], fileName: () => "app.js" } } });
 assert(![...inputs].some(file => file.replaceAll(String.fromCharCode(92), "/").includes("/dist/catalog/") || file.replaceAll(String.fromCharCode(92), "/").includes("/dist/sources/")), "Production imported source tooling assets");
-assert(![...inputs].some(file => ["creator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
+assert(![...inputs].some(file => ["creator", "operator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
 if (${process.argv.includes("--takeover")}) {
  const normalized = [...inputs].map(file => file.replaceAll(String.fromCharCode(92), "/"));
  assert(normalized.some(file => file.includes("/src/agent-ui/plugins/composer/adapters/composer.tsx")), "Production must include local Composer");
@@ -233,5 +232,5 @@ if (${process.argv.includes("--takeover")}) {
 console.log("Production module graph excludes development tooling.");
 `);
  run(["bundle.mjs"]);
- console.log("6 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
+ console.log("7 independent tarballs: exact dependencies, compatibility subpaths, Registry, initialization, consumer types and production without Creator/Operator passed.");
 } finally { await rm(consumer, { recursive: true, force: true }); }

@@ -3,9 +3,9 @@ import { mkdtemp, mkdir, readFile, writeFile, readdir, symlink, cp, rm, stat } f
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { initializeAgentUIProject } from "../packages/creator/operator/dist/bootstrap/index.js";
-import { createAgentUIInitializationHost, installOfficialAgentUIResource, AgentUIUpdateService } from "../packages/creator/operator/dist/runtime/operator-runtime.mjs";
-import { loadAgentUISourceRegistry, InstalledUpdateSourceProvider, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "../packages/creator/operator/dist/source-catalog/index.js";
+import { initializeAgentUIProject } from "../packages/operator/control/dist/bootstrap/index.js";
+import { createAgentUIInitializationHost, installOfficialAgentUIResource, AgentUIUpdateService } from "../packages/operator/control/dist/runtime/operator-runtime.mjs";
+import { loadAgentUISourceRegistry, InstalledUpdateSourceProvider, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "../packages/operator/control/dist/source-catalog/index.js";
 
 const repo = fileURLToPath(new URL("..", import.meta.url));
 const registry = await loadAgentUISourceRegistry();

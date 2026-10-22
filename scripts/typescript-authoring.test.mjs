@@ -36,7 +36,7 @@ test("editor language service resolves canonical sources and still rejects inval
   assert.equal(config.error, undefined);
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
   assert.deepEqual(parsed.errors, []);
-  const virtualFile = path.join(root, "src/authoring-negative-control.ts");
+  const virtualFile = path.join(root, "src/authoring-negative-control.ts").split(path.sep).join("/");
   // The negative control imports through an actual canonical Plugin, so both
   // the original template's relative imports and public types are checked.
   const control = 'import { conversationThreadListPlugin } from "./plugins/conversation-thread-list/adapters/project/definition";\nimport type { ThisExportMustNotExist } from "./plugins/conversation-thread-list/adapters/project/definition";\nconst broken: typeof conversationThreadListPlugin.manifest = { id: 123 };\nimport type { ConversationThreadListPluginProps } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list";\nconst wrongProps: ConversationThreadListPluginProps = { serviceAvailable: 123 };\nimport type { MissingModule } from "./this-module-does-not-exist";\n';

@@ -16,7 +16,7 @@ import { checkAgUiLockfile } from "../../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
 import { packageManifestMismatches, updatePackageManifests } from "../../../scripts/assistant-ui-workspace-packages.mjs";
-import { main as syncGenerativeUi } from "../../creator/operator/scripts/source-catalog/sync-generative-ui-upstream.mjs";
+import { main as syncGenerativeUi } from "../../operator/control/scripts/source-catalog/sync-generative-ui-upstream.mjs";
 import {
   ensureSourceCache,
   main as updateAssistantUi,

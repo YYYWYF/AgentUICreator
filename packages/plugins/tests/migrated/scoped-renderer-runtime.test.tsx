@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useMemo } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginComponentProps, UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginComponentProps, UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import { createPluginRegistry, usePluginRenderScope } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/control/tests/support/agent-runtime-fixture";
 
 const actions = {
   sendMessage: vi.fn(async () => undefined),

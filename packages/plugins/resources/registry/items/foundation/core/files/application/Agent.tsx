@@ -1,3 +1,4 @@
+import type { AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
 import { usePreviewAgentEnvironment } from "./preview-environment";
@@ -40,6 +41,10 @@ const revisionSources = import.meta.glob<string>("../app-ui/composition-revision
 const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
 
 export interface AgentProps {
+  /** Host-controlled presentation theme; omitted uses the project theme service/default. */
+  theme?: AgentUITheme | undefined;
+  /** Reports theme changes requested by the UI. Update theme to accept a controlled change. */
+  onThemeChange?: ((theme: AgentUITheme) => void) | undefined;
   /** Host-owned profile for account presentation. null shows the signed-out profile; omitted uses auth.session. */
   user?: AgentUser | null | undefined;
   /** Optional Host-owned page-memory notice service. Never persisted or sent to the Agent. */
@@ -65,7 +70,7 @@ export interface AgentProps {
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ transientMessages, locale, onLocaleChange, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
   const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
     setPresentationLocale(nextLocale);
@@ -114,14 +119,14 @@ function AgentSession({ transientMessages, locale, onLocaleChange, endpoint = im
 
   if (composition === undefined) return <AgentUIConnectionState status={candidate?.status === "error" ? "error" : "initializing"} />;
   return (
-    <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}
+    <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale} theme={theme} onThemeChange={onThemeChange}
       renderGate={(content, phase) => <><AgentUIConnectionState status={phase === "error" ? "error" : phase === "blocked" ? "blocked" : "initializing"} /><AgentSurfacePortal>{content}</AgentSurfacePortal></>}>
-    <AuthenticatedConversation {...{ transientMessages, locale, onLocaleChange, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
+    <AuthenticatedConversation {...{ transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
     </ApplicationSessionBoundary>
   );
 }
 
-function AuthenticatedConversation({ transientMessages, locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+function AuthenticatedConversation({ transientMessages, theme, onThemeChange, locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
   endpoint: string;
   presentationLocale: AgentUILocaleCode;
   setPresentationLocale: (locale: AgentUILocaleCode) => void;
@@ -150,7 +155,7 @@ function AuthenticatedConversation({ transientMessages, locale, endpoint, observ
       <GeneratedConversationIntegrations>
         <AgentEnvironment composition={composition} frontendToolRuntime={frontendToolRuntime} locale={locale} presentationLocale={presentationLocale}>
           <AgentUIConversationBinding />
-          <AgentSurfacePortal><AgentSurface presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} /></AgentSurfacePortal>
+          <AgentSurfacePortal><AgentSurface theme={theme} onThemeChange={onThemeChange} presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} /></AgentSurfacePortal>
         </AgentEnvironment>
       </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>

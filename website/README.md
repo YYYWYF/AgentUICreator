@@ -2,18 +2,29 @@
 
 This private workspace owns the public documentation source, screenshots and
 component demos. Root `docs/` retains internal architecture/design records.
-Content is intentionally limited to placeholder pages until the manual is authored.
+All 136 planned articles have text drafts, with additional Agent configuration
+and Plugin development guides. The Plugin navigation covers 39 UI guides;
+configuration guides live with application integration or customization. Every
+article has one sidebar entry in its owning topic; sidebars use one group level.
+Screenshot requirements are recorded inline; visual and real-backend acceptance
+are separate. Track per-article status in
+`../docs/plans/public-documentation-progress.md`.
 
 From the repository root:
 
 ```sh
 pnpm docs:dev
 pnpm docs:build
+pnpm --filter @za38.03/agent-ui-docs check:docs --built
 pnpm docs:preview
 pnpm docs:package
 pnpm docs:check
 pnpm test:documentation
 ```
+
+`check:docs` checks every article's menu ownership, orphan pages, duplicate entries,
+navigation depth and local links. Add `--built` after building to check generated
+pages, sidebar entries and link anchors as well.
 
 `docs:build` generates `website/doc_build/`, including HTML, per-page Markdown,
 `llms.txt` and `llms-full.txt` (Rspress SSG-MD). Deploy the **whole directory** to

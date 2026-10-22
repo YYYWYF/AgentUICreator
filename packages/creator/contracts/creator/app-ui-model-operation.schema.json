@@ -132,11 +132,11 @@
     "plugin": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "pluginId", "enabled"],
+      "required": ["pluginId"],
       "properties": {
-        "id": { "$ref": "#/$defs/nonBlankString" },
+        "id": { "$ref": "#/$defs/nonBlankString", "description": "Optional explicit instance identity for compatibility or stable identity across structural changes. Normally omit; Creator snapshot pN refs are never persisted IDs." },
         "pluginId": { "$ref": "#/$defs/nonBlankString" },
-        "enabled": { "type": "boolean" },
+        "enabled": { "type": "boolean", "default": true },
         "slots": {
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/nonBlankString" },

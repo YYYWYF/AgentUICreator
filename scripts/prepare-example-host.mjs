@@ -13,8 +13,8 @@ export async function ensureExampleHost(mode, { root = workspaceRoot, inspectPro
   if (!Object.hasOwn(exampleHosts, mode)) throw new Error(`Unknown example Mode: ${mode}`);
   const projectRoot = path.join(root, "examples", exampleHosts[mode].directory);
   if (!inspectProject || !initializeProject) {
-    const operator = await import("../packages/creator/dist/operator/dist/runtime/operator-runtime.mjs");
-    const bootstrap = await import("../packages/creator/dist/operator/dist/bootstrap/index.js");
+    const operator = await import("../packages/operator/dist/operator/dist/runtime/operator-runtime.mjs");
+    const bootstrap = await import("../packages/operator/dist/operator/dist/bootstrap/index.js");
     inspectProject = operator.inspectCreatorProject;
     initializeProject = input => bootstrap.initializeAgentUIProject(input, operator.createAgentUIInitializationHost());
   }

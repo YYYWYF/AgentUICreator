@@ -64,6 +64,10 @@
       "target": "agent-ui/conversation/state/job-progress-projection.ts"
     },
     {
+      "source": "files/agent-ui/conversation/compact.css",
+      "target": "agent-ui/conversation/compact.css"
+    },
+    {
       "source": "files/agent-ui/conversation/styles.css",
       "target": "agent-ui/conversation/styles.css"
     },
@@ -118,6 +122,10 @@
     {
       "source": "files/agent-ui/i18n/useAgentUILocale.ts",
       "target": "agent-ui/i18n/useAgentUILocale.ts"
+    },
+    {
+      "source": "files/agent-ui/theme/AgentUIThemeBridge.tsx",
+      "target": "agent-ui/theme/AgentUIThemeBridge.tsx"
     },
     {
       "source": "files/agent-ui/theme/theme-config.ts",

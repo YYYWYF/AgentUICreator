@@ -19,7 +19,7 @@ import { ConversationAdapter } from "../../resources/registry/items/foundation/c
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
-} from "../../../creator/operator/src/framework/contracts/ui-plugin";
+} from "../../../operator/control/src/framework/contracts/ui-plugin";
 import { conversationCopyActionPlugin } from "../../resources/registry/items/plugin/copy-action/files/plugins/copy-action/definition";
 import { conversationExportMarkdownActionPlugin } from "../../resources/registry/items/plugin/export-markdown-action/files/plugins/export-markdown-action/definition";
 import { conversationSurfacePlugin } from "../../resources/registry/items/plugin/conversation-surface/files/plugins/conversation-surface/definition";
@@ -29,10 +29,10 @@ import { AGENT_UI_THEME_SERVICE } from "../../resources/registry/items/foundatio
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import { resolveRuntimePluginSlotId } from "../../../creator/operator/src/framework/contracts/app-ui-composition";
+} from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../../operator/control/src/framework/contracts/app-ui-composition";
 import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/control/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
 const roots: Root[] = [];

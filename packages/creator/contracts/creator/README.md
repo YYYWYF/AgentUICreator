@@ -45,4 +45,4 @@ TS 与 Python suite 必须和 canonical JSON Schema 同时 accept/reject。
 示例、已解析的公开定制入口和实际安装包身份（可用时）。它不授予源码接管、
 写入或文件读取证据；公开类型不可用时仍可返回应用示例，不能据此推断能力缺失。
 
-协议源码现在位于 `packages/creator/contracts/creator`，由 Creator 包统一拥有。Operator 实现位于同包的 `operator/` 模块。合包仅改变物理归属，不改变 wire schema、操作授权或协议版本；npm 与 wheel 构建自动打包协议，并校验字节一致性。
+协议源码位于 `packages/creator/contracts/creator`，由 Creator 统一拥有。TS Operator 实现位于 `packages/operator/control`。拆包不改变 wire schema、操作授权或协议版本；Operator、Python 平台 npm 包与 wheel 构建自动打包所需协议，并校验字节一致性。

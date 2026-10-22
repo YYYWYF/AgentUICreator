@@ -24,7 +24,7 @@ The conformance guard compares fixed serialized and parsed cases with the instal
 
 ## Backend reference API
 
-`@agent-ui/mock-agent` exports `resolveDirectiveContexts(input, resolvers, { signal })` and resolver types. A resolver receives `{ type, label, id }` and an AbortSignal, and returns `Promise<Context | null>`.
+`@za38.03/agent-ui-creator/mock-agent` forwards Operator's `resolveDirectiveContexts(input, resolvers, { signal })` and resolver types. A resolver receives `{ type, label, id }` and an AbortSignal, and returns `Promise<Context | null>`.
 
 Every run scans all user messages, including text parts in multimodal content. Other roles, binary data and URLs are ignored. References are deduplicated by the tuple `(type, id)` across the complete transcript; labels do not affect deduplication. Only explicitly registered types are resolved. The result is a new RunAgentInput with original context followed by server context; the original request, message contents and attachments are not modified.
 

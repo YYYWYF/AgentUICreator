@@ -16,19 +16,19 @@ import { ConversationSurface } from "../../resources/registry/items/foundation/c
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
-} from "../../../creator/operator/src/framework/contracts/ui-plugin";
+} from "../../../operator/control/src/framework/contracts/ui-plugin";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
   type AppUIRuntimePluginInstance,
-} from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import { resolveRuntimePluginSlotId } from "../../../creator/operator/src/framework/contracts/app-ui-composition";
+} from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../../operator/control/src/framework/contracts/app-ui-composition";
 import { conversationAddAttachmentActionPlugin } from "../../resources/registry/items/plugin/add-attachment-action/files/plugins/add-attachment-action/definition";
 import { conversationComposerPlugin } from "../../resources/registry/items/plugin/composer/files/plugins/composer/definition";
 import { conversationDictationActionPlugin } from "../../resources/registry/items/plugin/dictation-action/files/plugins/dictation-action/definition";
 import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin/submit-action/files/plugins/submit-action/definition";
 import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/control/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
 const roots: Root[] = [];

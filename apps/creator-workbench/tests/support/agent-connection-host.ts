@@ -11,12 +11,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { createServer, type ViteDevServer } from "vite";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
 import { createAgentUIInitializationHost } from "@za38.03/agent-ui-creator/operator/dev";
-import { CreatorWorkspaceManager } from "../../../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
-import { PythonCreatorProcessManager } from "../../../../packages/creator/src/PythonCreatorProcessManager.js";
+import { CreatorWorkspaceManager } from "../../../../packages/operator/src/workspace/CreatorWorkspaceManager.js";
+import { PythonCreatorProcessManager } from "../../../../packages/operator/src/PythonCreatorProcessManager.js";
 import { inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/host";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
-import { createCreatorDevServerPlugin } from "../../../../packages/creator/src/vitePlugin.js";
-import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src/host-preview/vite.js";
+import { createCreatorDevServerPlugin } from "../../../../packages/operator/src/vitePlugin.js";
+import { createCreatorHostPreviewPlugin } from "../../../../packages/operator/src/host-preview/vite.js";
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
@@ -90,7 +90,7 @@ export async function createConnectionHostFixture(options: { mode?: "platform" |
   };
   try {
     if (!options.existingHostRoot) await mkdir(hostRoot); await mkdir(creatorRoot);
-    const template = JSON.parse(await readFile(path.join(repository, "packages/creator/operator/tests/fixtures/project/package.json"), "utf8"));
+    const template = JSON.parse(await readFile(path.join(repository, "packages/operator/control/tests/fixtures/project/package.json"), "utf8"));
     const packageManager = JSON.parse(await readFile(path.join(repository,"package.json"),"utf8")).packageManager;
     template.dependencies["@za38.03/agent-ui-plugins"] = "workspace:*";
     const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite", ...(options.liveModel ? ["vite", "@vitejs/plugin-react", "typescript", "tsx", "@types/react", "@types/react-dom", "@types/node", "@za38.03/agent-ui-creator/operator"] : [])].map(name => [name, template.devDependencies[name]]));
@@ -140,7 +140,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       if (ready.status !== "ready" || ready.runtime.status !== "ready") throw new Error("Live Creator startup failed: " + JSON.stringify(ready.status === "ready" ? ready.runtime : ready.status));
     }
     const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-creator/ui", "@za38.03/agent-ui-creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ ...(options.liveModel ? { workspaceManager:liveWorkspace,configRoot:repository } : { projectRoot:hostRoot }), python: { environment: options.liveModel ? { ...process.env, CREATOR_VERIFICATION_MODE: "static_and_runtime" } : { CREATOR_VERIFICATION_MODE: "static_only" },
-      ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator/python/.venv/bin/python"), pythonPackageRoot: path.join(repository, "packages/creator/python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: options.creatorPort ?? 0, strictPort: options.creatorPort !== undefined, hmr: false, fs: { allow: [root, hostRoot, repository, ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"] } });
+      ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator/python/.venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"), pythonPackageRoot: path.join(repository, "packages/creator/python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: options.creatorPort ?? 0, strictPort: options.creatorPort !== undefined, hmr: false, fs: { allow: [root, hostRoot, repository, ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
     const host = await createServer({ configFile: false, root: hostRoot,

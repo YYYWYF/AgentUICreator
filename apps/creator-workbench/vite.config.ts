@@ -8,14 +8,14 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-import { readCreatorHostConfigValue } from "../../packages/creator/src/creatorRuntimeConfig.js";
-import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
-import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
-import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
+import { readCreatorHostConfigValue } from "../../packages/operator/src/creatorRuntimeConfig.js";
+import { createCreatorDevServerPlugin } from "../../packages/operator/src/vitePlugin.js";
+import { CreatorWorkspaceManager } from "../../packages/operator/src/workspace/CreatorWorkspaceManager.js";
+import { PythonCreatorProcessManager } from "../../packages/operator/src/PythonCreatorProcessManager.js";
 import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/dev";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
 import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/operator/dev";
-import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
+import type { MockProjectInspector } from "../../packages/operator/src/mock/demo-compatibility";
 import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-creator/operator/dev";
 import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/operator/dev";
 import { installDemoPlugin } from "@za38.03/agent-ui-creator/operator/dev";
@@ -95,18 +95,18 @@ export default withAgentUILocalEnv(defineConfig({
         workspaceRoot,
         "packages/plugins/src/styles.css",
       ),
-      "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
+      "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/operator/src/host-preview/hostPreviewWorkbench.ts"),
       "@za38.03/agent-ui-creator/ui": path.join(
         workspaceRoot,
-        "packages/creator/src/ui/CreatorWorkbench.tsx",
+        "packages/operator/src/ui/CreatorWorkbench.tsx",
       ),
       "@za38.03/agent-ui-creator/runtime-diagnostics": path.join(
         workspaceRoot,
-        "packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
+        "packages/operator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
       ),
       "@za38.03/agent-ui-creator/visual-observation": path.join(
         workspaceRoot,
-        "packages/creator/src/visual-observation/VisualObservationReporter.ts",
+        "packages/operator/src/visual-observation/VisualObservationReporter.ts",
       ),
       "@za38.03/agent-ui-plugins/lexical": path.join(workspaceRoot, "packages/plugins/src/lexical.tsx"),
       "@za38.03/agent-ui-plugins": path.join(

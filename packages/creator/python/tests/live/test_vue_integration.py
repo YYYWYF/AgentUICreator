@@ -58,7 +58,7 @@ def fresh(tmp_path):
     (project / "src/App.vue").write_text("<template><main></main></template>\n")
     # Development tooling is installed by Host before the user request.
     subprocess.run(["node", "--input-type=module", "-e",
-                    'import { installManagedOperator } from "./packages/creator/operator/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
+                    'import { installManagedOperator } from "./packages/operator/control/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
     (project / ".agent-ui/project.json").write_text(json.dumps({"mode": "embedded", "sourceRoot": "src/agent-ui"}))
     assert not (project / "public/agent-ui.js").exists()
     assert not (project / "src/components/AgentUIBridge.vue").exists()

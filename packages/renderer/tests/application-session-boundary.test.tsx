@@ -8,7 +8,7 @@ import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/pl
 import { createPluginRegistry } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/tools";
 import gateManifest from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/manifest.json";
-import { parseUIPluginManifest } from "../../creator/operator/src/framework/contracts/ui-plugin";
+import { parseUIPluginManifest } from "../../operator/control/src/framework/contracts/ui-plugin";
 
 it("starts no conversation subtree while blocked and disposes it across logout and identity changes", async () => {
   const adapter = createDemoAuthAdapter({ demo: true }); const session = createAuthSession(adapter);
@@ -21,11 +21,17 @@ it("starts no conversation subtree while blocked and disposes it across logout a
   function ConversationProbe() { useApplicationSessionConnection(runtime); useEffect(() => { mounts(); return cleanups; }, []); return <div>Conversation</div>; }
   const host = document.createElement("div"); document.body.append(host); const root = createRoot(host);
   try {
-    await act(async () => root.render(<ApplicationSessionBoundary composition={composition} frontendTools={frontendTools}><ConversationProbe /></ApplicationSessionBoundary>));
+    await act(async () => root.render(<ApplicationSessionBoundary theme="dark" composition={composition} frontendTools={frontendTools}><ConversationProbe /></ApplicationSessionBoundary>));
     await act(async () => { await session.restore(); });
     expect(mounts).not.toHaveBeenCalled(); expect(host.textContent).toContain("Login");
+    expect(host.querySelector("[data-agent-ui-root]")?.getAttribute("data-theme")).toBe("dark");
+    await act(async () => root.render(<ApplicationSessionBoundary theme="violet" composition={composition} frontendTools={frontendTools}><ConversationProbe /></ApplicationSessionBoundary>));
+    expect(host.querySelector("[data-agent-ui-root]")?.getAttribute("data-theme")).toBe("violet");
+    expect(mounts).not.toHaveBeenCalled();
     await act(async () => { await session.signIn({ account: "A", password: "demo" }); });
     expect(mounts).toHaveBeenCalledTimes(1);
+    await act(async () => root.render(<ApplicationSessionBoundary theme="light" composition={composition} frontendTools={frontendTools}><ConversationProbe /></ApplicationSessionBoundary>));
+    expect(mounts).toHaveBeenCalledTimes(1); expect(dispose).not.toHaveBeenCalled();
     runtime = { abort, dispose } as any;
     await act(async () => root.render(<ApplicationSessionBoundary composition={composition} frontendTools={frontendTools}><ConversationProbe /></ApplicationSessionBoundary>));
     expect(abort).not.toHaveBeenCalled(); // Ordinary thread bridge changes retain existing run policy.

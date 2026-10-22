@@ -24,7 +24,7 @@ Future shadcn palette syncs must not automatically change Violet visuals.
 Tool approval allow actions, including declared allow options and their confirmation,
 use a 6% brand fill with solid brand text and a soft brand border. Hover uses the
 10% selected fill; keyboard focus retains the solid focus border. This product
-approval hook leaves other primary actions and Light / Dark presentation unchanged.
+approval hook also applies to Light / Dark using their own semantic brand tokens.
 
 `shadcn-theme-presets.css` contains only Light / Dark Zinc upstream snapshots.
 The snapshot hash guards those two palettes, excluding the product theme.
@@ -44,8 +44,10 @@ Build/install/runtime never invokes shadcn.
 intensity system: subtle default, light hover, lavender selection, soft focus,
 strong active/running and solid primary action.
 `assistant-ui-theme-overrides.css` owns removable stable-hook presentation seams:
-Composer white surface, border-only hover and a soft 1px focus halo; AgentPlan
-progress track/fill. Their hooks and upstream anatomy have contract guards.
+Composer card surface, border-only hover and a soft 1px focus halo; AgentPlan
+progress track/fill. Product geometry is shared by Light, Dark and Violet;
+colors use each preset's own semantic palette. Their hooks and upstream anatomy
+have contract guards. This supersedes the earlier Violet-only presentation boundary.
 Thread selection keeps upstream `data-active:bg-muted` with neutral text.
 AgentStatus working remains upstream blue. Reasoning/Tool running colors use the
 existing product state hooks; their surfaces stay white in every state.
@@ -53,7 +55,7 @@ existing product state hooks; their surfaces stay white in every state.
 Mention/Slash selected rows now fill their list area in Violet: the product adapter
 adds `composer-trigger-popover-item-list` without changing the hierarchy, and scoped
 CSS removes list block padding and item rounding. The existing popover clips the
-rows to its outer radius. Light/Dark retain their list padding and presentation.
+rows to its outer radius. Light/Dark retain that geometry and their own palette.
 AgentStatus's internal working dot has no stable hook or replacement API; its blue
 remains a recorded visual delta until upstream exposes a suitable seam. Do not
 target its internal spans or Tailwind classes to recolor it.

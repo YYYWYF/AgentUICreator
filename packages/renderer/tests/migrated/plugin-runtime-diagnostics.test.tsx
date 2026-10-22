@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/control/tests/support/generated-project";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,14 +10,14 @@ import {
 } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
 } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { sha256Text } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/diagnostics/index";
-import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/control/tests/support/agent-runtime-fixture";
 
 const appUIModelHash = "a".repeat(64);
 const runtimeActions = {

@@ -1,0 +1,49 @@
+---
+title: "输入消息（composer）"
+---
+
+# 输入消息（composer）
+
+提供同一会话的草稿编辑与动作组合。默认使用 textarea，只有显式放入 input Slot 时才切到其他输入实现。
+
+## 界面与功能
+
+输入区显示草稿、附件和发送动作。长文本会在输入区域内滚动，运行时按工程配置显示停止或排队。
+
+## 如何启用和使用
+
+打开已有对话页面，在输入区填写内容并发送。定制时将本 Plugin 放在对话区的 composer 位置，保留附件、引用和发送入口。
+
+当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+
+可以把下面的需求发给 Creator：
+
+> 在当前工程中配置「输入消息」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+
+## 使用前提
+
+保留当前对话区及发送、附件、引用等已启用入口。可选富文本标签输入需要单独启用，不是所有工程默认都有。
+
+下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+
+```tsx
+import type { ComponentProps } from "react";
+import { ConversationCanonicalComposer } from "@za38.03/agent-ui-plugins";
+
+type Props = ComponentProps<typeof ConversationCanonicalComposer>;
+export function ProjectView(props: Props) {
+  return <ConversationCanonicalComposer {...props} />;
+}
+```
+
+## 验证结果
+
+在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+
+如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+
+> 截图待补：空闲/输入/发送中/队列演示。展示用户实际入口和操作结果；服务配置类通过受影响的对话、列表、主题或账号区域展示。
+
+## 继续阅读
+
+[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)

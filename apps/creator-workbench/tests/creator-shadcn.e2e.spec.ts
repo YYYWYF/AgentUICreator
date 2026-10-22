@@ -110,9 +110,9 @@ test("compiled Creator CSS preserves ordinary Host elements", async ({ page }) =
   }));
   const before = await snapshot();
   const css = [
-    readFileSync(new URL("../../../packages/creator/src/ui/components/creator-ui.css", import.meta.url), "utf8"),
-    readFileSync(new URL("../../../packages/creator/src/ui/creator-workbench.css", import.meta.url), "utf8").replace('@import "./components/creator-ui.css";', ""),
-    readFileSync(new URL("../../../packages/creator/src/ui/setup/creator-project-setup.css", import.meta.url), "utf8"),
+    readFileSync(new URL("../../../packages/operator/src/ui/components/creator-ui.css", import.meta.url), "utf8"),
+    readFileSync(new URL("../../../packages/operator/src/ui/creator-workbench.css", import.meta.url), "utf8").replace('@import "./components/creator-ui.css";', ""),
+    readFileSync(new URL("../../../packages/operator/src/ui/setup/creator-project-setup.css", import.meta.url), "utf8"),
   ].join("\n");
   await page.addStyleTag({ content: css });
   expect(await snapshot()).toEqual(before);

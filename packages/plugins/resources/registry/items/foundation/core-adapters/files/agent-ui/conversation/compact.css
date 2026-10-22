@@ -1,0 +1,280 @@
+/* Compact geometry is shared; palette values stay on each themed root. */
+.agent-ui-root[data-theme]:has(:is(.agent-ui-assistant-shell, .agent-ui-embedded-shell)),
+:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-ui-conversation[data-theme] {
+  --agent-compact-panel-border: var(--border);
+  --agent-compact-panel-shadow: 0 24px 64px rgb(0 0 0 / 13%), 0 4px 16px rgb(0 0 0 / 5%);
+  --agent-compact-identity-border: var(--agent-brand-border);
+  --agent-compact-identity-background: var(--agent-brand-surface);
+  --agent-compact-identity-color: var(--agent-brand-solid);
+  --agent-compact-surface-border: var(--border);
+  --agent-compact-scrollbar: var(--border);
+  --agent-compact-welcome-border: var(--agent-brand-border);
+  --agent-compact-welcome-background: var(--agent-brand-surface);
+  --agent-compact-welcome-icon: var(--agent-brand-solid);
+  --agent-compact-welcome-shadow: 0 5px 16px rgb(0 0 0 / 5%);
+  --agent-compact-suggestion-border: var(--border);
+  --agent-compact-suggestion-shadow: 0 2px 4px rgb(0 0 0 / 2%);
+  --agent-compact-suggestion-hover-border: var(--agent-brand-hover-border);
+  --agent-compact-suggestion-hover-background: var(--muted);
+  --agent-compact-suggestion-hover-shadow: 0 4px 12px rgb(0 0 0 / 6%);
+  --agent-compact-suggestion-arrow: var(--muted-foreground);
+  --agent-compact-suggestion-label: var(--muted-foreground);
+}
+
+/* Shared assistant/embedded template presentation. This file becomes ordinary
+ * project-owned CSS on initialization; platform presentation remains separate. */
+.agent-ui-root[data-theme]:has(:is(.agent-ui-assistant-shell, .agent-ui-embedded-shell)) {
+  /* Set the actual boundary font: AgentUIRoot captures it for Plugin mounts. */
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.agent-ui-root[data-theme="violet"]:has(:is(.agent-ui-assistant-shell, .agent-ui-embedded-shell)),
+:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-ui-conversation[data-theme="violet"] {
+  --agent-brand: #7863d8;
+  --agent-brand-solid: #6850cb;
+  --foreground: #282735;
+  --card-foreground: #282735;
+  --muted-foreground: #7b7b8b;
+  --border: #ececf1;
+  --input: #e5e4ed;
+  --agent-composer-shadow: 0 3px 14px rgb(40 30 80 / 4%);
+  --agent-compact-panel-border: #e7e6ee;
+  --agent-compact-panel-shadow: 0 24px 64px rgb(32 28 55 / 13%), 0 4px 16px rgb(32 28 55 / 5%);
+  --agent-compact-identity-border: #e9e3fc;
+  --agent-compact-identity-background: #f1edfc;
+  --agent-compact-identity-color: #7863d8;
+  --agent-compact-surface-border: #f0eff5;
+  --agent-compact-scrollbar: #dcd9e7;
+  --agent-compact-welcome-border: #e9e3fa;
+  --agent-compact-welcome-background: #f5f1ff;
+  --agent-compact-welcome-icon: #836bd4;
+  --agent-compact-welcome-shadow: 0 5px 16px rgb(116 88 197 / 5%);
+  --agent-compact-suggestion-border: #ebeaf1;
+  --agent-compact-suggestion-shadow: 0 2px 4px rgb(35 26 58 / 2%);
+  --agent-compact-suggestion-hover-border: #cec4ee;
+  --agent-compact-suggestion-hover-background: #fcfaff;
+  --agent-compact-suggestion-hover-shadow: 0 4px 12px rgb(90 66 151 / 6%);
+  --agent-compact-suggestion-arrow: #b6b1c6;
+  --agent-compact-suggestion-label: #858393;
+}
+
+.agent-ui-root[data-theme] .agent-ui-assistant-panel {
+  padding-block: 4px 0;
+  border-color: var(--agent-compact-panel-border);
+  border-radius: 24px;
+  box-shadow: var(--agent-compact-panel-shadow);
+  font-family: var(--agent-ui-presentation-font-family);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-identity-plugin {
+  padding: 10px 20px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-identity-content {
+  min-height: 36px;
+  gap: 10px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-identity-logo {
+  border: 1px solid var(--agent-compact-identity-border);
+  border-radius: 11px;
+  background: var(--agent-compact-identity-background);
+  color: var(--agent-compact-identity-color);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .agent-identity-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-surface-plugin {
+  border-top-color: var(--agent-compact-surface-border);
+  font-family: var(--agent-ui-presentation-font-family);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-surface-plugin .agent-ui-conversation [data-slot="agent-ui-thread-content"] {
+  padding-inline: 22px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) [data-slot="aui_thread-viewport"] {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--agent-compact-scrollbar) transparent;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root {
+  position: relative;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 0;
+  text-align: center;
+}
+
+/* A decorative welcome mark; it adds no text or interaction semantics. */
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--agent-compact-welcome-border);
+  border-radius: 14px;
+  background: var(--agent-compact-welcome-background);
+  box-shadow: var(--agent-compact-welcome-shadow);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: var(--agent-compact-welcome-icon);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m13 6 2.5 6.5L22 15l-6.5 2.5L13 24l-2.5-6.5L4 15l6.5-2.5L13 6Z'/%3E%3Cpath d='M22 3v6M19 6h6'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+
+/* The foundation welcome sets these three values inline. Override only that
+ * fallback heading, leaving message and host headings alone. */
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome h1 {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestions-plugin {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-inline: 0;
+  gap: 8px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion {
+  position: relative;
+  display: grid;
+  width: 100%;
+  grid-template-columns: 32px minmax(0, 1fr) 12px;
+  column-gap: 12px;
+  row-gap: 2px;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid var(--agent-compact-suggestion-border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--foreground);
+  text-align: start;
+  box-shadow: var(--agent-compact-suggestion-shadow);
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion:hover {
+  border-color: var(--agent-compact-suggestion-hover-border);
+  background: var(--agent-compact-suggestion-hover-background);
+  box-shadow: var(--agent-compact-suggestion-hover-shadow);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion::before {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--suggestion-accent) 8%, var(--card));
+  background-size: 19px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion::after {
+  content: "";
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  width: 6px;
+  height: 6px;
+  border-block-start: 1.5px solid var(--agent-compact-suggestion-arrow);
+  border-inline-end: 1.5px solid var(--agent-compact-suggestion-arrow);
+  transform: rotate(45deg);
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion-title {
+  grid-column: 2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion-label {
+  grid-column: 2;
+  color: var(--agent-compact-suggestion-label);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .aui-thread-viewport-footer {
+  padding-top: 10px;
+  padding-bottom: 14px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) [data-slot="aui_composer-shell"] {
+  min-height: 84px;
+  gap: 4px;
+  padding: 8px 12px 6px;
+  border-radius: 16px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) [data-slot="aui_composer-input"] {
+  font-family: var(--agent-ui-presentation-font-family);
+  font-size: 14px;
+}
+
+.agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) [data-slot="aui_composer-input"] :is(textarea, [contenteditable="true"], .aui-lexical-placeholder) {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+@media (max-width: 420px) {
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-surface-plugin .agent-ui-conversation [data-slot="agent-ui-thread-content"] {
+    padding-inline: 16px;
+  }
+
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion {
+    column-gap: 10px;
+    padding-inline: 12px;
+  }
+}
+
+/* Short desktop windows and phones keep the useful content visible first.
+ * The conversation viewport still scrolls naturally once messages accumulate. */
+@media (max-height: 700px) {
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state {
+    padding-top: 0;
+  }
+
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root {
+    margin-bottom: 14px;
+  }
+
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root::before,
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-empty-state-welcome .aui-thread-welcome-root::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion {
+    transition: none;
+  }
+}

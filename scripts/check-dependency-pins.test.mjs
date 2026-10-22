@@ -33,7 +33,7 @@ test("accepts exact versions, scoped aliases and workspace links while retaining
 test("rejects floating overrides, fixtures and current registry requirements", async t => {
   const { root, write } = await fixture(t);
   await write("package.json", { packageManager: "pnpm@8.12.0", pnpm: { overrides: { rolldown: "~1.2.8" } } });
-  await write("packages/creator/operator/tests/fixtures/project/package.json", { devDependencies: { vite: "^8.3.0" } });
+  await write("packages/operator/control/tests/fixtures/project/package.json", { devDependencies: { vite: "^8.3.0" } });
   await write("packages/plugins/resources/registry/items/plugin/example/item.json", { packages: { react: "latest" } });
   await write("website/package.json", { devDependencies: { '@rspress/core': '^2.0.23' } });
   await assert.rejects(checkDependencyPins(root), error => {

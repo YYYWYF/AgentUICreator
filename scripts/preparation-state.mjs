@@ -25,10 +25,10 @@ export function preparationState(packages, { workspaceRoot = root } = {}) {
       else if (entry.isFile() && !generatedPluginFiles.has(file.split(path.sep).join("/"))) hash.update(file).update(readFileSync(path.join(root, file)));
     }
   }
-  for (const name of packages) {
+  for (const name of new Set(packages.includes("creator") ? [...packages, "operator"] : packages)) {
     hash.update(readFileSync(path.join(root, "packages", name, "package.json")));
     if (name === "plugins") hash.update(readFileSync(path.join(root, "packages", name, "source-layout.json")));
-    for (const directory of ["src", "operator", "contracts", "python", "scripts", "resources", "registry", "fixtures", "presets", "skills", "browser", "dist"]) visit(`packages/${name}/${directory}`);
+    for (const directory of ["src", "control", "contracts", "python", "scripts", "resources", "registry", "fixtures", "presets", "skills", "browser", "dist"]) visit(`packages/${name}/${directory}`);
   }
   hash.update(readFileSync(path.join(root, "pnpm-lock.yaml")));
   return hash.digest("hex");

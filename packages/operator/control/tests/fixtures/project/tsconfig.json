@@ -1,0 +1,101 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "paths": {
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react/*": [
+        "./node_modules/@types/react/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ],
+      "@za38.03/agent-ui-operator/bootstrap": [
+        "../../packages/operator/control/src/bootstrap/index.ts"
+      ],
+      "@za38.03/agent-ui-operator/mock-agent": [
+        "../../packages/operator/src/mock-agent/index.ts"
+      ],
+      "@za38.03/agent-ui-operator/source-registry": [
+        "../../packages/operator/control/src/source-catalog/index.ts"
+      ],
+      "@za38.03/agent-ui-plugins": [
+        "../../packages/plugins/src/index.ts"
+      ],
+      "@za38.03/agent-ui-runtime": [
+        "../../packages/runtime/src/index.ts"
+      ],
+      "@assistant-ui/react": [
+        "../../packages/plugins/node_modules/@assistant-ui/react"
+      ],
+      "@assistant-ui/react-generative-ui": [
+        "./node_modules/@assistant-ui/react-generative-ui"
+      ],
+      "@assistant-ui/react-ag-ui": [
+        "../../packages/runtime/node_modules/@assistant-ui/react-ag-ui"
+      ],
+      "@za38.03/agent-ui-core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@za38.03/agent-ui-renderer": [
+        "../../packages/renderer/src/index.ts"
+      ],
+      "@za38.03/agent-ui-core/testing": [
+        "../../packages/core/src/testing/index.ts"
+      ],
+      "react-markdown": [
+        "./node_modules/react-markdown"
+      ],
+      "remark-gfm": [
+        "./node_modules/remark-gfm"
+      ]
+    },
+    "rootDirs": [
+      ".",
+      "../../../../../plugins/resources/registry/items/integration/a2ui/files",
+      "../../../../../plugins/resources/registry/items/integration/generative-ui/files",
+      "../../../../../plugins/resources/registry/items/integration/generative-ui/files"
+    ]
+  },
+  "exclude": [
+  ],
+  "include": [
+    "agent-ui/**/*.ts",
+    "agent-ui/**/*.tsx",
+    "framework/**/*.ts",
+    "runtime/**/*.ts",
+    "runtime/**/*.tsx",
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "vite.config.ts",
+    "../../packages/plugins/src/**/*.ts",
+    "../../packages/plugins/src/**/*.tsx",
+    "../../packages/runtime/src/**/*.ts",
+    "../../packages/runtime/src/**/*.tsx"
+  ]
+}

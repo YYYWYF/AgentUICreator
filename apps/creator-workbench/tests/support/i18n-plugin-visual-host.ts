@@ -5,9 +5,9 @@ import { realpathSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { createServer } from "vite";
-import { generatedProjectFixture, repositoryRoot } from "../../../../packages/creator/operator/tests/support/generated-project";
-import { writeGeneratedPluginRegistry } from "../../../../packages/creator/operator/src/generate-plugin-registry";
-import { loadAgentUISourceRegistry } from "../../../../packages/creator/operator/src/source-catalog/loader";
+import { generatedProjectFixture, repositoryRoot } from "../../../../packages/operator/control/tests/support/generated-project";
+import { writeGeneratedPluginRegistry } from "../../../../packages/operator/control/src/generate-plugin-registry";
+import { loadAgentUISourceRegistry } from "../../../../packages/operator/control/src/source-catalog/loader";
 import { builtinMockScenarios, createMockAgentVitePlugin, createMockConversationApiVitePlugin } from "@za38.03/agent-ui-creator/mock-agent";
 
 export async function createI18nPluginHost(

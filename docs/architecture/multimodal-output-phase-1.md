@@ -69,7 +69,7 @@ Backend result：
 
 ## 测试代码
 
-- `packages/mock-agent/tests/file-output.test.ts`：真实 scenario lifecycle、string
+- `packages/operator/tests/mock-agent/file-output.test.ts`：真实 scenario lifecycle、string
   result、JSON 内容及无 CUSTOM。
 - `packages/plugins/tests/migrated/generated-file-ag-ui-integration.test.tsx`：
   真实 Mock SSE 经过 HttpAgent 和当前 ConversationRuntimeProvider 所用的

@@ -8,7 +8,7 @@ import { spawnPnpmSync } from './pnpm-process.mjs';
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const hash = data => createHash('sha256').update(data).digest('hex');
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-const modules = ['core', 'renderer', 'runtime', 'plugins', 'web-component', 'creator'];
+const modules = ['core', 'renderer', 'runtime', 'plugins', 'web-component', 'operator', 'creator'];
 const skipped = new Set(['node_modules', 'doc_build', '.rspress', '.git']);
 const resourceExtensions = new Set(['.md', '.txt', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif']);
 

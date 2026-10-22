@@ -7,7 +7,7 @@ import { preparationState } from "./preparation-state.mjs";
 test("preparation receipt follows source and output changes; legacy flags cannot skip", () => {
   const before = preparationState(["creator"]);
   assert.notEqual(before, "1");
-  const file = new URL("../packages/creator/operator/dist/preparation-test.txt", import.meta.url);
+  const file = new URL("../packages/operator/control/dist/preparation-test.txt", import.meta.url);
   try {
     writeFileSync(file, "stale");
     const stale = preparationState(["creator"]);

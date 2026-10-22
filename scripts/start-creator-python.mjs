@@ -18,7 +18,7 @@ const port = Number(match?.[1]);
 if (!match || port < 1 || port > 65535) throw new Error("CREATOR_PYTHON_ENDPOINT must use http://127.0.0.1:<port> with a valid port");
 const python = path.join(pythonRoot, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
 try { await access(python); } catch { throw new Error("Missing managed Python runtime. Run: pnpm test:python:setup"); }
-const build = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator", "build"], { cwd: workspaceRoot, env: environment, stdio: "inherit" });
+const build = spawnPnpmSync(["--filter", "@za38.03/agent-ui-operator", "build"], { cwd: workspaceRoot, env: environment, stdio: "inherit" });
 if (build.error) throw build.error;
 if (build.status !== 0) throw new Error("Operator build failed");
 const serverArgs = ["-m", "agent_ui_creator.server", "--project-root", path.join(workspaceRoot, "examples/web-component-vue3"),

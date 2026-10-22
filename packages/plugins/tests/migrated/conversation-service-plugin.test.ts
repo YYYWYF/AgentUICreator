@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import { conversationServicePlugin } from "../../resources/registry/items/plugin/conversation-service/files/plugins/conversation-service/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,

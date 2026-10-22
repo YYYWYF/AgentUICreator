@@ -317,7 +317,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     ].some((prefix) => file.startsWith(prefix))),
     pluginFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/plugins/")),
     appUIModelFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/app-ui/")),
-    creatorFilesChanged: select((file) => file.startsWith("packages/creator/")),
+    creatorFilesChanged: select((file) => file.startsWith("packages/creator/") || file.startsWith("packages/operator/")),
     testsChanged: select((file) => file.includes("/tests/") || file.endsWith(".test.ts") || file.endsWith(".test.tsx") || file.endsWith(".test.mjs")),
     newAvailableElements,
     newlyAdoptedElements,

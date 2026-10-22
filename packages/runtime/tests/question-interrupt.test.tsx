@@ -7,10 +7,10 @@ import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { createEphemeralConversationThreadBinding } from "../src/threads/ephemeral-thread-binding.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
-import { runMockScenario } from "../../creator/src/mock-agent/scenario-runner.js";
-import { askUserQuestionScenario } from "../../creator/src/mock-agent/builtins/ask-user-question.js";
-import { frontendToolFillFormScenario } from "../../creator/src/mock-agent/builtins/frontend-tool-fill-form.js";
-import { approvalResumeScenario } from "../../creator/src/mock-agent/builtins/approval-resume.js";
+import { runMockScenario } from "../../operator/src/mock-agent/scenario-runner.js";
+import { askUserQuestionScenario } from "../../operator/src/mock-agent/builtins/ask-user-question.js";
+import { frontendToolFillFormScenario } from "../../operator/src/mock-agent/builtins/frontend-tool-fill-form.js";
+import { approvalResumeScenario } from "../../operator/src/mock-agent/builtins/approval-resume.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 type RunAgentInput = Parameters<typeof runMockScenario>[0];

@@ -1,0 +1,29 @@
+{
+  "name": "@za38.03/agent-ui-creator-linux-x64",
+  "version": "0.0.1",
+  "description": "Bundled Python Agent for Agent UI Creator (linux-x64); installed automatically by Creator",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "files": [
+    "dist",
+    "sidecar.json"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./sidecar.json": "./sidecar.json"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/verify-sidecar-package.mjs .",
+    "prepublishOnly": "node ../../scripts/verify-sidecar-package.mjs ."
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

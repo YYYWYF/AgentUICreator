@@ -1,5 +1,7 @@
 # Ownership / upgrade-risk matrix
 
+> Historical review snapshot accompanying [the reviewed theme architecture](THEME-ARCHITECTURE.md). The old Source Registry and vendor prefixes below identify that snapshot. Current canonical Plugin paths and ownership are defined in [the accepted delivery architecture](../../architecture/npm-default-plugin-source-ownership.md).
+
 Scope: final deployed Agent frontend UI, excluding Creator. A Plugin can be product-owned while its rendered component remains upstream-owned. Never infer vendor edit permission from a Plugin ID.
 
 Levels: **1** token only; **2** token + thin scoped compatibility CSS; **3** product-owned Plugin presentation; **4** upstream-sensitive internals, token/public API treatment only. Every upstream component has **modify vendor source: NO**. Level 2 is a future consideration, not approval to use arbitrary descendant selectors. Risk estimates are design/maintenance judgments, not upstream guarantees.

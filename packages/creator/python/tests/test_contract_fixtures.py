@@ -86,6 +86,49 @@ def test_unknown_request_field_is_rejected():
         _validate("operator.schema.json", drifted)
 
 
+def test_plugin_nodes_allow_omitted_enabled_but_toggle_operations_require_it():
+    _validate("app-ui-model-operation.schema.json", {
+        "type": "insert_plugin_default",
+        "plugin": {
+            "id": "surface-main",
+            "pluginId": "conversation-surface",
+            "slots": {"composer": [
+                {"id": "composer-main", "pluginId": "composer"},
+                {"id": "disabled", "pluginId": "composer", "enabled": False},
+            ]},
+        },
+    })
+    for enabled in (None, "true", 1):
+        with pytest.raises(ValidationError):
+            _validate("app-ui-model-operation.schema.json", {
+                "type": "insert_plugin_default",
+                "plugin": {"id": "sample", "pluginId": "sample", "enabled": enabled},
+            })
+    with pytest.raises(ValidationError):
+        _validate("app-ui-model-operation.schema.json", {
+            "type": "set_plugin_enabled", "instanceId": "surface-main",
+        })
+
+
+def test_plugin_nodes_allow_omitted_ids_and_keep_explicit_ids_compatible():
+    for plugin in (
+        {"pluginId": "composer"},
+        {"id": "legacy", "pluginId": "composer"},
+        {"pluginId": "surface", "slots": {"content": [
+            {"pluginId": "composer"},
+            {"pluginId": "composer", "enabled": False},
+        ]}},
+    ):
+        _validate("app-ui-model-operation.schema.json", {
+            "type": "insert_plugin_default", "plugin": plugin,
+        })
+    for value in ("", None, 1):
+        with pytest.raises(ValidationError):
+            _validate("app-ui-model-operation.schema.json", {
+                "type": "insert_plugin_default", "plugin": {"id": value, "pluginId": "composer"},
+            })
+
+
 def test_app_ui_remove_plugin_schema_accepts_explicit_reflow_mode():
     _validate(
         "app-ui-model-operation.schema.json",

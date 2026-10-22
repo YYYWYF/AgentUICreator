@@ -1,0 +1,11 @@
+---
+title: 配置应用命令来源
+---
+
+# 配置应用命令来源
+
+应用为输入框提供命令候选和执行行为：前端 action 执行明确的页面动作，directive 随消息发送给 Agent。命令来源通过项目的 `conversation.slash-command-source` 服务接入，输入框的命令控件负责展示候选。
+
+当前生成的 `Agent` 没有直接传入命令列表的参数，沿用项目来源服务配置。具体接入见[提及与命令](./mention-and-commands)，其他应用参数见[Agent 参数与配置](../integration/agent-options)。
+
+> 截图待补：输入 / 后显示应用候选，以及选择命令后的效果。

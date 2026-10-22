@@ -1,4 +1,5 @@
 @import "@za38.03/agent-ui-plugins/styles.css";
+@import "./compact.css";
 
 /* The package owns its internal presentation scan. The project owns these
  * editable integration and Plugin sources. */

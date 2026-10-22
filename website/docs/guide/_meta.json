@@ -1,0 +1,155 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Creator 开发指南"
+  },
+  {
+    "type": "custom-link",
+    "label": "启动与配置",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "选择工具接入方式",
+        "link": "/guide/creator-integration-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "Vite 页面入口",
+        "link": "/guide/creator-dock-vite"
+      },
+      {
+        "type": "custom-link",
+        "label": "Rsbuild / Webpack 页面入口",
+        "link": "/guide/creator-dock-rsbuild-webpack"
+      },
+      {
+        "type": "custom-link",
+        "label": "独立运行 Creator",
+        "link": "/guide/creator-standalone"
+      },
+      {
+        "type": "custom-link",
+        "label": "Windows 与内网环境",
+        "link": "/guide/windows-and-offline"
+      },
+      {
+        "type": "custom-link",
+        "label": "模型服务配置",
+        "link": "/guide/model-configuration"
+      },
+      {
+        "type": "custom-link",
+        "label": "CLI 启动参数",
+        "link": "/guide/cli"
+      },
+      {
+        "type": "custom-link",
+        "label": "环境变量与配置项",
+        "link": "/guide/configuration"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "工程与开发任务",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "打开与切换工程",
+        "link": "/guide/project-selection"
+      },
+      {
+        "type": "custom-link",
+        "label": "检查现状与讨论方案",
+        "link": "/guide/ask-and-inspect"
+      },
+      {
+        "type": "custom-link",
+        "label": "通过对话修改界面",
+        "link": "/guide/request-changes"
+      },
+      {
+        "type": "custom-link",
+        "label": "澄清与变更确认",
+        "link": "/guide/confirmations"
+      },
+      {
+        "type": "custom-link",
+        "label": "执行进度与中断",
+        "link": "/guide/progress-and-cancel"
+      },
+      {
+        "type": "custom-link",
+        "label": "Creator 快捷命令",
+        "link": "/guide/commands"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "结果与会话管理",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "预览与接入指引",
+        "link": "/guide/preview-and-integration"
+      },
+      {
+        "type": "custom-link",
+        "label": "阅读差异与验证回执",
+        "link": "/guide/receipts-and-validation"
+      },
+      {
+        "type": "custom-link",
+        "label": "结果状态对照",
+        "link": "/guide/validation-results"
+      },
+      {
+        "type": "custom-link",
+        "label": "撤销与重新应用",
+        "link": "/guide/undo-redo"
+      },
+      {
+        "type": "custom-link",
+        "label": "Creator 会话管理",
+        "link": "/guide/conversation-lifecycle"
+      },
+      {
+        "type": "custom-link",
+        "label": "工具设置与语言",
+        "link": "/guide/settings-and-language"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "模拟联调",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "内置场景与资源要求",
+        "link": "/guide/mock/builtin-scenarios"
+      },
+      {
+        "type": "custom-link",
+        "label": "本地 JSONL 回放",
+        "link": "/guide/mock/local-recordings"
+      },
+      {
+        "type": "custom-link",
+        "label": "编写自定义场景",
+        "link": "/guide/mock/author-scenarios"
+      }
+    ],
+    "link": "/guide/mock/"
+  }
+]

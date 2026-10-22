@@ -15,7 +15,7 @@ Mock Scenario
 ```
 
 The Vite Mock endpoint and Scenario Studio expose the showcase catalog only.
-Regression fixtures remain available through `@agent-ui/mock-agent` imports and
+Regression fixtures remain available through `@za38.03/agent-ui-creator/mock-agent` imports and
 direct `runMockScenario()` calls.
 
 Live Mock Agent scenarios and synthetic Conversation History fixtures are
@@ -85,7 +85,7 @@ Mermaid, math, embedded HTML, footnotes and custom directives are outside this
 fixture's scope. Code headers, language labels, copy buttons, overflow and
 incomplete Markdown during streaming remain presentation checks.
 
-Protocol coverage is in `packages/mock-agent/tests/markdown-showcase.test.ts`;
+Protocol coverage is in `packages/operator/tests/mock-agent/markdown-showcase.test.ts`;
 focused presentation coverage is in
 `packages/plugins/tests/migrated/assistant-ui-markdown-showcase.test.tsx`, using
 standard scenario events through `useAgUiRuntime` and the existing Markdown
@@ -185,8 +185,8 @@ Therefore STEP lifecycle remains a runner primitive and is not a user-facing sce
 | Persisted Sources | Conversation History | `DEFERRED` |
 | Live AG-UI Sources | AG-UI profile 0.0.59 | `DEFERRED`; no private event is added |
 
-`packages/mock-agent` remains the live AG-UI simulator. Synthetic checkpoint
-fixtures live in `packages/mock-agent/src/conversations` and are
+`packages/operator/src/mock-agent` remains the live AG-UI simulator. Synthetic checkpoint
+fixtures live in `packages/operator/src/mock-agent/conversations` and are
 enabled independently with `VITE_CONVERSATION_DATA_MODE=mock`. They remain
 separate from live Mock Agent protocols. Standard live subagents use
 `SUBAGENT_STARTED`, child events attributed by
@@ -277,6 +277,7 @@ fresh Host 的三种模式、两个 sourceRoot 与旧版升级回归共 7 项通
 Demo 已通过。完整 workspace suite 尚未通过，本次不作全量绿色声明。
 
 ```bash
+# Historical acceptance commands for the retired workspace names; not current entry points.
 pnpm --filter @agent-ui/mock-agent test tests/p6-nested-subagent.test.ts
 pnpm --filter @agent-ui/react test tests/migrated/assistant-ui-nested-subagent.test.tsx
 ```
@@ -290,7 +291,7 @@ pnpm --filter @agent-ui/react test tests/migrated/assistant-ui-nested-subagent.t
 From `examples/creator-host-sandbox`, start the existing Vite app:
 
 ```bash
-pnpm --filter @agent-ui/creator-host-sandbox dev
+pnpm --filter @za38.03/agent-ui-creator-host-sandbox dev
 ```
 
 Select a showcase with `?mockScenario=<scenario-id>`. The default remains

@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createConversationSemanticThreadComponents } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/index";
 import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
 import { createConversationToolkit } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/toolkit/index";
-import { mockConversationFixtures } from "../../../creator/src/mock-agent/conversations/fixtures";
+import { mockConversationFixtures } from "../../../operator/src/mock-agent/conversations/fixtures";
 
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
 const mountedRoots: Root[] = [];

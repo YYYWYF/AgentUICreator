@@ -1,0 +1,134 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "应用接入与部署"
+  },
+  {
+    "type": "custom-link",
+    "label": "页面集成",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "React 组件接入",
+        "link": "/integration/react"
+      },
+      {
+        "type": "custom-link",
+        "label": "Vue 接入",
+        "link": "/integration/vue"
+      },
+      {
+        "type": "custom-link",
+        "label": "HTML 与其他框架",
+        "link": "/integration/web-component"
+      },
+      {
+        "type": "custom-link",
+        "label": "业务页面联动",
+        "link": "/integration/react-host-control"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "应用配置",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Agent 参数与配置",
+        "link": "/integration/agent-options"
+      },
+      {
+        "type": "custom-link",
+        "label": "界面语言与受控切换",
+        "link": "/integration/locale-configuration"
+      },
+      {
+        "type": "custom-link",
+        "label": "打开会话与运行恢复",
+        "link": "/integration/conversation-binding"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "业务服务接入",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "连接 AG-UI 服务",
+        "link": "/integration/connect-agent"
+      },
+      {
+        "type": "custom-link",
+        "label": "认证与网络",
+        "link": "/integration/authentication-and-network"
+      },
+      {
+        "type": "custom-link",
+        "label": "历史会话服务契约",
+        "link": "/integration/history-backend"
+      },
+      {
+        "type": "custom-link",
+        "label": "历史服务地址配置",
+        "link": "/integration/history-endpoint"
+      },
+      {
+        "type": "custom-link",
+        "label": "附件、语音与反馈服务",
+        "link": "/integration/attachments-dictation-feedback"
+      },
+      {
+        "type": "custom-link",
+        "label": "前端工具执行接入",
+        "link": "/integration/frontend-tools"
+      }
+    ]
+  },
+  {
+    "type": "file",
+    "name": "production-build",
+    "label": "构建与生产部署"
+  },
+  {
+    "type": "custom-link",
+    "label": "依赖与接口参考",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "依赖包与公开入口",
+        "link": "/integration/package-entries"
+      },
+      {
+        "type": "custom-link",
+        "label": "React Host API",
+        "link": "/integration/react-host-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "对话绑定与适配器",
+        "link": "/integration/runtime-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "Web Component API",
+        "link": "/integration/web-component-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "AG-UI 事件与扩展契约",
+        "link": "/integration/ag-ui-contracts"
+      }
+    ]
+  }
+]

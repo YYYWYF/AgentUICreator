@@ -3,6 +3,14 @@
 This contract ships with the installed Plugins foundation. The application owns
 `../conversation/styles.css`; its npm styles import supplies the base presentation.
 Customize that project stylesheet, preserving its import and source directives.
+Its `./compact.css` import provides the shared assistant/embedded presentation:
+compact neutral suggestion cards, welcome spacing and composer styling. Both
+Modes use the same file; only the floating assistant receives the panel frame.
+The rules are scoped to those shells and share their geometry across light,
+dark and violet. Colors follow each preset's semantic palette; Violet retains
+its compact palette overrides. Platform does not receive compact shell styles.
+This stylesheet is project-owned after
+initialization and can be customized alongside `styles.css`.
 No npm implementation extraction, new Plugin, Runtime edit or Host CSS edit is
 needed for a palette change. Existing local overrides remain application-owned.
 
@@ -21,11 +29,13 @@ unless the user requests changing it; do not apply white backgrounds to every
 - Brand: `--agent-brand` is the brand hue; `--agent-brand-solid` is the stronger
   action color. Set both when replacing the brand. `--primary` and
   `--sidebar-primary` derive from the solid color in violet.
-- Violet derives `--agent-brand-subtle`, `--agent-brand-surface`,
+- Every preset derives `--agent-brand-subtle`, `--agent-brand-surface`,
   `--agent-brand-hover`, `--agent-brand-selected`, `--agent-brand-border`,
   `--agent-brand-hover-border`, `--agent-brand-focus-border`,
-  `--agent-brand-focus-ring`, `--agent-brand-active`, chart colors and sidebar
-  interaction colors from those brand variables and the semantic surfaces.
+  `--agent-brand-focus-ring`, `--agent-brand-active` from those brand variables
+  and the semantic surfaces.
+  Light/dark use their own primary color as the default brand; Violet retains
+  its brand palette. Its chart/sidebar palette overrides remain preset-specific.
 - Surfaces: `--background`, `--card`, `--popover`, `--muted`, `--accent`,
   `--secondary`, `--sidebar`; text: `--foreground`, `--muted-foreground`,
   `--primary-foreground`, `--card-foreground`, `--popover-foreground`.

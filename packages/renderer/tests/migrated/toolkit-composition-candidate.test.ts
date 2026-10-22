@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
-import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
 import { createPluginCapabilityCatalog, createRuntimeCompositionStore, type RuntimeCompositionStore } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
 
 const base: ConversationToolkit = {

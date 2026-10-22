@@ -13,7 +13,7 @@ const overridesPath = "../src/theme/assistant-ui-theme-overrides.css";
 const rules = (css: string) => [...css.replace(/\/\*[\s\S]*?\*\//gu, "").matchAll(/([^{}]+)\{([^{}]+)\}/gu)];
 
 describe("Adaptable Violet brand boundary", () => {
-  it("scopes every rule to Violet Agent UI boundaries, excluding host and light/dark", async () => {
+  it("scopes the Violet palette to Violet while sharing product presentation across themes", async () => {
     const dom = new JSDOM(`<main data-theme="violet"><div data-slot="aui_composer-shell"></div></main>
       <section class="agent-ui-root" data-theme="light"><div data-slot="aui_composer-shell"></div></section>
       <section class="agent-ui-root" data-theme="dark"><div data-slot="aui_composer-shell"></div></section>`);
@@ -21,16 +21,20 @@ describe("Adaptable Violet brand boundary", () => {
       const css = await read(path);
       for (const rule of rules(css)) {
         const selector = rule[1]!.trim();
-        expect(selector).toMatch(/^:is\(\.agent-ui-root, \.agent-ui-conversation\)\[data-theme="violet"\]/u);
-        expect(dom.window.document.querySelectorAll(selector)).toHaveLength(0);
+        expect(selector).toMatch(path === brandPath
+          ? /^:is\(\.agent-ui-root, \.agent-ui-conversation\)\[data-theme="violet"\]/u
+          : /^:is\(\.agent-ui-root, \.agent-ui-conversation\)\[data-theme\]/u);
+        expect(dom.window.document.querySelector(`main ${selector}`)).toBeNull();
+        if (path === brandPath) expect(dom.window.document.querySelectorAll(selector)).toHaveLength(0);
       }
       expect(css).not.toMatch(/:root|\bbody\b|\bhtml\b/u);
     }
+    dom.window.close();
   });
 
   it("preserves only Light/Dark upstream snapshots and derives Violet from one cold seed", async () => {
     const palette = await read("../src/theme/shadcn-theme-presets.css");
-    expect(createHash("sha256").update(palette).digest("hex")).toBe("b00390364b91b675c6d8144b8588592dc766b493d2cc1737bd8d4043bfab4f4b");
+    expect(createHash("sha256").update(palette.replaceAll("\r\n", "\n")).digest("hex")).toBe("b00390364b91b675c6d8144b8588592dc766b493d2cc1737bd8d4043bfab4f4b");
     expect(palette).not.toContain('[data-theme="violet"]');
     const brand = await read(brandPath);
     expect(brand).toContain("--agent-brand: #866DFD;");
@@ -68,9 +72,7 @@ describe("Adaptable Violet brand boundary", () => {
     expect(focus[2]).toContain("border-color: var(--agent-composer-focus-border);");
     expect(focus[2]).toContain("box-shadow: 0 0 0 1px var(--agent-composer-focus-ring), var(--agent-composer-shadow);");
     expect(css).not.toContain("color-mix(");
-    for (const path of ["../src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "../src/internal/composable-thread.tsx"]) {
-      expect(await read(path)).toContain('data-slot="aui_composer-shell"');
-    }
+    expect(await read("../src/plugins/composer/adapters/presentation/composer.tsx")).toContain('data-slot="aui_composer-shell"');
     expect(css).not.toContain("gradient");
   });
 

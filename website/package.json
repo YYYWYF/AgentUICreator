@@ -6,7 +6,8 @@
     "dev": "rspress dev",
     "build": "rspress build",
     "preview": "rspress preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:docs": "node scripts/check-docs.mjs"
   },
   "devDependencies": {
     "@rspress/core": "2.0.23",

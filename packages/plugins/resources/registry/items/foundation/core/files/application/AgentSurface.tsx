@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext, type ReactNode } from "react";
-import { AgentUIRoot, AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import { AGENT_UI_LOCALES } from "../agent-ui/i18n/locale-registry";
 import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge";
@@ -20,21 +20,11 @@ import { ConversationPresentationConfigProvider, conversationPresentationConfig 
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { useApplicationSessionConnection } from "./ApplicationSessionBoundary";
 import { useOptionalPluginServiceRuntime } from "../runtime/plugins/PluginServiceContext";
-import { usePluginService } from "../runtime/plugins";
-import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../services/agent-ui-theme";
-import { useAgentUITheme } from "../agent-ui/theme/useAgentUITheme";
+import { AgentUIThemeBridge } from "../agent-ui/theme/AgentUIThemeBridge";
 import { agentUIRuntimeConfig as generatedAgentUIRuntimeConfig } from "./runtime-config.generated";
 import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
 const agentUIRuntimeConfig: Readonly<{ mode: AgentUIMode }> = generatedAgentUIRuntimeConfig;
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
-
-/** Canonical product composition shared by native React and compatibility Hosts. */
-function AgentUIStyleSurface({ children, themeOverride }: { children: ReactNode; themeOverride?: AgentUITheme | undefined }) {
-  const theme = useAgentUITheme();
-  const themeService = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
-  useEffect(() => { if (themeOverride !== undefined) themeService?.setTheme(themeOverride); }, [themeService, themeOverride]);
-  return <AgentUIRoot theme={themeOverride ?? theme}>{children}</AgentUIRoot>;
-}
 
 interface AgentEnvironmentProps {
   composition: RuntimeCompositionSnapshot<AppAgentState>;
@@ -94,8 +84,9 @@ export function AgentSurface(props: Parameters<typeof AgentSurfaceView>[0]) {
   return <AgentEnvironment {...props}><AgentSurfaceView {...props} /></AgentEnvironment>;
 }
 
-function AgentSurfaceView({ composition, observability, frontendToolRuntime, locale, presentationLocale, onLocaleChange, theme, mode = agentUIRuntimeConfig.mode }: {
+function AgentSurfaceView({ composition, observability, frontendToolRuntime, locale, presentationLocale, onLocaleChange, theme, onThemeChange, mode = agentUIRuntimeConfig.mode }: {
   theme?: AgentUITheme | undefined;
+  onThemeChange?: ((theme: AgentUITheme) => void) | undefined;
   mode?: AgentUIMode | undefined;
   presentationLocale: AgentUILocaleCode;
   locale?: AgentUILocaleCode | undefined;
@@ -137,7 +128,7 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
   const content = (
     <AgentUILocaleProvider locale={locale ?? presentationLocale} messages={AGENT_UI_LOCALES[locale ?? presentationLocale]}>
         <AgentUILocaleBridge locale={locale} onLocaleChange={onLocaleChange}>
-        <AgentUIStyleSurface themeOverride={theme}>
+        <AgentUIThemeBridge theme={theme} onThemeChange={onThemeChange}>
           <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
             <ModeShell mode={mode} assistantPanelWidth={agentUIShellConfig.assistantPanelWidth}>
               <UIPluginRuntime
@@ -151,7 +142,7 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
               />
             </ModeShell>
           </ConversationPresentationConfigProvider>
-        </AgentUIStyleSurface>
+        </AgentUIThemeBridge>
         </AgentUILocaleBridge>
     </AgentUILocaleProvider>
   );

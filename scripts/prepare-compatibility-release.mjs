@@ -1,4 +1,4 @@
-/** Prepare a publisher-reviewed packaged history from actual six-package metadata.
+/** Prepare a publisher-reviewed packaged history from actual public-package metadata.
  * This writes an explicitly requested output file; it does not publish packages or claim registry availability.
  */
 import { readFile, writeFile } from "node:fs/promises";
@@ -8,7 +8,7 @@ import { createRequire } from "node:module";
 import { parseArgs } from "node:util";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
 export async function prepareCompatibilityRelease({ root, id, notesFile, previousFile, output, publishedAt = new Date().toISOString() }) {
-  const { parseCompatibilityManifest } = await import(pathToFileURL(path.join(root,"packages/creator/operator/dist/runtime/operator-runtime.mjs")).href);
+  const { parseCompatibilityManifest } = await import(pathToFileURL(path.join(root,"packages/operator/control/dist/runtime/operator-runtime.mjs")).href);
   const metadata=await Promise.all(publicModules.map(async id=>JSON.parse(await readFile(path.join(root,"packages",id,"package.json"),"utf8"))));
   const versions=Object.fromEntries(metadata.map(pkg=>[pkg.name,pkg.version]));
   const notes=JSON.parse(await readFile(notesFile,"utf8"));
@@ -19,7 +19,7 @@ export async function prepareCompatibilityRelease({ root, id, notesFile, previou
   for(const [index,pkg] of metadata.entries())if(pkg.name!==publicPackageName(publicModules[index]))throw new Error("Official package identity mismatch");
   if(Object.keys(notes).some(name=>!versions[name]))throw new Error("Unknown package in release notes");
   const previous=previousFile?parseCompatibilityManifest(JSON.parse(await readFile(previousFile,"utf8"))):{schemaVersion:1,releases:[]};
-  const {Range,intersects}=createRequire(path.join(root,"packages/creator/package.json"))("semver");
+  const {Range,intersects}=createRequire(path.join(root,"packages/operator/package.json"))("semver");
   const intersection=ranges=>{
     let alternatives=[""];
     for(const range of ranges)alternatives=alternatives.flatMap(left=>new Range(range).set.map(set=>`${left} ${set.map(comparator=>comparator.value).filter(Boolean).join(" ")}`.trim())).filter(candidate=>intersects(candidate||"*",candidate||"*"));

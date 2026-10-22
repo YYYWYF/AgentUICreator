@@ -36,3 +36,5 @@ description: 在 Creator 中选择模板、填写源码位置并初始化。
 ![初始化完成后，面板顶部显示 Agent UI 已创建，右侧有查看接入方法。](/images/start/05-initialized.png)
 
 点击右侧「查看接入方法」，然后继续[把助理放到页面中](./first-agent-ui)。
+
+> 截图待补：三形态并列截图。使用当前实际工程，保留操作入口和预期结果。

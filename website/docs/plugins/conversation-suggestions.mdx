@@ -1,0 +1,63 @@
+---
+title: "使用开场建议（conversation-suggestions）"
+---
+
+# 使用开场建议（conversation-suggestions）
+
+为空会话提供可点击的建议，作为开始对话入口。
+
+## 界面与功能
+
+新会话显示建议问题；选择后按当前配置填写或发送，开始对话后空态建议退场。
+
+## 如何启用和使用
+
+在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+
+当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+
+可以把下面的需求发给 Creator：
+
+> 在当前工程中配置「使用开场建议」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+
+## 使用前提
+
+建议由项目配置。产品默认建议提供两种语言，自定义业务建议是否翻译由项目决定。
+
+## 属性
+
+优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
+
+| 参数 | 用途 |
+| --- | --- |
+| `rootProps` | 最外层区域的样式和 DOM 属性。 |
+| `suggestionsProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| `triggerProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| `titleProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| `descriptionProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| `renderSuggestion` | 替换对应内容的展示，保留当前数据与交互。 |
+| `children` | 替换或补充组件内容。 |
+
+下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+
+```tsx
+import type { ComponentProps } from "react";
+import { ConversationCanonicalSuggestions } from "@za38.03/agent-ui-plugins";
+
+type Props = ComponentProps<typeof ConversationCanonicalSuggestions>;
+export function ProjectView(props: Props) {
+  return <ConversationCanonicalSuggestions {...props} />;
+}
+```
+
+## 验证结果
+
+在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+
+如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+
+> 截图待补：多种开场建议。展示用户实际入口和操作结果；服务配置类通过受影响的对话、列表、主题或账号区域展示。
+
+## 继续阅读
+
+[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)

@@ -5,6 +5,8 @@ description: 跟着截图，在自己的工程中添加并使用 AI 助理。
 
 # 开始使用
 
+本教程带你完成安装、初始化、页面挂载和第一轮对话。想先判断成品是否满足需求，可阅读[前端能力概览](../agent-ui/)；已有 Agent UI 的工程可直接进入 [Creator 开发指南](../guide/)或[应用接入与部署](../integration/)。
+
 ## 第一步：安装 Creator
 
 :::tip 环境要求
@@ -60,3 +62,5 @@ pnpm add -D @za38.03/agent-ui-creator
 ![发送消息后，对话区显示思考、工具执行记录和最终回复。](/images/start/07-demo-conversation.png)
 
 想继续调整颜色、布局或组件时，按[用 AI 修改界面](./ai-assisted)配置模型，再把修改要求发给 Creator。
+
+> 截图待补：按步骤对应的操作截图。使用当前实际工程，保留操作入口和预期结果。

@@ -1,6 +1,8 @@
 # 统一更新中心与兼容版本清单
 
-> 2026-10-21：Creator 与 Operator 合为一个开发工具发布包，Operator 是 `packages/creator/operator` 内部模块。更新中心仅识别六个公共包；工具版本和安装位置取自实际 Creator 包，Operator 随 Creator 更新，不再作为独立 npm 升级目标。历史 `minimumOperatorVersion` 字段为协议兼容而保留，校验合包后的 Creator 工具版本；不生成新的独立 Operator 包记录。工具自升级执行和运行中重启原有待实现边界不变。
+> 2026-10-22 Creator/Operator 拆包更新：TS 工具实现归 packages/operator，Python Agent 和 npm 入口归 packages/creator。用户只安装 Creator，精确依赖 Operator 和平台 Python 包。更新发现分别读取实际 Creator/Operator 身份；七个 API 包独立版本，平台产物作为工具实现依赖。详见 [Creator Python 发行](../../packages/creator/docs/python-distribution.md)。
+
+> 此前 Creator/Operator 合包决定已被上述拆包决定取代。minimumCreatorVersion 与 minimumOperatorVersion 分别校验实际包版本；工具自升级执行、运行中重启与跨安装宿主恢复仍是待实现边界。
 
 状态：Accepted，2026-10-17；2026-10-18 已接入第一阶段：真实版本来源、兼容清单校验、默认 npm registry 只读发现（保留旧 HTTP provider 兼容）、兼容稳定组合选择、累计/逐版本变更展示和明确的离线缓存状态。第二阶段已接入独立项目的 npm/pnpm 产物核验、用户确认安装/锁文件更新、失败恢复与安装后源码同步衔接。共享 workspace、其他包管理器、工具升级和意外中断进程的自动恢复仍未实现；不能扩大为所有安装宿主已完成统一升级。
 
@@ -12,7 +14,7 @@
 
 更新中心在 Creator 启动、选中工程及用户打开更新页时，有界地检查官方更新；后台发现仅做读取、缓存和通知，不下载并执行代码、不修改依赖或本地源码。提供手动刷新及上次检查时间。网络失败或仅有缓存时明确显示“未能确认最新版本”，不能显示为“已是最新”。无需后台常驻服务或生产应用自行访问更新服务。
 
-同一个页面包含两类更新，不增加新的 npm 总包，也不把六个包强制改成相同版本：
+同一个页面包含两类更新，不增加新的 npm 总包，也不把七个包强制改成相同版本：
 
 | 更新对象 | 官方包范围 | 执行位置与边界 |
 | --- | --- | --- |
@@ -104,7 +106,7 @@ Operator 只在确认范围内执行：
 | 发现与比较 | 新增 Operator 兼容发行 Provider、npm 注册源查询/缓存和工程/工具版本快照（拟新增 `operator/src/updates/compatibility-release.ts`、`release-provider.ts`，具体拆分随实现校验）；现有 `source-catalog/release.ts` 的 InstalledUpdateSourceProvider 只读工具依赖中的资源发布，不等于在线更新源，也不能当用户实际已安装版本 |
 | 更新合同与聚合 | 扩展 `operator/src/update-contract.ts` 与 `project/source-registry/updates.ts`：分开兼容组合、包版本、插件版本、来源/基线身份，覆盖 npm 默认应用层；目前 inspect 跳过这些应用层，只聚合托管与旧源码更新 |
 | 依赖计划与安装 | 新增受控 npm 升级规划/执行/恢复服务（拟新增 `operator/src/updates/package-upgrade-plan.ts`、`package-upgrade-executor.ts`），复用 `project/ensure-resource-packages.ts` 的包管理器识别与跨平台进程能力；其现有 ensureResourcePackages 只补缺失依赖、不升级现有声明，不能直接当升级器 |
-| 工具宿主管理 | Creator 安装宿主/CLI 增加工具安装身份、受控重启与恢复通道（拟新增 `creator/src/updates/tool-update-host.ts`）；与 `PythonCreatorProcessManager.ts`、`workspace/CreatorWorkspaceManager.ts` 协作，避免自覆盖和把开发依赖装入生产工程 |
+| 工具宿主管理 | Creator 安装宿主/CLI 增加工具安装身份、受控重启与恢复通道（拟新增 `packages/operator/src/updates/tool-update-host.ts`）；与 Operator 的 `PythonCreatorProcessManager.ts`、`workspace/CreatorWorkspaceManager.ts` 协作，避免自覆盖和把开发依赖装入生产工程 |
 | 确认与开发期 API | 扩展 `creator/src/updates/update-api.ts`、Operator 公开更新入口及 `packages/creator/contracts/creator` 对应合同/类型：只读检查、绑定计划的确认执行、进度/恢复/工具重连。沿用现有授权和当前工程校验，不把 confirmed 布尔或模型自然语言当作独立凭据 |
 | 页面与通知 | `creator/src/ui/CreatorPluginUpdates.tsx`、`CreatorWorkbench.tsx` 增加项目/工具分区、累计变化、逐版本展开、真实当前/目标、依赖联动及阶段进度。默认 npm 插件也在总览出现；复用统一 locale，新增文案 en-US/zh-CN 对等 |
 | 源码同步衔接 | `operator/src/project/owned-plugin-updates.ts`、`takeover-plugin-source.ts` 和 ownership/BASE 机制复用；只在安装及实际包校验完成后生成新同步计划，旧计划失效。刷新 UI 时保持 npm 安装状态与源码基线状态独立 |
@@ -119,7 +121,7 @@ Operator 只在确认范围内执行：
 - 默认 `NpmCompatibilityReleaseProvider` 在目标工程执行 npm 元数据查询，读取真实 latest 身份和发布者随包维护的兼容历史，验证组合内精确版本已发布，按工程隔离缓存及并发请求；不可变组合被改写、元数据缺失或不可达时不报最新。无需设置 `CREATOR_UPDATE_MANIFEST_URL`。旧宿主显式设置该变量时仍使用原 HTTP provider，仅作为兼容入口；正常工程不依赖它。
 - `/__creator/updates/check` 在保留旧源码检查结果的基础上添加可选 `packageUpdates`，分开包组合身份与历史 releaseVersion。默认 npm 包不再因没有 ownership 而从版本总览消失。API 始终绑定当前工程，源码检查启用只读模式，有待恢复事务时明确阻塞、不顺带恢复或覆盖文件；不提供本阶段 npm 安装/执行路由。
 - 页面按项目/工具展示实际版本和推荐目标，聚合区间内功能变化，保留逐版本条目、不兼容原因与历史缺口。推荐来自清单要求的校验，不表示客户端已经向 npm 注册源确认这些产物可下载；该核验属于安装前阶段。`installationSupported=false`，页面明确暂不安装。既有源码计划/合并/验证采用按钮继续使用已安装包，不读取在线快照或改写 BASE。
-- `scripts/prepare-compatibility-release.mjs --id <immutable-id> --notes <authored-json> --output <feed-json> [--previous <feed-json>]` 从六个真实 package.json 生成版本、官方依赖范围及 Node/React 交集，保留历史发行并通过同一 Schema 校验；notes 按完整包名提供 `historyFrom` 和 `changes`。`historyFrom` 是发布者对记录完整性的声明，不从补丁号连续性推测；缺失或区间资料不足时页面明确提示。该脚本只准备资料，不发布、部署或验证 npm 产物已存在；正式托管前发布者仍须完成发行验证。测试 feed 不作为正式发布记录。
+- `scripts/prepare-compatibility-release.mjs --id <immutable-id> --notes <authored-json> --output <feed-json> [--previous <feed-json>]` 从七个真实 package.json 生成版本、官方依赖范围及 Node/React 交集，保留历史发行并通过同一 Schema 校验；notes 按完整包名提供 `historyFrom` 和 `changes`。`historyFrom` 是发布者对记录完整性的声明，不从补丁号连续性推测；缺失或区间资料不足时页面明确提示。该脚本只准备资料，不发布、部署或验证 npm 产物已存在；正式托管前发布者仍须完成发行验证。测试 feed 不作为正式发布记录。
 
 第一阶段本身不执行依赖升级；以下第二阶段在此基础上提供独立项目安装。两阶段均不提供工具自升级/重启、发行清单磁盘持久缓存或默认正式在线地址。
 

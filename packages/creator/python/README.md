@@ -1,5 +1,7 @@
 # agent-ui-creator-core
 
+本目录是 Python 源码和开发/测试入口。用户安装 `@za38.03/agent-ui-creator` 时，由 npm 自动安装包含解释器与依赖的平台 sidecar 包，无需执行本页的 venv、pip 或手工启动步骤。平台包中源码位于 `dist/agent/agent_ui_creator`，Creator 入口包不再分发第二份 Python 源码；见 [平台包发行说明](../docs/python-distribution.md)。
+
 Agent UI Creator 的唯一 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
 AG-UI stream、runtime diagnostics、Operator 领域读取，以及由 Python Host
 拥有 transaction / receipt / undo 的 AppUIModel semantic mutation，以及 Runtime
@@ -48,25 +50,14 @@ pnpm test:python-live-model
 
 ## 手工启动
 
-先执行 `pnpm test:python:setup` 安装开发/测试依赖，然后运行：
+以下仅用于源码仓库开发。先在根目录的 `.env.agentui.local` 配置 `CREATOR_PYTHON_AUTH_TOKEN`（至少 32 字符）和 `CREATOR_PYTHON_ENDPOINT=http://127.0.0.1:8010`，再从仓库根目录运行跨平台入口：
 
-```bash
-packages/creator/python/.venv/bin/python -m agent_ui_creator.server \
-  --project-root examples/creator-host-sandbox \
-  --skills-root packages/creator/skills \
-  --port 0 \
-  --auth-token development-only-token
-```
-
-服务启动后，stdout 第一行是`creator_ready` JSON handshake；普通
-运行日志只写 stderr。
-
-如果工作区根目录已经配置了 `.env.agentui.local`，也可以直接运行快捷命令启动
-固定的 8010 外部 sidecar：
-
-```bash
+```text
+pnpm test:python:setup
 pnpm creator:python
 ```
+
+该入口按当前系统选择 `.venv/Scripts/python.exe` 或 `.venv/bin/python`，不依赖 Bash。服务 stdout 第一行是 `creator_ready` JSON handshake；普通运行日志写入 stderr。
 
 本地开发可在 `.env.agentui.local` 设置 `CREATOR_PYTHON_HOT_RELOAD=1`。此时快捷命令
 会监听 `agent_ui_creator/**/*.py`，检测到源码变化后自动重启 sidecar；依赖文件变化

@@ -1,0 +1,63 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "版本与更新"
+  },
+  {
+    "type": "custom-link",
+    "label": "更新前确认",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "检查更新与累计变化",
+        "link": "/updates/check"
+      },
+      {
+        "type": "custom-link",
+        "label": "兼容性与支持矩阵",
+        "link": "/updates/compatibility"
+      },
+      {
+        "type": "custom-link",
+        "label": "支持范围与限制",
+        "link": "/updates/limitations"
+      },
+      {
+        "type": "custom-link",
+        "label": "正式发布记录",
+        "link": "/updates/release-notes"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "执行与维护",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "项目依赖升级",
+        "link": "/updates/package-upgrade"
+      },
+      {
+        "type": "custom-link",
+        "label": "已接管实现同步",
+        "link": "/updates/source-sync"
+      },
+      {
+        "type": "custom-link",
+        "label": "Creator 工具更新",
+        "link": "/updates/creator-maintenance"
+      },
+      {
+        "type": "custom-link",
+        "label": "失败恢复",
+        "link": "/updates/recovery"
+      }
+    ]
+  }
+]

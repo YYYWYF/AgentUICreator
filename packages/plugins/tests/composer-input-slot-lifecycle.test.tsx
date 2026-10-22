@@ -6,11 +6,11 @@ import { AssistantRuntimeProvider, useLocalRuntime, type AssistantRuntime } from
 import { createDefaultAgentUIPresetRegistry } from "@za38.03/agent-ui-creator/bootstrap";
 import { afterEach, expect, it, vi } from "vitest";
 import { AgentUIRoot, ConversationThread } from "../src/index.js";
-import { collectAppUIPluginLocations, parseAppUIModel, type AppUIModel } from "../../creator/operator/src/framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../../creator/operator/src/framework/contracts/app-ui-compiler";
-import { applyAppUIOperations, type AppUIOperation } from "../../creator/operator/src/project/app-ui-operations";
-import type { UIPluginDefinition } from "../../creator/operator/src/framework/contracts/ui-plugin";
-import { PluginRuntimeFixture } from "../../creator/operator/tests/support/agent-runtime-fixture";
+import { collectAppUIPluginLocations, parseAppUIModel, type AppUIModel } from "../../operator/control/src/framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../../operator/control/src/framework/contracts/app-ui-compiler";
+import { applyAppUIOperations, type AppUIOperation } from "../../operator/control/src/project/app-ui-operations";
+import type { UIPluginDefinition } from "../../operator/control/src/framework/contracts/ui-plugin";
+import { PluginRuntimeFixture } from "../../operator/control/tests/support/agent-runtime-fixture";
 import { createPluginRegistry, createPluginCompositionCatalog } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { CONVERSATION_MENTION_SOURCE, CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../resources/registry/items/foundation/core-application/files/services/composer-triggers";
 import { conversationComposerPlugin } from "../resources/registry/items/plugin/composer/files/plugins/composer/definition";

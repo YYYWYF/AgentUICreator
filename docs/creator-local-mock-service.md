@@ -37,7 +37,7 @@ export default withAgentUILocalEnv({ /* 原有 Vite 配置 */ });
 
 ## 所有权
 
-Creator 在开发期依赖 `@agent-ui/mock-agent`，复用已有场景目录和 HTTP SSE handler。Mock 不依赖 Python Creator Agent 的运行状态。生成项目仅通过标准 AG-UI API 连接开发服务，生产构建和运行不依赖 Creator 或 Mock 服务。接入真实 Agent 时替换 endpoint 即可。
+Mock 的 TS 实现位于 `packages/operator/src/mock-agent`，由 `@za38.03/agent-ui-operator/mock-agent` 交付，并通过 Creator 的 `/mock-agent` 子路径兼容转发；没有独立 Mock npm 包。用户只安装 Creator，复用已有场景目录和 HTTP SSE handler。Mock 不依赖 Python Creator Agent 的运行状态。生成项目仅通过标准 AG-UI API 连接开发服务，生产构建和运行不依赖 Creator 或 Mock 服务。接入真实 Agent 时替换 endpoint 即可。
 ## Demo 与前端能力
 
 图表、Job Progress、AgentPlan、AgentStatus 都有独立的可选展示资源。缺失时，Demo 卡片内提供对应的引入按钮；完成后通过同一 Conversation Runtime 展示。卡片右侧的效果示意图可以点击放大，预览不会安装资源或启动请求。子任务资源同样支持卡片内引入。模板不默认安装这四种扩展资源。

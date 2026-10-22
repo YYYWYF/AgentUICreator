@@ -16,8 +16,8 @@ Mock / Real Conversation API
 → the current Thread in useAgUiRuntime
 ```
 
-History hydration != AG-UI event replay. `packages/mock-agent` owns live
-protocol and presentation scenarios. `packages/mock-agent/src/conversations`
+History hydration != AG-UI event replay. `packages/operator/src/mock-agent` owns live
+protocol and presentation scenarios. `packages/operator/src/mock-agent/conversations`
 owns synthetic LangGraph snapshots. The two catalogs can be enabled
 independently.
 

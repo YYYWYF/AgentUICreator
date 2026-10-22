@@ -18,6 +18,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
+packages/creator/platforms/*/sidecar.json
 examples/creator-host-sandbox/.agent-ui/*
 !examples/creator-host-sandbox/.agent-ui/.gitignore
 !examples/creator-host-sandbox/.agent-ui/mocks/

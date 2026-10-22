@@ -1,0 +1,32 @@
+.rp-doc-layout__sidebar .rp-sidebar-item {
+  border-radius: 6px;
+}
+
+.rp-doc-layout__sidebar .rp-sidebar-group[data-depth='0'] {
+  margin-block-start: 16px;
+  font-weight: 600;
+}
+
+.rp-doc-layout__sidebar .rp-sidebar-group[data-depth='0']:first-child {
+  margin-block-start: 0;
+}
+
+.rp-doc-layout__sidebar .rp-sidebar-group[data-depth='1'] {
+  margin-block-start: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Group headings stay quiet; the selected page carries the background. */
+.rp-doc-layout__sidebar
+  .rp-sidebar-group:not(.rp-sidebar-item--active):hover {
+  background-color: transparent;
+}
+
+/* Use the theme's consistent per-depth indentation without segmented rails. */
+.rp-doc-layout__sidebar .rp-sidebar-item--group-item::before,
+.rp-doc-layout__sidebar
+  .rp-sidebar-item--group-item.rp-sidebar-item--active
+  .rp-sidebar-item__left::before {
+  content: none;
+}

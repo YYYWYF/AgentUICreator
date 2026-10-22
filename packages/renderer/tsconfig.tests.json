@@ -31,13 +31,13 @@
         "../../packages/renderer/node_modules/@types/react/*"
       ],
       "@za38.03/agent-ui-creator/bootstrap": [
-        "../creator/operator/src/bootstrap/index.ts"
+        "../operator/control/src/bootstrap/index.ts"
       ],
       "@za38.03/agent-ui-creator/mock-agent": [
-        "../../packages/creator/src/mock-agent/index.ts"
+        "../../packages/operator/src/mock-agent/index.ts"
       ],
       "@za38.03/agent-ui-creator/source-registry": [
-        "../creator/operator/src/source-catalog/index.ts"
+        "../operator/control/src/source-catalog/index.ts"
       ],
       "@za38.03/agent-ui-plugins": [
         "../../packages/plugins/src/index.ts"
@@ -120,7 +120,7 @@
       "../plugins/resources/registry/items/plugin/conversation-data-source/files",
       "../plugins/resources/registry/items/plugin/conversation-surface/files",
       "../plugins/resources/registry/items/plugin/agent-plan-message/files",
-      "../creator/operator/tests/support/typecheck-project",
+      "../operator/control/tests/support/typecheck-project",
       "../plugins/resources/registry/items/plugin/web-search/files",
       "../plugins/resources/registry/items/plugin/retrieval-chunks/files",
       "../plugins/resources/registry/items/plugin/auth-gate/files",

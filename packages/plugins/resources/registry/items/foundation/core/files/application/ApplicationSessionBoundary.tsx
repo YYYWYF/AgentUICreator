@@ -1,6 +1,6 @@
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
-import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
+import { AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { PluginServiceProvider, usePluginServiceRuntime } from "../runtime/plugins";
 import { useApplicationLifecycleRuntime } from "../runtime/application/ApplicationLifecycleContext";
 import { ApplicationGateSurface } from "../runtime/application/ApplicationGateSurface";
@@ -16,7 +16,7 @@ import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
 import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge";
 import { PluginDiagnosticProvider, type RuntimeDiagnostic, type RuntimeCompositionSnapshot as ObservedComposition } from "../runtime/diagnostics";
 import { publishAgentUIObservation, type AgentObservability } from "./observability";
-import { useAgentUITheme } from "../agent-ui/theme/useAgentUITheme";
+import { AgentUIThemeBridge } from "../agent-ui/theme/AgentUIThemeBridge";
 
 type Connection = { attach(runtime: AgentRuntime<AppAgentState>): () => void; revoke(): void; actions: UIPluginRuntimeActions };
 const SessionEpochContext = createContext(0);
@@ -30,10 +30,12 @@ export function useApplicationSessionConnection(runtime: AgentRuntime<AppAgentSt
   return connection !== null;
 }
 
-export function ApplicationSessionBoundary({ composition, frontendTools, locale = agentUILocaleConfig.defaultLocale, observability, children, renderGate }: {
+export function ApplicationSessionBoundary({ composition, frontendTools, locale = agentUILocaleConfig.defaultLocale, theme, onThemeChange, observability, children, renderGate }: {
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   frontendTools: AppFrontendToolRuntime;
   locale?: AgentUILocaleCode | undefined;
+  theme?: AgentUITheme | undefined;
+  onThemeChange?: ((theme: AgentUITheme) => void) | undefined;
   observability?: AgentObservability | undefined;
   children: ReactNode;
   renderGate?: ((content: ReactNode, phase: string) => ReactNode) | undefined;
@@ -69,7 +71,7 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale 
   const content = <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>
     <PluginServiceProvider model={composition.runtimeModel} registry={composition.activeRegistry} actions={connection.actions} frontendTools={frontendTools} applicationEventRegistry={eventRegistry}>
       <ConnectionContext.Provider value={connection}>
-        <SessionGate composition={composition} connection={connection} locale={locale} renderGate={renderGate}>{children}</SessionGate>
+        <SessionGate composition={composition} connection={connection} locale={locale} theme={theme} onThemeChange={onThemeChange} renderGate={renderGate}>{children}</SessionGate>
       </ConnectionContext.Provider>
     </PluginServiceProvider>
   </AgentUILocaleProvider>;
@@ -83,10 +85,9 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale 
   </PluginDiagnosticProvider>;
 }
 
-function SessionGate({ composition, connection, locale, children, renderGate }: { composition: RuntimeCompositionSnapshot<AppAgentState>; connection: Connection; locale: AgentUILocaleCode; children: ReactNode; renderGate?: ((content: ReactNode, phase: string) => ReactNode) | undefined }) {
+function SessionGate({ composition, connection, locale, theme, onThemeChange, children, renderGate }: { composition: RuntimeCompositionSnapshot<AppAgentState>; connection: Connection; locale: AgentUILocaleCode; theme?: AgentUITheme | undefined; onThemeChange?: ((theme: AgentUITheme) => void) | undefined; children: ReactNode; renderGate?: ((content: ReactNode, phase: string) => ReactNode) | undefined }) {
   const lifecycle = useApplicationLifecycleRuntime();
   const services = usePluginServiceRuntime();
-  const theme = useAgentUITheme();
   const projection = useMemo(() => {
     let previous = lifecycle.getSnapshot();
     let epoch = 0;
@@ -107,10 +108,10 @@ function SessionGate({ composition, connection, locale, children, renderGate }: 
   // Every revoked ready epoch gets fresh conversation state, bindings, run and
   // caches. The Foundation service owner stays mounted throughout transitions.
   if (state.phase === "ready") return <SessionEpochContext.Provider key={state.epoch} value={state.epoch}>{children}</SessionEpochContext.Provider>;
-  const gate = <AgentUILocaleBridge locale={locale}><AgentUIRoot theme={theme}>
+  const gate = <AgentUILocaleBridge locale={locale}><AgentUIThemeBridge theme={theme} onThemeChange={onThemeChange}>
     <ApplicationGateSurface model={composition.runtimeModel} registry={composition.activeRegistry} actions={connection.actions}
       onPluginError={failure => services.applicationLifecycle.update({ ...services.applicationLifecycle.getSnapshot(), phase: "error", failure: { instanceId: failure.instanceId, pluginId: failure.pluginId, message: "APPLICATION_GATE_RENDER_FAILED" } })}
       onPluginReset={() => {}} />
-  </AgentUIRoot></AgentUILocaleBridge>;
+  </AgentUIThemeBridge></AgentUILocaleBridge>;
   return renderGate ? renderGate(gate, state.phase) : gate;
 }

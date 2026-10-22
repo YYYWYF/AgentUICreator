@@ -1,0 +1,17 @@
+---
+title: 设置界面语言
+---
+
+# 设置界面语言
+
+在生成的 Agent 上通过 `locale` 设置中文或英文；由业务页面管理切换时，同时传入 `onLocaleChange`：
+
+```tsx
+<Agent locale={locale} onLocaleChange={setLocale} />
+```
+
+`locale` 使用 `zh-CN` 或 `en-US`，`setLocale` 更新业务页面的语言状态。未传入时，使用 `agent-ui/i18n/locale-config.ts` 的默认配置。
+
+完整示例见[Agent 参数与配置](./agent-options)。需要界面操作入口时使用[语言切换控件](../plugins/locale-switch)。
+
+> 截图待补：相同对话在中英文界面下的效果，保留草稿与当前会话。

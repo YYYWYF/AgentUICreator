@@ -17,7 +17,7 @@ import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
 } from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
-import type { AppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import type { AppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
 
 const runtimeActions = {
   sendMessage: async () => undefined,
@@ -104,8 +104,8 @@ describe("assistant-ui theme bridge", () => {
 
     const root = () => renderer!.root.findByProps({ "data-agent-ui-root": "" });
     expect(root().props).toMatchObject({
-      className: "agent-ui-root",
-      "data-theme": "light",
+      className: themeService.getTheme() === "dark" ? "agent-ui-root dark" : "agent-ui-root",
+      "data-theme": agentUIThemeConfig.theme,
     });
     expect(onMount).toHaveBeenCalledTimes(1);
 

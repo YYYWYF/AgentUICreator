@@ -20,13 +20,13 @@
       "path": "./packages/plugins/tests"
     },
     {
-      "path": "./packages/creator/operator"
+      "path": "./packages/operator/control"
     },
     {
-      "path": "./packages/creator/operator/tests"
+      "path": "./packages/operator/control/tests"
     },
     {
-      "path": "./packages/creator"
+      "path": "./packages/operator"
     },
     {
       "path": "./packages/web-component"

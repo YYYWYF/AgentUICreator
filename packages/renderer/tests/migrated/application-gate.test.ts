@@ -2,13 +2,13 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
 import type {
   UIApplicationGateService,
   UIApplicationGateSnapshot,
   UIPluginDefinition,
   UIPluginSetupContext,
-} from "../../../creator/operator/src/framework/contracts/ui-plugin";
+} from "../../../operator/control/src/framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
   PluginServiceRuntime,

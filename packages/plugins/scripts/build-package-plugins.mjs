@@ -26,7 +26,7 @@ function sourceItemFile(id, relativePath) {
   if (!canonical) throw new Error(`Missing canonical Plugin source mapping: ${view}`);
   return path.join(root, ...canonical.split("/"));
 }
-const verificationScript = fileURLToPath(new URL("../../creator/operator/scripts/source-catalog/verify-package-services.mjs", import.meta.url));
+const verificationScript = fileURLToPath(new URL("../../operator/control/scripts/source-catalog/verify-package-services.mjs", import.meta.url));
 const verification = spawnPnpmSync(["exec", "node", "--import", "tsx", verificationScript], { cwd: root, stdio: "inherit" });
 if (verification.error) throw verification.error;
 if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
