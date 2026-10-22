@@ -107,3 +107,17 @@
     flex-wrap: wrap;
   }
 }
+
+/* Keep the platform welcome group airy without affecting active conversations. */
+.agent-ui-platform-shell .conversation-empty-state-welcome .aui-thread-welcome-root {
+  margin-bottom: 2rem;
+}
+
+.agent-ui-platform-shell .conversation-empty-state-welcome h1 {
+  font-size: 1.875rem !important;
+  line-height: 1.4;
+}
+
+.agent-ui-platform-shell .conversation-empty-state-suggestions {
+  margin-bottom: 1.25rem;
+}

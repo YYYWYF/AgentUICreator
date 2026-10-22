@@ -1,0 +1,21 @@
+{
+  "name": "@za38.03/agent-ui-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspress dev",
+    "build": "rspress build",
+    "preview": "rspress preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@rspress/core": "2.0.23",
+    "@rspress/plugin-preview": "2.0.23",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "5.9.3",
+    "@types/node": "26.6.2"
+  }
+}

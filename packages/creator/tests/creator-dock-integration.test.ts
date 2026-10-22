@@ -26,8 +26,8 @@ it("Vite applies the dock and proxy only to the dev server", () => {
   expect(transform()[0]!.attrs).toMatchObject({
     src: "/__agent-ui/creator-dock/client.js",
     "data-creator-url": "http://127.0.0.1:47832",
-    "data-creator-status": "/__agent-ui/creator-dock/status",
   });
+  expect(transform()[0]!.attrs).not.toHaveProperty("data-creator-status");
 });
 
 it("Rsbuild injects after dev startup and omits the dock during production build", () => {
@@ -64,8 +64,7 @@ it("Rsbuild injects after dev startup and omits the dock during production build
 });
 
 
-it("Vite probes only the configured Creator and requires the same project identity", async () => {
-  const integration = creatorDockIntegration({ projectRoot: process.cwd() });
+it("Vite passes the removed status route through without probing Creator", async () => {
   const plugin = createCreatorDockVitePlugin({ projectRoot: process.cwd() });
   (plugin.config as Function)({});
   let middleware!: Function;
@@ -75,17 +74,9 @@ it("Vite probes only the configured Creator and requires the same project identi
   try {
     const response = { setHeader: vi.fn(), end: vi.fn() };
     const next = vi.fn();
-    await middleware({ url: "/business", method: "GET" }, response, next);
+    await middleware({ url: "/__agent-ui/creator-dock/status", method: "GET" }, response, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(fetchStatus).not.toHaveBeenCalled();
-    for (const [id, online] of [[integration.workspaceId, true], ["another-project", false], [undefined, false]] as const) {
-      fetchStatus.mockResolvedValueOnce({ ok: true, json: async () => ({ workspace: { id } }) });
-      await middleware({ url: "/__agent-ui/creator-dock/status", method: "GET" }, response, next);
-      expect(response.end).toHaveBeenLastCalledWith(JSON.stringify({ online }));
-    }
-    fetchStatus.mockRejectedValueOnce(new Error("ECONNREFUSED"));
-    await middleware({ url: "/__agent-ui/creator-dock/status", method: "GET" }, response, next);
-    expect(response.end).toHaveBeenLastCalledWith('{"online":false}');
-    expect(String(fetchStatus.mock.calls[0]![0])).toBe("http://127.0.0.1:47832/__agent-ui/creator/workspace");
+    expect(response.end).not.toHaveBeenCalled();
   } finally { vi.unstubAllGlobals(); }
 });

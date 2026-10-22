@@ -68,3 +68,13 @@
   background: transparent;
 }
 
+
+/* Separate the two assistant header actions without changing their hit targets. */
+.conversation-thread-list-application::before {
+  content: "";
+  width: 1px;
+  height: 20px;
+  margin-inline: 4px 8px;
+  background: var(--border);
+  flex-shrink: 0;
+}

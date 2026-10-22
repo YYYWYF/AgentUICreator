@@ -39,3 +39,7 @@ packages/plugins/resources/registry/items/plugin/*/changelog.json
 
 # TypeScript authoring resolution generated from the source-layout owners.
 packages/plugins/.typecheck/
+
+# Documentation build output and cache
+website/doc_build/
+website/.rspress/

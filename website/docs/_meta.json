@@ -1,0 +1,27 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "首页"
+  },
+  {
+    "type": "dir",
+    "name": "start",
+    "label": "开始使用"
+  },
+  {
+    "type": "dir",
+    "name": "guide",
+    "label": "用户手册"
+  },
+  {
+    "type": "dir",
+    "name": "plugins",
+    "label": "Plugin 展示与使用"
+  },
+  {
+    "type": "dir",
+    "name": "integration",
+    "label": "接入与部署"
+  }
+]

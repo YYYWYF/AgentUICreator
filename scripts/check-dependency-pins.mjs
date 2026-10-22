@@ -9,6 +9,8 @@ const skipped = new Set(["node_modules", "dist", ".git", ".generated", "vendor",
 
 export async function checkDependencyPins(root = workspaceRoot) {
   const failures = [];
+  const plugins = JSON.parse(await readFile(path.join(root, "packages/plugins/package.json"), "utf8"));
+  const reactPeers = plugins.peerDependencies ?? {};
   const historicalRoot = path.join(root, "packages", "plugins", "resources", "history");
   async function check(file) {
     const manifest = JSON.parse(await readFile(file, "utf8"));
@@ -20,7 +22,12 @@ export async function checkDependencyPins(root = workspaceRoot) {
     for (const [field, dependencies] of Object.entries(fields)) {
       for (const [name, version] of Object.entries(dependencies ?? {})) {
         const workspace = field !== "pnpm.overrides" && version === "workspace:*";
-        if (!workspace && (typeof version !== "string" || !exact.test(version))) {
+        // A resource's React requirement describes host compatibility, not a
+        // request to replace the host's installed React with our dev baseline.
+        const hostReact = field === "packages" && path.basename(file) === "item.json" &&
+          ["react", "react-dom"].includes(name) && typeof version === "string" &&
+          version === reactPeers[name];
+        if (!workspace && !hostReact && (typeof version !== "string" || !exact.test(version))) {
           failures.push(`${path.relative(root, file)} ${field}: ${name}=${version}`);
         }
       }
@@ -41,7 +48,7 @@ export async function checkDependencyPins(root = workspaceRoot) {
     failures.push("package.json: packageManager must pin an exact pnpm version");
   }
   await check(path.join(root, "package.json"));
-  for (const directory of ["packages", "apps", "examples", "scripts"]) await visit(path.join(root, directory));
+  for (const directory of ["packages", "apps", "examples", "scripts", "website"]) await visit(path.join(root, directory));
   const pythonManifest = await readFile(path.join(root, "packages/creator/python/pyproject.toml"), "utf8");
   for (const block of pythonManifest.matchAll(/(?:dependencies|requires|test)\s*=\s*\[([\s\S]*?)\]/gu)) {
     for (const quoted of block[1].matchAll(/"([^"]+)"/gu)) {

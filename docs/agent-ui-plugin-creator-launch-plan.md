@@ -1217,6 +1217,9 @@ Creator 可以自主选择工具。
 
 ```text
 workspace/
+├── website/                     # 独立构建部署的对外 Rspress 文档站
+│   └── docs/                    # 用户手册、Plugin 展示和公开 API 的唯一内容源
+├── docs/                        # 内部架构、设计和实现记录
 ├── packages/
 │   └── creator/                 # 独立发行的开发工具（包含 Mock）
 │       ├── src/                 # Agent、CLI、Vite 适配、Creator UI
@@ -1236,6 +1239,8 @@ workspace/
 ```
 
 Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用同一 Creator Core，但都不进入目标前端的生产 Bundle。
+
+对外文档站位于根目录 `website/`，作为私有 workspace 管理，与开发组合壳分离。Rspress 同时生成供人浏览的 HTML 和供 AI 读取的 Markdown；完整网站静态部署。Creator 的构建、prepack 和发布准备阶段从同一内容源生成离线 Markdown、索引及图片，收录至 `dist/documentation/`，并校验版本、源摘要及文件摘要。离线文档不是第二份手工维护的内容，Rspress 和网站应用不成为 Creator 或生成前端的运行依赖；npm 包内文档读取工具另行实现。
 
 对外 npm 包使用 `@za38.03/agent-ui-*`，按职责独立发行和版本管理，不提供绑定所有模块的统一安装包。
 

@@ -1,0 +1,22 @@
+[
+  {
+    "text": "开始使用",
+    "link": "/start/",
+    "activeMatch": "^/start/"
+  },
+  {
+    "text": "用户手册",
+    "link": "/guide/",
+    "activeMatch": "^/guide/"
+  },
+  {
+    "text": "Plugins",
+    "link": "/plugins/",
+    "activeMatch": "^/plugins/"
+  },
+  {
+    "text": "接入与部署",
+    "link": "/integration/",
+    "activeMatch": "^/integration/"
+  }
+]

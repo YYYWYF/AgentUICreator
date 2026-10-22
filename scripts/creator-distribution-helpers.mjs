@@ -7,6 +7,9 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertContractParity } from "../packages/creator/scripts/contract-integrity.mjs";
 
+import { verifyDocumentation } from "./creator-documentation.mjs";
+import { readFile } from "node:fs/promises";
+
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const pythonRoot = path.join(repositoryRoot, "packages/creator/python");
 export const distributionRoot = path.join(repositoryRoot, "packages/creator");
@@ -58,6 +61,8 @@ export async function unpackCreator(temporary) {
   for (const file of ["dist/cli.js", "dist/standaloneServer.js", "dist/browser/index.html", "dist/browser/dock.html", "dist/browser/dock-client.js", "dist/python/agent_ui_creator/server.py", "dist/python/pyproject.toml", "dist/python/requirements.lock", "skills"]) await access(path.join(unpacked, file));
   assert((await readdir(path.join(unpacked, "skills"))).length > 0);
   await assertContractParity(path.join(repositoryRoot, "packages/creator/contracts/creator"), path.join(unpacked, "dist/python/agent_ui_creator/_contracts/creator"));
+  const manifest = JSON.parse(await readFile(path.join(unpacked, "package.json"), "utf8"));
+  await verifyDocumentation(path.join(unpacked, "dist/documentation"), { version: manifest.version });
   return unpacked;
 }
 

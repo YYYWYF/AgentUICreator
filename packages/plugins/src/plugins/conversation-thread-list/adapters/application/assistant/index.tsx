@@ -7,7 +7,7 @@ import {
   CanonicalConversationThreadListRailAction as RailImplementation,
   useAgentUILocale,
 } from "@za38.03/agent-ui-plugins";
-import { HistoryIcon } from "@za38.03/agent-ui-plugins/plugin-support";
+import { Clock } from "lucide-react";
 import {
   usePluginService,
   usePluginServiceSnapshot,
@@ -61,7 +61,7 @@ export function ConversationThreadListPlugin(
           aria-label={messages.historyTitle}
           title={messages.historyTitle}
         >
-          <HistoryIcon aria-hidden="true" />
+          <Clock aria-hidden="true" />
         </AgentUIPopoverTrigger>
         <AgentUIPopoverContent
           align="end"

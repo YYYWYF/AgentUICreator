@@ -148,7 +148,7 @@
     "foundation/core-runtime"
   ],
   "packages": {
-    "react": "19.1.1",
+    "react": ">=18 <20",
     "@za38.03/agent-ui-plugins": "0.0.1",
     "@za38.03/agent-ui-runtime": "0.0.1",
     "lucide-react": "1.41.0"

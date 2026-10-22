@@ -7,11 +7,11 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@lexical/history": "0.52.0",
-    "@lexical/plain-text": "0.52.0",
-    "@lexical/react": "0.52.0",
-    "@lexical/utils": "0.52.0",
-    "lexical": "0.52.0",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "lexical": "0.51.0",
     "@za38.03/agent-ui-plugins": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
     "@za38.03/agent-ui-core": "workspace:*",

@@ -42,8 +42,8 @@ describe("Product locale composition", () => {
   it("localizes preset suggestions without translating the conversation contract", () => {
     const english = getConversationStarterSuggestions("en-US");
     const chinese = getConversationStarterSuggestions("zh-CN");
-    expect(english[0]!.title).toBe("Analyze Agent UI architecture");
-    expect(chinese[0]!.title).toBe("分析 Agent UI 架构");
+    expect(english[0]!.title).toBe("Accounts and transactions");
+    expect(chinese[0]!.title).toBe("账户与交易查询");
     expect(Object.keys(english[0]!).sort()).toEqual(Object.keys(chinese[0]!).sort());
   });
 });

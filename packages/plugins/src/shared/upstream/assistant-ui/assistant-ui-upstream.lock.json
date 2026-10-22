@@ -16,7 +16,7 @@
     "components/assistant-ui/elements/follow-up-suggestions.aui.tsx": "f0db1e9cfc5f648adeb57c8ac61fbeca4ebbb4d55267a9c107709af01b73abb4",
     "components/assistant-ui/elements/image.tsx": "2e0501673bb976ae7d76de3eecccdaa3f037f84e71bd929c5084ba65ebaff457",
     "components/assistant-ui/elements/job-progress.tsx": "691df51c66130cf66162eecb1ff8587d6448489a73e5c29f9e6810a35623d794",
-    "components/assistant-ui/elements/markdown-text.tsx": "c5d9023a80cd63b1cd7bb1f662d541cc801dd716decf2c78d398a376112abfa4",
+    "components/assistant-ui/elements/markdown-text.tsx": "6484a7bb85b572a4994a5e03f96af7fc2118280c2ff1b5fbb6d3b0d6881db4a0",
     "components/assistant-ui/elements/media-player.tsx": "91dc13e23108a810913f0a70207340505fcd8cdef4130dfa2d15dbfccaa5a682",
     "components/assistant-ui/elements/option-list.tsx": "a8eca74524fd461722d6bf903be7bf01959592e8e0d54a52e1a212fa83e55a7f",
     "components/assistant-ui/elements/quote.aui.tsx": "b1b5a05a7a589499eaaf9b091579bb90ef19968650dd1a1940704b865f576142",

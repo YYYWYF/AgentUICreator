@@ -1,4 +1,5 @@
 import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { BotIcon, ChevronDownIcon } from "lucide-react";
 import { useId, useState, type ReactNode, type CSSProperties } from "react";
 
 import "./mode-shell.css";
@@ -38,7 +39,7 @@ export function AssistantShell({ children, panelWidth }: AssistantShellProps) {
         title={open ? messages.closeAssistant : messages.openAssistant}
         type="button"
       >
-        <span aria-hidden="true">{open ? "\u00d7" : "\u2726"}</span>
+        {open ? <ChevronDownIcon aria-hidden="true" /> : <BotIcon aria-hidden="true" />}
       </button>
     </section>
   );

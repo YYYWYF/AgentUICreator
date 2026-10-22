@@ -132,10 +132,11 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/markdown-text.tsx",
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
       "upstreamSha256": "7d20bd8fe709a1a6aeee24ba82531309e374740ba6181e092592275ffd6ff8ac",
-      "installedSha256": "c5d9023a80cd63b1cd7bb1f662d541cc801dd716decf2c78d398a376112abfa4",
+      "installedSha256": "6484a7bb85b572a4994a5e03f96af7fc2118280c2ff1b5fbb6d3b0d6881db4a0",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "react-markdown-0.14.6-memoize-export"
       ]
     },
     {

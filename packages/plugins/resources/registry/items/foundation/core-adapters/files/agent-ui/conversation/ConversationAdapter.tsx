@@ -1,5 +1,4 @@
 import { useAgentUILocale } from "../i18n/useAgentUILocale";
-import { Sparkles } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -53,9 +52,8 @@ export function ConversationWelcomeFallback() {
   const messages = useAgentUILocale("conversation");
   return (
     <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
-      <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Sparkles aria-hidden="true" style={{ width: 22, height: 22, flexShrink: 0, color: "var(--agent-welcome-icon, #e9a23b)" }} />
-        <span>{welcome.title ?? messages.welcome}</span>
+      <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200" style={{ margin: 0, color: "var(--foreground)", fontSize: 24, fontWeight: 600, lineHeight: 1.4 }}>
+        <span style={{ color: "inherit", fontSize: "inherit", fontWeight: "inherit" }}>{welcome.title ?? messages.welcome}</span>
       </h1>
       {welcome.description === undefined ? null : (
         <p className="text-muted-foreground fade-in slide-in-from-bottom-1 animate-in fill-mode-both mt-2 max-w-xl text-sm leading-6 duration-200">

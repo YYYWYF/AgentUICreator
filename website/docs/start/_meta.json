@@ -1,0 +1,37 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "开始使用"
+  },
+  {
+    "type": "file",
+    "name": "install-creator",
+    "label": "安装并启动 Creator"
+  },
+  {
+    "type": "file",
+    "name": "project-modes",
+    "label": "创建助理界面"
+  },
+  {
+    "type": "file",
+    "name": "first-agent-ui",
+    "label": "把助理放到页面中"
+  },
+  {
+    "type": "file",
+    "name": "generated-files",
+    "label": "认识生成的文件"
+  },
+  {
+    "type": "file",
+    "name": "read-documentation",
+    "label": "阅读网站与 AI 文档"
+  },
+  {
+    "type": "file",
+    "name": "ai-assisted",
+    "label": "用 AI 修改界面"
+  }
+]

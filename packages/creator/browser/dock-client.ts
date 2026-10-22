@@ -1,5 +1,4 @@
 import { installCreatorDock } from "../src/dock/creatorDock.js";
-import { watchCreatorConnection } from "../src/dock/creatorConnection.js";
 import { creatorDockMessages } from "../src/dock/messages.js";
 import "../src/host-preview/hostPreviewClient.js";
 
@@ -11,10 +10,6 @@ if (script?.src) {
     workspaceId: script.dataset.creatorWorkspace,
     messages: creatorDockMessages(script.dataset.creatorLocale ?? document.documentElement.lang),
   });
-  const start = () => {
-    if (script.dataset.creatorStatus) watchCreatorConnection(script.dataset.creatorStatus, install);
-    else install();
-  };
-  if (document.body) start();
-  else document.addEventListener("DOMContentLoaded", start, { once: true });
+  if (document.body) install();
+  else document.addEventListener("DOMContentLoaded", install, { once: true });
 }

@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile, readdir, rm } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile, readdir, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +19,7 @@ export async function readSourceLayout(root = packageRoot) {
   const views = new Set(), sources = new Set();
   for (const entry of layout.files) {
     sourcePath(root, entry.view); sourcePath(root, entry.source);
+    if (entry.view.startsWith("resources/registry/items/plugin-")) throw new Error(`Obsolete plugin resource view: ${entry.view}`);
     if (views.has(entry.view) || sources.has(entry.source)) throw new Error(`Duplicate plugin source owner: ${entry.view}`);
     if (!entry.source.startsWith("src/plugins/") && !entry.source.startsWith("src/shared/")) throw new Error(`Invalid source owner: ${entry.source}`);
     views.add(entry.view); sources.add(entry.source);
@@ -43,6 +44,25 @@ export async function cleanGeneratedPluginResourceViews(root = packageRoot) {
     await rm(target, { force: true });
   }
   for (const directory of generatedFileRoots) await rm(sourcePath(root, directory), { recursive: true, force: true });
+
+  // Pre-migration views are no longer listed in source-layout.json. Scan their
+  // old namespace, including retired Plugins, without following directory links
+  // or removing descriptors and other non-generated files.
+  const itemsRoot = sourcePath(root, "resources/registry/items");
+  const items = await readdir(itemsRoot, { withFileTypes: true }).catch(error => {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  });
+  for (const item of items) {
+    if (!item.isDirectory() || !item.name.startsWith("plugin-")) continue;
+    const directory = path.join(itemsRoot, item.name);
+    await rm(path.join(directory, "files"), { recursive: true, force: true });
+    await rm(path.join(directory, "changelog.json"), { force: true });
+    try { await rmdir(directory); }
+    catch (error) {
+      if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code)) throw error;
+    }
+  }
 }
 
 /** Internal presentation views are needed by package compilation. Source

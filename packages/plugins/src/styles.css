@@ -132,6 +132,12 @@
   z-index: 0;
 }
 
+/* Mode-shell panels use 1000/1001 within this same Agent UI boundary. A
+ * Tooltip must clear them while retaining the local theme/portal container. */
+.agent-ui-root > .agent-ui-portal-root:has([data-slot="tooltip-content"]) {
+  z-index: 1100;
+}
+
 .agent-ui-conversation {
   color: var(--foreground);
   width: 100%;

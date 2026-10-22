@@ -122,7 +122,7 @@ describe("Markdown Showcase through the existing conversation presentation", () 
     }
     const inlineCode = container.querySelector(".aui-md-inline-code");
     expect(inlineCode).not.toBeNull();
-    expect(inlineCode?.textContent).toBe("inline code");
+    expect(inlineCode?.textContent).toBe("行内代码");
     expect(container.querySelector(".aui-md-p")).not.toBeNull();
     expect(container.querySelector("ul ul")).not.toBeNull();
     expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(2);

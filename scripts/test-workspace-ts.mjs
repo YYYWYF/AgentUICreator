@@ -26,7 +26,7 @@ function run(command, args, shell = false) {
 }
 
 run(pnpm, ["check:operator-contract"], process.platform === "win32");
-run(process.execPath, ["--test", "scripts/run-python-tests.test.mjs", "scripts/pnpm-process.test.mjs", "scripts/ensure-workspace-dependencies.test.mjs", "scripts/check-dependency-pins.test.mjs", "scripts/web-component-preparation.test.mjs", "scripts/prepare-example-host.test.mjs"]);
+run(process.execPath, ["--test", "scripts/run-python-tests.test.mjs", "scripts/pnpm-process.test.mjs", "scripts/ensure-workspace-dependencies.test.mjs", "scripts/check-dependency-pins.test.mjs", "scripts/creator-documentation.test.mjs", "scripts/web-component-preparation.test.mjs", "scripts/prepare-example-host.test.mjs"]);
 await withPluginResourceViews(async () => {
   env = { ...env, [pluginResourceViewsReadyEnv]: "1" };
   run(pnpm, ["-r", "--if-present", "test"], process.platform === "win32");

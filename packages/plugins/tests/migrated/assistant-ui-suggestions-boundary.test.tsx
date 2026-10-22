@@ -15,9 +15,9 @@ describe("Conversation Suggestions boundary", () => {
   it("keeps starter content in application/runtime configuration", () => {
     expect(conversationStarterSuggestions).toHaveLength(3);
     expect(conversationStarterSuggestions[0]).toEqual({
-      title: "分析 Agent UI 架构",
-      label: "检查布局、Plugin 与 Service 边界",
-      prompt: "帮我分析当前 Agent UI 架构",
+      title: "账户与交易查询",
+      label: "了解余额、账单与交易明细的查询方式",
+      prompt: "如何查询账户余额、账单和交易明细？",
     });
   });
 

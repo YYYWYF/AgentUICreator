@@ -62,8 +62,8 @@
     },
     {
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
-      "upstreamInstalledSha256": "c5d9023a80cd63b1cd7bb1f662d541cc801dd716decf2c78d398a376112abfa4",
-      "installedSha256": "1a612c196411c67a7a2ad33b3609055a4fa1e1ca7f9dd8cc8b0fe53b40931443"
+      "upstreamInstalledSha256": "6484a7bb85b572a4994a5e03f96af7fc2118280c2ff1b5fbb6d3b0d6881db4a0",
+      "installedSha256": "e984c6db06825795d1bacaf4458f9077b5a6163a442b027712042da9d1f49e34"
     },
     {
       "localPath": "components/assistant-ui/elements/media-player.tsx",

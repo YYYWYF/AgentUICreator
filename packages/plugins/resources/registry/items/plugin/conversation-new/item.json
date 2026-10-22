@@ -24,7 +24,7 @@
     "foundation/core"
   ],
   "packages": {
-    "react": "19.1.1",
+    "react": ">=18 <20",
     "lucide-react": "1.41.0"
   }
 }

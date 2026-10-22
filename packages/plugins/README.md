@@ -27,6 +27,10 @@ mode and copied into `dist/resources/registry/` only for package delivery. Test
 and typecheck commands temporarily materialize the old resource paths, then
 remove them. Edit canonical owners, not generated views. Upstream sync scripts
 capture reviewed results back to the owners, including file removals.
+Preparation and test cleanup also remove generated `files/` and `changelog.json`
+from obsolete `items/plugin-<id>/` directories, including retired Plugins, and
+remove those directories when empty. Other files and directory links are preserved.
+Source layout mappings reject this obsolete namespace.
 
 ## Published assets and tools
 

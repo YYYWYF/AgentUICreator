@@ -6,7 +6,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { QUOTE_SELECTION_FILES, installedVendorEntry } from "./sync-assistant-ui-upstream.mjs";
+import { MARKDOWN_MEMOIZE_COMPATIBILITY, QUOTE_SELECTION_FILES, installedVendorEntry } from "./sync-assistant-ui-upstream.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultVendorRoot = path.join(
@@ -262,7 +262,7 @@ export async function collectAssistantUiUpstreamErrors(
   const provenanceElementPaths = elementPathsFromProvenance(provenance, errors);
   const upstreamRepo = process.env.ASSISTANT_UI_REPO ?? path.resolve(scriptDirectory, "../../../../assistant-ui");
   for (const entry of provenance.files ?? []) {
-    if (entry.adaptations?.some(id => !["official-registry-base-ui-rendering", "import-alias-to-relative"].includes(id))) {
+    if (entry.adaptations?.some(id => !["official-registry-base-ui-rendering", "import-alias-to-relative", MARKDOWN_MEMOIZE_COMPATIBILITY].includes(id))) {
       errors.push(`Vendor product adaptation forbidden: ${entry.localPath}`);
     }
     let installed;

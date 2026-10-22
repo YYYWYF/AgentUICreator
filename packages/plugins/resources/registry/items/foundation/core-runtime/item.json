@@ -196,7 +196,8 @@
     "foundation/core-contracts"
   ],
   "packages": {
-    "react": "19.1.1",
+    "react": ">=18 <20",
+    "lucide-react": "1.41.0",
     "@za38.03/agent-ui-core": "0.0.1",
     "@za38.03/agent-ui-renderer": "0.0.1",
     "@za38.03/agent-ui-plugins": "0.0.1"

@@ -78,7 +78,7 @@ export const enUS = {
     "editInput": "Edit message",
     "loading": "Loading conversation",
     "scrollToBottom": "Scroll to bottom",
-    "welcome": "How can I help you today?",
+    "welcome": "Hello, how can I help you?",
     "working": "Assistant is working",
     "moreActions": "More actions",
     "exportMarkdown": "Export as Markdown",

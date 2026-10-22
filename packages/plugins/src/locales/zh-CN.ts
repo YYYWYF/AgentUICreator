@@ -78,7 +78,7 @@ export const zhCN = {
     "editInput": "编辑消息",
     "loading": "正在加载会话",
     "scrollToBottom": "滚动到底部",
-    "welcome": "今天有什么可以帮你？",
+    "welcome": "您好，有什么可以帮您？",
     "working": "助手正在处理",
     "moreActions": "更多操作",
     "exportMarkdown": "导出 Markdown",
