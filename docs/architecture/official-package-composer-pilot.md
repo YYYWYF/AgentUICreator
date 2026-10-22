@@ -111,26 +111,6 @@ modified legacy copies by stopping with the migration diagnostic. Removing an
 official plugin instance keeps its dependency-owned discovery metadata and does
 not delete npm implementation files.
 
-## Validation recorded on 2026-10-08
-
-- Actual Vite library build checks the Composer subpath output graph; no other
-  official plugin implementation enters it. Source-registry reference remains.
-- Operator tests cover selected imports, reserved IDs, writable targets,
-  full replacement build, thin Slot extension, failed-build rollback, safe baseline
-  migration, modified-source preservation and initialization in all three modes.
-- Creator Python tests use a scripted Selector response to the natural-language
-  request “把输入框改成我们自己的，发送按钮旁边加一个业务按钮。” and verify the
-  reference handoff, formal tool forwarding and bounded derivation admission.
-  This is deterministic route coverage, not real-model E2E evidence.
-- Relevant package builds, TypeScript checks, contract inventory and i18n parity
-  are checked separately from product acceptance.
-- A broader existing Python selection has 37 failures / 135 passes. An archived
-  unmodified HEAD reproduces the same result; examples include stale control-entry
-  fixtures, old tool ordering and an existing mutation result fixture mismatch.
-
-Per the requested scope, browser/visual, real-model E2E, deployment and final
-product acceptance are not run. Expansion beyond Composer waits for acceptance.
-
 ## Explicit real-model Composer acceptance
 
 Run `pnpm verify:creator:official-composer-live` when acceptance is requested.

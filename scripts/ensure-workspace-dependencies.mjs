@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
-const viteProjects = ["apps/creator-workbench", "examples/web-component-vue3"];
+const viteProjects = ["apps/creator-workbench", "examples/creator-host-sandbox", "examples/creator-assistant-host", "examples/creator-embedded-host", "examples/web-component-vue3"];
 function missingViteEntries(root) {
   return viteProjects.filter(project => {
     try { accessSync(path.join(root, project, "node_modules/vite/bin/vite.js")); return false; }

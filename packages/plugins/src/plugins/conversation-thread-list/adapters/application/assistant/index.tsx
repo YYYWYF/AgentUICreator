@@ -72,6 +72,7 @@ export function ConversationThreadListPlugin(
           <h2>{messages.historyTitle}</h2>
           <CanonicalConversationThreadList
             {...props}
+            headerActions={props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}
             listProps={{ showSearch: true, ...props.listProps }}
             snapshot={snapshot}
             serviceAvailable={conversation !== undefined}

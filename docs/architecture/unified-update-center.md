@@ -121,7 +121,7 @@ Operator 只在确认范围内执行：
 - 页面按项目/工具展示实际版本和推荐目标，聚合区间内功能变化，保留逐版本条目、不兼容原因与历史缺口。推荐来自清单要求的校验，不表示客户端已经向 npm 注册源确认这些产物可下载；该核验属于安装前阶段。`installationSupported=false`，页面明确暂不安装。既有源码计划/合并/验证采用按钮继续使用已安装包，不读取在线快照或改写 BASE。
 - `scripts/prepare-compatibility-release.mjs --id <immutable-id> --notes <authored-json> --output <feed-json> [--previous <feed-json>]` 从六个真实 package.json 生成版本、官方依赖范围及 Node/React 交集，保留历史发行并通过同一 Schema 校验；notes 按完整包名提供 `historyFrom` 和 `changes`。`historyFrom` 是发布者对记录完整性的声明，不从补丁号连续性推测；缺失或区间资料不足时页面明确提示。该脚本只准备资料，不发布、部署或验证 npm 产物已存在；正式托管前发布者仍须完成发行验证。测试 feed 不作为正式发布记录。
 
-第一阶段本身不执行依赖升级；以下第二阶段在此基础上提供独立项目安装。两阶段均不提供工具自升级/重启、发行清单磁盘持久缓存或默认正式在线地址。验证记录见 [第一阶段记录](../verification/unified-update-discovery-2026-10-18/README.md)。
+第一阶段本身不执行依赖升级；以下第二阶段在此基础上提供独立项目安装。两阶段均不提供工具自升级/重启、发行清单磁盘持久缓存或默认正式在线地址。
 
 ## 第二阶段实现边界（2026-10-18）
 
@@ -134,7 +134,6 @@ Operator 只在确认范围内执行：
 - 工程根持久 `.agent-ui-npm-update.json` 记录原声明、原锁、实际旧包版本和恢复状态；安装/验证失败时恢复原声明及锁，再通过 npm ci 或 pnpm frozen-lockfile 真正恢复安装，验证旧版本和原文件后才报告 restored。网络等原因导致恢复失败则保留 recovery-required，可在新的 Creator 服务中重试。恢复中发现额外编辑会停止而不是覆盖。若进程在 installing/recovering 中意外消失，不能证明残留子进程已退出或新锁归属，保留记录并要求人工审查，不自动重试或宣称已恢复。恢复文件不是撤销脚本/外部副作用的承诺。
 - 恢复待处理时 `/check` 直接提供恢复状态，不依赖可能已损坏的 node_modules 或源码 catalog；普通失败重试需用户点击。npm 成功后重新读取实际安装 Plugins，继续已有源码同步，npm 执行不生成/采用新 BASE，不自动合并任何源码。旧源码计划通过依赖状态绑定失效。
 
-验证见 [项目依赖升级记录](../verification/npm-project-upgrade-2026-10-18/README.md)。本轮使用真实临时 HTTP 注册源、真实 npm/pnpm 进程和构建后的官方 Plugins payload 验证；测试注册源不是正式发布服务。Composer 已通过真实 Creator/真实模型的 props、确认接管、npm 升级和冲突合并截图验收；fixture 链接转 npm 导致路径缓存，保留同一工程重启宿主后完成同步，详见 `docs/verification/creator-real-npm-update-2026-10-18/README.md`。未做原生 Windows 验收，旧 fixture 未修复。
 
 ## 8. 验收要求
 

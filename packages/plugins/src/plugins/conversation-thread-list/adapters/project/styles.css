@@ -53,3 +53,7 @@
 }
 .agent-ui-root .conversation-thread-list-rail-new:hover { background: var(--sidebar-accent); }
 .agent-ui-root .conversation-thread-list-rail-new svg { width: 16px; height: 16px; }
+
+.conversation-thread-list-header-actions { flex-shrink: 0; }
+.conversation-thread-list-header-actions .conversation-new-plugin { height: auto; padding: 4px 0 8px; }
+.agent-ui-root .conversation-thread-list-header-actions .conversation-new-button { width: 100%; justify-content: flex-start; color: var(--sidebar-foreground); }

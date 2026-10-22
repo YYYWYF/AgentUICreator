@@ -42,8 +42,8 @@ it("preserves conversation service admission and independent new-thread actions"
 });
 // Execute the real initialized application template, replacing only its Host imports.
 // The popover, list, locale and canonical conversation Runtime are the actual implementations.
-async function assistantListApplication() {
-  const source = await readFile(new URL("../src/plugins/conversation-thread-list/adapters/application/assistant/index.tsx", import.meta.url), "utf8");
+async function assistantListApplication(mode: "assistant" | "platform" = "assistant") {
+  const source = await readFile(new URL(`../src/plugins/conversation-thread-list/adapters/application/${mode}/index.tsx`, import.meta.url), "utf8");
   // Compile outside jsdom so esbuild receives Node's matching TextEncoder/Uint8Array realm.
   const compiler = createRequire(import.meta.url).resolve("esbuild");
   const code = execFileSync(process.execPath, ["-e",
@@ -55,6 +55,7 @@ async function assistantListApplication() {
     "react": React,
     "react/jsx-runtime": JSXRuntime,
     "@za38.03/agent-ui-plugins": Plugins,
+    "@za38.03/agent-ui-plugins/conversation-thread-list": { ConversationThreadListPlugin },
     "@za38.03/agent-ui-plugins/plugin-support": PluginSupport,
     "../../runtime/plugins": {
       usePluginService: () => service,
@@ -114,10 +115,36 @@ it.each(modes)("$name list can disable search without filtering or adding a new-
   expect(el.host.querySelector('input')).not.toBeNull();
   expect(el.host.textContent).not.toContain("First history");
 });
+it("initialized platform application renders the AppUIModel header action Slot above search", async () => {
+  const ApplicationList = await assistantListApplication("platform");
+  const renderSlot = vi.fn((name: string, fallback?: ReactNode) => name === "headerActions" ? <ConversationNewPlugin /> : fallback);
+  const el = await mount(<ApplicationList renderSlot={renderSlot} />);
+  const button = el.host.querySelector(".conversation-new-button")!;
+  expect(renderSlot).toHaveBeenCalledWith("headerActions", null);
+  expect(button.compareDocumentPosition(el.host.querySelector("input")!) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  await el.render(<ApplicationList headerActions={<span data-custom-action>Custom action</span>} />);
+  expect(el.host.querySelector("[data-custom-action]")?.textContent).toBe("Custom action");
+});
+it.each(modes)("$name list composes the independent new action above search and keeps canonical navigation", async ({ List, New }) => {
+  const el = await mount(<List headerActions={<New />} />, "zh-CN");
+  const action = el.host.querySelector<HTMLButtonElement>(".conversation-new-button")!;
+  const search = el.host.querySelector("input")!;
+  expect(el.host.querySelectorAll(".conversation-new-button")).toHaveLength(1);
+  expect(action.getAttribute("aria-label")).toBe("新建会话");
+  expect(action.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  await act(async () => action.click());
+  await until(() => el.runtime.threads.getState().mainThreadId !== "history");
+  await el.render(<List renderSlot={() => { throw new Error("Legacy application has no declared child Slots"); }} />);
+  expect(el.host.querySelector(".conversation-thread-list-header-actions")).toBeNull();
+  expect(el.host.querySelector(".conversation-new-button")).toBeNull();
+  expect(el.host.querySelector("input")).not.toBeNull();
+});
 it.each(modes)("$name new supports localized labeled and icon-only application variants",async({New})=>{
   const el=await mount(<New/>,"zh-CN");
   const button=()=>el.host.querySelector<HTMLButtonElement>('.conversation-new-button')!;
   expect(button().textContent).toBe("新建会话");
+  expect(button().querySelector("svg.lucide-plus[data-slot=aui_thread-list-new-icon]")).not.toBeNull();
+  expect(button().querySelector("[data-slot=aui_thread-list-new-label]")?.textContent).toBe("新建会话");
   expect(button().getAttribute("aria-label")).toBe("新建会话");
   await el.render(<New showLabel={false}/>);
   expect(button().textContent).toBe("");

@@ -2,6 +2,7 @@
  * Presentation implementations themselves live in each Plugin directory.
  */
 export { useAgentUILocale } from "./locale.js";
+export { useConversationCommandDecision } from "./internal/conversation-command-decisions.js";
 export { useAssistantResponseRuntime } from "./internal/assistant-response-runtime.js";
 export { TooltipIconButton } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 export { ConversationActionMoreMenuItem } from "./internal/style-boundary/ConversationActionMoreMenu.js";

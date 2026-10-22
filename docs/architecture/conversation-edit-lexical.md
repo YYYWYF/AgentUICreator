@@ -42,13 +42,3 @@ Lexical remains confined to the optional facade, pinned to react-lexical
 0.2.15 and Lexical 0.51.0; assistant-ui React remains 0.15.23. The existing local
 upstream revision `3542d602272a62eddeb8989befc910841c267022` was inspected for
 Lexical input and edit-runtime ownership. No upstream files were changed.
-
-## Validation status
-
-Regression tests are authored for the public seam, locale, known and unknown
-directives, stable IDs, AG-UI text and backend resolution, Cancel, Quote parity,
-branches, atomic deletion/Undo, multiline/IME/autofocus, readonly/running states,
-and real Plugin Runtime disable/enable/remove/reinstall across all three presets.
-They are not executed in this task: the user explicitly requested no acceptance.
-Package compilation, test typechecking and static boundary checks establish
-build compatibility only; browser/live-model behavior remains unaccepted.

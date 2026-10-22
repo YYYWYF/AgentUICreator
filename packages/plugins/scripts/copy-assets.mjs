@@ -95,6 +95,7 @@ export { CheckIcon, CopyIcon, RefreshCwIcon, DownloadIcon, ThumbsUpIcon, ThumbsD
 export const TooltipIconButton: FC<import("./public.js").ConversationTooltipIconButtonProps>;
 export const ConversationActionMoreMenuItem: typeof import("./public.js").ConversationActionMoreMenuItem;
 export function useAssistantResponseRuntime(): import("./public.js").ConversationResponseRuntime;
+export function useConversationCommandDecision(toolCallId: string): import("./public.js").ConversationCommandDecisionBinding | undefined;
 type DisclosureRoot = Omit<CollapsiblePrimitive.Root.Props, "onOpenChange"> & { onOpenChange?: (open: boolean) => void; variant?: "outline" | "ghost" | "muted" | null };
 export const ReasoningRoot: FC<Omit<DisclosureRoot, "onAnimationStart"> & { streaming?: boolean; onAnimationStart?: () => void }>;
 export const ReasoningTrigger: FC<CollapsiblePrimitive.Trigger.Props & { active?: boolean; duration?: number }>;

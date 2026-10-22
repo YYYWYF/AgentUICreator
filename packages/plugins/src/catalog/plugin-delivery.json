@@ -744,6 +744,12 @@
           "assistant.css.d.ts",
           "adapters/application/assistant/styles.css.d.ts"
         ]
+      ],
+      "platform": [
+        [
+          "index.tsx",
+          "adapters/application/platform/index.tsx"
+        ]
       ]
     },
     "definitionExports": [

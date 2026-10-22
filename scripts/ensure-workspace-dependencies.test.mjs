@@ -6,7 +6,7 @@ import path from "node:path";
 import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
 
 function installViteEntries(root) {
-  for (const project of ["apps/creator-workbench", "examples/web-component-vue3"]) {
+  for (const project of ["apps/creator-workbench", "examples/creator-host-sandbox", "examples/creator-assistant-host", "examples/creator-embedded-host", "examples/web-component-vue3"]) {
     const directory = path.join(root, project, "node_modules/vite/bin");
     mkdirSync(directory, { recursive: true });
     writeFileSync(path.join(directory, "vite.js"), "");

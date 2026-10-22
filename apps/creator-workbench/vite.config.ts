@@ -25,7 +25,7 @@ const workspaceRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const hostProjectRoot = path.join(workspaceRoot, "examples/web-component-vue3");
+const hostProjectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
 const initializationHost = createAgentUIInitializationHost();
 const workspaceManager = new CreatorWorkspaceManager({
     compatibility: true,

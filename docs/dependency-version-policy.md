@@ -10,7 +10,7 @@ core 0.3.27 官方依赖要求 assistant-stream ^0.3.50，以及 store ^0.3.19�
 
 ## overrides 审计（2026-10-21）
 
-已逐项移除根 package.json 的全部 16 项 overrides，无保留项。当前精确解析版本均满足上游原始要求；直接依赖已有精确声明，传递依赖和自动安装的 peers 由 pnpm-lock.yaml 锁定。冻结安装负责防止漂移，无需覆盖上游兼容范围。pnpm 离线同步后，525 个包实例、依赖边、integrity 和平台条件均未改变，仅移除 overrides 并恢复上游 peer 范围。具体逐项依据见 [审计记录](dependency-overrides-audit-20261021.md)。下文旧环境记录中的 overrides 描述仅为历史记录。
+已逐项移除根 package.json 的全部 16 项 overrides，无保留项。当前精确解析版本均满足上游原始要求；直接依赖已有精确声明，传递依赖和自动安装的 peers 由 pnpm-lock.yaml 锁定。冻结安装负责防止漂移，无需覆盖上游兼容范围。pnpm 离线同步后，525 个包实例、依赖边、integrity 和平台条件均未改变，仅移除 overrides 并恢复上游 peer 范围。下文旧环境记录中的 overrides 描述仅为历史记录。
 
 ## 当前依赖基线（2026-10-21）
 
@@ -39,28 +39,6 @@ pnpm verify:creator-distribution
 从源码拷贝后，在根目录直接执行 `pnpm dev`；该入口自动冻结安装 JS 依赖、构建开发包、初始化平台 Host，并由 Creator 自动准备 Python 环境。UI 启动不需要模型密钥，发起真实模型请求前配置根目录 `.env.agentui.local`（参考 `.env.agentui.example`）。使用独立 sidecar 时，先运行 `pnpm test:python:setup`，再在一个 PowerShell 窗口执行 `pnpm creator:python`，另一个窗口执行 `pnpm dev`。`creator:python` 已使用 Node 跨平台入口，无需 Bash。模型/API 地址和凭据必须使用公司环境的可访问配置。
 
 Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，不能视作 Windows 实机验收通过。公司网络、镜像完整性和真实模型交互仍需在公司环境验收。
-
-## 本轮验证（2026-10-12）
-
-执行环境：macOS，Node 24.20.0、pnpm 11.24.0、Python 3.14.7；不是 Windows 实机。用户已确认公司镜像提供 store 0.3.19、tap 0.9.23、assistant-stream 0.3.50。
-
-- 冻结锁文件安装、JS/Python 精确版本检查、AG-UI compatibility / lockfile guard、assistant-ui upstream guard 均通过。
-- Creator 完整分发验证通过：19 项 Python 环境管理测试、npm tarball 结构与合同、打包 sidecar health、Python wheel 独立安装、独立缓存环境首次启动和重启。
-- Windows 包管理器调用和资源安装相关测试 17 项通过；Node 启动/准备状态测试 9 项通过。这里只模拟了 Windows 命令参数，不能替代 Windows 实机执行。
-- Conversation / Lexical / upstream 相关测试 24 项通过，Markdown showcase 1 项通过，Source Registry 31 项通过。
-- 平台 Host 生产构建通过。Creator、Workbench、平台 Host、核心生产包类型检查通过；Vue 两个示例在 TypeScript 5.9.3 下分别通过类型检查。
-- 新的 `pnpm creator:python` Node 入口实际启动独立 sidecar，鉴权 `/health` 返回 200 / runtime=python，检查后已停止。
-- `pnpm dev --host-port 15176 --workbench-port 15174` 实际启动两台 Vite server 和 Python sidecar；Host、Dock HTTP 均为 200，Chromium 加载两页无 pageerror。检查后已停止本轮服务。没有运行真实模型生成请求。
-- 全仓库 `pnpm build` 仍因保留的 assistant Host 源码与当前 Sidebar 类型合同不匹配而失败；embedded Host 的类型检查也有同类错误。现有源码被判定为 customized，未重置或覆盖。
-- 全仓库 `pnpm typecheck` 仍有 renderer 测试的 NodeNext 导入扩展名 / JSON import attribute 错误。首轮 Vue TypeScript 被误统一到 7.0.2，现已修回图片指定的 5.9.3 并通过定向检查。
-- `pnpm test:ts` 在 renderer 的 3 项语言/主题预期错误处停止（该包 173 passed、3 failed）；core 31 项、bootstrap 41 项、Source Registry 31 项通过。后续包的全量测试没有继续执行，不能视为全部通过。
-- 全量 Python：1057 passed、381 failed、89 skipped。未修改的 HEAD 副本中，对 path_policy / source_grounding 的代表性基线验证为 14 failed、6 passed，确认部分失败早于本轮修改；其余失败未逐一归因。修复了 live diagnostics 测试的相对导入，使全量测试可以正常收集。
-
-本轮还修正了根目录 build/typecheck/test 脚本覆盖准备摘要为旧 `"1"` 标记的问题，避免多个 Host 同时重建共享 dist 而出现 ENOENT/EEXIST；独立资源安装显式使用包管理器的 exact 保存选项，避免生成项目脱离工作区后再次保存浮动版本。
-
-`pnpm peers check` 仍报告 Markdown adapter 的版本声明不匹配，以及 Vite 的可选 esbuild peer（当前保留 0.25.12，Vite 声明 ^0.27.0 或 ^0.28.0）。本轮构建和启动检查已执行，但未用忽略警告来宣称这些上游版本声明一致。公司环境若启用 strict peer 检查，这些声明可能阻止安装。
-
-当前结论：版本固定和主要开发/分发路径已验证；全仓库门禁尚未全部通过，Windows 与公司网络中的真实模型交互尚未验收。
 
 ## 后续启动修复
 
@@ -108,7 +86,6 @@ pnpm dev
 
 ## 公司补充版本锁定（2026-10-13）
 
-已按补充清单精确锁定全部 16 个包，同步根 overrides、活动声明、Source Registry 和锁文件。严格冻结安装、Creator/平台 Host 构建、定向类型检查、实际启动及 AG-UI 会话浏览器验证通过。Vue plugin 6.0.1 与 Vite 8.3.0 存在官方 peer 范围差异，经验证后添加仅覆盖该精确组合的 allowedVersions 例外。全仓库 build/typecheck/tests 仍未全绿，旧组合可复现多项失败。详细范围、对照和限制见 [本轮报告](verification/dependency-pins-20261013/REPORT.md)。
 
 ## 编辑器与类型检查
 

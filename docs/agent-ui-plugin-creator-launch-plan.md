@@ -1,6 +1,6 @@
 # Agent UI Plugin Creator 最终设计与启动计划
 
-> 2026-10-21 发布边界更新：Operator 已合入 `@za38.03/agent-ui-creator`，源码在 `packages/creator/operator`，协议与共享测试数据在 `packages/creator/contracts`。Operator 保留独立内部职责，通过 `/operator`、`/operator/*`、`/bootstrap`、`/source-registry` 公开；不再独立发包或维护版本。公共包由七个变为六个。本更新取代本文旧的 Creator/Operator 独立发布描述；生产前端仍不得依赖 Creator。验证范围与未通过项见 [合包验证记录](implementation/creator-operator-merge/REPORT.md)。
+> 2026-10-21 发布边界更新：Operator 已合入 `@za38.03/agent-ui-creator`，源码在 `packages/creator/operator`，协议与共享测试数据在 `packages/creator/contracts`。Operator 保留独立内部职责，通过 `/operator`、`/operator/*`、`/bootstrap`、`/source-registry` 公开；不再独立发包或维护版本。公共包由七个变为六个。本更新取代本文旧的 Creator/Operator 独立发布描述；生产前端仍不得依赖 Creator。
 
 > 文档状态：Canonical。本文合并原始启动设计、当前代码实现、DeepSeek Harness Creator/Cordis 机制评估，以及 Creator 控制面复核结论。若专题实施细节与本文冲突，以本文和仓库根目录 `AGENTS.md` 为准。
 >

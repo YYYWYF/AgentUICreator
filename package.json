@@ -52,7 +52,12 @@
     "test:types": "node --test scripts/typescript-authoring.test.mjs scripts/preparation-state.test.mjs",
     "dev:vue-host": "pnpm --filter @za38.03/agent-ui-web-component-vue3-demo dev",
     "creator": "pnpm --filter @za38.03/agent-ui-creator build && node packages/creator/dist/cli.js --project examples/web-component-vue3 --config-root .",
-    "test:style-isolation": "pnpm test:web-component"
+    "test:style-isolation": "pnpm test:web-component",
+    "dev:examples": "node scripts/dev-examples.mjs",
+    "dev:host-sandbox": "node scripts/dev-examples.mjs platform",
+    "dev:assistant-host": "node scripts/dev-examples.mjs assistant",
+    "dev:embedded-host": "node scripts/dev-examples.mjs embedded",
+    "test:examples": "node --test scripts/prepare-example-host.test.mjs"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3"

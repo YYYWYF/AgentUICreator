@@ -30,3 +30,14 @@ it.each(["assistant", "embedded", "platform"])("%s declares independent new-conv
   expect(() => compileAppUIModel(model, catalog)).not.toThrow();
   if (mode === "platform") expect(Object.keys(projectWorkspaceTopology(model, agentUIModeRegistry.get(mode).workspace).regions)).toEqual(["center"]);
 });
+
+it("platform places its sole new-conversation instance above sidebar search through the list action Slot", () => {
+  const model = presets.get("platform/default").createAppUIModel();
+  if (model.root.type !== "sidebar") throw new Error("Platform requires a sidebar");
+  const history = model.root.items.find(item => item.id === "history")?.child.plugins[0];
+  expect(history?.pluginId).toBe("conversation-thread-list");
+  expect(history?.slots?.headerActions).toEqual([
+    { id: "conversation-new-main", pluginId: "conversation-new", enabled: true },
+  ]);
+  expect(collectAppUIPluginLocations({ root: model.root.content }).some(({ plugin }) => plugin.pluginId === "conversation-new")).toBe(false);
+});

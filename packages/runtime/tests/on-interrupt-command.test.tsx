@@ -1,4 +1,5 @@
-import { useAui, type AssistantRuntime } from "@assistant-ui/react";
+import { MessagePrimitive, ThreadPrimitive, useAui, type AssistantRuntime } from "@assistant-ui/react";
+import { ConversationToolFallback } from "@za38.03/agent-ui-plugins";
 import type { ConversationAgentRuntimeBridge } from "../src/compatibility/conversation-runtime-bridge.js";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it } from "vitest";
@@ -18,17 +19,23 @@ async function until(predicate: () => boolean) {
 }
 
 describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", () => {
-  it.each([false, true].flatMap(stop => ["approve", "reject"].map(decision => ({ stop, decision }))))(
-    "forwards $decision after stop=$stop without native resume", async ({ stop, decision }) => {
+  it.each([false, true].flatMap(stop => ["approve", "reject"].flatMap(decision =>
+    ["bridge", "fallback"].map(surface => ({ stop, decision, surface })))))(
+    "forwards $decision through $surface after stop=$stop without native resume", async ({ stop, decision, surface }) => {
     let bridge!: ConversationAgentRuntimeBridge;
     let runtime!: AssistantRuntime;
     let renderer!: ReactTestRenderer;
-    const inputs: Array<{ runId: string; threadId: string; forwardedProps: Record<string, unknown>; resume?: unknown }> = [];
+    const inputs: Array<{ runId: string; threadId: string; forwardedProps: Record<string, unknown>; resume?: unknown; messages?: unknown }> = [];
     const binding = createEphemeralConversationThreadBinding();
+    function AssistantMessage() {
+      return <MessagePrimitive.Root>
+        <MessagePrimitive.Parts components={{ tools: { Fallback: ConversationToolFallback } }} />
+      </MessagePrimitive.Root>;
+    }
     function Capture() {
       bridge = useConversationRuntimeBridge().agentRuntime;
       runtime = useAui().threads.__internal_getAssistantRuntime!();
-      return null;
+      return surface === "fallback" ? <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage: () => null }} /> : null;
     }
     await act(async () => {
       renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" threadBinding={binding}
@@ -80,11 +87,22 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       await expect(bridge.submitCommandDecision("delete-1", "edit")).rejects.toThrow("Unsupported command decision");
       expect(inputs).toHaveLength(1);
       let submitted!: Promise<void>;
-      await act(async () => { submitted = bridge.submitCommandDecision("delete-1", decision); });
+      await act(async () => {
+        if (surface === "bridge") submitted = bridge.submitCommandDecision("delete-1", decision);
+        else {
+          const buttons = renderer.root.findAll(node => node.type === "button");
+          expect(buttons.some(node => node.children.includes("edit") || node.children.includes("respond"))).toBe(false);
+          const button = buttons.find(node => node.children.includes(decision === "approve" ? "Allow" : "Deny"));
+          expect(button, "default fallback must retain the pending command controls").toBeDefined();
+          button!.props.onClick();
+          submitted = Promise.resolve();
+        }
+      });
       await until(() => inputs.length === 2 && bridge.getSnapshot().run.status === "idle");
       await submitted;
       expect(inputs[1]!.forwardedProps.command).toEqual({ decisions: [{ type: decision }] });
       expect(inputs[1]!.resume).toBeUndefined();
+      expect(JSON.stringify(inputs[1]!.messages)).not.toMatch(/Approved by user|User denied tool execution/u);
       expect(inputs[1]!.threadId).toBe(inputs[0]!.threadId);
       expect(bridge.getCommandDecisionRequest("delete-1")).toBeUndefined();
     } finally {

@@ -39,13 +39,6 @@ Do not use a translated label to make a domain or protocol decision.
 
 ## Inventory and maintenance
 
-The initial inventory was collected before editing and classified by semantic
-ownership. `initial-ui-copy-inventory.json` records that baseline, including
-untranslated developer diagnostics and mock/example content. Its line numbers
-refer to the starting working tree, which included pending independent changes.
-The committed implementation also localizes the clean branch's corresponding
-UI; pending changes are kept separate.
-
 Run `pnpm check:i18n` for recursive key parity, non-empty messages and placeholder
 parity. `pnpm audit:ui-copy` writes an AST-based inventory of current owned
 surfaces, duplicate values and potentially unused keys. The latter findings are
@@ -62,19 +55,3 @@ On every upstream upgrade, **check new upstream user-facing copy**. Prefer publi
 props and composition, then product adapters/wrappers. Record unavailable seams
 in [upstream-localization-gaps.md](./upstream-localization-gaps.md). Locale gaps
 must never justify vendor changes or become an upgrade blocker.
-
-## Verification boundary for this change
-
-The initial localization work used static checks, compilation and focused unit
-regressions. The 2026-10-07 follow-up also checks real browser composition with
-isolated AG-UI mocks: language switching, reasoning, tool errors, approval and
-receipts, and command-picker accessibility. This follow-up covers Agent UI only;
-Creator Agent and user-owned Host presentation are outside its scope. Audio controls, media/file labels and encoded-file fallbacks are now covered by
-guarded adapters, unit regressions and browser checks. Native video controls use
-the browser language. No full production backend acceptance or zero-visible-English
-claim is implied.
-
-For an Agent UI-only inventory including installed example Agent UI sources, run
-`node scripts/audit-ui-copy.mjs --agent-ui-only --output /tmp/agent-ui-copy.json`.
-This excludes Creator and Host presentation. As with the general audit, review
-findings semantically; it is not a blanket string ban.

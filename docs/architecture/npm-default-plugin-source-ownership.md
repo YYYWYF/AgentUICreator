@@ -28,7 +28,6 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 - Plugins 同包生成 catalog、540 个受管源码文件快照及 78 条可发布资源（源码目录含 79 条，A2UI 排除）。62 个上游文件与迁移前工作区逐字节一致。测试历史保留在工作区，不随 tarball 分发。
 - 现有运行入口、Composer、资源安装和旧三方更新保留。确认接管/本地引用切换现已支持声明完整 portable closure 的 npm 插件；43 个现代官方插件均已完成默认包化，旧工程 ownership 自动迁移仍未实现；Composer 新 ownership 的显式源码同步已接入更新页。
 
-验证记录见 [合包验证](../verification/plugins-registry-merge-2026-10-17.json)。
 
 ## 通用交付与分批接入（2026-10-17）
 
@@ -71,7 +70,7 @@ npm 替换不修改已托管实现、BASE 或应用层；之后在 Creator 更�
 
 新增 ID 可能已有迁移前源码：具有有效 manifest/definition 的目录保持原有本地来源及定制，无论是否有旧 source-lock；不会擅自套薄层、删除源码或生成接管同意记录。它仍走旧源码更新机制，自动分层迁移尚未实现。未知/不完整目录仍作为冲突报错，禁止覆盖。
 
-前两批的验证与限制见 [初始验证记录](../verification/general-plugin-delivery-2026-10-17/README.md)。截至第九批，43 个现代官方插件均已接入，详见最新 inventory。旧 `assistant-ui-*` 资源 ID 和历史 BASE 保持兼容，不批量改写用户工程。
+截至第九批，43 个现代官方插件均已接入，详见最新 inventory。旧 `assistant-ui-*` 资源 ID 和历史 BASE 保持兼容，不批量改写用户工程。
 
 ## 第三、四批的闭包与验证（2026-10-17）
 
@@ -83,7 +82,6 @@ npm 替换不修改已托管实现、BASE 或应用层；之后在 Creator 更�
 
 Slot 静态校验也按官方 delivery 元数据识别薄层委托：只有把相应 renderSlot/renderScopedSlot 传给正确的官方组件，才认定其语义子 Slot 已委托；显式丢弃回调会报错。源码托管后继续检查实际本地调用，不能只凭 application 标记跳过校验。
 
-本轮完整生命周期覆盖 13 个非 Composer 现代插件，并逐项验证新旧源码及应用层定制保留。新增入口的实际交互和生成 Host 的发送组件接管渲染已验证。详见 [第三、四批验证记录](../verification/plugin-control-delivery-2026-10-17/README.md)；剩余条目见其中 inventory，未批量修改历史兼容 ID，旧 fixture 修复仍暂停。
 
 ## 第五批：工具回退与临时消息（2026-10-17）
 
@@ -93,7 +91,7 @@ Host scope 的 tool 对象由薄应用层原样传入，应用层可定制卡片
 
 `transient-assistant-messages` 的可托管部分仅是展示代码；消息服务、订阅 Context、锚点计算及 canonical Runtime 仍共享 npm 实例。应用层可使用 rootProps/textProps 或 renderMessage；默认错误 alert、角色标签和消息位置保持。临时消息不写入真实消息、历史或 Agent 请求。
 
-两个新条目复用 Creator 原生询问、精确版本提取、静态 import 切换及更新页 source-only 合并。重复初始化保留已有薄层；新旧本地定制、应用层 props、实例 ID 与 AppUIModel 均须在生命周期验证中保留。详见 [第五批验证记录](../verification/tool-message-plugin-delivery-2026-10-17/README.md)；完整剩余清单见该目录 inventory。专用工具结果 / data-message 插件仍待后续批次，不将它们伪装成仅有 Component 的普通 UI 插件。
+两个新条目复用 Creator 原生询问、精确版本提取、静态 import 切换及更新页 source-only 合并。重复初始化保留已有薄层；新旧本地定制、应用层 props、实例 ID 与 AppUIModel 均须在生命周期验证中保留。专用工具结果 / data-message 插件仍待后续批次，不将它们伪装成仅有 Component 的普通 UI 插件。
 
 ## 第六批：状态、计划、任务进度与生成文件（2026-10-17）
 
@@ -105,7 +103,6 @@ Host scope 的 tool 对象由薄应用层原样传入，应用层可定制卡片
 
 source-only 同步不合并应用层，包括其中的注册和 state 桥接。新增 ownership 的可选 applicationContractHash 记录组件名、scope、注册 kind/name 与 Runtime 桥接约定；与新目标不兼容时拒绝源码同步，要求另行迁移应用层，不自动切换路由或改写定制。历史无此字段且没有新增注册合同的 ownership 仍能做兼容同步。当前不提供不兼容应用层合同的自动迁移。该记录不是新 Runtime 状态，也不替代源文件 BASE。
 
-验证覆盖 npm 与实际 portable snapshot 的展示/props、原生 data-message 路由、同一 Host Context 的进度更新/取消、有效性与回退、四个 ID 的原生确认，以及包含投影文件冲突的源码同步。详见 [第六批验证记录](../verification/activity-message-plugin-delivery-2026-10-17/README.md)；剩余现代插件见该目录 inventory，旧 fixture 修复继续暂停。
 
 ## 第七批：图表、来源引用、检索与网页搜索（2026-10-17）
 
@@ -117,7 +114,7 @@ source-only 同步不合并应用层，包括其中的注册和 state 桥接。�
 
 工程已有的 searchTools 文案域提升到 Plugins 统一 locale，保持原中英文键和值，也使既有 Host messages.searchTools 覆盖继续生效。没有增加插件私有语言状态或修改 vendor。旧资源入口保留原导出名，转发到唯一适配实现。资源目录的 web-search/retrieval-chunks 从源码默认安装切换为标准 npm 插件入口，保留原 ID；实际消息注册和实例 placement 不变。
 
-Creator 确认、精确版本提取、静态 import 切换和 source-only 三方合并均复用上一阶段机制。验证涵盖图表 CSS、展示及投影文件定制保留，应用层字节/props、插件与实例 ID、配置、消息路由和重复安装。已在真实生成工程完成四插件官方入口安装，并在浏览器通过本地 AG-UI 服务验证网页搜索的 npm props 定制、接管后本地修改与页面效果；未调用真实模型。详见 [第七批验证记录](../verification/search-message-plugin-delivery-2026-10-17/README.md)，其余 20 个现代插件资源见该目录 inventory。旧 fixture 修复继续暂停。
+Creator 确认、精确版本提取、静态 import 切换和 source-only 三方合并均复用上一阶段机制。验证涵盖图表 CSS、展示及投影文件定制保留，应用层字节/props、插件与实例 ID、配置、消息路由和重复安装。已在真实生成工程完成四插件官方入口安装，并在浏览器通过本地 AG-UI 服务验证网页搜索的 npm props 定制、接管后本地修改与页面效果；未调用真实模型。旧 fixture 修复继续暂停。
 
 ## 第八批：会话列表、新建与引用回复（2026-10-17）
 
@@ -127,7 +124,7 @@ Creator 确认、精确版本提取、静态 import 切换和 source-only 三方
 
 Assistant/Embedded 默认页头直接声明 `conversation-thread-list`；Operator 初始化时按 Mode 选用该插件的项目应用层模板，由应用层以 `AgentUIPopover` 包裹公开的 `CanonicalConversationThreadList`。会话变化时关闭弹层；新建入口由独立插件提供。旧的独立历史入口插件已移除；Platform 继续使用 thread-list 侧栏应用层。AppUIModel 不增加弹层或包装字段，也不引入额外的 HistoryPopover 组件。引用保留共享 quote 清理、选择、发送上下文及历史还原，不把引用状态复制进插件。统一 locale 增补既有 Host conversationQuote 和 threadList 的标题/重试键；Host 覆盖保持有效。图标经已有 plugin-support 共享接口取得，提取后不隐含依赖用户额外安装图标包。
 
-已有定制旧目录继续优先，不自动重写。验证和边界见 [第八批记录](../verification/conversation-plugin-delivery-2026-10-17/README.md)，旧 fixture 不动。
+已有定制旧目录继续优先，不自动重写。
 
 ## 第九批：补齐所有现代官方插件（2026-10-17）
 
@@ -150,7 +147,7 @@ Assistant/Embedded 默认页头直接声明 `conversation-thread-list`；Operato
 
 Lexical 是可选能力，相关实现只从 `/lexical` 及其插件子路径进入；默认根入口不引入 Lexical。公共 input 类型以双向类型检查验证与 pinned upstream 一致，不向公共声明泄露内部 vendor 路径。接管提取的实现真正落入 source/，应用和定义的同源 import（含类型）一起机械切换；auth 类型仍由源码入口导出。
 
-新 Host 模板及服务元数据加入应用合同校验；不兼容目标须独立迁移应用层。npm 替换和源码三方合并只更新实现，不更新应用 config、Host adapter 或共享服务声明。使用合成 0.0.2 验证更新/冲突合并；尚未发布 npm 新版。完整清单、测试边界和生成工程截图见 [第九批验证](../verification/all-official-plugin-delivery-2026-10-17/README.md)。旧 fixture 修复继续暂停；本批不宣称已完成全库上游可配置参数审计。
+新 Host 模板及服务元数据加入应用合同校验；不兼容目标须独立迁移应用层。npm 替换和源码三方合并只更新实现，不更新应用 config、Host adapter 或共享服务声明。使用合成 0.0.2 验证更新/冲突合并；尚未发布 npm 新版。旧 fixture 修复继续暂停；本批不宣称已完成全库上游可配置参数审计。
 
 ## Composer 薄应用层试点（2026-10-17）
 
@@ -159,7 +156,6 @@ Lexical 是可选能力，相关实现只从 `/lexical` 及其插件子路径进
 - 接管仍复用真实 human-input 确认；薄层工程把完整 portable closure 安装到 `source/`，通过 TypeScript AST 仅改组件 import 和定义合同 import，保留 CRLF、已有 props/JSX 和实例/布局。BASE 只包含 `source/`；已有源码目录的旧接管保持兼容，不自动重排。
 - `@za38.03/agent-ui-creator/operator/dev` 导出 `planPluginSourceSync` / `syncPluginSource`，以当前实际安装版本快照为 TARGET。计划提供 BASE/LOCAL/TARGET；按文件三方相等规则保留无冲突定制，冲突要求提供审查后的合并文本。先在临时工程验证，再事务提交实现和基线；应用层字节检查独立执行。Creator 统一更新页通过 OwnedPluginUpdateService 接入此 API，展示已托管状态、安装包版本、插件版本和 changelog；同步计划只包含 source/。无冲突可验证执行，有冲突可回到真实 Creator 会话进行模型合并，然后返回更新页显式验证并推进基线。模型不自行更新 BASE。
 - 旧 Source Release 更新入口跳过薄应用层，新 ownership 插件路由至独立实现同步服务，不能借旧合并流程覆盖应用层。计划绑定工程、BASE、目标 catalog 与应用层/配置摘要，过期或变更后要求重新计划；校验失败不推进基线。当前每次只同步一个已托管插件，混合批量更新禁用。共享 Runtime、主题及 API 仍需兼容检查。
-- 验证覆盖见 [Composer 薄应用层验证](../verification/composer-thin-application-2026-10-17.json)、[此前真实 Creator 源码同步流程](../verification/creator-live-thin-source-sync/README.md) 和 [Runtime 完成检查修复与重新实跑](../verification/creator-runtime-completion-2026-10-17/README.md)。已用配置的真实外部模型完成 props 修改、内置确认接管、更新页三方合并和采用基线；此前自动 Runtime 完成卡 unavailable 已修复，三个阶段的完成回执均为 changed-and-verified，Runtime 检查 passed。浏览器另外验证应用层哈希、DOM 顺序、样式和实时字数计数，Host verify:ui/typecheck/build 通过。实跑包含一次模型协议失败后保留代码、结束失败任务再续作，详见记录。候选更新采用本地构建 npm tarball，未发布公网，未做原生 Windows 验收。
 
 ## 当前第二阶段：询问、接管与本地引用
 
@@ -196,7 +192,6 @@ npm 包替换、注册表重生成与旧 source→package 迁移不修改此 own
 共享 API 不兼容时检查报告错误。Composer 薄层试点新增了隔离实现子树的显式同步 API；
 旧目录接管仍保留兼容路径；现代条目统一复用更新页的实现同步服务，不得通过旧资源安装或旧更新操作隐式覆盖应用层。
 
-验证与实际运行边界见 [接管验证](../verification/plugin-source-takeover-2026-10-17.json)。
 
 ## 1. 一个包中的实现与源码目录
 
@@ -459,9 +454,9 @@ A2UI 继续暂缓，不因新增接管通道开放安装、公开 API 或 Mock �
 
 ## 会话列表与独立新建入口（2026-10-21）
 
-`conversation-thread-list` 的产品组合仅包含列表和可选搜索，不再内置新建按钮，也不注册新建会话的 RailAction。应用层通过 `listProps.showSearch`（默认 true）控制搜索；关闭搜索时不保留隐藏查询对列表的过滤。原先公开的 RailAction 组件保留为兼容导出，但默认列表定义不挂载它。
+`conversation-thread-list` 负责列表和可选搜索，通过可选的 `headerActions` 语义槽接收独立操作插件；它不内置新建按钮，也不注册新建会话的 RailAction。应用层通过 `listProps.showSearch`（默认 true）控制搜索；关闭搜索时不保留隐藏查询对列表的过滤。原先公开的 RailAction 组件保留为兼容导出，但默认列表定义不挂载它。
 
-`conversation-new` 是独立插件，两份默认模板都显式声明一个实例，调用同一个 canonical Conversation Runtime。应用层通过 `showLabel`（默认 true）配置图标与文字；Assistant/Embedded 的初始化应用层传入 false，以图标按钮呈现，保留本地化无障碍名称和 Tooltip。Platform 默认在主会话区域上方显示带文字入口。列表是否参与组合、新建入口的位置由 AppUIModel 决定；搜索开关和文字呈现留在项目应用层 JSX。既有项目的应用层保留，默认模板只影响后续初始化。上游 primitives、vendor 源码与 provenance 不变。
+`conversation-new` 是独立插件，两份默认模板都显式声明一个实例，调用同一个 canonical Conversation Runtime。应用层通过 `showLabel`（默认 true）配置图标与文字；Assistant/Embedded 的初始化应用层传入 false，以图标按钮呈现，保留本地化无障碍名称和 Tooltip。Platform 默认通过列表的可选语义子槽 `headerActions`，把同一个独立新建插件实例放在侧栏标题下方、搜索框上方。列表不内置新建按钮；该槽由 AppUIModel 显式组合，Platform 的薄应用层把槽内容传入公开的 `headerActions` prop；实现组件不主动读取新槽，避免已有应用的旧 manifest 因未声明该槽而报错。未配置时不显示操作区域。列表是否参与组合、新建入口的位置由 AppUIModel 决定；搜索开关和文字呈现留在项目应用层 JSX。既有项目的应用层保留，默认模板只影响后续初始化。上游 primitives、vendor 源码与 provenance 不变。
 
 ## 语言切换插件（2026-10-21）
 

@@ -35,6 +35,7 @@ export function ConversationTransientMessageProvider(props: { service: Conversat
 }
 import { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
 import { ConversationComposerGuardProvider as InternalComposerGuardProvider } from "./internal/conversation-composer-guard.js";
+import { ConversationCommandDecisionProvider as InternalCommandDecisionProvider } from "./internal/conversation-command-decisions.js";
 export function ConversationComposerGuardProvider(props: { awaitingReply: boolean; interruptKey?: string | undefined; children: ReactNode }): ReactElement {
   return <InternalComposerGuardProvider {...props} />;
 }
@@ -577,6 +578,18 @@ export interface ConversationCommandDecisionRequest {
   description?: string | undefined;
   /** Decision types are supplied by the backend's review configuration. */
   allowedDecisions: readonly string[];
+}
+
+export interface ConversationCommandDecisionBinding {
+  request: ConversationCommandDecisionRequest;
+  submit: (decisionType: string) => Promise<void>;
+}
+
+export function ConversationCommandDecisionProvider(props: {
+  decisions: ReadonlyMap<string, ConversationCommandDecisionBinding>;
+  children: ReactNode;
+}): ReactElement {
+  return <InternalCommandDecisionProvider {...props} />;
 }
 
 export interface ConversationToolCallProps {

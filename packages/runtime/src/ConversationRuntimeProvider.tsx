@@ -2,7 +2,7 @@ import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
-import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import {
   AuiConfig,
@@ -357,6 +357,14 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
 
 function ConversationComposerGuard({ bridge, transientMessages, children }: { bridge: ConversationRuntimeBridge; transientMessages: ConversationTransientMessageService; children: ReactNode }) {
   const snapshot = useSyncExternalStore(bridge.agentRuntime.subscribe, bridge.agentRuntime.getSnapshot, bridge.agentRuntime.getSnapshot);
+  const commandDecisions = new Map<string, ConversationCommandDecisionBinding>();
+  for (const execution of snapshot.executions) {
+    const request = bridge.agentRuntime.getCommandDecisionRequest(execution.id);
+    if (request !== undefined) commandDecisions.set(execution.id, {
+      request,
+      submit: decisionType => bridge.agentRuntime.submitCommandDecision(execution.id, decisionType),
+    });
+  }
   const pendingToolCallIds = snapshot.run.status === "awaiting-input"
     ? snapshot.executions.filter(execution => execution.type === "tool" && execution.status === "awaiting-result").map(execution => execution.id)
     : [];
@@ -365,7 +373,9 @@ function ConversationComposerGuard({ bridge, transientMessages, children }: { br
       ...snapshot.interrupts.map(interrupt => interrupt.id),
       ...pendingToolCallIds,
     ].sort())}>
-      {children}
+      <ConversationCommandDecisionProvider decisions={commandDecisions}>
+        {children}
+      </ConversationCommandDecisionProvider>
     </ConversationComposerGuardProvider>
   </ConversationTransientMessageProvider>;
 }

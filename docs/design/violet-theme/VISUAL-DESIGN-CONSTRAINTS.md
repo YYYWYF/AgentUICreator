@@ -2,7 +2,7 @@
 
 只设计用户最终部署使用的 Agent 前端 UI Plugins。Creator Agent、Creator 工作台、Inspector/DevStudio、Creator dock 和 Atlas 宿主文档页面都不属于改造范围。
 
-输入图片来自真实实现。每张图片的来源、数据和安装状态见 SCREENSHOT-INDEX.md；所有 `*-context.png` 为统一桌面视口上下文，非产品新布局。Development fixture 的外框、留白和示例内容只是摆放真实组件，不得据此添加产品页面结构。
+视觉设计应以实际组件结构、数据状态和安装状态为依据；开发 fixture 的外框、留白和示例内容不定义产品页面结构。
 
 ## Must preserve
 

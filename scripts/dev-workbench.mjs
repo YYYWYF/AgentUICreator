@@ -16,17 +16,20 @@ const hostPort = port("--host-port", 5180);
 const workbenchPort = port("--workbench-port", 5174);
 ensureWorkspaceDependencies();
 prepareWorkbench();
+await import("./prepare-platform-host.mjs");
 const environment = {
   ...process.env,
   VITE_CREATOR_DOCK_URL: process.env.VITE_CREATOR_DOCK_URL || `http://127.0.0.1:${workbenchPort}/dock.html`,
   VITE_CREATOR_HOST_PREVIEW_URL: process.env.VITE_CREATOR_HOST_PREVIEW_URL || `http://127.0.0.1:${hostPort}/?creator-preview`,
 };
 const children = [
-  ["@za38.03/agent-ui-web-component-vue3-demo", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
+  ["@za38.03/agent-ui-creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
   ["@za38.03/agent-ui-creator-workbench", workbenchPort, []],
 ].map(([name, listenPort, configArgs]) => spawnPnpm(["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 }));
+console.log(`[Creator] Platform + Creator Agent: http://127.0.0.1:${hostPort}/`);
+console.log(`[Creator] Workbench: http://127.0.0.1:${workbenchPort}/`);
 let stopping = false;
 function stop(code = 0) {
   if (stopping) return;

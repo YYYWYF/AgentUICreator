@@ -1,13 +1,20 @@
 import { fileURLToPath } from "node:url";
-import { defineConfig, mergeConfig, type Plugin } from "vite";
+import { defineConfig, mergeConfig } from "vite";
 import { createCreatorHostPreviewPlugin } from "@za38.03/agent-ui-creator/host-preview/vite";
-import hostConfig from "../../examples/web-component-vue3/vite.config";
+import { createCreatorDockVitePlugin } from "@za38.03/agent-ui-creator/dock/vite";
+import hostConfig from "../../examples/creator-host-sandbox/vite.config";
 
-/** Workbench-only overlay; the real Host config remains Creator-independent. */
-// Standalone examples retain their demos; Creator Preview exercises Creator-owned history.
-const previewHostConfig = { ...hostConfig, plugins: hostConfig.plugins?.filter(plugin =>
-  (plugin as Plugin)?.name !== "agent-ui-mock-conversation-api") };
-export default defineConfig(mergeConfig(previewHostConfig, {
-  root: fileURLToPath(new URL("../../examples/web-component-vue3", import.meta.url)),
-  plugins: [createCreatorHostPreviewPlugin()],
-}));
+// Creator integrations belong only to this development overlay.
+export default defineConfig(async env => {
+  const config = typeof hostConfig === "function" ? await hostConfig(env) : await hostConfig;
+  // Workbench preview history comes from Creator, rather than the standalone Mock.
+  const previewConfig = { ...config, plugins: config.plugins?.filter(plugin =>
+    (plugin as { name?: string })?.name !== "agent-ui-mock-conversation-api") };
+  return mergeConfig(previewConfig, {
+    root: fileURLToPath(new URL("../../examples/creator-host-sandbox", import.meta.url)),
+    plugins: [
+      createCreatorHostPreviewPlugin(),
+      createCreatorDockVitePlugin({ creatorUrl: process.env.VITE_CREATOR_DOCK_URL || "http://127.0.0.1:5174", locale: "zh-CN" }),
+    ],
+  });
+});

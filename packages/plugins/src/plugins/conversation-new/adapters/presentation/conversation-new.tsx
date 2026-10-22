@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { SquarePenIcon as SquarePen } from "../../../../plugin-support.js";
+import { PlusIcon as Plus } from "../../../../plugin-support.js";
 import { ConversationThreadListNew, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent, useAgentUILocale, useAgentUISidebarNavigation } from "../../../../public.js";
 export interface ConversationNewPluginProps {
   /** Application presentation; the accessible name remains present in icon-only mode. */
@@ -23,10 +23,9 @@ export function CanonicalConversationNew({ rootProps, newProps, tooltipProps, to
             if (!event.defaultPrevented) onNavigate();
           }}
         >
-          {children ?? newProps?.children ?? <>
-            <SquarePen aria-hidden="true" />
-            {showLabel && <span>{messages.newThread}</span>}
-          </>}
+          {children ?? newProps?.children ?? (showLabel
+            ? messages.newThread
+            : <Plus data-slot="aui_thread-list-new-icon" className="size-4 shrink-0" aria-hidden="true" />)}
         </ConversationThreadListNew>
       } />
       <AgentUITooltipContent {...tooltipContentProps}>{tooltipContentProps?.children ?? messages.newThread}</AgentUITooltipContent>

@@ -132,38 +132,3 @@ DirectiveText 属于 canonical 消息呈现，因此删除 Mention / Slash 插�
 
 1. optional resource 使用项目配置的 sourceRoot 和 source lock；移除依据不存在的 version 字段无条件切换到 `.` 的旧分支。
 2. Creator Action Catalog 把 `RESPONSIVE_DRAWER_INDEX_INVALID` 识别为具体候选的布局拒绝，跳过该候选；未知异常仍作为系统错误抛出。
-
-## 实施与检查记录
-
-已完成：公共 facade、上游 Element/matcher 与同步 guard、两个触发插件、默认命令服务、显式 Demo、三个预设、官方资源和展示场景、双语文案及回归测试。
-
-自动化回归覆盖：
-
-- 实际 Composer 的异步搜索、稳定 ID 插入和 HttpAgent 请求内容。
-- 混合命令选择、精确文本范围、前端动作不发送、动作失败及禁用项。
-- 键盘方向键、Enter、Tab、Escape、IME composition Enter。
-- 卸载、只读、未配置来源、来源身份变化、可订阅 cacheKey 更新、切换线程、取消及过期响应。
-- 历史标签保留、未知类型回退、locale 完整性与 Portal 边界。
-- command 注册/清理生命周期和 Demo 来源取消。
-- 三种模式中，在自定义 sourceRoot 安装、重复安装、组合定位与资源所有权。
-- 上游固定 matcher 和通用 child seam 的同步回放、形状漂移拒绝及完整性检查。
-
-另外以三个临时新生成项目验证独立 typecheck / Vite 生产 build；Platform 显式安装 Demo 后再次通过。没有启动用户现有 Host 做浏览器验收。
-
-仓库全量检查仍存在历史失败，需与本次聚焦检查分开：改动前的同一 HEAD 副本运行 React 全量 suite，已有 18 个失败文件、22 个失败测试和 7 个运行错误；涉及旧 migrated fixtures、Runtime mock、过时依赖断言等。React 的 migrated typecheck 也有缺失的 legacy helper 和旧 fixture 路径。本文不把这些检查声明为通过。
-
-本次检查结果：
-
-| 检查 | 结果 |
-| --- | --- |
-| React 聚焦回归（触发器、同步、guard、Portal、locale） | 35 项通过 |
-| Source Registry 全量测试 | 17 项通过 |
-| Bootstrap 全量测试 | 30 项通过 |
-| Mock Agent 全量测试 | 95 项通过 |
-| 新资源安装、资源所有权、Plugin 样式检查 | 10 项通过 |
-| React 源码 typecheck、公开声明构建、上游 guard | 通过 |
-| Operator / Source Registry / Bootstrap / Mock Agent typecheck | 通过 |
-| 三模式临时生成项目独立 typecheck / production build，Platform Demo build | 通过 |
-| React 全量对照 | 21 个既有测试失败、7 个运行错误；失败集合无新增，locale 断言已修正 |
-| React migrated typecheck、旧 Operator migrated fixtures | 仍有历史问题，未声明通过 |
-| 浏览器人工验收 | 未执行 |

@@ -101,26 +101,3 @@ The isolated Playwright suite runs with
 It creates a disposable generated Host without Mock dependencies or Mock Vite
 plugins. Only unrelated Creator workspace metadata is supplied by the test;
 the Creator UI, preview bridge, generated Plugins and HTTP routes are real.
-
-Local acceptance on 2026-10-07 passed all three browser cases:
-
-- Mock thread list, historical messages and a new chat through Creator.
-- Standalone Host mounting without a root `tsconfig.json` or Creator preview.
-- A no-CORS Connected Agent displaying streamed content before completion,
-  with run-time Source locking, Source isolation and endpoint retention.
-
-Hosts without a root `tsconfig.json` now use inferred TypeScript projects for
-service analysis. Their generated capability catalogs retain the Plugins'
-actual service contracts rather than silently emitting empty declarations.
-Generated application actions retain their identity across thread switches and
-forward to the active conversation bridge, keeping application services and
-pending history reads alive. The feedback Plugin declares its locale dependency.
-
-The browser fixture includes the current Lexical package requirements, resolves
-macOS temporary-directory real paths, and preloads lazy Plugin dependencies to
-avoid Vite reloads during interaction. The temporary Agent rejects the empty
-CORS probe rather than counting it as an AG-UI run.
-
-CI has an `agent-connection` job in the style-isolation workflow. Creator, Mock
-Agent and bootstrap changes trigger it independently of the style-isolation
-suite. This acceptance uses a simulated Agent, not a live model.

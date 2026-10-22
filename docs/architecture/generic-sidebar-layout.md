@@ -33,28 +33,6 @@ Inspector exposes Sidebar children/refs and manifest navigation metadata. Determ
 
 New platform/assistant presets default to a collapsed Sidebar. Platform content retains optional trailing drawer at indices 0/1. Assistant's 26rem container uses drawer mode. Embedded remains lightweight. Existing user AppUIModel files are not migrated or overwritten. Workspace operations project the content Row using refs from the complete tree.
 
-## Validation and limitations
-
-Passed:
-
-- Contract/compiler/composition/operations/topology: 112 tests.
-- Bootstrap presets: 35 tests, including all three preset compilations.
-- Source Registry: 29 tests.
-- Sidebar/Portal/adapter generation: 10 focused tests.
-- Python Sidebar schema, diagnostic traversal and resource scope: 3 tests.
-- Runtime React, React, Operator and Bootstrap typechecks; Sidebar E2E TypeScript check.
-- i18n parity, Operator contract inventory, upstream purity and 33 assistant-ui upgrade-contract tests.
-
-Requested broad commands were attempted: `pnpm typecheck`, `pnpm test:ts`, and `pnpm verify:ui` hit the temporary published-consumer dependency-install network timeout before completing. A separate recursive local typecheck also encountered existing customized Host foundations that predate the new Runtime union and a Web Component shell missing `@agent-ui/plugins`. Their layouts and customized files were preserved.
-
-Expanded package results: React 654 passed / 7 failed; Runtime React 164 passed / 2 failed; Operator 390 passed / 182 failed (plus two errors). HEAD-only source archive runs reproduced the same seven React failures, two Runtime failures and five representative Operator package-requirement failures. Python expanded checks yielded 54 passed / 4 failed; all four failures reproduced on HEAD. These results do not establish an all-green full regression suite.
-
-Added browser coverage lives in `apps/creator-workbench/tests/sidebar.spec.ts`, with `playwright.sidebar.config.ts`. It covers desktop collapse/expansion/switching and narrow-container Sheet focus/Escape/navigation. Per request it was not executed; no screenshots or visual acceptance were produced. Real Host/Web Component responsive and theme acceptance remains unverified.
-
-Existing generated foundation sources must be upgraded together when adopting the expanded Runtime Layout type; exhaustive consumers of the previous union require source regeneration. The fixed icon vocabulary may be extended explicitly with corresponding manifest validation. No KeepAlive is introduced. Optional `UIPluginDefinition.RailAction` uses the existing Slot declaration, admission, service and instance contexts; history supplies the public `ConversationThreadListNew`. Its rail shortcut hides while its own panel is open. The React frame extension requires `@agent-ui/react >=0.1.3`; regenerate foundation/core and the history source together. This version is prepared in source, not published by this change.
-
-Official Sidebar alignment implementation and static/unit check results: [2026-10-08 report](../sidebar/official-alignment-2026-10-08/REPORT.md). Browser and visual acceptance remain excluded by the user request.
-
 ## Optional identity Header (2026-10-08 follow-up)
 
 `sidebar.header?: Slot` adds an ordinary Layout Slot, with zero or one visual
@@ -87,4 +65,3 @@ recipe changes, service, conversation runtime or backend logic were introduced.
 Adoption requires React >=0.1.4 and Runtime React >=0.1.2, with regenerated
 foundation contracts/runtime and plugin sources. These source package versions
 are prepared but have not been published to npm. See
-[implementation report](../sidebar/identity-header-2026-10-08/REPORT.md).

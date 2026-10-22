@@ -2,11 +2,13 @@ import { prepareTypeScriptAuthoring, typescriptAuthoringReadyEnv } from "./prepa
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
 import { prepareHostPackages } from "./prepare-host-packages.mjs";
+import { ensureExampleHost, exampleHosts } from "./prepare-example-host.mjs";
 
 // Consumers read package declarations. Prepare them once before recursive checks,
 // so Host pretypecheck hooks cannot concurrently rewrite the same dist directories.
 await prepareTypeScriptAuthoring();
 prepareHostPackages({ force: true, withMock: true });
+for (const mode of Object.keys(exampleHosts)) await ensureExampleHost(mode);
 // Vue and plain HTML consumers read the bridge's built public declarations.
 const bridge = spawnPnpmSync(["--filter", "@za38.03/agent-ui-web-component", "build"], {
   cwd: fileURLToPath(new URL("..", import.meta.url)), stdio: "inherit",

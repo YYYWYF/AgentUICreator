@@ -69,14 +69,3 @@ source continues to follow existing conflict rules.
 The upstream API was inspected at the current local pinned revision
 `3542d602272a62eddeb8989befc910841c267022`. No vendored assistant-ui files are
 modified by this integration.
-
-## Validation status
-
-Implementation regression tests cover actual Mention/Slash trigger integration,
-chip identity, unchanged AG-UI text, external Runtime text updates, draft clear,
-atomic deletion, Undo integrity, accessible labels, readonly/IME behavior and
-textarea fallback. Preset and Resource tests cover default input placement and
-installation. These tests are authored but have not been executed in this task.
-Browser, real-model and behavioral acceptance were explicitly skipped at the
-user's request. Package builds and architecture guards are compilation/static
-checks, not evidence that the behavioral acceptance matrix has passed.

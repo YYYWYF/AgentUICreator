@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../plugin-support.js";
+import { useAgentUILocale, useConversationCommandDecision, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../plugin-support.js";
 
 import {
   forwardRef,
@@ -1017,7 +1017,7 @@ function ToolFallbackApprovalImpl({
               onClick={() => submit(() => submitDecision?.(decisionType))}
               disabled={locked || submitDecision === undefined}
             >
-              {decisionType}
+              {decisionType === "approve" ? messages.allow : decisionType === "reject" ? messages.deny : decisionType}
             </Button>
           ))}
         </div>
@@ -1419,5 +1419,13 @@ export {
 
 export type ConversationToolFallbackProps = Readonly<ConversationToolCallProps> & ToolFallbackPresentationProps & Partial<Pick<ToolCallMessagePartProps, "approval" | "respondToApproval" | "interrupt" | "resume" | "responseDeliveryStatus">>;
 export const ConversationToolFallback: React.FC<ConversationToolFallbackProps> & Pick<typeof ToolFallback, "Root" | "Trigger" | "Content" | "Args" | "Result" | "Error" | "Approval"> = Object.assign(function ConversationToolFallback(props: ConversationToolFallbackProps) {
-  return <ToolFallback {...(props as unknown as React.ComponentProps<typeof ToolFallback>)} />;
+  const command = useConversationCommandDecision(props.toolCallId);
+  const resolved = command === undefined ? props : {
+    ...props,
+    addResult: undefined,
+    decisionRequest: props.decisionRequest ?? command.request,
+    submitDecision: props.submitDecision ?? command.submit,
+    status: { type: "requires-action" as const, reason: "interrupt" },
+  };
+  return <ToolFallback {...(resolved as unknown as React.ComponentProps<typeof ToolFallback>)} />;
 }, { Root: ToolFallback.Root, Trigger: ToolFallback.Trigger, Content: ToolFallback.Content, Args: ToolFallback.Args, Result: ToolFallback.Result, Error: ToolFallback.Error, Approval: ToolFallback.Approval });

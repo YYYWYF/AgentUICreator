@@ -6,7 +6,7 @@
   "generativeUiReleaseRevision": "3542d602272a62eddeb8989befc910841c267022",
   "packages": {
     "@assistant-ui/react": "0.15.29",
-    "@assistant-ui/react-ag-ui": "0.0.66",
+    "@assistant-ui/react-ag-ui": "0.0.65",
     "@assistant-ui/react-langgraph": "0.14.36",
     "@assistant-ui/react-markdown": "0.14.23",
     "@assistant-ui/react-generative-ui": "0.0.22",
@@ -24,7 +24,7 @@
   "releasePinned": true,
   "packageRevisions": {
     "@assistant-ui/react": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
-    "@assistant-ui/react-ag-ui": "d90bf230a319eb6ea285d98cda60eaad61428e8a",
+    "@assistant-ui/react-ag-ui": "dc840613f1edbe9cebcc01d0112add781aca0449",
     "@assistant-ui/react-langgraph": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
     "@assistant-ui/react-markdown": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
     "@assistant-ui/react-generative-ui": "3542d602272a62eddeb8989befc910841c267022",

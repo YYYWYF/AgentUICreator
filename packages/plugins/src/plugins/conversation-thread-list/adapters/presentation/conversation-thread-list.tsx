@@ -4,11 +4,12 @@ import { getAgentUIThemeColorScheme, Button, useConversationNavigation, Conversa
 import { PolicyThreadList, type PolicyThreadListProps } from "./PolicyThreadList.js";
 export interface ConversationThreadListPluginProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
+  headerActions?: ReactNode;
   rootProps?: ComponentProps<"aside">; listProps?: Omit<PolicyThreadListProps, "labels">; children?: ReactNode;
   snapshot?: { activeConversationId?: string | undefined; listStatus?: string; detailStatus?: string; listError?: string | undefined; detailError?: string | undefined; detailErrorConversationId?: string | undefined };
   serviceAvailable?: boolean; onRefresh?: () => void | Promise<void>; theme?: AgentUITheme; runStatus?: string;
 }
-export function CanonicalConversationThreadList({rootProps, listProps, children, snapshot = {}, onRefresh, serviceAvailable = false, theme = "light", runStatus}: ConversationThreadListPluginProps) {
+export function CanonicalConversationThreadList({rootProps, listProps, children, headerActions, snapshot = {}, onRefresh, serviceAvailable = false, theme = "light", runStatus}: ConversationThreadListPluginProps) {
   const labels = useAgentUILocale("threadList");
   const conversationNavigation = useConversationNavigation();
 
@@ -27,6 +28,7 @@ export function CanonicalConversationThreadList({rootProps, listProps, children,
       data-color-scheme={getAgentUIThemeColorScheme(theme)}
       data-ui-plugin="conversation-thread-list"
     >
+      {headerActions && <div className="conversation-thread-list-header-actions">{headerActions}</div>}
       {children ?? rootProps?.children ?? <PolicyThreadList labels={labels} {...listProps} />}
 
       {snapshot.listStatus === "error" ? (

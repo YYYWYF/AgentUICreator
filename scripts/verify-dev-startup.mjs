@@ -48,6 +48,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   assert.equal(workspace?.status, "ready", "Creator did not select a ready workspace");
+  assert.equal(workspace.project?.mode, "platform", "Default dev target must be the platform template");
   const diagnostics = await fetch(`http://127.0.0.1:${dockPort}/__creator/runtime-diagnostics`, {
     method: "POST", body: "{}",
     headers: { "x-agent-ui-workspace-id": workspace.workspace.id, "Content-Type": "application/json" }, signal: AbortSignal.timeout(5000),
@@ -76,6 +77,13 @@ try {
     await page.goto(url, { waitUntil: "networkidle", timeout: 90000 });
     assert((await page.locator("body").innerText()).trim().length > 0, "Page rendered no content");
     assert(await page.locator("textarea,input,[contenteditable=true]").count() > 0, "Page has no usable input");
+    if (url === host) {
+      await page.locator("#agent-ui-creator-dock button").waitFor();
+      assert(await page.locator(".agent-ui-platform-shell").count() > 0, "Default Host must render the platform shell");
+      assert.equal(await page.getByRole("button", { name: "zh-CN / en-US", exact: true }).count(), 0, "Style-isolation demo must remain a separate entry");
+      await page.locator("#agent-ui-creator-dock button").click();
+      await page.frameLocator("#agent-ui-creator-frame").locator("textarea,[contenteditable=true]").first().waitFor();
+    }
     assert.deepEqual(errors, [], `Browser runtime failed for ${url}`);
     await page.close();
   }

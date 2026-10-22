@@ -36,6 +36,15 @@
     },
     {
       "path": "./examples/web-component-vue3"
+    },
+    {
+      "path": "./examples/creator-host-sandbox"
+    },
+    {
+      "path": "./examples/creator-assistant-host"
+    },
+    {
+      "path": "./examples/creator-embedded-host"
     }
   ]
 }
