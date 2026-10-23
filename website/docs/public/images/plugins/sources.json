@@ -1,10 +1,6 @@
 {
   "capturedDate": "2026-10-23",
   "viewport": {
-    "upstream": {
-      "width": 1440,
-      "height": 1100
-    },
     "project": [
       {
         "width": 1100,
@@ -13,26 +9,29 @@
       {
         "width": 1280,
         "height": 850
+      },
+      {
+        "width": 1280,
+        "height": 900
       }
     ]
   },
   "notes": [
-    "Upstream images are browser captures of public assistant-ui Elements demos, not acceptance evidence for the installed package revision.",
-    "Project images render the actual project components with local Mock data/services; no production backend or authentication service was used.",
-    "Screenshots demonstrate the depicted state only, not all states requested by earlier placeholders."
+    "All screenshots show this project's actual components in local examples with Mock data/services. No screenshots from upstream websites are used.",
+    "Screenshots demonstrate the depicted state only. No production backend or authentication service was used."
   ],
   "screenshots": [
     {
       "id": "add-attachment-action",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/attachment",
-      "capturedAt": "2026-10-23T00:21:29.011862+00:00",
+      "source": "AgentUICreator",
+      "scenario": "Mock PDF attachment adapter",
       "file": "add-attachment-action.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 238
       },
-      "sha256": "55f958a17d4c2eb20af49ef581f0e4c18cc5fe758e11107a6f65a3a8052b8852"
+      "sha256": "c8cc86d3a2a04faf11a5c6f3b26b667dbafe2378b852c628daa23d5093f00f30",
+      "capturedAt": "2026-10-23T01:10:32.358325+00:00"
     },
     {
       "id": "agent-identity",
@@ -48,27 +47,27 @@
     },
     {
       "id": "agent-plan-message",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/agent-plan",
-      "capturedAt": "2026-10-23T00:21:34.169986+00:00",
+      "source": "AgentUICreator",
+      "scenario": "agent-plan",
       "file": "agent-plan-message.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 432,
+        "height": 223
       },
-      "sha256": "458e514bef75f6e2ca1cfd148979cc09e881b983c3259a0dd465baed0f62bc9a"
+      "sha256": "37e04e74a74eb547052819d136ec0ca644d01274067f123ac2f0b6e1ff703684",
+      "capturedAt": "2026-10-23T01:09:02.597262+00:00"
     },
     {
       "id": "agent-status-message",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/agent-status",
-      "capturedAt": "2026-10-23T00:21:39.107722+00:00",
+      "source": "AgentUICreator",
+      "scenario": "agent-status",
       "file": "agent-status-message.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 86
       },
-      "sha256": "27cd821360f1cb466870e71f6a470d8ac033218894c82ba31877dadfef20080f"
+      "sha256": "87497a2df0073b00df291cb65e80e31e17e8a771b57a00e5bac1d2e7834ec345",
+      "capturedAt": "2026-10-23T01:09:04.984012+00:00"
     },
     {
       "id": "auth-account",
@@ -108,15 +107,15 @@
     },
     {
       "id": "composer",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/composer",
-      "capturedAt": "2026-10-23T00:21:43.840256+00:00",
+      "source": "AgentUICreator",
+      "scenario": "composer draft",
       "file": "composer.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 174
       },
-      "sha256": "1002ab86271693289ccce72737e19181e88848161824208ef22a248237d064db"
+      "sha256": "80e6dcbacf0c113e6431725f43440ac471fd16528eb1c679592878b39f3fa164",
+      "capturedAt": "2026-10-23T01:08:55.910578+00:00"
     },
     {
       "id": "context-retrieval-message",
@@ -156,40 +155,41 @@
     },
     {
       "id": "conversation-suggestions",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/follow-up-suggestions",
-      "capturedAt": "2026-10-23T00:21:48.824604+00:00",
+      "source": "AgentUICreator",
+      "scenario": "empty conversation suggestions",
       "file": "conversation-suggestions.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 124
       },
-      "sha256": "28e1f94aaf9c9d266b0a7c1721213fbb1372e0687a7db63f86ecd73893553897"
+      "sha256": "28a5f757f91fe5064f6301e451d41c688ee8b6d8dcf5d018bd60027f42f9ddbe",
+      "capturedAt": "2026-10-23T01:08:57.583017+00:00"
     },
     {
       "id": "conversation-surface",
       "source": "AgentUICreator",
-      "scenario": "empty",
+      "scenario": "Running platform template service: empty conversation",
       "file": "conversation-surface.png",
-      "capturedAt": "2026-10-23T00:23:47.865335+00:00",
+      "capturedAt": "2026-10-23T01:15:26.343355+00:00",
       "dimensions": {
-        "width": 1084,
-        "height": 834
+        "width": 1440,
+        "height": 960
       },
-      "sha256": "45d906e0d5b52d79e457cccd0097c60ca112535b1495a484c636ad543b421634"
+      "sha256": "849de362b87bf9a181ab2009436736bea111f8d73ddc3bbc6ad31f35e79973e8",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox"
     },
     {
       "id": "conversation-thread-list",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/thread-list",
-      "capturedAt": "2026-10-23T00:29:24.634017+00:00",
+      "source": "AgentUICreator",
+      "scenario": "Mock conversation history",
       "file": "conversation-thread-list.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 280,
+        "height": 420
       },
-      "sha256": "1b974bab4789ec220765bc21c7fec0f74129674dee25acfc5620bf1ba54e36a4",
-      "scenario": "Static variant with sample threads"
+      "sha256": "c9187eee6aeff97a23339a2b49f5eeb24e2c5bd21bd123d4c50a3457a03cee5f",
+      "capturedAt": "2026-10-23T01:10:34.391088+00:00"
     },
     {
       "id": "copy-action",
@@ -206,14 +206,16 @@
     {
       "id": "dictation-action",
       "source": "AgentUICreator",
-      "scenario": "mock dictation",
+      "scenario": "Running platform template, capture-only Mock dictation adapter and public dictation actions through application props",
       "file": "dictation-action.png",
-      "capturedAt": "2026-10-23T00:23:48.474191+00:00",
+      "capturedAt": "2026-10-23T01:18:50.308789+00:00",
       "dimensions": {
-        "width": 672,
-        "height": 114
+        "width": 712,
+        "height": 233
       },
-      "sha256": "78bc73bb62acd47cb2c3be8bc1ee7a5eaae8e8dfa698e7019456674d2740d1e3"
+      "sha256": "180a69f277e75ef7314639514f1c8e46ac47c104f5e70bc005d2e2297ad873b4",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox"
     },
     {
       "id": "export-markdown-action",
@@ -241,51 +243,57 @@
     },
     {
       "id": "generated-file-message",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/file",
-      "capturedAt": "2026-10-23T00:21:59.340775+00:00",
+      "source": "AgentUICreator",
+      "scenario": "file-output",
       "file": "generated-file-message.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 90
       },
-      "sha256": "f052b33f7c3b228835d206c7e6194e8e4a49c0c9905a5eade6de48425eb4d754"
+      "sha256": "fafb70c341d122e5262acbb10116846c72e506d459dd380ca3dd3df29f0c9662",
+      "capturedAt": "2026-10-23T01:09:07.366897+00:00"
     },
     {
       "id": "job-progress-message",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/job-progress",
-      "capturedAt": "2026-10-23T00:22:04.124076+00:00",
+      "source": "AgentUICreator",
+      "scenario": "agent-state-sync",
       "file": "job-progress-message.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 432,
+        "height": 182
       },
-      "sha256": "f1de061b1c5d0c7e7bf9cd45d471ad9172f764bff2720a7ed686704c86ecb053"
+      "sha256": "499ac778b3da3f2348256eb6a99b7a778abbfceba9d8879bc69a674e5dbadf9f",
+      "capturedAt": "2026-10-23T01:09:09.732744+00:00"
     },
     {
       "id": "lexical-composer-input",
       "source": "AgentUICreator",
-      "scenario": "draft",
+      "scenario": "Official platform template with optional Lexical input, selected mention and directive chips through capture-only application props",
       "file": "lexical-composer-input.png",
-      "capturedAt": "2026-10-23T00:23:48.140992+00:00",
+      "capturedAt": "2026-10-23T01:41:30.548376+00:00",
       "dimensions": {
-        "width": 672,
-        "height": 114
+        "width": 1424,
+        "height": 292
       },
-      "sha256": "85e045fa714bffad0d342aeb5574132e396f083ecd136843a07a07f68d27dc7a"
+      "sha256": "e909f98c26ce84d4a13e2f1897e0757e8d0bf5247a22da61e14ecc9464e6cec6",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "lexical-edit-composer",
       "source": "AgentUICreator",
-      "scenario": "edit",
+      "scenario": "Editing an already sent user message with the existing reply visible",
       "file": "lexical-edit-composer.png",
-      "capturedAt": "2026-10-23T00:23:49.907682+00:00",
+      "capturedAt": "2026-10-23T01:25:03.275341+00:00",
       "dimensions": {
-        "width": 558,
-        "height": 100
+        "width": 1440,
+        "height": 810
       },
-      "sha256": "35a79eebf5b0709b5df9b853052d9c9f662d9944d0121541a7cca0972307a5d2"
+      "sha256": "42b0fa9a251e75a964617d27b0ec3521a008f3021244bc5b7dc8392eb45d1701",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "locale-switch",
@@ -302,26 +310,29 @@
     {
       "id": "mention-trigger",
       "source": "AgentUICreator",
-      "scenario": "mention menu",
+      "scenario": "Running platform template with official trigger component and capture-only Mock candidates through application props",
       "file": "mention-trigger.png",
-      "capturedAt": "2026-10-23T00:28:13.562734+00:00",
+      "capturedAt": "2026-10-23T01:38:55.349649+00:00",
       "dimensions": {
-        "width": 720,
-        "height": 220
+        "width": 1424,
+        "height": 548
       },
-      "sha256": "8365a35344e82a0fbdd5d6d8867038f1ce4de29026986ec45805548f0de0ccfa"
+      "sha256": "a95d5fd59a83a22be6bb328d0ed133394d2cfa8712744cb8e2d8771e3f0af3af",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "reasoning",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/reasoning",
-      "capturedAt": "2026-10-23T00:22:09.722049+00:00",
+      "source": "AgentUICreator",
+      "scenario": "reasoning-chat",
       "file": "reasoning.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 209
       },
-      "sha256": "116481b0db16f2f52480a7e501bf0a31d7a565e79832ebf3ff01f49a43a47fff"
+      "sha256": "cc0f67f518e170d9e9d361219d4262265ffb1870d51d9660c141a2f9b8cb821e",
+      "capturedAt": "2026-10-23T01:09:21.640808+00:00"
     },
     {
       "id": "reload-action",
@@ -349,39 +360,42 @@
     },
     {
       "id": "retrieval-chunks",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/retrieval-chunks",
-      "capturedAt": "2026-10-23T00:22:15.015824+00:00",
+      "source": "AgentUICreator",
+      "scenario": "retrieval-chunks",
       "file": "retrieval-chunks.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 432,
+        "height": 194
       },
-      "sha256": "55818fc56975a2dff652ce7efe354309444f5f38678280f0547f4987518d7b0e"
+      "sha256": "a079111dd9aa78a95b04230040b6a4101d8754059bf90287c0454f5a5369c06b",
+      "capturedAt": "2026-10-23T01:09:12.102211+00:00"
     },
     {
       "id": "slash-command-trigger",
       "source": "AgentUICreator",
-      "scenario": "slash menu",
+      "scenario": "Running platform template with official trigger component and capture-only Mock candidates through application props",
       "file": "slash-command-trigger.png",
-      "capturedAt": "2026-10-23T00:28:13.609401+00:00",
+      "capturedAt": "2026-10-23T01:38:56.019533+00:00",
       "dimensions": {
-        "width": 720,
-        "height": 220
+        "width": 1424,
+        "height": 548
       },
-      "sha256": "cfb01aacd52f3fa853837cb896719da33eb2316ce27d5b527dd85e3e88829e27"
+      "sha256": "6c7f5483eb4f7d79de83cc0efa43eba42f3cc6fe98fdaea624105cc793c4eab5",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "source-citations-message",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/sources",
-      "capturedAt": "2026-10-23T00:22:20.616297+00:00",
+      "source": "AgentUICreator",
+      "scenario": "source-citations",
       "file": "source-citations-message.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 152
       },
-      "sha256": "ae074b0207c2362db308b83b45c5092826bd9798673dbf43f23def6094064b0c"
+      "sha256": "4d4aa40b81595ba1e445296d0de4a9cf15947b4e4997c0b7f08c1b0b788f2547",
+      "capturedAt": "2026-10-23T01:09:14.478265+00:00"
     },
     {
       "id": "submit-action",
@@ -397,15 +411,15 @@
     },
     {
       "id": "task-group",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/task-card",
-      "capturedAt": "2026-10-23T00:22:25.758860+00:00",
+      "source": "AgentUICreator",
+      "scenario": "nested-subagent-task-group",
       "file": "task-group.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 432,
+        "height": 452
       },
-      "sha256": "e3baf376ebdddc33961fd063f2c9eb0b77f67c4c4716e2caebfd1322a15655b8"
+      "sha256": "cf9d2175f27ad07b40d89362ab4856d4b74862a38ee2d9633c2d197a81b9658e",
+      "capturedAt": "2026-10-23T01:09:19.222724+00:00"
     },
     {
       "id": "theme-switch",
@@ -421,51 +435,57 @@
     },
     {
       "id": "thinking-indicator",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/thinking-indicator",
-      "capturedAt": "2026-10-23T00:22:30.532235+00:00",
+      "source": "AgentUICreator",
+      "scenario": "thinking-placeholder while running",
       "file": "thinking-indicator.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 73
       },
-      "sha256": "b354ff5aa276e1eeae0da399eb91b73fed59c85738141798b267d71ffb73e6f9"
+      "sha256": "ce34ebb8b99936b1bfcf029fb022f45dc782e55573132c5ca83ce16f4ff78602",
+      "capturedAt": "2026-10-23T01:09:32.482076+00:00"
     },
     {
       "id": "tool-fallback",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/tool-fallback",
-      "capturedAt": "2026-10-23T00:22:35.535372+00:00",
+      "source": "AgentUICreator",
+      "scenario": "Official platform template parallel-tools Mock; read_config expanded to show arguments and result",
       "file": "tool-fallback.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 1424,
+        "height": 396
       },
-      "sha256": "388664e236456b5ee7fef99cc8980e378386bd6df3869d765588c200187a1851"
+      "sha256": "1b019697f2ed43a72c5ffcc17dd4e5c177edec756dabaae51772ee5a84fceba8",
+      "capturedAt": "2026-10-23T01:43:49.835076+00:00",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "tool-group",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/tool-group",
-      "capturedAt": "2026-10-23T00:22:40.709053+00:00",
+      "source": "AgentUICreator",
+      "scenario": "Official platform template parallel-tools Mock, expanded group containing inspect_component and read_config",
       "file": "tool-group.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 1440,
+        "height": 248
       },
-      "sha256": "30a529a1be76862e51dc2fa8e6f1ef46996a2a4324500a1eb89170775f539f50"
+      "sha256": "17f88fe0bb21a3f811bb87d9130bbac0ea87efc53cd350297aafeb0636051c6a",
+      "capturedAt": "2026-10-23T01:40:21.356166+00:00",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2
     },
     {
       "id": "tool-timeline",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/tool-timeline",
-      "capturedAt": "2026-10-23T00:22:46.375588+00:00",
+      "source": "AgentUICreator",
+      "scenario": "tool-timeline-thinking",
       "file": "tool-timeline.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 720,
+        "height": 224
       },
-      "sha256": "b7afe8597ad83e8c68783c11a7cc617b3947fe9519c5345a0a5a0722226e4d6c"
+      "sha256": "25219ad6277943f9d2036ac028bdaaacd3fb9d783ddd878feaf7fc7168378e44",
+      "capturedAt": "2026-10-23T01:09:30.310029+00:00"
     },
     {
       "id": "transient-assistant-messages",
@@ -481,15 +501,45 @@
     },
     {
       "id": "web-search",
-      "source": "assistant-ui",
-      "url": "https://www.assistant-ui.com/elements/web-search",
-      "capturedAt": "2026-10-23T00:22:51.792818+00:00",
+      "source": "AgentUICreator",
+      "scenario": "web-search",
       "file": "web-search.png",
       "dimensions": {
-        "width": 784,
-        "height": 387
+        "width": 432,
+        "height": 187
       },
-      "sha256": "8408c2d741c3f34c1d4a34d915e9ef9523dbe77da2a4561e49b46c8c02a0e645"
+      "sha256": "7b032bcb8555f3a33dcb9195ac21ebba1682f959efc64b3804b132e7dff73fee",
+      "capturedAt": "2026-10-23T01:09:16.847399+00:00"
+    },
+    {
+      "id": "lexical-edit-composer-entry",
+      "source": "AgentUICreator",
+      "file": "lexical-edit-composer-entry.png",
+      "scenario": "Hovering the edit button beside an already sent user message",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2,
+      "dimensions": {
+        "width": 1440,
+        "height": 700
+      },
+      "sha256": "72784a9c9e44783651d85ae9d05975e42c974f48486ed1a6ac6e9cbd1bc33825",
+      "capturedAt": "2026-10-23T01:25:02.603101+00:00"
+    },
+    {
+      "id": "tool-fallback-approval",
+      "source": "AgentUICreator",
+      "file": "tool-fallback-approval.png",
+      "scenario": "Official platform template approval-resume Mock; pending operation parameters and allow/deny controls, no decision submitted",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "deviceScaleFactor": 2,
+      "dimensions": {
+        "width": 1424,
+        "height": 340
+      },
+      "sha256": "3add197685aba4bc86b7957fe135b16daceaba33a42831aaa2f75eeb084f1cb3",
+      "capturedAt": "2026-10-23T01:43:27.049060+00:00"
     }
   ]
 }

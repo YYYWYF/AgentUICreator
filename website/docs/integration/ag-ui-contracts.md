@@ -24,7 +24,7 @@ title: 前端消费的 AG-UI 与扩展契约
 
 ## 工具与结果
 
-后端 toolkit 是 render-only 输入；前端执行经应用 allowlist 与 `AgentFrontendToolSource`，UI registry 不能授权 execute。root-thread 执行合同不扩展到嵌套子代理。
+后端 toolkit 是 render-only 输入；前端执行经应用 allowlist 与 `AgentFrontendToolSource`，UI registry 不能授权 execute。root-thread 执行合同不扩展到嵌套SubAgent。
 
 无效结构化数据走 Fallback 或明确错误，不构造虚假成功。文件/来源 URL 仍是外部数据，业务控制访问权限。未识别事件不应破坏已有会话投影。
 

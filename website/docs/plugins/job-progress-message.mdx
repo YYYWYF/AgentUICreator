@@ -1,18 +1,16 @@
 ---
-title: "查看任务进度（job-progress-message）"
+title: "查看后台任务进度（job-progress-message）"
 ---
 
-# 查看任务进度（job-progress-message）
+# 查看后台任务进度（job-progress-message）
 
-显示 run_ci_job 工具产生的任务进度和宿主可用的取消动作。
+把构建、测试等后台作业的阶段和完成进度显示成进度卡片。
 
 ## 界面与功能
 
-任务卡显示进度、完成或失败；业务支持取消时可从卡片发起取消。
+例如一次 CI 作业依次经过拉取代码、安装依赖、构建和测试。卡片显示当前阶段、进度及最终结果；业务支持取消时，还会提供取消按钮。
 
-![查看任务进度（job-progress-message）界面示例](/images/plugins/job-progress-message.png)
-
-截图来源：[assistant-ui 上游示例](https://www.assistant-ui.com/elements/job-progress)。用于展示对应组件；本项目的样式与组合以实际工程为准。
+![查看后台任务进度（job-progress-message）界面示例](/images/plugins/job-progress-message.png)
 
 ## 如何启用和使用
 
@@ -22,11 +20,11 @@ title: "查看任务进度（job-progress-message）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「查看任务进度」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「查看后台任务进度」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 
-业务服务需提供进度和取消能力。点击取消后仍需等待实际确认，不能仅靠前端移除卡片表示任务已终止。
+当前官方接入对应 `run_ci_job` 工具，业务服务需提供匹配的阶段、进度和取消能力。点击取消后仍需等待实际确认，不能仅靠前端移除卡片表示任务已终止。
 
 ## 属性
 

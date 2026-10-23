@@ -6,12 +6,12 @@ All 136 planned articles have text drafts, with additional Agent configuration
 and Plugin development guides. The Plugin navigation covers 39 UI guides;
 configuration guides live with application integration or customization. Every
 article has one sidebar entry in its owning topic; sidebars use one group level.
-The 39 Plugin UI guides include locally bundled screenshots: 17 from assistant-ui
-Elements and 22 from this project with Mock services. Each page labels its source;
+The 39 Plugin UI guides include locally bundled screenshots from this project
+with Mock services. Every screenshot shows our own examples; no upstream website
+screenshots are used.
 `docs/public/images/plugins/sources.json` records origins, scenarios and image hashes.
 Remaining screenshot requirements are recorded inline; visual and real-backend
-acceptance are separate. Track per-article status in
-`../docs/plans/public-documentation-progress.md`.
+acceptance are separate.
 
 From the repository root:
 

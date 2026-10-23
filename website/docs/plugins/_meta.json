@@ -56,23 +56,23 @@
         "link": "/plugins/conversation-quote.html"
       },
       {
-        "label": "编辑带提及标签的消息",
+        "label": "编辑已发送的消息与标签",
         "link": "/plugins/lexical-edit-composer.html"
       },
       {
-        "label": "语音输入",
+        "label": "语音输入（高级）",
         "link": "/plugins/dictation-action.html"
       },
       {
-        "label": "输入 @ 搜索对象",
+        "label": "输入 @ 搜索对象（高级）",
         "link": "/plugins/mention-trigger.html"
       },
       {
-        "label": "输入 / 使用命令",
+        "label": "输入 / 使用命令（高级）",
         "link": "/plugins/slash-command-trigger.html"
       },
       {
-        "label": "使用带提及标签的输入框",
+        "label": "在输入框显示 @ 与 / 标签（高级）",
         "link": "/plugins/lexical-composer-input.html"
       }
     ]
@@ -84,7 +84,7 @@
     "collapsed": false,
     "items": [
       {
-        "label": "使用回复底部操作",
+        "label": "回复操作栏",
         "link": "/plugins/response-footer.html"
       },
       {
@@ -100,7 +100,7 @@
         "link": "/plugins/export-markdown-action.html"
       },
       {
-        "label": "评价回复",
+        "label": "评价回复（高级）",
         "link": "/plugins/feedback-actions.html"
       }
     ]
@@ -112,39 +112,39 @@
     "collapsed": false,
     "items": [
       {
-        "label": "查看思考过程",
+        "label": "展开 Agent 思考内容",
         "link": "/plugins/reasoning.html"
       },
       {
-        "label": "查看一组工具调用",
+        "label": "展开多个工具调用",
         "link": "/plugins/tool-group.html"
       },
       {
-        "label": "查看通用工具与审批",
+        "label": "查看工具详情与执行确认",
         "link": "/plugins/tool-fallback.html"
       },
       {
-        "label": "查看等待提示",
+        "label": "显示正在思考提示（高级）",
         "link": "/plugins/thinking-indicator.html"
       },
       {
-        "label": "查看工具进度",
+        "label": "汇总工具执行过程（高级）",
         "link": "/plugins/tool-timeline.html"
       },
       {
-        "label": "查看子任务",
+        "label": "查看 SubAgent 任务与结果（高级）",
         "link": "/plugins/task-group.html"
       },
       {
-        "label": "查看 Agent 状态",
+        "label": "显示 Agent 当前工作状态（高级）",
         "link": "/plugins/agent-status-message.html"
       },
       {
-        "label": "查看执行计划",
+        "label": "查看计划步骤与完成情况（高级）",
         "link": "/plugins/agent-plan-message.html"
       },
       {
-        "label": "查看任务进度",
+        "label": "查看后台任务进度（高级）",
         "link": "/plugins/job-progress-message.html"
       }
     ]
@@ -160,23 +160,23 @@
         "link": "/plugins/context-retrieval-message.html"
       },
       {
-        "label": "获取生成文件",
+        "label": "获取生成文件（高级）",
         "link": "/plugins/generated-file-message.html"
       },
       {
-        "label": "查看图表",
+        "label": "查看图表（高级）",
         "link": "/plugins/chart-message.html"
       },
       {
-        "label": "查看引用来源",
+        "label": "查看引用来源（高级）",
         "link": "/plugins/source-citations-message.html"
       },
       {
-        "label": "查看文档检索片段",
+        "label": "查看文档检索片段（高级）",
         "link": "/plugins/retrieval-chunks.html"
       },
       {
-        "label": "查看网页搜索结果",
+        "label": "查看网页搜索结果（高级）",
         "link": "/plugins/web-search.html"
       }
     ]
@@ -192,19 +192,19 @@
         "link": "/plugins/agent-identity.html"
       },
       {
-        "label": "切换主题",
+        "label": "切换主题（高级）",
         "link": "/plugins/theme-switch.html"
       },
       {
-        "label": "切换界面语言",
+        "label": "切换界面语言（高级）",
         "link": "/plugins/locale-switch.html"
       },
       {
-        "label": "显示登录门禁",
+        "label": "登录后进入聊天（高级）",
         "link": "/plugins/auth-gate.html"
       },
       {
-        "label": "查看账号与登录操作",
+        "label": "查看账号与退出登录（高级）",
         "link": "/plugins/auth-account.html"
       }
     ]

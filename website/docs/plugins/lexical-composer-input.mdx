@@ -1,18 +1,18 @@
 ---
-title: "使用带提及标签的输入框（lexical-composer-input）"
+title: "在输入框显示 @ 与 / 标签（lexical-composer-input）"
 ---
 
-# 使用带提及标签的输入框（lexical-composer-input）
+# 在输入框显示 @ 与 / 标签（lexical-composer-input）
 
-可选 Lexical 输入实现，将提及/指令显示为原子 chips。
+把输入框中已选择的 @ 对象和 / 指令显示成独立标签，便于与普通文字区分。
 
 ## 界面与功能
 
-提及和指令以可识别标签显示，用户能输入、移动光标和整体删除标签。
+用户仍然可以正常输入文字、移动光标；引用对象和指令各自显示为一个完整标签，删除时按整个标签处理。
 
-![使用带提及标签的输入框（lexical-composer-input）界面示例](/images/plugins/lexical-composer-input.png)
+下图中，「@产品说明文档」是已选中的引用对象，「/总结对话」是已选中的指令。它们会作为完整标签保留在草稿中，与旁边的普通文字区分开。
 
-截图来源：本项目实际组件的本地 Mock 演示。数据与服务为演示替身。
+![在输入框显示 @ 与 / 标签（lexical-composer-input）界面示例](/images/plugins/lexical-composer-input.png)
 
 ## 如何启用和使用
 
@@ -22,7 +22,7 @@ title: "使用带提及标签的输入框（lexical-composer-input）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「使用带提及标签的输入框」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「在输入框显示 @ 与 / 标签」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 

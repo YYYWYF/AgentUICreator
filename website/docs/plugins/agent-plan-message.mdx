@@ -1,18 +1,16 @@
 ---
-title: "查看执行计划（agent-plan-message）"
+title: "查看计划步骤与完成情况（agent-plan-message）"
 ---
 
-# 查看执行计划（agent-plan-message）
+# 查看计划步骤与完成情况（agent-plan-message）
 
-展示 activityType 为 agent-plan 的权威计划快照和增量。
+把 Agent 的执行计划显示为步骤清单，让用户看到准备做什么、正在做哪一步、哪些步骤已完成。
 
 ## 界面与功能
 
-计划卡显示步骤和当前进展，更新时保持同一计划；尚未完成的步骤继续保持未完成。
+例如依次列出「检查代码」「修改界面」「执行验证」。Agent 更新计划时，卡片里的当前步骤和完成标记随之变化。
 
-![查看执行计划（agent-plan-message）界面示例](/images/plugins/agent-plan-message.png)
-
-截图来源：[assistant-ui 上游示例](https://www.assistant-ui.com/elements/agent-plan)。用于展示对应组件；本项目的样式与组合以实际工程为准。
+![查看计划步骤与完成情况（agent-plan-message）界面示例](/images/plugins/agent-plan-message.png)
 
 ## 如何启用和使用
 
@@ -22,7 +20,7 @@ title: "查看执行计划（agent-plan-message）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「查看执行计划」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「查看计划步骤与完成情况」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 

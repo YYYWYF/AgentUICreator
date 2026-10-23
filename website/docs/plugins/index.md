@@ -19,8 +19,8 @@ title: "插件总览与选用"
 | 基本对话 | conversation-surface → composer → submit-action。 |
 | 回复操作 | response-footer + copy-action/reload-action/feedback-actions/export-markdown-action。 |
 | 推理与工具 | reasoning、tool-group、tool-fallback、thinking-indicator、tool-timeline。 |
-| 结构化结果 | 状态、计划、任务、文件、图表、来源与检索 renderer。 |
-| 输入增强 | 附件、语音、引用、mention/slash trigger、可选 Lexical。 |
+| 结构化结果 | 状态、计划、任务、文件、图表、来源与检索 展示卡片。 |
+| 输入增强 | 附件、语音、引用、@ 搜索、/ 命令、引用标签输入框。 |
 | 外观与账号入口 | 主题切换、语言切换、账号与登录界面。 |
 
 ## 如何加入现有项目
@@ -54,70 +54,70 @@ title: "插件总览与选用"
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`conversation-surface`](./conversation-surface) | 会话主界面 | platform、assistant、embedded |
-| [`conversation-thread-list`](./conversation-thread-list) | 历史会话列表 | platform、assistant、embedded |
-| [`conversation-new`](./conversation-new) | 新建会话 | platform、assistant、embedded |
-| [`conversation-suggestions`](./conversation-suggestions) | 开场建议 | platform、assistant、embedded |
-| [`transient-assistant-messages`](./transient-assistant-messages) | 临时展示消息 | platform、assistant、embedded |
+| [`conversation-surface`](./conversation-surface) | 把历史消息、回复和输入框组成完整聊天界面。 | platform、assistant、embedded |
+| [`conversation-thread-list`](./conversation-thread-list) | 在侧栏搜索、打开和管理历史会话。 | platform、assistant、embedded |
+| [`conversation-new`](./conversation-new) | 开始新对话，保留原有聊天记录。 | platform、assistant、embedded |
+| [`conversation-suggestions`](./conversation-suggestions) | 显示可点击的示例问题，帮助用户开始对话。 | platform、assistant、embedded |
+| [`transient-assistant-messages`](./transient-assistant-messages) | 在对话中显示不发送给 Agent、不写入后端历史的页面提示。 | platform、assistant、embedded |
 
 ### 消息输入与编辑
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`composer`](./composer) | 输入框与操作组合 | platform、assistant、embedded |
-| [`submit-action`](./submit-action) | 发送与停止 | platform、assistant、embedded |
-| [`add-attachment-action`](./add-attachment-action) | 添加附件 | platform、assistant、embedded |
-| [`dictation-action`](./dictation-action) | 语音输入 | 未列入，显式接入 |
-| [`conversation-quote`](./conversation-quote) | 引用回复 | platform、assistant、embedded |
-| [`mention-trigger`](./mention-trigger) | @ 提及入口 | 未列入，显式接入 |
-| [`slash-command-trigger`](./slash-command-trigger) | / 快捷命令入口 | 未列入，显式接入 |
-| [`lexical-composer-input`](./lexical-composer-input) | Lexical 输入框 | 未列入，显式接入 |
-| [`lexical-edit-composer`](./lexical-edit-composer) | Lexical 消息编辑 | platform、assistant、embedded |
+| [`composer`](./composer) | 编辑待发送的消息，并容纳附件、引用和发送按钮。 | platform、assistant、embedded |
+| [`submit-action`](./submit-action) | 发送问题，或在 Agent 回复期间请求停止。 | platform、assistant、embedded |
+| [`add-attachment-action`](./add-attachment-action) | 选择文件、加入当前消息，发送前可移除。 | platform、assistant、embedded |
+| [`dictation-action`](./dictation-action) | 开始或停止听写，把识别文字放入草稿。 | 未列入，显式接入 |
+| [`conversation-quote`](./conversation-quote) | 选中已有回复的一段文字，引用后继续提问。 | platform、assistant、embedded |
+| [`mention-trigger`](./mention-trigger) | 输入 @ 搜索并选择要引用的人或资料。 | 未列入，显式接入 |
+| [`slash-command-trigger`](./slash-command-trigger) | 输入 / 选择快捷操作，或把指令加入草稿。 | 未列入，显式接入 |
+| [`lexical-composer-input`](./lexical-composer-input) | 把已选中的 @ 对象和 / 指令显示成完整标签。 | 未列入，显式接入 |
+| [`lexical-edit-composer`](./lexical-edit-composer) | 编辑已发送的用户消息，并保留其中的引用标签。 | platform、assistant、embedded |
 
 ### 回复操作
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`response-footer`](./response-footer) | 回复底部操作区 | platform、assistant、embedded |
-| [`copy-action`](./copy-action) | 复制回复 | platform、assistant、embedded |
-| [`reload-action`](./reload-action) | 重新生成回复 | platform、assistant、embedded |
-| [`feedback-actions`](./feedback-actions) | 回复反馈 | 未列入，显式接入 |
-| [`export-markdown-action`](./export-markdown-action) | 导出 Markdown | platform、assistant、embedded |
+| [`response-footer`](./response-footer) | 把复制、重试、评价和导出等按钮放在完整回复下方。 | platform、assistant、embedded |
+| [`copy-action`](./copy-action) | 把当前这次完整回复复制到剪贴板。 | platform、assistant、embedded |
+| [`reload-action`](./reload-action) | 让 Agent 针对当前问题重新生成回复。 | platform、assistant、embedded |
+| [`feedback-actions`](./feedback-actions) | 让用户评价当前回复是否有帮助。 | 未列入，显式接入 |
+| [`export-markdown-action`](./export-markdown-action) | 把当前这次完整回复下载成 Markdown 文件。 | platform、assistant、embedded |
 
 ### 思考、工具与任务
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`thinking-indicator`](./thinking-indicator) | 等待与思考提示 | 未列入，显式接入 |
-| [`reasoning`](./reasoning) | 思考过程 | platform、assistant、embedded |
-| [`tool-group`](./tool-group) | 工具组 | platform、assistant、embedded |
-| [`tool-timeline`](./tool-timeline) | 工具执行时间线 | 未列入，显式接入 |
-| [`tool-fallback`](./tool-fallback) | 通用工具与审批 | platform、assistant、embedded |
-| [`task-group`](./task-group) | 任务组 | 未列入，显式接入 |
-| [`agent-status-message`](./agent-status-message) | Agent 状态卡片 | 未列入，显式接入 |
-| [`agent-plan-message`](./agent-plan-message) | Agent 计划 | 未列入，显式接入 |
-| [`job-progress-message`](./job-progress-message) | 任务进度 | 未列入，显式接入 |
+| [`thinking-indicator`](./thinking-indicator) | 在尚未显示回答时提示 Agent 仍在思考或处理。 | 未列入，显式接入 |
+| [`reasoning`](./reasoning) | 展开或折叠 Agent 返回的思考文字。 | platform、assistant、embedded |
+| [`tool-group`](./tool-group) | 把多个工具调用归为一组，展开查看各项调用。 | platform、assistant、embedded |
+| [`tool-timeline`](./tool-timeline) | 汇总一条回复中的工具执行状态，展开查看过程。 | 未列入，显式接入 |
+| [`tool-fallback`](./tool-fallback) | 展开单次工具调用的参数和结果，必要时允许或拒绝执行。 | platform、assistant、embedded |
+| [`task-group`](./task-group) | 展开 SubAgent 任务，查看各自的执行状态、过程和结果。 | 未列入，显式接入 |
+| [`agent-status-message`](./agent-status-message) | 用简短状态文字说明 Agent 当前正在做什么。 | 未列入，显式接入 |
+| [`agent-plan-message`](./agent-plan-message) | 显示计划步骤、当前步骤和已完成步骤。 | 未列入，显式接入 |
+| [`job-progress-message`](./job-progress-message) | 显示后台作业的阶段和进度，业务支持时可取消。 | 未列入，显式接入 |
 
 ### 结果、来源与检索
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`generated-file-message`](./generated-file-message) | 生成文件 | 未列入，显式接入 |
-| [`chart-message`](./chart-message) | 图表消息 | 未列入，显式接入 |
-| [`source-citations-message`](./source-citations-message) | 来源引用 | 未列入，显式接入 |
-| [`retrieval-chunks`](./retrieval-chunks) | 检索片段 | 未列入，显式接入 |
-| [`web-search`](./web-search) | 网页搜索 | 未列入，显式接入 |
-| [`context-retrieval-message`](./context-retrieval-message) | 上下文检索消息 | platform、assistant、embedded |
+| [`generated-file-message`](./generated-file-message) | 显示生成文件的名称和下载入口。 | 未列入，显式接入 |
+| [`chart-message`](./chart-message) | 把数值结果显示为可比较的图表。 | 未列入，显式接入 |
+| [`source-citations-message`](./source-citations-message) | 列出回答引用的网页和文档来源。 | 未列入，显式接入 |
+| [`retrieval-chunks`](./retrieval-chunks) | 阅读文档搜索命中的原文片段。 | 未列入，显式接入 |
+| [`web-search`](./web-search) | 查看网页搜索结果并打开原网页。 | 未列入，显式接入 |
+| [`context-retrieval-message`](./context-retrieval-message) | 展开阅读本次提供给 Agent 参考的检索资料。 | platform、assistant、embedded |
 
 ### 外观、语言与账号
 
 | 插件 | 用途 | 当前三形态预设 |
 | --- | --- | --- |
-| [`agent-identity`](./agent-identity) | Agent 名称与标识 | platform、assistant、embedded |
-| [`theme-switch`](./theme-switch) | 主题切换 | 未列入，显式接入 |
-| [`locale-switch`](./locale-switch) | 语言切换 | 未列入，显式接入 |
-| [`auth-gate`](./auth-gate) | 登录门禁 | 未列入，显式接入 |
-| [`auth-account`](./auth-account) | 账号入口 | 未列入，显式接入 |
+| [`agent-identity`](./agent-identity) | 显示当前 Agent 的名称、头像和介绍。 | platform、assistant、embedded |
+| [`theme-switch`](./theme-switch) | 让用户切换浅色、深色和紫色主题。 | 未列入，显式接入 |
+| [`locale-switch`](./locale-switch) | 切换中英文界面，保留当前对话和草稿。 | 未列入，显式接入 |
+| [`auth-gate`](./auth-gate) | 在进入聊天前显示登录页，认证成功后进入应用。 | 未列入，显式接入 |
+| [`auth-account`](./auth-account) | 显示当前用户资料，并按接入情况提供退出登录。 | 未列入，显式接入 |
 
 ## 选择前检查
 
@@ -126,5 +126,3 @@ title: "插件总览与选用"
 所有正文示例以当前公开 API 和应用模板为依据，未把尚无正式发布历史的仓库版本标成正式支持起点。源码接管/同步先阅读[所有权](../customization/source-takeover)和[更新](../updates/)。
 
 ![本项目对话界面组合演示](/images/plugins/conversation-surface.png)
-
-本项目本地 Mock 演示。各插件页面按实现来源展示 assistant-ui 上游示例或本项目组件截图；上游示例的样式不代表当前工程的最终外观。

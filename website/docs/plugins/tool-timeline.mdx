@@ -1,18 +1,16 @@
 ---
-title: "查看工具进度（tool-timeline）"
+title: "汇总工具执行过程（tool-timeline）"
 ---
 
-# 查看工具进度（tool-timeline）
+# 汇总工具执行过程（tool-timeline）
 
-汇总当前 assistant 消息的工具执行进度，并允许查看详情。
+把一条回复中的工具执行过程汇总成进度摘要，方便查看已执行和正在执行的调用。
 
 ## 界面与功能
 
-工具的运行、成功和失败依次更新，可展开查看对应详情。
+摘要显示工具调用的数量和状态；展开后可以逐项查看执行过程与详情。它关注这条回复用了哪些工具，不表示构建或测试等后台作业的完成百分比。
 
-![查看工具进度（tool-timeline）界面示例](/images/plugins/tool-timeline.png)
-
-截图来源：[assistant-ui 上游示例](https://www.assistant-ui.com/elements/tool-timeline)。用于展示对应组件；本项目的样式与组合以实际工程为准。
+![汇总工具执行过程（tool-timeline）界面示例](/images/plugins/tool-timeline.png)
 
 ## 如何启用和使用
 
@@ -22,7 +20,7 @@ title: "查看工具进度（tool-timeline）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「查看工具进度」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「汇总工具执行过程」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 

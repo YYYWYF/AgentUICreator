@@ -68,29 +68,3 @@ Windows 必须使用匹配架构的 Rolldown 1.2.9 原生绑定。锁文件包�
 
 升级 Markdown 时需重新审查版本组合、导入适配、来源记录、消费者 peer 策略和锁文件，
 不能只删除兼容别名或只恢复 strict peer 参数。
-
-## 2026-10-22 本机验证记录
-
-本次在 macOS / Node.js 24.20.0 / pnpm 8.12.0 验证，使用公共 npm；没有执行内网
-registry 或真实 Windows 验收。
-
-- `pnpm install --frozen-lockfile` 通过。没有删除锁文件。
-- Plugins 完整构建、Plugins（含测试）与 Runtime 类型检查通过；Core、Renderer、Runtime、
-  Creator 的代码编译及 Creator 浏览器打包通过。Runtime 发布 tarball 的隔离安装和
-  严格消费者类型检查通过。
-- Web Component 独立构建通过。复用已编译的共享包及 Web Component 产物时，三个 React
-  Host 的 `build`、Vue 消费端的 `vue-tsc --noEmit` / `vite build` 通过。
-- Markdown 流式渲染、GFM/代码块、Generative UI、Lexical Composer、导入适配及来源守卫等
-  64 个用例通过。另有 Lexical 编辑测试 20 个用例在旧 fixture 的 AppUIModel Schema
-  解析阶段失败（`root: { type: "slot", plugins: [...] }`），尚未进入编辑器挂载。
-  本次未修改该 fixture 或 Schema。
-- pnpm 进程辅助函数、平台安装准备和依赖锁定的 14 个 Node 测试通过，包括 Windows fixture。
-- 标准 `pnpm build` / `pnpm verify:dev-startup` 未通过：当前未提交的 `website/` 文档
-  链接指向缺失的 `requirements`、`install-creator`、`first-agent-ui`、`generated-files`
-  页面，Creator 的文档打包步骤失败。本次未改动这些既有文档内容或绕过其死链检查。
-- 使用 `preparationState([...hostPackages, "creator"])` 生成原有准备凭据，复用编译产物
-  后执行原启动烟测，通过 Host/Dock HTTP、工作区就绪、Python 代理和 Chromium
-  页面/输入/Dock 展开检查。该诊断不包含文档打包，不能视为标准完整启动入口通过，
-  也不等于人工视觉验收或真实模型对话验证。
-  烟测输出通过后仍有测试子进程持有句柄，本次只终止该烟测进程树中的剩余子进程完成清理；
-  未停止既有开发服务，未修改启动脚本的进程退出逻辑。

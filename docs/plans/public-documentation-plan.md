@@ -1,6 +1,6 @@
 # 对外文档信息架构与逐篇写作计划
 
-状态：现有 138 篇面向用户的文章已完成目录审查与归属整理，截图仅保留需求说明。按用户补充要求，删除对外 Operator/Bootstrap 内部 API 章节，以检查结果参考替代；接入和定制只保留完成用户操作所需内容。逐篇记录见 [文档写作进度](./public-documentation-progress.md)。
+状态：现有 138 篇面向用户的文章已完成目录审查与归属整理，截图仅保留需求说明。按用户补充要求，删除对外 Operator/Bootstrap 内部 API 章节，以检查结果参考替代；接入和定制只保留完成用户操作所需内容。
 盘点日期：2026-10-22。
 范围：当前仓库对外使用入口、生成的 Agent 前端、官方 Plugin、接入/扩展 API 与维护流程。
 规模：8 个顶层主题目录，138 篇文章（含 39 篇界面 Plugin 专页与开发、配置说明）；网站首页另计。所有文章已接入所属侧栏。
@@ -78,11 +78,11 @@ website/
 
 ## 4. 逐篇目录与写作范围
 
-优先级：P0 首轮使用所必需；P1 常用及完整产品能力；P2 精确 API 与高级扩展。优先级不代表缺少功能可以省略文档。正文和验收状态分别记录于[文档写作进度](./public-documentation-progress.md)。
+优先级：P0 首轮使用所必需；P1 常用及完整产品能力；P2 精确 API 与高级扩展。优先级不代表缺少功能可以省略文档。
 
 ### start/ — 开始使用
 
-首版按用户确认采用手动配置主线，最后补充 AI 辅助（`start/ai-assisted.md`）。实测工程为 `cmb-service-workbench`，React/React DOM 保持 19.3.1、Ant Design 保持 6.6.7；工作台模板手动引入 `Agent` 并无缝铺满业务主内容区。步骤与截图见 `website/docs/start/`，验证记录见 `docs/plans/getting-started-validation.md`。
+首版按用户确认采用手动配置主线，最后补充 AI 辅助（`start/ai-assisted.md`）。实测工程为 `cmb-service-workbench`，React/React DOM 保持 19.3.1、Ant Design 保持 6.6.7；工作台模板手动引入 `Agent` 并无缝铺满业务主内容区。步骤与截图见 `website/docs/start/`。
 
 面向：产品评估者、首次接入者。默认写作批次：P0。
 

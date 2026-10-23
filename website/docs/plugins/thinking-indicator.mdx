@@ -1,18 +1,16 @@
 ---
-title: "查看等待提示（thinking-indicator）"
+title: "显示正在思考提示（thinking-indicator）"
 ---
 
-# 查看等待提示（thinking-indicator）
+# 显示正在思考提示（thinking-indicator）
 
-在当前 assistant 消息尚未输出内容时显示等待与思考占位。
+在 Agent 尚未给出回答时显示「正在思考」等简短提示，让用户知道请求仍在处理。
 
 ## 界面与功能
 
-回复尚未输出时出现等待提示，开始显示思考、工具或正文后让位，停止或错误时更新状态。
+对话中会出现带动画的小提示；已有思考详情、工具活动或正文可展示时，会按配置让位给实际内容。它提示正在等待，不展示具体思考文字或任务完成百分比。
 
-![查看等待提示（thinking-indicator）界面示例](/images/plugins/thinking-indicator.png)
-
-截图来源：[assistant-ui 上游示例](https://www.assistant-ui.com/elements/thinking-indicator)。用于展示对应组件；本项目的样式与组合以实际工程为准。
+![显示正在思考提示（thinking-indicator）界面示例](/images/plugins/thinking-indicator.png)
 
 ## 如何启用和使用
 
@@ -22,7 +20,7 @@ title: "查看等待提示（thinking-indicator）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「查看等待提示」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「显示正在思考提示」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 

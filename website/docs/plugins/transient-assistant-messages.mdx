@@ -4,15 +4,13 @@ title: "显示临时通知（transient-assistant-messages）"
 
 # 显示临时通知（transient-assistant-messages）
 
-在页面内存中加入仅展示的临时用户/assistant 消息。
+在对话中插入页面提示，例如「连接已恢复」，让用户了解当前页面发生了什么。
 
 ## 界面与功能
 
-页面可以显示临时通知或提示消息，移除后不会进入永久聊天历史或作为用户消息发给 Agent。
+提示显示在对话的对应位置，但不作为用户问题发送给 Agent，也不写入后端聊天历史。它只保留在当前页面内存中，适合临时通知。
 
 ![显示临时通知（transient-assistant-messages）界面示例](/images/plugins/transient-assistant-messages.png)
-
-截图来源：本项目实际组件的本地 Mock 演示。数据与服务为演示替身。
 
 ## 如何启用和使用
 

@@ -1,18 +1,16 @@
 ---
-title: "查看子任务（task-group）"
+title: "查看 SubAgent 任务与结果（task-group）"
 ---
 
-# 查看子任务（task-group）
+# 查看 SubAgent 任务与结果（task-group）
 
-把主 Agent 返回的嵌套子任务展示成可展开任务卡片。
+展示主 Agent 委派给 SubAgent 的任务，让用户查看每个 SubAgent 的工作状态和返回结果。
 
 ## 界面与功能
 
-子任务显示为可展开卡片，分别呈现运行、完成、失败和取消，不混淆父任务结果。
+多个 SubAgent 任务显示为可展开的卡片。用户可以分别查看任务名称、执行状态，以及返回的过程和结果；某个 SubAgent 失败时保留该项失败状态。
 
-![查看子任务（task-group）界面示例](/images/plugins/task-group.png)
-
-截图来源：[assistant-ui 上游示例](https://www.assistant-ui.com/elements/task-card)。用于展示对应组件；本项目的样式与组合以实际工程为准。
+![查看 SubAgent 任务与结果（task-group）界面示例](/images/plugins/task-group.png)
 
 ## 如何启用和使用
 
@@ -22,11 +20,11 @@ title: "查看子任务（task-group）"
 
 可以把下面的需求发给 Creator：
 
-> 在当前工程中配置「查看子任务」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+> 在当前工程中配置「查看 SubAgent 任务与结果」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
 
 ## 使用前提
 
-主 Agent 需返回子任务数据。显示子任务不代表浏览器连接了多个服务，也不代表支持子代理前端工具执行。
+主 Agent 需返回 SubAgent 的任务及结果数据。本插件展示这些数据；浏览器仍连接同一个 Agent Runtime，不负责启动 SubAgent 或执行 SubAgent 的前端工具。
 
 ## 属性
 
