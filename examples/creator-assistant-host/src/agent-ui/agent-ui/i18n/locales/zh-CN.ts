@@ -113,13 +113,13 @@ export const zhCN = {
   },
   starterSuggestions: {
     architectureTitle: "账户交易查询",
-    architectureLabel: "余额、账单与明细",
+    architectureLabel: "查询余额、账单与交易明细",
     architecturePrompt: "如何查询账户余额、账单和交易明细？",
     debugTitle: "转账汇款指引",
-    debugLabel: "流程、时效与须知",
+    debugLabel: "了解流程、到账时间与须知",
     debugPrompt: "请介绍转账汇款的办理流程、到账时间和注意事项。",
     nextTitle: "银行卡服务",
-    nextLabel: "办卡、挂失与用卡",
+    nextLabel: "办理新卡、挂失与日常用卡",
     nextPrompt: "请介绍银行卡申请、挂失和日常用卡的常见办理方式。",
   },
   theme: {

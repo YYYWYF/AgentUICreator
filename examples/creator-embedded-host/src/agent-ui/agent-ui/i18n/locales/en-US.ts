@@ -113,13 +113,13 @@ export const enUS = {
   },
   starterSuggestions: {
     architectureTitle: "Account lookup",
-    architectureLabel: "Balances and statements",
+    architectureLabel: "View balances, statements and transactions",
     architecturePrompt: "How can I view my account balance, statements, and transaction history?",
     debugTitle: "Transfer guide",
-    debugLabel: "Steps and timing",
+    debugLabel: "Explore steps, arrival times and tips",
     debugPrompt: "Please explain how to make a bank transfer, how long it takes, and what to check.",
     nextTitle: "Bank card services",
-    nextLabel: "Apply, report loss, manage",
+    nextLabel: "Apply for cards, report loss and manage",
     nextPrompt: "How can I apply for a bank card, report a lost card, and manage everyday card services?",
   },
   theme: {
