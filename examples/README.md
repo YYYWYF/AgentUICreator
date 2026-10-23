@@ -1,6 +1,6 @@
 # Mock Host examples
 
-These are maintained React Host projects, with current Agent UI templates generated through Bootstrap. Northstar keeps the original work dashboard; Atlas keeps the original presentation editor and Host/Agent interaction. Generated `src/agent-ui/` and `.agent-ui/` stay inside each repository example and are ignored by Git. The committed Host source, current presets and initialization command reproduce them without a temporary directory or a saved legacy implementation.
+These are maintained React Host projects, with current Agent UI templates generated through Bootstrap. Northstar keeps the original work dashboard; Atlas keeps the original presentation editor and Host/Agent interaction. Generated `src/agent-ui/`, `.agent-ui/project.json` and `.agent-ui/source-lock.json` are committed alongside the Host source, so example template updates are reviewable in Git and a checkout includes the complete frontend. Local environment files, managed Operator entries, caches, dependencies and build output remain ignored.
 
 From the workspace root:
 
@@ -16,7 +16,7 @@ This command installs the frozen workspace graph, builds the tooling once, initi
 | [creator-assistant-host](creator-assistant-host/README.md) | Northstar dashboard with floating Assistant | http://127.0.0.1:5181/ | `pnpm dev:assistant-host` |
 | [creator-embedded-host](creator-embedded-host/README.md) | Atlas editor with embedded Assistant | http://127.0.0.1:5182/ | `pnpm dev:embedded-host` |
 
-Startup preserves already initialized projects, application customizations and source BASE. A broken or mismatched project stops with an error; it is never reset or automatically source-synchronized. New projects use the current default preset and catalog application templates. Changing those defaults does not overwrite an existing project's generated code.
+Maintainers synchronize these examples explicitly from the current Bootstrap presets and installed Plugins catalog, validate each Host and commit source together with its matching source lock. Startup preserves already initialized projects, application customizations and source BASE. A broken or mismatched project stops with an error; it is never reset or automatically source-synchronized. New projects use the current default preset and catalog application templates. Changing those defaults does not overwrite an existing project's generated code.
 
 Each example's Vite development config provides the local Mock Agent at `/agent` and conversation history at `/__agent-ui/mock-data`. The Mock belongs to Creator development tooling; frontend source imports only the generated Agent entry and production UI packages. The current Host `AgentMount.tsx` explicitly selects `/agent`; replace that Host-owned endpoint to use a real API. No model credentials are needed for these mocks.
 

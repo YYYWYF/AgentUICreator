@@ -1,0 +1,158 @@
+{
+  "applicationPlugins": [
+    {
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "pluginId": "conversation-service"
+    },
+    {
+      "pluginId": "theme-provider"
+    },
+    {
+      "pluginId": "locale-provider"
+    },
+    {
+      "pluginId": "context-retrieval-message"
+    }
+  ],
+  "root": {
+    "type": "sidebar",
+    "defaultActive": "history",
+    "header": {
+      "type": "slot",
+      "plugins": [
+        {
+          "pluginId": "agent-identity"
+        }
+      ]
+    },
+    "items": [
+      {
+        "id": "history",
+        "child": {
+          "type": "slot",
+          "plugins": [
+            {
+              "pluginId": "conversation-thread-list",
+              "slots": {
+                "headerActions": [
+                  {
+                    "pluginId": "conversation-new"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "content": {
+      "type": "row",
+      "children": [
+        {
+          "type": "panel",
+          "child": {
+            "type": "column",
+            "children": [
+              {
+                "type": "slot",
+                "plugins": [
+                  {
+                    "pluginId": "conversation-surface",
+                    "slots": {
+                      "emptySuggestions": [
+                        {
+                          "pluginId": "conversation-suggestions"
+                        }
+                      ],
+                      "composer": [
+                        {
+                          "pluginId": "composer",
+                          "slots": {
+                            "leadingActions": [
+                              {
+                                "pluginId": "add-attachment-action"
+                              }
+                            ],
+                            "submitAction": [
+                              {
+                                "pluginId": "submit-action"
+                              }
+                            ],
+                            "beforeInput": [
+                              {
+                                "pluginId": "conversation-quote"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "reasoningGroup": [
+                        {
+                          "pluginId": "reasoning"
+                        }
+                      ],
+                      "toolGroup": [
+                        {
+                          "pluginId": "tool-group"
+                        }
+                      ],
+                      "toolFallback": [
+                        {
+                          "pluginId": "tool-fallback"
+                        }
+                      ],
+                      "assistantResponseFooter": [
+                        {
+                          "pluginId": "response-footer",
+                          "slots": {
+                            "actions": [
+                              {
+                                "pluginId": "copy-action"
+                              },
+                              {
+                                "pluginId": "reload-action"
+                              },
+                              {
+                                "pluginId": "export-markdown-action"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "userEditComposer": [
+                        {
+                          "pluginId": "lexical-edit-composer"
+                        }
+                      ],
+                      "transientMessages": [
+                        {
+                          "pluginId": "transient-assistant-messages"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "gap": 0,
+            "sizes": [
+              "minmax(0, 1fr)"
+            ]
+          }
+        }
+      ],
+      "gap": 0,
+      "sizes": [
+        "minmax(0, 1fr)"
+      ],
+      "responsive": {
+        "type": "trailing-drawer",
+        "primaryIndex": 0,
+        "drawerIndex": 1,
+        "minPrimaryWidth": 320
+      }
+    }
+  }
+}

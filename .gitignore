@@ -19,16 +19,6 @@ __pycache__/
 .venv/
 *.pyc
 packages/creator/platforms/*/sidecar.json
-examples/creator-host-sandbox/.agent-ui/*
-!examples/creator-host-sandbox/.agent-ui/.gitignore
-!examples/creator-host-sandbox/.agent-ui/mocks/
-examples/creator-host-sandbox/.agent-ui/mocks/*
-!examples/creator-host-sandbox/.agent-ui/mocks/*.jsonl
-examples/creator-host-sandbox/src/agent-ui/
-examples/creator-assistant-host/.agent-ui/
-examples/creator-assistant-host/src/agent-ui/
-examples/creator-embedded-host/.agent-ui/
-examples/creator-embedded-host/src/agent-ui/
 apps/creator-workbench/test-results/
 apps/creator-workbench/playwright-report/
 
@@ -44,3 +34,26 @@ packages/plugins/.typecheck/
 # Documentation build output and cache
 website/doc_build/
 website/.rspress/
+
+# Maintained examples track generated source and portable project metadata.
+examples/creator-host-sandbox/.agent-ui/*
+!examples/creator-host-sandbox/.agent-ui/project.json
+!examples/creator-host-sandbox/.agent-ui/source-lock.json
+!examples/creator-host-sandbox/.agent-ui/.gitignore
+!examples/creator-host-sandbox/.agent-ui/mocks/
+examples/creator-host-sandbox/.agent-ui/mocks/*
+!examples/creator-host-sandbox/.agent-ui/mocks/*.jsonl
+examples/creator-assistant-host/.agent-ui/*
+!examples/creator-assistant-host/.agent-ui/project.json
+!examples/creator-assistant-host/.agent-ui/source-lock.json
+!examples/creator-assistant-host/.agent-ui/.gitignore
+!examples/creator-assistant-host/.agent-ui/mocks/
+examples/creator-assistant-host/.agent-ui/mocks/*
+!examples/creator-assistant-host/.agent-ui/mocks/*.jsonl
+examples/creator-embedded-host/.agent-ui/*
+!examples/creator-embedded-host/.agent-ui/project.json
+!examples/creator-embedded-host/.agent-ui/source-lock.json
+!examples/creator-embedded-host/.agent-ui/.gitignore
+!examples/creator-embedded-host/.agent-ui/mocks/
+examples/creator-embedded-host/.agent-ui/mocks/*
+!examples/creator-embedded-host/.agent-ui/mocks/*.jsonl

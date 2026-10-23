@@ -1,0 +1,24 @@
+{
+  "id": "thinking-indicator",
+  "name": "Conversation Thinking Indicator",
+  "description": "Message-scoped live status placeholder. Yields to visible reasoning or tool activity; does not disable the separate reasoning renderer.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-thinking-indicator-renderer"
+  ],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show a thinking status placeholder",
+      "show a placeholder before reasoning details arrive",
+      "显示正在思考状态提示",
+      "详细推理到达前显示占位提示"
+    ],
+    "visualRole": "assistant status placeholder; does not control reasoning detail visibility",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "thinkingIndicator"
+    }
+  }
+}

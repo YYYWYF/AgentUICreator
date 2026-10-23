@@ -1,0 +1,48 @@
+{
+  "id": "conversation-thread-list",
+  "name": "Conversation Thread List",
+  "description": "Uses the public Conversation thread list with AgentUICreator policy and data binding.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-history",
+    "conversation-selection",
+    "plugin-service-consumer"
+  ],
+  "authoring": {
+    "intents": [
+      "add conversation management",
+      "browse conversation history",
+      "select an existing conversation"
+    ],
+    "visualRole": "conversation navigation",
+    "defaultPlacement": {
+      "type": "relative",
+      "relation": "before",
+      "anchorPluginId": "conversation-surface"
+    },
+    "recommendedSize": {
+      "width": "280px"
+    }
+  },
+  "sidebar": {
+    "icon": "messages-square",
+    "labels": {
+      "en-US": "History",
+      "zh-CN": "\u5386\u53f2\u4f1a\u8bdd"
+    }
+  },
+  "slots": {
+    "children": {
+      "headerActions": {
+        "description": "Optional conversation navigation actions displayed above search and history.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-create"
+          ]
+        }
+      }
+    }
+  }
+}
