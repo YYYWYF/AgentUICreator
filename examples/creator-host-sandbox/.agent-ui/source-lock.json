@@ -141,13 +141,13 @@
           "sha256": "ad87443c4652a5ae526cbbfa432afbeb56f55363e5bf8a02d23cc333dc25e134"
         },
         "agent-ui/i18n/locales/en-US.ts": {
-          "sha256": "721788b5ae716d56e70f139ceaa2130a91715709600710619e5699cda45ba4b0"
+          "sha256": "18db8d833a02e6460bdf3f9a88eac05e148b6cdef36a396fb73e2ac50a3ee7f4"
         },
         "agent-ui/i18n/locales/index.ts": {
           "sha256": "628181cee7733a5c49c4d3e51e40ec6700ba2de87029fbbc189793dac7be5016"
         },
         "agent-ui/i18n/locales/zh-CN.ts": {
-          "sha256": "88ff1530b7df3726b942a0a4faa3060893f3ee5a0410c9ced65e4d4e00209363"
+          "sha256": "b370db178bbe35774b33fe7650aa96dbd936f90a50dc21b7b1d3b38b9de41c81"
         },
         "agent-ui/i18n/useAgentUILocale.ts": {
           "sha256": "9a6fda09327ca337e32b69c95931226fcddcd46a03f23811ee3b63265731edc9"
