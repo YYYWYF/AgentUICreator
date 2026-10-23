@@ -1,0 +1,495 @@
+{
+  "capturedDate": "2026-10-23",
+  "viewport": {
+    "upstream": {
+      "width": 1440,
+      "height": 1100
+    },
+    "project": [
+      {
+        "width": 1100,
+        "height": 850
+      },
+      {
+        "width": 1280,
+        "height": 850
+      }
+    ]
+  },
+  "notes": [
+    "Upstream images are browser captures of public assistant-ui Elements demos, not acceptance evidence for the installed package revision.",
+    "Project images render the actual project components with local Mock data/services; no production backend or authentication service was used.",
+    "Screenshots demonstrate the depicted state only, not all states requested by earlier placeholders."
+  ],
+  "screenshots": [
+    {
+      "id": "add-attachment-action",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/attachment",
+      "capturedAt": "2026-10-23T00:21:29.011862+00:00",
+      "file": "add-attachment-action.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "55f958a17d4c2eb20af49ef581f0e4c18cc5fe758e11107a6f65a3a8052b8852"
+    },
+    {
+      "id": "agent-identity",
+      "source": "AgentUICreator",
+      "scenario": "public component with Mock service",
+      "file": "agent-identity.png",
+      "capturedAt": "2026-10-23T00:26:57.345174+00:00",
+      "dimensions": {
+        "width": 608,
+        "height": 128
+      },
+      "sha256": "382fd69371793008e90f9a47979216227851f5ef03ba015a542479280fd9fffb"
+    },
+    {
+      "id": "agent-plan-message",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/agent-plan",
+      "capturedAt": "2026-10-23T00:21:34.169986+00:00",
+      "file": "agent-plan-message.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "458e514bef75f6e2ca1cfd148979cc09e881b983c3259a0dd465baed0f62bc9a"
+    },
+    {
+      "id": "agent-status-message",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/agent-status",
+      "capturedAt": "2026-10-23T00:21:39.107722+00:00",
+      "file": "agent-status-message.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "27cd821360f1cb466870e71f6a470d8ac033218894c82ba31877dadfef20080f"
+    },
+    {
+      "id": "auth-account",
+      "source": "AgentUICreator",
+      "scenario": "public component with Mock service",
+      "file": "auth-account.png",
+      "capturedAt": "2026-10-23T00:29:05.963846+00:00",
+      "dimensions": {
+        "width": 600,
+        "height": 112
+      },
+      "sha256": "3162a45c8f317ff33ca6ce7af2629164e898df3fea8cd114da87b32a6a4bc7ab"
+    },
+    {
+      "id": "auth-gate",
+      "source": "AgentUICreator",
+      "scenario": "public component with Mock service",
+      "file": "auth-gate.png",
+      "capturedAt": "2026-10-23T00:26:56.797478+00:00",
+      "dimensions": {
+        "width": 424,
+        "height": 348
+      },
+      "sha256": "a255c89972f85f838f7798d591bf83aa307fdf5b704438e0416f94803f2e378a"
+    },
+    {
+      "id": "chart-message",
+      "source": "AgentUICreator",
+      "scenario": "data-message-chart",
+      "file": "chart-message.png",
+      "capturedAt": "2026-10-23T00:23:50.668029+00:00",
+      "dimensions": {
+        "width": 450,
+        "height": 282
+      },
+      "sha256": "80e78832d35579ba853550bce0387904884507fc358d34301da86a0aabf80d39"
+    },
+    {
+      "id": "composer",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/composer",
+      "capturedAt": "2026-10-23T00:21:43.840256+00:00",
+      "file": "composer.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "1002ab86271693289ccce72737e19181e88848161824208ef22a248237d064db"
+    },
+    {
+      "id": "context-retrieval-message",
+      "source": "AgentUICreator",
+      "scenario": "expanded context retrieval",
+      "file": "context-retrieval-message.png",
+      "capturedAt": "2026-10-23T00:29:53.679680+00:00",
+      "dimensions": {
+        "width": 610,
+        "height": 442
+      },
+      "sha256": "4be14c404f27ed5eccdd5d872b1bda4e10c701629c6fac68067a92a7b5b7eb9d"
+    },
+    {
+      "id": "conversation-new",
+      "source": "AgentUICreator",
+      "scenario": "new conversation button",
+      "file": "conversation-new.png",
+      "capturedAt": "2026-10-23T00:29:07.740523+00:00",
+      "dimensions": {
+        "width": 156,
+        "height": 88
+      },
+      "sha256": "a89bd81ca1a8ba3ec142dab189c359c4864cba895769a7492cd04fad372a8ac6"
+    },
+    {
+      "id": "conversation-quote",
+      "source": "AgentUICreator",
+      "scenario": "selected assistant reply",
+      "file": "conversation-quote.png",
+      "capturedAt": "2026-10-23T00:25:35.565527+00:00",
+      "dimensions": {
+        "width": 672,
+        "height": 162
+      },
+      "sha256": "06387a572e5563af81dc8a389f14db9d14de75534734522259b6ee513d33db7b"
+    },
+    {
+      "id": "conversation-suggestions",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/follow-up-suggestions",
+      "capturedAt": "2026-10-23T00:21:48.824604+00:00",
+      "file": "conversation-suggestions.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "28e1f94aaf9c9d266b0a7c1721213fbb1372e0687a7db63f86ecd73893553897"
+    },
+    {
+      "id": "conversation-surface",
+      "source": "AgentUICreator",
+      "scenario": "empty",
+      "file": "conversation-surface.png",
+      "capturedAt": "2026-10-23T00:23:47.865335+00:00",
+      "dimensions": {
+        "width": 1084,
+        "height": 834
+      },
+      "sha256": "45d906e0d5b52d79e457cccd0097c60ca112535b1495a484c636ad543b421634"
+    },
+    {
+      "id": "conversation-thread-list",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/thread-list",
+      "capturedAt": "2026-10-23T00:29:24.634017+00:00",
+      "file": "conversation-thread-list.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "1b974bab4789ec220765bc21c7fec0f74129674dee25acfc5620bf1ba54e36a4",
+      "scenario": "Static variant with sample threads"
+    },
+    {
+      "id": "copy-action",
+      "source": "AgentUICreator",
+      "scenario": "simple-chat",
+      "file": "copy-action.png",
+      "capturedAt": "2026-10-23T00:28:14.877378+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 102
+      },
+      "sha256": "6b383f628050a86c3854d7d9da3f521372a27791c4a1bd9b8202f15b44176c4c"
+    },
+    {
+      "id": "dictation-action",
+      "source": "AgentUICreator",
+      "scenario": "mock dictation",
+      "file": "dictation-action.png",
+      "capturedAt": "2026-10-23T00:23:48.474191+00:00",
+      "dimensions": {
+        "width": 672,
+        "height": 114
+      },
+      "sha256": "78bc73bb62acd47cb2c3be8bc1ee7a5eaae8e8dfa698e7019456674d2740d1e3"
+    },
+    {
+      "id": "export-markdown-action",
+      "source": "AgentUICreator",
+      "scenario": "export menu",
+      "file": "export-markdown-action.png",
+      "capturedAt": "2026-10-23T00:28:16.792249+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 141
+      },
+      "sha256": "03c27a5eeddc42e83fb2ebdad1b3ef89ab6e399421cdafd1966821a24931e936"
+    },
+    {
+      "id": "feedback-actions",
+      "source": "AgentUICreator",
+      "scenario": "mock feedback",
+      "file": "feedback-actions.png",
+      "capturedAt": "2026-10-23T00:28:16.676421+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 102
+      },
+      "sha256": "4eb42ed9aff57428d677f5d5f847b726ecf2d4f8baca4eb86695a28e6b23352b"
+    },
+    {
+      "id": "generated-file-message",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/file",
+      "capturedAt": "2026-10-23T00:21:59.340775+00:00",
+      "file": "generated-file-message.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "f052b33f7c3b228835d206c7e6194e8e4a49c0c9905a5eade6de48425eb4d754"
+    },
+    {
+      "id": "job-progress-message",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/job-progress",
+      "capturedAt": "2026-10-23T00:22:04.124076+00:00",
+      "file": "job-progress-message.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "f1de061b1c5d0c7e7bf9cd45d471ad9172f764bff2720a7ed686704c86ecb053"
+    },
+    {
+      "id": "lexical-composer-input",
+      "source": "AgentUICreator",
+      "scenario": "draft",
+      "file": "lexical-composer-input.png",
+      "capturedAt": "2026-10-23T00:23:48.140992+00:00",
+      "dimensions": {
+        "width": 672,
+        "height": 114
+      },
+      "sha256": "85e045fa714bffad0d342aeb5574132e396f083ecd136843a07a07f68d27dc7a"
+    },
+    {
+      "id": "lexical-edit-composer",
+      "source": "AgentUICreator",
+      "scenario": "edit",
+      "file": "lexical-edit-composer.png",
+      "capturedAt": "2026-10-23T00:23:49.907682+00:00",
+      "dimensions": {
+        "width": 558,
+        "height": 100
+      },
+      "sha256": "35a79eebf5b0709b5df9b853052d9c9f662d9944d0121541a7cca0972307a5d2"
+    },
+    {
+      "id": "locale-switch",
+      "source": "AgentUICreator",
+      "scenario": "public component with Mock service",
+      "file": "locale-switch.png",
+      "capturedAt": "2026-10-23T00:26:57.686652+00:00",
+      "dimensions": {
+        "width": 608,
+        "height": 96
+      },
+      "sha256": "c5ff15e2ae4ca51069813879b7709202f5c7b052e5abb3fabfeef458a59e8581"
+    },
+    {
+      "id": "mention-trigger",
+      "source": "AgentUICreator",
+      "scenario": "mention menu",
+      "file": "mention-trigger.png",
+      "capturedAt": "2026-10-23T00:28:13.562734+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 220
+      },
+      "sha256": "8365a35344e82a0fbdd5d6d8867038f1ce4de29026986ec45805548f0de0ccfa"
+    },
+    {
+      "id": "reasoning",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/reasoning",
+      "capturedAt": "2026-10-23T00:22:09.722049+00:00",
+      "file": "reasoning.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "116481b0db16f2f52480a7e501bf0a31d7a565e79832ebf3ff01f49a43a47fff"
+    },
+    {
+      "id": "reload-action",
+      "source": "AgentUICreator",
+      "scenario": "simple-chat",
+      "file": "reload-action.png",
+      "capturedAt": "2026-10-23T00:28:15.776441+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 102
+      },
+      "sha256": "b4daac5467f4fbe8f0e2d4b3ae00ff94a1517b70857cd79c97fd4ee275a6b21b"
+    },
+    {
+      "id": "response-footer",
+      "source": "AgentUICreator",
+      "scenario": "simple-chat",
+      "file": "response-footer.png",
+      "capturedAt": "2026-10-23T00:23:49.320976+00:00",
+      "dimensions": {
+        "width": 672,
+        "height": 55
+      },
+      "sha256": "6d08391dd6e2c154b3f20a1623a0cc20174fe3958af0322615cf55cb8e7665ea"
+    },
+    {
+      "id": "retrieval-chunks",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/retrieval-chunks",
+      "capturedAt": "2026-10-23T00:22:15.015824+00:00",
+      "file": "retrieval-chunks.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "55818fc56975a2dff652ce7efe354309444f5f38678280f0547f4987518d7b0e"
+    },
+    {
+      "id": "slash-command-trigger",
+      "source": "AgentUICreator",
+      "scenario": "slash menu",
+      "file": "slash-command-trigger.png",
+      "capturedAt": "2026-10-23T00:28:13.609401+00:00",
+      "dimensions": {
+        "width": 720,
+        "height": 220
+      },
+      "sha256": "cfb01aacd52f3fa853837cb896719da33eb2316ce27d5b527dd85e3e88829e27"
+    },
+    {
+      "id": "source-citations-message",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/sources",
+      "capturedAt": "2026-10-23T00:22:20.616297+00:00",
+      "file": "source-citations-message.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "ae074b0207c2362db308b83b45c5092826bd9798673dbf43f23def6094064b0c"
+    },
+    {
+      "id": "submit-action",
+      "source": "AgentUICreator",
+      "scenario": "running with cancel",
+      "file": "submit-action.png",
+      "capturedAt": "2026-10-23T00:26:58.698224+00:00",
+      "dimensions": {
+        "width": 712,
+        "height": 166
+      },
+      "sha256": "3659eea7838667d208e9db939295b5e181d28a9e993484393f5ca1ca467383a5"
+    },
+    {
+      "id": "task-group",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/task-card",
+      "capturedAt": "2026-10-23T00:22:25.758860+00:00",
+      "file": "task-group.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "e3baf376ebdddc33961fd063f2c9eb0b77f67c4c4716e2caebfd1322a15655b8"
+    },
+    {
+      "id": "theme-switch",
+      "source": "AgentUICreator",
+      "scenario": "dark",
+      "file": "theme-switch.png",
+      "capturedAt": "2026-10-23T00:23:48.029788+00:00",
+      "dimensions": {
+        "width": 1084,
+        "height": 834
+      },
+      "sha256": "7e0baa6af8cdc0959b4c6fb06f7872a7f13c7fbf56124eae7f9270280b7f0841"
+    },
+    {
+      "id": "thinking-indicator",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/thinking-indicator",
+      "capturedAt": "2026-10-23T00:22:30.532235+00:00",
+      "file": "thinking-indicator.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "b354ff5aa276e1eeae0da399eb91b73fed59c85738141798b267d71ffb73e6f9"
+    },
+    {
+      "id": "tool-fallback",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/tool-fallback",
+      "capturedAt": "2026-10-23T00:22:35.535372+00:00",
+      "file": "tool-fallback.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "388664e236456b5ee7fef99cc8980e378386bd6df3869d765588c200187a1851"
+    },
+    {
+      "id": "tool-group",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/tool-group",
+      "capturedAt": "2026-10-23T00:22:40.709053+00:00",
+      "file": "tool-group.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "30a529a1be76862e51dc2fa8e6f1ef46996a2a4324500a1eb89170775f539f50"
+    },
+    {
+      "id": "tool-timeline",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/tool-timeline",
+      "capturedAt": "2026-10-23T00:22:46.375588+00:00",
+      "file": "tool-timeline.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "b7afe8597ad83e8c68783c11a7cc617b3947fe9519c5345a0a5a0722226e4d6c"
+    },
+    {
+      "id": "transient-assistant-messages",
+      "source": "AgentUICreator",
+      "scenario": "page-memory notice",
+      "file": "transient-assistant-messages.png",
+      "capturedAt": "2026-10-23T00:26:59.180953+00:00",
+      "dimensions": {
+        "width": 736,
+        "height": 112
+      },
+      "sha256": "c3e8dbdf5631e2d296afbb5ffeda9e2eea8368be92791de360c076b4fa95fcfa"
+    },
+    {
+      "id": "web-search",
+      "source": "assistant-ui",
+      "url": "https://www.assistant-ui.com/elements/web-search",
+      "capturedAt": "2026-10-23T00:22:51.792818+00:00",
+      "file": "web-search.png",
+      "dimensions": {
+        "width": 784,
+        "height": 387
+      },
+      "sha256": "8408c2d741c3f34c1d4a34d915e9ef9523dbe77da2a4561e49b46c8c02a0e645"
+    }
+  ]
+}

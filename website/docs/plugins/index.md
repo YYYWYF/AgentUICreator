@@ -125,4 +125,6 @@ title: "插件总览与选用"
 
 所有正文示例以当前公开 API 和应用模板为依据，未把尚无正式发布历史的仓库版本标成正式支持起点。源码接管/同步先阅读[所有权](../customization/source-takeover)和[更新](../updates/)。
 
-> 截图待补：按对话、输入、结果、服务分组的组合示意和同一 Demo Host 的状态对照，不为每个 Plugin 创建新 Runtime。
+![本项目对话界面组合演示](/images/plugins/conversation-surface.png)
+
+本项目本地 Mock 演示。各插件页面按实现来源展示 assistant-ui 上游示例或本项目组件截图；上游示例的样式不代表当前工程的最终外观。
