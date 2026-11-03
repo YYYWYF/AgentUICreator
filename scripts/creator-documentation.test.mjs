@@ -4,7 +4,9 @@ import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, verifyDocumentation } from './creator-documentation.mjs';
+import { inflateRawSync } from 'node:zlib';
+import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, sealStaticWebsite, verifyDocumentation, verifyStaticWebsite } from './creator-documentation.mjs';
+import { packageRepository } from './package-repository.mjs';
 import { buildAgentDocumentation, documentationSections, portableReferenceLinks, referenceManifest } from './creator-agent-documentation.mjs';
 
 async function fixture(t) {
@@ -115,6 +117,66 @@ test('clean intranet packaging copies static pages without documentation tooling
   await writeFile(path.join(root, 'website/docs/index.md'), '# Source\r\n');
   await prepareDocumentation(root, true);
   assert.match(await readFile(path.join(destination, 'images/example.svg'), 'utf8'), /<svg/u);
+});
+
+test('static-only ZIP preserves Creator identity and repackages without website tooling', async t => {
+  const { root } = await handoffFixture(t);
+  const identity = await documentationIdentity(root);
+  const bytes = await readFile(path.join(root, 'website/docs/index.md'));
+  const sourceRecords = [['website/docs/index.md', createHash('sha256').update(bytes).digest('hex')]];
+  await rm(path.join(root, 'website'), { recursive: true });
+  await mkdir(path.join(root, 'website/static'), { recursive: true });
+  await writeFile(path.join(root, 'website/index.html'), '<html><script src="/static/app.js"></script></html>');
+  await writeFile(path.join(root, 'website/static/app.js'), 'console.log("本地文档");');
+  await sealStaticWebsite(path.join(root, 'website'), sourceRecords);
+  assert.deepEqual(await documentationIdentity(root), identity);
+  await prepareDocumentation(root);
+  const output = path.join(root, 'transfer.zip');
+  await packageRepository(root, output);
+  const zip = await readFile(output);
+  const entries = new Map();
+  let offset = 0;
+  while (zip.readUInt32LE(offset) === 0x04034b50) {
+    const size = zip.readUInt32LE(offset + 18), nameLength = zip.readUInt16LE(offset + 26), extra = zip.readUInt16LE(offset + 28);
+    const name = zip.subarray(offset + 30, offset + 30 + nameLength).toString('utf8');
+    const start = offset + 30 + nameLength + extra;
+    entries.set(name, inflateRawSync(zip.subarray(start, start + size)));
+    offset = start + size;
+  }
+  const prefix = path.basename(root);
+  assert.equal(entries.get(`${prefix}/website/static/app.js`).toString(), 'console.log("本地文档");');
+  assert(entries.has(`${prefix}/website/index.html`));
+  assert(entries.has(`${prefix}/website/DEPLOY.txt`));
+  assert(entries.has(`${prefix}/artifacts/creator-documentation/index.json`));
+  assert([...entries.keys()].every(name => !name.includes('\\') && !name.endsWith('/transfer.zip')));
+  assert([...entries.keys()].every(name => !/website\/(?:package\.json|docs\/|theme\/|doc_build\/|node_modules\/)/u.test(name)));
+  // Extract the actual ZIP to a fresh directory, including Unicode and spaces.
+  const extracted = path.join(root, '解压 空间');
+  for (const [name, content] of entries) {
+    const target = artifactPath(extracted, name);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, content);
+  }
+  const transferred = path.join(extracted, prefix);
+  await rm(path.join(transferred, 'packages/creator/dist'), { recursive: true });
+  await prepareDocumentation(transferred);
+  await prepareDocumentation(transferred, true);
+  await writeFile(path.join(transferred, 'website/static/app.js'), 'tampered');
+  await assert.rejects(prepareDocumentation(transferred), /mismatch/u);
+});
+
+test('static website rejects missing assets and tooling instead of transferring an incomplete site', async t => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'static docs '));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const records = [['website/docs/index.md', 'a'.repeat(64)]];
+  await writeFile(path.join(directory, 'index.html'), '<html/>');
+  await writeFile(path.join(directory, 'app.js'), 'local asset');
+  await sealStaticWebsite(directory, records);
+  await rm(path.join(directory, 'app.js'));
+  await assert.rejects(verifyStaticWebsite(directory), /ENOENT/u);
+  await writeFile(path.join(directory, 'app.js'), 'local asset');
+  await writeFile(path.join(directory, 'package.json'), '{}');
+  await assert.rejects(sealStaticWebsite(directory, records), /Website tooling/u);
 });
 
 test('packaging fails for missing, tampered or stale handoff rather than skipping documentation', async t => {

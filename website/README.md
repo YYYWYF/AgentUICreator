@@ -60,10 +60,15 @@ To prepare documentation for release packaging:
 
 1. In the documentation build environment, finish documentation and package metadata changes,
    then run `pnpm docs:install` and `pnpm docs:package`.
-2. Copy the source repository **together with `artifacts/creator-documentation/`**.
-   This generated directory is ignored by Git, so a Git checkout alone is not a
-   complete handoff. `pnpm package:repo` includes it when present. Keep `website/`
-   source for integrity checks; the package build uses the generated handoff.
+2. Run `pnpm package:repo` to create `../AgentUICreator.zip` (or pass an output
+   path: `pnpm package:repo /path/to/transfer.zip`). It rebuilds and verifies the
+   documentation before writing the archive. In the ZIP, `website/` contains
+   only the complete static site, including local search, demos and assets;
+   its source, package manifests, lockfile and compiler dependencies are omitted.
+   The working checkout retains the original website source.
+   `artifacts/creator-documentation/` is included for Creator builds and must
+   remain with the transferred repository. A Git checkout alone lacks this
+   ignored handoff. An extracted transfer can be repackaged without Rspress.
 3. In the package build environment, run the normal root dependency install and `pnpm build:package`.
    Creator build/prepack validates and copies the handoff into its fresh `dist/`;
    it never runs a documentation compiler. `pnpm docs:check` verifies both the
@@ -78,6 +83,18 @@ are excluded from the documentation source digest so mirror-specific resolution
 or lockfile omission during transfer does not invalidate the static content.
 Changing documentation source or any public package manifest requires a new
 documentation snapshot. `artifacts/` survives Creator's `dist/` cleanup.
+
+For intranet deployment, copy the ZIP's entire `website/` directory to an existing
+static server's site root and follow `website/DEPLOY.txt`. No Node.js, pnpm or
+documentation npm dependencies are required on that server. Access it over
+HTTP/HTTPS; opening HTML with `file://` is unsupported. Enable `index.html` as
+the directory default and resolve extensionless article URLs to their `.html`
+files. The default base is `/`, so deploy as a dedicated site; subpath deployment
+requires rebuilding externally with the appropriate Rspress `base`.
+`agent-ui-static-site.json` records original website source hashes and all static
+file hashes so Creator packaging still verifies the handoff after website source
+is omitted. Keep it unchanged. To edit website content, return to the external
+source checkout, rebuild and transfer a new ZIP.
 
 The installed Creator package reads neither this repository nor a live website.
 The search/read tool for consuming its snapshot is a separate future task.
