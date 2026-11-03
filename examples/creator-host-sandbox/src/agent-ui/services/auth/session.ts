@@ -25,6 +25,6 @@ export interface AuthSessionService {
   gate: UIApplicationGateService;
   dispose(): void;
 }
-declare module "../../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap { "auth.session": AuthSessionService; "auth.gate": UIApplicationGateService; }
 }

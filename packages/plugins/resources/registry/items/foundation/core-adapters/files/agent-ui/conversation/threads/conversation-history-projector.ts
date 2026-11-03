@@ -1,15 +1,2 @@
-import {
-  projectLangChainHistory,
-  type ConversationMessage,
-} from "@za38.03/agent-ui-runtime";
-
-import type { ConversationDetail } from "../../../services/conversations";
-
-export function projectConversationDetail(
-  detail: ConversationDetail,
-): ConversationMessage[] {
-  switch (detail.history.format) {
-    case "langchain":
-      return projectLangChainHistory(detail.history.messages);
-  }
-}
+/** Legacy resource import; implementation is package-owned. */
+export * from "@za38.03/agent-ui-runtime/ui/agent-ui/conversation/threads/conversation-history-projector";

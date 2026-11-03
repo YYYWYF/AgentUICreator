@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 export const deliveries = JSON.parse(await readFile(new URL("../src/catalog/plugin-delivery.json", import.meta.url), "utf8"));
 export function portableSource(delivery, target, text) {
+  // Generated applications consume the public contract package and do not own
+  // a copied framework directory. Keep extracted source independent of the
+  // temporary package-build compatibility views as well.
+  text = text.replaceAll('"../../framework/contracts/ui-plugin"', '"@za38.03/agent-ui-plugins/contracts"');
   if (target === "index.tsx") text = text.replace(/import\s+(type\s+)?\{([^}]+)\}\s+from\s+"(@za38\.03\/agent-ui-plugins(?:\/lexical)?)";/gu, (statement, typeOnly = "", bindings, importSource) => {
     if (importSource !== (delivery.implementationImport ?? "@za38.03/agent-ui-plugins")) return statement;
     const names = bindings.split(",").map(name => name.trim()).filter(Boolean);

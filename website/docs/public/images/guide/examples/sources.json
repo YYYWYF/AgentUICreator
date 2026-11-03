@@ -1,0 +1,189 @@
+{
+  "capturedDate": "2026-10-26",
+  "source": "Current workspace Creator and Bootstrap-generated disposable assistant/platform Hosts; real model execution, local Mock replies.",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "notes": [
+    "Screenshots are actual browser captures, cropped using the browser screenshot API; no generated dialogue or synthetic UI.",
+    "Conversation descriptions in documentation summarize actual runs; failed or incomplete outcomes are identified.",
+    "Model execution and screenshots ran on macOS. No Windows, microphone, production backend, or production service acceptance is claimed.",
+    "Platform harness loaded the full official styles.css entry to avoid missing sidebar utilities in its default lean stylesheet; this setup preceded the layout baseline.",
+    "The standalone assistant capture Host was wired to the Creator-launched local Mock endpoint for the reasoning checks. This is capture setup, separate from Creator edits.",
+    "Default reasoning already collapses after streaming. The example explicitly sets defaultOpen=false and verifies collapse/toggle; it does not claim streaming is disabled."
+  ],
+  "screenshots": [
+    {
+      "file": "assistant-before.png",
+      "scenario": "Default assistant template before copy customization.",
+      "sha256": "8ef0d977866594fd776362c468e7a71a0a5cc12db12199a8b20330e2a601497a",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "attachment-disable-conversation.png",
+      "scenario": "Real Creator reply describing disable with retention.",
+      "sha256": "c1e85feaa9f4758974ee51acb5a55577551b39f8ea6cc676ee30bb7ed96712ae",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "attachment-disabled.png",
+      "scenario": "Attachment action hidden after disabling the existing instance.",
+      "sha256": "f78f245534314545e813da972a1918cc0e52e13dc2eb29ef3cb27b40934bf01d",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "attachment-restored.png",
+      "scenario": "Same attachment instance restored once at its original position.",
+      "sha256": "a9f0f6abcc78b7873cd518a2e03bdfd632e0f9c7e397f845417258e539575078",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "brand-after.png",
+      "scenario": "Changed identity, welcome message and three suggestions.",
+      "sha256": "be33c0ae0f3262df8690eb96068350d880c6d1f18b9ab3a621cd5e2bd9b60d75",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "brand-conversation.png",
+      "scenario": "Real Creator execution: updates Chinese and English copy.",
+      "sha256": "37644c803754c68fce26c90e43915e2431867d59d06d52336ed5fa6cd758ef13",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "brand-receipt.png",
+      "scenario": "Copy receipt: typecheck passed; Runtime observation still pending.",
+      "sha256": "50234f923d306fa92fccad910d31de51bb12ea9e6495bec48e9e489e6b63e1f1",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "inspect-conversation.png",
+      "scenario": "Read-only Creator inspection; no files changed.",
+      "sha256": "f335b53cdb6e5ab3e1c8c84c8cc0de41a1aebaa9b8af5bdc4b84267cef9e2fd1",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "iterate-after.png",
+      "scenario": "Further refinement: retained red, restored 16px radius, distinct card descriptions.",
+      "sha256": "67fdfced62e73a244c171a89559efa052541a0daf43ef35d546dd885aea906fe",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "iterate-conversation.png",
+      "scenario": "Real Creator reply describing the limited refinement.",
+      "sha256": "6c6ac1b17b2e22f3f848fe44cb04d05a3ac2fb2569040d22fee6acffd5d88371",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "layout-after.png",
+      "scenario": "Platform navigation moved to the left; original 280px width retained.",
+      "sha256": "f9ae2e158c04a2aa3fb37d8291a1b7fae59181cc5d5be70138d48391d43bdc1d",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "layout-before.png",
+      "scenario": "Platform template with conversation navigation on the right.",
+      "sha256": "0f6cdbefb9b3d8b509af8989db43e13ea62154c69d4005eccad66fe5030644ff",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "layout-conversation.png",
+      "scenario": "Real Creator reply after narrowing layout scope to direction and border.",
+      "sha256": "fef957bec61e757c45a293b27ac6c83c996143e8c8709f48ccf768c722cb888f",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "reasoning-collapsed.png",
+      "scenario": "Completed reasoning-tool-success Mock reply with reasoning groups collapsed.",
+      "sha256": "fab1a332ef9014182cb5ee6ac0ccb72cd98f4c26373e54f9bfdfac15dd5e5a9d",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "reasoning-conversation.png",
+      "scenario": "Public reasoning prop customization in the project application layer; no source takeover.",
+      "sha256": "3d94b807ba2c2ec4c971e7db147461be56a699d1e734dff41bdea9edca57f24b",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "reasoning-expanded.png",
+      "scenario": "Same completed Mock reply after manually expanding the first reasoning group.",
+      "sha256": "b340cf884585622d78f6f72ac73e0acf75176f8f38a8d73dac9fe54392aee913",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "theme-conversation.png",
+      "scenario": "Real Creator reply describing project-owned CSS changes.",
+      "sha256": "e53f4ed5619e5a8c38c91789405523aa29c58f0b3c239cecc9ba9c8de822ce7f",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "theme-red.png",
+      "scenario": "Project CSS customization: brand red and 8px composer radius.",
+      "sha256": "38cbb1f4512b09bb71e000b0625e7fe924d0f2601331afbe8769993b873d5382",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "voice-service-conversation.png",
+      "scenario": "Read-only assessment of dictation options and information needed for a custom service.",
+      "sha256": "1c8802cd914403ba19bfb0e1ca88be1548892aaa52e827a08c755225baca22f7",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    }
+  ]
+}

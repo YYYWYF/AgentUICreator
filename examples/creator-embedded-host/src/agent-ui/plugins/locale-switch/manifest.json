@@ -11,6 +11,11 @@
     "intents": [
       "let the user switch between Chinese and English"
     ],
-    "visualRole": "language control"
+    "visualRole": "language control",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "headerActions"
+    }
   }
 }

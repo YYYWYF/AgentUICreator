@@ -3,18 +3,8 @@ import type {
   RuntimeLayoutNode,
 } from "./app-ui-runtime-model";
 
-export interface PluginChildSlotAccepts {
-  readonly anyOfCapabilities: readonly string[];
-}
-
-export interface PluginChildSlotDefinition {
-  readonly description: string;
-  readonly cardinality: "one" | "many";
-  /** Omitted means an ordinary, static content Slot. */
-  readonly mode?: "content" | "renderer" | undefined;
-  readonly optional?: boolean | undefined;
-  readonly accepts?: PluginChildSlotAccepts | undefined;
-}
+import type { PluginChildSlotDefinition } from "@za38.03/agent-ui-plugins/contracts";
+export type { PluginChildSlotAccepts, PluginChildSlotDefinition } from "@za38.03/agent-ui-plugins/contracts";
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */
 export type PluginSlotCatalog = Readonly<

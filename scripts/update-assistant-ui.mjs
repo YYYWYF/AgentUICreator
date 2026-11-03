@@ -152,7 +152,7 @@ export async function generativeUiReleaseRevision({
   version,
   gitRunner = git,
 } = {}) {
-  const tag = `@assistant-ui/react-generative-ui@${version}`;
+  const tag = `@assistant-ui/generative-ui@${version}`;
   const output = await gitRunner(repoRoot, [
     "ls-remote", "--tags", UPSTREAM_REPOSITORY,
     `refs/tags/${tag}`, `refs/tags/${tag}^{}`,
@@ -282,17 +282,17 @@ export async function main({
       : Object.fromEntries(await Promise.all(
         Object.keys(target.packages).map(async (name) => [name, await latestVersionResolver(repoRoot, name)]),
       ));
-    const generativeUiVersion = packages["@assistant-ui/react-generative-ui"];
+    const generativeUiVersion = packages["@assistant-ui/generative-ui"];
     const generativeUiRevision = generativeUiVersion
       ? await generativeUiRevisionResolver({ repoRoot, version: generativeUiVersion })
       : undefined;
     if (generativeUiRevision) {
       await sourceCacheEnsurer(repo, generativeUiRevision, { repoRoot });
       const releaseManifest = JSON.parse(await git(repo, [
-        "show", `${generativeUiRevision}:packages/react-generative-ui/package.json`,
+        "show", `${generativeUiRevision}:packages/generative-ui/package.json`,
       ], repoRoot));
-      if (releaseManifest.name !== "@assistant-ui/react-generative-ui" || releaseManifest.version !== generativeUiVersion) {
-        throw new Error(`Release tag for @assistant-ui/react-generative-ui@${generativeUiVersion} points to ${releaseManifest.name}@${releaseManifest.version}.`);
+      if (releaseManifest.name !== "@assistant-ui/generative-ui" || releaseManifest.version !== generativeUiVersion) {
+        throw new Error(`Release tag for @assistant-ui/generative-ui@${generativeUiVersion} points to ${releaseManifest.name}@${releaseManifest.version}.`);
       }
     }
     const nextTarget = {

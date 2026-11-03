@@ -1,131 +1,23 @@
-# Source Registry storage and Host project mutation
+# Source 资源与项目事务
 
-> 2026-10-17：当前目标见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)。本文描述现有源码事务。新增用户授权后的包→源码接管需覆盖 ownership、完整文件提取和唯一注册引用切换；原独立 Source Registry 目标合入 Plugins 的 catalog/源码资产，默认运行入口不读取这些资产；本文的 Source Registry 名称指旧实现，不代表继续独立发包。现有事务尚不覆盖完整接管、依赖安装和跨包兼容检查。
+Source Registry 是 Plugins 包内的 catalog/快照能力；Node 存储和项目操作属于 Creator 内部 Operator，不是独立发布包，也不进入生产浏览器。
 
-Source capability existence and AppUIModel composition are separate decisions.
-Installing or deleting Source items never inserts, enables, disables, or removes
-AppUIModel Plugin instances.
+## 入口与职责
 
-```text
-Mock Studio / Creator Operator / Demo installer / future CLI
-  ↓
-Host Source Project Mutation (apply / remove)
-  ↓
-Source Registry storage transaction (files + source-lock.json)
-  ↓
-Plugin / Frontend Tool / Frontend Tool UI / Conversation Integration registries
-  ↓
-Source closure integrity + verifyUIProject
-  ↓
-Commit, or restore the previous project-owned files
-```
+当前实现位于 `packages/creator/operator/src/project/source-registry/project-mutation.ts`。项目操作使用 applyAgentUISourceProjectMutation、removeAgentUISourceProjectMutation 及对应受控入口；低层 storage API 只管理文件、来源和依赖，不独自承诺 Registry、组合和项目验证完成。
 
-`applyAgentUISourceItem`, `removeAgentUISourceItems`, and
-`commitAgentUISourceTransaction` remain storage-layer APIs. They own Source files,
-lock file hashes, dependency closure, optimistic state hashes, and existing ownership
-protections. They have no knowledge of derived registries or AppUIModel.
-Initialization retains its separate clean-install transaction.
+源码存在与 AppUIModel 组合是不同事实。安装资源不等于自动启用插件，移除资源也不能隐式删除仍被组合或其他资源引用的实现。
 
-Product callers use `applyAgentUISourceProjectMutation` or
-`removeAgentUISourceProjectMutation` from
-`packages/operator/control/src/project/source-registry/project-mutation.ts`.
-The architecture guard rejects direct storage apply/remove references outside the
-storage module, its compatibility exports, and this Host orchestrator. Low-level
-unit tests may continue testing storage APIs directly.
+## 事务与恢复
 
-The Host recovers pending work before inspecting state, performs storage admission
-checks, and snapshots only affected Source files, the Source lock, and the four
-derived registry outputs. The atomic before-state journal lives at
-`<metadataRoot>/source-project-transaction.json`. New journals use schema version 2
-and record a UUID `transactionId`, `ownerPid`, `createdAt`, and the before-state
-snapshot. In-process calls use the project queue. Cross-process callers coordinate
-through the Host journal owner: a living PID (including `EPERM` from the signal-zero
-probe) returns `AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING` before touching the
-low-level journal, Source files, lock, or generated outputs. An active journal is
-never interpreted as a crash; callers retry inspection after the owner finishes.
+Host 对受影响源码、source-lock 和派生 Registry 保存事务前状态，使用原子 journal、项目互斥、预期 hash 和验证保护提交。活动 journal 由原拥有进程管理，不能把仍在运行的进程当成崩溃进行恢复。
 
-Only ownerless legacy v1 journals or v2 journals whose owner process no longer
-exists (`ESRCH`) are crash-recovered. Recovery first restores the low-level
-transaction and then the Host snapshot; it always rolls back, never resumes. If
-there is no Host journal, public recovery does not touch a low-level transaction:
-another process may acquire its Host journal immediately after that read. Source
-apply/remove recover their storage transaction under their own acquired Host
-journal, while initialization keeps its separate clean-install recovery.
+恢复先核对 journal 与拥有者，再恢复本次写入；后续外部编辑由内容冲突检查保护。失败或恢复未完成时准确报告保留的状态，不覆盖用户新增内容。
 
-Operator recovers before inspection, and product installers recover before
-obtaining their expectedStateHash. Journal publication remains atomic and
-create-only. An `EEXIST` loser re-reads the winning journal, refuses to recover a
-living owner's work, or recovers a stale journal and retries admission and snapshots
-once. Old admission results are never reused. An exception in the owning mutation
-may roll back its own live journal only when both its transaction ID and PID match;
-this internal authority is not exposed through public recovery. If that rollback
-fails, the retained journal remains protected while its owner process is alive and
-can be retried by a later Host after the owner exits.
+项目操作刷新受影响派生产物并执行对应检查；changed=false 不代替后置状态核验。移除前检查组合引用和依赖消费者，不能把“隐藏”当成允许删除来源文件。
 
-Every mutation refreshes every derived registry, including when the storage apply
-returns `changed: false`. Source closure must be managed or customized, without
-dependency issues or incompatible package requirements. `verifyUIProject` must
-pass; warnings alone do not reject a mutation. Failures restore exact file bytes
-and remove files created by the failed operation. Empty affected Source directories
-are pruned so removed Plugins do not remain as invalid empty assets. If rollback
-fails, `AGENT_UI_SOURCE_PROJECT_ROLLBACK_FAILED` reports the original cause,
-rollback cause, and retained journal path.
+## 安装、接管和同步
 
-Remove admission maps the actual disappearing Source files to inspected Plugin
-asset directories and all AppUIModel instances, including disabled instances.
-`AGENT_UI_SOURCE_COMPOSITION_IN_USE` reports item, Plugin, and instance IDs before
-any writes. Storage dependency-consumer protection remains authoritative. A Source
-removal does not implicitly remove dependencies or edit composition.
+官方 npm Plugin 优先使用项目薄应用层。首次源码接管绑定实际安装版本、准确文件闭包和用户同意，保留单一注册引用；实现同步使用 BASE/LOCAL/TARGET，只合并实现子树。
 
-Results expose stable, deduplicated `sourceChangedPaths`, `generatedChangedPaths`,
-and their union `changedPaths`, plus changed item IDs and the final Source
-`stateHash`. Python Activity already captures unanticipated changed paths with its
-existing fallback; it need not know registry orchestration. No Python remove tool
-or protocol-schema changes are introduced.
-
-Legacy optional resources pass their existing `resourcePaths().config` unchanged,
-including provided foundations, `sourceRoot: "."`, and scenario-resource metadata.
-The shared implementation belongs to `@za38.03/agent-ui-operator/project`, forwarded through `@za38.03/agent-ui-creator/operator`. Hosts and
-the Workbench consume its development APIs; they do not own storage or mutation
-implementations. Operator's Bootstrap (`@za38.03/agent-ui-creator/bootstrap` for Creator consumers) owns initialization transactions and receives
-the Operator adapter explicitly from the composition root.
-
-Regression coverage lives in `source-project-mutation.test.ts` and
-`source-project-mutation-architecture.test.ts`. Failure injection uses module mocks
-around real registry writers and verification, with no test-only public options.
-Owner regressions cover live/dead PIDs, v1 compatibility, permission failures,
-create-only publication races, bounded admission retry, and real child processes:
-one process holds the journal while a separate Operator process refuses
-inspect/apply/remove without changing its files, then recovers after owner exit.
-
-
-## Source identity and content ownership
-
-Source Registry items have stable IDs and no manually maintained item version.
-The current Registry manifest and files declare the desired source. npm package
-versions/ranges, upstream revisions/provenance, and UI Plugin manifest contract
-versions retain their existing meaning.
-
-Source locks own files through per-file SHA256 hashes. The reader accepts legacy
-`{ version, files }` entries and ignores `version`; the serializer emits `{ files }` for non-Plugin items and preserves optional
-`pluginVersion` / `sourceRelease` provenance for Plugin items. These fields belong
-to Plugin manifests and package releases, never Source Item versions. The next legal mutation naturally rewrites the lock. Inspection
-reports `owned` for any locked or Host-provided item, including customized and
-partial sources. `updateAvailable` compares locked file hashes and target sets
-with current Registry files; it does not grant permission to overwrite user
-customization. Optional resource inspection uses `owned` for its merge.
-
-The optimistic `stateHash` includes deterministic Registry fingerprints over
-manifest metadata, sorted requirements/package entries and file targets/content
-SHA256. A Registry edit invalidates an earlier inspection even for uninstalled
-items. Installation and dependency synchronization continue to compare content
-hashes and preserve customized source protection.
-
-New storage transaction journals omit `targetVersion`. Recovery accepts legacy
-journals carrying that field and ignores it; original bytes and lock backups
-still determine rollback. Registry schema and architecture guards reject item
-manifests declaring `version`, so developers only edit source and never bump an
-item version.
-
-Plugin upgrades and verified customized baseline adoption reuse the storage
-transaction under the Host owner journal. See [plugin-updates.md](plugin-updates.md).
+Source 文件事务不等于依赖安装事务，也不扩大为 npm 安装失败恢复。完整边界见 [源码所有权](npm-default-plugin-source-ownership.md) 和 [统一更新中心](unified-update-center.md)。

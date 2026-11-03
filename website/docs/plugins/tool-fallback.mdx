@@ -1,59 +1,135 @@
 ---
-title: "查看工具详情与执行确认（tool-fallback）"
+title: "工具调用详情（tool-fallback）"
 ---
 
-# 查看工具详情与执行确认（tool-fallback）
-
-为没有专用界面的工具显示调用详情：操作名称、输入参数、返回结果，以及需要时的执行确认。
-
-## 界面与功能
+# 工具调用详情（tool-fallback）
 
 工具调用是 Agent 发起的一次具体操作，例如读取项目配置。点击工具名称可展开参数、结果或错误；需要确认的操作会提供允许或拒绝入口。工具组负责归类多次调用，本插件负责展示其中每一次调用的内容。
 
-下图的 `read_config` 调用读取了 `app-ui/app-ui.json`，卡片同时展示传入的文件路径和返回的配置结果。调用失败时，这里会显示错误原因。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
-![展开工具调用，查看输入参数和返回结果](/images/plugins/tool-fallback.png)
+![展开工具调用，查看输入参数和返回结果](/images/plugins/tool-fallback.jpg)
 
-如果某次操作需要用户确认，卡片会先展示待执行的操作和参数，再提供「允许」与「拒绝」入口；用户可以先看清内容，再作决定。
+## 启用与使用
 
-![工具等待用户确认，展示操作参数和允许拒绝按钮](/images/plugins/tool-fallback-approval.png)
+三种新建项目模板默认使用[工具结果（tool-result）](./tool-result)，包含本插件的工具详情和审批能力，并支持图片、音视频和文档结果。需要使用基础结果展示时，可将 `conversation-surface` 的 `toolFallback` 位置替换为 `tool-fallback`；同一位置只保留一个插件。
 
-## 如何启用和使用
+在 **Creator 输入框**输入 `/enable tool-fallback`，点击下图中的 **「查看工具调用详情」**。
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+![Creator 启用菜单：点击「查看工具调用详情」，插件 ID 为 tool-fallback](/images/plugins/enable/tool-fallback.jpg)
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+## 定制选项
 
-可以把下面的需求发给 Creator：
-
-> 在当前工程中配置「查看工具详情与执行确认」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-自定义显示时保留原有审批和问题入口。收到工具调用不表示已执行，历史查看不能再次触发业务操作。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `rootProps` | 最外层区域的样式和 DOM 属性。 |
-| `triggerProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `contentProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `argsProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `resultProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `errorProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `approvalProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `children` | 替换或补充组件内容。 |
+| 开始时展开还是收起 | 选择默认展开或收起工具详情。 |
+| 标题和内容区样式 | 调整边框、背景、间距和内容区高度。 |
+| 参数、结果和错误样式 | 分别调整三块内容的字号、颜色和滚动区域。 |
+| 审批区域外观 | 调整允许、拒绝等操作所在区域的样式。 |
+| 补充内容 | 在原有结果后追加自己的内容。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「查看工具调用详情（tool-fallback）」：
+修改：工具详情默认【收起】，参数和结果区域最大高度设为【240px】并可滚动。
+保留：工具数据、允许和拒绝操作及回答入口。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/tool-fallback/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+插件入口：`ConversationToolFallbackPlugin`；公开展示组件：`ConversationToolFallback`。入口接收 `tool?`、`ToolFallbackPresentationProps` 和子插件渲染函数；单独使用展示组件时，直接传入当前工具调用的数据及下列展示属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `tool?` | `ConversationToolFallbackProps` | 插件入口的工具上下文对象；缺少时不渲染 |
+| `expanded?` | `boolean` | 受控展开 |
+| `defaultExpanded?` | `boolean` | 默认按是否等待操作决定；等待操作时初始展开 |
+| `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
+| `buttonProps?` | `ToolFallbackPresentationProps['buttonProps']` | `Trigger` 属性，排除 `toolName`、`status`、`responseDeliveryStatus` |
+| `contentProps?` | `ToolFallbackPresentationProps['contentProps']` | `Content` 面板属性 |
+| `argsProps?` | `ToolFallbackPresentationProps['argsProps']` | `Args` 展示属性，排除 `argsText`、`children` |
+| `resultProps?` | `ToolFallbackPresentationProps['resultProps']` | `Result` 展示属性，排除 `result`、`children` |
+| `renderResult?` | `(result: unknown) => ReactNode` | 替换默认结果内容 |
+| `errorProps?` | `ToolFallbackPresentationProps['errorProps']` | `Error` 展示属性，排除 `status`、`children` |
+| `approvalProps?` | `Omit<ComponentPropsWithoutRef<'div'>, 'children'>` | 审批区外观和无障碍属性 |
+| `children?` | `ReactNode` | 自定义详情组合 |
+
+还支持下方列出的样式和无障碍属性。公开组合部件有 `ConversationToolFallback.Root`、`.Trigger`、`.Content`、`.Args`、`.Result`、`.Error`、`.Approval`；部件的准确类型可通过 `ComponentProps<typeof ConversationToolFallback.Args>` 等获取。底层 `Root` 部件保留原生 `open`／`defaultOpen`／`onOpenChange`，完整卡片使用上表的展开属性。
+
+展示组件还保留 `approval`、`respondToApproval`、`interrupt`、`resume`、`responseDeliveryStatus`。这些由现有 assistant-ui 工具上下文提供，在插件入口放入 `tool` 对象中。完整签名见 `ConversationToolFallbackProps`；不要将展示修改变为自行处理审批或中断。
+
+#### 外观与无障碍属性
+
+以下属性均可选。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `className` | `string` | 整体样式类 |
+| `style` | `CSSProperties` | 整体内联样式 |
+| `id` | `string` | 元素标识 |
+| `role` | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色 |
+| `aria-label` | `string` | 无障碍名称 |
+| `aria-describedby` | `string` | 描述元素 ID |
+| `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
+
+#### 当前工具调用的数据与操作
+
+这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `type?` | `'tool-call'` | 消息片段类型 |
+| `toolCallId` | `string` | 工具调用 ID |
+| `toolName` | `string` | 工具名称 |
+| `args` | `unknown` | 解析后的输入参数 |
+| `argsText?` | `string` | 输入参数的文本形式 |
+| `result?` | `unknown` | 工具结果 |
+| `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
+| `isError?` | `boolean` | 结果是否为错误 |
+| `status` | `ConversationToolCallStatus` | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
+| `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
+| `decisionRequest?` | `ConversationCommandDecisionRequest` | 运行环境提供的操作确认请求 |
+| `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
+
+`ConversationToolCallStatus` 为 `{ type: 'running' }`、`{ type: 'complete' }`、`{ type: 'incomplete'; reason?: string; error?: unknown }` 或 `{ type: 'requires-action'; reason?: string }`。`ConversationCommandDecisionRequest` 含 `allowedDecisions: readonly string[]` 和可选 `description: string`。
+
+该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+
+在本插件入口中，上述数据和方法放在 `tool` 对象里；单独使用展示组件时直接传入这些字段。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationToolFallback } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationToolFallback>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

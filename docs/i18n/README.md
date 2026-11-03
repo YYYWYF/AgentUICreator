@@ -9,26 +9,28 @@ recording transcripts, sample payloads and backend diagnostic details remain dat
 
 ## Message owners
 
-- Generated projects keep their existing `agent-ui/i18n` registry and namespace
-  hook. `locale-provider` remains the locale service owner. The composition bridge
-  inherits the public presentation defaults and feeds its selected locale and
-  messages into the product React wrappers. Hosts can override those defaults
-  in their existing generated locale dictionaries. Host `Agent.locale`
-  can control this presentation setting without recreating the runtime, services,
-  or AppUIModel. Preset starter suggestions follow the locale; custom welcome
-  content remains Host-owned.
-- `@agent-ui/react` owns default presentation messages for its composition and
-  adapters. `AgentUILocaleProvider` also supports partial Host message overrides.
-  New facade APIs require `@agent-ui/react >=0.1.1`; generated foundation
-  dependency metadata records that minimum. Its standalone default stays `en-US`; generated projects explicitly bridge
-  their configured default (`zh-CN`). Plugins continue using the existing
-  generated namespace hook and declare locale service consumption where needed.
-- Creator is a separate development tool. Its tool-host locale provider and
-  domain dictionaries live in `packages/operator/src/ui/i18n`. The UI export
-  accepts a controlled `locale` and `onLocaleChange`, and Settings offers a
-  language selector. Generated projects never import Creator or its messages.
-- `locale-switch` renders the language control and consumes the existing `locale-provider` service. Generated Agent `onLocaleChange` lets controlled Hosts follow UI changes. Example Hosts pass that callback together with `locale`; their
-  product UI and theme showcase use the same public presentation context.
+- `@za38.03/agent-ui-plugins` owns presentation dictionaries in
+  `packages/plugins/src/locales/{en-US,zh-CN}.ts`, their types and the public
+  `AgentUILocaleProvider`, `useAgentUILocale()` and `useAgentUILocaleCode()` APIs
+  in `src/locale.tsx`. Standalone presentation defaults to `en-US`.
+- Generated projects use Runtime `/ui` and default to `zh-CN`. `locale-provider`
+  remains the enabled service owner; Runtime's `AgentUILocaleBridge` connects it
+  to the shared presentation context. `Agent.locale` controls the current locale,
+  `defaultLocale` sets the initial uncontrolled value, `onLocaleChange` receives
+  UI changes, and `locales` supplies per-locale partial overrides. New projects
+  do not copy full dictionaries or generate theme/locale service forwarding files.
+- The project owns custom business messages and welcome content. Official copy
+  uses its existing domain namespace; project business messages use the unified
+  locale code rather than another language state. Runtime, services, AppUIModel
+  and composer drafts survive language changes. Existing local files and Host
+  overrides are preserved by npm upgrades.
+- Creator is a separate development tool. Its locale context and dictionaries
+  live in `packages/creator/src/ui/i18n`. Its UI accepts controlled `locale` and
+  `onLocaleChange`, and Settings offers a language selector. Generated projects
+  never import Creator or its messages.
+- `locale-switch` consumes the existing locale service. Controlled Hosts pass
+  `Agent.locale` with `onLocaleChange`; uncontrolled Hosts may set `defaultLocale`.
+  Locale affects presentation and is not sent to AG-UI as protocol state.
 
 Components consume messages; pure presentation helpers receive messages as an
 argument. Fallbacks resolve missing keys through the default dictionary, keep

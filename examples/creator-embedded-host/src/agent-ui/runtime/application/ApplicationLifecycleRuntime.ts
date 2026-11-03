@@ -3,33 +3,8 @@ import type {
   UIApplicationGateStatus,
 } from "../../framework/contracts/ui-plugin";
 
-export type ApplicationRuntimePhase =
-  | "bootstrapping"
-  | "resolving-gates"
-  | "blocked"
-  | "ready"
-  | "error";
-
-export interface ApplicationGateRuntimeEntry {
-  instanceId: string;
-  pluginId: string;
-  priority: number;
-  status: UIApplicationGateStatus;
-  message?: string | undefined;
-}
-
-export interface ApplicationLifecycleFailure {
-  instanceId?: string | undefined;
-  pluginId?: string | undefined;
-  message: string;
-}
-
-export interface ApplicationLifecycleSnapshot {
-  phase: ApplicationRuntimePhase;
-  gates: readonly ApplicationGateRuntimeEntry[];
-  activeGateInstanceId?: string | undefined;
-  failure?: ApplicationLifecycleFailure | undefined;
-}
+import type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "@za38.03/agent-ui-plugins/contracts";
+export type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "@za38.03/agent-ui-plugins/contracts";
 
 const INITIAL_SNAPSHOT: ApplicationLifecycleSnapshot = Object.freeze({
   phase: "bootstrapping",

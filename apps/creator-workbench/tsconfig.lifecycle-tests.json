@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/lifecycle-races-host.spec.ts", "playwright.lifecycle.config.ts"],
+  "exclude": []
+}

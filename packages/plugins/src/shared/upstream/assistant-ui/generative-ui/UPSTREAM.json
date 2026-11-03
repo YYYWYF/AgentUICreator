@@ -2,17 +2,20 @@
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
   "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "packageRevision": "d8124e7b427021d977abf9aabc9a057705a81644",
   "license": "MIT",
   "packages": {
-    "@assistant-ui/react-generative-ui": "0.0.22"
+    "@assistant-ui/generative-ui": "0.0.7"
   },
   "files": [
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/generative-ui.tsx",
       "localPath": "styled-generative-ui.tsx",
       "upstreamSha256": "0bfa3926464e20323076b9097477796c4756fb162e8ddb58d421e6f8073c793f",
-      "installedSha256": "0bfa3926464e20323076b9097477796c4756fb162e8ddb58d421e6f8073c793f",
-      "adaptations": []
+      "installedSha256": "aacbfd9b37e9396c5b14b91ec452496771ec8b9a2e903a069cc4dfd578782c84",
+      "adaptations": [
+        "public Generative UI React entry import"
+      ]
     },
     {
       "upstreamPath": "packages/ui/src/lib/generative-ui-vocabulary-css.ts",

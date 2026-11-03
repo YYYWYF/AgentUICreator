@@ -1,0 +1,5 @@
+	message	{"type":"RUN_STARTED","threadId":"captured-thread","runId":"captured-run"}	10:53:13.900
+message	{"type":"TEXT_MESSAGE_START","messageId":"captured-message","role":"assistant"}	10:53:14.123
+message	{"type":"TEXT_MESSAGE_CONTENT","messageId":"captured-message","delta":" copied 中文\ttext\n preserved "}	10:53:14.261
+message	{"type":"TEXT_MESSAGE_END","messageId":"captured-message"}	10:53:14.376
+message	{"type":"RUN_FINISHED","threadId":"captured-thread","runId":"captured-run"}	10:53:14.507

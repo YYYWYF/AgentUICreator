@@ -1,91 +1,42 @@
-# 多模态输出 Phase 1：Tool Result File Demo
+# 多模态工具结果展示
 
-## 当前协议路径
+当前依赖为 `@ag-ui/core` / `@ag-ui/client` 1.0.3、`@assistant-ui/react` 0.15.31 和 `@assistant-ui/react-ag-ui` 0.1.0。`tool-result` 使用标准 AG-UI 工具结果内容数组，在既有 `toolFallback` 语义边界展示文本、图片、音频、视频及文档，不修改 upstream 或事件解析器。
 
-当前 pinned stack：`@ag-ui/core` / `@ag-ui/client` **0.0.59**、
-`@assistant-ui/react` **0.15.22**、`@assistant-ui/react-ag-ui` **0.0.62**。
+## 协议与组合
 
 ```text
-Mock generate_file backend Tool
-→ TOOL_CALL_START / ARGS / END
-→ TOOL_CALL_RESULT.content（JSON string）
-→ 官方 react-ag-ui converter
-→ assistant-ui tool-call.result（object）
-→ Plugin Toolkit 的 generate_file named backend renderer
-→ ConversationFile facade
-→ assistant-ui 官方 File Element / Download
+AG-UI TOOL_CALL_RESULT.content: string | ContentPart[]
+  → canonical react-ag-ui converter
+  → assistant-ui tool-call result
+  → 专用工具 renderer（若已注册）
+  → conversation-surface.toolFallback 的 tool-result
+  → 共享 Image / File / Media Player 展示
 ```
 
-结果 `{ filename, mimeType, url }` 的 schema 仅属于 `generate_file` Tool。
-项目不新增协议解析器，不修改 AG-UI schema、HttpAgent 或 react-ag-ui converter。
-Mock 复用已有 `type: "tool"` step 和 `serializeToolValue`，不新增文件 step/event。
+工作台、悬浮助手和嵌入式助手默认启用 `tool-result`。`toolFallback` 位置只保留一个插件；使用基础 `tool-fallback` 的工程可以显式替换。专用工具 renderer 继续优先，前端工具、工具时间线和子任务复用相同的结果展示选择，不创建第二个 Runtime。
 
-## Presentation ownership
+普通字符串、业务 JSON 或不符合内容数组结构的结果仍显示原始结果。后端工具结果展示不授予前端执行权限，也不把后端工具加入 `RunAgentInput.tools`。
 
-Source Registry item：`plugin/generated-file-message`（初始版本 `0.1.0`）。
-它拥有 `GenerateFileToolUI` 和纯函数 `projectGeneratedFileResult(unknown)`。
-通过现有 `UIPluginDefinition.toolkit` 注册 `type: "backend"`、
-`display: "standalone"`、`render: GenerateFileToolUI`。
+## 内容与文件来源
 
-Mock 面板将其列为 `file-output` 的文件输出展示资源，沿用现有 Plugin 引入路径：
-安装 Source、生成 Plugin Registry，再通过 AppUIModel `applicationPlugins` 启用。
-缺失资源时显示静态示意图。Plugin 的 renderer 可用性不授予 Frontend Tool 权限，
-也不将 `generate_file` 加入 `RunAgentInput.tools`。
+内容按数组顺序展示，包含 text、image、audio、video、document。`source.type` 为 url 时使用可访问的 HTTP(S)/Blob URL，为 data 时使用携带 MIME 的 Base64；为 file 时 value 是提供方文件 ID，必须通过项目 `resolveFile` 转为媒体地址，不能猜成 URL。解析请求在切换或卸载时取消。
 
-仅当 `status.type === "complete"`、`isError !== true`，且三个字段均为非空
-string、URL 是合法 HTTP/HTTPS 地址时显示 File。Running、incomplete、
-requires-action、error 和 malformed result 都继续使用 `ConversationToolFallback`。
-其他 Tool 的展示路径不变。
+图片复用共享预览；音视频由用户点击播放，不自动播放，暂不提供下载入口；文档提供文件卡片和下载入口，不内嵌执行其内容。`metadata.filename` 是可选展示约定。业务鉴权、浏览器可访问性和实际媒体类型支持由项目服务验证。
 
-`ConversationFileProps` 是 `@agent-ui/react` 的公共 contract：
-`filename?`、`data`、`mimeType`、`sourceType?: "url" | "id"`。
-facade 只补齐内部 File part 的固定类型和完成状态；不泄露 vendor import path 或
-assistant-ui component type，不复制 File 实现或下载逻辑。File 的图标、布局和
-Download 可访问名称沿用官方 Element，Plugin 不新增 presentation copy。
+公开应用入口使用 `ConversationToolResultPlugin`，支持 `renderPart`、`resolveFile`、直接整体样式与展开状态，以及独立 args/error/approval 等组件参数。专用 renderer 可复用 `ConversationToolResultContent`。保留原有工具、错误、审批、中断和焦点处理，固定文案沿用统一 locale。完整格式见 [工具结果](../../website/docs/plugins/tool-result.mdx)。
 
-## Demo 行为
+## Canonical owner 与源码接管
 
-场景：**Tool Result：File Output**（`file-output`，Presentation）。
-输入：`帮我生成一份 PDF 报告`。
+唯一展示及内容适配位于 `packages/plugins/src/plugins/tool-result/adapters/presentation/`，npm 与 portable snapshot 从同一 owner 构建。交付由 `plugin-delivery.json` 和插件 `plugin.json` 声明。项目先在自己的薄应用层定制 props/组合，无需接管；实现内部修改须按 [源码所有权](npm-default-plugin-source-ownership.md)准备并确认接管计划。
 
-Backend result：
+## 生成文件与 Mock
 
-```json
-{
-  "filename": "quarterly-report.pdf",
-  "mimeType": "application/pdf",
-  "url": "https://example.com/generated/quarterly-report.pdf"
-}
-```
+`generated-file-message` 保留工具 `generate_file` 的具名 backend renderer。其 `{ filename, mimeType, url }` 是该工具的业务结果合同，不是通用 AG-UI 文件协议。仅成功、非错误且字段与 HTTP(S) URL 有效时显示文件；其他状态使用现有回退。
 
-文件展示使用 PDF/FileText icon、文件名和官方 Download anchor：
-`href` 为上述 URL，`download="quarterly-report.pdf"`，
-`target="_blank"`、`rel="noopener noreferrer"`。
-最终普通 Assistant 文本为 `报告已经生成。`。
+Mock 的 `file-output` 场景在 `packages/creator/src/mock-agent/builtins/file-output.ts`，通过标准工具事件返回演示 JSON，不生成真实文件。示例 URL 的存在性或下载成功需要独立文件服务验证，不能由 DOM 或 Mock 回答证明。
 
-没有真实文件生成、文件服务、主动 fetch、Blob 或 createObjectURL。
-虚拟 URL 是否存在、打开后是否 404 均不影响 Demo 的 DOM contract。
-文件不经过 CUSTOM、STATE、A2UI、DataMessagePart 或 Assistant metadata。
+## 验证
 
-## 测试代码
+相关回归包括 Plugins 的 `tests/tool-result.test.tsx`、`tests/migrated/generated-file-message.test.tsx`、`tests/migrated/generated-file-ag-ui-integration.test.tsx`，以及 Creator Mock 的文件输出测试。按修改范围核对实际消息转换、内容顺序、URL/Base64/文件解析、取消、错误与审批、历史回放及工具优先级。
 
-- `packages/operator/tests/mock-agent/file-output.test.ts`：真实 scenario lifecycle、string
-  result、JSON 内容及无 CUSTOM。
-- `packages/plugins/tests/migrated/generated-file-ag-ui-integration.test.tsx`：
-  真实 Mock SSE 经过 HttpAgent 和当前 ConversationRuntimeProvider 所用的
-  react-ag-ui，检查对象 result、named Tool UI、下载入口和 backend renderer
-  不进入 `RunAgentInput.tools`。不 mock converter，也不直接调用 parseJSONText。
-- `packages/plugins/tests/migrated/generated-file-message.test.tsx`：projection、
-  成功 File、非成功官方 fallback、PDF icon、Download DOM contract；不点击下载。
-- 现有 Host 公共入口集成测试增加该 Plugin 的安装和 AppUIModel 启用覆盖。
-
-初次实现提交 `42fa6c6` 按“做完推送，不要验收”交付，当时未运行测试、
-typecheck、build、上游检查或人工 UI 验收。
-
-## 后续升级边界
-
-升级 AG-UI 1.0 后重新评估 `TOOL_CALL_RESULT` 的 `ContentPart[]`，并确认
-react-ag-ui 对 typed Tool Result 的完整支持。如果支持 Backend File ContentPart
-直接转换为 assistant-ui native file part，可迁移并删除当前 Tool-local
-JSON result → File Tool UI 层。此阶段不定义全局 file result protocol，
-也不 patch AG-UI 或 fork react-ag-ui。
+静态/单元、受控 Mock、实际浏览器媒体和业务文件服务分别报告。不要把演示下载链接存在当作文件已生成或真实下载通过；Windows 的路径、构建与浏览器结果单独验证。

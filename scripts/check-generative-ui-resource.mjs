@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const packageName = "@assistant-ui/react-generative-ui";
+const packageName = "@assistant-ui/generative-ui";
 const itemIds = ["integration/generative-ui"];
 const vendorDirectory = "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui";
 
@@ -12,15 +12,18 @@ export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target
   target ??= JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
   const version = target.packages?.[packageName];
   if (!version) return [];
-  const revision = target.generativeUiReleaseRevision;
+  const revision = target.generativeUiPresentationRevision;
+  const packageRevision = target.generativeUiReleaseRevision;
   const errors = [];
   if (!/^[a-f0-9]{40}$/u.test(revision ?? "")) {
-    errors.push("target.generativeUiReleaseRevision must be an exact release commit SHA");
+    errors.push("target.generativeUiPresentationRevision must be an exact commit SHA");
   }
+  if (!/^[a-f0-9]{40}$/u.test(packageRevision ?? "")) errors.push("target.generativeUiReleaseRevision must be an exact release commit SHA");
   const provenance = JSON.parse(await readFile(path.join(repoRoot, vendorDirectory, "UPSTREAM.json"), "utf8"));
   if (provenance.revision !== revision) errors.push(`Generative UI UPSTREAM.json revision is ${provenance.revision}; expected ${revision}`);
   if (provenance.packages?.[packageName] !== version) errors.push(`Generative UI UPSTREAM.json ${packageName} is ${provenance.packages?.[packageName]}; expected ${version}`);
   const expectedFiles = new Set(["styled-generative-ui.tsx", "generative-ui.css"]);
+  if (provenance.packageRevision !== packageRevision) errors.push(`Generative UI package revision is ${provenance.packageRevision}; expected ${packageRevision}`);
   const provenanceFiles = provenance.files ?? [];
   if (provenanceFiles.length !== expectedFiles.size) errors.push("Generative UI UPSTREAM.json must list exactly the styled component and vocabulary CSS");
   for (const file of provenanceFiles) {

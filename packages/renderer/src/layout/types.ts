@@ -3,7 +3,8 @@ export type PanelDimension = number | string;
 
 /** A row-owned presentation policy; the authoring layout still owns its tracks. */
 export interface RowDrawerPolicy {
-  type: "trailing-drawer";
+  /** drawer follows child order on either side; trailing-drawer retains its legacy ordering. */
+  type: "drawer" | "trailing-drawer";
   primaryIndex: number;
   drawerIndex: number;
   minPrimaryWidth: number;

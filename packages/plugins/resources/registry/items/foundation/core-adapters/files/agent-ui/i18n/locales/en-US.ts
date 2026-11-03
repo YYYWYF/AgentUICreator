@@ -10,15 +10,6 @@ export const enUS = {
     collapse: "Collapse panel",
     restore: "Restore panel",
   },
-  humanQuestion: {
-    back: "Back",
-    next: "Next",
-    submit: "Confirm selection",
-    submitting: "Submitting selection…",
-    answered: "Selected",
-    noneSelected: "No selection",
-    unavailable: "This question cannot be answered right now",
-  },
   conversationTriggers: {
     suggestions: "Input suggestions",
     back: "Back",

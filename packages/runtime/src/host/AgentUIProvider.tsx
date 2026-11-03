@@ -1,5 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse } from "@za38.03/agent-ui-core";
+import type { AgentApplicationEvent } from "@za38.03/agent-ui-core";
+
+export type AgentUIAppEventListener<TPayload = unknown> =
+  (event: AgentApplicationEvent<TPayload>) => void | Promise<void>;
 
 /** Presentation only. Never forwarded to AG-UI or used to authorize a session. */
 export interface AgentUIUser {
@@ -26,6 +30,8 @@ export interface AgentUIHost<TState = unknown> {
   getSnapshot(): AgentUIHostSnapshot<TState>;
   subscribe(listener: () => void): () => void;
   on<K extends keyof AgentUIEventMap<TState>>(event: K, listener: (payload: AgentUIEventMap<TState>[K]) => void): () => void;
+  /** Live normalized business events; the Host validates its own payload contract. */
+  onAppEvent<TPayload = unknown>(name: string, listener: AgentUIAppEventListener<TPayload>): () => void;
   /** Delegates to the canonical runtime. Settlement is not proof of successful completion. */
   sendMessage(input: string | AgentUserInput): Promise<void>;
   startNewConversation(): Promise<void>;
@@ -46,6 +52,8 @@ class HostStore implements AgentUIHost {
   private listeners = new Set<() => void>();
   private events = new Map<string, Set<(payload: never) => void>>();
   private pending = new Set<() => void>();
+  private applicationEvents = new Map<string, Set<AgentUIAppEventListener>>();
+  private bindingRevision = 0;
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   on: AgentUIHost["on"] = (event, listener) => {
@@ -53,6 +61,16 @@ class HostStore implements AgentUIHost {
     this.events.set(event, listeners);
     listeners.add(listener as (payload: never) => void);
     return () => { listeners.delete(listener as (payload: never) => void); };
+  };
+  onAppEvent: AgentUIHost["onAppEvent"] = (name, listener) => {
+    const listeners = this.applicationEvents.get(name) ?? new Set();
+    this.applicationEvents.set(name, listeners);
+    const receive = listener as AgentUIAppEventListener;
+    listeners.add(receive);
+    return () => {
+      listeners.delete(receive);
+      if (listeners.size === 0 && this.applicationEvents.get(name) === listeners) this.applicationEvents.delete(name);
+    };
   };
   private emit<K extends keyof AgentUIEventMap>(event: K, payload: AgentUIEventMap[K]) {
     for (const listener of [...(this.events.get(event) ?? [])]) {
@@ -67,9 +85,10 @@ class HostStore implements AgentUIHost {
     this.emit("status-change", { status });
   }
   bind(source: AgentRuntime) {
+    const revision = ++this.bindingRevision;
     this.source = source;
     const update = () => {
-      if (this.source !== source) return;
+      if (this.source !== source || this.bindingRevision !== revision) return;
       const previous = this.snapshot;
       const runtime = source.getSnapshot();
       if (previous.status === "ready" && previous.runtime === runtime) return;
@@ -82,10 +101,19 @@ class HostStore implements AgentUIHost {
       if (previous.runtime?.run.status === "running" && runtime.run.status !== "running") this.emit("run-end", { threadId, run: runtime.run });
     };
     const unsubscribe = source.subscribe(update);
+    const unsubscribeEvents = source.subscribeApplicationEvents(event => {
+      if (this.source !== source || this.bindingRevision !== revision || this.snapshot.status !== "ready") return;
+      for (const listener of [...(this.applicationEvents.get(event.name) ?? [])]) {
+        try { void Promise.resolve(listener(event)).catch(error => console.error("AGENT_UI_HOST_LISTENER_FAILED", error)); }
+        catch (error) { console.error("AGENT_UI_HOST_LISTENER_FAILED", error); }
+      }
+    });
     update();
     return () => {
       unsubscribe();
-      if (this.source !== source) return;
+      unsubscribeEvents();
+      if (this.source !== source || this.bindingRevision !== revision) return;
+      ++this.bindingRevision;
       this.source = undefined;
       for (const cancel of [...this.pending]) cancel();
       this.setStatus("initializing");
@@ -149,10 +177,21 @@ export function useAgentUIEvent<K extends keyof AgentUIEventMap>(event: K, liste
   useEffect(() => host.on(event, payload => current.current(payload)), [host, event]);
 }
 
+/** Subscribe outside the generated Agent, under its shared AgentUIProvider. */
+export function useAgentUIAppEvent<TPayload = unknown>(name: string, listener: AgentUIAppEventListener<TPayload>) {
+  const host = useAgentUI();
+  const current = useRef(listener);
+  useLayoutEffect(() => { current.current = listener; }, [listener]);
+  useEffect(() => host.onAppEvent<TPayload>(name, event => current.current(event)), [host, name]);
+}
+
 /** Generated-composition seam; never creates or owns another conversation runtime. */
-export function AgentUIRuntimeBinding({ runtime }: { runtime: AgentRuntime }) {
+export function useAgentUIRuntimeConnection(runtime: AgentRuntime | undefined) {
   const store = useContext(HostContext);
-  useLayoutEffect(() => store?.bind(runtime), [store, runtime]);
+  useLayoutEffect(() => runtime === undefined ? undefined : store?.bind(runtime), [store, runtime]);
+}
+export function AgentUIRuntimeBinding({ runtime }: { runtime: AgentRuntime }) {
+  useAgentUIRuntimeConnection(runtime);
   const active = useRef(runtime);
   active.current = runtime;
   useLayoutEffect(() => () => active.current.abort(), []);

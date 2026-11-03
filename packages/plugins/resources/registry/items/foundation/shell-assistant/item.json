@@ -1,0 +1,23 @@
+{
+  "id": "foundation/shell-assistant",
+  "kind": "foundation",
+  "description": "Project-owned assistant shell, installed only for the selected project Mode",
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/application/shell/AssistantShell.tsx",
+      "target": "application/shell/AssistantShell.tsx"
+    },
+    {
+      "source": "files/application/shell/assistant-shell.css",
+      "target": "application/shell/assistant-shell.css"
+    }
+  ],
+  "packages": {
+    "react": ">=18 <20",
+    "@za38.03/agent-ui-plugins": "0.0.1",
+    "lucide-react": "1.41.0"
+  }
+}

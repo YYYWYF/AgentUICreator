@@ -1,0 +1,29 @@
+import { defineScenario } from "../scenario.js";
+
+export const webSearchScenario = defineScenario({
+  id: "web-search",
+  title: "Web Search",
+  description: "标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。",
+  category: "tools",
+  capabilities: ["tool"],
+  resources: ["web-search"],
+  reference: {
+    audience: "backend",
+    protocol: "AG-UI",
+    pattern: "Tool call → result → Agent UI Toolkit renderer",
+    presentation: "Agent UI WebSearch",
+    eventFlow: ["TOOL_CALL_START", "TOOL_CALL_ARGS", "TOOL_CALL_END", "TOOL_CALL_RESULT"],
+    notes: ["Install web-search explicitly; removing it restores ToolFallback without changing this scenario."],
+  },
+  steps: [{
+    type: "tool",
+    name: "web_search",
+    args: { query: "Agent UI 的 AG-UI 实现" },
+    result: { results: [
+      { title: "Agent UI", domain: "docs.ag-ui.com", url: "https://docs.ag-ui.com/", snippet: "AG-UI 协议与前后端交互概览。" },
+      { title: "AG-UI", domain: "docs.ag-ui.com", url: "https://docs.ag-ui.com/", snippet: "AG-UI 事件、消息与工具调用参考。" },
+    ] },
+    prepareDurationMs: 600,
+    durationMs: 1800,
+  }],
+});

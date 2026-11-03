@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/creator-updates-browser.spec.ts", "playwright.updates.config.ts"],
+  "exclude": []
+}

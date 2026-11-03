@@ -1,9 +1,8 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
 import { CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../../services/composer-triggers";
 import { ConversationCommandSourcePlugin } from "./index";
-import { AGENT_UI_LOCALES } from "../../agent-ui/i18n/locale-registry";
-import { agentUILocaleConfig } from "../../agent-ui/i18n/locale-config";
-import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
+import { resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
+import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
 import manifestJson from "./manifest.json";
 export const conversationCommandSourcePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson), provides: [CONVERSATION_COMMAND_SOURCE],
@@ -14,8 +13,8 @@ export const conversationCommandSourcePlugin: UIPluginDefinition = {
     let unregister: (() => void) | undefined;
     const register = () => {
       unregister?.();
-      const code = locale?.getSnapshot().locale ?? agentUILocaleConfig.defaultLocale;
-      unregister = source.register({ id: "new", label: AGENT_UI_LOCALES[code].conversationTriggers.newConversation,
+      const code = locale?.getSnapshot().locale ?? "zh-CN";
+      unregister = source.register({ id: "new", label: (locale?.getMessages?.() ?? resolveAgentUILocaleMessages(code)).conversationTriggers.newConversation,
         mode: "action", execute: () => Promise.resolve(actions.startNewConversation()).then(() => undefined) });
     };
     register();

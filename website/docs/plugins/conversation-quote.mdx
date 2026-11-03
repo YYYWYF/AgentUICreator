@@ -1,50 +1,82 @@
 ---
-title: "引用消息（conversation-quote）"
+title: "消息引用（conversation-quote）"
 ---
 
-# 引用消息（conversation-quote）
-
-让用户选中已有回复中的一段文字，引用它继续提问。
-
-## 界面与功能
+# 消息引用（conversation-quote）
 
 选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![引用消息（conversation-quote）界面示例](/images/plugins/conversation-quote.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable conversation-quote`，点击下图中的 **「引用消息」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「引用消息」，插件 ID 为 conversation-quote](/images/plugins/enable/conversation-quote.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「引用消息」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-引用属于当前会话的输入内容，切换或新建后不得意外携带旧引用。它与来源引用列表是不同功能。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `previewProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `toolbarProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `renderPreview` | 替换对应内容的展示，保留当前数据与交互。 |
-| `renderToolbar` | 替换对应内容的展示，保留当前数据与交互。 |
-| `children` | 替换或补充组件内容。 |
+| 引用按钮提示 | 修改选中文字后出现的“引用”按钮文案。 |
+| 移除引用提示 | 修改草稿里移除引用按钮的读屏名称。 |
+| 引用预览样式 | 调整输入框上方引用内容的排版和外观。 |
+| 选中文字后的工具条 | 替换引用工具条的图标、布局和外观。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「引用消息（conversation-quote）」：
+修改：引用按钮文字改为【引用这段】，草稿中的引用预览加上【浅蓝色背景】。
+保留：选中引用、移除引用和发送时携带引用的行为。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/conversation-quote/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationQuote`；类型：`ConversationQuotePluginProps`。没有独立的界面容器；预览与选择工具栏为两个表面。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `quoteText?` | `string` | 默认 `conversationQuote.quote` |
+| `dismissText?` | `string` | 默认 `conversationQuote.dismiss` |
+| `previewProps?` | `{ dismissLabel?: string }` | 预览组件文案，可覆盖 `dismissText` |
+| `toolbarProps?` | `{ quoteLabel?: string }` | 工具栏文案，可覆盖 `quoteText` |
+| `renderPreview?` | `(props: { dismissLabel: string }) => ReactNode` | 自定义引用预览 |
+| `renderToolbar?` | `(props: { quoteLabel: string }) => ReactNode` | 自定义选择工具栏 |
+| `children?` | `ReactNode` | 替换默认预览与工具栏 |
+
+没有根级 `className`／`style`，也没有给 `previewProps`／`toolbarProps` 开放任意 DOM 属性。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationQuote>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

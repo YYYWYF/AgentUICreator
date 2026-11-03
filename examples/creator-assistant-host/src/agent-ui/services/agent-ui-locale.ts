@@ -16,7 +16,7 @@ export interface AgentUILocaleService
   setLocale(locale: AgentUILocaleCode): void;
 }
 
-declare module "../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap {
     [AGENT_UI_LOCALE_SERVICE]: AgentUILocaleService;
   }

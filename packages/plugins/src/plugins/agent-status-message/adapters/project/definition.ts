@@ -1,5 +1,5 @@
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
+import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins/contracts";
 import { MockAgentStatusToolUI } from "./index";
 import manifestJson from "./manifest.json";
 

@@ -1,39 +1,83 @@
 export const zhCN = {
-  copyAction: { failed: "复制失败，请检查浏览器权限后重试。" },
-  theme: {
-    settings: "主题设置",
-    light: "浅色",
-    dark: "深色",
-    violet: "紫色",
+  "layout": {
+    "open": "打开业务面板",
+    "close": "关闭业务面板",
+    "collapse": "收起业务面板",
+    "restore": "恢复业务面板"
   },
-  conversationTriggers: {
-    suggestions: "输入建议",
-    back: "返回",
-    empty: "没有匹配项",
-    loading: "加载中…",
-    searchFailed: "无法加载候选项",
-    retry: "重试",
-    commandFailed: "命令执行失败",
-    invalidItem: "无法插入此候选项",
-    newConversation: "新建会话",
+  "toolResult": {
+    "resolving": "正在加载文件…",
+    "unavailable": "暂时无法预览，需要可用的媒体地址或文件解析服务。"
   },
-  agentIdentity: { name: "智能助手" },
-  conversationQuote: { quote: "引用", dismiss: "取消引用" },
-  transientMessages: { systemMessage: "系统消息", userMessage: "用户消息", assistantMessage: "助理消息", errorMessage: "错误消息" },
-  auth: {"title": "登录你的 Agent", "checking": "正在检查登录状态…", "account": "账号", "password": "密码", "signIn": "登录", "signOut": "退出登录", "working": "请稍候…", "signInFailed": "登录失败，请检查账号和密码后重试。", "signOutFailed": "已退出本地会话，远程退出失败。", "notSignedIn": "未登录", "accountMenu": "账户菜单"},
-
+  "humanQuestion": {
+    "back": "上一步",
+    "next": "下一步",
+    "submit": "确认选择",
+    "submitting": "正在提交选择…",
+    "answered": "已选择",
+    "noneSelected": "未选择",
+    "unavailable": "此问题暂时无法回答"
+  },
+  "copyAction": {
+    "failed": "复制失败，请检查浏览器权限后重试。"
+  },
+  "theme": {
+    "settings": "主题设置",
+    "light": "浅色",
+    "dark": "深色",
+    "violet": "紫色"
+  },
+  "conversationTriggers": {
+    "suggestions": "输入建议",
+    "back": "返回",
+    "empty": "没有匹配项",
+    "loading": "加载中…",
+    "searchFailed": "无法加载候选项",
+    "retry": "重试",
+    "commandFailed": "命令执行失败",
+    "invalidItem": "无法插入此候选项",
+    "newConversation": "新建会话"
+  },
+  "agentIdentity": {
+    "name": "智能助手"
+  },
+  "conversationQuote": {
+    "quote": "引用",
+    "dismiss": "取消引用"
+  },
+  "transientMessages": {
+    "systemMessage": "系统消息",
+    "userMessage": "用户消息",
+    "assistantMessage": "助理消息",
+    "errorMessage": "错误消息"
+  },
+  "auth": {
+    "title": "登录你的 Agent",
+    "checking": "正在检查登录状态…",
+    "account": "账号",
+    "password": "密码",
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "working": "请稍候…",
+    "signInFailed": "登录失败，请检查账号和密码后重试。",
+    "signOutFailed": "已退出本地会话，远程退出失败。",
+    "notSignedIn": "未登录",
+    "accountMenu": "账户菜单"
+  },
   "thinkingIndicator": {
     "thinking": "正在思考...",
     "working": "正在处理..."
-},
+  },
   "toolTimeline": {
+    "summaryWithOneFile": "{count} 个步骤 · 1 个文件已修改",
+    "summaryWithFiles": "{count} 个步骤 · {files} 个文件已修改",
     "pendingSummary": "工具执行 · {count} 个步骤",
     "summary": "已执行 {count} 个步骤",
     "active": "正在执行 {count} 个步骤",
-    "details": "原始工具详情",
-    "read": "读取文件",
-    "command": "执行命令",
-    "search": "搜索内容",
+    "read": "读取",
+    "command": "执行",
+    "search": "搜索",
+    "edit": "编辑",
     "tool": "工具调用",
     "complete": "已完成",
     "running": "运行中",
@@ -42,7 +86,7 @@ export const zhCN = {
     "cancelled": "已取消",
     "interrupted": "已中断",
     "unknown": "状态未知"
-},
+  },
   "common": {
     "close": "关闭",
     "copy": "复制",
@@ -69,10 +113,25 @@ export const zhCN = {
     "send": "发送消息",
     "queueSend": "加入发送队列",
     "stop": "停止生成",
+    "cancelSend": "取消发送",
     "queued": "待发送",
     "removeQueued": "移除待发送消息"
   },
-  "conversationFeedback": { "helpful": "有帮助", "notHelpful": "没有帮助" },
+  "conversationFeedback": {
+    "helpful": "有帮助",
+    "notHelpful": "没有帮助"
+  },
+  starterSuggestions: {
+    architectureTitle: "账户交易查询",
+    architectureLabel: "查询余额、账单与交易明细",
+    architecturePrompt: "如何查询账户余额、账单和交易明细？",
+    debugTitle: "转账汇款指引",
+    debugLabel: "了解流程、到账时间与须知",
+    debugPrompt: "请介绍转账汇款的办理流程、到账时间和注意事项。",
+    nextTitle: "银行卡服务",
+    nextLabel: "办理新卡、挂失与日常用卡",
+    nextPrompt: "请介绍银行卡申请、挂失和日常用卡的常见办理方式。",
+  },
   "conversation": {
     "generationStopped": "生成已停止",
     "editInput": "编辑消息",
@@ -83,16 +142,20 @@ export const zhCN = {
     "moreActions": "更多操作",
     "exportMarkdown": "导出 Markdown",
     "reasoning": "思考",
-    "reasoningDuration": "（{seconds}秒）"
+    "reasoningDuration": "（{seconds}秒）",
+    "editCancel": "取消",
+    "editUpdate": "更新"
   },
   "threadList": {
-    historyTitle: "历史会话",
-    retry: "重试",
+    "historyTitle": "历史会话",
+    "retry": "重试",
     "newChat": "新会话",
     "moreOptions": "更多选项",
     "running": "运行中",
     "rename": "重命名",
     "archive": "归档",
+    "unarchive": "取消归档",
+    "archived": "已归档会话",
     "delete": "删除",
     "loading": "正在加载会话列表",
     "empty": "没有找到会话",
@@ -105,6 +168,16 @@ export const zhCN = {
     "yesterday": "昨天",
     "earlier": "更早"
   },
+  "serviceAdapters": {
+    "requestFailed": "服务请求失败。",
+    "invalidResponse": "服务返回的数据格式不正确。",
+    "invalidUploadUrl": "上传响应中需要包含有效的文件 URL。",
+    "invalidConfig": "附件配置不正确。",
+    "fileTypeRejected": "不支持选择此类型的文件。",
+    "fileTooLarge": "文件超过配置的大小限制。",
+    "dictationFailed": "语音识别失败。",
+    "recordingUnavailable": "当前浏览器不支持录音。"
+  },
   "attachments": {
     "previewNamed": "预览 {name}",
     "removeNamed": "移除 {name}",
@@ -113,6 +186,7 @@ export const zhCN = {
     "namedUploading": "{label}，上传中",
     "namedFailed": "{label}，上传失败",
     "preview": "附件预览",
+    "previewFailed": "无法加载图片预览。",
     "imagePreview": "图片附件预览",
     "uploadFailed": "上传失败",
     "remove": "移除文件",
@@ -216,7 +290,6 @@ export const zhCN = {
     "hostCloseAssistant": "关闭助理",
     "hostOpenAssistant": "打开助理",
     "hostSendFailed": "助理请求失败，请重试。",
-
     "presentationEditor": "演示文稿编辑区",
     "presentationDocument": "演示文稿",
     "canvasSelect": "选择",
@@ -327,7 +400,7 @@ export const zhCN = {
     "theme": "主题设置",
     "light": "明亮",
     "dark": "深色",
-    "violet": "紫罗兰",
+    "violet": "紫色",
     "welcome": "欢迎",
     "welcomeText": "探索三种官方主题下的相同会话。",
     "user": "展示一下主题的效果。",
@@ -365,13 +438,13 @@ export const zhCN = {
     "result": "{\"tokens\":32}"
   },
   "media": {
-      "audio": "音频",
-      "video": "视频",
-      "play": "播放 {title}",
-      "pause": "暂停 {title}",
-      "seek": "调整播放进度",
-      "position": "{current}，共 {duration}",
-      "audioError": "无法播放此音频"
+    "audio": "音频",
+    "video": "视频",
+    "play": "播放 {title}",
+    "pause": "暂停 {title}",
+    "seek": "调整播放进度",
+    "position": "{current}，共 {duration}",
+    "audioError": "无法播放此音频"
   },
   "files": {
     "unnamed": "未命名文件",
@@ -416,5 +489,38 @@ export const zhCN = {
     "dismissed": "已关闭",
     "denied": "已拒绝",
     "automatic": "（自动）"
+  },
+  "composerTriggerDemo": {
+    "localeKey": "zh-CN",
+    "personOne": "张三",
+    "personTwo": "张晓",
+    "personThree": "李四",
+    "departmentOne": "产品部 · 产品经理",
+    "departmentTwo": "研发部 · 工程师",
+    "departmentThree": "设计部 · 设计师",
+    "summarize": "总结"
+  },
+  "frontendTools": {
+    "formTitle": "个人资料表单",
+    "firstName": "名",
+    "lastName": "姓",
+    "email": "邮箱",
+    "projectIdea": "项目想法",
+    "resetForm": "重置",
+    "submitForm": "提交",
+    "formRequired": "此字段必填",
+    "formInvalid": "表单包含无效字段",
+    "formBusy": "表单正在提交",
+    "formUnavailable": "表单能力不可用",
+    "formSubmitted": "已提交表单",
+    "formReset": "已重置表单",
+    "formUpdating": "正在更新表单…",
+    "formFailed": "无法更新表单",
+    "fieldUpdated": "已更新",
+    "fieldTo": "为",
+    "close": "关闭",
+    "opening": "正在打开弹窗…",
+    "opened": "已打开弹窗",
+    "failed": "无法打开弹窗"
   }
 };

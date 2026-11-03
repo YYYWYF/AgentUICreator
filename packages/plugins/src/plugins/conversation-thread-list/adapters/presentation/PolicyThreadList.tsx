@@ -37,7 +37,7 @@ function PolicyThreadListItem() {
     >
       <ConversationThreadListItem
         onNavigate={onNavigate}
-        actions={{ rename: false, archive: false, delete: true }}
+        actions={{ rename: true, archive: true, unarchive: true, delete: true }}
         labels={labels}
         {...itemProps}
       />
@@ -132,27 +132,46 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
   );
 };
 
-export interface PolicyThreadListProps {
+function ArchivedThreadList({ searchQuery }: { searchQuery: string }) {
+  const labels = useAgentUILocale("threadList");
+  const { components } = useContext(ThreadListOptionsContext);
+  const ids = useConversationState(s => s.threads.archivedThreadIds);
+  const items = useConversationState(s => s.threads.threadItems);
+  const titles = new Map(items.map(item => [item.id, typeof item.title === "string" ? item.title : labels.newChat]));
+  const query = searchQuery.trim().toLowerCase();
+  const indices = ids.map((id, index) => ({ id, index }))
+    .filter(({ id }) => !query || (titles.get(id) ?? labels.newChat).toLowerCase().includes(query));
+  if (!indices.length) return null;
+  return <details data-slot="agent-ui-archived-threads">
+    <summary className="cursor-pointer px-2.5 py-2 text-sm">{labels.archived}</summary>
+    {indices.map(({ id, index }) => <ConversationThreadListItemByIndex key={id} index={index} archived
+      components={{ ThreadListItem: components?.ThreadListItem ?? PolicyThreadListItem }} />)}
+  </details>;
+}
+
+export interface PolicyThreadListProps extends Omit<ComponentProps<typeof ConversationThreadListRoot>, "children"> {
   labels: ConversationThreadListItemLabels;
-  rootProps?: ComponentProps<typeof ConversationThreadListRoot>;
   /** Disabling search also removes its query from list filtering. */
   showSearch?: boolean;
+  /** Include the archive section, with the same search and item customizations. */
+  showArchived?: boolean;
   searchProps?: Partial<ComponentProps<typeof ConversationThreadListSearch>>;
   itemProps?: ConversationThreadListItemProps;
   components?: { ThreadListItem?: ComponentType };
 }
-export function PolicyThreadList({ labels, rootProps, showSearch = true, searchProps, itemProps, components }: PolicyThreadListProps) {
+export function PolicyThreadList({ labels, showSearch = true, showArchived = true, searchProps, itemProps, components, ...elementProps }: PolicyThreadListProps) {
   const messages = useAgentUILocale("threadList");
   const [search, setSearch] = useState("");
-  const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
+  const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0 || (showArchived && s.threads.archivedThreadIds.length > 0));
 
   return (
     <ThreadListOptionsContext.Provider value={{itemProps,components}}><ThreadListLabelsContext.Provider value={labels}>
-      <ConversationThreadListRoot {...rootProps}>
+      <ConversationThreadListRoot {...elementProps}>
         {showSearch && hasThreads && (
           <ConversationThreadListSearch placeholder={messages.search} aria-label={messages.search} {...searchProps} value={searchProps?.value ?? search} onValueChange={value => { setSearch(value); searchProps?.onValueChange?.(value); }} />
         )}
         <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ""} />
+        {showArchived && <ArchivedThreadList searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ""} />}
       </ConversationThreadListRoot>
     </ThreadListLabelsContext.Provider></ThreadListOptionsContext.Provider>
   );

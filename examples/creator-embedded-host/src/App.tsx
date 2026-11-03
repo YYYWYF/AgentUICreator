@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { AlignCenter, Bold, Grid2X2, MousePointer2, Presentation, Type } from "lucide-react";
 import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
-import { AgentMount, AgentHostProvider } from "./AgentMount";
-import { useAgentUI, useAgentUIState } from "./agent-ui";
+import { AgentMount } from "./AgentMount";
+import { AgentUIProvider, useAgentUI, useAgentUIState } from "@za38.03/agent-ui-runtime";
 
-export function App() { return <AgentHostProvider><EmbeddedWorkspace /></AgentHostProvider>; }
+export function App() { return <AgentUIProvider><EmbeddedWorkspace /></AgentUIProvider>; }
 
 function EmbeddedWorkspace() {
   const { examples: copy } = useAgentUILocale();

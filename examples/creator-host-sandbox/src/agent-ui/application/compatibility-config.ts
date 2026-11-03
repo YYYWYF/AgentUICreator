@@ -15,10 +15,11 @@ export interface AgentUICompatibilityConfig {
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
 }
 
-export type ResolvedAgentUICompatibilityConfig = AgentUICompatibilityConfig & { endpoint: string; locale: AgentUILocaleCode; theme: AgentUITheme };
+export type ResolvedAgentUICompatibilityConfig = AgentUICompatibilityConfig & { endpoint: string; locale: AgentUILocaleCode };
 export interface AgentUIEventDetails {
   "agent-ready": { threadId: string };
   "thread-change": { threadId: string };
+  "theme-change": { theme: AgentUITheme };
   "agent-error": { code: "AGENT_UI_CONFIG_ERROR" | "AGENT_UI_RUNTIME_ERROR"; error: Error };
 }
 export type AgentUIEmit = <K extends keyof AgentUIEventDetails>(type: K, detail: AgentUIEventDetails[K]) => void;

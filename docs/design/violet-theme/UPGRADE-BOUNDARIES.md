@@ -1,61 +1,44 @@
-# Ownership / upgrade-risk matrix
+# Theme ownership and upgrade boundaries
 
-> Historical review snapshot accompanying [the reviewed theme architecture](THEME-ARCHITECTURE.md). The old Source Registry and vendor prefixes below identify that snapshot. Current canonical Plugin paths and ownership are defined in [the accepted delivery architecture](../../architecture/npm-default-plugin-source-ownership.md).
+This matrix applies to the deployed Agent frontend. A Plugin identity does not grant permission to edit its upstream implementation. Canonical owners and theme flow are described in [Theme architecture](THEME-ARCHITECTURE.md); source takeover and synchronization follow [Plugin delivery and ownership](../../architecture/npm-default-plugin-source-ownership.md).
 
-Scope: final deployed Agent frontend UI, excluding Creator. A Plugin can be product-owned while its rendered component remains upstream-owned. Never infer vendor edit permission from a Plugin ID.
+Official Plugin owners live in `packages/plugins/src/plugins/<id>/`, with pristine `upstream/` and maintained `adapters/` separated. Shared upstream and product adaptations live under `src/shared/`. `source-layout.json` generates compatibility views; never edit those views. Project customization starts in `plugins/<id>/index.tsx` and project CSS.
 
-Levels: **1** token only; **2** token + thin scoped compatibility CSS; **3** product-owned Plugin presentation; **4** upstream-sensitive internals, token/public API treatment only. Every upstream component has **modify vendor source: NO**. Level 2 is a future consideration, not approval to use arbitrary descendant selectors. Risk estimates are design/maintenance judgments, not upstream guarantees.
+## Customization seams
 
-Upstream source prefix: `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/`. Project Plugin prefix: `packages/source-registry/registry/items/plugin-<id>/files/plugins/<id>/`. Demo prefix uses `demo-*`. Public renderer declarations: `packages/plugins/src/public.tsx`.
+| UI surface | Plugin / owner | Preferred seam | Behavior to preserve |
+| --- | --- | --- | --- |
+| Welcome and empty conversation | `conversation-surface`, `conversation-suggestions` | Agent welcome/suggestions, component props and renderers | Prompt selection and send behavior |
+| Messages, Markdown and code | `conversation-surface`, shared presentation | Public composition, typography and semantic tokens | Message grouping, branches, editing, attachments and parser output |
+| Composer | `composer` | Direct input/root props, semantic children and project styles | Draft, composition, queue, submit and dropzone behavior |
+| Send, cancel, attachment and dictation actions | `submit-action`, `add-attachment-action`, `dictation-action` | Public button props, labels and tokens | Native actions, state gating and existing adapters |
+| Quote preview and toolbar | `conversation-quote` | `previewProps`, `toolbarProps`, `renderPreview`, `renderToolbar` | Selection Portal, quote lifecycle and send context |
+| Copy, retry, feedback and export | Action Plugins | Public props and existing response scope | Default actions, errors and entire-response semantics |
+| Response footer | `response-footer` | Public action/branch composition and overall styles | One footer beneath the final assistant message in each complete response |
+| Conversation list and new conversation | `conversation-thread-list`, `conversation-new` | Direct `showSearch`, `showArchived`, `itemProps`, public actions and styles | Existing service, navigation, loading/retry and persistence |
+| Plan, status and job progress | Corresponding message Plugins | Direct presentation props and renderers | Actual state, outcome, progress and cancellation |
+| Reasoning, tool groups and timeline | `reasoning`, `tool-group`, `tool-timeline` | `expanded`, `defaultExpanded`, `onExpandedChange`, public composition | Runtime order, grouping and tool result visibility |
+| Tool details and approval | `tool-fallback`, `tool-result` | Public detail/args/result/error/approval parts | Approval, interrupt, retry and focus recovery |
+| Multimodal tool result | `tool-result` | `renderPart`, `resolveFile`, public content renderer | Content order, URL validation, media behavior and cancellation |
+| Agent questions | `ask-user-question` | Public props, unified labels and question renderer | Parameter/answer validation, read-only history and continuation |
+| SubAgent tasks | `task-group`, shared presentation | Public task composition and semantic tokens | Nested transcript and existing Runtime context |
+| Web search, retrieval and citations | Corresponding result Plugins | Public props, item renderers and `searchTools` locale | Counts, cycle/DOM props, source URLs and streaming projections |
+| File results | `generated-file-message`, `tool-result` | Public file/content props and renderers | Filename, MIME, URL checks and download behavior |
+| Charts | `chart-message` | `formatValue`, `renderItem`, `renderChart`, `classNames`, `styles` | Validated data and value/proportion semantics |
+| Mentions and commands | Trigger Plugins and `conversation-command-source` | Existing provider, public props and locale | Action/directive distinction, loading/errors and input composition |
+| Theme and language controls | `theme-switch`, `locale-switch` | Shared service and Agent props/callbacks | One service state and controlled Host behavior |
+| Dialogs, popovers, tooltips and image zoom | Shared scoped presentation | Public components and semantic variables | Owning Portal, focus trapping/restoration and containment |
+| Product launcher and panel | Project `application/shell/` | Local Shell and CSS | Selected surfaceRef, responsive behavior and mounted children when hidden |
+| Generative UI | Optional `/generative-ui` integration | Registered public vocabulary and actions | Existing Conversation Runtime and action permissions; A2UI delivery is deferred |
 
-| UI surface | Rendered by | Product adapter / Plugin | Upstream source | Freedom | Upgrade risk | Observed hook / visual treatment |
-| --- | --- | --- | --- | --- | --- | --- |
-| Welcome / Empty | `ConversationThread Welcome override` | `conversation-surface + conversation-suggestions` | `thread.aui.tsx` | 3 | low | `.aui-thread-welcome-root (observed class; no dedicated data-slot)` — Product welcome/suggestions seam; preserve prompts and number of suggestions. |
-| Assistant message | `ConversationThread / ComposableThread` | `conversation-surface` | `thread.aui.tsx` | 4 | high | `aui_assistant-message-root` — Project composition wraps upstream MessagePrimitive. Override whole semantic component only when authorized; no inner DOM rework. |
-| User message | `ConversationThread / ComposableThread` | `conversation-surface` | `thread.aui.tsx` | 4 | high | `aui_user-message-root` — Preserve message/branch/edit controls and attachments. |
-| Markdown / code / list / table / blockquote | `ConversationMarkdownText` | `conversation-surface` | `markdown-text.tsx` | 4 | high | Typography/inherited foreground; code token coloring separate from brand state. Do not restructure parser output. |
-| Composer | `ConversationCanonicalComposer` | `assistant-ui-composer` | `attachment.aui.tsx` | 2 | medium | `aui_composer-shell` — Product-owned semantic child seams over upstream Composer primitives; muted/background/border/input/ring/primary. |
-| Send / Cancel | `ConversationComposerSend / Cancel` | `assistant-ui-submit-action` | `thread.aui.tsx` | 1 | low | `button` — Use primary/ring tokens and preserve conditional runtime controls. |
-| Attachment / upload | `ConversationComposerAddAttachment + canonical attachments` | `assistant-ui-add-attachment-action` | `attachment.aui.tsx` | 4 | high | File/image lifecycle belongs to upstream. Token styling only; do not invent attachment behavior. |
-| Quote block / preview / toolbar | `ConversationQuoteBlock / ComposerQuotePreview / QuoteSelectionToolbar` | `quote adapter + quote plugins` | `quote.aui.tsx` | 2 | medium | `quote-block; composer-quote; selection-toolbar` — Foreground alpha, background/border. Preserve selection portal and quote lifecycle. |
-| Message actions | `ConversationActionBar / copy etc.` | `assistant-ui-copy/reload/export-markdown-action` | `thread.aui.tsx` | 1 | low | `assistant-ui-copy-action-idle` — Button primitives; show meaningful actions in their existing placement. |
-| Response footer | `ConversationCanonicalAssistantResponseFooter` | `assistant-ui-response-footer / message-footer` | `thread.aui.tsx` | 2 | medium | `aui_assistant-response-footer` — Product response grouping; preserve one footer per response and branch behavior. |
-| Thread list / New / active / actions | `ConversationThreadListRoot / Item / New` | `conversation-thread-list` | `thread-list.aui.tsx` | 2 | medium | `aui_thread-list-root; aui_thread-list-item` — Sidebar/accent/muted/ring; product item composition preserves upstream primitives. Native action popup internals are sensitive. |
-| AgentPlan | `AgentPlan` | `agent-plan-message` | `agent-plan.tsx` | 2 | medium | `agent-plan; data-agent-ui-composition-part=plan` — foreground/80 progress, foreground/35 checks, /40 completed, /90 active. Avoid per-li nth-child selectors. Preserve steps/progress. |
-| AgentStatus | `AgentStatus` | `agent-status-message` | `agent-status.tsx` | 2 | medium | `agent-status; agent-status-trailing` — Shared paper uses background/popover/border. Working blue, completed emerald. SVG/internal dot is sensitive; public root hook alone does not name active dot. |
-| JobProgress | `JobProgress` | `job-progress-message` | `job-progress.tsx` | 2 | medium | `job-progress` — Running blue; success emerald; partial amber; error red. Preserve progress semantics and cancellation. |
-| Reasoning group | `ConversationCanonicalReasoningGroup` | `assistant-ui-reasoning` | `reasoning.aui.tsx` | 2 | medium | `reasoning-root; reasoning-trigger; reasoning-content` — Upstream reasoning.tsx has further hooks. Foreground alpha, collapsed anatomy and scroll/fade internals preserved. |
-| Task group / tray | `ConversationTaskGroup / TaskTray` | `task-group` | `task-card.aui.tsx` | 4 | high | Product transcript adapter around upstream nested task shell. Do not style nested runtime content through fragile chains. |
-| Subagent list | `SubagentList` | `public SubagentList / task integration` | `subagent-list.tsx` | 2 | medium | `subagent-list` — Public deterministic presentation; shared live blue helper may be inherited. |
-| Tool group | `ConversationCanonicalToolGroup` | `assistant-ui-tool-group` | `tool-group.aui.tsx` | 2 | medium | `tool-group-root; tool-group-trigger; tool-group-content` — Foreground alpha; preserve grouped disclosure and runtime child ordering. |
-| Tool fallback / approval | `ConversationToolFallback` | `assistant-ui-tool-fallback + tool-approval` | `tool-fallback.aui.tsx` | 4 | high | `tool-fallback-root; tool-fallback-approval` — Token-only inner styling; tool execution approval/receipt state is sensitive. Preserve action count and safety semantics. |
-| ToolCall / SearchFiles | `ConversationToolCall` | `foundation conversation toolkit/SearchFilesToolUI` | `tool-call.tsx` | 2 | medium | `tool-call` — Foreground alpha, shared paper and codeSurface. Request/result sections retained. |
-| Web search | `WebSearch` | `web-search` | `web-search.tsx` | 2 | medium | `web-search` — Foreground alpha and ShimmerLabel. Tokens do not directly introduce Violet accent. |
-| Retrieval chunks | `RetrievalChunks` | `retrieval-chunks` | `retrieval-chunks.tsx` | 2 | medium | `retrieval-chunks` — foreground text; blue-500/70 relevance meter. Preserve score and result density. |
-| Source / citation-like | `ConversationSource` | `source-citations-message / source mapping` | `sources.aui.tsx` | 2 | medium | `source; source-title` — Muted/foreground plus info blue variant. Actual URL/source UI; no invented footnote badges. |
-| File result | `ConversationFile` | `conversation message parts` | `file.tsx` | 2 | medium | Preserve download filename/MIME and layout. |
-| Image / zoom | `ConversationThread image part` | `conversation message renderer` | `image.tsx` | 4 | high | `image-root; image-preview` — Portal bridge and preview lifecycle sensitive. No standalone public ConversationImage export. |
-| QuestionFlow / ask_user_question | `ConversationQuestionFlow / OptionList` | `demo-ask-user-question` | `option-list.tsx` | 3 | medium | `option-list; product data-state receipt/readonly` — Product step orchestration uses foreground alpha; OptionList is still upstream-owned, error red. Root step orchestration has no dedicated data-slot. |
-| Mention trigger / results | `ConversationComposerMentionTrigger` | `assistant-ui-mention-trigger + conversation-command-source` | `composer-trigger-popover.aui.tsx` | 2 | medium | `composer-trigger-error` — Product matching/provider async errors plus upstream trigger panel. Keep loading/empty/error/retry distinctions. |
-| Slash trigger / result | `ConversationComposerCommandTrigger` | `assistant-ui-slash-command-trigger + conversation-command-source` | `directive-text.aui.tsx` | 2 | medium | `composer-trigger-error; directive-text-chip` — Action vs directive behavior preserved; do not invent toolbar buttons. |
-| Chart / DataMessageUI | `actual chartMessageUI render` | `chart-message` | `none: product-owned` | 3 | low | `.agent-ui-chart-message` — var(--border), --muted, --chart-1. Product source can change visual treatment, preserve values. |
-| Frontend tool form / dialog | `demo plugins and receipt renderers` | `demo-frontend-tool-form / dialog` | `none: product-owned plus public controls` | 3 | medium | `data-frontend-tool; see plugin CSS` — Optional demos not active here. Preserve capability vs transcript receipt distinction; copy via frontendTools locale. |
-| Dialog / Popover / Tooltip | `AgentUIDialog / AgentUIPopover / AgentUITooltip` | `public scoped portal wrappers` | `../../ui/dialog.tsx; popover.tsx; tooltip.tsx` | 1 | low | `dialog-content; popover-content; tooltip-content` — background/popover/foreground/overlay/border/ring. Portal positioners and arrows Level 4 internals; do not override geometry. |
-| Button / Input / Badge / NativeSelect | `public primitives` | `theme-switch and consuming plugins` | `../../ui/button.tsx; input.tsx; badge.tsx` | 1 | low | `button; input; badge; native-select` — Use semantic tokens. NativeSelect snapshot lives in internal/primitives, not vendor directory. No standalone public Card found. |
-| Generative UI / A2UI | `registry integration vocabulary` | `integration-generative-ui / a2ui` | `registry agent-component assistant-ui-generative-ui` | 4 | high | `integration-specific; inspect source` — Installable optional integrations, not loaded in inspected default AppUIModel. No screenshot baseline; do not assume rendering. |
+Detailed Plugin props are recorded in [public props](../../architecture/plugin-public-props.md) and the [public development guide](../../../website/docs/development/component-customization.md). npm wrappers and project applications must forward supported configurable behavior without requiring takeover to work around an omitted wrapper seam.
 
-## Stable-hook policy
+## CSS and upstream checks
 
-Observed root attributes (`data-slot`, `data-ui-plugin`, `data-agent-ui-composition-part`) are more reviewable than positional selectors. They are pinned-source facts, not a formal upstream CSS API. Before future implementation, verify the exact target appears in the current renderer and add a compatibility check for any dependency on it.
+Prefer public `className`, `style`, semantic tokens and component composition. Inspect the actual installed renderer before relying on a `data-slot`, `data-ui-plugin` or other DOM hook; observed attributes are not a universal upstream CSS API. Avoid child order, generated utility encodings, Portal positioner internals and deeply nested disclosure selectors.
 
-Recommended scope: `[data-agent-ui-root][data-theme="violet"]` plus a product boundary or observed root `data-slot`. Do not add overrides now. Prefer exposed className/variant/semantic tokens. Never select SVG child order, nth-child steps, generated utility encodings, Portal positioner internals, or deeply nested disclosure wrappers.
+Keep shared product geometry usable across light, dark and violet. A preset controls color semantics; it does not authorize recoloring success, error or progress state indiscriminately. Do not branch business behavior on translated labels or introduce a per-Plugin language store.
 
-AgentPlan has a root hook but its active/completed steps are expressed through runtime-selected classes rather than dedicated state attributes. AgentStatus has a root hook but its working dot lacks a dedicated hook. Mark these as compatibility considerations requiring implementation review; do not promise a robust per-state override that the current DOM cannot support.
+Upstream synchronization must validate the reviewed adaptation hashes before regenerating compatibility bridges. Changes to upstream seams require review and merge of the maintained adapter owner; they must not overwrite product adapters. Project source sync uses exact BASE/LOCAL/TARGET, merges only implementation-owned files and adopts BASE only after explicit validation. Application props, Shell and service bindings remain outside that merge.
 
-## Upgrade boundaries
-
-Vendor snapshot and recorded adaptations are guarded through `UPSTREAM.json` / lockfiles. Local upstream revision was inspected; do not fetch latest source to design against an unpinned component. Future theme changes should keep the upgrade delta limited to tokens and removable compatibility rules. Keep wrappers, project projections, SlotRegistry and runtime ownership separate.
-
-The older architecture document names `runtime-assistant-ui`; current repository package naming is `runtime`. This collection records source as it is and makes no package rename or architecture change.
-
-No public Card component was found. Existing cards are component/Plugin surfaces; do not create a separate Card product capability from generic shadcn terminology.
+Run scoped typechecks, theme/locale and upstream guards for relevant implementation changes. Browser appearance, focus and interaction need their own checks; macOS results do not establish Windows acceptance.

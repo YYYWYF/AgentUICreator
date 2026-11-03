@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/creator-live-recovery.spec.ts", "playwright.live-recovery.config.ts"],
+  "exclude": []
+}

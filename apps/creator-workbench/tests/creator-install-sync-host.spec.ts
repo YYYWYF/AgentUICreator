@@ -59,72 +59,55 @@ test.afterEach(async ({ page }, testInfo) => {
   }
 });
 test.beforeEach(async ({ page, preview }) => {
-  // Workspace display metadata only; commands, Python mutation guard,
+  // Workspace display metadata only; commands, Agent mutation guard,
   // Operator, Source transactions, generated application and Preview are real.
   await page.route(`${preview.creatorOrigin}__agent-ui/creator/workspace{,/refresh}`, route => route.fulfill({ json: {
     status: "ready", workspace: { id: preview.workspaceId, name: "Commands Host", displayPath: preview.hostRoot },
     project: { mode: "platform", sourceRoot: "src/agent-ui" }, runtime: { status: "ready" },
   } }));
   await page.goto(preview.creatorOrigin);
+  await expect(page.frameLocator('iframe[title="Host Application"]').locator(".aui-composer-root").getByRole("textbox")).toBeVisible({ timeout: 15000 });
 });
-test("installs a missing capability through the Picker, persists it, and renders real AG-UI without Creator requests", async ({ page, preview }) => {
-  let modelRequests = 0;
-  let commandRequests = 0;
-  page.on("request", request => {
-    const pathname = new URL(request.url()).pathname;
-    if (pathname === "/__agent-ui/creator") modelRequests++;
-    if (pathname === "/__creator/commands/execute" && request.method() === "POST") commandRequests++;
+test("enable prepares missing application files only after confirmation and delegates composition to Creator", async ({ page, preview }) => {
+  const definition = path.join(preview.hostRoot, "src/agent-ui/plugins/web-search/definition.ts");
+  const beforeModel = await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8");
+  await expect(readFile(definition, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  const modelRequests: unknown[] = [];
+  await page.route("**/__creator/run", async route => {
+    modelRequests.push(route.request().postDataJSON());
+    // This test verifies the handoff, without calling a configured external model.
+    await route.fulfill({ status: 409, json: { error: "CREATOR_MODEL_CONFIGURATION_MISSING" } });
   });
-  const catalog = await page.request.get(`${preview.creatorOrigin}__creator/commands`, { headers: { "x-agent-ui-workspace-id": preview.workspaceId } });
-  expect(catalog.ok()).toBe(true);
-  expect((await catalog.json()).commands.find((command: { id: string }) => command.id === "install").options.find((option: { id: string }) => option.id === "web-search")).toMatchObject({ status: "available", disabled: false });
+  const catalogResponse = await page.request.get(`${preview.creatorOrigin}__creator/commands`, { headers: { "x-agent-ui-workspace-id": preview.workspaceId } });
+  expect(catalogResponse.ok(), await catalogResponse.text()).toBe(true);
+  const catalog = await catalogResponse.json();
+  expect(catalog.commands.some((entry: { id: string }) => entry.id === "install")).toBe(false);
+  expect(catalog.commands.find((entry: { id: string }) => entry.id === "enable").options.find((option: { pluginId: string }) => option.pluginId === "web-search")).toMatchObject({ id: "add:web-search", action: "add", status: "available" });
   const input = page.locator("#creator-request");
   await input.fill("/");
-  const installOption = page.getByRole("option", { name: /安装能力/ });
-  await expectOptionHitTarget(installOption);
-  await tracePickerEvents(page);
-  await installOption.click();
-  await expect(input).toHaveValue("/install ");
-  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  await expect(input).toHaveValue("/install ");
-  const response = page.waitForResponse(value => new URL(value.url()).pathname === "/__creator/commands/execute");
-  const resourceOption = page.getByRole("option", { name: /网页搜索/ });
-  await expectOptionHitTarget(resourceOption);
-  await resourceOption.hover();
-  await expect(input).toHaveValue("/install ");
-  await resourceOption.click();
-  const installed = await response;
-  expect(installed.status(), await installed.text()).toBe(200);
-  const result = await installed.json();
-  expect(result).toMatchObject({ value: "web-search", changed: true, receipt: { verification: { status: "changed-and-statically-verified" } } });
-  expect(result.receipt.transaction).toBeUndefined();
-  expect(result.receipt.validations[0].status).toBe("passed");
-  expect(await readFile(path.join(preview.hostRoot, "src/agent-ui/plugins/web-search/definition.ts"), "utf8")).toContain("web_search");
-  expect(await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui/app-ui.json"), "utf8")).toContain('"pluginId": "web-search"');
-  // Point the generated app at the disposable real AG-UI server.
-  const connection = await page.request.post(`${preview.creatorOrigin}__agent-ui/creator/connection`, {
-    headers: { "x-agent-ui-workspace-id": preview.workspaceId }, data: { activeSource: "connected", endpoint: preview.agentEndpoint },
-  });
-  expect(connection.ok()).toBe(true);
-  const assertRendered = async () => {
-    await page.reload();
-    const host = page.frameLocator('iframe[title="Host Application"]');
-    await host.locator(".aui-composer-root").getByRole("textbox").fill("Show installed search");
-    await host.locator(".aui-composer-send").click();
-    await expect.poll(() => preview.pendingCount()).toBe(1);
-    preview.finishRun();
-    await expect(host.getByText("Installed search capability", { exact: true }).first()).toBeVisible();
-    await expect(host.locator('[data-plugin-state="error"]')).toHaveCount(0);
-  };
-  await assertRendered(); await assertRendered();
-  await input.fill("/install ");
-  await expect(page.getByRole("option", { name: /网页搜索.*已安装/ })).toBeDisabled();
-  expect(modelRequests).toBe(0);
-  expect(commandRequests).toBe(1);
+  const enable = page.getByRole("option", { name: /启用插件/ });
+  await expectOptionHitTarget(enable); await tracePickerEvents(page); await enable.click();
+  await expect(input).toHaveValue("/enable ");
+  const search = page.getByRole("option", { name: /网页搜索/ });
+  await expectOptionHitTarget(search);
+  page.once("dialog", async dialog => { expect(dialog.message()).toContain("web-search"); await dialog.dismiss(); });
+  await search.click();
+  await expect(input).toHaveValue("");
+  await expect(readFile(definition, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  expect(modelRequests).toEqual([]);
+  await input.fill("/enable ");
+  await expectOptionHitTarget(search);
+  page.once("dialog", async dialog => { expect(dialog.message()).toContain("web-search"); await dialog.accept(); });
+  await search.click();
+  await expect.poll(() => modelRequests.length).toBe(1);
+  expect(JSON.stringify(modelRequests[0])).toContain("web-search");
+  expect(await readFile(definition, "utf8")).toContain("web_search");
+  expect(await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8")).toBe(beforeModel);
+  await expect(page.locator(".creator-command-activity").last()).toContainText("Creator");
 });
 test("sync repairs stale and missing registry and returns a no-op for fresh output without model requests", async ({ page, preview }) => {
   let modelRequests = 0;
-  page.on("request", request => { if (new URL(request.url()).pathname === "/__agent-ui/creator") modelRequests++; });
+  page.on("request", request => { if (new URL(request.url()).pathname === "/__creator/run") modelRequests++; });
   const registry = path.join(preview.hostRoot, "src/agent-ui/plugins/registry.generated.ts");
   const expected = await readFile(registry, "utf8");
   const input = page.locator("#creator-request");

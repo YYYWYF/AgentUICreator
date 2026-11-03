@@ -97,6 +97,12 @@ describe("product Composer pending interrupt policy", () => {
       expect(send.disabled).toBe(false);
       expect(composer.canSend).toBe(true);
       expect(container.querySelector('[data-slot="composer-quote"]')?.textContent).toContain("保留引用");
+      const imeEnter = new KeyboardEvent("keydown", { key: "Enter", keyCode: 229, isComposing: false, bubbles: true, cancelable: true });
+      await act(async () => input.dispatchEvent(imeEnter));
+      expect(imeEnter.defaultPrevented).toBe(false);
+      expect(container.querySelectorAll('[data-slot="transient-message"]')).toHaveLength(0);
+      expect(native.thread.composer.getState().text).toBe(draft.text);
+      expect(inputs).toHaveLength(1);
       await act(async () => {
         container.querySelector('[data-testid="slot-input"]')!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
         container.querySelector<HTMLButtonElement>('[data-testid="slot-action"]')!.click();

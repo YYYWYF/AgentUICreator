@@ -13,9 +13,51 @@ export interface CreatorApplicationAuthoringTarget {
   ownerPath: string;
   relatedPluginIds?: readonly string[];
   optional?: boolean;
+  /** Owner under sourceRoot for the npm application template. */
+  projectOwnerPath?: string;
 }
 
 export const creatorApplicationAuthoringTargets = [
+  {
+    id: "appearance.assistant-shell",
+    kind: "application_config",
+    name: "Floating assistant launcher and panel",
+    description: "Project-owned floating button, icon and panel open/close interaction. Edit the local shell without source takeover. Keep panel children mounted while hidden to preserve conversation and Plugin services; shell layout does not belong in AppUIModel.",
+    intents: ["customize floating button", "change assistant launcher icon", "change panel interaction", "修改悬浮球", "修改悬浮按钮图标", "修改面板展开收起"],
+    ownerPath: "application/shell/AssistantShell.tsx",
+    projectOwnerPath: "application/shell/AssistantShell.tsx",
+    optional: true,
+  },
+  {
+    id: "appearance.shell-styles",
+    kind: "application_config",
+    name: "Agent UI shell appearance",
+    description: "Project-owned outer shell styles: launcher position, panel size, border, responsive appearance and transitions. Preserve viewport constraints and hidden panel behavior. Inner layout and Plugin composition remain in AppUIModel.",
+    intents: ["change floating button position", "customize outer panel styles", "修改悬浮球位置", "修改外壳样式", "调整外框尺寸"],
+    ownerPath: "application/shell/assistant-shell.css",
+    projectOwnerPath: "application/shell/assistant-shell.css",
+    optional: true,
+  },
+  {
+    id: "appearance.embedded-shell-styles",
+    kind: "application_config",
+    name: "Embedded shell appearance",
+    description: "Project-owned embedded outer shell stylesheet. Edit container appearance here; inner layout remains in AppUIModel.",
+    intents: ["customize embedded shell", "修改嵌入式外壳样式"],
+    ownerPath: "application/shell/embedded-shell.css",
+    projectOwnerPath: "application/shell/embedded-shell.css",
+    optional: true,
+  },
+  {
+    id: "appearance.platform-shell-styles",
+    kind: "application_config",
+    name: "Platform shell appearance",
+    description: "Project-owned platform outer shell stylesheet. Edit container appearance here; inner layout remains in AppUIModel.",
+    intents: ["customize platform shell", "修改平台式外壳样式"],
+    ownerPath: "application/shell/platform-shell.css",
+    projectOwnerPath: "application/shell/platform-shell.css",
+    optional: true,
+  },
   {
     id: "appearance.assistant-panel-width",
     kind: "application_config",
@@ -60,19 +102,6 @@ export const creatorApplicationAuthoringTargets = [
     intents: ["change brand colors", "customize theme palette", "make the assistant blue and white", "simplify visual styling", "紫色换蓝白配色", "企业配色，整体简洁一点"],
     ownerPath: "conversation/styles.css",
     optional: true,
-    relatedPluginIds: ["theme-provider"],
-  },
-  {
-    id: "theme.default-mode",
-    kind: "application_config",
-    name: "Application default theme mode",
-    description: "Application-owned default theme mode used when the UI starts.",
-    intents: [
-      "change default theme",
-      "start in dark mode",
-      "change application theme default",
-    ],
-    ownerPath: "theme/theme-config.ts",
     relatedPluginIds: ["theme-provider"],
   },
 ] as const satisfies readonly CreatorApplicationAuthoringTarget[];

@@ -1,4 +1,4 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
 import { DEMO_FORM_SERVICE } from "../../services/demo-form";
 import { createDemoFormService } from "./form-service";
 import { FrontendToolFormDemoPlugin } from "./index";

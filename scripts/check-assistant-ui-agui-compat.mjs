@@ -201,7 +201,7 @@ export async function checkAssistantUiAgUiCompatibility({
         "REVIEW REQUIRED:",
         detail,
         `AgentUICreator pins ${pinnedClientVersion ?? "an unknown version"}`,
-        "Review CancellationAwareHttpAgent before upgrading.",
+        "Review HTTP cancellation boundary before upgrading.",
       ].join("\n");
 
   return {

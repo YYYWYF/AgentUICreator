@@ -66,8 +66,10 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale 
   }, [observability]);
   const hasGate = Object.values(composition.runtimeModel.pluginInstances).some(instance =>
     instance.enabled && composition.activeRegistry.get(instance.pluginId)?.manifest.application?.gate !== undefined);
-  // Ungated Hosts retain their original provider lifetime and refresh behavior.
-  if (!hasGate) return children;
+  // Toolkit renderers live outside AgentSurface, so presentation locale must
+  // also wrap the canonical conversation provider in ungated applications.
+  // Keep the original service/runtime lifetime when no gate is installed.
+  if (!hasGate) return <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>{children}</AgentUILocaleProvider>;
   const content = <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>
     <PluginServiceProvider model={composition.runtimeModel} registry={composition.activeRegistry} actions={connection.actions} frontendTools={frontendTools} applicationEventRegistry={eventRegistry}>
       <ConnectionContext.Provider value={connection}>

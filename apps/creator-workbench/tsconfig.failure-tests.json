@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/failure-recovery-host.spec.ts", "playwright.failures.config.ts"],
+  "exclude": []
+}

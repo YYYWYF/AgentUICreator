@@ -1,48 +1,112 @@
 ---
-title: "查看后台任务进度（job-progress-message）"
+title: "后台任务进度（job-progress-message）"
 ---
 
-# 查看后台任务进度（job-progress-message）
-
-把构建、测试等后台作业的阶段和完成进度显示成进度卡片。
-
-## 界面与功能
+# 后台任务进度（job-progress-message）
 
 例如一次 CI 作业依次经过拉取代码、安装依赖、构建和测试。卡片显示当前阶段、进度及最终结果；业务支持取消时，还会提供取消按钮。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![查看后台任务进度（job-progress-message）界面示例](/images/plugins/job-progress-message.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable job-progress-message`，点击下图中的 **「查看后台任务进度」**。
 
-当前官方预设：未默认加入三种形态，需要按项目需求启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「查看后台任务进度」，插件 ID 为 job-progress-message](/images/plugins/enable/job-progress-message.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「查看后台任务进度」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-当前官方接入对应 `run_ci_job` 工具，业务服务需提供匹配的阶段、进度和取消能力。点击取消后仍需等待实际确认，不能仅靠前端移除卡片表示任务已终止。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `progressProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `renderProgress` | 替换对应内容的展示，保留当前数据与交互。 |
-| `Fallback` | 无法展示合法内容时的替代组件。 |
+| 任务标题 | 修改进度卡片的标题。 |
+| 预计用时和耗时 | 设置预计剩余时间文字和已用时间。 |
+| 卡片外观 | 调整宽度、背景、圆角和间距。 |
+| 整张进度卡片 | 重新排列标题、阶段和进度条。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「查看后台任务进度（job-progress-message）」：
+修改：进度卡片标题改为【资料处理进度】，宽度设为【480px】，圆角设为【12px】。
+保留：真实阶段、进度和取消操作。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/job-progress-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalJobProgressMessage`；类型：`JobProgressMessageProps`。还接受下方列出的工具调用数据、样式和无障碍属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `title?` | `string` | 默认工具参数的任务目标 |
+| `stages?` | `readonly JobProgressStage[]` | 默认工具参数中的阶段列表 |
+| `stageIndex?` | `number` | 默认现有任务状态的阶段索引 |
+| `stageProgress?` | `number` | 默认现有任务状态的阶段进度 |
+| `eta?` | `string` | 默认现有任务状态的预计剩余时间 |
+| `onCancel?` | `() => void` | 运行期间默认使用已接入的 `abortRun` |
+| `outcome?` | `ConversationJobOutcome` | 默认从结果／终止状态推导 |
+| `elapsedMs?` | `number` | 默认从有效结果读取耗时毫秒数 |
+| `renderProgress?` | `(props: JobProgressProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个进度卡片 |
+| `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback`；阶段数据无效或任务状态不适合展示进度时使用 |
+| `state?` | `unknown` | 宿主页面传入的任务状态，组件从 `jobs[toolCallId]` 读取当前任务进度 |
+| `abortRun?` | `() => void` | 宿主页面提供的停止方法，用于中止当前任务 |
+
+`JobProgressStage` 为 `{ name: string; weight: number; description?: string }`。`ConversationJobOutcome` 为 `{ status: 'success' | 'partial' | 'failed' | 'cancelled'; summary?: string }`。仅传展示参数不能替代必需的工具参数和宿主页面传入的任务进度。
+
+#### 外观与无障碍属性
+
+以下属性均可选。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `className` | `string` | 整体样式类 |
+| `style` | `CSSProperties` | 整体内联样式 |
+| `id` | `string` | 元素标识 |
+| `role` | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色 |
+| `aria-label` | `string` | 无障碍名称 |
+| `aria-describedby` | `string` | 描述元素 ID |
+| `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
+
+#### 当前工具调用的数据与操作
+
+这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `type?` | `'tool-call'` | 消息片段类型 |
+| `toolCallId` | `string` | 工具调用 ID |
+| `toolName` | `string` | 工具名称 |
+| `args` | `unknown` | 解析后的输入参数 |
+| `argsText?` | `string` | 输入参数的文本形式 |
+| `result?` | `unknown` | 工具结果 |
+| `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
+| `isError?` | `boolean` | 结果是否为错误 |
+| `status` | `ConversationToolCallStatus` | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
+| `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
+| `decisionRequest?` | `ConversationCommandDecisionRequest` | 运行环境提供的操作确认请求 |
+| `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
+
+`ConversationToolCallStatus` 为 `{ type: 'running' }`、`{ type: 'complete' }`、`{ type: 'incomplete'; reason?: string; error?: unknown }` 或 `{ type: 'requires-action'; reason?: string }`。`ConversationCommandDecisionRequest` 含 `allowedDecisions: readonly string[]` 和可选 `description: string`。
+
+该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalJobProgressMessage } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalJobProgressMessage>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

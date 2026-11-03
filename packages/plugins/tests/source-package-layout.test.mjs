@@ -8,9 +8,19 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 import { sourcePath, materializePluginSources, capturePresentationSources } from "../scripts/materialize-plugin-sources.mjs";
+import { deliveries, portableSource, sourceEntries } from "../scripts/plugin-source-recipes.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
+
+it("extracts every official Plugin against the public contract without a copied framework", async () => {
+  for (const delivery of deliveries) for (const [target, origin] of sourceEntries(delivery)) {
+    const source = await readFile(path.join(root, ...origin.split("/")), "utf8");
+    const portable = portableSource(delivery, target, source);
+    expect(portable, `${delivery.id}/${target}`).not.toMatch(/from\s+["']\.\.\/\.\.\/framework\/contracts\/ui-plugin["']/u);
+    if (source.includes('"../../framework/contracts/ui-plugin"')) expect(portable).toContain('"@za38.03/agent-ui-plugins/contracts"');
+  }
+});
 
 it("ships exact canonical plugin and shared source bytes with its own package version", async () => {
   const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
@@ -20,7 +30,7 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   expect(catalog.plugins.some(plugin => plugin.id === "reasoning")).toBe(true);
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
-  expect(ids).toHaveLength(44);
+  expect(ids).toHaveLength(46);
   expect(ids).not.toContain("conversation-history");
   expect(pkg.exports).not.toHaveProperty("./conversation-history");
   expect(catalog.plugins.map(plugin => plugin.id).sort()).toEqual(ids);
@@ -89,7 +99,7 @@ it("typechecks the published portable Composer adapter with its support declarat
     const catalog=JSON.parse(await readFile(path.join(root,"dist/catalog.json"),"utf8"));
     const portableFiles=catalog.plugins.find(plugin=>plugin.id==="composer").takeover.files;
     const portableIndex=await readFile(sourcePath(path.join(root,"dist"),portableFiles.find(file=>file.target==="index.tsx").path),"utf8");
-    expect(portableIndex).not.toContain('from "@za38.03/agent-ui-plugins"');
+    expect(portableIndex).toContain('import { useAgentUILocale } from "@za38.03/agent-ui-plugins"');
     expect(portableIndex.match(/from "\.\/adapters\/composer"/gu)).toHaveLength(2);
     for(const file of portableFiles.filter(file=>file.target.startsWith("adapters/"))) {
       await copyFile(sourcePath(path.join(root,"dist"),file.path),sourcePath(consumer,file.target));
@@ -99,9 +109,22 @@ import type { ConversationComposerInputProps, ConversationComposerRootProps, Con
 const input: ConversationComposerInputProps = { submitMode: "ctrlEnter" };
 const root: ConversationComposerRootProps = { style: { padding: 12 } };
 const dropzone: ConversationComposerDropzoneProps = { className: "custom" };
-const props: ConversationCanonicalComposerProps = { inputProps: input, rootProps: root, dropzoneProps: dropzone };
+const props: ConversationCanonicalComposerProps = { ...root, inputProps: input, dropzoneProps: dropzone };
 void props;
 `);
-    execFileSync(process.execPath,[path.join(path.dirname(require.resolve("typescript/package.json")),"bin/tsc"),"--noEmit","--skipLibCheck","--strict","--jsx","react-jsx","--module","ESNext","--moduleResolution","Bundler","--esModuleInterop","--target","ES2022","probe.tsx"],{cwd:consumer,stdio:"pipe"});
+    execFileSync(process.execPath,[path.join(path.dirname(require.resolve("typescript/package.json")),"bin/tsc"),"--noEmit","--skipLibCheck","--strict","--jsx","react-jsx","--module","ESNext","--moduleResolution","Bundler","--esModuleInterop","--target","ES2022","probe.tsx"],{cwd:consumer,stdio:"inherit"});
   } finally { await rm(consumer,{recursive:true,force:true}); }
+});
+
+
+it("binds takeover integrity to final runtime entries including appended utility styles", async () => {
+  const catalog = JSON.parse(await readFile(path.join(root, "dist/catalog.json"), "utf8"));
+  for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
+    for (const file of plugin.takeover.runtimeFiles) {
+      expect(sha256(await readFile(sourcePath(path.join(root, "dist"), file.path))), `${plugin.id}: ${file.path}`).toBe(file.sha256);
+    }
+  }
+  const question = catalog.plugins.find(plugin => plugin.id === "ask-user-question");
+  expect(question.takeover.files.some(file => file.target === "adapters/contract.ts")).toBe(true);
+  expect(question.application.registration).toEqual({ kind: "tool", name: "ask_user_question" });
 });

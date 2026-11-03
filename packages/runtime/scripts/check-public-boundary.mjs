@@ -2,16 +2,14 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildDeclarationGraph } from "./declaration-graph.mjs";
+import { buildPublicDeclarationGraph } from "./declaration-graph.mjs";
 import { findPublicDeclarationViolations } from "./public-declaration-policy.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const declarationRoot = path.join(packageRoot, "dist");
 
-const entryPath = path.join(declarationRoot, "index.d.ts");
-const { missing, reachable } = await buildDeclarationGraph(
+const { missing, reachable } = await buildPublicDeclarationGraph(
   declarationRoot,
-  entryPath,
 );
 if (missing.length > 0) {
   const details = missing.map(({ sourcePath, specifier }) =>

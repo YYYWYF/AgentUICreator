@@ -31,7 +31,6 @@ async function fixture(histories: Record<string, ConversationLoadedThread>) {
   let renderer!: ReactTestRenderer;
   const runAgent = vi.fn(async () => undefined);
   const abortRun = vi.fn();
-  const errors: Error[] = [];
   const loadThread = vi.fn(async (id: string) => histories[id]!);
   const binding: ConversationThreadBinding = {
     getThreadId: () => "A",
@@ -50,7 +49,6 @@ async function fixture(histories: Record<string, ConversationLoadedThread>) {
   await act(async () => {
     renderer = create(
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
-        onError={error => errors.push(error)}
         unstable_agentFactory={({ threadId }) => Object.assign(new HttpAgent({
           url: "http://example.test/agent", threadId,
         }), { runAgent, abortRun })}>
@@ -63,7 +61,7 @@ async function fixture(histories: Record<string, ConversationLoadedThread>) {
     .flatMap(message => message.role === "assistant" ? message.content : [])
     .filter(part => part.type === "text").map(part => part.text).join("");
   return {
-    runtime, text, runAgent, abortRun, errors, loadThread,
+    runtime, text, runAgent, abortRun, loadThread,
     switchTo: async (id: string) => { await act(async () => { await runtime.threads.switchToThread(id); }); },
     dispose: async () => { await act(async () => {
       for (const id of Object.keys(histories)) {
@@ -124,14 +122,16 @@ describe("existing run resumption", () => {
     } finally { await f.dispose(); }
   });
 
-  it("keeps persisted history and reports a failed resume without rerunning", async () => {
+  it("keeps persisted history and displays a failed resume without rerunning", async () => {
     const f = await fixture({ A: { messages: [user("A"), partial("A")], resume: {
       async *stream() { throw new Error("resume failed"); },
     } } });
     try {
-      await until(() => f.errors.length > 0);
+      const failedMessage = () => f.runtime.thread.getState().messages.find(message =>
+        message.role === "assistant" && message.status.type === "incomplete" && message.status.reason === "error");
+      await until(() => failedMessage() !== undefined);
       expect(f.text("A")).toContain("正在分析 A");
-      expect(f.errors[0]?.message).toBe("resume failed");
+      expect(failedMessage()).toMatchObject({ status: { type: "incomplete", reason: "error", error: "resume failed" } });
       expect(f.runAgent).not.toHaveBeenCalled();
     } finally { await f.dispose(); }
   });

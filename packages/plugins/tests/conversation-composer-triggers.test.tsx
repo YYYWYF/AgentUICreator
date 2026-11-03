@@ -5,7 +5,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
-import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
+import { HttpAgent } from "@ag-ui/client";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand, type ConversationTriggerLabels } from "../src/index.js";
 import {ConversationMentionTrigger as NpmMention} from "../dist/mention-trigger/index.js";
 import {ConversationSlashCommandTrigger as NpmCommand} from "../dist/slash-command-trigger/index.js";
@@ -27,7 +27,7 @@ async function mount(source?: ConversationMentionSource, commands: readonly Conv
   const requests: RunAgentInput[] = [];
   let mention = true, slash = true;
   const commandSource = { getSnapshot: () => commands, subscribe: () => () => {} };
-  const agentFactory = () => new CancellationAwareHttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
+  const agentFactory = () => new HttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
     const input = JSON.parse(String(init.body)) as RunAgentInput; requests.push(input);
     return new Response([{ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId }, { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   } });

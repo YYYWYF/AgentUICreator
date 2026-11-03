@@ -25,11 +25,11 @@ const revisions = [
 ];
 const errors = [];
 errors.push(...await checkGenerativeUiResource({ repoRoot, target }));
-if (target.packages["@assistant-ui/react-generative-ui"]) {
+if (target.packages["@assistant-ui/generative-ui"]) {
   try {
     const releaseRevision = await generativeUiReleaseRevision({
       repoRoot,
-      version: target.packages["@assistant-ui/react-generative-ui"],
+      version: target.packages["@assistant-ui/generative-ui"],
     });
     if (releaseRevision !== target.generativeUiReleaseRevision) {
       errors.push(`Generative UI release tag resolves to ${releaseRevision}; target records ${target.generativeUiReleaseRevision}`);

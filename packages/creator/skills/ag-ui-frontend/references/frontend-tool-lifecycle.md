@@ -79,5 +79,8 @@ at the project's pinned upstream revision. Reuse `set_form_field`, `submit_form`
 and `reset_form` semantics and React Hook Form, while preserving application-owned
 permission and activation-scoped Service capability boundaries. Do not ignore the
 integration and invent another vocabulary; do not register tools directly through
-an upstream hook when that bypasses application permission. The optional Form Demo
-is the reference adaptation; see `docs/architecture/frontend-tool-form-demo.md`.
+an upstream hook when that bypasses application permission. Use the packaged
+[official integration guidance](../SKILL.md#official-integrations) and inspect
+the installed integration/react-hook-form and demo/frontend-tool-form resources
+through inspect_agent_ui_sources before installing optional resources. Resource
+availability is not Agent exposure permission.

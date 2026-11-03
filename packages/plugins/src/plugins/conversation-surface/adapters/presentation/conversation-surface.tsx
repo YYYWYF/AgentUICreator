@@ -1,14 +1,14 @@
 import type { ComponentProps, ReactNode } from "react";
 import type { ComponentType } from "react";
 import { useAgentUILocale, type ConversationThreadLabels } from "../../../../public.js";
-export interface ConversationSurfaceAdapterProps { rendererSlots?: {toolTimeline?:boolean;reasoningGroup?:boolean;thinkingIndicator?:boolean;transientMessages?:boolean};labels?:ConversationThreadLabels;welcome?:ReactNode;suggestions?:ReactNode;composer?:ReactNode;renderScopedSlot?:(name:string,scope:{kind:string;value:unknown},fallback?:ReactNode)=>ReactNode; }
-export interface ConversationSurfacePluginProps { renderSlot?:(name:string,fallback?:ReactNode)=>ReactNode;renderScopedSlot?:(name:string,scope:{kind:string;value:unknown},fallback?:ReactNode)=>ReactNode;Adapter?:ComponentType<ConversationSurfaceAdapterProps>;welcomeFallback?:ReactNode;rendererSlots?:ConversationSurfaceAdapterProps["rendererSlots"];snapshot?:{mode?:string;detailStatus?:string};rootProps?:ComponentProps<"div">;adapterProps?:Partial<ConversationSurfaceAdapterProps>; }
-export function CanonicalConversationSurfacePlugin({ renderSlot = (_name,fallback)=>fallback, renderScopedSlot = (_name,_scope,fallback)=>fallback, Adapter, welcomeFallback, rendererSlots, snapshot, rootProps, adapterProps }: ConversationSurfacePluginProps) {
+export interface ConversationSurfaceAdapterProps { autoFocus?: boolean; className?: string; rendererSlots?: {toolTimeline?:boolean;reasoningGroup?:boolean;thinkingIndicator?:boolean;transientMessages?:boolean};labels?:ConversationThreadLabels;welcome?:ReactNode;suggestions?:ReactNode;composer?:ReactNode;renderScopedSlot?:(name:string,scope:{kind:string;value:unknown},fallback?:ReactNode)=>ReactNode; }
+export interface ConversationSurfacePluginProps extends Omit<ComponentProps<"div">, "children"> { renderSlot?:(name:string,fallback?:ReactNode)=>ReactNode;renderScopedSlot?:(name:string,scope:{kind:string;value:unknown},fallback?:ReactNode)=>ReactNode;Adapter?:ComponentType<ConversationSurfaceAdapterProps>;rendererSlots?:ConversationSurfaceAdapterProps["rendererSlots"];snapshot?:{mode?:string;detailStatus?:string};autoFocus?: boolean; labels?: ConversationThreadLabels; welcome?: ReactNode; suggestions?: ReactNode; composer?: ReactNode; }
+export function CanonicalConversationSurfacePlugin({ renderSlot = (_name,fallback)=>fallback, renderScopedSlot = (_name,_scope,fallback)=>fallback, Adapter, rendererSlots, snapshot, autoFocus, labels, welcome: welcomeContent, suggestions: suggestionContent, composer: composerContent, ...rootProps}: ConversationSurfacePluginProps) {
   const messages=useAgentUILocale("conversation");
-  const welcome = renderSlot("emptyWelcome", welcomeFallback);
-  const suggestions = renderSlot("emptySuggestions", null);
+  const welcome = renderSlot("emptyWelcome", welcomeContent);
+  const suggestions = renderSlot("emptySuggestions", suggestionContent ?? null);
   const headerActions = renderSlot("headerActions", null);
-  const composer = renderSlot("composer", null);
+  const composer = renderSlot("composer", composerContent ?? null);
   const renderConversationScopedSlot = (
     slotName: string,
     scope: {kind:string;value:unknown},
@@ -30,10 +30,10 @@ export function CanonicalConversationSurfacePlugin({ renderSlot = (_name,fallbac
 
   return (
     <div
-      className="conversation-surface-plugin"
+      {...rootProps} className={["conversation-surface-plugin", rootProps.className].filter(Boolean).join(" ")}
       data-conversation-detail-status={snapshot?.detailStatus}
       data-conversation-mode={snapshot?.mode}
-      {...rootProps}
+
       data-ui-plugin="conversation-surface"
     >
       <div
@@ -43,9 +43,9 @@ export function CanonicalConversationSurfacePlugin({ renderSlot = (_name,fallbac
         {headerActions}
       </div>
       {Adapter ? <Adapter
-        {...adapterProps}
+        {...(autoFocus === undefined ? {} : { autoFocus })}
         {...(rendererSlots === undefined ? {} : {rendererSlots})}
-        labels={messages}
+        labels={{...messages,...labels}}
         welcome={welcome}
         suggestions={suggestions}
         composer={composer}

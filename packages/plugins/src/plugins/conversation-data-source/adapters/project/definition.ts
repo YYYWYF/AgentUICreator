@@ -1,7 +1,7 @@
-import { getPreviewAgentEnvironment } from "../../application/preview-environment";
-import { createAgentBackendTransport } from "../../application/agent-backend-transport";
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import { getPreviewAgentEnvironment } from "@za38.03/agent-ui-runtime/ui/application/preview-environment";
+import { createAgentBackendTransport } from "@za38.03/agent-ui-runtime/ui/application/agent-backend-transport";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
+import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins/contracts";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   createEmptyConversationDataSource,
@@ -9,7 +9,6 @@ import {
   resolveConversationDataEndpoint,
 } from "../../services/conversations";
 import { ConversationDataSourcePlugin } from "./index";
-import { conversationDataEndpoint } from "../../agent-ui/conversation/config/conversation-runtime-config";
 import manifestJson from "./manifest.json";
 
 export const conversationDataSourcePlugin: UIPluginDefinition = {
@@ -17,11 +16,11 @@ export const conversationDataSourcePlugin: UIPluginDefinition = {
   provides: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   setup: ({ services }) => {
     const endpoint = resolveConversationDataEndpoint({
-      configuredEndpoint: getPreviewAgentEnvironment()?.conversationDataEndpointOverride ?? conversationDataEndpoint,
+      configuredEndpoint: getPreviewAgentEnvironment(import.meta.env.DEV)?.conversationDataEndpointOverride,
     });
     const source = endpoint === undefined
       ? createEmptyConversationDataSource()
-      : createHttpConversationDataSource({ endpoint, fetch: createAgentBackendTransport().fetch });
+      : createHttpConversationDataSource({ endpoint, fetch: createAgentBackendTransport({ development: import.meta.env.DEV }).fetch });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   },
   Component: ConversationDataSourcePlugin,

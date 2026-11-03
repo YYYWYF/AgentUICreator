@@ -1,153 +1,27 @@
-# Optional Dialog and Form Frontend Tool demos
+# Dialog 与 Form Frontend Tool 示例
 
-The `frontend-tool-fill-form` Mock scenario now uses `human-form-demo` to collect
-user-entered details in a conversation card. Like `ask-user-question`, it emits
-the call and `RUN_FINISHED(success)`, leaves the tool unanswered until the user
-submits, and continues from the client's correlated ToolMessage. Both renderers
-use native `addResult`, with no `resume[]` or backend-generated duplicate result.
-The separate `frontend-tool-form-demo` resource below still exposes RHF form
-mutation capabilities. Approval remains a backend interrupt demo; its HTTP
-handler retains pending interrupts per thread and rejects requests that omit a
-complete matching resume, including attempts to switch scenarios.
+Dialog 和 Form 是显式选择的业务示例，生产默认模板不包含这些示例业务代码。Mock 只发送确定的 AG-UI 事件，不理解自然语言或代替真实业务服务。
 
-Dialog and Form scenarios are always listed in Mock Studio. Their code belongs to
-`demo/frontend-tool-dialog` and `demo/frontend-tool-form` Source Registry bundles
-(kind `demo`), rather than the default foundation. Select a scenario to see its
-resource readiness; install resources explicitly before activating it. Missing packages are reported from the full dependency closure, including
-`react-hook-form ^7` and `@assistant-ui/react-hook-form 0.12.34`; Mock Studio
-generates a copyable package command from these requirements.
-The installer never runs a package manager.
+## 执行与展示
 
-`installScenarioResources` installs source through the existing registry transaction,
-regenerates the existing Plugin Registry and explicit Frontend Tool/UI imports,
-places the capability in AppUIModel, and checks the resulting composition with
-`verifyUIProject`. The Form is a visible panel beside the conversation. Install is
-an application permission decision: only application-owned generated imports expose
-tools, and service requirements filter tools when their provider is disabled.
-Production uses these generated files without Creator or a registry scanner.
-Legacy v1 application files at Project Root use a separate
-`.agent-ui/scenario-resources` source lock; v2 projects use their configured managed
-source root and source lock. The legacy adapter registry remains independent.
+Plugin 在现有 activation 生命周期提供 Service，应用在 agent-contract/agent-tools.ts 中明确选择可暴露的前端操作。原生 toolkit 负责调用、结果、取消与 continuation。Tool UI 只呈现参数、状态和历史结果，不在挂载时打开弹窗、填表、提交或重置。
 
-## Upstream reference and adaptation
+Dialog 的关闭、焦点、输入与当前业务状态属于实际 UI；历史 receipt 描述当时执行结果，不从当前页面反推历史状态。history、Thread 切换、StrictMode 和重挂载不得重放 execute。
 
-React Hook Form reference revision: `039c3c32822632f2a564164f089f538926886124`,
-which contains `@assistant-ui/react-hook-form 0.12.34`. This integration keeps
-its own provenance pin rather than adopting the Generative UI release revision.
-The local source repository is `/Users/yifei/Coding/assistant-ui`.
-The current shared runtime uses `@assistant-ui/react 0.15.22` and
-`@assistant-ui/react-ag-ui 0.0.62`; the React Hook Form package and behavior
-remain unchanged.
+## React Hook Form
 
-Dialog follows `examples/with-ag-ui/app/page.tsx`: the `browser_alert` frontend
-tool provides description, parameters, execute and render. Our `open_demo_dialog`
-uses the application-owned `demo.dialog` service instead of `alert()`.
+可选 integration/react-hook-form 提供 ReactHookFormCapability、reactHookFormToolContracts 和 createReactHookFormFrontendTools。Factory 的 expose 列表明确选择工具；安装 Integration 本身不生成执行权限。
 
-Form references `packages/react-hook-form` (`0.12.34` at the pinned revision),
-especially `src/formTools.ts` and `src/useAssistantForm.ts`. Canonical tools are
-`set_form_field`, `submit_form` and `reset_form`. `integration/react-hook-form` imports the public `formTools` contract from
-`@assistant-ui/react-hook-form 0.12.34` as the source of truth for descriptions,
-then routes execution through application-owned Frontend Tool policy.
-`useAssistantForm` is appropriate for ordinary assistant-ui applications; its direct
-model-context registration does not fit our explicit permission boundary. This demo
-uses React Hook Form's `useForm`, `FormProvider`, `register`, `setValue`, `reset`,
-`handleSubmit` and `formState`; it uses the assistant-ui package only for its public `formTools` contract,
-never calls `useAssistantForm`, and does not copy its implementation. Agent submission requests the native form submit event
-and awaits React Hook Form validation and the same handler used for manual submit.
+业务表单拥有字段、controller、验证和 submit handler。字段修改调用现有 controller API；提交走原生 submit 与相同的业务验证；清理属于当前表单生命周期。依赖来自目标项目实际安装的 resource requirements，不复制第三方实现或绕过现有 Tool allowlist。
 
-The default scenario fills Alice's first name and email and returns a continuation
-receipt after both ToolMessages. It never submits or resets. All three tools remain
-available for explicit requests to a connected Agent; submission and reset tool
-descriptions require user confirmation. Mock fixtures are deterministic, so the
-fill scenario itself always demonstrates filling, regardless of chat wording.
+## 资源与用户输入
 
-## History safety contract
+资源 ID、依赖和组合来自实际安装 Plugins catalog。Creator 的官方资源安装先检查具体目标和依赖，再生成所需接线；安装或选择 Mock 不自动赋予业务操作权限。
 
-Only Frontend Tool `execute` calls mutate services. Tool UIs render historical
-args/result/status receipts; they never bind RHF controllers or mutate current fields.
-Controller attachment/subscription and cleanup belong to the visible Form Plugin.
-There is one native assistant-ui executor and no CUSTOM tool protocol.
+会话中的用户信息收集由 ask-user-question / human-form 类 UI 提交客户端 Tool Result；后端审批则使用对应 structured interrupt/resume。沿用实际场景协议，不能把二者混用或伪造后端重复结果。
 
-Replay coverage should exercise:
+## 验证范围
 
-1. Live `set_form_field(firstName, Alice)` and `set_form_field(email, alice@example.com)`
-   each execute once and update the visible RHF inputs.
-2. Manually change first name to Bob; switch conversation and return. Current form
-   stays Bob while the historical receipt still reports Alice.
-3. Live submit increments `submitCount` once; historical renderer remount,
-   StrictMode, and thread revisit never increment it.
-4. Historical reset receipts never reset current input values.
-5. Disabling the provider hides all three tools on the next `RunAgentInput.tools`.
-6. Historical Dialog receipts never reopen a closed Dialog.
+核对每次 live execute 只产生一次副作用，历史 renderer 不填表、不提交、不重置、不重新打开弹窗。检查 Provider 停用后的工具可用性、参数校验、取消、错误及实际用户确认。静态、Mock、真实业务与浏览器结果分别验证。
 
-This document states the intended contract. No runtime acceptance is claimed for
-this implementation delivery; checks are skipped when requested by the user.
-
-The native Form lifecycle and Integration contract regressions are active in the
-example target's ordinary test suite. Their fixtures under
-`tests/fixtures/official-form` are byte-identical copies of installable Registry
-source; `official-form-fixture.test.ts` checks equivalence. Small fixture facades
-connect relative imports to the project's real Runtime and locale layer. RHF and
-its assistant-ui contract package are test-only development dependencies of the
-example; installed generated projects still own their production dependencies.
-
-
-## Official Integration resource contract
-
-Source Registry supports `integration` for official adaptations of third-party
-frameworks, protocols and specialized assistant-ui capabilities. An Integration
-need not contribute a Plugin, Frontend Tool or AppUIModel instance.
-`integration/react-hook-form` owns package requirements, `ReactHookFormCapability`,
-`reactHookFormToolContracts` and `createReactHookFormFrontendTools`. Form Demo
-requires that Integration and owns its fields, visible UI, controller, snapshots,
-Tool modules and historical receipts. Dialog remains an independent Demo.
-
-The factory requires an explicit `expose` list. Installing the Integration creates
-no application Tool module and grants no Agent permission. Only modules included
-in the application generated allowlist expose tools; service availability continues
-to filter them through `AppFrontendToolRuntime`. Do not combine `useAssistantForm`
-(which directly registers with model context) with this factory.
-
-`installOptionalAgentUIResource(projectRoot, sourceItemId)` installs a full
-requires closure, checks package readiness, regenerates source-derived registries,
-and checks source integrity without changing AppUIModel. `installScenarioResources`
-adds Demo composition and project verification afterward. Neither runs a package
-manager. Direct `requirements` remain item-local; `dependencies`,
-`resolvedRequirements` and `dependencyIssues` describe transitive readiness.
-Installed consumers prevent dependency removal with
-`AGENT_UI_SOURCE_DEPENDENCY_IN_USE`. Legacy v1 hosts derive all host-owned foundations from Registry kind, including
-core contracts and core Runtime: their source files are checked, never adopted or
-overwritten by the optional-resource lock. V2 foundations remain managed through the project source lock.
-
-## Future A2UI public boundary (contract only)
-
-A future `integration/a2ui` may supply Runtime, renderer and action bridges without
-any Plugin or Frontend Tool. A future Demo can depend on that resource. This change
-does not implement A2UI. Ordinary Plugins should consume a thin public facade in
-`@agent-ui/runtime`, such as `useConversationA2uiAction`, rather than
-import `useAgUiSendA2uiAction` directly from `@assistant-ui/react-ag-ui`.
-Integration adapters should centralize `JSONGenerativeUI` and
-`defaultGenerativeUILibrary` usage so assistant-ui API changes stay at that boundary.
-
-
-The Creator host uses `installMockResource` for both Demo and pluginless resources.
-It always installs source first and composes a Plugin only for entries in the Demo
-composition map. `installScenarioResources` remains a compatibility alias, and the
-Creator Dev Server prefers `installMockResource` over the deprecated option.
-Workbench inspection uses optional-resource inspection for every lock-owned or
-provided item, identified by `owned: true`, regardless of Source kind.
-Unowned items retain normal inspection; Demo/Integration remain the only optional
-installation roots. Legacy Host foundations are provided rather than adopted. The active
-legacy readiness regression covers installation, composition, this merge, and
-`frontend-tool-form` becoming ready without adopting any foundation source.
-
-
-## Official Resource installation
-
-Creator now uses `installOfficialAgentUIResource(projectRoot, "frontend-tool-form-demo")`
-and the Browser sends `resourceId` to `/install-resources`. Scenarios declare only that
-stable Resource ID. The Official Catalog owns its label, `demo/frontend-tool-form`
-source mapping, `frontend-tool-form-demo` Plugin and placement. Package requirements
-remain in the Source closure and missing dependencies are installed automatically;
-existing incompatible dependencies become product-level conflicts. Old source-ID
-Host APIs remain deprecated internal adapters for one compatibility cycle.
+通用规则见 [Frontend Tool 生命周期](frontend-tool-lifecycle.md)。

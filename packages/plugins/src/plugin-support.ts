@@ -12,7 +12,7 @@ export { ReasoningRoot, ReasoningTrigger, ReasoningContent, ReasoningText } from
 export { ToolGroupRoot, ToolGroupTrigger, ToolGroupContent } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 
 export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, ThreadPrimitive as ConversationParts, SuggestionPrimitive as SuggestionActions } from "@assistant-ui/react";
-export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
+export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export { Button } from "./internal/adapters-generated/assistant-ui/components/ui/button.js";
 export { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
 export { ResponseActionBarRoot, ResponseBranchPicker } from "./internal/composable-thread.js";
@@ -30,3 +30,8 @@ export { Textarea } from "./internal/vendor-generated/assistant-ui/components/ui
 export { useTransientMessages } from "./internal/conversation-transient-messages.js";
 export { resolveTransientMessageAnchor } from "./conversation-transient-message-service.js";
 export { AlertCircleIcon, ChevronDownIcon, CircleMinusIcon, LoaderIcon, XCircleIcon } from "lucide-react";
+
+export { Image } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.js";
+export { File } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file.js";
+export { useAgentUIThemeSnapshot } from "./plugin-api/useAgentUIThemeSnapshot.js";
+export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.js";

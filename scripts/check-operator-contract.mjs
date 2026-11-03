@@ -5,15 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = new URL('../', import.meta.url);
 const read = name => readFile(new URL(name, root), 'utf8');
 export async function checkOperatorContract() {
-  const [inventoryText, schemaText, handler, models, readTools, mutationTool, recoveryTool, policy] = await Promise.all([
+  const [inventoryText, schemaText, handler] = await Promise.all([
     read('packages/creator/contracts/creator/operator.operations.json'),
     read('packages/creator/contracts/creator/operator.schema.json'),
-    read('packages/operator/control/src/handler.ts'),
-    read('packages/creator/python/agent_ui_creator/operator/models.py'),
-    read('packages/creator/python/agent_ui_creator/domain_tools/operator_tools.py'),
-    read('packages/creator/python/agent_ui_creator/app_ui_model/mutation_tool.py'),
-    read('packages/creator/python/agent_ui_creator/app_ui_model/recovery_tool.py'),
-    read('packages/creator/python/agent_ui_creator/domain_agent/tool_policy.py'),
+    read('packages/creator/operator/src/handler.ts'),
   ]);
   const inventory = JSON.parse(inventoryText);
   const schema = JSON.parse(schemaText);
@@ -26,9 +21,6 @@ export async function checkOperatorContract() {
   setEqual([...requestBlock.matchAll(/operation:\s*z\.literal\("([^"]+)"\)/g)].map(match => match[1]), 'Zod operation drift');
   const execution = handler.split('async function executeRequest(')[1]?.split('function failure(')[0] ?? '';
   setEqual([...execution.matchAll(/case "([^"]+)":/g)].map(match => match[1]), 'Host execution coverage drift');
-  const literalGroups = [...models.matchAll(/(Read|Mutation|Internal)OperatorOperation: TypeAlias = Literal\[([\s\S]*?)\]/g)];
-  setEqual(literalGroups.flatMap(match => [...match[2].matchAll(/"([^"]+)"/g)].map(value => value[1])), 'Python operation drift');
-  const mutations = literalGroups.find(match => match[1] === 'Mutation')?.[2] ?? '';
   for (const entry of inventory.operations) {
     assert(['read', 'mutation'].includes(entry.kind));
     assert.equal(typeof entry.agentExposed, 'boolean');
@@ -36,13 +28,9 @@ export async function checkOperatorContract() {
     assert(schema.$defs[entry.resultDef], `Missing result def ${entry.resultDef}`);
     const branch = branches.find(branch => branch.properties.operation.const === entry.name);
     assert.equal(branch?.properties.input.$ref, `#/$defs/${entry.inputDef}`, `Input binding drift: ${entry.name}`);
-    assert.equal(mutations.includes(`"${entry.name}"`), entry.kind === 'mutation', `Operation kind drift: ${entry.name}`);
     assert(schema.$defs.response.oneOf[0].properties.result.anyOf.some(ref => ref.$ref === `#/$defs/${entry.resultDef}`), `Missing response result def: ${entry.name}`);
   }
-  const exposed = [...(readTools + mutationTool + recoveryTool).matchAll(/@tool\(\s*"([^"]+)"/g)].map(match => match[1]).filter(name => names.includes(name)).sort();
-  assert.deepEqual(exposed, inventory.operations.filter(entry => entry.agentExposed).map(entry => entry.name).sort(), 'Agent Tool exposure drift');
-  const writeNames = policy.split('DOMAIN_WRITE_TOOL_NAMES = (')[1]?.split(')')[0] ?? '';
-  assert(!writeNames.includes('remove_agent_ui_source_items'), 'Internal remove capability must not be an Agent write tool');
+
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await checkOperatorContract();

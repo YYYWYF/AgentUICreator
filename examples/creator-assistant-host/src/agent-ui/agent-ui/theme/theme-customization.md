@@ -51,7 +51,7 @@ properties are computed on each matching root, so set overrides on both roots.
 
 ## Presets are separate from brand colors
 
-`theme-config.ts` selects `light`, `dark` or `violet`. The public package
+`<Agent theme={theme} onThemeChange={setTheme} />` selects `light`, `dark` or `violet`. Omission uses the built-in Violet theme with internal switching. There is no project theme configuration. The public package
 `@za38.03/agent-ui-plugins/theme` maps light/violet to light color scheme and dark
 to dark color scheme. Blue is not a preset ID. Brand customization can retain
 `violet` as the selected preset while overriding its palette in project CSS.

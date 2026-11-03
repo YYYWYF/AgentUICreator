@@ -104,7 +104,7 @@
                     ],
                     "toolFallback": [
                       {
-                        "pluginId": "tool-fallback"
+                        "pluginId": "tool-result"
                       }
                     ],
                     "assistantResponseFooter": [

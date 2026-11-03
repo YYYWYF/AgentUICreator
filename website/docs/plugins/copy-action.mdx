@@ -1,62 +1,95 @@
 ---
-title: "复制回复（copy-action）"
+title: "回复复制（copy-action）"
 ---
 
-# 复制回复（copy-action）
-
-提供复制按钮，把 Agent 当前这次完整回复复制到剪贴板。
-
-## 界面与功能
+# 回复复制（copy-action）
 
 回复完成后点击复制，即可把文本粘贴到其他地方。一次回复分成多条消息时，会按这次回复一起复制。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![复制回复（copy-action）界面示例](/images/plugins/copy-action.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable copy-action`，点击下图中的 **「复制回复」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「复制回复」，插件 ID 为 copy-action](/images/plugins/enable/copy-action.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「复制回复」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-浏览器需要允许剪贴板写入，某些部署要求安全上下文与用户点击。复制针对当前完整回复，不是整个历史。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `style` | 局部尺寸或样式。 |
-| `disabled` | 按业务条件限制交互。 |
-| `className` | 沿用工程样式命名设置外观。 |
-| `children` | 替换或补充组件内容。 |
-| `onClick` | 自定义点击反馈，保留原有默认动作。 |
+| 鼠标提示 | 修改鼠标移到复制按钮上时的提示。 |
+| 按钮图标或文字 | 替换复制图标，或直接显示文字。 |
+| 按钮大小和外观 | 调整大小、颜色、边框和圆角。 |
+| 暂时不可点击 | 需要时将按钮设为不可点击。 |
 
-下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+## 需求示例
 
-```tsx
-import type { ComponentProps } from "react";
-import { ConversationCanonicalResponseCopyAction } from "@za38.03/agent-ui-plugins";
-
-type Props = ComponentProps<typeof ConversationCanonicalResponseCopyAction>;
-export function ProjectView(props: Props) {
-  return <ConversationCanonicalResponseCopyAction {...props} />;
-}
+```text
+请修改「复制回复（copy-action）」：
+修改：按钮显示文字【复制答案】，悬停提示改为【复制完整回答】。
+保留：复制完整回复的行为。
 ```
 
-## 验证结果
+## 手动开发
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+打开项目中的 `plugins/copy-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+### 属性
 
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-## 继续阅读
+组件：`ConversationCanonicalResponseCopyAction`。继承提示按钮属性，`tooltip` 可选；插件入口还接收下方的子插件渲染函数。
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `tooltip?` | `string` | 默认 `common.copy` |
+| `children?` | `ReactNode` | 默认复制图标，复制成功后短暂切换为成功图标 |
+| `disabled?` | `boolean` | 与回答生成中／没有正文的禁用条件叠加 |
+| `onClick?` | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行复制；`preventDefault()` 可阻止默认动作 |
+
+复制范围为当前完整回答的文本，由现有会话提供。
+
+#### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
+| `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
+| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseCopyAction>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

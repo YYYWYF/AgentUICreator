@@ -16,5 +16,5 @@
  * Violet brand surface/focus tokens derive from --agent-brand. Override any
  * additional semantic tokens needed for the requested design here, not in npm
  * source, Host business CSS, AppUIModel, or Runtime. Theme preset selection is
- * ../theme/theme-config.ts (light/dark/violet); blue is not a preset ID.
+ * passed through Agent.theme (light/dark/violet); blue is not a preset ID.
  */

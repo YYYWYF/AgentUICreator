@@ -1,0 +1,637 @@
+{
+  "capturedDate": "2026-10-24",
+  "captureMethod": "Browser webpage screenshots, excluding browser tabs, address bar and bookmarks bar. Saved directly without image generation or re-encoding.",
+  "sourceProjects": {
+    "platform": "/Users/yifei/Coding/agentui_test/capability-capture-20261023/platform",
+    "assistant": "/Users/yifei/Coding/agentui_test/capability-capture-20261023/assistant",
+    "embedded": "/Users/yifei/Coding/agentui_test/capability-capture-20261023/embedded"
+  },
+  "notes": [
+    "Fresh captures from independent copies of the current maintained example Hosts. The maintained examples were not edited.",
+    "The platform copy enables official optional presentation Plugins, local Mock attachment/dictation adapters, a Mock account profile, and the local Mock conversation API. Theme and locale are supplied through Agent props.",
+    "All responses, file links, speech and account information are demonstration data. These screenshots establish the pictured frontend state, not real-backend acceptance."
+  ],
+  "screenshots": [
+    {
+      "file": "account-menu.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=data-message-chart",
+      "scenario": "Expanded official account menu, saved directly from observed page screenshot",
+      "capturedAt": "2026-10-23T09:32:14.173Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "8d5e47d7ded6a09685df2ef26642281210916cbb03885dfe3f0a828710057ef4"
+    },
+    {
+      "file": "appearance-dark.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?theme=dark",
+      "scenario": "Dark theme with loaded history",
+      "capturedAt": "2026-10-23T09:30:48.730Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "5e9346648447a212b693ca88765da110a496ca7ec0b2fad23e7dcb9c74db1b0d"
+    },
+    {
+      "file": "appearance-english.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?locale=en-US",
+      "scenario": "English welcome and input controls",
+      "capturedAt": "2026-10-23T09:30:53.666Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "f1db1dba16a117c2a8b6b96a999b8076260e579a06fd0cdd9c74008398e36f9a"
+    },
+    {
+      "file": "chat-code-actions.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=markdown-showcase",
+      "scenario": "Completed code reply with copy and retry actions",
+      "capturedAt": "2026-10-23T09:27:01.630Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "819c3af27f160d47bf42f9182ffd913f88bf8521814d9d2cf2b0658f6b17fae9"
+    },
+    {
+      "file": "chat-markdown.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=markdown-showcase",
+      "scenario": "Task checklist, table and code",
+      "capturedAt": "2026-10-23T09:27:08.915Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "bf2069359de4d9f6fad22b902f21d7a0cd207c58219a3beb4f5a03dba4e96ef3"
+    },
+    {
+      "file": "chat-welcome.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/",
+      "scenario": "Welcome and starter questions",
+      "capturedAt": "2026-10-23T09:26:30.601Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "57892e7aa5e215b8fe1bbb29c0fbced81a2406f262845d15b468b60388fc97e4"
+    },
+    {
+      "file": "execution-plan.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=agent-plan&speed=4",
+      "scenario": "In-progress task plan and stop control",
+      "capturedAt": "2026-10-23T09:29:58.574Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "ceb7cde7d5fd114fc5af6ab856c2601ea41ec3808327996d7b0464efaf8d23f9"
+    },
+    {
+      "file": "execution-reasoning.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=reasoning-tool-success",
+      "scenario": "Expanded reasoning and tool result",
+      "capturedAt": "2026-10-23T09:28:33.082Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "d84d77aaddf87859402f106bb99f89c30f9b5b3bb3534e963550890b430b0770"
+    },
+    {
+      "file": "history-conversation.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=agent-plan&speed=4",
+      "scenario": "Loaded historical conversation with list visible",
+      "capturedAt": "2026-10-23T09:30:06.254Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "536b8b255d94046e538d02af437abd607631e2089d1d3b566d64d982f1de8724"
+    },
+    {
+      "file": "history-list.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=agent-plan&speed=4",
+      "scenario": "Current searchable conversation list",
+      "capturedAt": "2026-10-23T09:30:06.355Z",
+      "clip": {
+        "x": 1000,
+        "y": 0,
+        "width": 280,
+        "height": 640
+      },
+      "dimensions": {
+        "width": 280,
+        "height": 640
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "a2358f9985dae21a4c90b99d01c94ca4b8ab1803bd30668cfc607370a5438676"
+    },
+    {
+      "file": "input-attachment.jpg",
+      "sourceUrl": "http://127.0.0.1:5301/?scenario=attachment-draft",
+      "scenario": "Completed Mock quarterly chart with a CSV attachment and follow-up draft; centered attachment icon.",
+      "capturedAt": "2026-10-24T14:58:04.663908+00:00",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "bab587c2d533fe3d9999456b3af75d0091ca1cbc82b45fb20348c5ba2f69f725",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/results",
+      "captureMethod": "Browser webpage screenshot saved directly in its native JPEG format; no resizing or re-encoding."
+    },
+    {
+      "file": "input-voice.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=data-message-chart",
+      "scenario": "Mock dictation running with stop control; no microphone access",
+      "capturedAt": "2026-10-23T09:28:18.384Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "20b4c736edd414fda71e16389c8ff76049fdd6946f900fe957cf8cf2314bb3e8"
+    },
+    {
+      "file": "interaction-approval.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=approval-resume",
+      "scenario": "Pending approval with exact operation and allow/reject buttons; no action approved",
+      "capturedAt": "2026-10-23T09:28:47.471Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "7bf6473fe090734eebf8815f924e16ed781f9ba34095b27e34ed204491f2d5ea"
+    },
+    {
+      "file": "interaction-question.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=ask-user-question",
+      "scenario": "Interactive question and choices using official question component",
+      "capturedAt": "2026-10-23T09:29:27.213Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "20eae68b4668f4478605701fd21034c9ce6bf38bc45acde88ede223c003dd72c"
+    },
+    {
+      "file": "layout-assistant.jpg",
+      "sourceUrl": "http://127.0.0.1:5191/",
+      "scenario": "Current floating assistant opened on business dashboard",
+      "capturedAt": "2026-10-23T09:31:13.099Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "f4da9cdfe5200fafc6df063a5d811be1ee214a71dc25b740490a6d6e156ad9a5"
+    },
+    {
+      "file": "layout-embedded.jpg",
+      "sourceUrl": "http://127.0.0.1:5192/",
+      "scenario": "Current embedded assistant alongside the document editor",
+      "capturedAt": "2026-10-23T09:31:20.807Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "192fc6c0aad1e271e5c07cff2e14b23d4dddbb04ac75cd9191626f208f2fc8ce"
+    },
+    {
+      "file": "layout-workbench.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/",
+      "scenario": "Current workbench layout with conversation list and welcome",
+      "capturedAt": "2026-10-23T09:26:30.487Z",
+      "clip": null,
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "e24480f6015b036a4775c6a705952b27f2cda6490c8208114b152af0b3520829"
+    },
+    {
+      "file": "result-chart.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=data-message-chart",
+      "scenario": "Quarterly data chart with explanatory reply",
+      "capturedAt": "2026-10-23T09:27:25.207Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "16d18b086da0004e16070e2d69a0a54e389b5233229433ea4f39ef6615d10dd3"
+    },
+    {
+      "file": "result-file.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=file-output",
+      "scenario": "Generated report card with download link",
+      "capturedAt": "2026-10-23T09:29:49.892Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "376c807980bab24dee13f2fbf1a1be8c15ea64fb2ec726f8d148e1f6f725c10d"
+    },
+    {
+      "file": "result-sources.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=source-citations",
+      "scenario": "Completed reply with web and document references",
+      "capturedAt": "2026-10-23T09:29:41.375Z",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "9e38a635a0a6841205147dab3b20e30271ffa62b0c5bd80d5d6a176d7383bc8c"
+    },
+    {
+      "file": "message-branches.jpg",
+      "sourceUrl": "http://127.0.0.1:5190/?scenario=reasoning-tool-success",
+      "scenario": "Official platform capture project after editing and updating the user message; branch 2 / 2 with navigation arrows. Previous was clicked and the original question with branch 1 / 2 was confirmed. Responses are Mock demonstration data.",
+      "capturedAt": "2026-10-23T15:54:33.950485+00:00",
+      "clip": {
+        "x": 140,
+        "y": 0,
+        "width": 720,
+        "height": 370
+      },
+      "dimensions": {
+        "width": 720,
+        "height": 370
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "97f7ba743226f6da3b1ea937f6c7bf476e812c6887e684b2e40ef32788f7a49d"
+    },
+    {
+      "file": "reply-retry.jpg",
+      "sourceUrl": "http://127.0.0.1:5193/?scenario=simple-chat",
+      "scenario": "Completed local Mock reply with the actual retry button focused by keyboard; tooltip is fully visible. Captured directly from the independent platform copy without changing presentation components or styles.",
+      "capturedAt": "2026-10-23T15:58:21.703Z",
+      "clip": {
+        "x": 148,
+        "y": 64,
+        "width": 440,
+        "height": 116
+      },
+      "dimensions": {
+        "width": 440,
+        "height": 116
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "c93ec96315b3c83982e70b9034be3b44350587e497b4315fcd9bfb8745f400b1"
+    },
+    {
+      "file": "execution-job.jpg",
+      "sourceUrl": "http://127.0.0.1:5193/?scenario=agent-state-sync",
+      "capturedAt": "2026-10-23T16:01:28.244Z",
+      "clip": {
+        "x": 148,
+        "y": 64,
+        "width": 416,
+        "height": 160
+      },
+      "scenario": "Completed CI job progress card with stage list and full result message; captured directly from the independent platform copy, excluding adjacent text.",
+      "dimensions": {
+        "width": 416,
+        "height": 160
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "f1cdfe28cf501a4fd5fe35fc2fcd360d5f81919e112476b9895bcd77cffce269"
+    },
+    {
+      "file": "result-download.jpg",
+      "sourceUrl": "http://127.0.0.1:5193/?scenario=file-output",
+      "capturedAt": "2026-10-23T16:01:58.168Z",
+      "clip": {
+        "x": 148,
+        "y": 64,
+        "width": 704,
+        "height": 128
+      },
+      "scenario": "Generated quarterly-report file card, download control and complete success reply; local Mock demonstration only, no real report downloaded.",
+      "dimensions": {
+        "width": 704,
+        "height": 128
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "323db2d75e36ff6591fd146b1fbb205093a3b85b93f2fe4dcb6ca67b2fd60a27"
+    },
+    {
+      "file": "layout-workbench-hd.png",
+      "sourceUrl": "http://127.0.0.1:5293/",
+      "scenario": "High-resolution template welcome screen from an independent current example copy; no conversation submitted.",
+      "capturedDate": "2026-10-24",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/template-hd-capture-20261024/platform",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off and saved as PNG without resizing or further lossy compression. Native capture API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "0148f71d5019242ffa6053193c93ccc62a7c072059865a64cc57083d9c34cbd2"
+    },
+    {
+      "file": "layout-assistant-hd.png",
+      "sourceUrl": "http://127.0.0.1:5294/",
+      "scenario": "High-resolution template welcome screen from an independent current example copy; no conversation submitted.",
+      "capturedDate": "2026-10-24",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/template-hd-capture-20261024/assistant",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off and saved as PNG without resizing or further lossy compression. Native capture API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "02a928f9a721af1b524fb90fe7ed7776d255473b40f9d766f23e11a0c5a49eb6"
+    },
+    {
+      "file": "layout-embedded-hd.png",
+      "sourceUrl": "http://127.0.0.1:5295/",
+      "scenario": "High-resolution template welcome screen from an independent current example copy; no conversation submitted.",
+      "capturedDate": "2026-10-24",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/template-hd-capture-20261024/embedded",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off and saved as PNG without resizing or further lossy compression. Native capture API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "3c891e66245d7e537d6af707aaaf5bf148789488ef7018fcd3d31a7ffaf459a3"
+    },
+    {
+      "file": "outcome-business-analysis.png",
+      "sourceUrl": "http://127.0.0.1:5300/",
+      "scenario": "Clicked business action to send current ticket context; completed suggested response. Fictional business data and deterministic local Mock, not real backend/model acceptance.",
+      "capturedAt": "2026-10-24T14:19:57.025939+00:00",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/business",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off, PNG saved without resizing or further lossy compression. Native API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "e1d9b1293d06f7ed63d9c9658bc0c95223f70c11084de4f7b70eead6b0e03c14"
+    },
+    {
+      "file": "outcome-open-ticket.png",
+      "sourceUrl": "http://127.0.0.1:5300/",
+      "scenario": "Actual frontend tool selected TK-1024; business detail and assistant confirmation both updated. Fictional business data and deterministic local Mock, not real backend/model acceptance.",
+      "capturedAt": "2026-10-24T14:19:57.132328+00:00",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/business",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off, PNG saved without resizing or further lossy compression. Native API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "c74554c8dc5a4145ac16cfa5b2cfee46276e5f87d280c1ddb5cc01f5623958ed"
+    },
+    {
+      "file": "outcome-material-review.jpg",
+      "sourceUrl": "http://127.0.0.1:5301/",
+      "scenario": "Real CSV sent with the default Base64 adapter; centered attachment icon and completed deterministic Mock material-review reply. Fictional data, not production backend/model acceptance.",
+      "capturedAt": "2026-10-24T14:58:04.663908+00:00",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/results",
+      "captureMethod": "Browser webpage screenshot saved directly in its native JPEG format; no resizing or re-encoding.",
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "e681050a5ef73a68f69c9ea09c1f8b5507825aaef4535fc4fee4265db9e088c0",
+      "clip": null,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "file": "outcome-report-delivery.png",
+      "sourceUrl": "http://127.0.0.1:5301/?scenario=report-delivery",
+      "scenario": "Completed response combines summary, chart, source link and report card. Links resolve to real local fixture files. Fictional business data and deterministic local Mock, not real backend/model acceptance.",
+      "capturedAt": "2026-10-24T14:19:57.332107+00:00",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/results",
+      "captureMethod": "Native Chrome screenshot at original pixels; browser chrome cropped off, PNG saved without resizing or further lossy compression. Native API supplies JPEG bytes.",
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "width": 2824,
+        "height": 1672
+      },
+      "dimensions": {
+        "width": 2824,
+        "height": 1672
+      },
+      "sha256": "7a5fe2a9f646da727b4a710d965d8bd87a3da7808cee2faaabbfcc67de0087dd"
+    },
+    {
+      "file": "workbench-input.jpg",
+      "sourceUrl": "http://127.0.0.1:5301/?scenario=attachment-draft",
+      "scenario": "Main conversation area with completed Mock chart and CSV attachment draft; centered attachment icon.",
+      "capturedAt": "2026-10-24T14:58:04.663908+00:00",
+      "sourceProject": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/results",
+      "captureMethod": "Browser webpage screenshot saved directly in its native JPEG format; no resizing or re-encoding.",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1000,
+        "height": 720
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "dimensions": {
+        "width": 1000,
+        "height": 720
+      },
+      "sha256": "116c98ecc9efc8c97672b5056c0265f8143cf7a0c3c02af487f465734f056537"
+    }
+  ]
+}

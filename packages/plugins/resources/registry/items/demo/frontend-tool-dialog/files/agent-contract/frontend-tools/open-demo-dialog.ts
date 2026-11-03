@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineFrontendTool } from "../../runtime/tools";
+import { defineFrontendTool } from "@za38.03/agent-ui-runtime/ui/runtime/tools/index";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService } from "../../services/demo-dialog";
 
 /** Application-owned allowlist; capability existence alone grants no permission. */

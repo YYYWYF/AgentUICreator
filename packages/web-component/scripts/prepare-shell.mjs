@@ -7,7 +7,7 @@ import { prepareHostPackages } from "../../../scripts/prepare-host-packages.mjs"
 // resolving its public entry points, including on a clean checkout.
 prepareHostPackages({ withMock: true });
 const { initializeAgentUIProject } = await import("@za38.03/agent-ui-creator/bootstrap");
-const { createAgentUIInitializationHost } = await import("@za38.03/agent-ui-creator/operator/host");
+const { createAgentUIInitializationHost } = await import("@za38.03/agent-ui-creator/project/host");
 const projectRoot = fileURLToPath(new URL("../.generated/", import.meta.url));
 const sourceRoot = path.join(projectRoot, "src");
 const nodeModules = path.join(projectRoot, "node_modules");
@@ -24,5 +24,4 @@ const host = createAgentUIInitializationHost();
 await initializeAgentUIProject({ projectRoot, mode: "embedded", sourceRoot: "src/agent-ui" }, {
   ...host,
   installOperatorEntry: async () => [],
-  installDevelopmentDefaults: async () => [],
 });

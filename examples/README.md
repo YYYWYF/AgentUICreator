@@ -18,6 +18,8 @@ This command installs the frozen workspace graph, builds the tooling once, initi
 
 Maintainers synchronize these examples explicitly from the current Bootstrap presets and installed Plugins catalog, validate each Host and commit source together with its matching source lock. Startup preserves already initialized projects, application customizations and source BASE. A broken or mismatched project stops with an error; it is never reset or automatically source-synchronized. New projects use the current default preset and catalog application templates. Changing those defaults does not overwrite an existing project's generated code.
 
+Keep these maintained examples derived from the canonical templates. Use a separate project outside these example directories for exploratory Creator and customization tests (for example, under a sibling `agentui_test/` directory). Test changes must not be retained in the example templates; synchronize intentional template changes from their canonical owners.
+
 Each example's Vite development config provides the local Mock Agent at `/agent` and conversation history at `/__agent-ui/mock-data`. The Mock belongs to Creator development tooling; frontend source imports only the generated Agent entry and production UI packages. The current Host `AgentMount.tsx` explicitly selects `/agent`; replace that Host-owned endpoint to use a real API. No model credentials are needed for these mocks.
 
 After initialization, each example supports its own `dev`, `test`, `typecheck` and `build` scripts, for example:

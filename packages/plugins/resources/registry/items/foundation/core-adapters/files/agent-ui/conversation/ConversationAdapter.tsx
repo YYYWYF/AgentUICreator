@@ -7,9 +7,9 @@ import {
 } from "react";
 
 import type { ConversationThreadComponents, ConversationThreadLabels } from "@za38.03/agent-ui-plugins";
-import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import type { UIPluginComponentProps } from "@za38.03/agent-ui-plugins/contracts";
 import { useConversationPresentationConfig } from "./config";
-import { useAgentUITheme } from "../theme/useAgentUITheme";
+import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui/agent-ui/theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
 import {
   ScopedUserEditComposer,
@@ -22,7 +22,7 @@ import {
   ScopedToolTimeline,
   ScopedThinkingIndicator,
   ScopedTransientMessages,
-} from "./ScopedRendererBridge";
+} from "@za38.03/agent-ui-runtime/ui/agent-ui/conversation/ScopedRendererBridge";
 
 export interface ConversationEmptyStateProps {
   welcome?: ReactNode;

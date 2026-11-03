@@ -2,12 +2,11 @@
   "id": "integration/react-hook-form",
   "kind": "integration",
   "description": "AgentUICreator integration for Agent UI React Hook Form frontend-tool semantics",
-  "requires": [
-    "foundation/core-runtime"
-  ],
+  "requires": [],
   "packages": {
     "react-hook-form": "7.88.0",
-    "@za38.03/agent-ui-plugins": "0.0.1"
+    "@za38.03/agent-ui-plugins": "0.0.1",
+    "@za38.03/agent-ui-runtime": "0.0.1"
   },
   "upstream": {
     "project": "assistant-ui/assistant-ui",

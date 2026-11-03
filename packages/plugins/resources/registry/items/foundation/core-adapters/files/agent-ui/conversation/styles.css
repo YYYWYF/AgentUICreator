@@ -1,7 +1,7 @@
-@import "@za38.03/agent-ui-plugins/styles.css";
+@import "@za38.03/agent-ui-plugins/styles-base.css";
 @import "./compact.css";
 
-/* The package owns its internal presentation scan. The project owns these
+/* Plugin npm entries carry their implementation utilities. The project owns these
  * editable integration and Plugin sources. */
 @source ".";
 @source "../../plugins";
@@ -16,5 +16,5 @@
  * Violet brand surface/focus tokens derive from --agent-brand. Override any
  * additional semantic tokens needed for the requested design here, not in npm
  * source, Host business CSS, AppUIModel, or Runtime. Theme preset selection is
- * ../theme/theme-config.ts (light/dark/violet); blue is not a preset ID.
+ * passed through Agent.theme (light/dark/violet); blue is not a preset ID.
  */

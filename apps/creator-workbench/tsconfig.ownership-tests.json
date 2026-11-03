@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/plugin-ownership-matrix.spec.ts", "playwright.ownership.config.ts"],
+  "exclude": []
+}

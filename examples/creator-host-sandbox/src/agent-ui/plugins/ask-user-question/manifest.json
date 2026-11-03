@@ -1,0 +1,15 @@
+{
+  "id": "ask-user-question",
+  "name": "Ask User Question",
+  "description": "Collect structured choices or text answers inside the conversation.",
+  "version": "0.0.1",
+  "capabilities": [
+    "human-input",
+    "headless"
+  ],
+  "authoring": {
+    "intents": [
+      "ask the user to choose options or provide text before continuing"
+    ]
+  }
+}

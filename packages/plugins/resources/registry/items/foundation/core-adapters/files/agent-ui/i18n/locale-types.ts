@@ -11,15 +11,6 @@ export interface AgentUILocaleMessages extends Omit<AgentUIPresentationMessages,
     collapse: string;
     restore: string;
   };
-  humanQuestion: {
-    back: string;
-    next: string;
-    submit: string;
-    submitting: string;
-    answered: string;
-    noneSelected: string;
-    unavailable: string;
-  };
   conversationTriggers: {
     suggestions: string; back: string; empty: string; loading: string;
     searchFailed: string; retry: string; commandFailed: string; invalidItem: string; newConversation: string;

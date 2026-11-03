@@ -1,15 +1,15 @@
-# Message Feedback and follow-up Queue
+# Feedback 与消息排队
 
-Feedback is an application UI action, not an Agent inference event. Generated `Agent` and `ConversationRuntimeProvider` accept `ConversationFeedbackAdapter`; the Host receives the owned `threadId`, `messageId`, `type` and optional `comment`. No AG-UI feedback event or run is emitted. The `assistant-ui-feedback-actions` Plugin uses native positive/negative primitives on the response tail and hides when the Host does not supply an adapter.
+## Feedback
 
-Selection is optimistic and owned by assistant-ui (`metadata.submittedFeedback`), while persistence belongs to the Host. Synchronous and asynchronous persistence errors enter the application `onError` callback (also exposed by generated `AgentProps`), falling back to `console.error` when unavailable. They never call the Agent bridge error recorder or change Agent run status; no custom rollback or feedback cache is maintained. History must preserve `submittedFeedback` to restore selection after reload. This release has no comment dialog, but the Host contract forwards comments.
+feedback-actions 是 response-footer 中的评价 UI，复用 canonical Conversation Runtime 的选择状态。默认反馈适配器保留当前会话内选择；Agent.feedback 可配置持久化服务，Agent.feedbackAdapter 可提供高级实现，feedback=false 可关闭内置适配器。
 
-Direct Runtime Provider callers retain `enableMessageQueue=false` by default. Newly generated Agent applications also default to `conversationMessageQueueEnabled=false` in the application-owned conversation config. Hosts may explicitly opt in by changing that config after reviewing the upstream limitation. Queue is a Runtime capability and canonical Composer presentation; there is no Queue Plugin or AppUIModel queue state. Canonical Composer renders attachments, quote/beforeInput, pending text/removal, input and actions. During a run, Send (Queue message) and Stop coexist when queue is supported.
+评价是应用行为，不发起 Agent 推理或私有 AG-UI feedback 事件。持久化由应用负责，恢复后的历史需包含对应评价元数据；错误通过现有 onError 报告，不能改变 Agent 运行状态或伪造回滚成功。
 
-All enqueue/drain/remove, client-tool and interrupt hold, cancellation pause, and edit/reload clearing behavior belongs to pinned assistant-ui. Only Text and Remove are presented; there is no immediate steering, editing or reordering UI. Composer Send and Enter use upstream dispatch. Programmatic `AgentRuntime.sendMessage()` retains its single-flight Busy contract.
+## 消息排队
 
-Queue is ephemeral browser Runtime memory, isolated per mounted Thread. Pending messages are not guaranteed to survive refresh; Server Run Resume is a separate capability. No private Queue AG-UI events, durable protocol, custom store, or serialized upstream queue cache is introduced. Remaining queued messages dispatch as ordinary AG-UI runs after the active run settles.
+默认关闭消息排队。应用可以显式设置 Agent.enableMessageQueue；直接使用 ConversationRuntimeProvider 时对应 enableMessageQueue。队列由上游 Runtime 与 canonical Composer 管理，不新增 Queue Plugin、AppUIModel 状态或本地协议。
 
-## Pinned upstream limitation
+队列是当前浏览器 Thread 的短期状态，不是持久化历史。发送、等待、移除、取消以及与 frontend tool/interrupt 的协调都使用现有 Runtime；程序式单次发送继续遵循原有运行互斥。
 
-With `@assistant-ui/react 0.15.23` / `react-ag-ui 0.0.63`, a follow-up queued **before** the active run hands off to a client tool can drain at the network run's falling edge, before the tool executor reports busy. The next append can auto-cancel the unresolved tool. Sending a follow-up while the client tool is already executing correctly holds it until the continuation settles. The integration suite records the earlier-handoff case as an expected failing regression (`it.fails`), so an upstream fix makes that sentinel require review. Queue remains disabled by default until the upstream race is fixed, the sentinel becomes a normal passing test, and enabling the default is reviewed. This release follows the requested no-fork boundary and does not add a local queue state machine; it does not claim that earlier-handoff case is resolved.
+启用前验证运行中发送、工具执行前后续发、中断、取消、移除和历史切换。浏览器实际结果与单元测试分别报告，不把默认关闭解释成所有竞态已解决。

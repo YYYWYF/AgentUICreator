@@ -28,6 +28,12 @@
       ],
       "@za38.03/agent-ui-plugins/catalog": [
         "../../packages/plugins/src/catalog/index.ts"
+      ],
+      "@za38.03/agent-ui-runtime/ui": [
+        "../runtime/src/ui/index.ts"
+      ],
+      "@za38.03/agent-ui-runtime/ui/*": [
+        "../runtime/src/ui/*"
       ]
     },
     "resolveJsonModule": true

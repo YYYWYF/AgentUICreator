@@ -1,4 +1,6 @@
+import { sharedStyleSources } from "./shared-style-sources.mjs";
 import { deliveries } from "./plugin-source-recipes.mjs";
+import { isPublicPluginDeclaration } from "./public-declarations.mjs";
 import { cp, mkdir, readdir, rm, copyFile, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,8 +20,7 @@ async function removeInternalDeclarations(root, relativeRoot = "") {
       await removeInternalDeclarations(entryPath, relativePath);
       continue;
     }
-    const isPublicDeclaration = relativePath.startsWith("catalog/") || publicPresentations.has(relativePath) || relativePath === "index.d.ts" ||
-      relativePath === "locale.d.ts" || relativePath.startsWith("locales/") || relativePath === "form-tools.d.ts" || relativePath === "public.d.ts" || relativePath === "lexical.d.ts" || relativePath === "generative-ui.d.ts" || relativePath === "demo-attachments.d.ts" || relativePath === "theme/theme-contract.d.ts";
+    const isPublicDeclaration = isPublicPluginDeclaration(relativePath, publicPresentations);
     if (!isPublicDeclaration &&
       (entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.ts.map"))) {
       await rm(entryPath);
@@ -31,6 +32,16 @@ await mkdir(distRoot, { recursive: true });
 // Explicit source-file scans must follow the emitted JS in the publishable tree.
 const styles = await readFile(path.join(sourceRoot, "styles.css"), "utf8");
 await writeFile(path.join(distRoot, "styles.css"), styles.replace(
+  /(@source "\.\/[^"\n]+)\.tsx?(";)/gu, "$1.js$2",
+));
+// The lean entry retains shared foundations but leaves Plugin utility classes to
+// the Plugin entries. The original stylesheet remains the full facade contract.
+const sharedSources = new Set(sharedStyleSources);
+const leanStyles = styles
+  .replace('source("./internal/vendor-generated/assistant-ui")', 'source(none)')
+  .replace(/^@source "([^"\n]+)";\n/gmu, (line, source) => sharedSources.has(source) ? line : "")
+  .replace('@import "./theme/composer-lexical.css";\n', "");
+await writeFile(path.join(distRoot, "styles-base.css"), leanStyles.replace(
   /(@source "\.\/[^"\n]+)\.tsx?(";)/gu, "$1.js$2",
 ));
 await copyFile(
@@ -73,7 +84,7 @@ await rm(path.join(distRoot, "experimental"), { recursive: true, force: true });
 await writeFile(path.join(distRoot, "composer-support.d.ts"), `/// <reference types="node" />
 import type { Context, FC, ComponentProps } from "react";
 export { useAgentUILocale } from "./locale.js";
-export { ComposerPrimitive, QueueItemPrimitive, AuiIf } from "@assistant-ui/react";
+export { ComposerPrimitive, QueueItemPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
 export { XIcon } from "lucide-react";
 export type ConversationComposerInputProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>;
 export type ConversationComposerRootProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Root>;
@@ -89,6 +100,8 @@ export const TooltipIconButton: FC<ComponentProps<"button"> & { tooltip: string 
 // Opt-in source support declarations reference installed public dependencies only.
 await writeFile(path.join(distRoot, "plugin-support.d.ts"), `import type { ComponentProps, FC } from "react";
 import type { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
+export { useAgentUIThemeSnapshot } from "./plugin-api/useAgentUIThemeSnapshot.js";
+export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.js";
 export { useAgentUILocale } from "./locale.js";
 export { AuiIf, ActionBarPrimitive } from "@assistant-ui/react";
 export { CheckIcon, CopyIcon, RefreshCwIcon, DownloadIcon, ThumbsUpIcon, ThumbsDownIcon } from "lucide-react";
@@ -101,11 +114,13 @@ export const ReasoningRoot: FC<Omit<DisclosureRoot, "onAnimationStart"> & { stre
 export const ReasoningTrigger: FC<CollapsiblePrimitive.Trigger.Props & { active?: boolean; duration?: number }>;
 export const ReasoningContent: FC<CollapsiblePrimitive.Panel.Props>;
 export const ReasoningText: FC<ComponentProps<"div">>;
+export const Image: FC<{ type: "image"; image: string; filename?: string; status?: { type: "complete" } }>;
+export const File: FC<{ type: "file"; data: string; mimeType: string; sourceType?: "url" | "id"; filename?: string; status?: { type: "complete" } }> & { Player: FC<{ data: string; mimeType: string; sourceType?: "url" | "id"; filename?: string; controlsList?: string }> };
 export const ToolGroupRoot: FC<DisclosureRoot>;
 export const ToolGroupTrigger: FC<CollapsiblePrimitive.Trigger.Props & { count: number; active?: boolean }>;
 export const ToolGroupContent: FC<CollapsiblePrimitive.Panel.Props>;
 export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, ThreadPrimitive as ConversationParts, SuggestionPrimitive as SuggestionActions } from "@assistant-ui/react";
-export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
+export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export const Button: FC<Omit<import("./public.js").ConversationTooltipIconButtonProps, "tooltip" | "side">>;
 export function useConversationComposerSendGuard(): () => boolean;
 export const ResponseActionBarRoot: typeof import("./public.js").ConversationResponseActionBarRoot;
@@ -115,11 +130,11 @@ export const ThinkingIndicator: FC<Omit<ComponentProps<"div">,"children"> & {lab
 export const Collapsible: FC<CollapsiblePrimitive.Root.Props>;
 export const CollapsibleTrigger: FC<CollapsiblePrimitive.Trigger.Props>;
 export const CollapsibleContent: FC<CollapsiblePrimitive.Panel.Props>;
-export interface TimelinePart {readonly type:string;readonly toolCallId?:string;readonly toolName?:string;readonly text?:string;readonly status?:{readonly type:string;readonly reason?:string};readonly messages?:unknown;readonly approval?:unknown;readonly interrupt?:unknown;readonly mcp?:unknown;readonly isError?:boolean|undefined;}
-export interface TimelineCall {readonly toolCallId:string;readonly toolName:string;readonly index:number;readonly status:string;readonly reason?:string|undefined;readonly summarized:boolean;readonly protected:boolean;}
+export interface TimelinePart {readonly type:string;readonly toolCallId?:string;readonly toolName?:string;readonly text?:string;readonly args?:unknown;readonly result?:unknown;readonly status?:{readonly type:string;readonly reason?:string};readonly messages?:unknown;readonly approval?:unknown;readonly interrupt?:unknown;readonly mcp?:unknown;readonly isError?:boolean|undefined;}
+export interface TimelineCall {readonly toolCallId:string;readonly toolName:string;readonly index:number;readonly status:string;readonly reason?:string|undefined;readonly summarized:boolean;readonly protected:boolean;readonly target:string;}
 export function hasPendingToolAction(part: TimelinePart): boolean;
-export function projectToolTimeline(parts: readonly TimelinePart[],namedTools?:Readonly<Record<string, readonly unknown[]|undefined>>):{anchorId:string|undefined;streaming:boolean;calls:TimelineCall[];summarized:TimelineCall[];detailIndices:number[]};
-export function timelineToolKind(name:string):"read"|"command"|"search"|"tool";
+export function projectToolTimeline(parts: readonly TimelinePart[],namedTools?:Readonly<Record<string, readonly unknown[]|undefined>>):{anchorId:string|undefined;streaming:boolean;calls:TimelineCall[];summarized:TimelineCall[];stats:{file:string;added?:number;removed?:number}[];detailIndices:number[]};
+export function timelineToolKind(name:string):"read"|"command"|"search"|"edit"|"tool";
 export { formatPresentationMessage } from "./locale.js";
 
 export { DEFAULT_AGENT_UI_MESSAGES, type AgentUILocaleMessages } from "./locale.js";

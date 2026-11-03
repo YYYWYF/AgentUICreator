@@ -1,7 +1,12 @@
 "use client";
 import { type FC, type ComponentProps } from "react";
 import { useAgentUILocale, useAssistantResponseRuntime, TooltipIconButton, DownloadIcon, ConversationActionMoreMenuItem } from "../../../../plugin-support.js";
-export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string; buttonProps?: Partial<ComponentProps<typeof TooltipIconButton>>; menuItemProps?: Partial<ComponentProps<typeof ConversationActionMoreMenuItem>> }> = ({ menuLabel, buttonProps, menuItemProps }) => {
+export type ResponseExportMarkdownActionProps = Omit<ComponentProps<typeof TooltipIconButton>, "tooltip"> & {
+  tooltip?: string;
+  menuLabel?: string;
+  menuItemProps?: Partial<ComponentProps<typeof ConversationActionMoreMenuItem>>;
+};
+export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownActionProps> = ({ menuLabel, menuItemProps, tooltip, ...buttonProps }) => {
   const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   const disabled = response.isRunning || !response.text;
@@ -23,7 +28,7 @@ export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string; but
       {menuItemProps?.children ?? <><DownloadIcon className="size-4" />{menuLabel}</>}
     </ConversationActionMoreMenuItem>;
   }
-  return <TooltipIconButton tooltip={localeMessages.conversation.exportMarkdown} type="button" {...buttonProps} disabled={disabled || buttonProps?.disabled} onClick={event => { buttonProps?.onClick?.(event); if (!event.defaultPrevented) exportMarkdown(); }}>
+  return <TooltipIconButton tooltip={tooltip ?? localeMessages.conversation.exportMarkdown} type="button" {...buttonProps} disabled={disabled || buttonProps?.disabled} onClick={event => { buttonProps?.onClick?.(event); if (!event.defaultPrevented) exportMarkdown(); }}>
     {buttonProps?.children ?? <DownloadIcon />}
   </TooltipIconButton>;
 };

@@ -11,6 +11,16 @@ import { take } from "../../../../../vendor-generated/assistant-ui/components/as
 export interface WebSearchResult {
   title: string;
   domain: string;
+  url?: string;
+  snippet?: string;
+}
+
+function webSearchHref(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+  } catch { return undefined; }
 }
 
 export function WebSearch({
@@ -62,22 +72,28 @@ export function WebSearch({
         )}
       </div>
       <div data-agent-ui-owned="" className={cn("flex flex-col", searching && "min-h-[5.75rem]")}>
-        {take(results, visibleResults).map((result) => (
+        {take(results, visibleResults).map((result, index) => {
+          const href = webSearchHref(result.url);
+          return (
           <div data-agent-ui-owned=""
-            key={`${cycle}-${result.domain}`}
+            key={`${cycle}-${index}`}
             className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both hover:bg-foreground/[0.03] -mx-2.5 flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-300"
           >
             <span data-agent-ui-owned="" className="bg-foreground/[0.06] text-muted-foreground flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-medium">
               {result.domain.charAt(0).toUpperCase()}
             </span>
-            <span data-agent-ui-owned="" className="text-foreground/90 min-w-0 flex-1 truncate text-[13.5px]">
-              {result.title}
-            </span>
+            <div data-agent-ui-owned="" className="min-w-0 flex-1">
+              {href ? <a data-agent-ui-owned="" href={href} target="_blank" rel="noopener noreferrer" className="text-foreground/90 focus-visible:ring-ring/50 block truncate rounded-sm text-[13.5px] outline-none hover:underline focus-visible:ring-1">
+                <span data-agent-ui-owned="">{result.title}</span>
+              </a> : <span data-agent-ui-owned="" className="text-foreground/90 block truncate text-[13.5px]">{result.title}</span>}
+              {typeof result.snippet === "string" && result.snippet ? <p data-agent-ui-owned="" className="text-muted-foreground mt-1 text-xs">{result.snippet}</p> : null}
+            </div>
             <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground shrink-0")}>
               {result.domain}
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

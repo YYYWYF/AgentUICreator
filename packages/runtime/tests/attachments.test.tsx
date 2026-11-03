@@ -1,8 +1,9 @@
-import { HttpAgent, RunAgentInputSchema, type InputContent, type RunAgentInput } from "@ag-ui/client";
+import { RunAgentInputSchema } from "@ag-ui/core/schemas";
+import { HttpAgent, type ContentPart, type RunAgentInput } from "@ag-ui/client";
 import { useAui, type AssistantRuntime, type AttachmentAdapter, type ThreadMessage } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "../src/index.js";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding, type AttachmentConfig } from "../src/index.js";
 import { projectLangChainHistory } from "../src/history/langchain-history-projector.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,10 +33,10 @@ async function until(condition: () => boolean) {
   throw new Error("Timed out waiting for attachment runtime");
 }
 
-async function fixture(attachmentAdapter?: AttachmentAdapter) {
+async function fixture(attachmentAdapter?: AttachmentAdapter, attachments?: AttachmentConfig | false) {
   const requests: RunAgentInput[] = [];
   const agent = new HttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
-    const input = RunAgentInputSchema.parse(JSON.parse(String(init.body)));
+    const input = RunAgentInputSchema.parse(JSON.parse(String(init.body))) as RunAgentInput;
     requests.push(input);
     const events = [
       { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
@@ -49,9 +50,10 @@ async function fixture(attachmentAdapter?: AttachmentAdapter) {
   function Capture() { capturedRuntime = useAui().threads.__internal_getAssistantRuntime?.(); return null; }
   let renderer!: ReactTestRenderer;
   const binding = createEphemeralConversationThreadBinding();
+  const render = (config?: AttachmentConfig | false) => <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
+    attachmentAdapter={attachmentAdapter} attachments={config} unstable_agentFactory={() => agent}><Capture /></ConversationRuntimeProvider>;
   await act(async () => {
-    renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
-      attachmentAdapter={attachmentAdapter} unstable_agentFactory={() => agent}><Capture /></ConversationRuntimeProvider>);
+    renderer = create(render(attachments));
     await Promise.resolve();
   });
   if (capturedRuntime === undefined) {
@@ -65,7 +67,7 @@ async function fixture(attachmentAdapter?: AttachmentAdapter) {
     await act(async () => renderer.unmount());
     throw error;
   }
-  return { runtime, run, requests, async dispose() { await act(async () => renderer.unmount()); } };
+  return { runtime, run, requests, async configure(config: AttachmentConfig | false) { await act(async () => renderer.update(render(config))); }, async dispose() { await act(async () => renderer.unmount()); } };
 }
 
 const imageA = () => new File(["image-a"], "a.png", { type: "image/png" });
@@ -73,7 +75,7 @@ const imageB = () => new File(["image-b"], "b.png", { type: "image/png" });
 const pdf = () => new File(["%PDF-1.7"], "test.pdf", { type: "application/pdf" });
 const base64 = (value: string) => Buffer.from(value).toString("base64");
 
-const cases: { name: string; text: string; files: File[]; remove?: boolean; expected: string | InputContent[] }[] = [
+const cases: { name: string; text: string; files: File[]; remove?: boolean; expected: string | ContentPart[] }[] = [
   { name: "text remains a string", text: "hello", files: [], expected: "hello" },
   { name: "text and image", text: "What is this?", files: [imageA()], expected: [
     { type: "text", text: "What is this?" },
@@ -95,15 +97,38 @@ const cases: { name: string; text: string; files: File[]; remove?: boolean; expe
 ];
 
 describe("installed assistant-ui attachment integration", () => {
-  it("derives attachment capability only from the injected adapter", async () => {
+  it("supports attachments by default and accepts an explicit adapter override", async () => {
     for (const supplied of [undefined, adapter]) {
       const f = await fixture(supplied);
+      try { expect(f.runtime.thread.getState().capabilities.attachments).toBe(true); }
+      finally { await f.dispose(); }
+    }
+  });
+  it("can disable the default, with an explicit adapter taking precedence", async () => {
+    for (const supplied of [undefined, adapter]) {
+      const f = await fixture(supplied, false);
       try { expect(f.runtime.thread.getState().capabilities.attachments).toBe(supplied !== undefined); }
       finally { await f.dispose(); }
     }
   });
+  it("sends the uploaded file URL in AG-UI content instead of the upload endpoint", async () => {
+    const upload = vi.fn(async () => Response.json({ url: "https://files.test/report.pdf" }));
+    vi.stubGlobal("fetch", upload);
+    const f = await fixture();
+    try {
+      const threadId = f.runtime.thread.getState().threadId;
+      await f.configure({ uploadUrl: "https://api.test/upload" });
+      expect(f.runtime.thread.getState().threadId).toBe(threadId);
+      await act(async () => { await f.runtime.thread.composer.addAttachment(pdf()); });
+      await act(async () => { f.runtime.thread.composer.send(); await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning); });
+      expect(upload).toHaveBeenCalledOnce();
+      expect(f.requests[0]!.messages.at(-1)!.content).toEqual([
+        { type: "document", source: { type: "url", value: "https://files.test/report.pdf", mimeType: "application/pdf" }, metadata: { filename: "test.pdf" } },
+      ]);
+    } finally { await f.dispose(); vi.unstubAllGlobals(); }
+  });
   it.each(cases)("$name reaches runAgent and the standard HTTP body", async ({ text, files, remove, expected }) => {
-    const f = await fixture(adapter);
+    const f = await fixture();
     try {
       await act(async () => {
         f.runtime.thread.composer.setText(text);

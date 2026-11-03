@@ -1,0 +1,189 @@
+---
+title: "工具结果（tool-result）"
+---
+
+# 工具结果（tool-result）
+
+工具返回文本、图片、音频、视频或文档时，按内容顺序展示文本、图片预览、播放器和文件下载入口。图片、播放器和文件卡片复用 assistant-ui 的现有组件与 Agent UI 主题。
+
+![同一次工具调用中的文本、图片、音频、视频和文档](/images/plugins/tool-result.png)
+
+## 启用与使用
+
+工作台、悬浮助手和嵌入式助手的新建项目默认启用 `tool-result`。它保留工具参数、错误提示和审批操作，并展示工具返回的多模态内容。
+
+如果现有项目仍使用 `tool-fallback`，可以向 Creator 描述：
+
+```text
+请把对话的工具调用详情替换为 tool-result，自动展示工具返回的图片、音频、视频和文档。
+保留工具参数、错误提示和审批操作。
+```
+
+本插件放在 `conversation-surface` 的 `toolFallback` 渲染位置；该位置只容纳一个插件。如果已有 `tool-fallback`，需要替换该位置的插件。已有项目的启用状态以实际配置为准。已注册的专用工具界面继续优先。
+
+模板 JSON 中的对应组合如下，合并到现有 `conversation-surface` 实例的 `slots` 中：
+
+```json
+{
+  "toolFallback": [
+    { "pluginId": "tool-result" }
+  ]
+}
+```
+
+后端通过 AG-UI `TOOL_CALL_RESULT.content` 返回内容数组，例如：
+
+```json
+{
+  "type": "TOOL_CALL_RESULT",
+  "messageId": "result-1",
+  "toolCallId": "call-1",
+  "content": [
+    { "type": "text", "text": "报告已生成。" },
+    {
+      "type": "image",
+      "source": {
+        "type": "url",
+        "value": "https://example.com/chart.png",
+        "mimeType": "image/png"
+      }
+    },
+    {
+      "type": "document",
+      "source": {
+        "type": "url",
+        "value": "https://example.com/report.pdf",
+        "mimeType": "application/pdf"
+      },
+      "metadata": { "filename": "report.pdf" }
+    }
+  ]
+}
+```
+
+`audio` 和 `video` 使用相同的 `source` 结构。音视频由用户点击播放，不自动播放，暂不提供下载入口；视频原生控件设置了隐藏下载项。文档保留文件卡片和下载入口，不内嵌执行文档内容。普通字符串、业务 JSON 或不符合内容数组结构的结果沿用原始结果展示。
+
+`source.type` 为 `url` 时使用可访问的 HTTP/HTTPS 或 Blob URL；为 `data` 时需要 Base64 数据和 MIME 类型。为 `file` 时，`value` 是提供方文件标识，需要项目提供文件解析服务，组件不会把标识当作网址请求。媒体地址仍需满足项目的鉴权和浏览器访问条件。
+
+## 手动开发
+
+项目应用层的 `plugins/tool-result/index.tsx` 引用公开的 `ConversationToolResultPlugin`，继续传入已有的 `tool` 数据并保留子插件渲染调用，通过 React 属性定制展示，无需接管官方源码。
+
+### 属性
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+插件入口：`ConversationToolResultPlugin`；展示组件：`ConversationToolResult`；类型：`ConversationToolResultProps`。入口接收子插件渲染函数、下表属性及下列 `ToolFallbackPresentationProps`，包括基础外观属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `tool?` | `ConversationToolResultProps` | 插件入口工具上下文，缺少时不渲染；独立展示组件直接接收工具上下文 |
+| `resultOnly?` | `boolean` | 默认不启用；设为 `true` 直接展示结果内容，省略整个工具详情／审批界面，与是否已有结果无关 |
+| `resolveFile?` | `(source: Extract<ToolResultSource, { type: 'file' }>, options: { signal: AbortSignal }) => string \| Promise<string>` | 将文件引用解析为可呈现 URL，支持取消 |
+| `renderPart?` | `(part: ToolResultPart, index: number, defaultContent: ReactNode) => ReactNode` | 自定义每个结果片段，可复用默认内容 |
+
+工具结果使用 `tool.result` 或展示组件的 `result`，不是给插件入口另传一份结果。识别为多模态片段数组时，外层组件分别显示工具详情和结果，内部会覆盖 `renderResult` 以避免重复结果；此时使用 `renderPart` 定制内容。非片段数组使用默认工具结果回退，不调用 `renderPart`。`resultOnly` 会省略工具卡片，包括审批区，使用时保留业务所需的交互入口。
+
+独立内容组件 `ConversationToolResultContent` 接受 `ToolResultContentProps`：必需的 `result: unknown`，以及同上 `resolveFile?`、`renderPart?`。
+
+`ToolResultPart` 的共同字段为 `id?: string`、`metadata?: unknown`；文本片段是 `{ type: 'text'; text: string }`，媒体片段是 `{ type: 'image' | 'audio' | 'video' | 'document'; source: ToolResultSource }`。来源类型为：
+
+```ts
+type ToolResultSource =
+  | { type: 'url'; value: string; mimeType?: string }
+  | { type: 'data'; value: string; mimeType: string }
+  | { type: 'file'; value: string; provider?: string; mimeType?: string };
+```
+
+文件来源未提供 `resolveFile` 时显示不可用提示。`data` 来源使用 base64 内容；工具结果整体还支持默认文本／结构化回退。
+
+#### 工具卡片展示属性
+
+除上表的结果属性外，还接受以下展示属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `expanded?` | `boolean` | 受控展开 |
+| `defaultExpanded?` | `boolean` | 默认按是否等待操作决定；等待操作时初始展开 |
+| `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
+| `buttonProps?` | `ToolFallbackPresentationProps['buttonProps']` | `Trigger` 属性，排除 `toolName`、`status`、`responseDeliveryStatus` |
+| `contentProps?` | `ToolFallbackPresentationProps['contentProps']` | `Content` 面板属性 |
+| `argsProps?` | `ToolFallbackPresentationProps['argsProps']` | `Args` 展示属性，排除 `argsText`、`children` |
+| `resultProps?` | `ToolFallbackPresentationProps['resultProps']` | `Result` 展示属性，排除 `result`、`children` |
+| `renderResult?` | `(result: unknown) => ReactNode` | 替换默认结果内容 |
+| `errorProps?` | `ToolFallbackPresentationProps['errorProps']` | `Error` 展示属性，排除 `status`、`children` |
+| `approvalProps?` | `Omit<ComponentPropsWithoutRef<'div'>, 'children'>` | 审批区外观和无障碍属性 |
+| `children?` | `ReactNode` | 自定义详情组合 |
+
+#### 外观与无障碍属性
+
+以下属性均可选。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `className` | `string` | 整体样式类 |
+| `style` | `CSSProperties` | 整体内联样式 |
+| `id` | `string` | 元素标识 |
+| `role` | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色 |
+| `aria-label` | `string` | 无障碍名称 |
+| `aria-describedby` | `string` | 描述元素 ID |
+| `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
+
+#### 当前工具调用的数据与操作
+
+这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `type?` | `'tool-call'` | 消息片段类型 |
+| `toolCallId` | `string` | 工具调用 ID |
+| `toolName` | `string` | 工具名称 |
+| `args` | `unknown` | 解析后的输入参数 |
+| `argsText?` | `string` | 输入参数的文本形式 |
+| `result?` | `unknown` | 工具结果 |
+| `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
+| `isError?` | `boolean` | 结果是否为错误 |
+| `status` | `ConversationToolCallStatus` | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
+| `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
+| `decisionRequest?` | `ConversationCommandDecisionRequest` | 运行环境提供的操作确认请求 |
+| `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
+
+`ConversationToolCallStatus` 为 `{ type: 'running' }`、`{ type: 'complete' }`、`{ type: 'incomplete'; reason?: string; error?: unknown }` 或 `{ type: 'requires-action'; reason?: string }`。`ConversationCommandDecisionRequest` 含 `allowedDecisions: readonly string[]` 和可选 `description: string`。
+
+该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+
+在本插件入口中，上述数据和方法放在 `tool` 对象里；单独使用展示组件时直接传入这些字段。
+
+#### 审批与中断参数
+
+以下数据和方法由现有会话提供，放在插件入口的 `tool` 对象中；类型为 `ConversationToolFallbackProps`。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `approval?` | `ConversationToolFallbackProps['approval']` | 审批请求 |
+| `respondToApproval?` | `ConversationToolFallbackProps['respondToApproval']` | 提交审批回答 |
+| `interrupt?` | `ConversationToolFallbackProps['interrupt']` | 中断信息 |
+| `resume?` | `ConversationToolFallbackProps['resume']` | 恢复中断回调 |
+| `responseDeliveryStatus?` | `ConversationToolFallbackProps['responseDeliveryStatus']` | 回答传输状态 |
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
+
+### 文件名和提示文案
+
+文件名可通过内容块的 `metadata.filename` 提供。这是展示约定，不影响 AG-UI 的字段和消息结构。新文案使用 Agent UI 的统一 locale；文件无法解析时显示可本地化的状态提示。
+

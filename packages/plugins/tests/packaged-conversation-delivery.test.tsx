@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import * as React from "react";
 import * as JSXRuntime from "react/jsx-runtime";
+import * as Icons from "lucide-react";
 import { act, type ComponentProps, type ComponentType, type ReactNode } from "react";
 import { readFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
@@ -54,7 +55,12 @@ async function assistantListApplication(mode: "assistant" | "platform" = "assist
   const modules: Record<string, unknown> = {
     "react": React,
     "react/jsx-runtime": JSXRuntime,
-    "@za38.03/agent-ui-plugins": Plugins,
+    "@za38.03/agent-ui-plugins": { ...Plugins,
+      usePluginService: () => service,
+      usePluginServiceSnapshot: () => ({ activeConversationId: useAuiState(state => state.threads.mainThreadId) }),
+    },
+    "lucide-react": Icons,
+    "@za38.03/agent-ui-runtime": { useAgentRun: () => ({ status: "idle" }) },
     "@za38.03/agent-ui-plugins/conversation-thread-list": { ConversationThreadListPlugin },
     "@za38.03/agent-ui-plugins/plugin-support": PluginSupport,
     "../../runtime/plugins": {
@@ -62,10 +68,25 @@ async function assistantListApplication(mode: "assistant" | "platform" = "assist
       usePluginServiceSnapshot: () => ({ activeConversationId: useAuiState(state => state.threads.mainThreadId) }),
     },
     "../../services/conversations": { AGENT_UI_CONVERSATION_SERVICE: "agent-ui.conversations", EMPTY_CONVERSATION_SNAPSHOT: {} },
-    "../../agent-ui/theme/useAgentUITheme": { useAgentUITheme: () => "light" },
+    "@za38.03/agent-ui-runtime/ui": { useAgentUITheme: () => "light" },
     "../../runtime/context": { useAgentRun: () => ({ status: "idle" }) },
     "./assistant.css": {},
   };
+  for (const hook of ["useConversations", "useConversationActions"]) {
+    const hookPath = `../src/shared/project/services/hooks/${hook}.ts`;
+    const hookSource = await readFile(new URL(hookPath, import.meta.url), "utf8");
+    const hookCode = execFileSync(process.execPath, ["-e",
+      'const {transformSync}=require(process.argv[1]);process.stdout.write(transformSync(require("node:fs").readFileSync(0,"utf8"),{loader:"ts",format:"cjs"}).code);',
+      compiler,
+    ], { input: hookSource, encoding: "utf8" });
+    const hookModule = { exports: {} };
+    new Function("require", "module", "exports", hookCode)((name: string) => {
+      if (name === "../conversations") return modules["../../services/conversations"];
+      if (!(name in modules)) throw new Error(`Unexpected hook import: ${name}`);
+      return modules[name];
+    }, hookModule, hookModule.exports);
+    modules[`../../services/hooks/${hook}`] = hookModule.exports;
+  }
   const output = { exports: {} };
   new Function("require", "module", "exports", code)((name: string) => {
     if (!(name in modules)) throw new Error(`Unexpected application import: ${name}`);
@@ -75,15 +96,25 @@ async function assistantListApplication(mode: "assistant" | "platform" = "assist
 }
 it.each(["en-US", "zh-CN"] as const)("%s application list retains its popover, search and close-on-selection", async locale => {
   const ApplicationList = await assistantListApplication();
-  const el = await mount(<ApplicationList listProps={{searchProps:{value:"Second"}}}/>, locale);
+  const el = await mount(<ApplicationList searchProps={{value:"Second"}}/>, locale);
   const trigger = () => el.host.querySelector<HTMLButtonElement>(".conversation-thread-list-popover-trigger")!;
   expect(trigger().getAttribute("aria-label")).toBe(locale === "zh-CN" ? "历史会话" : "Conversation history");
+  const runtime = el.runtime;
+  await act(async () => runtime.thread.composer.setText("Keep my draft"));
+  const loadCount = el.load.mock.calls.length;
+  const focus = vi.spyOn(HTMLElement.prototype, "focus");
   await act(async () => trigger().click());
   await until(() => trigger().getAttribute("aria-expanded") === "true");
+  const search = el.host.querySelector<HTMLInputElement>(".conversation-thread-list-popover input")!;
+  await until(() => document.activeElement === search);
+  expect(focus.mock.calls.some((args, index) => focus.mock.contexts[index] === search && args[0]?.preventScroll === true)).toBe(true);
+  expect(el.runtime).toBe(runtime);
+  expect(runtime.thread.composer.getState().text).toBe("Keep my draft");
+  expect(el.load.mock.calls.length).toBe(loadCount);
   expect(el.host.textContent).toContain("Second history");
   expect(el.host.textContent).not.toContain("First history");
   expect(el.host.querySelector(".conversation-thread-list-popover input")).not.toBeNull();
-  await el.render(<ApplicationList listProps={{showSearch:false,searchProps:{value:"Second"}}}/>);
+  await el.render(<ApplicationList showSearch={false} searchProps={{value:"Second"}}/>);
   expect(el.host.querySelector(".conversation-thread-list-popover input")).toBeNull();
   expect(el.host.textContent).toContain("First history");
   const other = [...el.host.querySelectorAll<HTMLButtonElement>('[data-slot="aui_thread-list-item-trigger"]')].find(button => button.textContent?.includes("Second history"))!;
@@ -92,26 +123,35 @@ it.each(["en-US", "zh-CN"] as const)("%s application list retains its popover, s
   await until(() => trigger().getAttribute("aria-expanded") === "false");
   expect(el.load).toHaveBeenCalledWith("other");
 });
+it("focuses the history popup without scrolling when search is hidden", async () => {
+  const ApplicationList = await assistantListApplication();
+  const el = await mount(<ApplicationList showSearch={false} />);
+  const focus = vi.spyOn(HTMLElement.prototype, "focus");
+  await act(async () => el.host.querySelector<HTMLButtonElement>(".conversation-thread-list-popover-trigger")!.click());
+  const popup = el.host.querySelector<HTMLElement>(".conversation-thread-list-popover")!;
+  await until(() => document.activeElement === popup);
+  expect(focus.mock.calls.some((args, index) => focus.mock.contexts[index] === popup && args[0]?.preventScroll === true)).toBe(true);
+});
 it.each(modes)("$name list forwards props, retains selection/search policies, and uses canonical navigation",async({List})=>{
-  const el=await mount(<List rootProps={{"aria-label":"custom list",style:{padding:19},className:"kept"}} listProps={{searchProps:{"aria-label":"custom search"},itemProps:{actions:{rename:true,archive:true,delete:false}}}}/>);
+  const el=await mount(<List aria-label={"custom list"} style={{padding:19}} className={"kept"} searchProps={{"aria-label":"custom search"}} itemProps={{actions:{rename:true,archive:true,delete:false}}}/>);
   await until(()=>el.host.textContent!.includes("Second history"));expect(el.host.querySelector<HTMLElement>('[aria-label="custom list"]')?.style.padding).toBe("19px");expect(el.host.querySelector('[aria-label="custom list"]')?.classList.contains("conversation-thread-list-plugin")).toBe(true);
   const other=[...el.host.querySelectorAll<HTMLButtonElement>('[data-slot="aui_thread-list-item-trigger"]')].find(button=>button.textContent?.includes("Second history"))!;
   await act(async()=>other.click());await until(()=>el.runtime.threads.getState().mainThreadId==="other");expect(el.load).toHaveBeenCalledWith("other");
   const blocked=[...el.host.querySelectorAll<HTMLElement>('[data-slot="aui_thread-list-item-trigger"]')].find(button=>button.textContent?.includes("Blocked history"))!;expect(blocked.closest('[aria-disabled="true"]')?.hasAttribute("inert")).toBe(true);
   expect(el.host.querySelector('[aria-label="custom search"]')).not.toBeNull();expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
-  await el.render(<List listProps={{searchProps:{value:"Second",onValueChange:vi.fn()}}}/>);expect(el.host.textContent).toContain("Second history");expect(el.host.textContent).not.toContain("First history");
-  await el.render(<List listProps={{components:{ThreadListItem:()=> <span>Custom row</span>}}}/>);expect(el.host.textContent).toContain("Custom row");
+  await el.render(<List searchProps={{value:"Second",onValueChange:vi.fn()}}/>);expect(el.host.textContent).toContain("Second history");expect(el.host.textContent).not.toContain("First history");
+  await el.render(<List components={{ThreadListItem:()=> <span>Custom row</span>}}/>);expect(el.host.textContent).toContain("Custom row");
 });
 it.each(modes)("$name list can disable search without filtering or adding a new-thread button",async({List})=>{
-  const el=await mount(<List listProps={{searchProps:{value:"Second"}}}/>);
+  const el=await mount(<List searchProps={{value:"Second"}}/>);
   await until(()=>el.host.textContent!.includes("Second history"));
   expect(el.host.textContent).not.toContain("First history");
-  await el.render(<List listProps={{showSearch:false,searchProps:{value:"Second"}}}/>);
+  await el.render(<List showSearch={false} searchProps={{value:"Second"}}/>);
   expect(el.host.querySelector('input')).toBeNull();
   expect(el.host.textContent).toContain("First history");
   expect(el.host.textContent).toContain("Second history");
   expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
-  await el.render(<List listProps={{showSearch:true,searchProps:{value:"Second"}}}/>);
+  await el.render(<List showSearch={true} searchProps={{value:"Second"}}/>);
   expect(el.host.querySelector('input')).not.toBeNull();
   expect(el.host.textContent).not.toContain("First history");
 });
@@ -152,7 +192,7 @@ it.each(modes)("$name new supports localized labeled and icon-only application v
   expect(button().getAttribute("aria-label")).toBe("新建会话");
   await act(async()=>button().click());
   await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
-  await el.render(<New showLabel newProps={{className:"application-button"}}/>,"en-US");
+  await el.render(<New showLabel buttonProps={{className:"application-button"}}/>,"en-US");
   expect(button().classList.contains("application-button")).toBe(true);
   expect(button().classList.contains("conversation-new-button")).toBe(true);
   expect(button().getAttribute("aria-label")).toBe(button().textContent);
@@ -165,12 +205,12 @@ it.each(modes)("$name list retains service refresh and failed history retry incl
   await el.render(<List {...props} serviceAvailable={false}/>);for(const button of el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button'))expect(button.disabled).toBe(true);
 });
 it.each(modes)("$name new and rail retain canonical new-thread behavior and respect prevented clicks",async({New,Rail})=>{
-  const prevent=vi.fn((event:React.MouseEvent<HTMLButtonElement>)=>event.preventDefault());const el=await mount(<New newProps={{"aria-label":"custom new",onClick:prevent,style:{padding:13},children:"Make new"}}/>);
+  const prevent=vi.fn((event:React.MouseEvent<HTMLButtonElement>)=>event.preventDefault());const el=await mount(<New onClick={prevent} buttonProps={{"aria-label":"custom new",style:{padding:13},children:"Make new"}}/>);
   const button=el.host.querySelector<HTMLButtonElement>('[aria-label="custom new"]')!;expect(button.style.padding).toBe("13px");await act(async()=>button.click());expect(prevent).toHaveBeenCalledOnce();expect(el.create).not.toHaveBeenCalled();
-  await el.render(<New newProps={{"aria-label":"create"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="create"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
+  await el.render(<New buttonProps={{"aria-label":"create"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="create"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
   await act(async()=>el.runtime.threads.switchToThread("history"));
   await el.render(<Rail enabled={false}/>);expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
-  await el.render(<Rail enabled newProps={{"aria-label":"rail new",children:"Rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
+  await el.render(<Rail enabled buttonProps={{"aria-label":"rail new",children:"Rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
 });
 it.each(modes)("$name quote exposes renderers/props and follows locale with Host overrides",async({Quote})=>{
   const preview=vi.fn((props:ComponentProps<typeof Quote>["previewProps"])=><span>{props?.dismissLabel}</span>);const toolbar=vi.fn((props:ComponentProps<typeof Quote>["toolbarProps"])=><span>{props?.quoteLabel}</span>);

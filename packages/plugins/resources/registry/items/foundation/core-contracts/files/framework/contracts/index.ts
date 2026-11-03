@@ -1,9 +1,2 @@
-export * from "./app-ui-composition";
-export * from "./app-ui-model";
-export * from "./app-ui-runtime-model";
-export * from "./app-ui-compiler";
-export * from "./agent-ui-mode";
-export * from "./agent-ui-workspace";
-export * from "./agent-ui-project";
-export * from "./custom-event-protocol";
-export * from "./ui-plugin";
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/framework/contracts/index";

@@ -1,6 +1,6 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
 import { DEMO_DIALOG_SERVICE } from "../../services/demo-dialog";
-import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
+import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
 import { FrontendToolDialogDemoPlugin } from "./index";
 import { createDemoDialogService } from "./dialog-service";
 import manifest from "./manifest.json";

@@ -2,12 +2,11 @@
 import { act, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CanonicalThemeSwitchPlugin, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AGENT_UI_DEFAULT_THEME, CanonicalThemeSwitchPlugin, type AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { AgentUIThemeBridge } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/theme/AgentUIThemeBridge";
-import { agentUIThemeConfig } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/theme/theme-config";
 import { themeProviderPlugin } from "../resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
 import { createPluginRegistry, PluginServiceRuntime, PluginServiceRuntimeContext } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins";
-import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
+import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
 
 const actions = { sendMessage: async () => {}, resumeInterrupts: async () => {}, startNewConversation: async () => {}, abortRun: () => {} };
 const cleanups: (() => void)[] = [];
@@ -58,11 +57,11 @@ describe("Agent theme parameter", () => {
     expect(onThemeChange).not.toHaveBeenCalled();
   });
 
-  it("retains project defaults and the existing picker when theme is omitted", () => {
+  it("uses the built-in default and the existing picker when theme is omitted", () => {
     const ui = setup();
     const onThemeChange = vi.fn();
     ui.render(undefined, onThemeChange);
-    expect(ui.displayed()).toBe(agentUIThemeConfig.theme);
+    expect(ui.displayed()).toBe(AGENT_UI_DEFAULT_THEME);
     ui.pick("dark");
     expect(ui.displayed()).toBe("dark");
     expect(ui.service!.getTheme()).toBe("dark");
@@ -95,14 +94,25 @@ describe("Agent theme parameter", () => {
     expect(ui.mounts).toHaveBeenCalledTimes(1);
   });
 
-  it("supports explicit themes and the project fallback without an optional theme service", () => {
+  it("supports explicit themes and the built-in fallback without an optional theme service", () => {
     const ui = setup(false);
     ui.render();
-    expect(ui.displayed()).toBe(agentUIThemeConfig.theme);
+    expect(ui.displayed()).toBe(AGENT_UI_DEFAULT_THEME);
     ui.render("dark");
     expect(ui.displayed()).toBe("dark");
     ui.render("violet");
     expect(ui.displayed()).toBe("violet");
     expect(ui.mounts).toHaveBeenCalledTimes(1);
   });
+
+  it("returns ownership to the internal picker when the Host removes its theme prop", () => {
+    const ui = setup();
+    ui.render("dark");
+    ui.render();
+    ui.pick("light");
+    expect(ui.displayed()).toBe("light");
+    expect(ui.service!.getTheme()).toBe("light");
+    expect(ui.mounts).toHaveBeenCalledTimes(1);
+  });
+
 });

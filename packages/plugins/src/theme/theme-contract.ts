@@ -7,7 +7,8 @@ export const AGENT_UI_THEME_PRESETS = {
 
 export type AgentUITheme = keyof typeof AGENT_UI_THEME_PRESETS;
 export type AgentUIColorScheme = "light" | "dark";
-export interface AgentUIThemeConfig { theme: AgentUITheme }
+/** Shared built-in initial theme; project-specific choices enter through Agent props. */
+export const AGENT_UI_DEFAULT_THEME: AgentUITheme = "violet";
 
 export function getAgentUIThemeColorScheme(theme: AgentUITheme): AgentUIColorScheme {
   return AGENT_UI_THEME_PRESETS[theme].colorScheme;

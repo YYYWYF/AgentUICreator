@@ -1,60 +1,56 @@
 ---
-title: 界面开发
-description: 使用 Creator 描述需求、修改 Agent 前端，并在项目页面验证结果。
+title: "使用 Creator"
+description: 配好开发入口和模型服务，通过对话调整 Agent 前端，并用模拟场景检查效果。
 ---
 
-# 界面开发
+# 使用 Creator
 
-Creator 根据你的需求检查和修改 Agent 前端工程。你可以调整布局、主题和组件，也可以先讨论方案，再决定是否实施。修改后，在项目页面检查效果；需要测试流式回复、工具调用等状态时，进入[模拟联调](./mock/)。
+Creator 是帮你开发 Agent 前端的编码助手。你描述想要的效果，它检查工程、修改代码并运行相关检查。
 
-本章从启动配置、工程任务到结果管理介绍日常开发；模拟联调提供预设后端响应。首次创建与挂载界面按[快速上手](../start/)操作。
+## 从一个具体需求开始
 
-## 准备开发环境
+在 Creator 输入框中说明**想改哪里、希望变成什么样、哪些内容需要保留**。不必先知道插件 ID 或文件路径。
 
-先完成[安装并启动 Creator](../start/install-creator)和[创建助理界面](../start/project-modes)，并启动工程自己的开发页面。
+例如：
 
-点击页面右上角的 **Creator Agent** 展开面板，在顶部文件夹菜单核对当前工程和源码目录。已有多个工程时，按[工程管理](./project-selection)切换到本次要修改的项目。
+> 把助理名字改成「小招」，欢迎语改成「你好，我是小招，有什么可以帮你？」，推荐问题换成账户余额、转账到账时间和信用卡账单。保留现有布局。
 
-开发入口按工程选择 [Vite](./creator-dock-vite)、[Rsbuild / Webpack](./creator-dock-rsbuild-webpack) 或[独立运行](./creator-standalone)。Windows 和企业内网的安装准备见[开发环境说明](./windows-and-offline)。
+Creator 会检查当前工程，再修改对应代码。需要补充服务信息或确认操作时，先在对话中回答；完成后查看修改回执，并回到页面检查实际效果。
 
-![右侧 Creator 面板：顶部确认工程，底部输入开发需求。](/images/start/05-initialized.png)
+修改触发页面热更新或刷新时，Creator 会自动重连当前任务并继续显示进度。想结束任务，使用「停止」；切换或关闭工程也会停止旧工程的任务。如果重启了 Creator 服务，原任务不能自动恢复，请先检查已有修改和回执，再发送新请求。
 
-首次使用，在 Creator 配置目录的 `.env.agentui.local` 中填写模型服务：
+想先了解工程，可以明确说「先不要修改文件」；想继续调整上一轮结果，可以说明要保留和修改的部分。
 
-```dotenv
-CREATOR_MODEL_BASE_URL=https://your-model-service.example/v1
-CREATOR_MODEL_API_KEY=replace-with-your-key
-CREATOR_MODEL_NAME=replace-with-your-model
-```
+完整的提问、实际回复和效果截图见[对话定制示例](/guide/examples/)。
 
-将示例值替换为实际配置，把文件加入 `.gitignore`，保存后重启 Creator。配置目录默认是启动目录；使用独立工具宿主时，见[模型配置](./model-configuration)。密钥只供开发工具使用，不加 `VITE_` 前缀，也不写入页面代码。
+## 按需求开始
 
-## 描述需求并实施
+| 想做什么 | 操作说明 |
+| --- | --- |
+| 调整布局、宽度、按钮位置或插件组合 | [布局与插件](/guide/adjustments/) |
+| 修改颜色、样式或默认主题 | [主题与样式](/guide/adjustments/themes) |
+| 修改提示、按钮文字和中英文 | [语言与文案](/guide/adjustments/localization) |
+| 增加业务卡片或新的界面功能 | [增加功能](/guide/add-function) |
+| 检查修改是否符合预期 | [检查修改效果](/guide/examples/verify-results#检查清单) |
 
-在 Creator 底部输入框说明要改的区域、预期效果和需要保留的行为。例如：
+这些日常调整可以直接通过对话完成。需要自己编写业务联动、组件或插件时，进入[开发文档](/development/)；查某个插件的属性和组件接口，进入[插件](/plugins/)。复杂功能也可以继续交给 Creator 分析和实现。
 
-> 缩小会话列表的宽度，让对话内容有更多空间。保留列表搜索、新建会话和消息交互，窄屏下不能出现横向滚动。
+## 配置要求与功能
 
-按 **Enter** 发送，按 **Shift + Enter** 换行。Creator 会结合当前工程选择检查、编辑和验证方法。
+| 配置项 | 功能 | 配置说明 |
+| --- | --- | --- |
+| 开发页面入口 | 在自己的页面中展开 Creator，边看效果边修改 | 首次按[开始使用](/start/)安装；其他构建工具见 [Rsbuild / Webpack](/guide/creator-dock-rsbuild-webpack) |
+| 模型地址、密钥和模型名 | 让 Creator 理解需求、分析工程和编写代码 | [模型与工具配置](/guide/configuration) |
+| 业务 Agent 的 AG-UI 地址 | 让生成的助理处理真实业务对话 | [连接 Agent](/development/connect-agent) |
+| Mock 场景（可选） | 后端未就绪时，测试流式回复、工具调用、审批和异常状态，无需模型密钥 | [Mock 服务](/mock/) |
 
-尚未确定方案时，可以先提出只读请求：
+## Creator 功能概览
 
-> 检查当前布局和已启用的 Plugin，给出调整侧栏的方案与影响范围，先不要修改文件。
+| 需求类型 | Creator 功能 |
+| --- | --- |
+| 了解工程或讨论方案 | 检查当前布局、插件和代码，解释实现、比较改造方案 |
+| 调整界面 | 修改布局、主题、尺寸、文案及窄屏表现 |
+| 组合与定制插件 | 添加、启用、停用插件，调整组件参数、组合和渲染方式，也可开发自定义插件 |
+| 维护版本 | 通过[更新中心](/updates/)查看更新，审查后升级依赖或同步已接管的插件源码 |
 
-收到建议后，再说明采用哪个方案。更多示例见[需求与方案](./ask-and-inspect)和[修改界面](./request-changes)。常用主题与资源操作也可通过输入 `/` 打开[快捷命令](./commands)。
-
-执行活动显示在对话区。需要补充信息或确认变更时，阅读问题卡片的对象和范围后回答；源码接管、依赖升级等操作应核对各自的具体计划，见[变更确认](./confirmations)。需要中止时点击「停止执行」，随后检查已保留的修改；详细处理见[进度与中断](./progress-and-cancel)。
-
-## 验证效果并继续调整
-
-执行完成后，先查看文件差异与检查结果，再收起 Creator，回到项目页面检查本次改动。
-
-1. 核对修改范围，确认原有定制和需要保留的交互仍然有效。
-2. 检查目标区域的布局、文案、窄屏表现；涉及消息状态时，用[模拟联调](./mock/)覆盖相应场景。
-3. 按工程实际提供的脚本运行 `test`、`typecheck` 和 `build`。
-
-回执中的静态检查结果与实际页面效果需要分别确认。失败项或未验证项的处理见[验证回执](./receipts-and-validation)，页面未更新时见[预览与接入](./preview-and-integration)。
-
-需要继续调整时，在原会话中说明剩余问题和应保留的改动。支持撤销的运行可在回执中[撤销或重新应用](./undo-redo)。开始无关任务时，可以[清空 Creator 会话](./conversation-lifecycle)；清空会话会保留工程文件。
-
-工具语言和设置见[Creator 设置](./settings-and-language)。开发完成后，按[独立构建与部署](../integration/production-build)发布前端应用。
+快捷开关见[Creator 命令](/guide/commands)，修改完成后按[定制效果验证](/guide/examples/verify-results#检查清单)检查页面。

@@ -1,0 +1,1983 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creator Agent tool and observation contracts",
+  "$defs": {
+    "CreateUIPluginInput": {
+      "$defs": {
+        "UIPluginSourceFile": {
+          "additionalProperties": false,
+          "properties": {
+            "relativePath": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Relativepath",
+              "type": "string"
+            },
+            "content": {
+              "maxLength": 1000000,
+              "title": "Content",
+              "type": "string"
+            }
+          },
+          "required": [
+            "relativePath",
+            "content"
+          ],
+          "title": "UIPluginSourceFile",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "pluginId": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Pluginid",
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/UIPluginSourceFile"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pluginId",
+        "files"
+      ],
+      "title": "CreateUIPluginInput",
+      "type": "object"
+    },
+    "MutateUIPluginSourceInput": {
+      "$defs": {
+        "CreateUIPluginSourceChange": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "create",
+              "title": "Type",
+              "type": "string"
+            },
+            "relativePath": {
+              "description": "POSIX file path relative to the selected Plugin directory, e.g. index.tsx or components/Dialog.tsx. Do not include the project source root or plugins/<pluginId> prefix. read_file.file_path uses a project virtual path instead; do not copy it here.",
+              "examples": [
+                "index.tsx",
+                "components/Dialog.tsx"
+              ],
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Relativepath",
+              "type": "string"
+            },
+            "content": {
+              "maxLength": 1000000,
+              "title": "Content",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "relativePath",
+            "content"
+          ],
+          "title": "CreateUIPluginSourceChange",
+          "type": "object"
+        },
+        "EditUIPluginSourceChange": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "edit",
+              "title": "Type",
+              "type": "string"
+            },
+            "relativePath": {
+              "description": "POSIX file path relative to the selected Plugin directory, e.g. index.tsx or components/Dialog.tsx. Do not include the project source root or plugins/<pluginId> prefix. read_file.file_path uses a project virtual path instead; do not copy it here.",
+              "examples": [
+                "index.tsx",
+                "components/Dialog.tsx"
+              ],
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Relativepath",
+              "type": "string"
+            },
+            "edits": {
+              "items": {
+                "$ref": "#/$defs/PluginSourceEdit"
+              },
+              "minItems": 1,
+              "title": "Edits",
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "relativePath",
+            "edits"
+          ],
+          "title": "EditUIPluginSourceChange",
+          "type": "object"
+        },
+        "PluginSourceEdit": {
+          "additionalProperties": false,
+          "properties": {
+            "oldText": {
+              "maxLength": 1000000,
+              "minLength": 1,
+              "title": "Oldtext",
+              "type": "string"
+            },
+            "newText": {
+              "maxLength": 1000000,
+              "title": "Newtext",
+              "type": "string"
+            },
+            "replaceAll": {
+              "default": false,
+              "title": "Replaceall",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "oldText",
+            "newText"
+          ],
+          "title": "PluginSourceEdit",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "pluginId": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Pluginid",
+          "type": "string"
+        },
+        "changes": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "create": "#/$defs/CreateUIPluginSourceChange",
+                "edit": "#/$defs/EditUIPluginSourceChange"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/EditUIPluginSourceChange"
+              },
+              {
+                "$ref": "#/$defs/CreateUIPluginSourceChange"
+              }
+            ]
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Changes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pluginId",
+        "changes"
+      ],
+      "title": "MutateUIPluginSourceInput",
+      "type": "object"
+    },
+    "PrepareUIServiceContractChangeInput": {
+      "$defs": {
+        "ServiceConsumerSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "pluginId": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Pluginid",
+              "type": "string"
+            },
+            "dependencyMode": {
+              "enum": [
+                "required",
+                "optional"
+              ],
+              "title": "Dependencymode",
+              "type": "string"
+            }
+          },
+          "required": [
+            "pluginId",
+            "dependencyMode"
+          ],
+          "title": "ServiceConsumerSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "propose",
+            "confirm"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "changeKind": {
+          "anyOf": [
+            {
+              "enum": [
+                "create",
+                "mutate"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Changekind"
+        },
+        "serviceName": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Servicename"
+        },
+        "contractPath": {
+          "anyOf": [
+            {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contractpath"
+        },
+        "ownerPluginId": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerpluginid"
+        },
+        "consumers": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ServiceConsumerSpec"
+              },
+              "maxItems": 100,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Consumers"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "proposalId": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposalid"
+        },
+        "userAuthorizationEvidence": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Userauthorizationevidence"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "PrepareUIServiceContractChangeInput",
+      "type": "object"
+    },
+    "CreateUIServiceContractInput": {
+      "additionalProperties": false,
+      "properties": {
+        "authorizationId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Authorizationid",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 1000000,
+          "title": "Content",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authorizationId",
+        "content"
+      ],
+      "title": "CreateUIServiceContractInput",
+      "type": "object"
+    },
+    "MutateUIServiceContractInput": {
+      "$defs": {
+        "PluginSourceEdit": {
+          "additionalProperties": false,
+          "properties": {
+            "oldText": {
+              "maxLength": 1000000,
+              "minLength": 1,
+              "title": "Oldtext",
+              "type": "string"
+            },
+            "newText": {
+              "maxLength": 1000000,
+              "title": "Newtext",
+              "type": "string"
+            },
+            "replaceAll": {
+              "default": false,
+              "title": "Replaceall",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "oldText",
+            "newText"
+          ],
+          "title": "PluginSourceEdit",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "authorizationId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Authorizationid",
+          "type": "string"
+        },
+        "edits": {
+          "items": {
+            "$ref": "#/$defs/PluginSourceEdit"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Edits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "authorizationId",
+        "edits"
+      ],
+      "title": "MutateUIServiceContractInput",
+      "type": "object"
+    },
+    "PrepareUIPluginDevelopmentInput": {
+      "$defs": {
+        "GeometryExpectation": {
+          "additionalProperties": false,
+          "properties": {
+            "instanceId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Instanceid",
+              "type": "string"
+            },
+            "property": {
+              "enum": [
+                "x",
+                "y",
+                "width",
+                "height"
+              ],
+              "title": "Property",
+              "type": "string"
+            },
+            "expected": {
+              "maximum": 1000000,
+              "minimum": -1000000,
+              "title": "Expected",
+              "type": "number"
+            },
+            "tolerance": {
+              "default": 1,
+              "maximum": 10,
+              "minimum": 0,
+              "title": "Tolerance",
+              "type": "number"
+            }
+          },
+          "required": [
+            "instanceId",
+            "property",
+            "expected"
+          ],
+          "title": "GeometryExpectation",
+          "type": "object"
+        },
+        "PluginAuthoringContract": {
+          "additionalProperties": false,
+          "properties": {
+            "capability": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Capability",
+              "type": "string"
+            },
+            "renderingCategory": {
+              "enum": [
+                "panel",
+                "semantic-slot",
+                "application"
+              ],
+              "title": "Renderingcategory",
+              "type": "string"
+            },
+            "placement": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Placement",
+              "type": "string"
+            },
+            "lifecycle": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Lifecycle",
+              "type": "string"
+            },
+            "dependencies": {
+              "items": {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Dependencies",
+              "type": "array"
+            },
+            "reusedComponents": {
+              "items": {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Reusedcomponents",
+              "type": "array"
+            },
+            "verificationMethod": {
+              "enum": [
+                "runtime",
+                "browser-test"
+              ],
+              "title": "Verificationmethod",
+              "type": "string"
+            },
+            "geometry": {
+              "items": {
+                "$ref": "#/$defs/GeometryExpectation"
+              },
+              "maxItems": 32,
+              "title": "Geometry",
+              "type": "array"
+            },
+            "interactions": {
+              "items": {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Interactions",
+              "type": "array"
+            }
+          },
+          "required": [
+            "capability",
+            "renderingCategory",
+            "placement",
+            "lifecycle",
+            "dependencies",
+            "verificationMethod"
+          ],
+          "title": "PluginAuthoringContract",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "deliveryContract": {
+          "$ref": "#/$defs/PluginAuthoringContract"
+        },
+        "workKind": {
+          "default": "create-plugin",
+          "description": "create-plugin and adapt-component create a NEW Plugin identity. For new behavior or unfinished development in an EXISTING Plugin, use extend-capability with its current id; never recreate that directory. Ordinary existing Plugin customization or composition alone does not require a new development proposal.",
+          "enum": [
+            "create-plugin",
+            "adapt-component",
+            "extend-capability"
+          ],
+          "title": "Workkind",
+          "type": "string"
+        },
+        "targetPluginId": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Targetpluginid",
+          "type": "string"
+        },
+        "desiredOutcome": {
+          "maxLength": 1200,
+          "minLength": 1,
+          "title": "Desiredoutcome",
+          "type": "string"
+        },
+        "missingCapabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "minItems": 1,
+          "title": "Missingcapabilities",
+          "type": "array"
+        },
+        "reuseEvidenceRefs": {
+          "description": "Existing Plugin / Source Item reuse investigation conclusions. These are not Host UI component source evidence and cannot replace componentBasisRefs.",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 24,
+          "title": "Reuseevidencerefs",
+          "type": "array"
+        },
+        "uiScope": {
+          "default": "",
+          "description": "UI business scope and selected UI system: cite actual source usage, controls and import origins, Provider/theme conventions, and why other discovered systems were not selected. Concise summary, at most 4000 characters; put evidence paths in componentBasisRefs rather than copying source or full tool contracts here. Generated imports must match this plan. This description does not grant development or source ownership.",
+          "maxLength": 4000,
+          "title": "Uiscope",
+          "type": "string"
+        },
+        "dataScope": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Datascope",
+          "type": "string"
+        },
+        "excludedOperations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Excludedoperations",
+          "type": "array"
+        },
+        "componentBasisRefs": {
+          "description": "Required by Host for new panel / semantic-slot Plugins. Array of real file paths already inspected, including the Host page/component usage entry and relevant component exports, Provider or theme files. Paths only, no descriptive strings or invented files. Bind selection evidence that remains unchanged; do not include locale authoring files or new Plugin files you intend to edit. Separate from reuseEvidenceRefs. On rejection, read the error, inspect missing evidence and resubmit this tool with valid paths. Other development types may omit this field.",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Componentbasisrefs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "deliveryContract",
+        "targetPluginId",
+        "desiredOutcome",
+        "missingCapabilities"
+      ],
+      "title": "PrepareUIPluginDevelopmentInput",
+      "type": "object"
+    },
+    "PluginAuthoringContract": {
+      "$defs": {
+        "GeometryExpectation": {
+          "additionalProperties": false,
+          "properties": {
+            "instanceId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Instanceid",
+              "type": "string"
+            },
+            "property": {
+              "enum": [
+                "x",
+                "y",
+                "width",
+                "height"
+              ],
+              "title": "Property",
+              "type": "string"
+            },
+            "expected": {
+              "maximum": 1000000,
+              "minimum": -1000000,
+              "title": "Expected",
+              "type": "number"
+            },
+            "tolerance": {
+              "default": 1,
+              "maximum": 10,
+              "minimum": 0,
+              "title": "Tolerance",
+              "type": "number"
+            }
+          },
+          "required": [
+            "instanceId",
+            "property",
+            "expected"
+          ],
+          "title": "GeometryExpectation",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Capability",
+          "type": "string"
+        },
+        "renderingCategory": {
+          "enum": [
+            "panel",
+            "semantic-slot",
+            "application"
+          ],
+          "title": "Renderingcategory",
+          "type": "string"
+        },
+        "placement": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Placement",
+          "type": "string"
+        },
+        "lifecycle": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Lifecycle",
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "reusedComponents": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Reusedcomponents",
+          "type": "array"
+        },
+        "verificationMethod": {
+          "enum": [
+            "runtime",
+            "browser-test"
+          ],
+          "title": "Verificationmethod",
+          "type": "string"
+        },
+        "geometry": {
+          "items": {
+            "$ref": "#/$defs/GeometryExpectation"
+          },
+          "maxItems": 32,
+          "title": "Geometry",
+          "type": "array"
+        },
+        "interactions": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Interactions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "capability",
+        "renderingCategory",
+        "placement",
+        "lifecycle",
+        "dependencies",
+        "verificationMethod"
+      ],
+      "title": "PluginAuthoringContract",
+      "type": "object"
+    },
+    "RuntimeDiagnosticEnvelope": {
+      "$defs": {
+        "RuntimeComposition": {
+          "additionalProperties": false,
+          "properties": {
+            "appUIModelHash": {
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Appuimodelhash",
+              "type": "string"
+            },
+            "compositionRevision": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Compositionrevision"
+            },
+            "capabilityCatalogRevision": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-f0-9]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Capabilitycatalogrevision"
+            },
+            "publishedAt": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Publishedat"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "title": "Observedat",
+              "type": "string"
+            },
+            "application": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RuntimeCompositionApplication"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "instances": {
+              "items": {
+                "$ref": "#/$defs/RuntimeCompositionInstance"
+              },
+              "maxItems": 500,
+              "title": "Instances",
+              "type": "array"
+            },
+            "slots": {
+              "items": {
+                "$ref": "#/$defs/RuntimeCompositionSlot"
+              },
+              "maxItems": 500,
+              "title": "Slots",
+              "type": "array"
+            },
+            "viewport": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RuntimeCompositionViewport"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "layoutNodes": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/RuntimeLayoutNodeObservation"
+                  },
+                  "maxItems": 200,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Layoutnodes"
+            }
+          },
+          "required": [
+            "appUIModelHash",
+            "observedAt",
+            "instances"
+          ],
+          "title": "RuntimeComposition",
+          "type": "object"
+        },
+        "RuntimeCompositionApplication": {
+          "additionalProperties": false,
+          "properties": {
+            "phase": {
+              "enum": [
+                "bootstrapping",
+                "resolving-gates",
+                "blocked",
+                "ready",
+                "error"
+              ],
+              "title": "Phase",
+              "type": "string"
+            },
+            "activeGateInstanceId": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Activegateinstanceid"
+            }
+          },
+          "required": [
+            "phase"
+          ],
+          "title": "RuntimeCompositionApplication",
+          "type": "object"
+        },
+        "RuntimeCompositionInstance": {
+          "additionalProperties": false,
+          "properties": {
+            "instanceId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Instanceid",
+              "type": "string"
+            },
+            "pluginId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Pluginid",
+              "type": "string"
+            },
+            "slotId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Slotid",
+              "type": "string"
+            },
+            "slotPath": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Slotpath"
+            },
+            "rect": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RuntimeRect"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "instanceId",
+            "pluginId",
+            "slotId"
+          ],
+          "title": "RuntimeCompositionInstance",
+          "type": "object"
+        },
+        "RuntimeCompositionSlot": {
+          "additionalProperties": false,
+          "properties": {
+            "slotId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Slotid",
+              "type": "string"
+            },
+            "widthClass": {
+              "enum": [
+                "unknown",
+                "narrow",
+                "wide"
+              ],
+              "title": "Widthclass",
+              "type": "string"
+            },
+            "slotPath": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Slotpath"
+            },
+            "rect": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RuntimeRect"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "slotId",
+            "widthClass"
+          ],
+          "title": "RuntimeCompositionSlot",
+          "type": "object"
+        },
+        "RuntimeCompositionViewport": {
+          "additionalProperties": false,
+          "properties": {
+            "width": {
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Width",
+              "type": "number"
+            },
+            "height": {
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Height",
+              "type": "number"
+            }
+          },
+          "required": [
+            "width",
+            "height"
+          ],
+          "title": "RuntimeCompositionViewport",
+          "type": "object"
+        },
+        "RuntimeDiagnostic": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "runtime-composition",
+                "preview-runtime",
+                "plugin-render",
+                "plugin-activation",
+                "plugin-width-incompatible",
+                "application-gate",
+                "application-event-unknown",
+                "application-event-invalid-payload",
+                "plugin-event-undeclared-subscription",
+                "plugin-event-handler-error"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "code": {
+              "anyOf": [
+                {
+                  "const": "PLUGIN_WIDTH_INCOMPATIBLE",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Code"
+            },
+            "status": {
+              "enum": [
+                "error",
+                "resolved"
+              ],
+              "title": "Status",
+              "type": "string"
+            },
+            "appUIModelHash": {
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Appuimodelhash",
+              "type": "string"
+            },
+            "compositionRevision": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Compositionrevision"
+            },
+            "capabilityCatalogRevision": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-f0-9]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Capabilitycatalogrevision"
+            },
+            "publishedAt": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Publishedat"
+            },
+            "occurredAt": {
+              "format": "date-time",
+              "title": "Occurredat",
+              "type": "string"
+            },
+            "pluginId": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Pluginid"
+            },
+            "instanceId": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Instanceid"
+            },
+            "pluginName": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Pluginname"
+            },
+            "eventName": {
+              "anyOf": [
+                {
+                  "maxLength": 300,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Eventname"
+            },
+            "issuePaths": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Issuepaths"
+            },
+            "slotId": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Slotid"
+            },
+            "slotPath": {
+              "anyOf": [
+                {
+                  "maxLength": 1000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Slotpath"
+            },
+            "requiredWidth": {
+              "anyOf": [
+                {
+                  "const": "wide",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Requiredwidth"
+            },
+            "actualWidthClass": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "unknown",
+                    "narrow",
+                    "wide"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Actualwidthclass"
+            },
+            "errorMessage": {
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Errormessage"
+            },
+            "componentStack": {
+              "anyOf": [
+                {
+                  "maxLength": 8000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Componentstack"
+            }
+          },
+          "required": [
+            "kind",
+            "status",
+            "appUIModelHash",
+            "occurredAt"
+          ],
+          "title": "RuntimeDiagnostic",
+          "type": "object"
+        },
+        "RuntimeLayoutNodeObservation": {
+          "additionalProperties": false,
+          "properties": {
+            "nodeId": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Nodeid",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "row",
+                "column",
+                "panel",
+                "stack",
+                "slot",
+                "sidebar"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "rect": {
+              "$ref": "#/$defs/RuntimeRect"
+            },
+            "trackWidths": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 1000000,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "maxItems": 200,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Trackwidths"
+            }
+          },
+          "required": [
+            "nodeId",
+            "type",
+            "rect"
+          ],
+          "title": "RuntimeLayoutNodeObservation",
+          "type": "object"
+        },
+        "RuntimeRect": {
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "maximum": 1000000,
+              "minimum": -1000000,
+              "title": "X",
+              "type": "number"
+            },
+            "y": {
+              "maximum": 1000000,
+              "minimum": -1000000,
+              "title": "Y",
+              "type": "number"
+            },
+            "width": {
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Width",
+              "type": "number"
+            },
+            "height": {
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Height",
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "title": "RuntimeRect",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "threadId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Threadid",
+          "type": "string"
+        },
+        "diagnostic": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeDiagnostic"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "composition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeComposition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "observationRequestId": {
+          "type": "string",
+          "pattern": "^[a-f0-9-]{36}$"
+        },
+        "presentation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "truncated",
+            "regions"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "available",
+                "unavailable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "truncated": {
+              "type": "boolean"
+            },
+            "regions": {
+              "type": "array",
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind",
+                  "id",
+                  "nodes",
+                  "truncated"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "layout",
+                      "instance"
+                    ]
+                  },
+                  "id": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "truncated": {
+                    "type": "boolean"
+                  },
+                  "nodes": {
+                    "type": "array",
+                    "maxItems": 24,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "relation",
+                        "depth",
+                        "tag",
+                        "classes",
+                        "rect",
+                        "styles"
+                      ],
+                      "properties": {
+                        "relation": {
+                          "enum": [
+                            "self",
+                            "ancestor",
+                            "descendant"
+                          ]
+                        },
+                        "depth": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 7
+                        },
+                        "tag": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "classes": {
+                          "type": "array",
+                          "maxItems": 16,
+                          "items": {
+                            "type": "string",
+                            "maxLength": 80
+                          }
+                        },
+                        "slot": {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        "sidebarMode": {
+                          "enum": [
+                            "drawer",
+                            "inline"
+                          ]
+                        },
+                        "rect": {
+                          "$ref": "#/$defs/RuntimeRect"
+                        },
+                        "styles": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "display": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "position": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "width": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "minWidth": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "maxWidth": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "height": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "flexDirection": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "flexWrap": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "flexBasis": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "flexGrow": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "flexShrink": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "gridTemplateColumns": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "overflowX": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "overflowY": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "borderRadius": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "borderColor": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "backgroundColor": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "color": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "boxShadow": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "sidebarWidth": {
+                              "type": "string",
+                              "maxLength": 160
+                            },
+                            "sidebarIconWidth": {
+                              "type": "string",
+                              "maxLength": 160
+                            }
+                          }
+                        },
+                        "state": {
+                          "enum": [
+                            "expanded",
+                            "collapsed",
+                            "open",
+                            "closed"
+                          ]
+                        },
+                        "expanded": {
+                          "type": "boolean"
+                        },
+                        "side": {
+                          "enum": [
+                            "left",
+                            "right",
+                            "top",
+                            "bottom"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "title": "RuntimeDiagnosticEnvelope",
+      "type": "object"
+    },
+    "VisualObservationEnvelope": {
+      "$defs": {
+        "VisualObservationImage": {
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "const": "webp",
+              "title": "Format",
+              "type": "string"
+            },
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 4096,
+              "title": "Width",
+              "type": "integer"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 4096,
+              "title": "Height",
+              "type": "integer"
+            },
+            "data": {
+              "maxLength": 1040000,
+              "minLength": 1,
+              "title": "Data",
+              "type": "string"
+            }
+          },
+          "required": [
+            "format",
+            "width",
+            "height",
+            "data"
+          ],
+          "title": "VisualObservationImage",
+          "type": "object"
+        },
+        "VisualObservationViewport": {
+          "additionalProperties": false,
+          "properties": {
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 16384,
+              "title": "Width",
+              "type": "integer"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 16384,
+              "title": "Height",
+              "type": "integer"
+            },
+            "devicePixelRatio": {
+              "exclusiveMinimum": 0,
+              "maximum": 8,
+              "title": "Devicepixelratio",
+              "type": "number"
+            }
+          },
+          "required": [
+            "width",
+            "height",
+            "devicePixelRatio"
+          ],
+          "title": "VisualObservationViewport",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "currentHash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Currenthash",
+          "type": "string"
+        },
+        "capturedAt": {
+          "format": "date-time",
+          "title": "Capturedat",
+          "type": "string"
+        },
+        "viewport": {
+          "$ref": "#/$defs/VisualObservationViewport"
+        },
+        "image": {
+          "$ref": "#/$defs/VisualObservationImage"
+        },
+        "captureDurationMs": {
+          "maximum": 120000,
+          "minimum": 0,
+          "title": "Capturedurationms",
+          "type": "integer"
+        },
+        "imageBytes": {
+          "exclusiveMinimum": 0,
+          "maximum": 778240,
+          "title": "Imagebytes",
+          "type": "integer"
+        },
+        "uploadStartedAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uploadstartedat"
+        }
+      },
+      "required": [
+        "currentHash",
+        "capturedAt",
+        "viewport",
+        "image",
+        "captureDurationMs",
+        "imageBytes"
+      ],
+      "title": "VisualObservationEnvelope",
+      "type": "object"
+    },
+    "QuestionRequest": {
+      "$defs": {
+        "QuestionOption": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            },
+            "label": {
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Description"
+            }
+          },
+          "required": [
+            "id",
+            "label"
+          ],
+          "title": "QuestionOption",
+          "type": "object"
+        },
+        "QuestionStep": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            },
+            "question": {
+              "minLength": 1,
+              "title": "Question",
+              "type": "string"
+            },
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Description"
+            },
+            "options": {
+              "items": {
+                "$ref": "#/$defs/QuestionOption"
+              },
+              "maxItems": 7,
+              "minItems": 2,
+              "title": "Options",
+              "type": "array"
+            },
+            "selectionMode": {
+              "enum": [
+                "single",
+                "multiple"
+              ],
+              "title": "Selectionmode",
+              "type": "string"
+            },
+            "minSelections": {
+              "minimum": 0,
+              "title": "Minselections",
+              "type": "integer"
+            },
+            "maxSelections": {
+              "minimum": 1,
+              "title": "Maxselections",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "id",
+            "question",
+            "options",
+            "selectionMode",
+            "minSelections",
+            "maxSelections"
+          ],
+          "title": "QuestionStep",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/QuestionStep"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "title": "QuestionRequest",
+      "type": "object"
+    },
+    "QuestionAnswers": {
+      "additionalProperties": false,
+      "properties": {
+        "answers": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Answers",
+          "type": "object"
+        }
+      },
+      "required": [
+        "answers"
+      ],
+      "title": "QuestionAnswers",
+      "type": "object"
+    },
+    "PrepareUIServiceImplementationChangeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "implementationPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Logical path relative to sourceRoot, e.g. services/conversations/http-data-source.ts. Use forward slashes on every OS."
+        },
+        "edits": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "oldText": {
+                "type": "string",
+                "minLength": 1
+              },
+              "newText": {
+                "type": "string"
+              },
+              "replaceAll": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "oldText",
+              "newText"
+            ]
+          }
+        },
+        "impactSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12000,
+          "description": "Explain affected operations, shared headers/auth/base URL, consumers, public API preservation and uncertainty in the user language."
+        }
+      },
+      "required": [
+        "implementationPath",
+        "edits",
+        "impactSummary"
+      ]
+    },
+    "ApplyUIServiceImplementationChangeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "authorizationId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "authorizationId"
+      ]
+    }
+  }
+}

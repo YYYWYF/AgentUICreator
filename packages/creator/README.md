@@ -1,9 +1,9 @@
 # Agent UI Creator
 
 在你自己的开发页面里，用对话检查和修改 Agent UI。
-业务工程照常启动，需要 Creator 时再单独启动它。
+业务工程照常启动，需要 Creator 时再启动工具服务。Creator 图形界面只能通过宿主开发页面中的入口使用，不提供独立页面。
 
-以下适用于 React + Vite 项目。需要 Node.js 22.12 或更新版本；Operator 与匹配平台的 Python 执行环境随 npm 依赖自动安装，无需另行安装。支持的平台与工程结构见 [Creator Python 发行](docs/python-distribution.md)。
+以下适用于 React + Vite 项目。安装和使用 Creator 要求 Node.js 24，最低版本为 `24.22.1`（`^24.22.1`）；Creator Agent 和 Operator 工具均使用 TypeScript，随同一个 npm 包交付。工程结构见 [Creator TS 发行](docs/typescript-distribution.md)。
 
 ## 1. 安装
 
@@ -18,7 +18,7 @@ pnpm add -D @za38.03/agent-ui-creator
 在 `package.json` 的 `scripts` 中添加这一行，保留其他脚本：
 
 ```json
-"dev:creator": "agent-ui-creator --project . --port 47832 --no-open"
+"dev:creator": "agent-ui-creator --port 47832"
 ```
 
 在 `vite.config.ts` 顶部添加：
@@ -44,27 +44,32 @@ plugins: [react(), createCreatorDockVitePlugin()]
 pnpm dev:creator
 ```
 
-回到业务页面，稍等几秒，顶部会出现 **Creator Agent** 入口，不需要刷新。
+回到业务开发页面，顶部的 **Creator Agent** 入口随页面加载。Creator 服务启动后，点击入口即可连接。
 
-![启动后，业务页面顶部出现 Creator Agent 入口](docs/images/creator-entry.jpg)
+![启动后，业务页面顶部出现 Creator Agent 入口](dist/documentation/images/start/03-creator-entry.png)
 
-点击入口展开。当前工程已自动选中；新工程按界面提示选择产品形态和源码目录，完成初始化。
+点击入口展开，首次使用时选择工程，目录选择器默认从启动 Creator 的目录开始。同一浏览器和 Creator 服务地址下会尝试恢复上次选中的工程；路径失效时重新选择。「关闭当前项目」会清除这条记录。
+
+React 新工程只需先安装 Creator，不必手动列出 Agent UI 运行依赖。选择产品形态和源码目录后，Creator 会展示当前工程的依赖声明计划。确认后只在 `package.json` 添加缺少的生产及构建依赖，不执行包管理器命令，不改写锁文件、`node_modules` 或宿主构建配置。已有兼容依赖直接复用，不兼容版本会明确提示。当前依赖准备支持独立 npm/pnpm 工程。
+
+在该工程自行运行 `pnpm install` 或 `npm install`，然后回到 Creator 点击“重新检查依赖”；实际依赖就绪后，才继续初始化 Agent UI。默认模板的 Tailwind 样式配置由用户按构建工具自行完成，见《React 工程接入 → 工程依赖与样式》中 Vite、Rsbuild 和 Webpack 的步骤，不要求所有宿主安装 Vite 编译插件。工程 UI 库和样式方案仍由工程管理。
+
 下面是已初始化工程的界面：
 
-![展开 Creator，在当前工程中检查或修改 Agent UI](docs/images/creator-panel.jpg)
+![展开 Creator，在当前工程中检查或修改 Agent UI](dist/documentation/images/start/05-initialized.png)
 
 第一次对话前，请先完成 [模型配置](docs/advanced.md#模型配置)。之后可以直接告诉 Creator：
 
 > 把这个助手调整成中文客服，保留当前业务页面。
 
-在 Creator 终端按 **Ctrl+C** 停止，顶部入口会自动消失，业务工程继续运行。
+在 Creator 终端按 **Ctrl+C** 停止服务，业务工程和页面入口仍保留；再次启动服务后可继续使用。
 下次需要时，再执行 `pnpm dev:creator` 即可。Creator 浮层只在开发时显示，不进入生产页面。
 
 ## 其他接入方式与常见问题
 
 - [模型配置](docs/advanced.md#模型配置)
 - [端口占用或连接不上](docs/advanced.md#端口占用或连接不上)
-- [Rsbuild、Webpack、独立启动和进阶配置](docs/advanced.md)
+- [Rsbuild、Webpack 和进阶配置](docs/advanced.md)
 
 ## 把 Agent UI 接入业务页面
 
@@ -86,11 +91,12 @@ Creator 会将定制修改保存在关联的 React Agent UI 工程。修改后�
 ## 在宿主页面中控制助理
 
 只展示助理时，从初始化生成的入口导入 `Agent` 并渲染 `<Agent />`。
-需要业务按钮发送消息或读取运行状态时，从同一入口导入 Provider 和 Hooks：
+需要业务按钮发送消息或读取运行状态时，由业务代码从 npm 包导入 Provider 和 Hooks：
 
 ```tsx
 import { useState } from "react";
-import { Agent, AgentUIProvider, useAgentUI, useAgentUIState } from "./agent-ui";
+import { Agent } from "./agent-ui";
+import { AgentUIProvider, useAgentUI, useAgentUIState } from "@za38.03/agent-ui-runtime";
 
 function AssistantRegion() {
   const agent = useAgentUI();
@@ -118,11 +124,11 @@ export default function SelfPage() {
 }
 ```
 
-导入路径按你的源码目录调整。Provider 是 Agent UI 的运行时接入组件，不是 UI Plugin，也不需要从 assistant-ui 引入。它不进入 AppUIModel；原来的插件树仍决定界面布局和插件是否启用。
+Agent 的导入路径按你的源码目录调整，业务组件可放在任意目录。Provider 是 Agent UI 的运行时接入组件，不是 UI Plugin，也不需要从 assistant-ui 引入。它不进入 AppUIModel；原来的插件树仍决定界面布局和插件是否启用。
 
-- `user`、`locale`、`endpoint`、附件/反馈适配器等配置放在外层 `AgentUIProvider` 上，其内部使用无参数的 `<Agent />`。一个 Provider 只挂载一个展示区域；独立助理使用独立 Provider。
+- `locale`、`endpoint`、附件/反馈适配器等项目配置传给 `<Agent />`。Provider 只接收 `children` 和可选的共享展示资料 `user`；Agent 自身的 `user` 可覆盖其继承值。一个 Provider 只挂载一个 Agent；独立使用 `<Agent />` 时会自动建立内部上下文。
 - `user` 及其 `userId`、`userName`、`avatar` 均可选。账户插件启用时，缺失资料显示默认值。用户资料只用于前端展示，不会自动提供给模型，也不替代宿主鉴权。
-- Provider 保持挂载时，助理区域隐藏或卸载不会销毁会话；宿主仍可读取状态和发送消息。卸载 Provider 会断开宿主接口并停止当前执行。
+- 需要隐藏面板但保留会话时，使用 `hidden` 或 CSS 并保持 `<Agent />` 挂载；宿主仍可读取状态和发送消息。卸载 Agent 或 Provider 会断开会话并停止当前执行。
 - `useAgentUI()` 提供 `sendMessage`、`abortRun`、`startNewConversation`、`resumeInterrupts`。未就绪调用返回 `AGENT_UI_NOT_READY`；消息并发与中断继续遵循已有 Runtime 规则，不额外排队。
 - `useAgentUIState(selector)` 订阅稳定字段，例如 `s.status`、`s.runtime?.run.status` 和 `s.runtime?.messages`。避免在 selector 中新建对象或数组。
 - `useAgentUIEvent(name, handler)` 订阅 `ready`、`status-change`、`thread-change`、`run-start`、`run-end`。事件只通知变化；读取当前状态使用状态 Hook。`run-end` 包含完成、取消、错误和等待用户输入，不等于成功完成。
@@ -137,8 +143,8 @@ export default function SelfPage() {
 
 ## Project Operator and contracts
 
-Creator has one user-facing npm installation entry. `packages/creator` owns the Python Agent, skills, canonical contracts and thin Node entry; `packages/operator` owns the TypeScript CLI, Workbench, integrations and project-control implementation under `control/`. Creator automatically depends on the independently versioned `@za38.03/agent-ui-operator` and matching Python platform package, including its interpreter, dependencies and contracts. Users do not install either dependency separately. Python wheels remain a development distribution.
+Creator Agent and Operator ship together as `@za38.03/agent-ui-creator`. Agent control code lives in `src/agent`, UI/CLI/hosting in `src`, and the internal project-control implementation in `operator`. Canonical schemas and fixtures remain in `contracts/creator`; prompts and Skills ship with the same package. Operator is internal to Creator.
 
-Public Node entry points: `/operator` (managed entry installer), `/operator/dev`, `/operator/protocol`, `/operator/host`, `/operator/resources`, `/operator/updates`, `/operator/commands`, `/bootstrap`, and `/source-registry`. Import these subpaths to use project tools without starting the Creator UI or Python sidecar. Production frontends must remain independent of Creator.
+Public Node entry points include `/project`, `/project/dev`, `/project/protocol`, `/project/host`, `/project/resources`, `/project/updates`, `/project/commands`, `/bootstrap`, `/source-registry`, and `/mock-agent`. Production frontends remain independent of Creator and its Agent, tools and update services.
 
-`pnpm --filter @za38.03/agent-ui-creator build` builds Operator and the Creator npm entry. Operator's runtime/types/presets and browser assets ship only in the Operator package; Creator's existing subpaths forward to it. Run `pnpm --filter @za38.03/agent-ui-operator test:operator` or `typecheck:operator` for project-control checks, and its main `test` / `typecheck` for the full TS tool. Creator's `typecheck` checks the generated npm entry.
+`pnpm --filter @za38.03/agent-ui-creator build` builds the complete development tool. Run its `typecheck`, `test:operator` or `typecheck:operator` scripts for the corresponding checks. Product behavior requires separate validation through live browser scenarios.

@@ -1,6 +1,6 @@
 # Sources / Citations
 
-Sources 是 assistant-ui presentation；AG-UI 0.0.59 和 1.0 当前都没有标准 citation/source wire event。`document.source` 表示附件数据来自 URL 还是 data，不是回答引用来源。
+Sources 是 assistant-ui presentation；当前 AG-UI 没有独立标准 citation/source wire event。`document.source` 表示附件数据来自 URL 还是 data，不是回答引用来源。
 
 ## 原生 assistant-ui 链路
 

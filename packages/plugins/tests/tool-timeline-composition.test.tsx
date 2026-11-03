@@ -16,14 +16,14 @@ function message(content: Content, status: Extract<ThreadMessage, { role: "assis
 }
 const tool = (id: string, extra = {}) => ({ type: "tool-call" as const, toolCallId: id, toolName: "read_file", args: {}, argsText: "{}", result: { ok: true }, ...extra });
 const EmptyScopedTransientMessages = () => <div data-testid="empty-transient-plugin-boundary" />;
-async function mount(content: Content, enabled = true, tasks = false, status?: Extract<ThreadMessage, { role: "assistant" }>["status"]) {
+async function mount(content: Content, enabled = true, tasks = false, status?: Extract<ThreadMessage, { role: "assistant" }>["status"], locale: "en-US" | "zh-CN" = "en-US") {
   const container = document.createElement("div"); document.body.append(container);
   const root = createRoot(container); roots.push(root);
   let runtime!: AssistantRuntime;
   function Host() {
     const current = useLocalRuntime({ run: async () => ({ content: [] }) }, { initialMessages: [message(content, status)] });
     useEffect(() => { runtime = current; }, [current]);
-    return <AgentUILocaleProvider locale="en-US"><AssistantRuntimeProvider runtime={current}>
+    return <AgentUILocaleProvider locale={locale}><AssistantRuntimeProvider runtime={current}>
       <ConversationThread components={{ TransientMessages: EmptyScopedTransientMessages, ...(enabled ? { ToolTimeline: ConversationToolTimeline } : {}), ...(tasks ? { TaskGroup: ConversationTaskGroup } : {}) }} />
     </AssistantRuntimeProvider></AgentUILocaleProvider>;
   }
@@ -44,10 +44,27 @@ describe("official message ToolTimeline composition", () => {
     expect(container.textContent).toContain("Executed 3 steps");
     expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
     await act(async () => container.querySelector<HTMLButtonElement>('[data-slot="tool-timeline"] button')!.click());
-    expect(container.textContent).toContain("Read file");
-    expect(container.textContent).toContain("Original tool details");
-    await act(async () => [...container.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent === "Original tool details")!.click());
-    expect(container.querySelectorAll('[data-slot="tool-fallback-root"]')).toHaveLength(3);
+    expect(container.textContent).toContain("Read");
+    expect(container.textContent).not.toContain("Original tool details");
+    expect(container.querySelector('[data-slot="agent-ui-tool-timeline-details"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
+  });
+  it.each(["en-US", "zh-CN"] as const)("shows upstream-style actions, concrete targets and real stats in %s", async locale => {
+    const { container } = await mount([
+      tool("read", { args: { path: "C:\\工程\\thread.tsx" } }),
+      tool("run", { toolName: "run_command", args: { command: "pnpm vitest" } }),
+      tool("edit", { toolName: "edit_file", args: { path: "composer.tsx" }, result: { file: "composer.tsx", added: 14, removed: 3 } }),
+    ], true, false, undefined, locale);
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-slot="tool-timeline"] button')!.click());
+    const timeline = container.querySelector('[data-slot="tool-timeline"]')!;
+    expect(timeline.textContent).toContain("C:\\工程\\thread.tsx");
+    expect(timeline.textContent).toContain("pnpm vitest");
+    expect(timeline.textContent).toContain("composer.tsx");
+    expect(timeline.textContent).toContain("+14");
+    expect(timeline.textContent).toContain("−3");
+    for (const action of locale === "en-US" ? ["Read", "Ran", "Edited"] : ["读取", "执行", "编辑"]) expect(timeline.textContent).toContain(action);
+    expect(timeline.textContent).not.toMatch(/Original tool details|原始工具详情|Completed|已完成/);
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).toBeNull();
   });
   it("T03 preserves the open timeline across streaming append and text interleave", async () => {
     const { container, runtime } = await mount([tool("a"), { type: "text", text: "between" }, tool("b")]);

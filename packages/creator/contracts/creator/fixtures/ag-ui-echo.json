@@ -5,9 +5,9 @@
   },
   "health": {
     "status": "ok",
-    "runtime": "python",
+    "runtime": "typescript",
     "agentMode": "echo",
-    "phase": "sidecar-skeleton"
+    "phase": "typescript-agent"
   },
   "request": {
     "threadId": "creator-thread",
@@ -16,7 +16,7 @@
       {
         "id": "user-message",
         "role": "user",
-        "content": "hello-python-sidecar-测试"
+        "content": "hello-creator-测试"
       }
     ],
     "tools": [],
@@ -44,7 +44,7 @@
     {
       "type": "TEXT_MESSAGE_CONTENT",
       "messageId": "assistant-message",
-      "delta": "hello-python-sidecar-测试"
+      "delta": "hello-creator-测试"
     },
     {
       "type": "TEXT_MESSAGE_END",

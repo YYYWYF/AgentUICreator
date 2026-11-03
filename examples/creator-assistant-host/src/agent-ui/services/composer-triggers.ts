@@ -20,7 +20,7 @@ export function createConversationCommandRegistry(): ConversationCommandRegistry
     },
   };
 }
-declare module "../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap {
     [CONVERSATION_MENTION_SOURCE]: ConversationMentionSource;
     [CONVERSATION_COMMAND_SOURCE]: ConversationCommandRegistry;

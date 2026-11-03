@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import {
   getAgentUIThemeColorScheme,
   type AgentUITheme,
-  ConversationThread,
+  ConversationThreadBase as ConversationThread,
   type ConversationThreadComponents,
   type ConversationThreadLabels,
   TooltipProvider,

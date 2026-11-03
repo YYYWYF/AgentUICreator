@@ -1,47 +1,88 @@
 ---
-title: "显示完整对话区（conversation-surface）"
+title: "会话界面（conversation-surface）"
 ---
 
-# 显示完整对话区（conversation-surface）
-
-提供完整的聊天区域，把历史消息、Agent 回复和底部输入框放在一起。
-
-## 界面与功能
+# 会话界面（conversation-surface）
 
 用户可以在同一区域阅读已有对话、查看新回复并继续提问；工具结果、计划等内容会显示在对应的消息中。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![显示完整对话区（conversation-surface）界面示例](/images/plugins/conversation-surface.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable conversation-surface`，点击下图中的 **「显示完整对话区」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「显示完整对话区」，插件 ID 为 conversation-surface](/images/plugins/enable/conversation-surface.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「显示完整对话区」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-保留当前会话服务和各项已启用功能。只有 Agent 返回相应内容时才显示工具、计划或结构化结果。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `rendererSlots` | 替换对应内容的展示，保留当前数据与交互。 |
-| `rootProps` | 最外层区域的样式和 DOM 属性。 |
+| 对话区大小 | 调整高度、宽度和最小高度。 |
+| 对话区外观 | 调整背景、边框、圆角和间距。 |
+| 空白对话的备用内容 | 没有配置欢迎区时，显示一段自定义内容。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「显示完整对话区（conversation-surface）」：
+修改：对话区背景改为【浅灰色】，内边距设为【16px】，圆角设为【12px】。
+保留：现有消息、欢迎区和输入区的组合。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/conversation-surface/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationSurfacePlugin`；类型：`ConversationSurfacePluginProps`。继承 `div` 原生属性，排除 `children`。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `autoFocus?` | `boolean` | 传给当前会话组件，决定是否自动聚焦输入框 |
+| `labels?` | `ConversationThreadLabels` | 与统一 `conversation` 文案合并，见下文 |
+| `welcome?` | `ReactNode` | 欢迎区内容；`emptyWelcome` 插槽优先 |
+| `suggestions?` | `ReactNode` | 建议内容；`emptySuggestions` 插槽优先 |
+| `composer?` | `ReactNode` | 输入区内容；`composer` 插槽优先 |
+| `Adapter?` | `ComponentType<ConversationSurfaceAdapterProps>` | 负责显示消息和输入区的现有会话组件；没有时不显示会话主体 |
+| `rendererSlots?` | `{ toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean }` | 标明当前启用了哪些消息展示插件；继续使用项目生成的配置 |
+| `snapshot?` | `{ mode?: string; detailStatus?: string }` | 宿主页面传入的会话状态，用于给容器添加状态标记 |
+
+`ConversationThreadLabels` 包含必需的 `generationStopped: string`，以及可选的 `editCancel`、`editUpdate`、`editInput` 字符串。`Adapter` 属性包括 `autoFocus`、`className`、`rendererSlots`、`labels`、`welcome`、`suggestions`、`composer`、`renderScopedSlot`；完整类型见 `ConversationSurfaceAdapterProps`。外层 `className`／`style` 用于插件容器，不会自动变为 `Adapter` 组件的属性。
+
+#### 原生属性
+
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+#### 子插件渲染
+
+这些函数由插件运行环境（Runtime）提供，用于显示配置好的子插件，通常无需自行编写。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 显示欢迎区、建议问题、顶部操作和输入区中配置的子插件 |
+| `renderScopedSlot?` | `(name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode` | 根据当前消息、工具调用或分组的数据，显示对应的子插件 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationSurfacePlugin } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationSurfacePlugin>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

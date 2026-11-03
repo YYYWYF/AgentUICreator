@@ -14,12 +14,8 @@ export type {
   StackNode as RuntimeStackNode,
 } from "@za38.03/agent-ui-renderer";
 
-export interface AppUIRuntimePluginInstance {
-  id: string;
-  pluginId: string;
-  enabled: boolean;
-  mount?: { slotId: string; order?: number | undefined } | undefined;
-}
+import type { AppUIRuntimePluginInstance } from "@za38.03/agent-ui-plugins/contracts";
+export type { AppUIRuntimePluginInstance } from "@za38.03/agent-ui-plugins/contracts";
 
 export interface AppUIRuntimeModel {
   root: LayoutNode;
@@ -32,7 +28,7 @@ const nonBlankStringSchema = z.string().refine(
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
 const rowDrawerPolicySchema: z.ZodType<RowDrawerPolicy> = z.strictObject({
-  type: z.literal("trailing-drawer"),
+  type: z.enum(["drawer", "trailing-drawer"]),
   primaryIndex: z.number().int().nonnegative(),
   drawerIndex: z.number().int().nonnegative(),
   minPrimaryWidth: z.number().positive().finite(),
@@ -136,7 +132,8 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
         }
         if (node.type === "row" && node.responsive !== undefined && (
             node.responsive.primaryIndex >= node.children.length ||
-            node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+            node.responsive.primaryIndex === node.responsive.drawerIndex ||
+          (node.responsive.type === "trailing-drawer" && node.responsive.primaryIndex > node.responsive.drawerIndex) ||
             node.responsive.drawerIndex > node.children.length)) {
           context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row responsive indices must identify an existing primary child and a drawer position at or before the end", input: node.responsive });
         }

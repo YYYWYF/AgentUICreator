@@ -2,9 +2,23 @@
 
 import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "../../../../composer-support.js";
 
-import { useContext, type FC, type ReactNode } from "react";
+import { useContext, useState, type FC, type ReactNode } from "react";
 import { ComposerPrimitive, QueueItemPrimitive, AuiIf, XIcon, ComposerHostConfigContext, ComposerInputHostContext, ComposerAttachments, TooltipIconButton,
-  useConversationComposerAwaitingReply, useConversationComposerSendGuard, useAgentUILocale } from "../../../../composer-support.js";
+  useConversationComposerAwaitingReply, useConversationComposerSendGuard, useAgentUILocale, useAuiEvent } from "../../../../composer-support.js";
+
+function ComposerAttachmentError() {
+  const messages = useAgentUILocale();
+  const [error, setError] = useState<string | null>(null);
+  useAuiEvent("composer.attachmentAddError", event => {
+    if (event.messageId !== undefined) return;
+    setError(event.reason === "not-accepted" ? messages.serviceAdapters.fileTypeRejected
+      : event.message || messages.attachments.uploadFailed);
+  });
+  useAuiEvent("composer.attachmentAdd", () => setError(null));
+  useAuiEvent("composer.send", () => setError(null));
+  useAuiEvent("threads.selectionChanged", () => setError(null));
+  return error === null ? null : <p data-agent-ui-owned="" data-slot="aui_composer-attachment-error" role="alert" className="text-destructive text-sm">{error}</p>;
+}
 import { ComposerTextareaInput } from "./textarea.js";
 
 export interface ComposerQueueLabels {
@@ -32,9 +46,11 @@ export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued })
   </AuiIf>
 );
 
-export interface CanonicalComposerProps {
+export interface CanonicalComposerProps extends Omit<ConversationComposerRootProps, "children"> {
+  rows?: ConversationComposerInputProps["rows"];
+  maxLength?: ConversationComposerInputProps["maxLength"];
+  submitMode?: ConversationComposerInputProps["submitMode"];
   inputProps?: ConversationComposerInputProps;
-  rootProps?: ConversationComposerRootProps;
   dropzoneProps?: ConversationComposerDropzoneProps;
   autoFocus?: boolean | undefined;
   placeholder: string;
@@ -49,7 +65,7 @@ export interface CanonicalComposerProps {
 }
 
 export const CanonicalComposer: FC<CanonicalComposerProps> = ({
-  inputProps, rootProps, dropzoneProps,
+  rows, maxLength, submitMode, inputProps, dropzoneProps,
   autoFocus,
   placeholder,
   inputAriaLabel,
@@ -60,7 +76,18 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   leadingActions,
   trailingActions,
   submitAction,
+  ...rootProps
 }) => {
+  const { submitMode: inputSubmitMode, submitOnEnter, ...nativeInputProps } = inputProps ?? {};
+  const resolvedSubmitMode = submitMode ?? inputSubmitMode;
+  const resolvedInputProps = {
+    ...nativeInputProps,
+    ...(rows === undefined ? {} : { rows }),
+    ...(maxLength === undefined ? {} : { maxLength }),
+    ...(resolvedSubmitMode === undefined
+      ? (submitOnEnter === undefined ? {} : { submitOnEnter })
+      : { submitMode: resolvedSubmitMode }),
+  };
   const inheritedHostConfig = useContext(ComposerHostConfigContext);
   const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
   const awaitingReply = useConversationComposerAwaitingReply();
@@ -68,7 +95,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
 
   return (
     <ComposerPrimitive.Unstable_TriggerPopoverRoot>
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col" {...rootProps}
+    <ComposerPrimitive.Root {...rootProps} className={["aui-composer-root relative flex w-full flex-col", rootProps.className].filter(Boolean).join(" ")}
       onSubmit={event => { rootProps?.onSubmit?.(event); if (guardSend()) event.preventDefault(); }}>
       {triggers}
       <ComposerPrimitive.AttachmentDropzone asChild {...dropzoneProps}>
@@ -77,6 +104,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]"
         >
           <ComposerAttachments />
+          <ComposerAttachmentError />
           {beforeInput === undefined || beforeInput === null ? null : (
             <div data-agent-ui-owned="" data-slot="aui_composer-before-input">{beforeInput}</div>
           )}
@@ -85,13 +113,13 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
             <div data-agent-ui-owned="" data-slot="aui_composer-input" className="min-w-0"
               onKeyDownCapture={event => {
                 // Only guard the primary input; sibling Slot controls keep their keyboard behavior.
-                if (awaitingReply && event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                if (awaitingReply && event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
                   event.preventDefault();
                   event.stopPropagation();
                   guardSend();
                 }
               }}>
-              {input ?? <ComposerTextareaInput {...inputProps} />}
+              {input ?? <ComposerTextareaInput {...resolvedInputProps} />}
             </div>
           </ComposerInputHostContext.Provider>
           <div data-slot="aui_composer-actions" className="aui-composer-action-wrapper relative flex items-center justify-between">

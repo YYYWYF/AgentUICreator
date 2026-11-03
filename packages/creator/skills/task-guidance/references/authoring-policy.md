@@ -55,8 +55,8 @@ normalization supplies deterministic identities and default enablement. Existing
 explicit IDs stay supported. For existing nodes use the current Composition
 snapshot's pN ref (or its legacy explicit ID) in instanceId/parentInstanceId/
 anchorInstanceId; refs belong to that model hash and never belong in saved JSON.
-Use mutate_app_ui_model for healthy composition; never edit app-ui/app-ui.json,
-app-ui/composition-revision.generated.json, or plugins/registry.generated.ts.
+Use mutate_app_ui_model for healthy composition; never edit app-ui.json,
+composition-revision.generated.json, or plugins/registry.generated.ts.
 Host-confirmed invalid models use inspect_app_ui_model_source and repair_app_ui_model.
 Use current complete Composition snapshots and exact returned refs/hashes. Prefer
 semantic insert_plugin_default when the declared default satisfies the request;
@@ -150,3 +150,12 @@ Report what changed, current checks, actual behavior verified and any remaining
 blocker. If nothing changed, say so. Never label created-but-unmounted or untested
 interaction behavior complete. For a genuinely no-change answer use
 [creator-verification:read-only]; do not use it for an incomplete modification.
+
+Theme selection has one public input: `<Agent theme={theme} onThemeChange={setTheme} />`
+(or the Web Component Host's `theme` property/attribute). Omission uses the built-in
+Violet theme with internal switching. Never create or edit `theme-config.ts` or add
+`theme` to project settings/AppUIModel. Inspect the actual caller and its state before
+explaining or changing a controlled theme. Preserve dynamic Host bindings. Host code
+outside the managed source root remains outside ordinary file-write permissions;
+provide the concrete caller-side change when that boundary prevents applying it.
+Palette tokens and scoped CSS remain project-owned styling.

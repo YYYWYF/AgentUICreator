@@ -15,6 +15,9 @@ it("regenerates all repeated presentation seams and preserves protocol results",
   expect(fallback).not.toMatch(/\n\s+(Allow|Deny|Confirm|Dismiss)\n/);
   const tasks = first.files.find(file => file.localPath.endsWith("/agent-status.aui.tsx")).source;
   expect(tasks.match(/summaryLabel\(summary, localeMessages.tasks\)/g)).toHaveLength(2);
+  const attachment = first.files.find(file => file.localPath.endsWith("/attachment.aui.tsx")).source;
+  expect(attachment).toContain("text-white after:pointer-events-none hover:bg-black/70!");
+  expect(attachment).not.toContain("after:-inset-1.5");
 });
 
 it("rejects a changed upstream localization anchor instead of silently skipping it", async () => {

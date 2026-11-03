@@ -47,6 +47,8 @@ type AttachmentPreviewProps = {
 const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
   const localeMessages = useAgentUILocale();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (failed) return <p data-agent-ui-owned="" data-slot="attachment-preview-error" role="alert" className="text-muted-foreground p-6 text-sm">{localeMessages.attachments.previewFailed}</p>;
   return (
     <img
       src={src}
@@ -58,6 +60,7 @@ const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
           : "aui-attachment-preview-image-loading opacity-0",
       )}
       onLoad={() => setIsLoaded(true)}
+      onError={() => setFailed(true)}
     />
   );
 };
@@ -92,8 +95,8 @@ const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({
         <DialogTitle className="aui-sr-only sr-only">
           {formatPresentationMessage(localeMessages.attachments.previewNamed, { name })}
         </DialogTitle>
-        <div className="aui-attachment-preview bg-background relative mx-auto flex max-h-[80dvh] w-full items-center justify-center overflow-hidden rounded-sm">
-          <AttachmentPreview src={src} name={name} />
+        <div className="aui-attachment-preview bg-background relative mx-auto flex min-h-24 max-h-[80dvh] w-full items-center justify-center overflow-hidden rounded-sm">
+          <AttachmentPreview key={src} src={src} name={name} />
         </div>
       </DialogContent>
     </Dialog>
@@ -102,7 +105,7 @@ const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({
 
 const AttachmentThumb: FC<{ src: string | undefined }> = ({ src }) => {
   return (
-    <Avatar className="aui-attachment-tile-avatar h-full w-full rounded-none after:hidden">
+    <Avatar className="aui-attachment-tile-avatar size-full rounded-none after:hidden">
       <AvatarImage
         src={src}
         alt=""
@@ -218,7 +221,7 @@ const AttachmentRemove: FC<{ name: string }> = ({ name }) => {
       render={
         <TooltipIconButton
           tooltip={formatPresentationMessage(localeMessages.attachments.removeNamed, { name })}
-          className="aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none"
+          className="aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:pointer-events-none hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none"
           side="top"
         />
       }

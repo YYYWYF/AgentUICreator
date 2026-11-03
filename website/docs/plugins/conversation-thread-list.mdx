@@ -1,49 +1,112 @@
 ---
-title: "查找与切换会话（conversation-thread-list）"
+title: "会话列表（conversation-thread-list）"
 ---
 
-# 查找与切换会话（conversation-thread-list）
+# 会话列表（conversation-thread-list）
 
-在侧栏列出已有会话，让用户查找并切换不同的聊天记录。
+点击记录打开对话，可搜索会话并使用已接入的管理操作。
 
-## 界面与功能
-
-点击一条记录即可打开那段对话。接好历史服务后，还可以搜索会话，并使用项目提供的删除入口。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
 ![查找与切换会话（conversation-thread-list）界面示例](/images/plugins/conversation-thread-list.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable conversation-thread-list`，点击下图中的 **「查找与切换会话」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
-
-可以把下面的需求发给 Creator：
-
-> 在当前工程中配置「查找与切换会话」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+![Creator 启用菜单：点击「查找与切换会话」，插件 ID 为 conversation-thread-list](/images/plugins/enable/conversation-thread-list.jpg)
 
 ## 使用前提
 
-开发者需接入历史服务，明确列表、详情和删除能力。只读历史与可继续会话不同。
+按[历史服务接入](/development/history-backend)配置列表和详情，按业务需要支持重命名、归档与删除。
 
-## 属性
+重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend#重命名归档与取消归档)。
 
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
+## 定制选项
 
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `rootProps` | 最外层区域的样式和 DOM 属性。 |
-| `listProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `children` | 替换或补充组件内容。 |
-| `onRefresh` | 监听对应操作，按已安装类型处理回调。 |
+| 显示搜索框 | 显示或隐藏会话搜索框。 |
+| 搜索提示 | 修改搜索框里的提示文字。 |
+| 每条会话的操作 | 选择是否显示重命名、归档、取消归档和删除入口。 |
+| 已归档会话 | 显示或隐藏归档区域，沿用会话搜索与条目定制。 |
+| 列表大小和外观 | 调整侧栏宽度、背景和内边距。 |
+| 列表上方的按钮 | 在列表顶部增加自己的操作。 |
+| 每条会话的排版 | 自定义会话名称、图标和按钮的排列。 |
 
-## 验证结果
+新建会话使用[新建会话插件](/plugins/conversation-new)。
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+## 需求示例
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+```text
+请修改「查找与切换会话（conversation-thread-list）」：
+修改：搜索提示改为【搜索历史对话】，列表内边距设为【12px】。
+保留：搜索、打开会话和现有会话操作。
+```
 
+## 手动开发
 
-## 继续阅读
+打开项目中的 `plugins/conversation-thread-list/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+### 属性
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationThreadList`；类型：`ConversationThreadListPluginProps`。继承 `aside` 原生属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `showSearch?` | `boolean` | 默认 `true`；设为 `false` 同时取消搜索条件对列表的过滤 |
+| `showArchived?` | `boolean` | 默认 `true`，展示归档会话区 |
+| `searchProps?` | `Partial<ComponentProps<typeof ConversationThreadListSearch>>` | 搜索组件属性 |
+| `itemProps?` | `ConversationThreadListItemProps` | 列表项属性，见下表 |
+| `components?` | `{ ThreadListItem?: ComponentType }` | 替换列表项组件 |
+| `headerActions?` | `ReactNode` | 顶部操作区 |
+| `children?` | `ReactNode` | 替换默认列表主体；外层错误提示仍由组件处理 |
+| `snapshot?` | `ConversationThreadListPluginProps['snapshot']` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文 |
+| `serviceAvailable?` | `boolean` | 宿主页面提供的会话服务是否可用，单独使用组件时默认 `false` |
+| `onRefresh?` | `() => void \| Promise<void>` | 列表加载失败后的重试方法 |
+| `theme?` | `AgentUITheme` | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
+| `runStatus?` | `string` | 宿主页面传入的运行状态，用于标记当前会话是否正在运行 |
+
+| `itemProps` 字段 | 类型 | 用途 |
+| --- | --- | --- |
+| `onNavigate?` | `() => void` | 导航回调 |
+| `actions?` | `ConversationThreadListItemActions` | 操作可见性配置：`rename?`、`archive?`、`unarchive?`、`delete?` 均为 `boolean`；不是操作回调 |
+| `labels?` | `ConversationThreadListItemLabels` | 列表项文案：`newChat`、`moreOptions`、`running`、`rename`、`archive`、`delete`，可选 `unarchive` |
+
+`snapshot` 字段均可选：`activeConversationId`、`listStatus`、`detailStatus`、`listError`、`detailError`、`detailErrorConversationId`，类型均为 `string`。这些值继续从项目已有的会话服务和主题设置中读取。
+
+另导出的旧组件 `CanonicalConversationThreadListRailAction` 已弃用，推荐使用独立的 `conversation-new`。它仍公开 `enabled?: boolean`（默认 `true`）、`buttonProps?: ComponentProps<typeof ConversationThreadListNew>`、`tooltipProps?: ComponentProps<typeof AgentUITooltip>`、`tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>` 和可选 `renderSlot`。
+
+#### 原生属性
+
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot?` | `(name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationThreadList>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

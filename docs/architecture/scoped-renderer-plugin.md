@@ -1,73 +1,35 @@
 # Scoped Renderer Plugins
 
-Status: CLOSED. AppUIModel must name a cataloged Plugin for every occupied
-Slot, including optional renderer Slots. An optional Slot may have no occupant.
-An empty or unavailable Renderer Slot produces no presentation; the Runtime
-does not restore a hidden canonical presentation or select another Plugin.
-Runtime diagnostics continue to report unavailable or inactive contributions;
-they do not make an unknown Plugin id a valid authored selection.
+AppUIModel 的每个占用插槽都明确选择已有 Plugin。普通 content Slot 用于静态组合；renderer Slot 表示父级针对一个 runtime entity 提供渲染上下文。renderer Slot 的 cardinality 为 one，并声明接受的 capability。
 
-The AppUIModel composition graph now supports two child Slot modes. An omitted
-`mode` means ordinary `content`; `mode: "renderer"` means the host renders one
-runtime entity through the Slot. Renderer Slots have `cardinality: "one"` and
-an accepted capability. They use the same Plugin instances, activation,
-services, and `SlotRegistry` as content Slots. The Creator inspector includes
-the mode, accepted capabilities, and mounted Plugin instances.
+## 公开合同
 
-`renderSlot` remains the static composition API. A Plugin host calls
-`renderScopedSlot(localSlotName, scope)` for a runtime entity. The runtime
-provides the scope through a local React context around that Plugin render.
-Each call has its own context, including repeated groups and nested renders.
-Missing, disabled, inactive, or capability-mismatched contributions return
-`null`; an empty optional Renderer Slot is a valid no-op. A Plugin with
-`requiresRenderScope: true` is rejected by AppUIModel compilation when mounted
-as static content and returns `null` if rendered without its expected scope.
+从 `@za38.03/agent-ui-plugins/contracts` 使用 UIPluginComponentProps、UIPluginRenderScope 和 PluginChildSlotDefinition。
 
-The first host is `conversation-surface`. Its stable Thread component adapters
-receive assistant-ui `GroupedParts` groups and tool fallback props, project
-stable facade values, and select the `reasoningGroup`, `toolGroup`,
-`toolFallback`, `taskGroup`, or `assistantResponseFooter` renderer Slot. The
-adapter does not replace the whole AssistantMessage: assistant-ui's canonical
-ComposableThread owns message parts, order, grouping, streaming, named Tool UI
-selection, approvals, results, and errors. AgentUICreator adds only semantic
-group and Footer seams through the Thread component map. The Thread's
-`part.toolUI ?? ToolFallback` selection still gives named Tool UIs priority.
-Text and Markdown are unchanged.
+- `renderSlot(name, fallback?, options?)` 渲染普通子内容；options 支持 layout 的 stack/inline 和 sizing 的 content/fill。
+- `renderScopedSlot(name, { kind, value }, fallback?)` 渲染带作用域的子插件。
+- 子插件通过 `@za38.03/agent-ui-plugins` 的 `usePluginRenderScope()` 读取 scope，检查实际 kind 后使用 value。
+- 需要 scope 的 Plugin 声明 requiresRenderScope；不能把它当成普通静态内容挂载。
+- 未选择、禁用或不可用的 renderer 不会触发另一套 Plugin 自动注册。父级明确声明的 fallback 是降级内容，不是隐式恢复被移除的实例。
 
-The default Reasoning, Tool Group, Tool Fallback, and Response Footer Renderer
-Plugins call canonical presentation components exposed by `@agent-ui/react`.
-The default Response Footer is composed by `assistant-ui-response-footer` and its
-`conversation-assistant-response-action` child Plugins. The Footer reuses the upstream ActionBar visual root. Copy and Export use the
-complete response text; Reload and Branch select its head through public
-assistant-ui runtime APIs. The `actions` child Slot is
-`inline`; removing or reordering those instances changes the Footer through
-AppUIModel without editing React source. The default canonical presentation
-exists only when the corresponding Renderer and action Plugin instances are
-explicitly mounted in AppUIModel. Replacing, disabling, or removing a renderer
-changes or removes its presentation through that model. The vendored
-assistant-ui Elements remain untouched.
+Runtime 继续管理 Plugin 身份、激活、Service 和 SlotRegistry。scope 是当前实体展示数据，不是另一套 Runtime Context，也不是任意跨插件状态总线；共享能力使用 Service。
 
-## Assistant Response Footer and Composer Boundary
+## Conversation Surface
 
-`assistantResponseFooter` is a `one` / optional Renderer Slot owned by
-`conversation-surface`. Its scope is intentionally data-free because every
-Footer action reads the product-owned Response Context installed only at the
-response tail. See [Assistant Response Footer](assistant-response-footer.md). The shared
-`renderSlot` contract uses `layout: "inline"` for the Footer's `actions` child
-Slot; `inline` is a parent outlet layout requirement and never a child Plugin
-property. `inline` and `fill` are an invalid combination.
+conversation-surface 的 reasoningGroup、toolGroup、toolFallback、taskGroup、assistantResponseFooter 和 userEditComposer 是语义替换边界。父级保留 Thread 分组、part 顺序、工具优先级、运行与消息生命周期，不把上游内部 HTML 部件拆进 AppUIModel。
 
-The future Composer/Sender composition is recorded as:
+response-footer 在 assistantResponseFooter 中组合一次，动作通过 Response Context 访问当前回复。详见 [回复操作栏](assistant-response-footer.md)。
 
-```text
-assistant-ui-composer
-├── beforeInput       many / content
-├── leadingActions    many / inline
-├── trailingActions   many / inline
-└── submitAction      one
-```
+Composer 使用 beforeInput、leadingActions、trailingActions、submitAction、triggers 和可选 input 语义插槽。当前实例和接受能力由实际安装的 composer manifest 决定；textarea、附件、输入、dropzone 和提交继续属于同一个 Composer 生命周期。
 
-`ComposerPrimitive.Root`, `AttachmentDropzone`, and
-`ComposerPrimitive.Input` remain the internal Composer Plugin skeleton. They
-must never be split into ordinary AppUIModel Plugins or independently mounted
-as Composer child instances.
+## 可选 Lexical 的生命周期
+
+启用和定制分别见 [主输入](../../website/docs/plugins/lexical-composer-input.mdx) 与 [历史编辑](../../website/docs/plugins/lexical-edit-composer.mdx)。默认 preset 使用 textarea；`lexical-composer-input` 在 `composer.input` 提供 `conversation-composer-input`，不替换附件、引用、triggers 或提交壳。
+
+`lexical-edit-composer` 在 `conversation-surface.userEditComposer` 提供 `conversation-user-edit-composer-renderer`，声明 requiresRenderScope 并消费 `conversation.user-edit-composer` scope。父级明确提供 textarea fallback；消息身份、编辑草稿和分支仍由现有 Runtime 维护。关闭或移除富文本展示不应破坏草稿，主输入和历史编辑独立启停。
+
+编辑初始化、选择、原子 directive、IME、撤销、Cancel/Update 和分支交给现有 Conversation Runtime 与上游编辑器。renderer 不自行 setText 初始化、不重复注册 Mention/Slash picker，不复制 Context 或协议。可选入口保留原生 input/composition props；依赖以实际安装元数据和锁文件为准，主包普通入口不导入 Lexical 实现。
+
+## 项目定制
+
+先修改薄应用层 props、children、renderer 或公开插槽。添加本地插槽时同步 manifest、definition 和真实渲染出口，保留官方已有合同。源码接管不是新增语义出口的前置条件，详见 [插件所有权](npm-default-plugin-source-ownership.md)。

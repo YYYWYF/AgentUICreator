@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/sync-package-release-metadata.mjs core && tsc -p tsconfig.build.json && node ../../scripts/sync-package-release-metadata.mjs core",
+    "build": "node ../../scripts/clean-package-dist.mjs core && node ../../scripts/sync-package-release-metadata.mjs core && tsc -p tsconfig.build.json && node ../../scripts/sync-package-release-metadata.mjs core",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prepack": "node ../../scripts/sync-package-release-metadata.mjs core",

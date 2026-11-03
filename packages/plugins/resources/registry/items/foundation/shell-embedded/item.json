@@ -1,0 +1,21 @@
+{
+  "id": "foundation/shell-embedded",
+  "kind": "foundation",
+  "description": "Project-owned embedded shell, installed only for the selected project Mode",
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/application/shell/EmbeddedShell.tsx",
+      "target": "application/shell/EmbeddedShell.tsx"
+    },
+    {
+      "source": "files/application/shell/embedded-shell.css",
+      "target": "application/shell/embedded-shell.css"
+    }
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

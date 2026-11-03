@@ -8,7 +8,9 @@ export function projectWebSearch(props: ConversationToolCallProps) {
   const raw = record(props.result).results;
   const results = Array.isArray(raw) ? raw.filter((value): value is WebSearchResult => {
     const item = record(value);
-    return typeof item.title === "string" && typeof item.domain === "string";
+    return typeof item.title === "string" && typeof item.domain === "string" &&
+      (item.url === undefined || typeof item.url === "string") &&
+      (item.snippet === undefined || typeof item.snippet === "string");
   }) : [];
   if (props.isError || props.status.type === "incomplete" || props.status.type === "requires-action" || (!searching && (!Array.isArray(raw) || results.length !== raw.length))) return null;
   const query = record(props.args).query;

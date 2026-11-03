@@ -6,7 +6,7 @@ AgentPlan progress comes from the Agent's declared activity. The frontend valida
 
 ## Contract and presentation
 
-The generated project's `agent-contract/agent-plan-activity.ts` owns the narrow `agent-plan` payload:
+The installed agent-plan-message implementation owns the narrow agent-plan payload; its canonical parser is packages/plugins/src/plugins/agent-plan-message/adapters/presentation/projection.ts:
 
 ```ts
 interface AgentPlanActivity {
@@ -22,7 +22,7 @@ interface AgentPlanActivity {
 
 `projectAgentPlanActivity(unknown)` returns `null` for malformed or incomplete data. It does not fill missing steps or choose an `activeIndex`.
 
-The `plugin/agent-plan-message` resource registers a Data Message UI named `agui-activity/agent-plan`. The pinned assistant-ui AG-UI runtime converts Activity events into a named data part; the AgentUICreator renderer validates the payload and calls the public `AgentPlan` facade. Invalid activity renders no Plan. There is no `mock_agent_plan` Tool and no Activity-specific Plugin Runtime.
+The `agent-plan-message` Plugin registers a Data Message UI named `agui-activity/agent-plan`. The pinned assistant-ui AG-UI runtime converts Activity events into a named data part; the AgentUICreator renderer validates the payload and calls the public `AgentPlan` facade. Invalid activity renders no Plan. There is no `mock_agent_plan` Tool and no Activity-specific Plugin Runtime.
 
 ```text
 ACTIVITY_SNAPSHOT / ACTIVITY_DELTA

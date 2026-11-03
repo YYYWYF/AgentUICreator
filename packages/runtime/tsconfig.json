@@ -20,6 +20,9 @@
       "node"
     ],
     "paths": {
+      "@za38.03/agent-ui-runtime": [
+        "./src/index.ts"
+      ],
       "@za38.03/agent-ui-plugins": [
         "../plugins/src/index.ts"
       ],

@@ -7,6 +7,10 @@
   ],
   "files": [
     {
+      "source": "files/application/AgentUICompatibilityRoot.tsx",
+      "target": "application/AgentUICompatibilityRoot.tsx"
+    },
+    {
       "source": "files/integrations/web-component-bridge/register.tsx",
       "target": "integrations/web-component-bridge/register.tsx"
     },

@@ -28,20 +28,20 @@ it("preserves the chart data route and render-only tool registrations",()=>{
   for(const [definition,name,render] of [[sourceDefinition,"search_sources",SourceCitationsMessagePlugin],[retrievalDefinition,"search_docs",RetrievalChunksPlugin],[webDefinition,"web_search",WebSearchPlugin]] as const){expect(definition.toolkit?.[name]).toEqual({type:"backend",display:"standalone",render});expect(definition.toolkit?.[name]).not.toHaveProperty("execute");}
 });
 it.each(modes)("$name chart routes native data messages through application props and keeps bar/value behavior",async({Chart})=>{
-  const definition=defineDataMessageUI<unknown>({name:"chart",render:({data})=><Chart data={data} rootProps={{"aria-label":"application-chart",style:{padding:17}}} barProps={{style:{opacity:0.5}}} formatValue={value=>`value=${value}`}/>});
+  const definition=defineDataMessageUI<unknown>({name:"chart",render:({data})=><Chart data={data} aria-label={"application-chart"} style={{padding:17}} styles={{bar:{opacity:0.5}}} formatValue={value=>`value=${value}`}/>});
   function Routed(){const runtime=useLocalRuntime({async *run(){}},{initialMessages:[{role:"assistant",content:[{type:"data",name:"chart",data:chart}],status:{type:"complete",reason:"stop"}}]});return <AssistantRuntimeProvider runtime={runtime}><DataMessageUIRegistration definition={definition}/><ThreadPrimitive.Messages components={{Message:()=> <MessagePrimitive.Parts/>}}/></AssistantRuntimeProvider>;}
   const el=await mount(<Routed/>,false);expect(el.querySelectorAll('[data-slot="chart-message"]')).toHaveLength(1);expect(el.querySelector<HTMLElement>('[aria-label="application-chart"]')?.style.padding).toBe("17px");expect(el.textContent).toContain("value=-2");
   expect([...el.querySelectorAll<HTMLElement>('[data-slot="chart-message-fill"]')].map(element=>element.style.width)).toEqual(["0%","50%","100%"]);expect(el.querySelector<HTMLElement>('[data-slot="chart-message-fill"]')?.style.opacity).toBe("0.5");
 });
 it.each(modes)("$name chart supports item/full composition and safely omits invalid external data",async({Chart})=>{
   const item=vi.fn((value:{label:string})=><strong>{value.label}</strong>);const whole=vi.fn((value:{title:string})=><aside>{value.title}</aside>);
-  const el=await mount(<Chart data={chart} captionProps={{style:{fontWeight:700}}} renderItem={item}/>);expect(el.querySelectorAll("li strong")).toHaveLength(3);expect(el.querySelector("figcaption")?.style.fontWeight).toBe("700");
+  const el=await mount(<Chart data={chart} styles={{caption:{fontWeight:700}}} renderItem={item}/>);expect(el.querySelectorAll("li strong")).toHaveLength(3);expect(el.querySelector("figcaption")?.style.fontWeight).toBe("700");
   await act(async()=>root!.render(<Host><Chart data={chart} renderChart={whole}/></Host>));expect(el.querySelector("aside")?.textContent).toBe(chart.title);
   for(const data of [null,{}, {...chart,items:"invalid"},{...chart,items:[{label:"bad",value:NaN}]}])await act(async()=>root!.render(<Host><Chart data={data} renderChart={whole}/></Host>));expect(el.textContent).toBe("");expect(whole).toHaveBeenCalledOnce();
 });
 it.each(modes)("$name source citations preserve URL/document rendering, props factories and validated fallback",async({Citations})=>{
   const fallback=vi.fn((props:ConversationToolCallProps)=><aside>{props.toolCallId}</aside>);const resume=vi.fn();
-  const el=await mount(<Citations {...tool({result:{sources}})} rootProps={{"aria-label":"source-app",style:{padding:19}}} sourceProps={(source,index)=>({...source,title:`Application ${index}`})}/>);
+  const el=await mount(<Citations {...tool({result:{sources}})} aria-label={"source-app"} style={{padding:19}} sourceProps={(source,index)=>({...source,title:`Application ${index}`})}/>);
   expect(el.querySelector<HTMLElement>('[aria-label="source-app"]')?.style.padding).toBe("19px");expect(el.querySelector('a[href="https://example.test/page"]')?.textContent).toContain("Application 0");expect(el.textContent).toContain("Application 1");
   const render=vi.fn((source:ConversationSourcePart)=><i>{source.id}</i>);
   await act(async()=>root!.render(<Host><Citations {...tool({result:{sources}})} renderSource={render}/></Host>));expect(el.querySelectorAll("i")).toHaveLength(2);
@@ -49,16 +49,16 @@ it.each(modes)("$name source citations preserve URL/document rendering, props fa
   for(const override of [{status:{type:"requires-action",reason:"interrupt"} as const},{result:{sources:[{...sources[0],url:"javascript:bad"}]}},{result:{sources:[sources[0],sources[0]]}}])await act(async()=>root!.render(<Host><Citations {...tool({result:{sources},resume,...override})} Fallback={fallback}/></Host>));expect(fallback).toHaveBeenCalledTimes(3);expect(fallback.mock.calls[0]?.[0]).toMatchObject({toolCallId:"kept-id",resume,status:{type:"requires-action",reason:"interrupt"}});
 });
 it.each(modes)("$name retrieval forwards native DOM/count props and merges partial locale labels",async({Retrieval})=>{
-  const clicked=vi.fn();const el=await mount(<Retrieval {...tool({result:{chunks}})} retrievalProps={{visibleCount:1,"aria-label":"retrieval-app",style:{padding:21},onClick:clicked,labels:{complete:"Application {count}"}}}/>);
+  const clicked=vi.fn();const el=await mount(<Retrieval {...tool({result:{chunks}})} visibleCount={1} aria-label={"retrieval-app"} style={{padding:21}} onClick={clicked} labels={{complete:"Application {count}"}}/>);
   expect(el.textContent).toContain("Application 2");expect(el.textContent).toContain("first passage");expect(el.textContent).not.toContain("second passage");expect(el.querySelectorAll('[role="meter"]')).toHaveLength(1);expect(el.querySelector('[role="meter"]')?.getAttribute("aria-label")).toBe("Alpha 相关度");expect(el.querySelector('[role="meter"]')?.getAttribute("aria-valuetext")).toBe("0.90，满分 1.00");
   const element=el.querySelector<HTMLElement>('[aria-label="retrieval-app"]')!;expect(element.style.padding).toBe("21px");await act(async()=>element.click());expect(clicked).toHaveBeenCalledOnce();
-  const render=vi.fn((props:RetrievalChunksProps)=><aside>{props.query}:{props.chunks.length}</aside>);await act(async()=>root!.render(<Host><Retrieval {...tool({result:{chunks}})} retrievalProps={{query:"Application query"}} renderRetrieval={render}/></Host>));expect(el.textContent).toBe("Application query:2");expect(render.mock.calls[0]?.[0].labels.retrieving).toBe("正在检索");
+  const render=vi.fn((props:RetrievalChunksProps)=><aside>{props.query}:{props.chunks.length}</aside>);await act(async()=>root!.render(<Host><Retrieval {...tool({result:{chunks}})} query={"Application query"} renderRetrieval={render}/></Host>));expect(el.textContent).toBe("Application query:2");expect(render.mock.calls[0]?.[0].labels.retrieving).toBe("正在检索");
 });
 it.each(modes)("$name web search forwards native DOM/count/cycle props and exposes its renderer",async({Web})=>{
-  let cycle=3;const content=()=> <Host><Web {...tool({result:{results}})} searchProps={{visibleResults:1,cycle,"aria-label":"web-app",style:{padding:23},labels:{complete:"Application {count}"}}}/></Host>;
+  let cycle=3;const content=()=> <Host><Web {...tool({result:{results}})} visibleResults={1} cycle={cycle} aria-label={"web-app"} style={{padding:23}} labels={{complete:"Application {count}"}}/></Host>;
   const el=await mount(content(),false);expect(el.textContent).toContain("Application 2");expect(el.textContent).toContain("First web page");expect(el.textContent).not.toContain("Second web page");expect(el.querySelector<HTMLElement>('[aria-label="web-app"]')?.style.padding).toBe("23px");const first=[...el.querySelectorAll("span")].find(span=>span.textContent==="First web page");
   cycle=4;await act(async()=>root!.render(content()));expect([...el.querySelectorAll("span")].find(span=>span.textContent==="First web page")).not.toBe(first);
-  const render=vi.fn((props:WebSearchProps)=><aside>{props.query}:{props.results.length}</aside>);await act(async()=>root!.render(<Host><Web {...tool({result:{results}})} searchProps={{query:"Application query"}} renderSearch={render}/></Host>));expect(el.textContent).toBe("Application query:2");expect(render.mock.calls[0]?.[0].labels.searching).toBe("正在搜索");
+  const render=vi.fn((props:WebSearchProps)=><aside>{props.query}:{props.results.length}</aside>);await act(async()=>root!.render(<Host><Web {...tool({result:{results}})} query={"Application query"} renderSearch={render}/></Host>));expect(el.textContent).toBe("Application query:2");expect(render.mock.calls[0]?.[0].labels.searching).toBe("正在搜索");
 });
 it.each(modes)("$name search keeps streaming partials, requires-action/errors and callback identity",async({Retrieval,Web})=>{
   const fallback=vi.fn((props:ConversationToolCallProps)=><aside>{props.toolCallId}</aside>);const respondToApproval=vi.fn();
@@ -68,4 +68,28 @@ it.each(modes)("$name search keeps streaming partials, requires-action/errors an
 it.each(modes)("$name search uses the unified locale and preserves existing searchTools overrides",async({Retrieval,Web})=>{
   const content=(locale:AgentUILocaleCode,messages?:AgentUILocaleOverrides)=> <Host locale={locale} {...(messages ? {messages} : {})}><Retrieval {...tool({result:{chunks}})}/><Web {...tool({result:{results}})}/></Host>;
   const el=await mount(content("zh-CN"),false);expect(el.textContent).toContain("已检索 2 个片段");expect(el.textContent).toContain("已读取 2 个来源");await act(async()=>root!.render(content("en-US")));expect(el.textContent).toContain("2 passages retrieved");expect(el.textContent).toContain("Read 2 sources");await act(async()=>root!.render(content("en-US",{searchTools:{sources:"Host {count}",passages:"Local {count}"}})));expect(el.textContent).toContain("Host 2");expect(el.textContent).toContain("Local 2");
+});
+
+it.each(modes)("$name web results expose safe links and summaries and retain duplicate-domain rows across updates", async ({ Web }) => {
+  const errors = vi.spyOn(console, "error");
+  const rich = [
+    { title: "First result", domain: "same.test", url: "https://same.test/article", snippet: "First summary <b>plain text</b>" },
+    { title: "Second result", domain: "same.test", url: "https://same.test/article", snippet: "Second summary" },
+    { title: "Unsafe result", domain: "same.test", url: "javascript:alert(1)", snippet: "Still readable" },
+    { title: "Legacy result", domain: "same.test" },
+    { title: "Invalid URL", domain: "same.test", url: "not-a-url" },
+    { title: "Local file", domain: "same.test", url: "file:///C:/Program%20Files/secret.txt" },
+  ];
+  try {
+    const content = (items = rich) => <Host><Web {...tool({ result: { results: items } })} /></Host>;
+    const el = await mount(content(), false);
+    expect(el.querySelectorAll('a[href="https://same.test/article"]')).toHaveLength(2);
+    for (const link of el.querySelectorAll("a")) { expect(link.target).toBe("_blank"); expect(link.rel).toContain("noopener"); expect(link.rel).toContain("noreferrer"); }
+    expect(el.textContent).toContain("First summary <b>plain text</b>"); expect(el.querySelector("b")).toBeNull();
+    expect(el.textContent).toContain("Still readable"); expect(el.querySelector('a[href^="javascript:"]')).toBeNull();
+    expect(el.textContent).toContain("Legacy result");
+    await act(async () => root!.render(content([...rich].reverse())));
+    expect([...el.querySelectorAll("a")].map(link => link.textContent)).toEqual(["Second result", "First result"]);
+    expect(errors.mock.calls.filter(call => /same key|unique.*key/i.test(String(call[0])))).toEqual([]);
+  } finally { errors.mockRestore(); }
 });

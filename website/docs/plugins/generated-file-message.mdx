@@ -1,48 +1,103 @@
 ---
-title: "获取生成文件（generated-file-message）"
+title: "生成文件（generated-file-message）"
 ---
 
-# 获取生成文件（generated-file-message）
-
-把 Agent 生成的文件显示为文件卡片，方便用户找到并下载结果。
-
-## 界面与功能
+# 生成文件（generated-file-message）
 
 例如生成一份报告后，对话中会出现文件名和下载入口。文件内容和可访问地址由业务服务提供。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![获取生成文件（generated-file-message）界面示例](/images/plugins/generated-file-message.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable generated-file-message`，点击下图中的 **「获取生成文件」**。
 
-当前官方预设：未默认加入三种形态，需要按项目需求启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「获取生成文件」，插件 ID 为 generated-file-message](/images/plugins/enable/generated-file-message.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「获取生成文件」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-文件地址由业务服务提供并控制权限、有效期。不能把本机文件路径作为所有用户可访问的链接。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `fileProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `renderFile` | 替换对应内容的展示，保留当前数据与交互。 |
-| `Fallback` | 无法展示合法内容时的替代组件。 |
+| 文件名 | 修改卡片显示的文件名和下载时使用的名字。 |
+| 卡片宽度和排版 | 调整文件名、图标和下载入口的排列，也可以在外层设置宽度。 |
+| 未完成或失败时的展示 | 修改文件尚未生成或生成失败时显示的内容。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「获取生成文件（generated-file-message）」：
+修改：文件卡片最大宽度设为【480px】，文件名与下载入口按【左右排列】展示。
+保留：真实文件名、下载地址和下载操作。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/generated-file-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalGeneratedFileMessage`；类型：`GeneratedFileMessageProps`。还接受下方列出的工具调用数据、样式和无障碍属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `filename?` | `string` | 默认有效结果的文件名 |
+| `mimeType?` | `string` | 默认有效结果的 MIME 类型 |
+| `data?` | `string` | 默认有效结果的文件 URL |
+| `sourceType?` | `'url' \| 'id'` | 默认 `url` |
+| `renderFile?` | `(props: ComponentProps<typeof ConversationFile>, tool: ConversationToolCallProps) => ReactNode` | 自定义文件展示 |
+| `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback`；工具未完成、出错或结果无效时使用 |
+
+#### 外观与无障碍属性
+
+以下属性均可选。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `className` | `string` | 整体样式类 |
+| `style` | `CSSProperties` | 整体内联样式 |
+| `id` | `string` | 元素标识 |
+| `role` | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色 |
+| `aria-label` | `string` | 无障碍名称 |
+| `aria-describedby` | `string` | 描述元素 ID |
+| `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
+
+#### 当前工具调用的数据与操作
+
+这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `type?` | `'tool-call'` | 消息片段类型 |
+| `toolCallId` | `string` | 工具调用 ID |
+| `toolName` | `string` | 工具名称 |
+| `args` | `unknown` | 解析后的输入参数 |
+| `argsText?` | `string` | 输入参数的文本形式 |
+| `result?` | `unknown` | 工具结果 |
+| `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
+| `isError?` | `boolean` | 结果是否为错误 |
+| `status` | `ConversationToolCallStatus` | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
+| `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
+| `decisionRequest?` | `ConversationCommandDecisionRequest` | 运行环境提供的操作确认请求 |
+| `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
+
+`ConversationToolCallStatus` 为 `{ type: 'running' }`、`{ type: 'complete' }`、`{ type: 'incomplete'; reason?: string; error?: unknown }` 或 `{ type: 'requires-action'; reason?: string }`。`ConversationCommandDecisionRequest` 含 `allowedDecisions: readonly string[]` 和可选 `description: string`。
+
+该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalGeneratedFileMessage } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalGeneratedFileMessage>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

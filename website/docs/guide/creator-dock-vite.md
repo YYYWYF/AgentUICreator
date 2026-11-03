@@ -1,33 +1,54 @@
 ---
-title: 在 Vite 页面接入 Creator
+title: "Vite 开发面板接入"
 ---
 
-# 在 Vite 页面接入 Creator
+# Vite 开发面板接入
 
-Dock 在业务开发页面显示入口，Creator 单独运行。完整配置见[安装并启动](../start/install-creator)，这里解释运行与边界。
+Vite Dock 在开发页面中添加 **Creator Agent** 按钮，展开后即可对话修改工程。
 
-## 配置一致的端口
+## 配置启动脚本
 
-保留已有 `dev` 和 `build`，新增开发脚本：
+在 `package.json` 中添加脚本，保留原有 `dev` 和 `build`：
 
 ```json
-{ "scripts": { "dev:creator": "agent-ui-creator --project . --port 47833 --no-open" } }
+{ "scripts": { "dev:creator": "agent-ui-creator --port 47833" } }
 ```
 
-在 Vite 开发分支加载 `/dock/vite`，调用 `createCreatorDockVitePlugin({ creatorUrl: 'http://127.0.0.1:47833' })`。生产分支不导入 Creator。需要卸载工具后仍可普通开发时，使用入门教程的 `import.meta.resolve` 可选加载。
+## 配置开发面板
 
-初次改 Vite 配置需重启。之后按需启停 Creator，业务服务独立。显式端口占用会报错，改端口时同时改 `creatorUrl`。
+在 `vite.config.ts` 中保留已有配置，只在开发分支加载 Creator。以下以已有 React 插件的工程为例：
 
-## 工程与配置身份
+```ts
+import { defineConfig, type PluginOption } from 'vite';
+import react from '@vitejs/plugin-react';
 
-适配器携带开发页面的工程身份，只在当前选择匹配时显示入口。`projectRoot` 可明确路径；Vite 会结合自己的 root，不要指到其他仓库。切换 Creator 到另一工程后，原页面入口可能隐藏。
+export default defineConfig(async ({ command }) => {
+  const plugins: PluginOption[] = [react()];
+  if (command === 'serve') {
+    const creatorModule = '@za38.03/agent-ui-creator/dock/vite';
+    const { createCreatorDockVitePlugin } = await import(creatorModule);
+    plugins.push(createCreatorDockVitePlugin({ creatorUrl: 'http://127.0.0.1:47833' }));
+  }
+  return { plugins };
+});
+```
 
-`locale` 可配置工具语言。模型密钥从工具配置目录读取，不通过 Vite 公开环境字段传入页面。
+将已有插件、代理和其他选项合并保留。Creator 只在开发分支按需加载；生产构建无需安装 Creator。开发前请先完成 Creator 安装。
 
-## 启停检查
+Creator 面板自带样式。本步骤完成后，安装模板，再按 [Vite 样式配置](/development/react#vite-样式配置)准备生成助理界面的 Tailwind CSS。
 
-Vite 适配器支持检测工具启停；收起入口保留 iframe 会话。停止 Creator 后业务页面仍运行。生产构建检查 HTML 和依赖图中没有 Dock、工具 API 或 Mock。
+## 启动与验证
 
-> 截图待补：工具未启动、已启动、展开及停止后业务仍运行的状态。
+配置完成后，先运行 `pnpm dev:creator`，保持终端运行；另开终端，使用该工程原有的启动命令启动开发服务器。开发服务已运行时，重启一次。
 
-失败时见[入口连接排障](../troubleshooting/creator-connection)。
+打开工程开发地址，确认出现 **Creator Agent** 按钮并能连接。生产构建的页面应没有 Creator 面板。
+
+## 常用选项
+
+| 选项 | 用途 |
+| --- | --- |
+| `creatorUrl` | Creator 服务地址，与启动端口保持一致。 |
+| `projectRoot` | 标识当前页面对应的工程目录，默认使用 Vite root。 |
+| `locale` | 工具语言，`zh-CN` 或 `en-US`。 |
+
+展开后按[开始使用](/start/#选择工程)选择目标工程。模型配置见[模型与工具配置](/guide/configuration)。

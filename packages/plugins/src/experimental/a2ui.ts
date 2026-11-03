@@ -1,7 +1,7 @@
 /** Workspace-only A2UI experiment. Excluded from distribution. */
 import { createElement } from "react";
-import { JSONGenerativeUI } from "@assistant-ui/react-generative-ui";
-import { applyA2uiOperations, convertSurfaceToUISpec } from "@assistant-ui/react-generative-ui/a2ui";
+import { JSONGenerativeUI } from "@assistant-ui/generative-ui/react";
+import { applyA2uiOperations, convertSurfaceToUISpec } from "@assistant-ui/generative-ui/a2ui";
 import { styledGenerativeUILibrary } from "../internal/vendor-generated/assistant-ui/generative-ui/styled-generative-ui.js";
 import { createAgentUIGenerativeUI, type AgentUIGenerativeUIOptions } from "../generative-ui.js";
 /** A2UI uses the native upstream path unless a registered custom component is

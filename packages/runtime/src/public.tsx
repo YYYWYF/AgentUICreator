@@ -1,10 +1,15 @@
+export type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
+import type { AttachmentConfig, DictationConfig, FeedbackConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 export {
   AgentUIProvider, AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet,
   AgentUIHostUserProvider, useAgentUIUser, useAgentUI, useOptionalAgentUI,
-  useAgentUIState, useAgentUIEvent, useAgentUISurfaceTarget, AgentUIHostError,
+  useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, useAgentUISurfaceTarget, AgentUIHostError,
 } from "./host/AgentUIProvider.js";
-export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus } from "./host/AgentUIProvider.js";
+export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus, AgentUIAppEventListener } from "./host/AgentUIProvider.js";
+export { createAgentUIFrontendTools, combineAgentFrontendToolSources } from "./host/frontend-tools.js";
+export type { AgentUIFrontendTool, AgentUIFrontendToolContext } from "./host/frontend-tools.js";
+export type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 export { AgentUIConversationBinding } from "./host/AgentUIConversationBinding.js";
 import type {
   AgentApplicationEvent,
@@ -37,7 +42,7 @@ import type {
 } from "./threads/types.js";
 import type { ConversationToolkit, ConversationTransientMessageService } from "@za38.03/agent-ui-plugins";
 import type { ReactNode } from "react";
-import type { ConversationStarterSuggestion } from "./conversation-types.js";
+import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
 
 export { projectLangChainHistory } from "./history/langchain-history-projector.js";
 
@@ -59,7 +64,15 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
-  /** Official assistant-ui adapter; the application owns file preparation and storage. */
+  /** Read current Host context for each request. Errors report through onError; the run continues without these entries. */
+  getRunContext?: ConversationRunContextGetter | undefined;
+  /** Built-in Base64 file handling, optionally backed by an upload URL. */
+  attachments?: AttachmentConfig | false | undefined;
+  /** Browser speech recognition or a configured transcription URL. */
+  dictation?: DictationConfig | false | undefined;
+  /** Local UI selection, optionally submitted to a feedback URL. */
+  feedback?: FeedbackConfig | false | undefined;
+  /** Advanced adapter override, preferred over attachments configuration. */
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Official assistant-ui adapter; the application owns speech-to-text. */
   dictationAdapter?: DictationAdapter | undefined;
@@ -141,6 +154,7 @@ export function createEphemeralConversationThreadBinding(): ConversationThreadBi
 }
 
 export type {
+  ConversationRunContextGetter,
   ConversationStarterSuggestion,
 } from "./conversation-types.js";
 
@@ -168,3 +182,7 @@ export type {
 };
 
 export type { ConversationFeedbackAdapter, ConversationFeedbackSubmission } from "./feedback.js";
+
+export * from "./agent-context/AgentRuntimeContext.js";
+export * from "./agent-context/AgentRuntimeProvider.js";
+export * from "./agent-context/agent-runtime-hooks.js";

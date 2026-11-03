@@ -1,51 +1,96 @@
 ---
-title: "在输入框显示 @ 与 / 标签（lexical-composer-input）"
+title: "输入标签展示（lexical-composer-input）"
 ---
 
-# 在输入框显示 @ 与 / 标签（lexical-composer-input）
-
-把输入框中已选择的 @ 对象和 / 指令显示成独立标签，便于与普通文字区分。
-
-## 界面与功能
+# 输入标签展示（lexical-composer-input）
 
 用户仍然可以正常输入文字、移动光标；引用对象和指令各自显示为一个完整标签，删除时按整个标签处理。
 
-下图中，「@产品说明文档」是已选中的引用对象，「/总结对话」是已选中的指令。它们会作为完整标签保留在草稿中，与旁边的普通文字区分开。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
 ![在输入框显示 @ 与 / 标签（lexical-composer-input）界面示例](/images/plugins/lexical-composer-input.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable lexical-composer-input`，点击下图中的 **「在输入框显示 @ 与 / 标签」**。
 
-当前官方预设：未默认加入三种形态，需要按项目需求启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「在输入框显示 @ 与 / 标签」，插件 ID 为 lexical-composer-input](/images/plugins/enable/lexical-composer-input.jpg)
 
-可以把下面的需求发给 Creator：
+这是可选输入实现，**需要对应编辑器依赖**。启用后检查输入法、粘贴和键盘操作，不能改变既有提及对象的 ID。
 
-> 在当前工程中配置「在输入框显示 @ 与 / 标签」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+它组合在 `composer.input`，只替换输入展示；附件、引用、触发器和提交仍由同一个 Composer 管理。停用后使用父级提供的普通文本框，保留当前草稿。主输入与历史消息的[标签编辑插件](/plugins/lexical-edit-composer)独立启停，不另建草稿、Runtime 或消息协议。
 
-## 使用前提
+## 定制选项
 
-这是可选输入实现，需要对应编辑器依赖。启用后检查输入法、粘贴和键盘操作，不能改变既有提及身份。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `style` | 局部尺寸或样式。 |
-| `className` | 沿用工程样式命名设置外观。 |
-| `onClick` | 自定义点击反馈，保留原有默认动作。 |
-| `children` | 替换或补充组件内容。 |
+| 发送快捷键 | 选择回车发送、Ctrl/Cmd + Enter 发送，或关闭快捷键发送。 |
+| 输入提示 | 修改没有输入内容时显示的文字。 |
+| 输入区高度和外观 | 调整高度、字号、边框、圆角和内边距。 |
+| 自动进入输入状态 | 决定打开页面时是否自动把光标放到输入框。 |
+| 引用标签的样式 | 自定义 @ 对象和 / 指令标签的外观。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「在输入框显示 @ 与 / 标签（lexical-composer-input）」：
+修改：输入提示改为【输入问题，可用 @ 引用资料】，发送快捷键改为【Ctrl/Cmd + Enter】，引用标签圆角设为【6px】。
+保留：现有 @ 对象和 / 指令标签的编辑行为。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/lexical-composer-input/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+入口来自 `@za38.03/agent-ui-plugins/lexical`：`CanonicalConversationLexicalComposerInput`；类型：`ConversationLexicalComposerInputProps`。继承 `div` 原生属性，`autoFocus`、`children` 单独定义。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `submitMode?` | `'enter' \| 'ctrlEnter' \| 'none'` | 默认 `enter`；由已安装 Lexical 输入组件处理 |
+| `cancelOnEscape?` | `boolean` | 默认 `true`，Esc 取消编辑策略 |
+| `placeholder?` | `string` | 默认使用所在输入区的提示文字 |
+| `autoFocus?` | `boolean` | 默认使用所在输入区的自动聚焦设置 |
+| `directivePluginProps?` | `{ onDirectiveSelect?: (item: ConversationLexicalTriggerItem) => void }` | 指令选中回调 |
+| `directiveChip?` | `FC<ConversationComposerDirectiveChipProps>` | 默认 `ConversationComposerDirectiveChip`，替换指令标签组件 |
+| `formatter?` | `{ serialize(item: ConversationLexicalTriggerItem): string; parse(text: string): readonly ConversationLexicalSegment[] }` | 默认项目统一指令格式化器 |
+| `children?` | `ReactNode` | 追加 Lexical 子插件；现有中文输入法保护仍保留 |
+
+`ConversationLexicalTriggerItem` 含 `id`、`type`、`label`，可选 `description` 和只读 JSON `metadata`。`ConversationComposerDirectiveChipProps` 为 `{ directiveId: string; directiveType: string; label: string }`。`ConversationLexicalSegment` 是文本 `{ kind: 'text'; text: string }` 或提及 `{ kind: 'mention'; type: string; label: string; id: string }`。
+
+这个输入组件需要放在项目现有的消息输入区或消息编辑区内，才能读取草稿、提示文字和聚焦设置。它只替换输入界面，继续使用原有会话。
+
+#### 原生属性
+
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot?` | `(name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationLexicalComposerInput } from '@za38.03/agent-ui-plugins/lexical';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationLexicalComposerInput>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

@@ -27,6 +27,9 @@ import { mono } from "./vendor-generated/assistant-ui/components/assistant-ui/el
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { TaskDisclosureScopeContext, useTaskDisclosure } from "./task-disclosure-context.js";
 
+import { useConversationToolRenderer } from "./tool-renderer-context.js";
+import { hasToolResultParts } from "../plugins/tool-result/adapters/presentation/content.js";
+
 type TranscriptComponents = {
   Text: TextMessagePartComponent;
   Reasoning: ReasoningMessagePartComponent;
@@ -48,7 +51,8 @@ const NestedTool: ToolCallMessagePartComponent = ({ approval, interrupt, ...rest
   const part = rest.status.type === "requires-action"
     ? { ...rest, status: { type: "requires-action", reason: "interrupt" } as const }
     : rest;
-  return isTaskPart(part) ? <TaskCardComposition part={part} /> : <ToolFallback {...part} />;
+  const Renderer = useConversationToolRenderer() ?? ToolFallback;
+  return isTaskPart(part) ? <TaskCardComposition part={part} /> : <Renderer {...part} />;
 };
 
 function NestedMessage() {
@@ -76,6 +80,7 @@ function NestedMessage() {
 }
 
 function TaskCardComposition({ part }: { part: TaskPart }) {
+  const Renderer = useConversationToolRenderer();
   const labels = useAgentUILocale("tasks");
   // Upstream can recreate equivalent nested snapshots on parent notifications.
   // Keep the readonly provider input stable to avoid a notification/render loop;
@@ -105,7 +110,7 @@ function TaskCardComposition({ part }: { part: TaskPart }) {
   const result = showError || childFailed || part.result !== undefined ? <>
     {childFailed && <p data-agent-ui-owned="" data-slot="agent-ui-task-child-error" role="status" className="m-0 text-destructive">{labels.childFailed}</p>}
     {showError && <ToolFallbackError status={part.status} />}
-    {part.result !== undefined && (typeof part.result === "string"
+    {part.result !== undefined && (Renderer && hasToolResultParts(part.result) ? <Renderer {...part} resultOnly /> : typeof part.result === "string"
       ? <p data-agent-ui-owned="" className="m-0 whitespace-pre-wrap">{part.result}</p>
       : <pre data-agent-ui-owned="" className="m-0 overflow-x-auto whitespace-pre-wrap">{formatUnknownValue(part.result, 2)}</pre>)}
   </> : undefined;

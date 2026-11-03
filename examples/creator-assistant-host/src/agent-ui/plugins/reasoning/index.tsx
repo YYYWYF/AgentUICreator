@@ -1,6 +1,6 @@
 import { ConversationReasoningPlugin as Implementation } from "@za38.03/agent-ui-plugins/reasoning";
 import type { ComponentProps } from "react";
-import { usePluginRenderScope } from "../../runtime/plugins";
+import { usePluginRenderScope } from "@za38.03/agent-ui-plugins";
 
 export function ConversationReasoningPlugin(props: ComponentProps<typeof Implementation>) {
   const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();

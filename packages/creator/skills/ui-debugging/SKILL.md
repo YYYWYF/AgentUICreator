@@ -66,8 +66,10 @@ owner, read it directly. Use `inspect_runtime_layout` for layout uncertainty.
 In `static_only`, report the missing Runtime evidence without claiming a
 Runtime repair was verified.
 
-Ordinary debugging does not undo a whole Creator run. Read `ui-change-recovery`
-only when the user's goal is to undo a historical Creator modification.
+Ordinary debugging does not undo a whole Creator run. When the user's goal is
+to undo a historical Creator modification, read
+[Historical Recovery](../task-guidance/SKILL.md#historical-recovery), enable the
+history tool group and inspect the recorded transaction before recovery.
 
 Read [validation-debugging](references/validation-debugging.md) for complex
 static diagnostics or target completion, and

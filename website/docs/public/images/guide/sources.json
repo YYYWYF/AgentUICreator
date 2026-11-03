@@ -1,0 +1,149 @@
+{
+  "capturedDate": "2026-10-23",
+  "source": "Creator UI screenshots; refreshed entries record their individual source, date, command, and fixture.",
+  "notes": [
+    "Real Creator UI; command screenshots are cropped to the menu and composer without resizing.",
+    "Command menus refreshed on 2026-10-27 use a fixed presentation catalog. Status is illustrative; no plugin mutation was submitted.",
+    "Other screenshots retain their individual source and capture dates."
+  ],
+  "screenshots": [
+    {
+      "file": "creator-command-menu.jpg",
+      "sha256": "615b94104ff40749141e1cee7bf52f13a33879fc0ff836a16ffac67734b55bcb",
+      "dimensions": {
+        "width": 361,
+        "height": 228
+      },
+      "capturedDate": "2026-10-30",
+      "source": "artifacts/theme-agent-input-20261030/creator-command-menu.jpg",
+      "command": "/",
+      "options": [
+        "刷新插件列表",
+        "启用插件",
+        "停用插件"
+      ],
+      "captureMethod": "Native Chromium locator screenshot of the current Creator command menu, saved directly as JPEG without resizing.",
+      "fixture": "Disposable initialized Host with real Creator command APIs and Operator; this capture precedes the passing Plugin disable/undo/reapply regression."
+    },
+    {
+      "file": "creator-disable-attachment.jpg",
+      "sha256": "ffa27fd539218c732b3fc55bcf6afac65af92c92d0d77d0f0ae4e426ae1d4ad5",
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:42.901Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/creator-disable-attachment.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/disable attachment",
+      "options": [
+        "添加附件\nadd-attachment-action\n选择文件、加入当前消息，发送前可移除。\n已启用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      }
+    },
+    {
+      "file": "creator-enable-plugin.jpg",
+      "sha256": "81c22283edd148bd8c5abd210f2909a7df968f4828efe1e92a9613c36de810a7",
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:42.489Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/creator-enable-plugin.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable dictation",
+      "options": [
+        "语音输入\ndictation-action\n开始或停止听写，把识别文字放入草稿。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      }
+    },
+    {
+      "file": "mock-scenario-selection.png",
+      "capturedDate": "2026-10-26",
+      "source": "artifacts/mock-doc-screenshots-20261026/scenario-full.png",
+      "sourceUrl": "http://127.0.0.1:60585/",
+      "scenario": "Search by reasoning-tool-success and selected official scenario.",
+      "crop": {
+        "left": 1968,
+        "top": 760,
+        "right": 2750,
+        "bottom": 1640
+      },
+      "dimensions": {
+        "width": 782,
+        "height": 880
+      },
+      "sha256": "39a30317b0fc662f0516d721857e4ec6e3ca5c24d5bc3acddbe927c7f0959591"
+    },
+    {
+      "file": "mock-local-recording.png",
+      "capturedDate": "2026-10-26",
+      "source": "artifacts/mock-doc-screenshots-20261026/replay-full.png",
+      "sourceUrl": "http://127.0.0.1:60585/",
+      "scenario": "Selected local demo.jsonl containing the five events in the documentation example.",
+      "crop": {
+        "left": 1968,
+        "top": 760,
+        "right": 2750,
+        "bottom": 1310
+      },
+      "dimensions": {
+        "width": 782,
+        "height": 550
+      },
+      "sha256": "d7be3add5e70409cfc30ca8a1b00607bb5e8a9298fb4c7a3f806a1b7c09299b1"
+    },
+    {
+      "file": "mock-question.png",
+      "capturedDate": "2026-10-26",
+      "source": "artifacts/ask-user-question-live-20261026/06-question.png",
+      "sourceUrl": "http://127.0.0.1:59436/",
+      "scenario": "Official ask-user-question scenario waiting for a user choice.",
+      "crop": {
+        "left": 645,
+        "top": 300,
+        "right": 1066,
+        "bottom": 920
+      },
+      "dimensions": {
+        "width": 421,
+        "height": 620
+      },
+      "sha256": "0164aef4b13d283efcdccd730fe2a5e65ef8ee80bcc097e8fa606df459c50362"
+    },
+    {
+      "file": "mock-question-complete.png",
+      "capturedDate": "2026-10-26",
+      "source": "artifacts/ask-user-question-live-20261026/07-answer-and-continuation.png",
+      "sourceUrl": "http://127.0.0.1:59436/",
+      "scenario": "Official ask-user-question scenario after answer and continuation.",
+      "crop": {
+        "left": 645,
+        "top": 290,
+        "right": 1066,
+        "bottom": 920
+      },
+      "dimensions": {
+        "width": 421,
+        "height": 630
+      },
+      "sha256": "0c4e8e9ca084ca599437941372f928ab5d9fe5e5b1e3c34ac271f91224ad2491"
+    }
+  ]
+}

@@ -1,0 +1,383 @@
+{
+  "inspect-conversation.png": {
+    "source": "assistant/01-understand-project/after-conversation.png",
+    "crop": null,
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "assistant-before.png": {
+    "source": "assistant/02-brand-copy/before-page-live.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "brand-reply.png": {
+    "source": "assistant/02-brand-copy/after-conversation.png",
+    "crop": null,
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "brand-request.png": {
+    "source": "assistant/02-brand-copy/request-conversation.png",
+    "crop": null,
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "brand-after.png": {
+    "source": "assistant/02-brand-copy/checkpoint-page-live.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "recorded-source-browser-replay",
+    "date": "2026-10-27"
+  },
+  "locale-request.png": {
+    "source": "assistant/05-localization/request-conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "locale-reply.png": {
+    "source": "assistant/05-localization/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "locale-chinese.png": {
+    "source": "assistant/05-localization/chinese-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "locale-english.png": {
+    "source": "assistant/05-localization/english-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "state-events-reply.png": {
+    "source": "business/01-state-events/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-request.png": {
+    "source": "interactions/05-verify/request-conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-reply.png": {
+    "source": "interactions/05-verify/conversation.png",
+    "crop": [
+      868,
+      8,
+      1280,
+      720
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-success.png": {
+    "source": "interactions/05-verify/success-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-error.png": {
+    "source": "interactions/05-verify/error-expanded-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-approval-pending.png": {
+    "source": "interactions/05-verify/approval-pending-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-approval-allowed.png": {
+    "source": "interactions/05-verify/approval-allowed-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "verify-approval-denied.png": {
+    "source": "interactions/05-verify/approval-denied-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "cards-reply.png": {
+    "source": "business/02-result-cards/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "dynamic-reply.png": {
+    "source": "business/03-dynamic-form/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "actions-reply.png": {
+    "source": "interactions/06-action-composition/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "actions-export-menu.png": {
+    "source": "interactions/06-action-composition/export-menu-page.png",
+    "crop": [
+      227,
+      37,
+      645,
+      651
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "themes-reply.png": {
+    "source": "assistant/06-themes/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "themes-light.png": {
+    "source": "assistant/06-themes/light-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "themes-dark.png": {
+    "source": "assistant/06-themes/dark-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "mention-first-reply.png": {
+    "source": "supplement/02-mentions/first-reply.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "mention-info-reply.png": {
+    "source": "supplement/02-mentions-followup/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "slash-question.png": {
+    "source": "supplement/03-slash-command/question.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "slash-menu.png": {
+    "source": "supplement/03-slash-command/menu-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "slash-draft.png": {
+    "source": "supplement/03-slash-command/draft-page.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "feature-first-reply.png": {
+    "source": "business/04-add-function/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "feature-info-reply.png": {
+    "source": "business/05-add-function-followup/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "layout-extra-reply.png": {
+    "source": "layout-extra/01-layout-wrap/conversation.png",
+    "crop": [
+      868,
+      0,
+      1280,
+      712
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "layout-extra-desktop.png": {
+    "source": "layout-extra/01-layout-wrap/desktop-page.png",
+    "crop": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "layout-extra-narrow.png": {
+    "source": "layout-extra/01-layout-wrap/narrow-closed-page.png",
+    "crop": [
+      0,
+      0,
+      390,
+      844
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  },
+  "layout-extra-before.png": {
+    "source": "layout-extra/01-layout-wrap/checkpoint-baseline-desktop-page.png",
+    "crop": [
+      0,
+      0,
+      1280,
+      720
+    ],
+    "kind": "recorded-source-browser-replay",
+    "date": "2026-10-27"
+  },
+  "business-unchanged.png": {
+    "source": "business/readonly-final/page-live.png",
+    "crop": [
+      838,
+      18,
+      1256,
+      628
+    ],
+    "kind": "actual-browser-screenshot",
+    "date": "2026-10-27"
+  }
+}

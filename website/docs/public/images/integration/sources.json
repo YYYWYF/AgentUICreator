@@ -1,0 +1,41 @@
+{
+  "capturedDate": "2026-10-23",
+  "source": "http://127.0.0.1:5182/",
+  "project": "examples/creator-embedded-host",
+  "sourceFiles": [
+    "src/App.tsx",
+    "src/AgentMount.tsx",
+    "src/host.css"
+  ],
+  "theme": "violet",
+  "service": "Local Mock AG-UI and conversation services; no real Agent backend acceptance.",
+  "screenshots": [
+    {
+      "file": "host-assistant-closed.png",
+      "scenario": "Business close button hides the assistant; open and analyze buttons remain visible.",
+      "sha256": "aec0c6bf00b6d6a4c061f20a8cc2a377b81c276128010145bf59aed18e64503d",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "host-assistant-open.png",
+      "scenario": "Business open button displays the existing embedded assistant without sending a message.",
+      "sha256": "192fc6c0aad1e271e5c07cff2e14b23d4dddbb04ac75cd9191626f208f2fc8ce",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    },
+    {
+      "file": "host-assistant-message.png",
+      "scenario": "Analyze button opens the hidden panel and sends the localized sample prompt; Mock run is streaming.",
+      "sha256": "bca6a11e16ac61603d4ad8f6ead87eb7cd8c88c650ad3966fe1520c0b99a36c7",
+      "dimensions": {
+        "width": 65536,
+        "height": 4292542531
+      }
+    }
+  ]
+}

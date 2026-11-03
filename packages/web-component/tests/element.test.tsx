@@ -88,13 +88,16 @@ describe("host bridge lifecycle", () => {
     expect((listener.mock.calls[0]![0] as CustomEvent).detail.code).toBe("AGENT_UI_CONFIG_ERROR");
     expect(element.shadowRoot?.querySelector("[data-shell]")).not.toBeNull();
   });
-  it("sends composed bubbling events to the Host", async () => {
+  it.each([
+    ["thread-change", { threadId: "thread-2" }],
+    ["theme-change", { theme: "dark" }],
+  ] as const)("sends composed bubbling %s events to the Host", async (name, detail) => {
     const element = await mount();
     const listener = vi.fn();
-    document.body.addEventListener("thread-change", listener, { once: true });
-    dispatchAgentUIEvent(element, "thread-change", { threadId: "thread-2" });
+    document.body.addEventListener(name, listener, { once: true });
+    dispatchAgentUIEvent(element, name, detail);
     const event = listener.mock.calls[0]![0] as CustomEvent;
-    expect(event.detail).toEqual({ threadId: "thread-2" });
+    expect(event.detail).toEqual(detail);
     expect(event.bubbles && event.composed).toBe(true);
   });
 });
@@ -108,15 +111,24 @@ it("uses the producer defaults without overriding explicit Host presentation", a
   const { createAgentUIElement } = await import("../src/host");
   const received: AgentUIConfig[] = [];
   const Element = createAgentUIElement({ Root: ({ config }) => { received.push(config); return null; }, styles: "",
-    defaults: { locale: "en-US", theme: "dark" } });
+    defaults: { locale: "en-US" } });
   customElements.define("agent-ui-producer-defaults", Element);
   const element = new Element();
   await act(async () => { document.body.append(element); });
-  expect(received.at(-1)).toMatchObject({ locale: "en-US", theme: "dark" });
+  expect(received.at(-1)).toMatchObject({ locale: "en-US", theme: undefined });
   await act(async () => { element.setAttribute("locale", "zh-CN"); element.config = { theme: "light" }; });
   expect(received.at(-1)).toMatchObject({ locale: "zh-CN", theme: "light" });
 });
 
-it("shares the native application's unconfigured locale and theme", () => {
-  expect(resolveConfig({}, { endpoint: null, locale: null, theme: null, "thread-id": null })).toMatchObject({ locale: "zh-CN", theme: "violet" });
+it("leaves an omitted theme uncontrolled while retaining the producer locale", () => {
+  expect(resolveConfig({}, { endpoint: null, locale: null, theme: null, "thread-id": null })).toMatchObject({ locale: "zh-CN", theme: undefined });
+});
+
+it("releases a controlled theme when both the property and attribute are removed", async () => {
+  const element = await mount({ theme: "dark" });
+  expect(calls.configs.at(-1)?.theme).toBe("dark");
+  await act(async () => { element.setAttribute("theme", "light"); element.config = {}; });
+  expect(calls.configs.at(-1)?.theme).toBe("light");
+  await act(async () => { element.removeAttribute("theme"); });
+  expect(calls.configs.at(-1)?.theme).toBeUndefined();
 });

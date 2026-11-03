@@ -1,0 +1,139 @@
+[
+  {
+    "type": "custom-link",
+    "label": "开发文档",
+    "link": "/development/"
+  },
+  {
+    "type": "custom-link",
+    "label": "接入现有应用",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "React 接入",
+        "link": "/development/react"
+      },
+      {
+        "type": "custom-link",
+        "label": "Vue 接入",
+        "link": "/development/vue"
+      },
+      {
+        "type": "custom-link",
+        "label": "HTML 与其他框架嵌入",
+        "link": "/development/web-component"
+      },
+      {
+        "type": "custom-link",
+        "label": "连接 AG-UI 服务",
+        "link": "/development/connect-agent"
+      },
+      {
+        "type": "custom-link",
+        "label": "Agent 配置示例",
+        "link": "/development/agent-options"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "界面与功能开发",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "布局与插件组合",
+        "link": "/development/layout-and-composition"
+      },
+      {
+        "type": "custom-link",
+        "label": "业务页面与 Agent 联动",
+        "link": "/development/react-host-control"
+      },
+      {
+        "type": "custom-link",
+        "label": "历史会话服务",
+        "link": "/development/history-backend"
+      },
+      {
+        "type": "custom-link",
+        "label": "附件、语音与评价服务",
+        "link": "/development/attachments-dictation-feedback"
+      },
+      {
+        "type": "custom-link",
+        "label": "前端工具与页面操作",
+        "link": "/development/frontend-tools"
+      },
+      {
+        "type": "custom-link",
+        "label": "自定义结果展示",
+        "link": "/development/custom-renderers"
+      },
+      {
+        "type": "custom-link",
+        "label": "自定义 AG-UI 事件与消息渲染",
+        "link": "/development/custom-ag-ui-events"
+      },
+      {
+        "type": "custom-link",
+        "label": "样式与文案开发",
+        "link": "/development/styling-and-localization"
+      },
+      {
+        "type": "custom-link",
+        "label": "创建自定义插件",
+        "link": "/development/create-plugin"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "API 参考",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Agent 属性、方法与 Hooks",
+        "link": "/development/react-host-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "Web Component 配置与事件",
+        "link": "/development/web-component-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "插件开发接口",
+        "link": "/development/plugin-api"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "源码接管与维护",
+    "link": "/development/source-takeover"
+  },
+  {
+    "type": "custom-link",
+    "label": "插件实现修改",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "工程结构与修改入口",
+        "link": "/development/project-structure"
+      },
+      {
+        "type": "custom-link",
+        "label": "组件属性与组合定制",
+        "link": "/development/component-customization"
+      }
+    ]
+  }
+]

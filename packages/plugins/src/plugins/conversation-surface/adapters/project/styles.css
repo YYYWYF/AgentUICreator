@@ -81,6 +81,7 @@
 .conversation-surface-header-actions .app-ui-plugin-slot-content {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
   pointer-events: auto;
 }

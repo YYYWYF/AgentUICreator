@@ -286,6 +286,7 @@ export interface FilePlayerProps extends Omit<
   mimeType: string;
   filename?: string | undefined;
   sourceType?: "url" | "id" | undefined;
+  controlsList?: string | undefined;
 }
 
 function FilePlayer({
@@ -293,6 +294,7 @@ function FilePlayer({
   mimeType,
   filename,
   sourceType,
+  controlsList,
   className,
   ...props
 }: FilePlayerProps) {
@@ -312,7 +314,7 @@ function FilePlayer({
       {normalizedMimeType.startsWith("audio/") ? (
         <AudioPlayer src={src} title={filename} />
       ) : (
-        <VideoPlayer src={src} title={filename} />
+        <VideoPlayer src={src} title={filename} controlsList={controlsList} />
       )}
     </div>
   );

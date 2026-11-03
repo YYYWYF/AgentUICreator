@@ -1,0 +1,73 @@
+{
+  "capturedDate": "2026-10-27",
+  "browser": "Google Chrome 152 on macOS",
+  "fixture": "Disposable initialized assistant Host; its actual Agent request uses the Creator Mock simple-chat scenario. No maintained example was modified.",
+  "localFiles": "Current source MockServicePanel rendered directly in the same Creator fixture, using its real filesystem recording store, selection API and zh-CN messages. The files come from the earlier native DevTools clipboard captures.",
+  "scope": "Documentation screenshots; no real-backend or Windows acceptance claim.",
+  "screenshots": [
+    {
+      "file": "01-network.png",
+      "sha256": "e306472fa7b8807e15fd3644aab6076b1d568aebbacd37e07b22a6dd3f394332",
+      "dimensions": {
+        "width": 1640,
+        "height": 1110
+      },
+      "source": "artifacts/mock-copy-guide-20261027/network-raw.png",
+      "clip": {
+        "x": 0,
+        "y": 60,
+        "width": 1640,
+        "height": 1110
+      },
+      "captureMethod": "Native Chrome screenshot cropped without resizing or compositing."
+    },
+    {
+      "file": "02-eventstream.png",
+      "sha256": "8db344fe22b903537272e6b468e4fcb13a219a3538d949a40b7f785a1bd432fc",
+      "dimensions": {
+        "width": 2828,
+        "height": 942
+      },
+      "source": "artifacts/mock-copy-guide-20261027/eventstream-raw.png",
+      "clip": {
+        "x": 0,
+        "y": 388,
+        "width": 2828,
+        "height": 942
+      },
+      "captureMethod": "Native Chrome screenshot cropped without resizing or compositing."
+    },
+    {
+      "file": "03-response.png",
+      "sha256": "9973dc862bbc357ecd6648a7b19375d1176c626a7667b7629102bc3fa8e80a12",
+      "dimensions": {
+        "width": 2320,
+        "height": 1250
+      },
+      "source": "artifacts/mock-copy-guide-20261027/response-raw.png",
+      "clip": {
+        "x": 0,
+        "y": 388,
+        "width": 2320,
+        "height": 1250
+      },
+      "captureMethod": "Native Chrome screenshot cropped without resizing or compositing."
+    },
+    {
+      "file": "04-local-files.png",
+      "sha256": "8df01fee7b6aa11f333e83b199ef5db3a27a178e30b5bead09dfddb3079bab3d",
+      "dimensions": {
+        "width": 1080,
+        "height": 716
+      },
+      "source": "artifacts/mock-copy-guide-20261027/local-files-raw.png",
+      "clip": {
+        "x": 872,
+        "y": 576,
+        "width": 1080,
+        "height": 716
+      },
+      "captureMethod": "Native Chrome screenshot cropped without resizing or compositing."
+    }
+  ]
+}

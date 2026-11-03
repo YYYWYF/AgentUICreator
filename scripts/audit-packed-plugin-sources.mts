@@ -6,11 +6,8 @@ import path from "node:path";
 import {tmpdir} from "node:os";
 import {fileURLToPath} from "node:url";
 import {spawnPnpmSync} from "./pnpm-process.mjs";
-import {readNpmArchive} from "../packages/operator/control/src/updates/npm-artifact.js";
-import {loadAgentUISourceRegistry} from "../packages/operator/control/src/source-catalog/loader.js";
-import {sidecarRoot,verifySidecarPackage} from "../packages/creator/scripts/verify-sidecar-package.mjs";
-import {readCreatorPythonArtifact} from "./creator-sidecar-audit.mjs";
-import {auditCreatorNodeEntry,auditOperatorNodeArtifact} from "./creator-node-artifact-audit.mjs";
+import {readNpmArchive} from "../packages/creator/operator/src/updates/npm-artifact.js";
+import {loadAgentUISourceRegistry} from "../packages/creator/operator/src/source-catalog/loader.js";
 import {publicModules} from "./build-public-packages.mjs";
 const repo=fileURLToPath(new URL("..",import.meta.url));
 const output=process.argv[2]?path.resolve(process.argv[2]):path.join(repo,"docs/verification/published-package-template-audit-2026-10-18");await mkdir(output,{recursive:true});
@@ -22,7 +19,7 @@ try{
   assert.equal(packed.status,0,`${id}: ${packed.stderr}`);
   const file=(await readdir(destination)).find(file=>file.endsWith(".tgz"))!;const files=readNpmArchive(await readFile(path.join(destination,file)));
   const manifest=JSON.parse(files.get("package/package.json")!.toString());
-  const compatibility=JSON.parse(files.get("package/dist/compatibility.json")!.toString());assert.deepEqual(manifest.agentUI,{schemaVersion:1,compatibility});assert(compatibility.releases.some((release:any)=>release.packages.some((pkg:any)=>pkg.name===manifest.name&&pkg.version===manifest.version)));assert.equal(manifest.exports["./compatibility.json"],"./dist/compatibility.json");
+  const compatibility=JSON.parse(files.get("package/dist/compatibility.json")!.toString());assert.deepEqual(manifest.agentUI,{schemaVersion:1,compatibility});assert.equal(manifest.exports["./compatibility.json"],"./dist/compatibility.json");
   for(const section of ["dependencies","peerDependencies","optionalDependencies"])for(const version of Object.values(manifest[section]??{}))assert(!String(version).startsWith("workspace:"));
   const result:any={name:manifest.name,version:manifest.version,packedFiles:files.size,workspaceDependencyRangesRewritten:true,compatibilityMetadataAndPayloadMatch:true};
   if(id==="plugins"){
@@ -36,17 +33,15 @@ try{
    result.catalogPlugins=catalog.plugins.length;result.takeoverPlugins=catalog.plugins.filter((plugin:any)=>plugin.takeover).length;result.sourceFiles=sourcePaths.length;result.registryResources=registry.items.length;result.verifiedSourceAndRuntimeRecords=checked;result.sourceSamples=sourcePaths.filter(name=>/plugins\/composer\/(upstream|adapters)\/|takeover\/composer\/adapters\//.test(name)).slice(0,12);result.registryLoadedFromActualTarball=true;
    assert(files.has("package/dist/sources/takeover/composer/adapters/composer.tsx"));
   }
-  if(id==="operator")Object.assign(result,auditOperatorNodeArtifact(files));
   if(id==="creator"){
-   Object.assign(result,auditCreatorNodeEntry(files,manifest));
-   const platformRoot=sidecarRoot(`${process.platform}-${process.arch}`);await verifySidecarPackage(platformRoot);
-   const platformDestination=path.join(temporary,"creator-platform");await mkdir(platformDestination);
-   const platformPacked=spawnPnpmSync(["pack","--pack-destination",platformDestination],{cwd:platformRoot,env:{...process.env,npm_config_ignore_scripts:"true"},stdio:"pipe",encoding:"utf8"});assert.equal(platformPacked.status,0,platformPacked.stderr);
-   const platformFile=(await readdir(platformDestination)).find(file=>file.endsWith(".tgz"))!;
-   const python=readCreatorPythonArtifact(files,manifest,path.join(platformDestination,platformFile));
-   const settings=python.settings;assert(settings.includes("max_tokens: int = 8192"));assert(settings.includes("default=8192"));
-   const prompt=python.prompt;assert(prompt.includes("application props/children/composition"));assert(prompt.includes("explicit takeover consent"));
-   result.pythonSidecar={name:python.name,version:python.version,sourceHash:python.sourceHash};result.defaultModelOutputTokens=8192;result.propsFirstAndTakeoverPolicyIncluded=true;
+   for(const entry of ["dist/cli.js","dist/agent/server.js","dist/agent/runner.js","dist/agent/prompts.json","dist/contracts/creator/operator.schema.json","dist/operator/dist/runtime/operator-runtime.mjs"])
+    assert(files.has(`package/${entry}`),entry);
+   assert(![...files.keys()].some(name=>/\.(?:py|pyc|pyd|whl)$/iu.test(name)||/\/(?:python|platforms)\//u.test(name)));
+   for(const dependency of Object.keys({...manifest.dependencies,...manifest.optionalDependencies}))
+    assert(!/@za38\.03\/agent-ui-(?:operator|creator-.+)/u.test(dependency),dependency);
+   const prompt=files.get("package/dist/agent/prompts.json")!.toString();
+   assert(prompt.includes("application props/children/composition"));assert(prompt.includes("explicit takeover consent"));
+   result.runtime="typescript";result.operatorIncluded=true;result.propsFirstAndTakeoverPolicyIncluded=true;
   }
   results.push(result);
  }

@@ -43,8 +43,7 @@ addMessage({ role: "assistant", type: "error", text: errorText });
 
 ## Display plugin and lifetime
 
-The Source Registry item `plugin/transient-assistant-messages` installs the
-`transient-assistant-messages` renderer plugin. The `conversation-surface`
+The `transient-assistant-messages` renderer is delivered by the installed Plugins npm package through its project-owned application entry. The `conversation-surface`
 semantic Slot `transientMessages` owns its contribution. Assistant, Embedded
 and Platform presets include it through AppUIModel. Removing or disabling that
 plugin hides notices without changing real messages or interrupt handling.
@@ -74,9 +73,7 @@ all temporary entries. There is no localStorage, sessionStorage or server
 write. Direct provider callers that omit the service get an instance scoped
 to that provider's mounted lifetime.
 
-Existing generated projects need the updated conversation foundation and
-surface plugin, and installation of the new renderer plugin in AppUIModel.
-No backend changes are required.
+Existing projects keep their application and local implementations. Use the controlled package/update and Plugin enablement flows, then verify the renderer composition. No backend changes are required.
 
 ## Composer interrupt reminder
 

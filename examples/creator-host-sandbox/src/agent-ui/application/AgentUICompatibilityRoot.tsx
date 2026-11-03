@@ -30,6 +30,7 @@ function BridgeSession({ config, emit }: Props) {
   const [store] = useState(() => createRuntimeCompositionStore<AppAgentState>());
   const composition = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const [frontendTools] = useState(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)));
+  const onThemeChange = useCallback((theme: import("@za38.03/agent-ui-plugins").AgentUITheme) => emit("theme-change", { theme }), [emit]);
   const onError = useCallback((error: Error) => emit("agent-error", { code: "AGENT_UI_RUNTIME_ERROR", error }), [emit]);
   const suggestions = useMemo(() => getConversationStarterSuggestions(config.locale), [config.locale]);
   const catalog = useMemo(() => createPluginCapabilityCatalog<AppAgentState>(pluginCapabilityCatalog.list().map(entry => {
@@ -59,7 +60,7 @@ function BridgeSession({ config, emit }: Props) {
   }, [store, config.appUIModel, catalog]);
   // Wait for a valid composition before starting the canonical provider.
   if (composition === undefined) return null;
-  return <ApplicationSessionBoundary composition={composition} frontendTools={frontendTools} locale={config.locale}><AuthenticatedBridge {...{ config, emit, composition, frontendTools, suggestions, onError }} /></ApplicationSessionBoundary>;
+  return <ApplicationSessionBoundary composition={composition} frontendTools={frontendTools} locale={config.locale} theme={config.theme} onThemeChange={onThemeChange}><AuthenticatedBridge {...{ config, emit, composition, frontendTools, suggestions, onError }} /></ApplicationSessionBoundary>;
 }
 
 function AuthenticatedBridge({ config, emit, composition, frontendTools, suggestions, onError }: Props & {
@@ -101,5 +102,5 @@ function BridgeSurface({ config, emit, composition, frontendTools }: Props & {
     return threadBinding.subscribe(report);
   }, [threadBinding, emit]);
   return <AgentSurface composition={composition} frontendToolRuntime={frontendTools}
-    locale={config.locale} presentationLocale={config.locale} theme={config.theme} mode="embedded" />;
+    locale={config.locale} presentationLocale={config.locale} theme={config.theme} onThemeChange={theme => emit("theme-change", { theme })} mode="embedded" />;
 }

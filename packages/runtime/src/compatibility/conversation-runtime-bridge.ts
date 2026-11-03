@@ -83,6 +83,7 @@ function validateInterruptResponses<TState>(
 
 export interface ConversationAgentRuntimeBridgeOptions<TState> {
   runtime: AgUiAssistantRuntime;
+  onAbort?: (() => void) | undefined;
   threadBinding: ConversationThreadBinding<TState>;
   applicationEvents: ConversationApplicationEventSource;
   commandForwarder?: ConversationCommandForwarder | undefined;
@@ -240,6 +241,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
 
   abort(): void {
     if (this.disposed) return;
+    this.options.onAbort?.();
     this.options.runtime.thread.cancelRun();
     this.sync();
   }
@@ -253,6 +255,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   }
 
   recordCancellation(): void {
+    this.options.onAbort?.();
     this.options.commandForwarder?.clearNextCommand();
     this.runtimeError = undefined;
     this.finishPending();

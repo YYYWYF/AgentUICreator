@@ -1,6 +1,6 @@
 import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";
-import { useAgentUILocale } from "../../i18n/useAgentUILocale";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 function titleOf(value: unknown): string {
   if (value === null || typeof value !== "object") return "";
   const title = (value as Record<string, unknown>).title;

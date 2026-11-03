@@ -38,8 +38,6 @@ predictably. A missing specialized UI uses the locale-aware generic
 assistant-ui owns detection, invocation identity, single-fire execution, status,
 result injection, cancellation and continuation. We do not implement a second
 TOOL_CALL executor, fork upstream runtime, or synthesize CUSTOM tool calls.
-This supersedes the older launch-plan description of an application-owned wire
-executor: the Conversation Domain rebaseline assigns that lifecycle to upstream.
 The native pipeline runs deferred browser tools after a successful run settles,
 so a later backend result or interrupt can prevent execution.
 
@@ -59,13 +57,11 @@ user closes the dialog. Tool UI mount never means execute.
 
 Resolved stored calls and results are loaded into the existing assistant-ui thread
 history adapter. History loading, thread/branch switching, remounts, StrictMode and
-future virtualization must not invoke execute. If restoration executes a tool,
+renderer remounts must not invoke execute. If restoration executes a tool,
 repair the runtime boundary rather than adding an isHistory renderer workaround.
 Frontend UI registrations remain available for history even when their Service is
 absent. They become backend render-only Toolkit entries, with no description,
-parameters or execute, and are filtered from the model tools. Both live and
-historical renderers use Tools({ toolkit }); no deprecated registration API is
-needed. Display is forwarded only when the application explicitly chooses it,
+parameters or execute, and are filtered from the model tools. Both live and historical renderers use Tools({ toolkit }). Display is forwarded only when the application explicitly chooses it,
 preserving the upstream default otherwise.
 
 ## Availability and cancellation

@@ -5,7 +5,7 @@ import {useAui,type AssistantRuntime} from "@assistant-ui/react";
 import {afterEach,expect,it,vi} from "vitest";
 import {AgentUIRoot,AgentUILocaleProvider,ConversationThread} from "@za38.03/agent-ui-plugins";
 import {ConversationRuntimeProvider} from "@za38.03/agent-ui-runtime";
-import {CancellationAwareHttpAgent} from "../../runtime/src/compatibility/cancellation-aware-http-agent";
+import { HttpAgent } from "@ag-ui/client";
 import type {RunAgentInput} from "@ag-ui/client";
 import {ConversationLexicalEditComposer as NpmEdit} from "../dist/lexical-edit-composer/index.js";
 import {ConversationLexicalEditComposer as SourceEdit} from "../dist/sources/takeover/lexical-edit-composer/index";
@@ -15,14 +15,14 @@ const directive=":user[张三]{name=employee_84721}";
 let root:Root|undefined;
 afterEach(async()=>{await act(async()=>root?.unmount());root=undefined;document.body.replaceChildren();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function until(predicate:()=>boolean){for(let i=0;i<100&&!predicate();i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,5));});expect(predicate()).toBe(true);}
-async function mount(Edit:typeof NpmEdit,text=directive+" old question",disabled=false){
+async function mount(Edit:typeof NpmEdit|undefined,text=directive+" old question",disabled=false){
  vi.stubGlobal("ResizeObserver",class{observe(){}unobserve(){}disconnect(){}});Object.defineProperty(HTMLElement.prototype,"scrollTo",{configurable:true,value(){}});Object.defineProperty(Range.prototype,"getBoundingClientRect",{configurable:true,value:()=>new DOMRect()});Object.defineProperty(Range.prototype,"getClientRects",{configurable:true,value:()=>[]});
  const requests:RunAgentInput[]=[];let runtime!:AssistantRuntime;
- const agentFactory=()=>new CancellationAwareHttpAgent({url:"http://example.test/agent",fetch:async(_url,init)=>{const input=JSON.parse(String(init?.body)) as RunAgentInput;requests.push(input);return new Response([{type:"RUN_STARTED",threadId:input.threadId,runId:input.runId},{type:"RUN_FINISHED",threadId:input.threadId,runId:input.runId}].map(event=>`data: ${JSON.stringify(event)}\n\n`).join(""),{headers:{"Content-Type":"text/event-stream"}});}});
+ const agentFactory=()=>new HttpAgent({url:"http://example.test/agent",fetch:async(_url,init)=>{const input=JSON.parse(String(init?.body)) as RunAgentInput;requests.push(input);return new Response([{type:"RUN_STARTED",threadId:input.threadId,runId:input.runId},{type:"RUN_FINISHED",threadId:input.threadId,runId:input.runId}].map(event=>`data: ${JSON.stringify(event)}\n\n`).join(""),{headers:{"Content-Type":"text/event-stream"}});}});
  const binding={getThreadId:()=>"history",subscribe:()=>()=>{},createNewThread:async()=>"new",getThreadIsDisabled:()=>disabled,loadThread:async()=>({messages:[{id:"user",role:"user" as const,content:[{type:"text",text}],createdAt:new Date(0),metadata:{custom:{quote:{text:"Original quote",messageId:"quoted"}}}}]})};
  function Capture(){runtime=useAui().threads.__internal_getAssistantRuntime!();return null;}
  const el=document.createElement("div");document.body.append(el);root=createRoot(el);
- await act(async()=>root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}><AgentUIRoot theme="light"><AgentUILocaleProvider locale="zh-CN"><Capture/><ConversationThread composer={null} labels={{generationStopped:"Stopped",editCancel:"Cancel edit",editUpdate:"Update edit",editInput:"Edit message"}} components={{UserEditComposer:()=> <Edit inputProps={{"aria-label":"application edit",style:{padding:13}}}/>}}/></AgentUILocaleProvider></AgentUIRoot></ConversationRuntimeProvider>));await until(()=>!!runtime&&!runtime.thread.getState().isLoading);
+ await act(async()=>root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}><AgentUIRoot theme="light"><AgentUILocaleProvider locale="zh-CN"><Capture/><ConversationThread composer={null} labels={{generationStopped:"Stopped",editCancel:"Cancel edit",editUpdate:"Update edit",editInput:"Edit message"}} components={Edit ? {UserEditComposer:()=> <Edit inputProps={{"aria-label":"application edit",style:{padding:13}}}/>} : undefined}/></AgentUILocaleProvider></AgentUIRoot></ConversationRuntimeProvider>));await until(()=>!!runtime&&!runtime.thread.getState().isLoading);
  const begin=async()=>{await act(async()=>{el.querySelector('[data-slot="aui_user-message-root"]')!.dispatchEvent(new MouseEvent("mouseenter"));el.querySelector<HTMLButtonElement>(".aui-user-action-edit")!.click();});await until(()=>el.querySelector('[data-slot="agent-ui-edit-composer"]')!==null);};
  const click=async(label:string)=>{const button=[...el.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent===label)!;expect(button).toBeTruthy();await act(async()=>button.click());};
  return {el,get runtime(){return runtime;},requests,begin,click};
@@ -38,4 +38,26 @@ it.each(modes)("$name unsupported directives keep their original textarea text",
 });
 it.each(modes)("$name readonly threads keep Edit disabled and never enter editing",async({Edit})=>{
  const f=await mount(Edit,undefined,true);const button=f.el.querySelector<HTMLButtonElement>(".aui-user-action-edit");expect(!button || button.disabled).toBe(true);if(button)await act(async()=>button.click());expect(f.el.querySelector('[data-slot="agent-ui-edit-composer"]')).toBeNull();expect(f.requests).toHaveLength(0);
+});
+
+it("default basic editing uses textarea and sends the updated canonical text",async()=>{
+ const f=await mount(undefined);await f.begin();
+ const textarea=f.el.querySelector<HTMLTextAreaElement>('textarea[aria-label="Edit message"]')!;
+ expect(textarea).toBeTruthy();expect(textarea.value).toBe(directive+" old question");
+ expect(f.el.querySelector('[contenteditable="true"]')).toBeNull();
+ const changed=directive+" updated basic question";
+ await act(async()=>f.runtime.thread.getMessageById("user").composer.setText(changed));
+ expect(textarea.value).toBe(changed);await f.click("Update edit");
+ await until(()=>f.requests.length===1&&!f.runtime.thread.getState().isRunning);
+ const user=f.requests[0]!.messages.find(message=>message.role==="user")!;
+ expect(user.content).toContain(changed);expect(user.content).toContain("Original quote");
+ expect(JSON.stringify(f.requests[0])).not.toContain('"editorState"');
+});
+it("default basic editing cancels without sending or changing the original message",async()=>{
+ const f=await mount(undefined);await f.begin();
+ await act(async()=>f.runtime.thread.getMessageById("user").composer.setText("discard basic draft"));
+ await f.click("Cancel edit");expect(f.requests).toHaveLength(0);
+ expect(f.runtime.thread.getMessageById("user").getState().content).toEqual([{type:"text",text:directive+" old question"}]);
+ expect(f.runtime.thread.getMessageById("user").composer.getState().isEditing).toBe(false);
+ expect(f.el.querySelector('[data-slot="agent-ui-edit-composer"]')).toBeNull();
 });

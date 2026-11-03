@@ -1,56 +1,39 @@
 "use client";
 import { useState, type ReactNode, type ComponentProps } from "react";
-import { useAuiState, FileTextIcon, TerminalIcon, SearchIcon, WrenchIcon, useAgentUILocale, formatPresentationMessage, ToolTimeline, Collapsible, CollapsibleTrigger, CollapsibleContent, projectToolTimeline, timelineToolKind, type TimelineCall } from "../../../../plugin-support.js";
-export interface ConversationToolTimelineProps {
-  children?: ReactNode; rootProps?: ComponentProps<"div">;
-  timelineProps?: Partial<ComponentProps<typeof ToolTimeline>>;
-  detailsProps?: ComponentProps<typeof Collapsible>;
-  detailsTriggerProps?: ComponentProps<typeof CollapsibleTrigger>;
-  detailsContentProps?: ComponentProps<typeof CollapsibleContent>;
-  defaultOpen?: boolean; defaultDetailsOpen?: boolean;
+import { useAuiState, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon, useAgentUILocale, formatPresentationMessage, ToolTimeline, Collapsible, CollapsibleTrigger, CollapsibleContent, projectToolTimeline, timelineToolKind } from "../../../../plugin-support.js";
+export interface ConversationToolTimelineProps extends Omit<ComponentProps<"div">, "children"> {
+  /** Supplied by the conversation scope; tool details render independently. */
+  children?: ReactNode;
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  restingLabel?: string;
+  activeLabel?: string;
+  visibleSteps?: number;
 }
-export function InternalConversationToolTimeline({children, rootProps, timelineProps, detailsProps, detailsTriggerProps, detailsContentProps, defaultOpen = false, defaultDetailsOpen = false}: ConversationToolTimelineProps) {
+export function InternalConversationToolTimeline({ children: _children, expanded, defaultExpanded = false, onExpandedChange, restingLabel, activeLabel, visibleSteps, ...elementProps }: ConversationToolTimelineProps) {
   const messages = useAgentUILocale("toolTimeline");
   const parts = useAuiState(s => s.message.parts);
   const tools = useAuiState(s => s.tools.toolUIs);
   const projection = projectToolTimeline(parts, tools);
-  const [open, setOpen] = useState(defaultOpen);
-  const [detailsOpen, setDetailsOpen] = useState(defaultDetailsOpen);
-  const effectiveOpen = timelineProps?.open ?? open;
-  const icons = { read: FileTextIcon, command: TerminalIcon, search: SearchIcon, tool: WrenchIcon };
-  const statusLabel = (call: TimelineCall) => {
-    if (call.status === "complete") return messages.complete;
-    if (call.status === "running") return messages.running;
-    if (call.status === "requires-action") return messages.waiting;
-    if (call.status === "incomplete") {
-      if (call.reason === "cancelled") return messages.cancelled;
-      if (call.reason === "error") return messages.failed;
-      return messages.interrupted;
-    }
-    return messages.unknown;
-  };
-  const steps = projection.calls.map((call, index) => {
+  const [open, setOpen] = useState(defaultExpanded);
+  const effectiveOpen = expanded ?? open;
+  const icons = { read: FileSearchIcon, edit: PenLineIcon, command: TerminalIcon, search: SearchIcon, tool: WrenchIcon };
+  const steps = projection.calls.map(call => {
     const kind = timelineToolKind(call.toolName);
     return {
-      // Pinned upstream keys by chip, not a newer TimelineStep.id. Unique,
-      // stable ordinal chips contain no arguments, paths, or sensitive data.
-      chip: String(index + 1),
-      verb: `${kind === "tool" ? call.toolName || messages.tool : messages[kind]} · ${statusLabel(call)}`,
+      id: call.toolCallId,
+      chip: call.target,
+      verb: kind === "tool" ? call.toolName || messages.tool : messages[kind],
       icon: icons[kind],
     };
   });
   if (!projection.anchorId) return null;
-  return <div data-slot="agent-ui-tool-timeline" className="min-w-0 max-w-full [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-ring [&_[data-slot=collapsible-trigger]]:min-w-0 [&_[data-slot=collapsible-trigger]]:max-w-full [&_[data-slot=collapsible-trigger]]:break-words [&_div]:min-w-0 [&_div]:motion-reduce:animate-none [&_button]:motion-reduce:transition-none [&_span]:max-w-full [&_span]:min-w-0 [&_span]:break-all [&_span]:motion-reduce:animate-none" {...rootProps}>
-    <ToolTimeline steps={steps} visibleSteps={steps.length} streaming={projection.streaming}
-      restingLabel={formatPresentationMessage(projection.calls.every(call => call.status === "complete") ? messages.summary : messages.pendingSummary, { count: steps.length })}
-      activeLabel={formatPresentationMessage(messages.active, { count: steps.length })}
-      stats={[]} className="min-w-0 max-w-full" {...timelineProps} open={effectiveOpen} onOpenChange={value=>{setOpen(value);timelineProps?.onOpenChange?.(value);}} />
-    {effectiveOpen && children ? <Collapsible className="mt-3" {...detailsProps} open={detailsProps?.open ?? detailsOpen} onOpenChange={(value, event)=>{detailsProps?.onOpenChange?.(value,event);if(!event.isCanceled)setDetailsOpen(value);}}>
-      <CollapsibleTrigger data-agent-ui-owned="" className="rounded-md py-1 text-sm text-muted-foreground" {...detailsTriggerProps}>{messages.details}</CollapsibleTrigger>
-      <CollapsibleContent {...detailsContentProps}>
-        <div data-slot="agent-ui-tool-timeline-details" className="flex flex-col gap-4 pt-3">{children}</div>
-      </CollapsibleContent>
-    </Collapsible> : null}
+  return <div data-slot="agent-ui-tool-timeline" {...elementProps} className={["min-w-0 max-w-full", elementProps.className].filter(Boolean).join(" ")}>
+    <ToolTimeline steps={steps} visibleSteps={visibleSteps ?? steps.length} streaming={projection.streaming}
+      restingLabel={restingLabel ?? formatPresentationMessage(projection.stats.length === 1 ? messages.summaryWithOneFile : projection.stats.length ? messages.summaryWithFiles : projection.calls.every(call => call.status === "complete") ? messages.summary : messages.pendingSummary, { count: steps.length, files: projection.stats.length })}
+      activeLabel={activeLabel ?? formatPresentationMessage(messages.active, { count: steps.length })}
+      stats={projection.stats} open={effectiveOpen} onOpenChange={value=>{setOpen(value);onExpandedChange?.(value);}} />
   </div>;
 }
 

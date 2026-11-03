@@ -1,4 +1,4 @@
-@layer theme, base, components, utilities;
+@layer properties, theme, base, components, utilities;
 
 @import "tailwindcss/theme.css" layer(theme);
 @import "./preflight.scoped.css" layer(base);
@@ -7,6 +7,9 @@
 @source "./internal/conversation-thread-list-item.tsx";
 @source "./internal/primitives";
 @source "./internal/composable-thread.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx";
+@source "./internal/vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.tsx";
 @source "./plugins/composer/adapters/presentation/composer.tsx";
 @source "./plugins/composer/adapters/presentation/textarea.tsx";
 @source "./internal/conversation-transient-messages.tsx";
@@ -14,12 +17,18 @@
 @source "./internal/conversation-composer-triggers.tsx";
 @source "./internal/conversation-quote.tsx";
 @source "./internal/composer-input-host-context.tsx";
+@source "./internal/sidebar-frame.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/ui/sidebar.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/ui/sheet.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/ui/tooltip.tsx";
 @source "./internal/style-boundary";
 @source "./internal/adapters-generated/assistant-ui";
 @source "./public.tsx";
+@source "./internal/conversation-surface.tsx";
 
 @import "tw-animate-css";
 @import "./theme/conversation-shimmer.css";
+@import "./theme/compact.css";
 @import "./theme/shadcn-theme-presets.css";
 @import "./theme/agent-ui-theme-extensions.css";
 @import "./theme/agent-ui-violet-theme.css";
@@ -132,9 +141,16 @@
   z-index: 0;
 }
 
-/* Mode-shell panels use 1000/1001 within this same Agent UI boundary. A
- * Tooltip must clear them while retaining the local theme/portal container. */
-.agent-ui-root > .agent-ui-portal-root:has([data-slot="tooltip-content"]) {
+/* Mode-shell panels use 1000/1001 within this same Agent UI boundary.
+ * Tooltips and action menus must clear them without leaving the local theme. */
+.agent-ui-root > .agent-ui-portal-root:has(:is(
+  [data-slot="tooltip-content"],
+  [data-slot="selection-toolbar"],
+  [data-slot="dialog-content"],
+  [data-slot="image-zoom-overlay"],
+  [data-slot="agent-ui-message-action-menu"],
+  [data-slot="agent-ui-thread-action-menu"]
+)) {
   z-index: 1100;
 }
 

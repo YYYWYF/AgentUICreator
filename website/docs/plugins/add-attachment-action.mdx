@@ -1,51 +1,95 @@
 ---
-title: "添加附件（add-attachment-action）"
+title: "附件添加（add-attachment-action）"
 ---
 
-# 添加附件（add-attachment-action）
+# 附件添加（add-attachment-action）
 
-在输入框旁提供添加附件的按钮，让用户把文件连同问题一起发送。
+点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。
 
-## 界面与功能
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
-点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；允许的文件类型和处理方式由项目的附件服务决定。
+![添加附件（add-attachment-action）界面示例](/images/plugins/add-attachment-action.jpg)
 
-![添加附件（add-attachment-action）界面示例](/images/plugins/add-attachment-action.png)
+## 启用与使用
 
-## 如何启用和使用
+在 **Creator 输入框**输入 `/enable add-attachment-action`，点击下图中的 **「添加附件」**。
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+![Creator 启用菜单：点击「添加附件」，插件 ID 为 add-attachment-action](/images/plugins/enable/add-attachment-action.jpg)
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+## 定制选项
 
-可以把下面的需求发给 Creator：
-
-> 在当前工程中配置「添加附件」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-需要宿主提供上传与文件处理服务。类型、大小、鉴权和上传策略由业务配置，失败的附件应可移除。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `style` | 局部尺寸或样式。 |
-| `disabled` | 按业务条件限制交互。 |
-| `className` | 沿用工程样式命名设置外观。 |
-| `children` | 替换或补充组件内容。 |
-| `onClick` | 自定义点击反馈，保留原有默认动作。 |
-| `actionProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| 按钮提示 | 修改鼠标移到按钮上时的提示和读屏名称。 |
+| 一次选几个文件 | 选择每次只能选一个文件，或允许多选。 |
+| 按钮图标 | 把加号换成其他图标，或显示文字。 |
+| 大小和样式 | 调整按钮大小、颜色、边框和圆角。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「添加附件（add-attachment-action）」：
+修改：文件选择设为【单选】，按钮提示改为【添加文件】。
+保留：原有上传和移除附件的行为。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/add-attachment-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationComposerAddAttachment`；类型：`ConversationComposerAddAttachmentProps`。继承提示按钮属性，`tooltip` 可选。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `label?` | `string` | 默认 `composer.addAttachment`，用于无障碍名称 |
+| `tooltip?` | `string` | 默认使用 `label` |
+| `multiple?` | `boolean` | 文件选择器是否允许多选；省略时使用现有附件组件的默认设置 |
+| `children?` | `ReactNode` | 默认加号图标 |
+
+默认提示方向为 `bottom`，按钮为 `ghost`／`icon`。上传地址和上传方法继续使用项目已有的附件服务配置。
+
+#### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
+| `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
+| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationComposerAddAttachment>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

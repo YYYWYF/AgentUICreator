@@ -1,45 +1,79 @@
 ---
-title: "输入 / 使用命令（slash-command-trigger）"
+title: "/ 快捷命令（slash-command-trigger）"
 ---
 
-# 输入 / 使用命令（slash-command-trigger）
+# / 快捷命令（slash-command-trigger）
 
-输入 / 时弹出快捷命令菜单，例如新建会话或总结对话。
+用户可以搜索并选择项目已提供的命令。**操作类命令会执行相应动作**；**指令类命令会加入草稿，随问题一起发送**。
 
-## 界面与功能
-
-用户可以搜索并选择项目已提供的命令。操作类命令会执行相应动作；指令类命令会加入草稿，随问题一起发送。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
 ![输入 / 使用命令（slash-command-trigger）界面示例](/images/plugins/slash-command-trigger.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable slash-command-trigger`，点击下图中的 **「输入 / 使用命令」**。
 
-当前官方预设：未默认加入三种形态，需要按项目需求启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「输入 / 使用命令」，插件 ID 为 slash-command-trigger](/images/plugins/enable/slash-command-trigger.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「输入 / 使用命令」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+命令名称、列表和执行内容在[应用命令配置](/guide/adjustments/mention-and-commands)中说明。这个菜单可以调整：
 
-## 使用前提
-
-需要应用自己的命令来源。过期、停用的命令不应继续执行。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
+| 候选列表提示 | 修改菜单标题和没有可选命令时的提示。 |
+| 命令失败提示 | 修改操作失败和重试时的文字。 |
 
-## 验证结果
+## 需求示例
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+```text
+请修改「输入 / 使用命令（slash-command-trigger）」：
+修改：菜单标题改为【可用指令】，无结果提示改为【没有匹配的指令】，重试文字改为【再试一次】。
+保留：现有命令列表和执行行为。
+```
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+## 手动开发
 
+打开项目中的 `plugins/slash-command-trigger/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-## 继续阅读
+### 属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationSlashCommandTrigger`；类型：`ConversationSlashCommandTriggerProps`。无独立根外观属性。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `source?` | `ConversationSlashCommandSource` | 从已有命令数据源读取命令列表；缺少时不显示命令候选界面 |
+| `labels?` | `Partial<ConversationTriggerLabels>` | 覆盖 `conversationTriggers` 文案，字段见下文 |
+
+`source` 含 `getSnapshot(): readonly ConversationSlashCommand[]` 和 `subscribe(listener: () => void): () => void`。命令共同字段为 `id: string`、`label: string`，可选 `description: string`、`disabled: boolean`。`mode: 'action'` 需要 `execute(): void | Promise<void>`；`mode: 'directive'` 插入序列化指令引用，没有独立草稿文本属性，不自动发送消息。
+
+`ConversationTriggerLabels` 的字符串字段为 `suggestions`、`back`、`empty`、`loading`、`searchFailed`、`retry`、`commandFailed`、`invalidItem`。`labels` 与统一文案合并。
+
+#### 子插件渲染
+
+这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationSlashCommandTrigger>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

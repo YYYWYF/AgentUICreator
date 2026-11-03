@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Inspect or customize UI Plugins; implement a new Plugin or new behavior only after a direct user commission, satisfied conditional commission, or approval of a bound development proposal.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: enable_creator_tools takeover_plugin_source prepare_plugin_responsive_repair ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
+allowed-tools: enable_creator_tools takeover_plugin_source ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
 ---
 
 # UI Plugin development
@@ -22,7 +22,7 @@ within the user's request. Public npm component use does not require implementat
 source, extraction or takeover. Existing source-owned Plugin edits keep the current
 ownership, upstream provenance and BASE; do not repeat successful takeover consent.
 Only actual npm implementation edits require `takeover_plugin_source` and its
-explicit user agreement. Runtime, shared Context, vendor and generated registries
+explicit user agreement. Canonical Runtime/Context, vendor and generated registries
 remain protected. A thin wrapper's omitted public seam is not justification for
 requiring takeover.
 
@@ -46,7 +46,7 @@ is actually unknown. An npm implementation need not appear in local search.
 
 `inspect_ui_plugin` returns application ownership, public APIs and parent semantic
 composition where declared. sharedModule selects the installed public module;
-use the root module for presentation controls and /plugin-support for shared types.
+use the root module for presentation controls and /contracts for Plugin types.
 Use returned parameterContracts; follow exact parameterQueries only when a required
 signature is missing. `$element` accesses an array/index element, not React props.
 An unavailable guessed symbol is not a missing capability. Preserve declared
@@ -81,9 +81,12 @@ Styles must be imported and scoped to owned classes/data attributes; no global
 resets, Host ancestor selectors, Runtime/Portal changes or vendor overrides.
 Own box-sizing, min-width and responsive maximum size. Flex/grid children must
 shrink and long text wrap; overlays need bounded dimensions appropriate to the
-actual container. Static heuristics are not visual acceptance. A request to use
-`prepare_plugin_responsive_repair` follows its explicit plan/authorization contract;
-that specialized operation is not a prerequisite for ordinary scoped CSS edits.
+actual container. Static heuristics are not visual acceptance. The specialized
+responsive-repair proposal tool is not currently exposed by any Creator tool
+group. For ordinary authorized responsive CSS changes, freshly read the owned
+stylesheet, use the available file-edit tools and validate the current revision.
+If the user explicitly requests the unavailable specialized proposal tool,
+explain that limitation; do not claim to have invoked it.
 
 ## Validation and outcome
 

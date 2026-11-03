@@ -1,9 +1,14 @@
 "use client";
 
+import "./theme/composer-lexical.css";
+
 import { useAuiState } from "@assistant-ui/react";
 import { CanonicalUserEditComposer } from "./internal/composable-thread.js";
 import { useContext, type ComponentProps, type FC, type ReactNode } from "react";
 import { LexicalComposerInput } from "@assistant-ui/react-lexical";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { COMMAND_PRIORITY_CRITICAL, KEY_ENTER_COMMAND } from "lexical";
+import { useEffect } from "react";
 import { ComposerInputHostContext } from "./internal/composer-input-host-context.js";
 import { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, conversationDirectiveDisplayLabel } from "./internal/directive-formatter.js";
 
@@ -35,6 +40,19 @@ export type ConversationLexicalInputProps = Omit<ComponentProps<"div">,"autoFocu
   formatter?:{serialize(item:ConversationLexicalTriggerItem):string;parse(text:string):readonly ConversationLexicalSegment[]}|undefined;
   children?:ReactNode|undefined;
 };
+
+/** The installed upstream keyboard plugin does not yet recognize legacy IME
+ * Enter events. Use its public child-plugin seam, leaving native composition
+ * and application DOM handlers intact instead of preventing the browser event. */
+function LegacyIMEEnterGuard() {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => editor.registerCommand(KEY_ENTER_COMMAND,
+    event => event?.keyCode === 229,
+    COMMAND_PRIORITY_CRITICAL,
+  ), [editor]);
+  return null;
+}
+
 export function ConversationComposerLexicalInput(props: ConversationLexicalInputProps = {}) {
   const host = useContext(ComposerInputHostContext);
   if (!host) throw new Error("ConversationComposerLexicalInput requires a canonical Composer input host.");
@@ -47,7 +65,10 @@ export function ConversationComposerLexicalInput(props: ConversationLexicalInput
       formatter={agentUIDirectiveFormatter}
       directiveChip={ConversationComposerDirectiveChip}
       {...props}
-    />
+    >
+      <LegacyIMEEnterGuard />
+      {props.children}
+    </LexicalComposerInput>
   );
 }
 

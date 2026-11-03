@@ -1,75 +1,22 @@
-# Web Search and Retrieval Tool UI Plugins
+# Web Search 与 Retrieval Tool UI
 
-Two optional, independent UI Plugins contribute backend Tool UI entries through
-existing `UIPluginDefinition.toolkit`:
+web-search 与 retrieval-chunks 是两个独立的官方 npm Plugin，项目拥有薄应用层。按实际安装 catalog 初始化入口，通过 AppUIModel applicationPlugins 启用；不因查看 Mock 场景而自动接管源码。
 
-| Source item / resource / plugin | Tool name | Official Element |
+| Plugin | 后端工具名 | 展示 |
 | --- | --- | --- |
-| `plugin/web-search` / `web-search` | `web_search` | `WebSearch` |
-| `plugin/retrieval-chunks` / `retrieval-chunks` | `search_docs` | `RetrievalChunks` |
+| web-search | web_search | 查询与网页结果 |
+| retrieval-chunks | search_docs | 查询与检索片段 |
 
-Install either resource using the existing Mock panel resource installation
-control or the project source installation API. Enable its headless instance in
-AppUIModel `applicationPlugins`. Installation does not depend on selecting a
-Mock endpoint. Each plugin can be disabled or removed independently using the
-existing AppUIModel/plugin management operations.
+它们只展示 canonical Runtime 已解析的 args、result 和 status，不向模型注册可执行 Frontend Tool，不执行搜索请求，不定义新的 AG-UI 事件。运行、错误、中断和无效结果沿用已有 ToolFallback。
 
-The generated Application supplies its authoritative base toolkit to candidate
-staging. `buildRuntimeComposition` combines it with selected Plugin entries via
-`resolvePluginConversationToolkit` before publication. The resulting final
-toolkit is retained in the published snapshot, and Agent passes that stable
-object directly to the single Conversation Runtime's
-`Tools({ toolkit })` / `AuiConfig` registration. The public
-`createConversationToolkit` facade uses assistant-ui `defineToolkit`.
-No additional provider or renderer dispatcher is introduced. Duplicate names,
-including collisions with the base toolkit, throw
-`Duplicate Tool UI registration: <toolName>` before composition is published.
+## 业务结果
 
-Backend execution and standard AG-UI `TOOL_CALL_START/ARGS/END/RESULT` remain
-unchanged. Plugins consume only assistant-ui's parsed `args`, `result`, and
-`status`. They neither advertise executable frontend tools nor make requests.
-They use the existing ToolFallback for errors, interrupted calls, and malformed
-completed results. Empty result arrays are valid. Running calls show searching
-or retrieving; completed calls show all returned entries.
+web_search 使用 query 和 results 数组，网页结果包含 title、domain 等该工具实际定义的字段。search_docs 使用 query 和 chunks 数组，片段包含 id、source、locator、score、text 等业务字段。这些是对应工具的结果合同，不是全局 AG-UI schema。
 
-## Backend result contracts
+空数组是合法结果；数据形状不符合合同不能声称成功展示。专用 renderer 继续优先于通用 Tool fallback，重复具名注册在组合提交前报告冲突。
 
-`web_search` accepts `{ query?: string }` and returns:
+## 定制与验证
 
-```json
-{"results":[{"title":"assistant-ui","domain":"assistant-ui.com"}]}
-```
+项目入口保留已安装公开组件的 DOM、结果数量、cycle 和 renderer props。产品文案使用 searchTools namespace，保留 Host 覆盖和正确的结果计数。先使用 props 和局部样式，内部实现变更才考虑明确源码接管。
 
-`search_docs` accepts `{ query?: string }` and returns:
-
-```json
-{"chunks":[{"id":"chunk-1","source":"policy.pdf","locator":"p.14","score":0.91,"text":"退款申请需在30天内提交。"}]}
-```
-
-Both official Elements are adopted from the pinned assistant-ui commit
-`3542d602272a62eddeb8989befc910841c267022`. The explicit
-`agent-ui-search-presentation-labels-seam` adds optional presentation labels;
-UPSTREAM.json records the two-file patch and per-file adaptation, and installed
-hashes are recorded in the lock. The sync script requires each upstream anchor
-to match exactly once and fails for review if it changes. Product code passes
-labels through JSX props, with no React child indexing, tree traversal, or
-parsing of English aria copy. `searchTools` supplies English and Chinese labels.
-The WebSearch completion count reflects the actual result count.
-
-## Mock scenes and future acceptance
-
-The backend reference catalog now includes `web-search` and `retrieval-chunks`.
-Each uses the existing Mock `tool` step and standard AG-UI lifecycle, with a
-visible delay for its running state. Resource requirements refer to the two
-independently installable official resources.
-
-Behavioral test code now covers both standard Mock SSE lifecycles through
-HttpAgent and the Conversation Runtime; running/completed state, result fields,
-localized meter labels, malformed and empty completions, disable/remove/re-enable,
-and independence. Candidate-store tests cover plugin/plugin and base/plugin
-collisions retaining the previous published snapshot without notifying render
-consumers. Sync tests cover seam replay, provenance and failure on changed anchors.
-Per the request, these tests and behavioral acceptance were not executed. No aliases,
-shape-based routing, private events, citations, backend implementation, or new
-version mechanism are added. Manifest metadata follows the existing required
-Plugin schema.
+验证标准工具事件、运行/完成状态、完整结果、空结果、错误/中断、无效 payload、语言、停用和重新启用，以及两个 Plugin 的独立性。Mock、静态、浏览器和真实后端结果分别记录。

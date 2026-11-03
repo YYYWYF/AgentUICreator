@@ -5,10 +5,6 @@
       "path": "items/plugin/agent-identity/item.json"
     },
     {
-      "id": "foundation/conversation",
-      "path": "items/foundation/conversation/item.json"
-    },
-    {
       "id": "foundation/core",
       "path": "items/foundation/core/item.json"
     },
@@ -19,14 +15,6 @@
     {
       "id": "foundation/core-application",
       "path": "items/foundation/core-application/item.json"
-    },
-    {
-      "id": "foundation/core-contracts",
-      "path": "items/foundation/core-contracts/item.json"
-    },
-    {
-      "id": "foundation/core-runtime",
-      "path": "items/foundation/core-runtime/item.json"
     },
     {
       "id": "plugin/agent-plan-message",
@@ -95,10 +83,6 @@
     {
       "id": "demo/frontend-tool-form",
       "path": "items/demo/frontend-tool-form/item.json"
-    },
-    {
-      "id": "demo/ask-user-question",
-      "path": "items/demo/ask-user-question/item.json"
     },
     {
       "id": "demo/human-form",
@@ -235,6 +219,26 @@
     {
       "id": "plugin/locale-switch",
       "path": "items/plugin/locale-switch/item.json"
+    },
+    {
+      "id": "plugin/ask-user-question",
+      "path": "items/plugin/ask-user-question/item.json"
+    },
+    {
+      "id": "plugin/tool-result",
+      "path": "items/plugin/tool-result/item.json"
+    },
+    {
+      "id": "foundation/shell-assistant",
+      "path": "items/foundation/shell-assistant/item.json"
+    },
+    {
+      "id": "foundation/shell-embedded",
+      "path": "items/foundation/shell-embedded/item.json"
+    },
+    {
+      "id": "foundation/shell-platform",
+      "path": "items/foundation/shell-platform/item.json"
     }
   ]
 }

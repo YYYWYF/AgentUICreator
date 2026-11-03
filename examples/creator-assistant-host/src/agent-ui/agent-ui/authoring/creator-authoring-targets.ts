@@ -62,17 +62,4 @@ export const creatorApplicationAuthoringTargets = [
     optional: true,
     relatedPluginIds: ["theme-provider"],
   },
-  {
-    id: "theme.default-mode",
-    kind: "application_config",
-    name: "Application default theme mode",
-    description: "Application-owned default theme mode used when the UI starts.",
-    intents: [
-      "change default theme",
-      "start in dark mode",
-      "change application theme default",
-    ],
-    ownerPath: "theme/theme-config.ts",
-    relatedPluginIds: ["theme-provider"],
-  },
 ] as const satisfies readonly CreatorApplicationAuthoringTarget[];

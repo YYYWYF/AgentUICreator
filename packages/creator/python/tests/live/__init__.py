@@ -1,1 +1,0 @@
-"""Live-model test package."""

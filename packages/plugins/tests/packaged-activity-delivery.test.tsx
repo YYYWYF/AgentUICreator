@@ -31,7 +31,7 @@ it("preserves render-only tool registrations and the authoritative data-message 
 });
 it.each(modes)("$name status exposes props/renderers while preserving lifecycle and fallback callbacks",async({Status})=>{
   const render=vi.fn((props:ConversationAgentStatusProps)=><span>{props.label}:{props.state}</span>);const fallback=vi.fn((props:ConversationToolCallProps)=><aside>{props.toolCallId}</aside>);const resume=vi.fn();
-  const el=await mount(<Status {...tool({args:{label:"Agent label",elapsed:"2s"},status:{type:"requires-action"}})} statusProps={{label:"Application label"}} rootProps={{"aria-label":"status-app",style:{padding:11}}} renderStatus={render}/>);
+  const el=await mount(<Status {...tool({args:{label:"Agent label",elapsed:"2s"},status:{type:"requires-action"}})} label={"Application label"} aria-label={"status-app"} style={{padding:11}} renderStatus={render}/>);
   expect(el.textContent).toContain("Application label:waiting");expect(el.querySelector<HTMLElement>('[aria-label="status-app"]')?.style.padding).toBe("11px");expect(render.mock.calls[0]?.[0]).toMatchObject({state:"waiting",label:"Application label",elapsed:"2s"});
   await act(async()=>root!.render(<Host><Status {...tool({args:{label:"valid"},status:{type:"incomplete",reason:"cancelled"},resume})} Fallback={fallback}/></Host>));
   expect(fallback.mock.calls.at(-1)?.[0]).toMatchObject({toolCallId:"call",resume,status:{type:"incomplete",reason:"cancelled"}});
@@ -40,7 +40,7 @@ it.each(modes)("$name status exposes props/renderers while preserving lifecycle 
 it.each(modes)("$name plan exposes composition and accepts only authoritative valid activity payloads",async({Plan})=>{
   const render=vi.fn((props:ConversationAgentPlanProps)=><section>{props.title}:{props.activeIndex}</section>);
   const data={title:"Agent plan",steps:[{id:"stable",label:"first",description:"detail"}],activeIndex:1};
-  const el=await mount(<Plan data={data} planProps={{title:"Application plan"}} rootProps={{"aria-label":"plan-app"}} renderPlan={render}/>);
+  const el=await mount(<Plan data={data} title={"Application plan"} aria-label={"plan-app"} renderPlan={render}/>);
   expect(el.querySelector('[aria-label="plan-app"]')?.textContent).toBe("Application plan:1");expect(render.mock.calls[0]?.[0]).toMatchObject({steps:data.steps,activeIndex:1});
   await act(async()=>root!.render(<Host><Plan data={{...data,activeIndex:2}} renderPlan={render}/></Host>));expect(el.textContent).toBe("");expect(render).toHaveBeenCalledOnce();
 });
@@ -49,7 +49,7 @@ it.each(modes)("$name job consumes the existing Host state and abort action, pre
   const runtime={getSnapshot:()=>snapshot,subscribe:(fn:()=>void)=>{listeners.add(fn);return()=>listeners.delete(fn);},abort} as unknown as AgentRuntime;
   const args={target:"CI",stages:[{name:"build",weight:1}]};let status:ConversationToolCallProps["status"]={type:"running"};let result:unknown;const fallback=vi.fn(()=><aside>fallback</aside>);
   const render=vi.fn((props:JobProgressProps)=><button onClick={props.onCancel}>{props.title}:{props.stageProgress}:{props.outcome?.status}</button>);
-  function Application(){const state=useAgentState();const {abortRun}=useAgentRuntimeActions();return <Progress {...tool({args,status,result})} state={state} abortRun={abortRun} progressProps={{title:"Application CI"}} renderProgress={render} Fallback={fallback}/>;}
+  function Application(){const state=useAgentState();const {abortRun}=useAgentRuntimeActions();return <Progress {...tool({args,status,result})} state={state} abortRun={abortRun} title={"Application CI"} renderProgress={render} Fallback={fallback}/>;}
   const element=()=> <AgentRuntimeProvider runtime={runtime}><Application/></AgentRuntimeProvider>;
   const el=await mount(element());expect(el.textContent).toContain("Application CI:0.25");await act(async()=>el.querySelector<HTMLButtonElement>("button")!.click());expect(abort).toHaveBeenCalledOnce();
   await act(async()=>{snapshot={state:{jobs:{call:{stageIndex:0,stageProgress:0.75,eta:"1s"}}}};listeners.forEach(fn=>fn());});expect(el.textContent).toContain("0.75");
@@ -58,18 +58,18 @@ it.each(modes)("$name job consumes the existing Host state and abort action, pre
 });
 it.each(modes)("$name generated file forwards props and renderer while rejecting invalid or non-success results",async({File})=>{
   const render=vi.fn((props:ConversationFileProps)=><a href={props.data}>{props.filename}</a>);const fallback=vi.fn((props:ConversationToolCallProps)=><aside>{props.status.type}</aside>);
-  const el=await mount(<File {...tool({status:{type:"complete"},result:file})} fileProps={{filename:"Application report.pdf"}} renderFile={render}/>);expect(el.querySelector("a")?.textContent).toBe("Application report.pdf");expect(el.querySelector("a")?.getAttribute("href")).toBe(file.url);
+  const el=await mount(<File {...tool({status:{type:"complete"},result:file})} filename={"Application report.pdf"} renderFile={render}/>);expect(el.querySelector("a")?.textContent).toBe("Application report.pdf");expect(el.querySelector("a")?.getAttribute("href")).toBe(file.url);
   for(const override of [{status:{type:"running"} as const},{status:{type:"complete"} as const,isError:true},{status:{type:"complete"} as const,result:{...file,url:"javascript:bad"}}]) await act(async()=>root!.render(<Host><File {...tool({result:file,...override})} Fallback={fallback}/></Host>));expect(fallback).toHaveBeenCalledTimes(3);expect(render).toHaveBeenCalledOnce();
 });
 
 it.each(modes)("$name plan routes native data messages through a customized application renderer",async({Plan})=>{
-  const definition=defineDataMessageUI<unknown>({name:"agui-activity/agent-plan",render:({data})=><Plan data={data} planProps={{title:"Application-routed plan"}} renderPlan={props=><section data-routed-plan="">{props.title}:{props.steps.length}</section>}/>});
+  const definition=defineDataMessageUI<unknown>({name:"agui-activity/agent-plan",render:({data})=><Plan data={data} title={"Application-routed plan"} renderPlan={props=><section data-routed-plan="">{props.title}:{props.steps.length}</section>}/>});
   function Routed(){const runtime=useLocalRuntime({async *run(){}},{initialMessages:[{role:"assistant",content:[{type:"data",name:"agui-activity/agent-plan",data:{title:"Agent plan",steps:[{label:"first"}],activeIndex:0}}],status:{type:"complete",reason:"stop"}}]});return <AssistantRuntimeProvider runtime={runtime}><DataMessageUIRegistration definition={definition}/><ThreadPrimitive.Messages components={{Message:()=> <MessagePrimitive.Parts/>}}/></AssistantRuntimeProvider>;}
   const el=await mount(<Routed/>,false);expect(el.querySelectorAll("[data-routed-plan]")).toHaveLength(1);expect(el.textContent).toBe("Application-routed plan:1");
 });
 it.each(modes)("$name default presentations retain native content, download URL and cancellation with application props",async({Status,Plan,Progress,File})=>{
   const abort=vi.fn();
-  const el=await mount(<><Status {...tool({args:{label:"Agent status",elapsed:"2s"},status:{type:"complete"}})} statusProps={{label:"Application status"}}/><Plan data={{steps:[{label:"first"}],activeIndex:0}} planProps={{title:"Application plan"}}/><Progress {...tool({args:{target:"CI",stages:[{name:"build",weight:1}]}})} state={{jobs:{call:{stageIndex:0,stageProgress:0.3,eta:"2s"}}}} abortRun={abort} progressProps={{title:"Application job","aria-label":"job-app",style:{padding:13}}}/><File {...tool({status:{type:"complete"},result:file})} fileProps={{filename:"Application file.pdf"}}/></>);
+  const el=await mount(<><Status {...tool({args:{label:"Agent status",elapsed:"2s"},status:{type:"complete"}})} label={"Application status"}/><Plan data={{steps:[{label:"first"}],activeIndex:0}} title={"Application plan"}/><Progress {...tool({args:{target:"CI",stages:[{name:"build",weight:1}]}})} state={{jobs:{call:{stageIndex:0,stageProgress:0.3,eta:"2s"}}}} abortRun={abort} title={"Application job"} aria-label={"job-app"} style={{padding:13}}/><File {...tool({status:{type:"complete"},result:file})} filename={"Application file.pdf"}/></>);
   for(const text of ["Application status","Application plan","Application job","Application file.pdf"])expect(el.textContent).toContain(text);
   expect(el.querySelector<HTMLElement>('[aria-label="job-app"]')?.style.padding).toBe("13px");expect(el.querySelector('a[href="https://example.test/report.pdf"]')).not.toBeNull();
   const cancel=el.querySelector<HTMLButtonElement>('[aria-label="job-app"] button')!;await act(async()=>cancel.click());expect(abort).toHaveBeenCalledOnce();

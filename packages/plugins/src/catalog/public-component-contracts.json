@@ -1,6 +1,36 @@
 {
   "schemaVersion": 1,
   "modules": {
+    "@za38.03/agent-ui-plugins/locale-provider": {
+      "LocaleProviderPlugin": {
+        "presentation": "Generated Agent applications and createAgentUILocaleService() default to zh-CN. Standalone presentation components without the generated Runtime bridge default to en-US. The supported locale codes are zh-CN and en-US; do not search protected implementation source to infer the generated default.",
+        "composition": "Keep the existing locale-provider service and Runtime locale bridge. Agent locale is controlled, defaultLocale initializes an uncontrolled instance, onLocaleChange observes selection, and locales supplies per-locale partial message overrides. For example, locales['zh-CN'].composer.placeholder customizes the existing Chinese input hint. Supply the English counterpart. Merge project defaults and Host overrides at both locale and domain-field levels: spreading locales only at the top level replaces entire locale dictionaries, losing project defaults when the Host overrides an unrelated domain. Host values win for the exact fields they supply. LocaleProviderPlugin itself only renders children, with no locale/message props.",
+        "interaction": "The public useAgentUILocale(namespace) reads existing shared domain messages; useAgentUILocaleCode() reads the same current code. For custom project business messages use a small en-US/zh-CN project dictionary keyed by that unified code, without another language state or Context. AgentUILocaleMessages and Overrides describe the package's existing namespaces; unrelated new business keys do not require extending those closed npm types."
+      }
+    },
+    "@za38.03/agent-ui-plugins/theme-provider": {
+      "ThemeProviderPlugin": {
+        "presentation": "The built-in theme keys are light, dark and violet; the default is violet. A custom brand color such as blue is a project CSS palette customization, not a new theme enum value. ThemeProviderPlugin renders its children and does not accept palette/color props.",
+        "composition": "Keep the existing theme service and AgentUIRoot. Agent theme props or createAgentUIThemeService(initialTheme) select a built-in preset; AppUIModel does not configure component props. Do not add another theme Runtime or edit npm implementation files.",
+        "styles": "Import @za38.03/agent-ui-plugins/styles.css before project overrides. Scoped palette selectors are :is(.agent-ui-root, .agent-ui-conversation)[data-theme=\"violet\"] for the default preset. Override --agent-brand and --agent-brand-solid for the brand and solid actions; --primary, --ring, --sidebar-primary and --sidebar-ring are semantic control/sidebar colors. Violet derives --primary and sidebar/focus colors from --agent-brand-solid; neutral light/dark derive --agent-brand from --primary, so override both when customizing those presets. Other public tokens include --background, --foreground, --card, --muted, --border, --input, --primary-foreground, --sidebar and --sidebar-foreground. Keep surfaces/readability coherent and verify rendered colors and theme switching. These names describe this installed package; project CSS overrides need no source takeover."
+      }
+    },
+    "@za38.03/agent-ui-plugins/composer": {
+      "ConversationComposerPlugin": {
+        "localizedDefaults": { "placeholder": "composer.placeholder", "inputAriaLabel": "composer.input", "inputProps.placeholder": "composer.placeholder", "inputProps.aria-label": "composer.input" },
+        "presentation": "The editable text field is a textarea by default. data-slot=aui_composer-input is its containing div; data-slot=aui_composer-shell is the outer surface containing input and actions. Container height is distinct from editable field height.",
+        "composition": "The public component prop type is ConversationCanonicalComposerProps, exported from @za38.03/agent-ui-plugins. The /composer entry exports the Plugin component. inputProps forwards textarea props including rows, style, className and onChange; preserve existing handlers. Other root props configure the outer form. Root rows and maxLength configure the default textarea; a defined root maxLength wins over inputProps.maxLength. The input prop replaces the default input; inspect an existing replacement before changing it. For a live character count that follows typing, send and programmatic clears, query useConversationComposer from the public root module and observe its text; this hook uses the existing canonical Composer and does not create a Runtime. The default shell is a column: input and aui_composer-actions are separate children; the actions row contains leading/trailing actions, with submitAction in trailing-actions.",
+        "interaction": "A direct placeholder prop overrides composer.placeholder, including Host locale overrides; a fixed string also persists when the locale changes. Generated Agent accepts locales with per-locale overrides, for example zh-CN and en-US entries containing composer.placeholder; preserve existing Host overrides when adding project defaults. The public useAgentUILocale('composer') reads this shared namespace, and useAgentUILocaleCode() reads the same current locale. Custom project business labels may use a small project-owned en-US/zh-CN message dictionary selected by that unified locale code; do not create another language state/Context or add fields to the closed npm AgentUILocaleMessages type. Keep the existing Composer and its native event handlers.",
+        "styles": "inputProps.style.minHeight sizes the textarea, not the shell. Project CSS may target [data-slot=aui_composer-input] textarea. The package's styled outer shell uses :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot=\"aui_composer-shell\"] with border-radius:18px; :hover and :focus-within add border/shadow rules. A bare [data-slot=\"aui_composer-shell\"] override has lower specificity and can lose even when imported later. Use that full scoped selector and corresponding focus state in later project CSS for radius/border overrides, then inspect computed borderRadius/borderColor in the actual Host. Button wrapping belongs to the actions row and leading/trailing action groups; flex-basis on a child of the column shell can instead change input height. Preserve textarea, attachments and submit behavior."
+      }
+    },
+    "@za38.03/agent-ui-plugins/conversation-surface": {
+      "ConversationSurfacePlugin": {
+        "presentation": "The canonical empty conversation centers its welcome content and composer. A populated conversation pins its viewport footer toward the bottom. Resizing the outer AppUIModel track alone does not change this internal empty-state alignment.",
+        "composition": "Keep the existing canonical Conversation Adapter, renderer slots and Composer. Layout changes inside this surface belong in project application composition or scoped CSS, without replacing the Runtime or adding component props to AppUIModel.",
+        "styles": "The internal content has data-slot=agent-ui-thread-content and flex:1 with a column layout; the composer container has class aui-thread-viewport-footer. To keep the composer at the bottom even in an empty conversation, project CSS can override the content's justify-content and give its footer margin-top:auto. Scope selectors to this conversation surface and verify the actual desktop and narrow Host, including overflow, welcome content and messages."
+      }
+    },
     "@za38.03/agent-ui-plugins": {
       "AgentUIDialog": {
         "presentation": "Unstyled Dialog compound primitives. Root manages dialog state; Popup and Backdrop supply behavior but no product positioning, backdrop color, size or surface styles.",
@@ -23,6 +53,15 @@
       "CanonicalConversationNew": {
         "presentation": "Independent new-conversation button backed by the existing canonical Conversation Runtime.",
         "composition": "Configure showLabel in the project application JSX (default true). Assistant/Embedded initialization supplies false for an icon-only button; Platform uses the labeled default. Both variants retain localized accessibility and tooltip text. newProps, children and tooltip props remain public customization seams."
+      },
+      "ConversationSlashCommand": {
+        "interaction": "A directive command inserts a serialized Agent UI command reference into composer text; it does not insert a plain sentence. Its label is a display label inside that reference. An action command invokes execute(); it does not automatically modify or submit the composer. Types describe these variants separately.",
+        "composition": "Command registration accepts id, label, description, disabled and the selected mode contract. Directive mode has no separate draft text property. UIPluginActions.sendMessage sends immediately and is not a draft setter. Do not infer plain-text insertion support from directive mode or a successful typecheck."
+      },
+      "AgentUISidebarFrame": {
+        "presentation": "The frame contains .agent-ui-sidebar-provider, a sidebar region and .agent-ui-sidebar-inset for chat content. The sidebar has a sidebar-gap spacer and a sidebar-container containing sidebar-inner. Their widths participate together in layout; changing only the navigation content width does not resize its reserved space.",
+        "interaction": "The frame measures its own container width. Below 648px it uses data-sidebar-mode=drawer and a contained Sheet, retaining a 48px navigation rail. Otherwise data-sidebar-mode=inline uses the selected navigation panel. Closing a panel and hiding the entry control are different states.",
+        "styles": "The provider sets --sidebar-width inline to 280px in inline mode or 48px in drawer mode, and --sidebar-width-icon to 48px. Sidebar-gap and sidebar-container consume that variable. Project style overrides must be scoped to the intended mode and account for the inline declaration. sidebar-inner holds the rail and navigation panel; sidebar-inset holds the chat. Verify both reserved gap and visible panel geometry."
       }
     }
   }

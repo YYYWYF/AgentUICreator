@@ -22,8 +22,8 @@ recipeReference as recipe (an object containing only the plan id); the tool forw
 the exact cached canonical recipe. Do not copy or regenerate long edits.after code
 into mutation arguments. A missing reference means re-plan, not reconstruct it.
 When users ask how to integrate, install, or enable Agent UI in an existing Host,
-call plan_agent_ui_integration first. /install web-component-bridge and natural
-language integration use this same Host-owned resource recipe. A guide is read-only:
+call plan_agent_ui_integration first. Natural-language integration uses this
+Host-owned resource recipe. A guide is read-only:
 display the returned paths and canonical edits.after, with no filesystem writes.
 After target selection, a how-to guide needs no apply approval or automation choice;
 display the recipe directly. When manualPrerequisites includes compiled-bridge,

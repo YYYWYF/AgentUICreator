@@ -1,9 +1,9 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useConversationThread } from "@za38.03/agent-ui-plugins";
 import { FormProvider, useForm } from "react-hook-form";
-import { usePluginService } from "../../runtime/plugins";
+import { usePluginService } from "@za38.03/agent-ui-runtime/ui/runtime/plugins/index";
 import { DEMO_FORM_SERVICE, DEMO_FORM_FIELDS, type DemoFormValues, type DemoFormService, type DemoFormSubmitResult } from "../../services/demo-form";
-import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 import "./styles.css";
 export function FrontendToolFormDemoPlugin() {
   const thread = useConversationThread();

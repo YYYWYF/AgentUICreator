@@ -1,0 +1,300 @@
+{
+  "capturedDate": "2026-10-23",
+  "source": "http://127.0.0.1:5178/ with Creator at http://127.0.0.1:47833/",
+  "project": "/Users/yifei/Coding/agentui_test/cmb-service-workbench",
+  "notes": [
+    "Native Chrome screenshots cropped to page content or the relevant control; no tabs, address bar or bookmarks bar are included.",
+    "All business data is fictional. Conversation and history use local Mock services.",
+    "Template selection uses a separate uninitialized capture project; existing Agent UI was not reinitialized.",
+    "Only the local Mock conversation was sent. The Creator customization request remained a draft.",
+    "Screenshots document the UI of the installed packages in the target project; they are not a production backend or Windows acceptance result.",
+    "2026-11-02: Replaced the creation-flow and mounted-workbench screenshots using a separate React + Vite fixture initially declaring only Creator plus the Host foundation. The real sequence was confirm package.json declarations, run pnpm install manually in the terminal, recheck dependencies, initialize, configure the Tailwind adapter, and mount the generated Agent. The user’s 5196 project was not changed.",
+    "2026-11-02 captures use actual packed local packages, not simulated UI states. No Creator/model request was submitted. The mounted preview shows fictional history from local Mock services; no production Agent service or Windows acceptance is implied.",
+    "2026-11-03: Replaced only 06-platform-mounted.png using the existing independent documentation fixture, refreshed with the canonical Agent entry and current locally packed production packages. Creator was not running; no model, Mock conversation or production Agent request was submitted. The current default suggestion text is resolved from the installed Plugins locale messages. This is browser screenshot evidence, not real-service or Windows acceptance.",
+    "2026-11-03: Added three template-selection screenshots. Independent documentation projects combine the current examples Host pages with freshly initialized canonical Bootstrap templates and Core/Renderer/Runtime/Plugins rebuilt from current workspace source. Each Host explicitly passes Agent.suggestions using the current starterSuggestions locale namespace. Captured real production-build previews; no conversation or model request was submitted. Maintained examples were not edited. This is local browser evidence, not real-service or Windows acceptance."
+  ],
+  "screenshots": [
+    {
+      "file": "01-business-before.png",
+      "scenario": "Business workbench overview with demo tickets before opening Creator.",
+      "sha256": "c7c65d61a0e21d11efc6facff740af385148c3e5c79ff732416c58d15a08c485",
+      "dimensions": {
+        "width": 1600,
+        "height": 924
+      },
+      "crop": {
+        "left": 0,
+        "top": 174,
+        "right": 2824,
+        "bottom": 1804
+      }
+    },
+    {
+      "file": "03-creator-entry.png",
+      "scenario": "Creator Agent entry in the business workbench header.",
+      "sha256": "c3606dbbd3178a96032d83178295d7c20884f2c8cf10e83cd0c6a8f2ebe28c5d",
+      "dimensions": {
+        "width": 1344,
+        "height": 436
+      },
+      "crop": {
+        "left": 1480,
+        "top": 174,
+        "right": 2824,
+        "bottom": 610
+      }
+    },
+    {
+      "file": "04-select-platform.png",
+      "scenario": "Platform selected in a fresh Creator-only Host; sourceRoot is src/agent-ui and the complete target path is visible. Dependency preparation has not been confirmed.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 868,
+        "height": 1142
+      },
+      "crop": {
+        "left": 1924,
+        "top": 270,
+        "right": 2792,
+        "bottom": 1412
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/04-selection-raw.jpg",
+      "sha256": "a01d3c6815918b6c4cb324176a0f102fbbdab24dd09fa1f273b5729e29a4a566"
+    },
+    {
+      "file": "04a-dependency-plan.png",
+      "scenario": "Before confirmation: exact package.json target, seven missing runtime/build declarations, manual installation instruction and Confirm dependency additions button.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 868,
+        "height": 1378
+      },
+      "crop": {
+        "left": 1924,
+        "top": 270,
+        "right": 2792,
+        "bottom": 1648
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/04a-dependencies-raw.jpg",
+      "sha256": "3bc6743d071a9c5495d89fdeb73a43012f0b14c4177775f71060556d563ce724"
+    },
+    {
+      "file": "04b-manual-install.png",
+      "scenario": "After confirming declarations and before installing: explicit manual install step showing the project directory, pnpm install and Recheck dependencies button. No Agent UI source existed at this point.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 868,
+        "height": 1378
+      },
+      "crop": {
+        "left": 1924,
+        "top": 270,
+        "right": 2792,
+        "bottom": 1648
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/04b-manual-install-raw.jpg",
+      "sha256": "b87054e9f0288ee602fa17326962ad660861e35743379e07775fadf449d55f2c"
+    },
+    {
+      "file": "04c-dependencies-ready.png",
+      "scenario": "After manual terminal installation and UI recheck: Dependencies installed, exact manifest path and Initialize Agent UI button. Initialization has not been submitted.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 868,
+        "height": 558
+      },
+      "crop": {
+        "left": 1924,
+        "top": 1090,
+        "right": 2792,
+        "bottom": 1648
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/04c-dependencies-ready-raw.jpg",
+      "sha256": "697012ca7bca55d510c694f7bfd99f884bd3e0050b1605eca288b3d12b65290d"
+    },
+    {
+      "file": "05-initialized.png",
+      "scenario": "Successful real initialization: Agent UI created card and integration instructions button. Generated service hooks are directly under services/hooks/.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 808,
+        "height": 168
+      },
+      "crop": {
+        "left": 1954,
+        "top": 420,
+        "right": 2762,
+        "bottom": 588
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/05-initialized-raw.jpg",
+      "sha256": "842394d8d6c1e61ec4b3afab036e369aa5b27c27bde74dc13c32ce37dcb5b3cb"
+    },
+    {
+      "file": "06-platform-mounted.png",
+      "scenario": "Generated platform Agent mounted through its public React entry with the current canonical Agent template and locally packed Core, Renderer, Runtime and Plugins. The empty conversation shows the three current default starter suggestions: 账户交易查询, 转账汇款指引 and 银行卡服务. No messages were submitted; the sidebar contains only a new conversation.",
+      "capturedDate": "2026-11-03",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "rawCapture": "artifacts/start-suggestions-20261103/06-platform-mounted-raw.jpg",
+      "sha256": "24731f90bd13cab090ec742bdc96fa10d1de92980014a8d7fb009aef7a5f8f6f",
+      "captureMethod": "In-app browser viewport screenshot, JPEG converted losslessly to PNG without cropping or content edits."
+    },
+    {
+      "file": "07-demo-conversation.png",
+      "scenario": "Mock reasoning-tool-success result with the first reasoning section expanded.",
+      "sha256": "67d03686eaaabf50f1c18fc31998165e7e164c372dda926398d103230a0e87ad",
+      "dimensions": {
+        "width": 1385,
+        "height": 708
+      },
+      "crop": {
+        "left": 675,
+        "top": 352,
+        "right": 2060,
+        "bottom": 1060
+      }
+    },
+    {
+      "file": "08-integration-guide.png",
+      "scenario": "Expanded integration instructions after real initialization: React project selected and the generated src/agent-ui/index.ts entry is visible. The code block is omitted to keep the documentation example copyable.",
+      "capturedDate": "2026-11-02",
+      "sourceUrl": "http://127.0.0.1:5202/",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "creatorUrl": "http://127.0.0.1:47862/",
+      "dimensions": {
+        "width": 808,
+        "height": 414
+      },
+      "crop": {
+        "left": 1954,
+        "top": 420,
+        "right": 2762,
+        "bottom": 834
+      },
+      "rawCapture": "artifacts/new-project-docs-20261102/08-integration-guide-raw.jpg",
+      "sha256": "b9c3eed1a3028fe093409d9fa5b7a77ef68d0586fde4ad03f3131ebf97d4bd91"
+    },
+    {
+      "file": "09-creator-rename-request.png",
+      "scenario": "Creator request composer containing the rename example draft: 将助理的名字改为「小招」。 Request was not submitted.",
+      "sha256": "8fbf96d533c4867ef1fd71a7fdd7c712633191a2c4fa378a2f947a5ee4e0ef8d",
+      "dimensions": {
+        "width": 820,
+        "height": 262
+      },
+      "crop": {
+        "left": 1948,
+        "top": 1363,
+        "right": 2768,
+        "bottom": 1625
+      },
+      "capturedDate": "2026-10-24",
+      "sourceUrl": "http://127.0.0.1:5293/",
+      "project": "/Users/yifei/Coding/agentui_test/template-hd-capture-20261024/platform",
+      "creatorUrl": "http://127.0.0.1:47835/"
+    },
+    {
+      "file": "10-creator-mock-menu.png",
+      "scenario": "Creator settings menu open with the Examples and Replay entry visible. Captured in an independent template copy; no Mock service started or model request submitted.",
+      "capturedDate": "2026-10-24",
+      "sourceUrl": "http://127.0.0.1:5293/",
+      "project": "/Users/yifei/Coding/agentui_test/template-hd-capture-20261024/platform",
+      "creatorUrl": "http://127.0.0.1:47835/",
+      "dimensions": {
+        "width": 868,
+        "height": 390
+      },
+      "crop": {
+        "left": 1924,
+        "top": 270,
+        "right": 2792,
+        "bottom": 660
+      },
+      "sha256": "109d386b44e1300340862f456c3fc8917e861ddb24613f2a8ae843fcc2f8b256"
+    },
+    {
+      "file": "05a-generated-files.png",
+      "scenario": "Actual generated src/agent-ui directory in Finder list view, with application/shell and services expanded. Plugin directories and service hooks remain collapsed; the adjacent Markdown tree expands one Plugin as an example.",
+      "capturedDate": "2026-11-03",
+      "project": "/Users/yifei/Coding/agentui_test/creator-new-project-docs-20261102",
+      "dimensions": {
+        "width": 630,
+        "height": 820
+      },
+      "crop": {
+        "left": 430,
+        "top": 0,
+        "right": 1060,
+        "bottom": 820
+      },
+      "rawCapture": "artifacts/generated-files-docs-20261103/finder-raw.png",
+      "sha256": "00e00553436b87a13ab469151c613a0885e8bc87f100acbc1c254c56a930a354",
+      "captureMethod": "Native Finder screenshot cropped to the folder title and file-name column; converted from JPEG to PNG. No file names or content were edited. This shows a macOS documentation fixture, not Windows acceptance."
+    },
+    {
+      "file": "04-template-platform.jpg",
+      "scenario": "Current platform template with the full conversation area, sidebar and three explicitly supplied starter suggestions.",
+      "capturedDate": "2026-11-03",
+      "sourceUrl": "http://127.0.0.1:5320/",
+      "project": "/Users/yifei/Coding/AgentUICreator/artifacts/template-docs-20261103/projects/platform",
+      "hostSource": "examples/creator-host-sandbox/src",
+      "templateSource": "Current canonical Bootstrap preset and workspace Plugins catalog; Agent.suggestions explicitly supplied by the screenshot Host.",
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "a53ccdf5742542fa34eb4f075dfe740cfc655cb915d3e4974a94d4c619f01f2b",
+      "captureMethod": "In-app browser screenshot of a real production build; original JPEG, no cropping or content edits."
+    },
+    {
+      "file": "04-template-assistant.jpg",
+      "scenario": "Current assistant template expanded through its launcher over the unchanged Northstar example Host, with three explicitly supplied starter suggestions.",
+      "capturedDate": "2026-11-03",
+      "sourceUrl": "http://127.0.0.1:5321/",
+      "project": "/Users/yifei/Coding/AgentUICreator/artifacts/template-docs-20261103/projects/assistant",
+      "hostSource": "examples/creator-assistant-host/src",
+      "templateSource": "Current canonical Bootstrap preset and workspace Plugins catalog; Agent.suggestions explicitly supplied by the screenshot Host.",
+      "dimensions": {
+        "width": 1280,
+        "height": 720
+      },
+      "sha256": "731629f2be2c3690c47268e7e323306bfae01a1002a5182325260f1d054fa703",
+      "captureMethod": "In-app browser screenshot of a real production build; original JPEG, no cropping or content edits."
+    },
+    {
+      "file": "04-template-embedded.jpg",
+      "scenario": "Current embedded template in the Atlas example Host split layout, with three explicitly supplied starter suggestions. Full-page capture includes the complete composer.",
+      "capturedDate": "2026-11-03",
+      "sourceUrl": "http://127.0.0.1:5322/",
+      "project": "/Users/yifei/Coding/AgentUICreator/artifacts/template-docs-20261103/projects/embedded",
+      "hostSource": "examples/creator-embedded-host/src",
+      "templateSource": "Current canonical Bootstrap preset and workspace Plugins catalog; Agent.suggestions explicitly supplied by the screenshot Host.",
+      "dimensions": {
+        "width": 1280,
+        "height": 780
+      },
+      "sha256": "6e9cc62905eff125011ff614a70b00daae3c359b10e20ce4111c92785dbf5343",
+      "captureMethod": "In-app browser screenshot of a real production build; original JPEG, no cropping or content edits."
+    }
+  ],
+  "updatedDate": "2026-11-03"
+}

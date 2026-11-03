@@ -1,57 +1,60 @@
-# Current theme architecture
+# Theme architecture
 
-> 2026-10-23 presentation update: at the user's request, current product geometry and typography are shared across light, dark and violet. Product color seams derive from each preset's semantic palette; the existing Violet and compact Violet palette values remain preserved. Earlier notes below about leaving light/dark product presentation unchanged describe the historical review, not this updated presentation boundary. Runtime, upstream vendor files and the three preset identities remain unchanged.
+Scope: the deployed Agent frontend. Creator has its own development-tool UI and locale context. The supported product presets are `light`, `dark` and `violet`; the built-in initial theme is `violet`. Light and Violet use the light color scheme; Dark uses the dark color scheme. Product geometry and typography are shared, while colors derive from each preset's semantic palette.
 
-> Historical review snapshot: source paths below belong to the revision recorded under “Revision and target caveat”. The Source Registry workspace has since merged into Plugins, and official Plugin owners moved to `packages/plugins/src/plugins/<id>/` and `src/shared/`. For current paths and ownership, use [the accepted delivery architecture](../../architecture/npm-default-plugin-source-ownership.md); do not treat the old paths below as current edit targets.
-
-Scope: deployed Agent frontend plugins. Creator Agent and Creator workbench are outside this design task. No theme values or product files were edited.
+## Theme selection and state
 
 ```text
-agentUIThemeConfig { theme: "light" }
-→ plugin/theme-provider setup
-→ AgentUIThemeService (getTheme / setTheme / subscribe)
-→ useAgentUITheme (useSyncExternalStore, config fallback)
-→ foundation/core AgentUIStyleSurface → @agent-ui/react AgentUIRoot
-→ data-theme + data-color-scheme + scoped .dark class
-→ shadcn semantic tokens + Agent UI semantic extensions
-→ assistant-ui presentation + public wrappers + product plugins
+React Agent.theme / onThemeChange
+  → Runtime AgentUIThemeBridge
+  ↔ enabled theme-provider's AgentUIThemeService
+  → AgentUIRoot + conversation boundary
+  → data-theme / data-color-scheme / scoped dark class
+  → semantic CSS variables
+  → official components and project Plugin applications
 ```
 
-ConversationSurface also projects theme and color scheme on its conversation boundary. Theme Switch is an optional consumer of the same service; it uses public NativeSelect and the locale layer, not a second theme store.
+Omitting `Agent.theme` starts with Violet and permits internal switching. Passing `theme` makes the Host authoritative; a picker request calls `onThemeChange`, and the Host updates its prop to accept it. Prop synchronization does not itself emit a picker request. The Web Component exposes `theme` through config/property/attribute and reports UI requests through `theme-change`.
+
+The optional `theme-switch` Plugin consumes the same instance service; it does not create another theme store. Theme selection is not stored in AppUIModel or a generated `theme-config.ts` / `config.ts`. Switching theme preserves the conversation, draft and Plugin services.
+
+## Canonical owners
 
 | Layer | Owning source | Responsibility |
 | --- | --- | --- |
-| Config | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/theme-config.ts` | Default `{ theme: "light" }` |
-| Service contract | `packages/source-registry/registry/items/foundation-core-application/files/services/agent-ui-theme.ts` | `agent-ui.theme` service ID and theme APIs |
-| Service setup | `packages/source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition.ts` and `theme-service.ts` | Reactive preset selection, no presentation |
-| Hook | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/useAgentUITheme.ts` | Reads shared service and fallback |
-| Application root | `packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx` | Root surrounds ModeShell / runtime composition |
-| Public boundary | `packages/plugins/src/public.tsx` | Supported consumer API |
-| Style root | `packages/plugins/src/internal/style-boundary/AgentUIRoot.tsx` | Style isolation and scoped portal container |
-| Preset contract | `packages/plugins/src/theme/theme-contract.ts` | light→light, dark→dark, violet→light |
-| Palette | `packages/plugins/src/theme/shadcn-theme-presets.css` | Scoped shadcn zinc Light/Dark and official Violet snapshot |
-| Extensions | `packages/plugins/src/theme/agent-ui-theme-extensions.css` | success / warning / overlay; shared `--aui-*` aliases |
-| Tailwind mapping | `packages/plugins/src/styles.css` | Semantic utility mappings, scoped preflight, animations, containment |
-| Theme picker | `packages/source-registry/registry/items/plugin-theme-switch/files/plugins/theme-switch/index.tsx` | NativeSelect, locale copy, setTheme |
-| Conversation root | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface.tsx` | ConversationThread and semantic replacement components |
-| Mode shells | `packages/source-registry/registry/items/foundation-core-runtime/files/runtime/mode-shell/ModeShell.tsx` | Assistant / Embedded / Platform structural layout |
+| React configuration | `packages/runtime/src/ui/application/Agent.tsx` | Public `AgentProps.theme` and `onThemeChange` |
+| Theme bridge and Hook | `packages/runtime/src/ui/agent-ui/theme/` | Controlled synchronization and shared service subscription |
+| Service contract | `packages/runtime/src/ui/services/agent-ui-theme.ts` | Shared service ID and types |
+| Service implementation | `packages/plugins/src/plugins/theme-provider/adapters/presentation/theme-service.ts` | `getTheme`, `setTheme`, `subscribe` |
+| Service binding | `packages/plugins/src/plugins/theme-provider/adapters/application-definition.ts` | Provide the instance service through existing Host bindings |
+| Theme picker | `packages/plugins/src/plugins/theme-switch/adapters/presentation/` | Public selection UI and unified locale copy |
+| Public presentation | `packages/plugins/src/public.tsx` | Supported component and theme API |
+| Style boundary | `packages/plugins/src/internal/style-boundary/AgentUIRoot.tsx` | Scoped tokens and Portal container |
+| Preset contract | `packages/plugins/src/theme/theme-contract.ts` | Preset identities, color schemes and Violet default |
+| Palette and extensions | `packages/plugins/src/theme/shadcn-theme-presets.css`, `agent-ui-theme-extensions.css` | Semantic palettes, success/warning/overlay and shared aliases |
+| Product presentation | `packages/plugins/src/theme/agent-ui-violet-theme.css`, `compact.css`, `assistant-ui-theme-overrides.css` | Shared product styling and maintained adaptation seams |
+| Utility mapping | `packages/plugins/src/styles.css` | Semantic utility definitions and scoped foundations |
+| Conversation boundary | `packages/runtime/src/ui/agent-ui/conversation/ConversationAdapter.tsx` and `packages/plugins/src/internal/conversation-surface.tsx` | Conversation theme and semantic replacements |
+| Product shells | `packages/plugins/resources/registry/items/foundation/shell-<mode>/files/application/shell/` | Initialize only the selected project-owned Shell and CSS |
 
-The scoped portal is a child of AgentUIRoot, so Dialog, Popover, Tooltip and image zoom retain root tokens. Do not move portal content to an unthemed `document.body` or add global body palette overrides.
+The source catalog and snapshots derive from canonical Plugin owners and `source-layout.json`. Generated vendor/adapter views are build inputs, not edit targets. See [Plugin delivery and ownership](../../architecture/npm-default-plugin-source-ownership.md).
 
-Semantic families: background/foreground; card; popover; primary; secondary; muted; accent; destructive; border/input/ring; sidebar; chart-1…5. Agent UI adds success/warning/overlay. The existing `--aui-*` layer aliases these and contains spacing/font/radius vocabulary for diagnostic legacy surfaces. It is not a new Violet brand layer.
+## Project customization
 
-Violet changes primary/ring/accent/chart/sidebar palette while remaining light. AgentPlan progress uses `foreground/80`, not `primary`. ToolCall, Reasoning, WebSearch and OptionList often use foreground alpha. These preserve a neutral appearance even when primary becomes Violet. Thin scoped compatibility CSS may eventually address selected brand-like states, after design review, without changing the root foreground for all text.
+The generated `application/project-config.tsx` binds `ProjectShell` and the project resources to Runtime `/ui`. Product shell code lives in the project's `application/shell/`; Runtime does not route by product Mode. Shell files are ordinary application code and are preserved during npm upgrades and implementation-only source synchronization.
 
-## Ownership classes
+Brand styling belongs in the project's `styles.css` or public component props. For a brand palette, override the supported CSS variables on both `.agent-ui-root` and `.agent-ui-conversation` for the intended `data-theme`. Keep other themes usable and use `Agent.theme` to select the preset. Concrete examples are in [styling and localization](../../../website/docs/development/styling-and-localization.md).
 
-- A — upstream-owned assistant-ui: `packages/plugins/src/internal/vendor/assistant-ui`; provenance in `UPSTREAM.json`, official Base UI registry output with declared patches. Optional generative vocabulary is also upstream-owned under a Source Registry vendor path.
-- B — public wrapper: `packages/plugins/src/public.tsx`, `internal/composable-thread.tsx`, question/quote/trigger/search adapters, style boundary. Project-owned integration around upstream presentation; ownership of the wrapper does not make upstream anatomy editable.
-- C — foundation/runtime: Source Registry `foundation-core*`; owns composition, SlotRegistry, ModeShell, services and conversation integration. Runtime/framework stay read-only in a plugin theme task.
-- D — plugins: Source Registry `plugin-*` and `demo-*` files. Mostly thin compositions; some have product-owned markup (chart, suggestions, theme picker, demo receipts). Inspect the renderer before claiming visual freedom.
-- E — theme/token layer: `packages/plugins/src/theme/*` and token mapping in `styles.css`. Future implementation should coordinate here; no theme implementation in this package.
+Semantic token families include background/foreground, card, popover, primary, secondary, muted, accent, destructive, border/input/ring, sidebar and chart colors. Agent UI adds success/warning/overlay and shared spacing/font/radius aliases. A preset does not make every active state use its brand color; components may deliberately use foreground alpha or semantic status colors.
 
-## Revision and target caveat
+Portal content must remain inside its owning themed Agent UI boundary. Do not move it to an unthemed `document.body`, introduce global palette rules or change Portal geometry to solve a branding task.
 
-Source reviewed at `662774fb8c3935584e03abf7ececea08c3d89110`, branch `dev`. assistant-ui revision is `3542d602272a62eddeb8989befc910841c267022`; pinned local source was inspected with `git show` in `/Users/yifei/Coding/assistant-ui`. See `packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json` for versions and adaptations. No upstream fetch or upgrade occurred.
+## Ownership and upgrades
 
-The existing ignored/generated embedded Host contains older `defaultMode/getMode/useAgentUIThemeMode` foundation code. It does not wrap its application with the current AgentUIRoot. Its screenshots are labeled existing-target evidence. The isolated fixture uses current public AgentUIRoot, wrappers and CSS. This discrepancy is recorded; the target was not regenerated or repaired for prettier screenshots.
+- Upstream source is canonical under `packages/plugins/src/plugins/<id>/upstream/` and `src/shared/upstream/assistant-ui/`. Keep vendor locale-agnostic and unmodified, with exact provenance.
+- Product adapters live under `src/plugins/<id>/adapters/` and `src/shared/adapters/`. Prefer public props, composition and semantic tokens before implementation changes.
+- Runtime `/ui` owns composition, SlotRegistry and service lifecycles. It is not a theme customization target.
+- Projects own their application layer, styles and Shell. Source takeover requires a separate, explicit per-Plugin agreement; ordinary styling does not.
+- The installed Plugins package, its catalog and source snapshots supply the exact source target. An npm upgrade does not rewrite local implementations or advance BASE.
+
+Use the [ownership and upgrade matrix](UPGRADE-BOUNDARIES.md) when selecting an edit seam. Validate existing themes, both locales, overlays, focus and narrow containers. Static checks and browser or Windows acceptance are separate evidence.

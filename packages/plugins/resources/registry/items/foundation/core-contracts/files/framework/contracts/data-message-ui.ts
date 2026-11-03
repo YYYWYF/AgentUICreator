@@ -1,4 +1,2 @@
-/** Shared static and runtime routing-name contract. */
-export function isValidDataMessageUIName(name: unknown): name is string {
-  return typeof name === "string" && name.length > 0 && name.trim() === name;
-}
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/framework/contracts/data-message-ui";

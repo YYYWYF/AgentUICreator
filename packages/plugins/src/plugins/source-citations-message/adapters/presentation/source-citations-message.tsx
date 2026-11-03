@@ -1,16 +1,16 @@
 import { Fragment, type ComponentProps, type ComponentType, type ReactNode } from "react";
 import { cn } from "../../../../plugin-support.js";
-import { ConversationSource, ConversationToolFallback, type ConversationSourcePart, type ConversationToolCallProps } from "../../../../public.js";
+import { ConversationSource, ConversationToolFallback, type ConversationSourcePart, type UIPluginElementProps, type ConversationToolCallProps } from "../../../../public.js";
 import { projectSourceCitationsResult } from "./projection.js";
-export interface SourceCitationsMessageProps extends ConversationToolCallProps {
-  rootProps?: Omit<ComponentProps<"div">, "children">;
+export interface SourceCitationsMessageProps extends ConversationToolCallProps, UIPluginElementProps {
   /** Full, discriminated source props preserve URL/document type safety. */
   sourceProps?: (source: ConversationSourcePart, index: number) => ConversationSourcePart;
   renderSource?: (source: ConversationSourcePart, index: number, tool: ConversationToolCallProps) => ReactNode;
   renderSources?: (sources: readonly ConversationSourcePart[], tool: ConversationToolCallProps) => ReactNode;
   Fallback?: ComponentType<ConversationToolCallProps>;
 }
-export function CanonicalSourceCitationsMessage({ rootProps, sourceProps, renderSource, renderSources, Fallback = ConversationToolFallback, ...tool }: SourceCitationsMessageProps) {
+export function CanonicalSourceCitationsMessage({ className, style, id, role, "aria-label": ariaLabel, "aria-describedby": ariaDescription, onClick, sourceProps, renderSource, renderSources, Fallback = ConversationToolFallback, ...tool }: SourceCitationsMessageProps) {
+  const rootProps = { className, style, id, role, "aria-label": ariaLabel, "aria-describedby": ariaDescription, onClick };
   const sources = projectSourceCitationsResult(tool.result);
   if (tool.status.type !== "complete" || tool.isError === true || sources === null) return <Fallback {...tool} />;
   const configured = sources.map((source, index) => sourceProps ? sourceProps(source, index) : source);

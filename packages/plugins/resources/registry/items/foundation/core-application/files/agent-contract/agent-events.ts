@@ -1,7 +1,7 @@
 import type { AgentApplicationEvent } from "@za38.03/agent-ui-core";
 import { z } from "zod";
 
-import type { UIPluginEvents } from "../framework/contracts/ui-plugin";
+import type { UIPluginEvents } from "@za38.03/agent-ui-plugins/contracts";
 
 /**
  * The generated application defines its backend event contract here.

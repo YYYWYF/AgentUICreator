@@ -2,6 +2,7 @@ import { execFile as execFileCallback } from "node:child_process";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -16,7 +17,7 @@ import { checkAgUiLockfile } from "../../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
 import { packageManifestMismatches, updatePackageManifests } from "../../../scripts/assistant-ui-workspace-packages.mjs";
-import { main as syncGenerativeUi } from "../../operator/control/scripts/source-catalog/sync-generative-ui-upstream.mjs";
+import { main as syncGenerativeUi } from "../../creator/operator/scripts/source-catalog/sync-generative-ui-upstream.mjs";
 import {
   ensureSourceCache,
   main as updateAssistantUi,
@@ -25,10 +26,20 @@ import {
 } from "../../../scripts/update-assistant-ui.mjs";
 
 const execFileAsync = promisify(execFileCallback);
-const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const guardScript = path.join(packageRoot, "scripts/check-assistant-ui-revision.mjs");
 const workspaceRoot = path.resolve(packageRoot, "../..");
 const temporaryRoots = [];
+
+function agUiCompatibilityFixture() {
+  return {
+    compatible: true,
+    status: "PASS",
+    reactAgUiVersion: "0.0.60",
+    reactAgUiClientRange: "^0.0.59",
+    pinnedClientVersion: "0.0.59",
+  };
+}
 
 async function git(root, args) {
   return (await execFileAsync("git", ["-C", root, ...args], {
@@ -149,7 +160,9 @@ afterEach(async () => {
 
 describe("assistant-ui upgrade drill", () => {
   it("passes when react-ag-ui keeps the pinned AG-UI client compatible", async () => {
+    const repoRoot = await createGitFixture();
     const result = await checkAssistantUiAgUiCompatibility({
+      repoRoot,
       fetchRegistry: false,
       packageManifest: {
         name: "@assistant-ui/react-ag-ui",
@@ -249,7 +262,7 @@ describe("assistant-ui upgrade drill", () => {
       reactAgUiClientRange: "^0.0.60",
       pinnedClientVersion: "0.0.59",
     });
-    expect(result.message).toContain("Review CancellationAwareHttpAgent before upgrading.");
+    expect(result.message).toContain("Review HTTP cancellation boundary before upgrading.");
   });
 
   it("guards installed LangGraph exports, package version, and key lockfile dependencies", async () => {
@@ -496,6 +509,23 @@ describe("assistant-ui upgrade drill", () => {
     expect(impact).toContain("Resolved lockfile versions:\n0.0.59");
   });
 
+  it.each(["AgUiThreadController.ts", "agUiThreadState.ts", "adapter/run-aggregator.ts"])("requires cancellation review when %s changes", async file => {
+    const root = await createGitFixture();
+    const baseGitSha = await createReportFixture(root);
+    const upstreamFile = `packages/react-ag-ui/src/runtime/${file}`;
+    await writeFixtureFile(root, ".assistant-ui-update-session.json", JSON.stringify({
+      baseGitSha,
+      upstreamChangedFiles: [upstreamFile],
+      // This drill reviews upstream cancellation changes, not live npm metadata.
+      nextAgUiCompatibility: agUiCompatibilityFixture(),
+    }));
+    await generateReport({ repoRoot: root });
+    const report = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-report.json"), "utf8"));
+    expect(report.cancellationCompatibility.reAuditRequired).toBe(true);
+    expect(report.cancellationCompatibility.reasons).toContain("cancellation-related upstream transport files changed");
+    expect(report.cancellationCompatibility.cancellationTransport).toBe("UPSTREAM");
+  });
+
   it("blocks an upgrade when the lockfile resolves multiple AG-UI client versions", async () => {
     const result = await checkAgUiLockfile({
       target: { agUi: { "@ag-ui/client": "0.0.59" } },
@@ -517,7 +547,7 @@ describe("assistant-ui upgrade drill", () => {
       resolvedAgUiClientVersions: ["0.0.59", "0.0.63"],
     });
     expect(result.message).toContain("Multiple @ag-ui/client versions are resolved:");
-    expect(result.message).toContain("CancellationAwareHttpAgent targets 0.0.59.");
+    expect(result.message).toContain("HTTP cancellation boundary targets 0.0.59.");
   });
 
   it("passes the lockfile guard when only the pinned AG-UI client is resolved", async () => {
@@ -585,8 +615,8 @@ describe("assistant-ui upgrade drill", () => {
     const revision = await generativeUiReleaseRevision({
       version: "0.0.22",
       gitRunner: async (_root, args) => {
-        expect(args).toContain("refs/tags/@assistant-ui/react-generative-ui@0.0.22^{}");
-        return `${tagObject}\trefs/tags/@assistant-ui/react-generative-ui@0.0.22\n${release}\trefs/tags/@assistant-ui/react-generative-ui@0.0.22^{}`;
+        expect(args).toContain("refs/tags/@assistant-ui/generative-ui@0.0.22^{}");
+        return `${tagObject}\trefs/tags/@assistant-ui/generative-ui@0.0.22\n${release}\trefs/tags/@assistant-ui/generative-ui@0.0.22^{}`;
       },
     });
     expect(revision).toBe(release);
@@ -613,13 +643,13 @@ describe("assistant-ui upgrade drill", () => {
   it("requires review for an unsupported peer range before changing any manifest", async () => {
     const root = await createGitFixture();
     const exactPath = await writeFixtureFile(root, "packages/alpha/package.json", JSON.stringify({
-      dependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
+      dependencies: { "@assistant-ui/generative-ui": "0.0.21" },
     }));
     await writeFixtureFile(root, "packages/zeta/package.json", JSON.stringify({
-      peerDependencies: { "@assistant-ui/react-generative-ui": ">=0.0.21 <0.1" },
+      peerDependencies: { "@assistant-ui/generative-ui": ">=0.0.21 <0.1" },
     }));
     const before = await readFile(exactPath, "utf8");
-    await expect(updatePackageManifests(root, { "@assistant-ui/react-generative-ui": "0.0.22" }))
+    await expect(updatePackageManifests(root, { "@assistant-ui/generative-ui": "0.0.22" }))
       .rejects.toThrow("Unsupported peer policy");
     expect(await readFile(exactPath, "utf8")).toBe(before);
   });
@@ -638,7 +668,7 @@ ${Object.entries(target.packageRevisions ?? {}).map(([name, revision]) => `    $
 fi
 if [ "$1" = "-C" ] && [ "$3" = "cat-file" ]; then exit 0; fi
 if [ "$1" = "-C" ] && [ "$3" = "ls-remote" ] && [ "$4" = "--tags" ]; then
-  printf '%s\trefs/tags/@assistant-ui/react-generative-ui@0.0.22\n' '3542d602272a62eddeb8989befc910841c267022'
+  printf '%s\trefs/tags/@assistant-ui/generative-ui@${target.packages["@assistant-ui/generative-ui"]}\n' '${target.generativeUiReleaseRevision}'
   exit 0
 fi
 if [ "$1" = "ls-remote" ]; then
@@ -962,6 +992,7 @@ exit 99
       fromRevision: "a".repeat(40),
       toRevision: "b".repeat(40),
       previousAssistantUiPackages: { "@assistant-ui/react-langgraph": "0.14.29" },
+      nextAgUiCompatibility: agUiCompatibilityFixture(),
       nextLangGraphSourceCompatibility: {
         packageName: "@assistant-ui/react-langgraph",
         compatible: true,
@@ -1055,19 +1086,19 @@ exit 99
     });
   });
 
-  it("upgrades Generative UI 0.0.21 to 0.0.22 through one update and rejects a stale Resource pin", async () => {
+  it("upgrades the Generative UI package while preserving the selected presentation source", async () => {
     const upstream = await createGitFixture();
     const root = await createGitFixture();
     const writeRelease = async (version, color) => {
-      await writeFixtureFile(upstream, "packages/react-generative-ui/package.json", JSON.stringify({
-        name: "@assistant-ui/react-generative-ui", version,
+      await writeFixtureFile(upstream, "packages/generative-ui/package.json", JSON.stringify({
+        name: "@assistant-ui/generative-ui", version,
       }));
       await writeFixtureFile(upstream, "packages/ui/src/components/react/assistant-ui/elements/generative-ui.tsx", `export const release = "${version}";\n`);
       await writeFixtureFile(upstream, "packages/ui/src/lib/generative-ui-vocabulary-css.ts", `export const generativeUiVocabularyCss = { '[data-aui="button"]': { color: "${color}" } };\nexport const isDeclarationBlock = (value: Record<string, unknown>) => Object.values(value).every(entry => typeof entry === "string");\n`);
       await git(upstream, ["add", "."]);
       await git(upstream, ["commit", "--quiet", "-m", version]);
       const sha = await git(upstream, ["rev-parse", "HEAD"]);
-      await git(upstream, ["tag", `@assistant-ui/react-generative-ui@${version}`]);
+      await git(upstream, ["tag", `@assistant-ui/generative-ui@${version}`]);
       return sha;
     };
     const oldRevision = await writeRelease("0.0.21", "red");
@@ -1075,16 +1106,17 @@ exit 99
     await createReportFixture(root);
     const targetPath = path.join(root, "assistant-ui-upgrade-target.json");
     const target = JSON.parse(await readFile(targetPath, "utf8"));
-    target.packages["@assistant-ui/react-generative-ui"] = "0.0.21";
+    target.packages["@assistant-ui/generative-ui"] = "0.0.21";
     target.generativeUiReleaseRevision = oldRevision;
+    target.generativeUiPresentationRevision = oldRevision;
     await writeFile(targetPath, `${JSON.stringify(target, null, 2)}\n`);
     await writeFixtureFile(root, "packages/renderer/package.json", JSON.stringify({
-      dependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
+      dependencies: { "@assistant-ui/generative-ui": "0.0.21" },
     }, null, 2));
     await writeFixtureFile(root, "packages/creator/package.json", JSON.stringify({
-      optionalDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
-      peerDependencies: { "@assistant-ui/react-generative-ui": "^0.0.21" },
-      devDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
+      optionalDependencies: { "@assistant-ui/generative-ui": "0.0.21" },
+      peerDependencies: { "@assistant-ui/generative-ui": "^0.0.21" },
+      devDependencies: { "@assistant-ui/generative-ui": "0.0.21" },
     }, null, 2));
     await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json", JSON.stringify({
       files: [], upstream: { revision: oldRevision },
@@ -1095,7 +1127,7 @@ exit 99
     await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration/a2ui/item.json", JSON.stringify({
       upstream: { revision: oldRevision },
     }, null, 2));
-    await writeFixtureFile(root, "pnpm-workspace.yaml", "minimumReleaseAgeExclude:\n  - '@assistant-ui/react-generative-ui@0.0.21'\n");
+    await writeFixtureFile(root, "pnpm-workspace.yaml", "minimumReleaseAgeExclude:\n  - '@assistant-ui/generative-ui@0.0.21'\n");
     await writeFixtureFile(root, "packages/plugins/source-layout.json", JSON.stringify({ schemaVersion: 1, files: [] }));
     await mkdir(path.join(root, "packages/plugins/src/internal/adapters-generated/assistant-ui"), { recursive: true });
     await syncGenerativeUi({ root, repo: upstream, revision: oldRevision });
@@ -1118,11 +1150,11 @@ exit 99
         return nextRevision;
       },
       sourceCacheEnsurer: async () => {},
-      latestVersionResolver: async (_root, name) => name === "@assistant-ui/react-generative-ui" ? "0.0.22" : target.packages[name],
+      latestVersionResolver: async (_root, name) => name === "@assistant-ui/generative-ui" ? "0.0.22" : target.packages[name],
       peerVersionsResolver: async () => ["0.52.0", "0.52.1", "0.53.0"],
       packageArtifactResolver: async (_root, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
-      compatibilityChecker: async () => ({ compatible: true, status: "PASS", pinnedClientVersion: "0.0.59" }),
+      compatibilityChecker: async () => agUiCompatibilityFixture(),
       langGraphInstalledCompatibilityChecker: async () => ({ compatible: true, status: "PASS" }),
       langGraphSourceCompatibilityChecker: async () => ({ compatible: true, status: "PASS" }),
       langGraphPackageCompatibilityChecker: async () => ({ compatible: true, status: "PASS" }),
@@ -1141,20 +1173,19 @@ exit 99
     const upgradedTarget = JSON.parse(await readFile(targetPath, "utf8"));
     const after = JSON.parse(await readFile(provenancePath, "utf8"));
     const report = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-report.json"), "utf8"));
-    expect(upgradedTarget.packages["@assistant-ui/react-generative-ui"]).toBe("0.0.22");
+    expect(upgradedTarget.packages["@assistant-ui/generative-ui"]).toBe("0.0.22");
     expect(upgradedTarget.generativeUiReleaseRevision).toBe(nextRevision);
     expect(upgradedTarget).not.toHaveProperty("packageRevisions");
     expect(await packageManifestMismatches(root, upgradedTarget.packages)).toEqual([]);
-    expect(await readFile(path.join(root, "packages/creator/package.json"), "utf8")).toContain('"@assistant-ui/react-generative-ui": "^0.0.22"');
+    expect(await readFile(path.join(root, "packages/creator/package.json"), "utf8")).toContain('"@assistant-ui/generative-ui": "^0.0.22"');
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget })).toEqual([]);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget, baseGitSha })).toEqual([]);
     expect(JSON.parse(await readFile(integrationItemPath, "utf8"))).not.toHaveProperty("version");
-    expect(after.revision).toBe(nextRevision);
-    expect(after.packages["@assistant-ui/react-generative-ui"]).toBe("0.0.22");
-    expect(after.files[0].installedSha256).not.toBe(before.files[0].installedSha256);
-    expect(report.sourceRegistryAssistantUiFilesChanged).toEqual(expect.arrayContaining([
-      "packages/plugins/resources/registry/items/integration/generative-ui/item.json",
-    ]));
+    expect(after.revision).toBe(oldRevision);
+    expect(upgradedTarget.generativeUiPresentationRevision).toBe(oldRevision);
+    expect(after.packages["@assistant-ui/generative-ui"]).toBe("0.0.22");
+    expect(after.files[0].installedSha256).toBe(before.files[0].installedSha256);
+    expect(report.sourceRegistryAssistantUiFilesChanged).not.toContain("packages/plugins/resources/registry/items/integration/generative-ui/item.json");
     expect(commands.some(({ args }) => args.includes("sync:generative-ui-upstream"))).toBe(true);
     expect(await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8")).toContain("## Source Registry assistant-ui Resources");
     expect(await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8")).toContain("High");
@@ -1167,10 +1198,10 @@ exit 99
     expect(await readFile(integrationItemPath, "utf8")).toBe(itemBeforeRepeat);
 
     const staleIntegration = JSON.parse(await readFile(integrationItemPath, "utf8"));
-    staleIntegration.upstream.revision = oldRevision;
+    staleIntegration.upstream.revision = nextRevision;
     await writeFile(integrationItemPath, JSON.stringify(staleIntegration));
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
-      .toContain(`integration/generative-ui/item.json upstream.revision is ${oldRevision}; expected ${nextRevision}`);
+      .toContain(`integration/generative-ui/item.json upstream.revision is ${nextRevision}; expected ${oldRevision}`);
     await writeFile(integrationItemPath, itemBeforeRepeat);
 
     const staleVersion = JSON.parse(await readFile(integrationItemPath, "utf8"));
@@ -1182,7 +1213,7 @@ exit 99
 
     const staleItemPath = path.join(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json");
     const staleItem = JSON.parse(await readFile(staleItemPath, "utf8"));
-    staleItem.packages = { "@assistant-ui/react-generative-ui": "0.0.21" };
+    staleItem.packages = { "@assistant-ui/generative-ui": "0.0.21" };
     await writeFile(staleItemPath, `${JSON.stringify(staleItem, null, 2)}\n`);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
       .toContain("integration/generative-ui must use the package facade instead of depending directly on upstream");

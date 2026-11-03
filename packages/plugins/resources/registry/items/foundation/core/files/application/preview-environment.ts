@@ -1,20 +1,5 @@
-import { useSyncExternalStore } from "react";
-/** Host-owned preview inputs. Production always uses the product configuration. */
-export interface PreviewAgentEnvironment {
-  identity: string;
-  runtimeEndpoint: string;
-  conversationDataEndpointOverride?: string;
-  backendProxyPrefix?: string;
-}
-declare global { interface Window { __agentUIPreviewEnvironment?: PreviewAgentEnvironment } }
-const changed = "agent-ui:preview-environment";
-export function getPreviewAgentEnvironment(): PreviewAgentEnvironment | undefined {
-  return import.meta.env.DEV ? window.__agentUIPreviewEnvironment : undefined;
-}
-export function usePreviewAgentEnvironment() {
-  return useSyncExternalStore(listener => {
-    if (!import.meta.env.DEV) return () => undefined;
-    window.addEventListener(changed, listener);
-    return () => window.removeEventListener(changed, listener);
-  }, getPreviewAgentEnvironment, () => undefined);
-}
+import { getPreviewAgentEnvironment as getEnvironment, usePreviewAgentEnvironment as useEnvironment } from "@za38.03/agent-ui-runtime/ui/application/preview-environment";
+export type { PreviewAgentEnvironment } from "@za38.03/agent-ui-runtime/ui/application/preview-environment";
+/** Host development inputs are explicitly disabled in production. */
+export function getPreviewAgentEnvironment() { return getEnvironment(import.meta.env.DEV); }
+export function usePreviewAgentEnvironment() { return useEnvironment(import.meta.env.DEV); }

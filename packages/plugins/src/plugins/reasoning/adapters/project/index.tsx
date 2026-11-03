@@ -3,8 +3,8 @@ import {
   type ConversationReasoningGroupRenderScope,
   type ConversationCanonicalReasoningGroupProps,
 } from "@za38.03/agent-ui-plugins";
-import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { usePluginRenderScope } from "../../runtime/plugins";
+import type { UIPluginComponentProps } from "@za38.03/agent-ui-plugins/contracts";
+import { usePluginRenderScope } from "@za38.03/agent-ui-runtime/ui/runtime/plugins/index";
 
 export function ConversationReasoningPlugin(props: UIPluginComponentProps & Partial<ConversationCanonicalReasoningGroupProps>) {
   const scope = usePluginRenderScope<ConversationReasoningGroupRenderScope>();

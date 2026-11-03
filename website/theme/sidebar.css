@@ -1,3 +1,207 @@
+.home-templates {
+  max-width: 1200px;
+  margin: 0 auto 72px;
+  padding: 0 32px;
+}
+
+.home-templates__heading {
+  margin-bottom: 28px;
+}
+
+.home-templates__heading h2 {
+  margin: 0 0 10px;
+  color: var(--rp-c-text-1);
+  font-size: 26px;
+  font-weight: 650;
+}
+
+.home-templates__heading p,
+.home-templates__card figcaption p {
+  margin: 0;
+  color: var(--rp-c-text-2);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.home-templates__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.home-templates__card {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--rp-c-divider-light);
+  border-radius: 16px;
+  background: var(--rp-c-bg);
+}
+
+.home-templates__card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--rp-c-divider-light);
+  cursor: zoom-in;
+}
+
+.home-templates__card figcaption {
+  padding: 20px 22px 24px;
+}
+
+.home-templates__card h3 {
+  margin: 0 0 8px;
+  color: var(--rp-c-text-1);
+  font-size: 19px;
+  font-weight: 650;
+}
+
+/* All documentation screenshots share compact previews and original-size zoom. */
+:is(.rp-doc, .rspress-doc, .home-templates__card) img:not(.medium-zoom-image--opened) {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 480px);
+  max-height: 320px;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+/* Conversation captures are tall; keep their replies readable before zooming. */
+:is(.rp-doc, .rspress-doc) img[src*="/images/guide/examples/"]:not(.medium-zoom-image--opened) {
+  max-width: min(100%, 600px);
+  max-height: 560px;
+}
+
+/* Creation steps contain package paths and commands that must be readable inline. */
+:is(.rp-doc, .rspress-doc) img[src*="/images/start/04"]:not(.medium-zoom-image--opened) {
+  max-width: min(100%, 560px);
+  max-height: none;
+}
+
+.rp-doc .plugin-status-enabled {
+  color: #15803d;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dark .rp-doc .plugin-status-enabled {
+  color: #4ade80;
+}
+
+/* Keep the getting-started introduction separate from the tutorial steps. */
+.rp-doc .start-intro {
+  --intro-accent: #6353d9;
+  --intro-muted: #565b73;
+  margin: 28px 0;
+  padding: 36px 40px 30px;
+  border: 1px solid #e4dff8;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 100% 0%, #e8e2ff 0%, transparent 62%),
+    linear-gradient(135deg, #faf9ff, #f3f6ff);
+}
+
+.rp-doc .start-intro .start-intro__title {
+  margin: 0;
+  color: #25273c;
+  font-size: 38px;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: -0.035em;
+}
+
+.rp-doc .start-intro__title span {
+  color: var(--intro-accent);
+}
+
+.rp-doc .start-intro .start-intro__description {
+  max-width: 520px;
+  margin: 20px 0 24px;
+  color: var(--intro-muted);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.rp-doc .start-intro__prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rp-doc .start-intro__prompts span {
+  padding: 7px 13px;
+  border: 1px solid #dedaf2;
+  border-radius: 10px;
+  background: #ffffffb3;
+  color: #514c76;
+  font-size: 13px;
+}
+
+.rp-doc .start-intro .start-intro__note {
+  margin: 18px 0 0;
+  color: var(--intro-muted);
+  font-size: 13px;
+}
+
+.dark .rp-doc .start-intro {
+  --intro-accent: #b5a8ff;
+  --intro-muted: #b6b7cd;
+  border-color: #423b61;
+  background:
+    radial-gradient(ellipse at 100% 0%, #38305b 0%, transparent 62%),
+    linear-gradient(135deg, #242334, #232938);
+}
+
+.dark .rp-doc .start-intro .start-intro__title {
+  color: #f0effa;
+}
+
+.dark .rp-doc .start-intro__prompts span {
+  border-color: #504869;
+  background: #ffffff08;
+  color: #d6cff0;
+}
+
+/* Template summaries stand apart from integration details and screenshots. */
+.rp-doc .template-description {
+  margin-block: 24px 16px;
+  padding: 20px 24px;
+  border: 1px solid var(--rp-c-divider-light);
+  border-inline-start: 4px solid var(--rp-c-brand);
+  border-radius: 12px;
+  background: var(--rp-c-bg-soft);
+}
+
+.rp-doc .template-description .template-description__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+  margin: 0;
+  color: var(--rp-c-text-1);
+  font-weight: 500;
+}
+
+.rp-doc .template-description__heading strong {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border: 1px solid var(--rp-c-divider-light);
+  border-radius: 6px;
+  background: var(--rp-c-bg);
+  color: var(--rp-c-brand);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rp-doc .template-description > p:not(.template-description__heading) {
+  margin: 14px 0 0;
+  color: var(--rp-c-text-2);
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
 .rp-doc-layout__sidebar .rp-sidebar-item {
   border-radius: 6px;
 }
@@ -29,4 +233,112 @@
   .rp-sidebar-item--group-item.rp-sidebar-item--active
   .rp-sidebar-item__left::before {
   content: none;
+}
+
+.rp-doc .app-ui-rendering-diagram img:not(.medium-zoom-image--opened) {
+  width: 100%;
+  height: auto;
+  max-width: 960px;
+  max-height: none;
+}
+
+.rp-doc .plugin-command-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-block: 16px;
+}
+
+.rp-doc .plugin-command-steps figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.rp-doc .plugin-command-steps p {
+  margin: 0;
+}
+
+.rp-doc .plugin-command-steps img:not(.medium-zoom-image--opened) {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 220px;
+  margin: 0 auto;
+}
+
+.rp-doc .plugin-command-steps figcaption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--rp-c-text-2);
+}
+
+@media (width <= 600px) {
+  .rp-doc .plugin-command-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Host reference signatures must wrap so the explanation column stays visible. */
+.rp-doc:has(h1:is(#react-host-api, #从业务页面控制-agent)) table {
+  table-layout: fixed;
+  width: 100%;
+}
+.rp-doc:has(h1:is(#react-host-api, #从业务页面控制-agent)) :is(th, td) {
+  overflow-wrap: anywhere;
+}
+
+/* Plugin API signatures must leave room for defaults and usage instructions. */
+.rp-doc:has(h2#属性) table {
+  table-layout: fixed;
+  width: 100%;
+}
+.rp-doc:has(h2#属性) :is(th, td) {
+  overflow-wrap: anywhere;
+}
+
+/* Single-article topics use their live outline as left navigation. */
+.rp-doc-layout__container:has(.rp-doc :is(.start-intro, h1#插件插槽与布局))
+  .rp-doc-layout__sidebar-placeholder {
+  display: none;
+}
+
+@media (width >= 1280px) {
+  .rp-doc-layout__container:has(.rp-doc :is(.start-intro, h1#插件插槽与布局))
+    .rp-doc-layout__outline {
+    order: -1;
+    flex-shrink: 0;
+    width: var(--rp-sidebar-width);
+    margin-inline: var(--rp-sidebar-margin-left) 0;
+    padding: var(--rp-sidebar-padding);
+    border-inline-end: 1px solid var(--rp-c-divider-light);
+    box-shadow: none;
+  }
+
+  .rp-doc-layout__container:has(.rp-doc :is(.start-intro, h1#插件插槽与布局)) .rp-outline {
+    height: 100%;
+    border-inline-start: 0;
+  }
+
+  .rp-doc-layout__container:has(.rp-doc :is(.start-intro, h1#插件插槽与布局)) .rp-outline__toc {
+    max-height: none;
+  }
+}
+
+@media (width <= 1279px) {
+  .rp-doc-layout__menu:has(+ .rp-doc-layout__container .rp-doc :is(.start-intro, h1#插件插槽与布局))
+    .rp-sidebar-menu__left {
+    display: none;
+  }
+
+  .rp-doc-layout__menu:has(+ .rp-doc-layout__container .rp-doc :is(.start-intro, h1#插件插槽与布局))
+    .rp-sidebar-menu {
+    justify-content: flex-start;
+  }
+
+  .rp-doc-layout__container:has(.rp-doc :is(.start-intro, h1#插件插槽与布局))
+    .rp-doc-layout__outline {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
 }

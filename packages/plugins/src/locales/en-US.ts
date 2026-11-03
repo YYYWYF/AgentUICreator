@@ -1,39 +1,83 @@
 export const enUS = {
-  copyAction: { failed: "Copy failed. Check browser permissions and try again." },
-  theme: {
-    settings: "Theme settings",
-    light: "Light",
-    dark: "Dark",
-    violet: "Violet",
+  "layout": {
+    "open": "Open panel",
+    "close": "Close panel",
+    "collapse": "Collapse panel",
+    "restore": "Restore panel"
   },
-  conversationTriggers: {
-    suggestions: "Input suggestions",
-    back: "Back",
-    empty: "No matching items",
-    loading: "Loading…",
-    searchFailed: "Could not load suggestions",
-    retry: "Retry",
-    commandFailed: "Could not execute command",
-    invalidItem: "This item cannot be inserted",
-    newConversation: "New conversation",
+  "toolResult": {
+    "resolving": "Loading file…",
+    "unavailable": "Preview unavailable. A supported media URL or file resolver is required."
   },
-  agentIdentity: { name: "Agent" },
-  conversationQuote: { quote: "Quote", dismiss: "Dismiss quote" },
-  transientMessages: { systemMessage: "System message", userMessage: "User message", assistantMessage: "Assistant message", errorMessage: "Error message" },
-  auth: {"title": "Sign in to your Agent", "checking": "Checking your session…", "account": "Account", "password": "Password", "signIn": "Sign in", "signOut": "Sign out", "working": "Please wait…", "signInFailed": "Sign-in failed. Check your credentials and try again.", "signOutFailed": "You are signed out locally. Remote sign-out failed.", "notSignedIn": "Not signed in", "accountMenu": "Account menu"},
-
+  "humanQuestion": {
+    "back": "Back",
+    "next": "Next",
+    "submit": "Confirm selection",
+    "submitting": "Submitting selection…",
+    "answered": "Selected",
+    "noneSelected": "No selection",
+    "unavailable": "This question cannot be answered right now"
+  },
+  "copyAction": {
+    "failed": "Copy failed. Check browser permissions and try again."
+  },
+  "theme": {
+    "settings": "Theme settings",
+    "light": "Light",
+    "dark": "Dark",
+    "violet": "Violet"
+  },
+  "conversationTriggers": {
+    "suggestions": "Input suggestions",
+    "back": "Back",
+    "empty": "No matching items",
+    "loading": "Loading…",
+    "searchFailed": "Could not load suggestions",
+    "retry": "Retry",
+    "commandFailed": "Could not execute command",
+    "invalidItem": "This item cannot be inserted",
+    "newConversation": "New conversation"
+  },
+  "agentIdentity": {
+    "name": "Agent"
+  },
+  "conversationQuote": {
+    "quote": "Quote",
+    "dismiss": "Dismiss quote"
+  },
+  "transientMessages": {
+    "systemMessage": "System message",
+    "userMessage": "User message",
+    "assistantMessage": "Assistant message",
+    "errorMessage": "Error message"
+  },
+  "auth": {
+    "title": "Sign in to your Agent",
+    "checking": "Checking your session…",
+    "account": "Account",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "working": "Please wait…",
+    "signInFailed": "Sign-in failed. Check your credentials and try again.",
+    "signOutFailed": "You are signed out locally. Remote sign-out failed.",
+    "notSignedIn": "Not signed in",
+    "accountMenu": "Account menu"
+  },
   "thinkingIndicator": {
     "thinking": "Thinking...",
     "working": "Working..."
-},
+  },
   "toolTimeline": {
+    "summaryWithOneFile": "{count} steps · 1 file changed",
+    "summaryWithFiles": "{count} steps · {files} files changed",
     "pendingSummary": "Tool execution · {count} steps",
     "summary": "Executed {count} steps",
     "active": "Executing {count} steps",
-    "details": "Original tool details",
-    "read": "Read file",
-    "command": "Execute command",
-    "search": "Search content",
+    "read": "Read",
+    "command": "Ran",
+    "search": "Searched",
+    "edit": "Edited",
     "tool": "Tool call",
     "complete": "Completed",
     "running": "Running",
@@ -42,7 +86,7 @@ export const enUS = {
     "cancelled": "Cancelled",
     "interrupted": "Interrupted",
     "unknown": "Unknown"
-},
+  },
   "common": {
     "close": "Close",
     "copy": "Copy",
@@ -69,10 +113,25 @@ export const enUS = {
     "send": "Send message",
     "queueSend": "Queue message",
     "stop": "Stop generating",
+    "cancelSend": "Cancel sending",
     "queued": "Pending",
     "removeQueued": "Remove queued message"
   },
-  "conversationFeedback": { "helpful": "Helpful", "notHelpful": "Not helpful" },
+  "conversationFeedback": {
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful"
+  },
+  starterSuggestions: {
+    architectureTitle: "Account lookup",
+    architectureLabel: "View balances, statements and transactions",
+    architecturePrompt: "How can I view my account balance, statements, and transaction history?",
+    debugTitle: "Transfer guide",
+    debugLabel: "Explore steps, arrival times and tips",
+    debugPrompt: "Please explain how to make a bank transfer, how long it takes, and what to check.",
+    nextTitle: "Bank card services",
+    nextLabel: "Apply for cards, report loss and manage",
+    nextPrompt: "How can I apply for a bank card, report a lost card, and manage everyday card services?",
+  },
   "conversation": {
     "generationStopped": "Generation stopped",
     "editInput": "Edit message",
@@ -83,16 +142,20 @@ export const enUS = {
     "moreActions": "More actions",
     "exportMarkdown": "Export as Markdown",
     "reasoning": "Reasoning",
-    "reasoningDuration": " ({seconds}s)"
+    "reasoningDuration": " ({seconds}s)",
+    "editCancel": "Cancel",
+    "editUpdate": "Update"
   },
   "threadList": {
-    historyTitle: "Conversation history",
-    retry: "Retry",
+    "historyTitle": "Conversation history",
+    "retry": "Retry",
     "newChat": "New Chat",
     "moreOptions": "More options",
     "running": "Running",
     "rename": "Rename",
     "archive": "Archive",
+    "unarchive": "Unarchive",
+    "archived": "Archived conversations",
     "delete": "Delete",
     "loading": "Loading threads",
     "empty": "No threads found",
@@ -105,6 +168,16 @@ export const enUS = {
     "yesterday": "Yesterday",
     "earlier": "Earlier"
   },
+  "serviceAdapters": {
+    "requestFailed": "The service request failed.",
+    "invalidResponse": "The service returned an invalid response.",
+    "invalidUploadUrl": "The upload response must contain a valid file URL.",
+    "invalidConfig": "The file settings are invalid.",
+    "fileTypeRejected": "This file type is not accepted.",
+    "fileTooLarge": "The file exceeds the configured size limit.",
+    "dictationFailed": "Speech recognition failed.",
+    "recordingUnavailable": "Audio recording is unavailable in this browser."
+  },
   "attachments": {
     "previewNamed": "Preview {name}",
     "removeNamed": "Remove {name}",
@@ -113,6 +186,7 @@ export const enUS = {
     "namedUploading": "{label}, uploading",
     "namedFailed": "{label}, upload failed",
     "preview": "Attachment preview",
+    "previewFailed": "The image preview could not be loaded.",
     "imagePreview": "Image Attachment Preview",
     "uploadFailed": "Upload failed",
     "remove": "Remove file",
@@ -216,7 +290,6 @@ export const enUS = {
     "hostCloseAssistant": "Close assistant",
     "hostOpenAssistant": "Open assistant",
     "hostSendFailed": "The assistant request failed. Please try again.",
-
     "presentationEditor": "Presentation editor",
     "presentationDocument": "Presentation",
     "canvasSelect": "Select",
@@ -365,13 +438,13 @@ export const enUS = {
     "result": "{\"tokens\":32}"
   },
   "media": {
-      "audio": "Audio",
-      "video": "Video",
-      "play": "Play {title}",
-      "pause": "Pause {title}",
-      "seek": "Seek",
-      "position": "{current} of {duration}",
-      "audioError": "Can't play this audio"
+    "audio": "Audio",
+    "video": "Video",
+    "play": "Play {title}",
+    "pause": "Pause {title}",
+    "seek": "Seek",
+    "position": "{current} of {duration}",
+    "audioError": "Can't play this audio"
   },
   "files": {
     "unnamed": "Unnamed file",
@@ -416,5 +489,38 @@ export const enUS = {
     "dismissed": "Dismissed",
     "denied": "Denied",
     "automatic": " automatically"
+  },
+  "composerTriggerDemo": {
+    "localeKey": "en-US",
+    "personOne": "Zhang San",
+    "personTwo": "Zhang Xiao",
+    "personThree": "Li Si",
+    "departmentOne": "Product · Product manager",
+    "departmentTwo": "Engineering · Engineer",
+    "departmentThree": "Design · Designer",
+    "summarize": "Summarize"
+  },
+  "frontendTools": {
+    "formTitle": "Profile Form",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "projectIdea": "Project idea",
+    "resetForm": "Reset",
+    "submitForm": "Submit",
+    "formRequired": "This field is required",
+    "formInvalid": "The form contains invalid fields",
+    "formBusy": "The form is already submitting",
+    "formUnavailable": "Form capability unavailable",
+    "formSubmitted": "Submitted form",
+    "formReset": "Reset form",
+    "formUpdating": "Updating form…",
+    "formFailed": "Could not update form",
+    "fieldUpdated": "Updated",
+    "fieldTo": "to",
+    "close": "Close",
+    "opening": "Opening dialog…",
+    "opened": "Opened dialog",
+    "failed": "Could not open dialog"
   }
 };

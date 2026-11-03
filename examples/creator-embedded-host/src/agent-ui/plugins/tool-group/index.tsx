@@ -1,6 +1,6 @@
 import { ConversationToolGroupPlugin as Implementation } from "@za38.03/agent-ui-plugins/tool-group";
 import type { ComponentProps } from "react";
-import { usePluginRenderScope } from "../../runtime/plugins";
+import { usePluginRenderScope } from "@za38.03/agent-ui-plugins";
 
 export function ConversationToolGroupPlugin(props: ComponentProps<typeof Implementation>) {
   const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();

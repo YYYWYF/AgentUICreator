@@ -53,14 +53,14 @@ export async function checkAgUiLockfile({
       `Multiple ${AG_UI_CLIENT} versions are resolved:`,
       ...resolvedAgUiClientVersions.map((version) => `- ${version}`),
       "",
-      `CancellationAwareHttpAgent targets ${pinnedClientVersion ?? "an unknown version"}.`,
+      `HTTP cancellation boundary targets ${pinnedClientVersion ?? "an unknown version"}.`,
       "Review dependency alignment before upgrading.",
     ].join("\n");
   } else if (resolvedAgUiClientVersions.length === 0) {
     message = [
       "REVIEW REQUIRED:",
       `No resolved ${AG_UI_CLIENT} version was found in pnpm-lock.yaml.`,
-      `CancellationAwareHttpAgent targets ${pinnedClientVersion ?? "an unknown version"}.`,
+      `HTTP cancellation boundary targets ${pinnedClientVersion ?? "an unknown version"}.`,
       "Review dependency alignment before upgrading.",
     ].join("\n");
   } else if (!passed) {
@@ -73,7 +73,7 @@ export async function checkAgUiLockfile({
     message = [
       "AG-UI lockfile guard: PASS",
       `Resolved ${AG_UI_CLIENT} version ${resolvedAgUiClientVersions[0]}`,
-      `CancellationAwareHttpAgent targets ${pinnedClientVersion}`,
+      `HTTP cancellation boundary targets ${pinnedClientVersion}`,
     ].join("\n");
   }
 

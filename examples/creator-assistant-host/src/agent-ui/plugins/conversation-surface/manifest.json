@@ -38,7 +38,8 @@
         "optional": true,
         "accepts": {
           "anyOfCapabilities": [
-            "theme-control"
+            "theme-control",
+            "locale-control"
           ]
         }
       },

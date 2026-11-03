@@ -40,7 +40,7 @@ export function createEmptyConversationDataSource(): ConversationDataSource {
   };
 }
 
-declare module "../../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap {
     [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]: ConversationDataSource;
   }

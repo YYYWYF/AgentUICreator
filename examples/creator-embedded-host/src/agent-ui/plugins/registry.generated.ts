@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from "../runtime/composition";
 
-export const capabilityCatalogRevision = "96aa67051cef6f87961eb282d841cefccac6bd374472db91814af20b2a180025";
+export const capabilityCatalogRevision = "d330ed64b2a4707aca2b7eae7737eebb19f570fcd4c91bfb700f068b5dce0521";
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -114,7 +114,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "conversation-composer-leading-action"
+                "conversation-composer-leading-action",
+                "conversation-composer-trailing-action"
               ]
             }
           },
@@ -124,7 +125,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "conversation-composer-trailing-action"
+                "conversation-composer-trailing-action",
+                "conversation-composer-leading-action"
               ]
             }
           },
@@ -357,7 +359,8 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "theme-control"
+                "theme-control",
+                "locale-control"
               ]
             }
           },
@@ -814,37 +817,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   },
   {
     manifest: {
-      "id": "tool-fallback",
-      "name": "Conversation Tool Fallback Renderer",
-      "description": "Displays an unregistered tool call with canonical Agent UI presentation.",
-      "version": "0.0.1",
-      "capabilities": [
-        "conversation-tool-fallback-renderer"
-      ],
-      "requiresRenderScope": true,
-      "authoring": {
-        "intents": [
-          "show unregistered tool calls",
-          "restore tool fallback presentation"
-        ],
-        "visualRole": "assistant tool fallback presentation",
-        "defaultPlacement": {
-          "type": "plugin_slot",
-          "parentPluginId": "conversation-surface",
-          "slot": "toolFallback"
-        }
-      }
-    },
-    provides: [],
-    inject: [],
-    optionalInject: [],
-    loadDefinition: () =>
-      import("./tool-fallback/definition").then(
-        ({ default: definition }) => definition,
-      ),
-  },
-  {
-    manifest: {
       "id": "tool-group",
       "name": "Conversation Tool Group Renderer",
       "description": "Displays one Agent UI tool group with canonical presentation.",
@@ -871,6 +843,37 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import("./tool-group/definition").then(
+        ({ default: definition }) => definition,
+      ),
+  },
+  {
+    manifest: {
+      "id": "tool-result",
+      "name": "Tool Result",
+      "description": "Renders AG-UI tool result content parts with canonical image, audio, video and file presentation.",
+      "version": "0.0.1",
+      "capabilities": [
+        "conversation-tool-fallback-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "render tool result content parts",
+          "show tool output images audio video and documents"
+        ],
+        "visualRole": "assistant tool result presentation",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "toolFallback"
+        }
+      }
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () =>
+      import("./tool-result/definition").then(
         ({ default: definition }) => definition,
       ),
   },

@@ -42,8 +42,8 @@ export function ConversationComposerGuardProvider(props: { awaitingReply: boolea
 import { ConversationActionMoreMenu as InternalConversationActionMoreMenu, ConversationActionMoreMenuItem as InternalConversationActionMoreMenuItem } from "./internal/style-boundary/ConversationActionMoreMenu.js";
 import { ComposerTextareaInput as InternalComposerTextareaInput } from "./internal/composer-input-host-context.js";
 import type { AgentUITheme } from "./theme/theme-contract.js";
-export { AGENT_UI_THEME_PRESETS, getAgentUIThemeColorScheme, isAgentUITheme } from "./theme/theme-contract.js";
-export type { AgentUITheme, AgentUIColorScheme, AgentUIThemeConfig } from "./theme/theme-contract.js";
+export { AGENT_UI_THEME_PRESETS, AGENT_UI_DEFAULT_THEME, getAgentUIThemeColorScheme, isAgentUITheme } from "./theme/theme-contract.js";
+export type { AgentUITheme, AgentUIColorScheme } from "./theme/theme-contract.js";
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
 import {
   ConversationOptionList as InternalConversationOptionList,
@@ -111,6 +111,7 @@ import {
 export interface ConversationThreadListItemActions {
   rename?: boolean;
   archive?: boolean;
+  unarchive?: boolean;
   delete?: boolean;
 }
 export interface ConversationThreadListItemLabels {
@@ -119,6 +120,7 @@ export interface ConversationThreadListItemLabels {
   running: string;
   rename: string;
   archive: string;
+  unarchive?: string;
   delete: string;
 }
 export interface ConversationThreadListItemProps {
@@ -266,9 +268,11 @@ export interface ConversationState {
   readonly threads: {
     readonly isLoading: boolean;
     readonly threadIds: readonly string[];
+    readonly archivedThreadIds: readonly string[];
     readonly threadItems: readonly Record<string, unknown>[];
   };
   readonly threadListItem: {
+    readonly status?: "new" | "regular" | "archived";
     readonly isRunning?: boolean;
     readonly custom?: Record<string, unknown>;
   };
@@ -365,7 +369,16 @@ export interface ConversationThreadProps {
   composer?: ReactNode | null | undefined;
 }
 
-export function ConversationThread({
+/** General facade with the built-in response footer retained for compatibility. */
+export function ConversationThread(props: Readonly<ConversationThreadProps>) {
+  return <ConversationThreadBase {...props} components={{
+    ...props.components,
+    AssistantResponseFooter: props.components?.AssistantResponseFooter ?? CanonicalAssistantResponseFooter,
+  }} />;
+}
+
+/** Slot-composed projects provide their footer explicitly, without default actions. */
+export function ConversationThreadBase({
   components,
   labels,
   autoFocus,
@@ -388,45 +401,7 @@ export function ConversationComposerQueue(props: Readonly<ConversationComposerQu
   return <InternalConversationComposerQueue {...props} />;
 }
 
-export interface ConversationCanonicalComposerProps {
-  inputProps?: ConversationComposerInputProps;
-  rootProps?: ConversationComposerRootProps;
-  dropzoneProps?: ConversationComposerDropzoneProps;
-  queueLabels?: ConversationComposerQueueLabels | undefined;
-  autoFocus?: boolean | undefined;
-  triggers?: ReactNode;
-  beforeInput?: ReactNode;
-  input?: ReactNode;
-  leadingActions?: ReactNode;
-  trailingActions?: ReactNode;
-  submitAction?: ReactNode;
-  placeholder?: string | undefined;
-  inputAriaLabel?: string | undefined;
-}
-
-/**
- * Product-owned Composer composition. The host supplies semantic child Slot
- * content while assistant-ui owns the Root, attachment, input, and state.
- */
-export function ConversationCanonicalComposer({
-  placeholder,
-  inputAriaLabel,
-  queueLabels,
-  ...props
-}: Readonly<ConversationCanonicalComposerProps>) {
-  const localeMessages = useAgentUILocale();
-  placeholder ??= localeMessages.composer.placeholder;
-  inputAriaLabel ??= localeMessages.composer.input;
-  queueLabels ??= { queued: localeMessages.composer.queued, removeQueued: localeMessages.composer.removeQueued };
-  return (
-    <InternalConversationCanonicalComposer
-      {...props}
-      placeholder={placeholder}
-      inputAriaLabel={inputAriaLabel}
-      queueLabels={queueLabels}
-    />
-  );
-}
+export { ConversationCanonicalComposer, type ConversationCanonicalComposerProps } from "./plugins/composer/adapters/presentation/composer.js";
 
 /** Canonical textarea fallback for optional Composer input Slots. */
 export function ConversationComposerTextareaInput(props: ConversationComposerInputProps = {}) {
@@ -671,6 +646,8 @@ export function ConversationSource(props: Readonly<ConversationSourcePart>) {
   return <InternalSources type="source" status={{ type: "complete" }} {...props} />;
 }
 
+export type { UIPluginElementProps } from "./contracts.js";
+
 export interface ConversationFileProps {
   filename?: string;
   data: string;
@@ -907,14 +884,17 @@ export function ConversationThreadListSearch(
 
 export function ConversationThreadListItemByIndex({
   index,
+  archived,
   components,
 }: Readonly<{
   index: number;
+  archived?: boolean;
   components?: { ThreadListItem?: ComponentType };
 }>) {
   return (
     <InternalConversationThreadListPrimitive.ItemByIndex
       index={index}
+      archived={archived}
       components={components as never}
     />
   );
@@ -1061,6 +1041,36 @@ export function useConversationNavigation(): ConversationNavigation {
     switchToNewThread: () => Promise.resolve(runtime.threads.switchToNewThread()),
     reloadCurrentThread: () => runtime.threads.reloadMainThread(),
   };
+}
+
+export interface ConversationActions {
+  /** Completes navigation; history loading status remains owned by the active Runtime. */
+  selectConversation(id: string): Promise<void>;
+  deleteConversation(id: string): Promise<void>;
+  renameConversation(id: string, title: string): Promise<void>;
+  archiveConversation(id: string): Promise<void>;
+  unarchiveConversation(id: string): Promise<void>;
+}
+
+/** Awaitable operations on the existing canonical conversation Runtime. */
+export function useConversationActions(): ConversationActions {
+  const runtime = useAui();
+  return useMemo(() => {
+    const actions = () => {
+      // The pinned store's UI methods return void and consume rejections.
+      // Resolve its existing Runtime here so callers can await the real operation.
+      const value = runtime.threads.__internal_getAssistantRuntime?.().threads;
+      if (value === undefined) throw new Error("CONVERSATION_ACTIONS_UNAVAILABLE");
+      return value;
+    };
+    return {
+      selectConversation: async (id: string) => { await actions().switchToThread(id); },
+      deleteConversation: async (id: string) => { await actions().getItemById(id).delete(); },
+      renameConversation: async (id: string, title: string) => { await actions().getItemById(id).rename(title); },
+      archiveConversation: async (id: string) => { await actions().getItemById(id).archive(); },
+      unarchiveConversation: async (id: string) => { await actions().getItemById(id).unarchive(); },
+    };
+  }, [runtime]);
 }
 
 export interface ConversationThreadSnapshot {
@@ -1222,10 +1232,10 @@ export type ConversationResponseBranchPickerProps = ComponentProps<"div"> & {
 };
 export const ConversationResponseActionBarRoot: ComponentType<ConversationResponseActionBarProps> = ResponseActionBarRoot;
 export const ConversationResponseBranchPicker: ComponentType<ConversationResponseBranchPickerProps> = ResponseBranchPicker;
-export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string; positiveProps?: Partial<ConversationTooltipIconButtonProps>; negativeProps?: Partial<ConversationTooltipIconButtonProps> }> = CanonicalResponseFeedbackActions;
+export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string; likeButtonProps?: Partial<ConversationTooltipIconButtonProps>; dislikeButtonProps?: Partial<ConversationTooltipIconButtonProps> }> = CanonicalResponseFeedbackActions;
 export const ConversationCanonicalResponseCopyAction = CanonicalResponseCopyAction;
 export const ConversationCanonicalResponseReloadAction = CanonicalResponseReloadAction;
-export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<{ menuLabel?: string; buttonProps?: Partial<ConversationTooltipIconButtonProps>; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip"> & { tooltip?: string; menuLabel?: string; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
 export interface ConversationTurnGroup {
   turnId: string;
   requestMessageId: string | null;
@@ -1328,7 +1338,7 @@ export function ConversationComposerCommandTrigger(props: ConversationCommandTri
 }
 
 import { WebSearch as InternalWebSearch, RetrievalChunks as InternalRetrievalChunks } from "./internal/search-elements.js";
-export interface WebSearchResult { title: string; domain: string }
+export interface WebSearchResult { title: string; domain: string; url?: string; snippet?: string }
 export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "results" | "searching" | "labels" | "visibleResults" | "cycle"> {
   visibleResults?: number | undefined;
   cycle?: number | undefined;
@@ -1401,7 +1411,7 @@ export interface ConversationThinkingIndicatorRenderScope {
 export { ConversationThinkingIndicator, type ConversationThinkingIndicatorProps } from "./plugins/thinking-indicator/adapters/presentation/thinking-indicator.js";
 
 export { ConversationCanonicalResponseFooter, type ConversationCanonicalResponseFooterProps } from "./plugins/response-footer/adapters/presentation/response-footer.js";
-export { ConversationCanonicalSuggestions, type ConversationCanonicalSuggestionsProps } from "./plugins/conversation-suggestions/adapters/presentation/conversation-suggestions.js";
+export { ConversationCanonicalSuggestions, type ConversationCanonicalSuggestionsProps, type ConversationSuggestionItem } from "./plugins/conversation-suggestions/adapters/presentation/conversation-suggestions.js";
 
 export { CanonicalAgentStatusMessage, type AgentStatusMessageProps } from "./plugins/agent-status-message/adapters/presentation/agent-status-message.js";
 
@@ -1452,7 +1462,7 @@ export { CanonicalConversationServicePlugin } from "./plugins/conversation-servi
 export type { ConversationServicePluginProps } from "./plugins/conversation-service/adapters/presentation/conversation-service.js";
 
 export { CanonicalConversationSurfacePlugin } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
-export type { ConversationSurfacePluginProps } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
+export type { ConversationSurfacePluginProps, ConversationSurfaceAdapterProps } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
 
 export { CanonicalLocaleProviderPlugin } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
 export type { LocaleProviderPluginProps } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
@@ -1481,3 +1491,25 @@ export { createAuthSession } from "./plugins/auth-gate/adapters/presentation/ses
 
 export { CanonicalLocaleSwitchPlugin } from "./plugins/locale-switch/adapters/presentation/locale-switch.js";
 export type { LocaleSwitchPluginProps } from "./plugins/locale-switch/adapters/presentation/locale-switch.js";
+
+// Project Plugin SDK. Providers and consumers share these exact module instances.
+export * from "./contracts.js";
+export * from "./plugin-api/PluginInstanceContext.js";
+export * from "./plugin-api/PluginRenderScope.js";
+export * from "./plugin-api/PluginServiceContext.js";
+export * from "./plugin-api/usePluginServiceSnapshot.js";
+export * from "./plugin-api/ApplicationLifecycleContext.js";
+
+export { CanonicalAskUserQuestion, type AskUserQuestionProps } from "./plugins/ask-user-question/adapters/presentation/ask-user-question.js";
+export { askUserQuestionParameters, parseHumanQuestionRequest, parseHumanQuestionResult, type HumanQuestionOption, type HumanQuestionStep, type HumanQuestionRequest, type HumanQuestionResult } from "./plugins/ask-user-question/adapters/presentation/contract.js";
+
+export { ConversationToolResult, ConversationToolResultContent, type ConversationToolResultProps, type ToolResultContentProps, type ToolResultPart, type ToolResultSource } from "./plugins/tool-result/adapters/presentation/tool-result.js";
+import { useConversationToolRenderer } from "./internal/tool-renderer-context.js";
+import { ConversationToolFallback as DefaultToolFallback } from "./plugins/tool-fallback/adapters/presentation/tool-fallback.js";
+/** Default frontend-tool UI follows the thread's semantic renderer selection. */
+export function ConversationDefaultTool(props: ConversationToolCallProps & { resultOnly?: boolean }) {
+  const Renderer = useConversationToolRenderer() ?? DefaultToolFallback;
+  return <Renderer {...props} />;
+}
+
+export { ConversationSurface, ConversationWelcome, ConversationEmptyState, type ConversationSurfaceProps, type ConversationTheme } from "./internal/conversation-surface.js";

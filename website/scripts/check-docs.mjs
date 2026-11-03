@@ -96,9 +96,15 @@ for (const [name, file] of pages) {
     const output = path.join(website, 'doc_build', name.replace(/\.(md|mdx)$/u, '.html'));
     assert(existsSync(output), `Missing built page: ${name}`);
     if (destinations.has(name)) {
-      const sidebar = read(output).match(/<aside class="rp-doc-layout__sidebar[\s\S]*?<\/aside>/u)?.[0];
-      const href = `/${name.replace(/\.(md|mdx)$/u, '.html')}`;
-      assert(sidebar?.includes(`href="${href}"`), `Article absent from built sidebar: ${name}`);
+      const sidebar = read(output).match(/<aside class="rp-doc-layout__sidebar(?:\s|")[\s\S]*?<\/aside>/u)?.[0];
+      if (/^sidebar:\s*false\s*$/mu.test(source)) {
+        assert(!sidebar, `Disabled sidebar still rendered: ${name}`);
+        const outline = read(output).match(/<aside class="rp-doc-layout__outline(?:\s|")[\s\S]*?<\/aside>/u)?.[0];
+        assert(outline?.includes('href="#'), `Article outline missing: ${name}`);
+      } else {
+        const href = `/${name.replace(/\.(md|mdx)$/u, '.html')}`;
+        assert(sidebar?.includes(`href="${href}"`), `Article absent from built sidebar: ${name}`);
+      }
     }
   }
 }

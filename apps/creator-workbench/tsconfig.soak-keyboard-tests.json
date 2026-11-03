@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/keyboard-input-host.spec.ts", "tests/soak-runtime-host.spec.ts", "tests/upstream-tool-lifetime-host.spec.ts", "tests/lifecycle-races-host.spec.ts", "playwright.soak-keyboard.config.ts", "playwright.upstream-lifetime.config.ts"],
+  "exclude": []
+}

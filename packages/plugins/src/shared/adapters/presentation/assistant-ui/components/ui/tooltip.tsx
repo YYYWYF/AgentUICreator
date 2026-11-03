@@ -46,6 +46,10 @@ function TooltipContent({
       <TooltipPrimitive.Positioner
         data-agent-ui-owned=""
         data-slot="tooltip-positioner"
+        // The local portal follows the full-height application in normal flow.
+        // Viewport positioning keeps tooltips anchored without extending that
+        // application's scrollable overflow below an embedded Host.
+        positionMethod="fixed"
         align={align}
         alignOffset={alignOffset}
         side={side}

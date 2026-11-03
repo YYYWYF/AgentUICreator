@@ -1,8 +1,8 @@
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
+import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins/contracts";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../services/conversations";
-import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";
-import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
+import { AGENT_UI_THEME_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
+import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
 import { ConversationSurfacePlugin } from "./index";
 import manifestJson from "./manifest.json";
 

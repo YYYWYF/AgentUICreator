@@ -1744,6 +1744,54 @@
       "source": "src/plugins/locale-switch/CHANGELOG.json",
       "kind": "changelog",
       "pluginId": "locale-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin/ask-user-question/files/plugins/ask-user-question/definition.ts",
+      "source": "src/plugins/ask-user-question/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "ask-user-question"
+    },
+    {
+      "view": "resources/registry/items/plugin/ask-user-question/files/plugins/ask-user-question/index.tsx",
+      "source": "src/plugins/ask-user-question/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "ask-user-question"
+    },
+    {
+      "view": "resources/registry/items/plugin/ask-user-question/files/plugins/ask-user-question/manifest.json",
+      "source": "src/plugins/ask-user-question/plugin.json",
+      "kind": "project",
+      "pluginId": "ask-user-question"
+    },
+    {
+      "view": "resources/registry/items/plugin/ask-user-question/changelog.json",
+      "source": "src/plugins/ask-user-question/CHANGELOG.json",
+      "kind": "project",
+      "pluginId": "ask-user-question"
+    },
+    {
+      "view": "resources/registry/items/plugin/tool-result/files/plugins/tool-result/definition.ts",
+      "source": "src/plugins/tool-result/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "tool-result"
+    },
+    {
+      "view": "resources/registry/items/plugin/tool-result/files/plugins/tool-result/index.tsx",
+      "source": "src/plugins/tool-result/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "tool-result"
+    },
+    {
+      "view": "resources/registry/items/plugin/tool-result/files/plugins/tool-result/manifest.json",
+      "source": "src/plugins/tool-result/plugin.json",
+      "kind": "project",
+      "pluginId": "tool-result"
+    },
+    {
+      "view": "resources/registry/items/plugin/tool-result/changelog.json",
+      "source": "src/plugins/tool-result/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "tool-result"
     }
   ]
 }

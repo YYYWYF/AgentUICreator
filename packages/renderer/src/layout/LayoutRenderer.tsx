@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import type { LayoutNode, LayoutTrackSize, PanelDimension, RowNode, SidebarNode, SlotNode } from "./types.js";
 import { isGridTrackOnlyDimension } from "./panelDimension.js";
@@ -66,6 +66,7 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
   const shellRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDialogElement>(null);
+  const drawerId = useId();
   const occupiedRef = useRef(0);
   const [narrow, setNarrow] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -76,6 +77,10 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
     const grid = gridRef.current;
     if (shell === null || grid === null) return;
     const measure = () => {
+      const width = shell.clientWidth;
+      // A hidden surface has no usable layout measurement. Keep its current
+      // composition until it is visible instead of relaying out its children.
+      if (width <= 0) return;
       const nodes = Array.from(grid.children) as HTMLElement[];
       const gap = node.gap ?? 0;
       const occupied = nodes.reduce((sum, child, index) => {
@@ -85,12 +90,21 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
       }, 0);
       if (!narrow && !collapsed) occupiedRef.current = occupied;
       const required = Math.max(occupied, occupiedRef.current) + policy.minPrimaryWidth + gap * (node.children.length - 1);
-      setNarrow(shell.clientWidth < required);
+      setNarrow(width < required);
     };
     measure();
-    const observer = new ResizeObserver(measure);
+    // Switching the grid/drawer layout changes descendant sizes. Keep that
+    // React commit outside the observer's current notification delivery.
+    let frame: number | undefined;
+    const observer = new ResizeObserver(() => {
+      if (frame !== undefined) return;
+      frame = requestAnimationFrame(() => { frame = undefined; measure(); });
+    });
     observer.observe(shell);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (frame !== undefined) cancelAnimationFrame(frame);
+    };
   }, [node, policy, narrow, collapsed]);
 
   useEffect(() => {
@@ -103,11 +117,16 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
   const drawerVisibleInGrid = !narrow && !collapsed;
   const sizes = node.sizes?.filter((_, index) => drawerVisibleInGrid || index !== policy.drawerIndex);
   const labels = drawerLabels;
+  const side = policy.drawerIndex < policy.primaryIndex ? "left" : "right";
+  const toggleLabel = narrow ? labels.open : collapsed ? labels.restore : labels.collapse;
   return (
     <div className="app-ui-layout-responsive-row" ref={shellRef} data-layout-responsive={narrow ? "drawer" : "grid"}>
-      <div className="app-ui-layout-drawer-controls">
-        <button type="button" onClick={() => narrow ? setDrawerOpen(true) : setCollapsed(!collapsed)}>
-          {narrow ? labels.open : collapsed ? labels.restore : labels.collapse}
+      <div className="app-ui-layout-drawer-controls" style={{ gridTemplateColumns: toGridTemplate(sizes, node.children.length - (drawerVisibleInGrid ? 0 : 1)) }}>
+        <button type="button" aria-label={toggleLabel} title={toggleLabel}
+          aria-expanded={narrow ? drawerOpen : !collapsed} aria-controls={drawerId}
+          style={{ gridColumn: drawerVisibleInGrid ? policy.drawerIndex + 1 : side === "left" ? 1 : node.children.length - 1, justifySelf: drawerVisibleInGrid || side === "right" ? "end" : "start" }}
+          onClick={() => narrow ? setDrawerOpen(true) : setCollapsed(!collapsed)}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d={side === "left" ? "M9 3v18" : "M15 3v18"} /></svg>
         </button>
       </div>
       <div
@@ -121,12 +140,16 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
         {node.children.map((child, index) => index === policy.drawerIndex ? (
           <dialog
             key={child.id}
+            id={drawerId}
             className="app-ui-layout-drawer"
+            data-layout-drawer-side={side}
             data-layout-drawer-mode={narrow ? "modal" : collapsed ? "collapsed" : "inline"}
             ref={drawerRef}
             onClose={() => setDrawerOpen(false)}
           >
-            <button className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close}>{labels.close}</button>
+            <button className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close} title={labels.close}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
             <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
           </dialog>
         ) : <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />)}
@@ -143,7 +166,8 @@ function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: Layou
   if (node.type === "row") {
     if (node.responsive !== undefined && (
       node.responsive.primaryIndex >= node.children.length ||
-      node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+      node.responsive.primaryIndex === node.responsive.drawerIndex ||
+      (node.responsive.type === "trailing-drawer" && node.responsive.primaryIndex > node.responsive.drawerIndex) ||
       node.responsive.drawerIndex > node.children.length
     )) {
       throw new Error(`Invalid responsive Row indices for "${node.id}".`);

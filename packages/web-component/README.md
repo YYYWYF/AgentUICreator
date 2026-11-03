@@ -5,26 +5,61 @@ It is a compatibility host, with one assistant-ui / AG-UI Runtime per element.
 It bundles React, React DOM, assistant-ui and the official embedded preset's
 React plugins. Host applications do not declare React or compile TSX.
 
+Install in the consuming project:
+
+```sh
+pnpm add @za38.03/agent-ui-web-component
+```
+
+For module-based applications, use the public registration entry:
+
 ```ts
 import "@za38.03/agent-ui-web-component/register";
 const element = document.createElement("agent-ui");
 element.config = {
   endpoint: "/agent",
-  conversationDataEndpoint: "/api",
   locale: "zh-CN",
   theme: "violet",
 };
 document.body.append(element);
 ```
 
-For a plain HTML host, serve `dist/agent-ui.js` and load it with a classic script:
+For a plain HTML host, the standalone script ships in this package at
+`dist/agent-ui.js`, exposed as
+`@za38.03/agent-ui-web-component/agent-ui.js`. Create
+`scripts/copy-agent-ui.mjs` in the consuming project:
+
+```js
+import { mkdir, copyFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+await mkdir("public", { recursive: true });
+await copyFile(
+  require.resolve("@za38.03/agent-ui-web-component/agent-ui.js"),
+  "public/agent-ui.js",
+);
+```
+
+Run `node scripts/copy-agent-ui.mjs` from the project root. Adapt `public/` to
+the Host's static directory and deploy the file with the application. Load its
+served URL with a classic script:
 
 ```html
 <script src="/agent-ui.js"></script>
 <agent-ui endpoint="/agent" locale="zh-CN" theme="violet"></agent-ui>
 ```
 
-The ESM entry is `dist/agent-ui.es.js`; declarations start at `dist/types.d.ts`.
+`/agent-ui.js` assumes the copied file is served at the site root; installing
+the package alone does not create that URL. Adjust it for subdirectory hosting.
+After upgrading the package, rerun the copy and deploy the new static file using
+the Host's resource versioning/cache policy. Module consumers rebuild and redeploy.
+
+The public ESM entries are `@za38.03/agent-ui-web-component/register` and
+`@za38.03/agent-ui-web-component`; both resolve to `dist/agent-ui.es.js` and
+register the element. Types are available from the package root and resolve to
+`dist/types.d.ts`. Use public entries in application imports rather than deep
+`dist/` paths. Customized producer projects generate a separate ESM bundle
+described below; load that instead of registering the default package as well.
 All CSS, including imported Plugin CSS, is inside the scripts and is inserted
 only into the element's open Shadow Root. No global stylesheet is required.
 The element fills the viewport by default (`100dvh`). Set its height in the Host
@@ -45,17 +80,17 @@ registration are upgraded when the element connects. Registration is idempotent.
 - `locale`: `en-US` or `zh-CN`, through the existing locale layer. When omitted,
   use the producer project's `agentUILocaleConfig.defaultLocale` (official default `zh-CN`).
 - `theme`: `violet`, `light` or `dark`, through the existing theme service. When
-  omitted, use the producer project's `agentUIThemeConfig.theme` (official default `violet`).
+  omitted, the runtime starts with the built-in `violet` theme and the internal
+  picker can change it. Project settings contain no theme selection. An explicit
+  property/attribute controls the theme; accept picker requests by updating it
+  from the `theme-change` event.
 - `threadId`: persisted conversation to reopen, through the existing thread binding.
-- `conversationDataEndpoint`: existing history API base, e.g. `/api`. Uses the same
-  `GET/DELETE {base}/conversations` and `{base}/conversations/{id}` implementation.
-  With no base, history uses the existing empty data source. A persisted `threadId`
-  needs a working history API. Authentication follows existing same-origin fetch
-  behavior; credentials and backend upload policy belong to the Host.
+History routes/authentication and upload/transcription/feedback services belong to
+the generated React producer implementation. Creator connects or changes them
+there before rebuilding; only the AG-UI endpoint is an external connection option.
+
 - `appUIModel`: the **existing** AppUIModel schema, limited to bundled official
   plugins. No alternate Vue schema or arbitrary component registration.
-- `attachmentAdapter`: the existing Host-owned assistant-ui attachment adapter.
-  Upload/storage is not implemented by the bridge. Demos use the existing mock adapter.
 
 Events are `CustomEvent`s with `bubbles: true` and `composed: true`:
 
@@ -63,6 +98,7 @@ Events are `CustomEvent`s with `bubbles: true` and `composed: true`:
 | --- | --- | --- |
 | `agent-ready` | `{ threadId }` | Valid composition mounted with the canonical Runtime; not a network-health promise |
 | `thread-change` | `{ threadId }` | Initial or subsequently active identity |
+| `theme-change` | `{ theme }`; a picker request. Update the controlled theme to accept it |
 | `agent-error` | `{ code, error }` | Configuration/composition or Runtime error; backend detail is data |
 
 Connection identity changes (`endpoint`, `threadId`, history base) restart the

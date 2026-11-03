@@ -29,6 +29,20 @@ custom Layout placement or geometry.
 - Preserve existing child order and regions unless the request says otherwise.
 - Use the observed `nodeRef` only for the current mutation snapshot. Store each visual plugin directly in the Slot where it appears.
 - For a fixed right region, use a Row with the main content first and a right Panel second.
+- Left/right position and ordering are always Layout Tree changes. Move the existing
+  Plugin instance or its enclosing Panel through `mutate_app_ui_model`; never use
+  `flex-direction`, `order`, transforms or absolute positioning to reverse regions.
+  Move a navigation Panel together with its identity Header and history when the
+  request concerns that whole region. Preserve Plugin identities and child Slots.
+- Platform presets use an explicit Row of navigation/content Panels. Optional
+  left/center/right regions are materialized only when occupied; do not add blank
+  fixed-width columns. Generic Sidebar remains supported for existing layouts.
+- `row.responsive: { type: "drawer", primaryIndex, drawerIndex, minPrimaryWidth }`
+  identifies the main child and the collapsible navigation child. Its drawer opens
+  on the side implied by child order. Moving a Panel preserves those child
+  identities and updates their indices. The legacy `trailing-drawer` policy still
+  requires a drawer after the primary child. When explicitly replacing a Row,
+  declare indices matching the final children.
 - When a Row `sizes` entry and a child Panel `width` describe the same fixed dimension, update both consistently.
 - For Row and Column layouts, the parent `sizes` owns the grid tracks. A fixed-size child Panel does not shrink its parent track. For a fixed sidebar, set the parent tracks to `[W, minmax(0, 1fr)]` and use the matching child Panel width when that authoring constraint is also needed. `gap` only controls space between tracks; inspect the parent tracks and child bounds before attributing a visible layout issue to `gap`.
 - Creator Row/Column track sizes always use explicit CSS strings. Correct values
@@ -85,8 +99,8 @@ composition validation. For a project without Sidebar, use `replace_layout_node`
 with a complete Sidebar container preserving existing Plugin instances in its
 `content` and moving selected instances into its items. Do not infer tree changes
 from strings or DOM selectors. Desktop rail is 48px with a 280px active panel;
-containers narrower than 648px use a scoped Sheet. Only new platform/assistant
-presets adopt Sidebar automatically; preserve existing project layouts.
+containers narrower than 648px use a scoped Sheet. Sidebar is available for
+explicit navigation-container composition; preserve existing project layouts.
 
 ### Optional Sidebar Header
 
@@ -101,6 +115,7 @@ For Agent name, logo, description or branding requests, reuse `agent-identity`
 and edit `plugins/agent-identity/config.ts`. Its localized defaults use the
 `agentIdentity` namespace; custom brand content need not be translated. Do not
 edit SidebarFrame, vendor components or create a Service to change identity.
-New platform presets select history by default; Assistant presets stay collapsed.
+Legacy platform Sidebar presets select history by default; new platform presets
+express navigation as ordinary Row/Panel/Slot composition.
 Models without Header retain the legacy navigation rail. A Header with one
 enabled navigation item uses a single column without a duplicate history icon.

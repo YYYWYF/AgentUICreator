@@ -28,6 +28,7 @@ export interface VideoPlayerProps extends Omit<
   "children"
 > {
   src: string;
+  controlsList?: string | undefined;
   poster?: string | undefined;
   title?: string | undefined;
   ratio?: "16:9" | "4:3" | "1:1" | "9:16" | "auto" | undefined;
@@ -224,6 +225,7 @@ export function AudioPlayer({
 
 export function VideoPlayer({
   src,
+  controlsList,
   poster,
   title,
   ratio = "16:9",
@@ -261,6 +263,7 @@ export function VideoPlayer({
           src={src}
           poster={poster}
           controls
+          controlsList={controlsList}
           playsInline
           preload="metadata"
           aria-label={title ?? messages.video}

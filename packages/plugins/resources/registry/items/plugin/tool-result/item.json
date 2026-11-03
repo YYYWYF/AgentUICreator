@@ -1,0 +1,25 @@
+{
+  "id": "plugin/tool-result",
+  "kind": "agent-component",
+  "description": "Managed tool-result UI plugin source",
+  "files": [
+    {
+      "source": "files/plugins/tool-result/definition.ts",
+      "target": "plugins/tool-result/definition.ts"
+    },
+    {
+      "source": "files/plugins/tool-result/index.tsx",
+      "target": "plugins/tool-result/index.tsx"
+    },
+    {
+      "source": "files/plugins/tool-result/manifest.json",
+      "target": "plugins/tool-result/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

@@ -4,58 +4,98 @@ title: "回复操作栏（response-footer）"
 
 # 回复操作栏（response-footer）
 
-在 Agent 的一次完整回复下方放置操作栏，用于组合复制、重试、评价和导出按钮。
+同一次回复即使分成多段，也**只在最后显示一组操作**。具体显示哪些按钮，由项目选择的操作插件决定。
 
-## 界面与功能
-
-同一次回复即使分成多段，也只在最后显示一组操作。具体显示哪些按钮，由项目选择的操作插件决定。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
 
 ![回复操作栏（response-footer）界面示例](/images/plugins/response-footer.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable response-footer`，点击下图中的 **「回复操作栏」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「回复操作栏」，插件 ID 为 response-footer](/images/plugins/enable/response-footer.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「回复操作栏」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-复制、重试、评价与导出按项目选择组合。开发者追加动作时保留已有功能，避免重复显示。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `children` | 替换或补充组件内容。 |
-| `rootProps` | 最外层区域的样式和 DOM 属性。 |
-| `actionBarProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `branchPickerProps` | 定制对应区域的 DOM、样式或交互参数。 |
+| 显示哪些操作 | 组合复制、重试、评价、导出或自己的按钮。 |
+| 按钮间距和外观 | 调整操作栏的布局、间距、背景和圆角。 |
+| 生成期间隐藏 | 决定回复尚未结束时是否隐藏操作栏。 |
+| 鼠标移上去才显示 | always 对所有回复使用自动隐藏；not-last 仅隐藏较早回复的操作；never 始终显示。 |
+| 只有一个版本时隐藏切换箭头 | 不需要切换版本时，隐藏左右箭头。 |
+| 版本切换按钮 | 修改左右按钮的提示、图标和大小。 |
 
-下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+## 需求示例
 
-```tsx
-import type { ComponentProps } from "react";
-import { ConversationCanonicalResponseFooter } from "@za38.03/agent-ui-plugins";
-
-type Props = ComponentProps<typeof ConversationCanonicalResponseFooter>;
-export function ProjectView(props: Props) {
-  return <ConversationCanonicalResponseFooter {...props} />;
-}
+```text
+请修改「回复操作栏（response-footer）」：
+修改：按钮间距设为【8px】，操作栏在【回复完成后始终显示】。
+保留：现有操作按钮和版本切换，每次完整回复只显示一组操作栏。
 ```
 
-## 验证结果
+## 手动开发
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+打开项目中的 `plugins/response-footer/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+### 属性
 
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-## 继续阅读
+组件：`ConversationCanonicalResponseFooter`；类型：`ConversationCanonicalResponseFooterProps`。继承 `div` 原生属性。
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `actions?` | `ReactNode` | 操作栏内容；插件入口默认从 `actions` 插槽取得 |
+| `children?` | `ReactNode` | 替换默认分支切换与操作栏 |
+| `actionBarProps?` | `ConversationResponseActionBarProps` | 操作栏配置，见下表 |
+| `branchPickerProps?` | `ConversationResponseBranchPickerProps` | 分支切换配置，见下表 |
+
+| 嵌套属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `actionBarProps.hideWhenRunning?` | `boolean` | 默认 `true`，运行时隐藏 |
+| `actionBarProps.autohide?` | `'always' \| 'not-last' \| 'never'` | 默认 `not-last`，控制哪些回答的操作栏自动隐藏 |
+| `actionBarProps.autohideFloat?` | `'always' \| 'single-branch' \| 'never'` | 控制浮动操作栏何时自动隐藏，省略时使用现有操作栏的默认设置 |
+| `actionBarProps.asChild?` | `boolean` | 把操作栏属性传给已有子元素，避免再增加一层容器 |
+| `actionBarProps.render?` | `ReactElement` | 自定义操作栏元素 |
+| `actionBarProps.children?` | `ReactNode` | 优先于 `actions` 的操作内容 |
+| `branchPickerProps.hideWhenSingleBranch?` | `boolean` | 默认 `true`，单分支或不能切换时隐藏 |
+| `branchPickerProps.previousProps?` | `Partial<ConversationTooltipIconButtonProps>` | 上一分支按钮 |
+| `branchPickerProps.nextProps?` | `Partial<ConversationTooltipIconButtonProps>` | 下一分支按钮 |
+| `branchPickerProps.children?` | `ReactNode` | 替换默认分支按钮和计数 |
+
+两个嵌套对象均继承 `div` 原生属性。分支切换针对当前整次回答，继续使用现有会话的方法。
+
+#### 原生属性
+
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+#### 子插件渲染
+
+这些函数由插件运行环境（Runtime）提供，用于显示配置好的子插件，通常无需自行编写。
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 显示 `actions` 中配置的回复操作按钮 |
+| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 为子插件传入本次渲染的数据；当前回复操作栏入口未调用此函数 |
+
+参数说明：
+
+- `name`：插槽名称，决定在哪个位置显示子插件。
+- `fallback`：该位置没有可用子插件时显示的备用内容。
+- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
+- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseFooter>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。

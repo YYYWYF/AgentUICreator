@@ -1,0 +1,21 @@
+{
+  "capturedDate": "2026-10-26",
+  "source": "Actual Creator dock update UI in an isolated temporary Host; Playwright Chromium.",
+  "data": "Fictional versions and release notes supplied by browser-only interception of update check and plan requests. Not published release history.",
+  "cleanup": "Cancelled the demo plan and closed the browser context. No execute request or dependency installation. No application code or real release metadata changed.",
+  "platform": "macOS browser capture; not Windows acceptance.",
+  "screenshots": [
+    {
+      "file": "package-changes.png",
+      "sha256": "58c6b8378862ab682c16971243d1a0d49bad66c2da636f6765054c3b7848f4b4",
+      "width": 868,
+      "height": 1380
+    },
+    {
+      "file": "package-plan.png",
+      "sha256": "18c3c13ffea41fe193768f92a0d044e896e169b8a3de9135762624c79361735c",
+      "width": 752,
+      "height": 638
+    }
+  ]
+}

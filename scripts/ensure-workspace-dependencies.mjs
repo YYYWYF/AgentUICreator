@@ -12,9 +12,9 @@ function missingViteEntries(root) {
   });
 }
 export function ensureWorkspaceDependencies({ root = workspaceRoot, platform = process.platform, architecture = process.arch, nodeAbi = process.versions.modules, nodeVersion = process.versions.node, run = spawnPnpmSync } = {}) {
-  const [major, minor] = nodeVersion.split(".").map(Number);
-  if (!(major > 22 || (major === 22 && minor >= 12) || (major === 20 && minor >= 19))) {
-    throw new Error("Creator requires Node.js 20.19+ or 22.12+. Install Node.js 20.19.0 or later in the supported range and retry pnpm dev.");
+  const version = /^24\.(\d+)\.(\d+)$/u.exec(nodeVersion);
+  if (!version || Number(version[1]) < 22 || (Number(version[1]) === 22 && Number(version[2]) < 1)) {
+    throw new Error("Creator requires Node.js 24.22.1 or later in the 24.x release line. Switch Node.js and retry pnpm dev.");
   }
   // The dev entry is plain Node, so a source-only copy can install itself before
   // any workspace package or native Vite plugin is imported.

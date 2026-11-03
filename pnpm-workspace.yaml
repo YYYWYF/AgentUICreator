@@ -2,5 +2,3 @@ packages:
   - "apps/*"
   - "examples/*"
   - "packages/*"
-  - "packages/creator/platforms/*"
-  - "website"

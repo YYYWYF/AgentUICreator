@@ -80,6 +80,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { ConversationToolRendererContext } from "./tool-renderer-context.js";
 import { projectToolTimeline } from "./tool-timeline-projection.js";
 
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
@@ -212,6 +213,7 @@ export const ComposableThread: FC<ThreadProps> = ({
   const threadId = useAuiState(s => s.threads.mainThreadId);
 
   return (
+    <ConversationToolRendererContext.Provider value={components.ToolFallback as ComponentType<import("./tool-renderer-context.js").ConversationDefaultToolProps> | undefined}>
     <ThreadComponentsContext.Provider value={components}>
       <ThreadLabelsContext.Provider value={{ ...defaultLabels, ...labels }}>
         <ComposerHostConfigContext.Provider value={{ autoFocus }}>
@@ -221,6 +223,7 @@ export const ComposableThread: FC<ThreadProps> = ({
         </ComposerHostConfigContext.Provider>
       </ThreadLabelsContext.Provider>
     </ThreadComponentsContext.Provider>
+    </ConversationToolRendererContext.Provider>
   );
 };
 
@@ -391,7 +394,7 @@ const AssistantResponseFooterHost: FC<{
   const messages = useAuiState((s) => s.thread.messages);
   const messageIndex = useAuiState((s) => s.message.index);
   const turn = resolveConversationTurnGroup(messages, messages[messageIndex]?.id ?? "");
-  if (!turn || turn.tailAssistantMessageId !== messages[messageIndex]?.id) return null;
+  if (!FooterComponent || !turn || turn.tailAssistantMessageId !== messages[messageIndex]?.id) return null;
 
   // Product layout policy: reserve the semantic footer's full height in flow.
   // Plugin footers can vary in height, so cancelling a fixed action-bar height
@@ -402,11 +405,7 @@ const AssistantResponseFooterHost: FC<{
         data-slot="aui_assistant-response-footer"
         className={cn("ms-2 flex items-center", "min-h-7.5 pt-1.5")}
       >
-        {FooterComponent ? (
-          <FooterComponent />
-        ) : (
-          <CanonicalAssistantResponseFooter />
-        )}
+        <FooterComponent />
       </div>
     </AssistantResponseRuntimeProvider>
   );

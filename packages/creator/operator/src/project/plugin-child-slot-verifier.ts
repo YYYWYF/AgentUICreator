@@ -1,0 +1,299 @@
+import { isPluginApplication, readApplicationPackageManifest } from "./plugin-application";
+import { officialPackagePlugin } from "../source-catalog/index.js";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+
+import type { Node, SourceFile } from "typescript/unstable/ast";
+import {
+  isCallExpression,
+  isIdentifier,
+  isPropertyAccessExpression,
+  isStringLiteral,
+  isVariableDeclaration, isObjectBindingPattern, isImportDeclaration, isNamedImports, isJsxSelfClosingElement, isJsxOpeningElement, isJsxSpreadAttribute, isJsxAttribute, isJsxExpression, isFunctionDeclaration, isArrowFunction, isFunctionExpression,
+} from "typescript/unstable/ast/is";
+import { API } from "typescript/unstable/sync";
+
+import type { PluginAsset, ProjectIssue } from "./types";
+
+const SOURCE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".mts",
+  ".cts",
+  ".js",
+  ".jsx",
+]);
+const EXCLUDED_DIRECTORIES = new Set(["__tests__", "dist", "node_modules"]);
+const TEST_FILE_PATTERN = /\.(?:test|spec)\.(?:[cm]?ts|tsx|js|jsx)$/u;
+
+export interface RenderedChildSlot {
+  slotId: string;
+  mode: "content" | "renderer";
+  path: string;
+  line: number;
+  column: number;
+}
+
+interface DynamicRenderedChildSlot {
+  path: string;
+  line: number;
+  column: number;
+}
+
+function projectPath(projectRoot: string, filePath: string): string {
+  return path.relative(projectRoot, filePath).split(path.sep).join("/");
+}
+
+async function collectPluginSourceFiles(
+  directoryPath: string,
+): Promise<string[]> {
+  let entries;
+  try {
+    entries = await readdir(directoryPath, { withFileTypes: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+
+  const files: string[] = [];
+  for (const entry of entries.sort((left, right) =>
+    left.name.localeCompare(right.name),
+  )) {
+    if (entry.isDirectory()) {
+      if (!EXCLUDED_DIRECTORIES.has(entry.name)) {
+        files.push(
+          ...(await collectPluginSourceFiles(
+            path.join(directoryPath, entry.name),
+          )),
+        );
+      }
+      continue;
+    }
+    if (
+      entry.isFile() &&
+      SOURCE_EXTENSIONS.has(path.extname(entry.name)) &&
+      !TEST_FILE_PATTERN.test(entry.name)
+    ) {
+      files.push(path.join(directoryPath, entry.name));
+    }
+  }
+  return files;
+}
+
+function renderedSlotMode(node: Node): "content" | "renderer" | null {
+  if (!isCallExpression(node)) {
+    return null;
+  }
+  if (isIdentifier(node.expression)) {
+    if (node.expression.text === "renderSlot") return "content";
+    if (node.expression.text === "renderScopedSlot") return "renderer";
+    return null;
+  }
+  if (!isPropertyAccessExpression(node.expression) || !isIdentifier(node.expression.name)) return null;
+  if (node.expression.name.text === "renderSlot") return "content";
+  if (node.expression.name.text === "renderScopedSlot") return "renderer";
+  return null;
+}
+
+function sourceLocation(sourceFile: SourceFile, node: Node): {
+  line: number;
+  column: number;
+} {
+  const location = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+  return { line: location.line + 1, column: location.character + 1 };
+}
+
+function inspectRenderedChildSlots(
+  projectRoot: string,
+  sourceFile: SourceFile,
+  delegatedSlots: PluginAsset["childSlots"] = {},
+  delegation?: { entry: string; component: string },
+): {
+  rendered: RenderedChildSlot[];
+  dynamic: DynamicRenderedChildSlot[];
+} {
+  const rendered: RenderedChildSlot[] = [];
+  const dynamic: DynamicRenderedChildSlot[] = [];
+  const relativePath = projectPath(projectRoot, sourceFile.fileName);
+  const componentNames = new Set<string>();
+  for (const statement of sourceFile.statements) if (delegation && isImportDeclaration(statement) && isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === delegation.entry) {
+    const bindings=statement.importClause?.namedBindings;
+    if(bindings&&isNamedImports(bindings)) for(const entry of bindings.elements) if((entry.propertyName?.text??entry.name.text)===delegation.component) componentNames.add(entry.name.text);
+  }
+  const forwarded = (node: Node, callbackName: "renderSlot" | "renderScopedSlot"): boolean => {
+    if(!isJsxSelfClosingElement(node)&&!isJsxOpeningElement(node))return false;
+    if(!isIdentifier(node.tagName)||!componentNames.has(node.tagName.text))return false;
+    const explicitSlot = [...node.attributes.properties].reverse().find(attribute => isJsxAttribute(attribute) && attribute.name.getText() === callbackName);
+    if (explicitSlot && isJsxAttribute(explicitSlot)) {
+      const expression = explicitSlot.initializer && isJsxExpression(explicitSlot.initializer) ? explicitSlot.initializer.expression : undefined;
+      return !!expression && (isIdentifier(expression) && expression.text === callbackName || isPropertyAccessExpression(expression) && expression.name.text === callbackName);
+    }
+    return node.attributes.properties.some(attribute=>{
+      if(isJsxAttribute(attribute)&&attribute.name.getText()===callbackName&&attribute.initializer&&isJsxExpression(attribute.initializer)) {
+        const expression=attribute.initializer.expression;
+        return !!expression&&(isIdentifier(expression)&&expression.text===callbackName||isPropertyAccessExpression(expression)&&expression.name.text===callbackName);
+      }
+      if(!isJsxSpreadAttribute(attribute)||!isIdentifier(attribute.expression))return false;
+      const name=attribute.expression.text;
+      let parent=node.parent;
+      while(parent){
+        if (isFunctionDeclaration(parent) || isArrowFunction(parent) || isFunctionExpression(parent)) {
+          const parameterNames = new Set(parent.parameters.flatMap(parameter => isIdentifier(parameter.name) ? [parameter.name.text] : []));
+          if (parameterNames.has(name)) return true;
+          if (parent.parameters.some(parameter => {
+            if (!isObjectBindingPattern(parameter.name)) return false;
+            const removesSlot = parameter.name.elements.some(element => !element.dotDotDotToken && (element.propertyName?.getText() ?? element.name?.getText()) === callbackName);
+            return !removesSlot && parameter.name.elements.some(element => element.dotDotDotToken && element.name && isIdentifier(element.name) && element.name.text === name);
+          })) return true;
+          // A rest object still forwards renderSlot unless that property was removed.
+          let restForwards = false;
+          const inspectBinding = (binding: Node): void => {
+            if (isVariableDeclaration(binding) && isObjectBindingPattern(binding.name) && binding.initializer && isIdentifier(binding.initializer) && parameterNames.has(binding.initializer.text)) {
+              const removesSlot = binding.name.elements.some(element => !element.dotDotDotToken && (element.propertyName?.getText() ?? element.name?.getText()) === callbackName);
+              if (!removesSlot && binding.name.elements.some(element => element.dotDotDotToken && element.name && isIdentifier(element.name) && element.name.text === name)) restForwards = true;
+            }
+            binding.forEachChild(inspectBinding);
+          };
+          if (parent.body) inspectBinding(parent.body);
+          return restForwards;
+        }
+        parent=parent.parent;
+      }
+      return false;
+    });
+  };
+
+  const visit = (node: Node): void => {
+    for (const [slotId,slot] of Object.entries(delegatedSlots??{})) if (forwarded(node, slot.mode === "renderer" ? "renderScopedSlot" : "renderSlot")) rendered.push({slotId,mode:slot.mode??"content",path:relativePath,...sourceLocation(sourceFile,node)});
+    const mode = renderedSlotMode(node);
+    if (mode !== null && isCallExpression(node)) {
+      const argument = node.arguments[0];
+      const location = sourceLocation(sourceFile, node);
+      if (argument !== undefined && isStringLiteral(argument)) {
+        rendered.push({
+          slotId: argument.text,
+          mode,
+          path: relativePath,
+          ...location,
+        });
+      } else {
+        dynamic.push({ path: relativePath, ...location });
+      }
+    }
+    node.forEachChild(visit);
+  };
+  visit(sourceFile);
+  return { rendered, dynamic };
+}
+
+export async function verifyPluginChildSlots(
+  projectRoot: string,
+  assets: readonly PluginAsset[],
+): Promise<ProjectIssue[]> {
+  // Dependency-owned implementations are validated by their package build.
+  assets = assets.filter(asset => asset.ownership !== "official_package");
+  const resolvedProjectRoot = path.resolve(projectRoot);
+  const sourcesByPlugin = await Promise.all(
+    assets.map(async (asset) => ({
+      asset,
+      application: await isPluginApplication(path.join(resolvedProjectRoot,path.dirname(asset.definitionPath)),asset.pluginId),
+      forwardedSlots: asset.application?.implementationOwnership === "npm"
+        ? JSON.parse(await readApplicationPackageManifest(resolvedProjectRoot, asset.pluginId)).slots?.children ?? {}
+        : asset.childSlots,
+      files: await collectPluginSourceFiles(
+        path.join(resolvedProjectRoot, path.dirname(asset.manifestPath)),
+      ),
+    })),
+  );
+  const sourceFiles = sourcesByPlugin.flatMap(({ files }) => files);
+  const inspections = new Map<
+    PluginAsset,
+    { rendered: RenderedChildSlot[]; dynamic: DynamicRenderedChildSlot[] }
+  >();
+
+  if (sourceFiles.length > 0) {
+    const api = new API();
+    try {
+      const snapshot = api.updateSnapshot({ openFiles: sourceFiles });
+      try {
+        for (const { asset, files, application, forwardedSlots } of sourcesByPlugin) {
+          const official = application ? officialPackagePlugin(asset.pluginId) : undefined;
+          const rendered: RenderedChildSlot[] = [];
+          const dynamic: DynamicRenderedChildSlot[] = [];
+          for (const filePath of files) {
+            const project = snapshot.getDefaultProjectForFile(filePath);
+            const sourceFile = project?.program.getSourceFile(filePath);
+            if (sourceFile === undefined) {
+              continue;
+            }
+            const result = inspectRenderedChildSlots(
+              resolvedProjectRoot,
+              sourceFile,
+              official ? forwardedSlots : {},
+              official ? { entry: official.runtime.package + official.runtime.subpath.slice(1), component: official.application.component } : undefined,
+            );
+            rendered.push(...result.rendered);
+            dynamic.push(...result.dynamic);
+          }
+          inspections.set(asset, { rendered, dynamic });
+        }
+      } finally {
+        snapshot.dispose();
+      }
+    } finally {
+      api.close();
+    }
+  }
+
+  const issues: ProjectIssue[] = [];
+  for (const asset of assets) {
+    const inspection = inspections.get(asset) ?? {
+      rendered: [],
+      dynamic: [],
+    };
+    for (const location of inspection.dynamic) {
+      issues.push({
+        code: "plugin-child-slot-dynamic-render-unsupported",
+        pluginId: asset.pluginId, path: location.path, line: location.line, column: location.column,
+        message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders a child Slot using a dynamic name. Local child Slot names must use static string literals so the Plugin Manifest can be verified deterministically.`,
+      });
+    }
+
+    const declared = new Set(Object.keys(asset.childSlots ?? {}));
+    const rendered = new Set(inspection.rendered.map(({ slotId }) => slotId));
+    for (const slotId of [...declared]
+      .filter((id) => !rendered.has(id))
+      .sort()) {
+      issues.push({
+        code: "plugin-child-slot-declared-not-rendered",
+        pluginId: asset.pluginId, path: asset.manifestPath, slot: slotId,
+        message: `Plugin "${asset.pluginId}" declares child Slot "${slotId}" in ${asset.manifestPath}, but no runtime source calls renderSlot("${slotId}").`,
+      });
+    }
+    for (const slotId of [...rendered]
+      .filter((id) => !declared.has(id))
+      .sort()) {
+      const location = inspection.rendered.find(
+        (item) => item.slotId === slotId,
+      )!;
+      issues.push({
+        code: "plugin-child-slot-rendered-not-declared",
+        pluginId: asset.pluginId, path: location.path, slot: slotId, line: location.line, column: location.column,
+        message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders child Slot "${slotId}", but ${asset.manifestPath} does not declare it in slots.children.`,
+      });
+    }
+    for (const location of inspection.rendered) {
+      const definition = asset.childSlots?.[location.slotId];
+      if (definition !== undefined && (definition.mode ?? "content") !== location.mode) {
+        issues.push({
+          code: "plugin-child-slot-mode-mismatch",
+          pluginId: asset.pluginId, path: location.path, slot: location.slotId, line: location.line, column: location.column,
+          message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders Slot "${location.slotId}" as ${location.mode}, but its manifest declares ${definition.mode ?? "content"}.`,
+        });
+      }
+    }
+  }
+  return issues;
+}

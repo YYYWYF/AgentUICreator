@@ -1,5 +1,5 @@
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
-import { ConversationToolFallback, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { ConversationDefaultTool, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { Toolkit } from "@assistant-ui/react";
 import { createInterruptToolRenderer } from "./interrupt-tool-renderer.js";
 import type { ConversationFrontendToolUIRegistry } from "./types.js";
@@ -28,7 +28,7 @@ export function createAssistantUiFrontendToolkit(
       description: definition.description,
       parameters: definition.inputSchema,
       ...(ui?.display === undefined ? {} : { display: ui.display }),
-      render: (ui?.render ?? ConversationToolFallback) as never,
+      render: (ui?.render ?? ConversationDefaultTool) as never,
       execute: async (args, context) => {
         const result = await source!.execute({
           id: context.toolCallId,

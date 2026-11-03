@@ -257,7 +257,7 @@ export function createConversationService({
   };
 }
 
-declare module "../../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap {
     [AGENT_UI_CONVERSATION_SERVICE]: ConversationService;
   }

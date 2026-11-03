@@ -2,14 +2,17 @@
   "extends": "./tsconfig.json",
   "include": [
     "tests/agent-connection-host.spec.ts",
+    "tests/ag-ui-runtime-host.spec.ts",
+    "tests/run-context-host.spec.ts",
+    "tests/run-resume-production-refresh.e2e.spec.ts",
+    "tests/shared-tooltip-host.spec.ts",
+    "tests/tool-result-default-host.spec.ts",
+    "tests/public-search-host.spec.ts",
+    "tests/host-thread-lifecycle.spec.ts",
     "tests/support/agent-connection-host.ts",
     "playwright.agent-connection.config.ts",
-    "tests/i18n-plugin-visual.spec.ts",
-    "tests/support/i18n-plugin-visual-host.ts",
-    "playwright.i18n-plugin-visual.config.ts",
     "tests/creator-theme-host.spec.ts",
     "tests/creator-install-sync-host.spec.ts",
-    "playwright.theme-commands.config.ts",
-    "tests/tool-timeline-thinking.spec.ts"
+    "playwright.theme-commands.config.ts"
   ]
 }

@@ -10,15 +10,6 @@ export const zhCN = {
     collapse: "收起业务面板",
     restore: "恢复业务面板",
   },
-  humanQuestion: {
-    back: "上一步",
-    next: "下一步",
-    submit: "确认选择",
-    submitting: "正在提交选择…",
-    answered: "已选择",
-    noneSelected: "未选择",
-    unavailable: "此问题暂时无法回答",
-  },
   conversationTriggers: {
     suggestions: "输入建议",
     back: "返回",

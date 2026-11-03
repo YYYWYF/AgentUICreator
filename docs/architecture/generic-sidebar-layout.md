@@ -1,6 +1,18 @@
 # Generic Sidebar Layout
 
-Implemented 2026-10-08. Browser, visual, live-model and product acceptance were explicitly excluded by the requested delivery scope.
+AppUIModel owns navigation layout and semantic composition. Runtime renders the selected model deterministically; the Sidebar container is optional.
+
+## Default template layout
+
+Platform presets now use ordinary Row/Panel/Slot composition for navigation and
+conversation regions. AppUIModel owns their order, tracks and responsive drawer
+policy. Moving history left or right changes the model through the existing
+composition operations; templates must not reverse regions with CSS. The Row
+`drawer` policy identifies the primary and navigation children on either side;
+its indices follow child identity during structural moves. The legacy
+`trailing-drawer` policy and existing Sidebar models remain compatible.
+
+Platform uses a 280px left navigation Panel. Assistant and Embedded use their selected project Shell and header composition. Sidebar remains available for custom layouts. Template synchronization must preserve Plugin identities, enablement, child Slots and application customizations; starting tools or upgrading npm does not overwrite the project model.
 
 ## Contract and ownership
 
@@ -8,13 +20,13 @@ Implemented 2026-10-08. Browser, visual, live-model and product acceptance were 
 
 Navigation metadata belongs to `UIPluginManifest.sidebar`: a finite, validated Lucide icon name and optional `en-US`/`zh-CN` labels with manifest-name fallback. Icons are static imports; no dynamic code loading. Sidebar is neither a Plugin type nor an Agent Runtime.
 
-`renderer` calls the Host's `renderSidebar(node, renderNode)` adapter. Source Registry `UIPluginRuntime` resolves item mounts and manifest metadata, renders the active Slot through the existing outlet, and delegates main content to the same LayoutRenderer. The frame owns only local active-item state; changing it never edits AppUIModel. Removed/disabled items clear selection, reordering preserves selection by item ID, and inactive content unmounts.
+`renderer` calls the Host's `renderSidebar(node, renderNode)` adapter. Runtime `/ui` `UIPluginRuntime` resolves item mounts and manifest metadata, renders the active Slot through the existing outlet, and delegates main content to the same LayoutRenderer. The frame owns only local active-item state; changing it never edits AppUIModel. Removed/disabled items clear selection, reordering preserves selection by item ID, and inactive content unmounts.
 
 ## Reused assistant-ui components
 
-Reference revision: `3542d602272a62eddeb8989befc910841c267022`, inspected in the local assistant-ui repository. `threadlist-sidebar.aui.tsx` supplies composition guidance; `clone-thread-shell.tsx` supplies collapse/drawer guidance. Neither conversation-specific shell is copied wholesale.
+Use the pinned sources recorded in canonical Plugin/shared provenance and inspect them in the local assistant-ui repository when changing an upstream seam. `threadlist-sidebar.aui.tsx` supplies composition guidance; `clone-thread-shell.tsx` supplies collapse/drawer guidance. Neither conversation-specific shell is copied wholesale.
 
-The frame composes the existing generated product adapters for `SidebarProvider`, `Sidebar`, `SidebarContent`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarInset`, `Sheet`, `SheetContent`, `SheetTitle` and Tooltip. Sheet retains Base UI focus trapping, Escape and focus restoration; its close action uses the existing upstream Button. History continues using `ConversationThreadListRoot`, `ConversationThreadListNew`, search and item composition; create/search/group/select/delete/loading/retry business logic stays in the history Plugin.
+The frame composes the shared npm product adapters for `SidebarProvider`, `Sidebar`, `SidebarContent`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarInset`, `Sheet`, `SheetContent`, `SheetTitle` and Tooltip. Sheet retains Base UI focus trapping, Escape and focus restoration; its close action uses the existing upstream Button. History continues using `ConversationThreadListRoot`, `ConversationThreadListNew`, search and item composition; create/search/group/select/delete/loading/retry business logic stays in the history Plugin.
 
 ## Product adapter differences
 
@@ -29,11 +41,11 @@ Every upstream edit is a regenerable, guarded seam in `sync-product-adapters.mjs
 
 ## Creator and templates
 
-Inspector exposes Sidebar children/refs and manifest navigation metadata. Deterministic operations include `insert_sidebar_item` (new plugin or existing instance), `remove_sidebar_item`, `reorder_sidebar_items`, and `update_layout_node_props.defaultActive`. Ordinary `move_plugin` moves instances back into existing Slots; an emptied Sidebar entry is pruned at batch end. Operations retain transaction/hash admission and final composition validation. Creator Skills document exact arguments and icon vocabulary. Python resource scope and layout diagnostics include both Sidebar branches.
+Inspector exposes Sidebar children/refs and manifest navigation metadata. Deterministic operations include `insert_sidebar_item` (new plugin or existing instance), `remove_sidebar_item`, `reorder_sidebar_items`, and `update_layout_node_props.defaultActive`. Ordinary `move_plugin` moves instances back into existing Slots; an emptied Sidebar entry is pruned at batch end. Operations retain transaction/hash admission and final composition validation. Creator Skills document exact arguments and icon vocabulary. Operator inspection, source scope and layout diagnostics include both Sidebar branches.
 
-New platform/assistant presets default to a collapsed Sidebar. Platform content retains optional trailing drawer at indices 0/1. Assistant's 26rem container uses drawer mode. Embedded remains lightweight. Existing user AppUIModel files are not migrated or overwritten. Workspace operations project the content Row using refs from the complete tree.
+Workspace operations use authoring refs from the complete tree. Default presets use Row/Panel or header composition; they do not require Sidebar or impose its local collapsed state. Existing custom AppUIModel files are preserved.
 
-## Optional identity Header (2026-10-08 follow-up)
+## Optional identity Header
 
 `sidebar.header?: Slot` adds an ordinary Layout Slot, with zero or one visual
 Plugin. Header mounts have deterministic `layout-node:root.header` and
@@ -47,21 +59,8 @@ restore Header plugins. Removing its last Plugin leaves the optional empty Slot,
 so it remains an inspectable target for restoration. Local refs work inside
 `replace_layout_node` batches. The Header cannot be replaced with a container.
 
-New platform defaults include `agent-identity` and history, with history selected
-by default. Assistant includes the same plugins but remains initially collapsed
-and uses the existing contained Sheet. Embedded does not gain a Sidebar. Existing
-user projects are not rewritten. With Header and one enabled navigation plugin,
-the frame renders a single column and hides the history navigation icon and
-repeated title. Multiple enabled items keep icon switching under the Header.
-Without Header, the legacy path is unchanged. Width variables stay 280px/48px.
+A custom Sidebar may place `agent-identity` in its optional Header. With a Header and one enabled navigation item, the frame renders a single column and hides repeated navigation labels; multiple items retain switching. Without a Header, ordinary Sidebar behavior applies. Sidebar frame widths remain 280px expanded and 48px collapsed; default preset Panel width is owned separately by AppUIModel.
 
-Identity composes the public product facades for upstream-derived SidebarHeader,
-SidebarMenu, SidebarMenuItem and SidebarMenuButton. Its config.ts owns branding;
-its default bilingual names come from the generated agentIdentity namespace.
-The Logo is not a toggle. SidebarFrame owns the official SidebarTrigger. The
-public facades share the same Sidebar context as the frame. No vendor or adapter
-recipe changes, service, conversation runtime or backend logic were introduced.
+Identity uses its public Plugin component and project-owned application props for `name`, `logo` and `description`, with bilingual defaults from the shared `agentIdentity` namespace. The logo is not a toggle. SidebarFrame owns its trigger and shares the existing npm Sidebar context. Product identity content is not stored in AppUIModel or a framework theme configuration file.
 
-Adoption requires React >=0.1.4 and Runtime React >=0.1.2, with regenerated
-foundation contracts/runtime and plugin sources. These source package versions
-are prepared but have not been published to npm. See
+Default initialization uses canonical presets and the installed Plugin application templates. Changing a template does not rewrite existing project applications; npm upgrades preserve them. Validate composition, responsive drawer direction, services and focus behavior separately from static checks, including actual Windows coverage when available.

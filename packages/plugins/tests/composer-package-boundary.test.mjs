@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test } from "vitest";
 import assert from "node:assert/strict";
 import { mkdtemp, writeFile, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -14,6 +14,7 @@ test("Composer subpath imports independently and Vite graph contains no other of
   const temporary = await mkdtemp(path.join(tmpdir(), "composer-bundle-"));
   let moduleIds = [];
   try {
+    await writeFile(path.join(temporary, "package.json"), JSON.stringify({ name: "composer-boundary-fixture", private: true, type: "module" }));
     await writeFile(`${temporary}/entry.js`, 'export { default } from "@za38.03/agent-ui-plugins/composer";\n');
     const result = await build({ configFile: false, root: temporary, logLevel: "silent",
       resolve: { alias: { "@za38.03/agent-ui-plugins/composer": `${packageRoot}dist/composer/index.js` } },

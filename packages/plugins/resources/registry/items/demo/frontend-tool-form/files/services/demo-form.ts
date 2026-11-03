@@ -1,4 +1,4 @@
-import type {} from "../framework/contracts/ui-plugin";
+import type {} from "@za38.03/agent-ui-plugins/contracts";
 import type { ReactHookFormCapability } from "../integrations/react-hook-form";
 
 export const DEMO_FORM_SERVICE = "demo.form" as const;
@@ -19,6 +19,6 @@ export interface DemoFormService extends ReactHookFormCapability<DemoFormField> 
   getSnapshot(): DemoFormSnapshot;
   subscribe(listener: () => void): () => void;
 }
-declare module "../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap { [DEMO_FORM_SERVICE]: DemoFormService }
 }

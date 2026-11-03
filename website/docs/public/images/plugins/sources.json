@@ -1,5 +1,5 @@
 {
-  "capturedDate": "2026-10-23",
+  "capturedDate": "2026-10-24",
   "viewport": {
     "project": [
       {
@@ -13,6 +13,10 @@
       {
         "width": 1280,
         "height": 900
+      },
+      {
+        "width": 1280,
+        "height": 720
       }
     ]
   },
@@ -24,14 +28,23 @@
     {
       "id": "add-attachment-action",
       "source": "AgentUICreator",
-      "scenario": "Mock PDF attachment adapter",
-      "file": "add-attachment-action.png",
+      "scenario": "Default Base64 CSV attachment in a draft; centered file icon after CSS fix.",
+      "file": "add-attachment-action.jpg",
       "dimensions": {
         "width": 720,
-        "height": 238
+        "height": 208
       },
-      "sha256": "c8cc86d3a2a04faf11a5c6f3b26b667dbafe2378b852c628daa23d5093f00f30",
-      "capturedAt": "2026-10-23T01:10:32.358325+00:00"
+      "sha256": "c2ece4aa7f3edd95a879c286ac1ac0d82a995305b302efee801418eb5585f08f",
+      "capturedAt": "2026-10-24T14:58:04.663908+00:00",
+      "url": "http://127.0.0.1:5301/",
+      "projectRoot": "/Users/yifei/Coding/agentui_test/outcome-capture-20261024/results",
+      "clip": {
+        "x": 140,
+        "y": 335,
+        "width": 720,
+        "height": 208
+      },
+      "captureMethod": "Browser webpage screenshot saved directly in its native JPEG format; no resizing or re-encoding."
     },
     {
       "id": "agent-identity",
@@ -72,26 +85,26 @@
     {
       "id": "auth-account",
       "source": "AgentUICreator",
-      "scenario": "public component with Mock service",
+      "scenario": "Official platform template theme provider; optional canonical auth component and styles enabled through capture-only composition with Mock auth service; violet theme. Light/dark/violet login and account-menu rendering and Mock actions verified.",
       "file": "auth-account.png",
-      "capturedAt": "2026-10-23T00:29:05.963846+00:00",
+      "capturedAt": "2026-10-23T02:42:20.855756+00:00",
       "dimensions": {
-        "width": 600,
-        "height": 112
+        "width": 792,
+        "height": 512
       },
-      "sha256": "3162a45c8f317ff33ca6ce7af2629164e898df3fea8cd114da87b32a6a4bc7ab"
+      "sha256": "db8ff85d4254e88446abba8750c79de0dd3f73982cd25e63b1faf2af5ba1b1b1"
     },
     {
       "id": "auth-gate",
       "source": "AgentUICreator",
-      "scenario": "public component with Mock service",
+      "scenario": "Official platform template theme provider; optional canonical auth component and styles enabled through capture-only composition with Mock auth service; violet theme. Light/dark/violet login and account-menu rendering and Mock actions verified.",
       "file": "auth-gate.png",
-      "capturedAt": "2026-10-23T00:26:56.797478+00:00",
+      "capturedAt": "2026-10-23T02:42:20.856082+00:00",
       "dimensions": {
-        "width": 424,
-        "height": 348
+        "width": 1200,
+        "height": 880
       },
-      "sha256": "a255c89972f85f838f7798d591bf83aa307fdf5b704438e0416f94803f2e378a"
+      "sha256": "7dadd200f15518fe26bea099c894f316d0b8805de8172eb09de67862e4f9a26e"
     },
     {
       "id": "chart-message",
@@ -424,14 +437,18 @@
     {
       "id": "theme-switch",
       "source": "AgentUICreator",
-      "scenario": "dark",
+      "scenario": "Official running platform template; official theme switch control mounted for capture and its existing theme service switched to dark",
       "file": "theme-switch.png",
-      "capturedAt": "2026-10-23T00:23:48.029788+00:00",
+      "capturedAt": "2026-10-23T02:21:22.570616+00:00",
       "dimensions": {
-        "width": 1084,
-        "height": 834
+        "width": 2560,
+        "height": 1600
       },
-      "sha256": "7e0baa6af8cdc0959b4c6fb06f7872a7f13c7fbf56124eae7f9270280b7f0841"
+      "sha256": "ffe99ffa7c22b30dd02f4d728906a8ab1dd91a6b434aca973d6777e7e0db56ea",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "captureSetup": "Capture-only header composition; template files unchanged",
+      "deviceScaleFactor": 2
     },
     {
       "id": "thinking-indicator",
@@ -448,44 +465,65 @@
     {
       "id": "tool-fallback",
       "source": "AgentUICreator",
-      "scenario": "Official platform template parallel-tools Mock; read_config expanded to show arguments and result",
-      "file": "tool-fallback.png",
+      "scenario": "Official Platform template parallel-tools Mock; read_config expanded with arguments and result, using upstream fallback presentation",
+      "file": "tool-fallback.jpg",
       "dimensions": {
-        "width": 1424,
-        "height": 396
+        "width": 712,
+        "height": 192
       },
-      "sha256": "1b019697f2ed43a72c5ffcc17dd4e5c177edec756dabaae51772ee5a84fceba8",
-      "capturedAt": "2026-10-23T01:43:49.835076+00:00",
-      "url": "http://127.0.0.1:5180/",
+      "sha256": "aed60c7e8ea5f2f71f23b328247be96e7e505a3ab5f1f054b80e4c65f06e68c5",
+      "capturedAt": "2026-10-23T04:08:36.941795+00:00",
+      "url": "http://127.0.0.1:5185/?scenario=parallel-tools",
       "projectRoot": "examples/creator-host-sandbox",
-      "deviceScaleFactor": 2
+      "deviceScaleFactor": 2,
+      "captureSetup": "Official Platform template copied to an isolated capture project using current built package snapshots; only Mock endpoint selection and screenshot-specific plugin enablement differ. No presentation components or styles replaced.",
+      "screenshotPixelRatio": 1,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
     },
     {
       "id": "tool-group",
       "source": "AgentUICreator",
-      "scenario": "Official platform template parallel-tools Mock, expanded group containing inspect_component and read_config",
-      "file": "tool-group.png",
+      "scenario": "Official Platform template parallel-tools Mock; expanded group showing inspect_component and read_config without added background or outline",
+      "file": "tool-group.jpg",
       "dimensions": {
-        "width": 1440,
-        "height": 248
+        "width": 712,
+        "height": 92
       },
-      "sha256": "17f88fe0bb21a3f811bb87d9130bbac0ea87efc53cd350297aafeb0636051c6a",
-      "capturedAt": "2026-10-23T01:40:21.356166+00:00",
-      "url": "http://127.0.0.1:5180/",
+      "sha256": "b177f16df193cb743052b6035aa2f0e3751565d80d98e9d79f7d222220a645bb",
+      "capturedAt": "2026-10-23T04:08:30.583583+00:00",
+      "url": "http://127.0.0.1:5185/?scenario=parallel-tools",
       "projectRoot": "examples/creator-host-sandbox",
-      "deviceScaleFactor": 2
+      "deviceScaleFactor": 2,
+      "captureSetup": "Official Platform template copied to an isolated capture project using current built package snapshots; only Mock endpoint selection and screenshot-specific plugin enablement differ. No presentation components or styles replaced.",
+      "screenshotPixelRatio": 1,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
     },
     {
       "id": "tool-timeline",
       "source": "AgentUICreator",
-      "scenario": "tool-timeline-thinking",
-      "file": "tool-timeline.png",
+      "scenario": "Official Platform template with tool-timeline enabled; tool-timeline-thinking Mock expanded to show three read_file actions and actual file targets, with no extra details disclosure",
+      "file": "tool-timeline.jpg",
       "dimensions": {
-        "width": 720,
-        "height": 224
+        "width": 712,
+        "height": 140
       },
-      "sha256": "25219ad6277943f9d2036ac028bdaaacd3fb9d783ddd878feaf7fc7168378e44",
-      "capturedAt": "2026-10-23T01:09:30.310029+00:00"
+      "sha256": "c4b9db9272b8c93fa2a6ec1dc66e25961581451a199c95514be26e14aaee9110",
+      "capturedAt": "2026-10-23T04:07:53.869340+00:00",
+      "url": "http://127.0.0.1:5185/?scenario=tool-timeline-thinking",
+      "projectRoot": "examples/creator-host-sandbox",
+      "captureSetup": "Official Platform template copied to an isolated capture project using current built package snapshots; only Mock endpoint selection and screenshot-specific plugin enablement differ. No presentation components or styles replaced.",
+      "deviceScaleFactor": 2,
+      "screenshotPixelRatio": 1,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
     },
     {
       "id": "transient-assistant-messages",
@@ -529,17 +567,84 @@
     {
       "id": "tool-fallback-approval",
       "source": "AgentUICreator",
-      "file": "tool-fallback-approval.png",
-      "scenario": "Official platform template approval-resume Mock; pending operation parameters and allow/deny controls, no decision submitted",
-      "url": "http://127.0.0.1:5180/",
+      "file": "tool-fallback-approval.jpg",
+      "scenario": "Official Platform template approval-resume Mock; operation parameters and allow/deny controls; no decision submitted",
+      "url": "http://127.0.0.1:5185/?scenario=approval-resume",
       "projectRoot": "examples/creator-host-sandbox",
       "deviceScaleFactor": 2,
       "dimensions": {
-        "width": 1424,
-        "height": 340
+        "width": 712,
+        "height": 148
       },
-      "sha256": "3add197685aba4bc86b7957fe135b16daceaba33a42831aaa2f75eeb084f1cb3",
-      "capturedAt": "2026-10-23T01:43:27.049060+00:00"
+      "sha256": "173ac8ff0de507875d2f0c9dd22d98bae754981a3d2dc73598fc1dfaf1c7427f",
+      "capturedAt": "2026-10-23T04:08:55.403039+00:00",
+      "captureSetup": "Official Platform template copied to an isolated capture project using current built package snapshots; only Mock endpoint selection and screenshot-specific plugin enablement differ. No presentation components or styles replaced.",
+      "screenshotPixelRatio": 1,
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "id": "human-interaction-question",
+      "source": "AgentUICreator",
+      "file": "human-interaction-question.png",
+      "scenario": "Official platform template with ask-user-question Mock and official QuestionFlow, waiting for a choice",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "captureSetup": "Capture-only registration of the existing human question adapter through the project toolkit; no template files modified",
+      "deviceScaleFactor": 2,
+      "dimensions": {
+        "width": 1424,
+        "height": 484
+      },
+      "sha256": "f6e7b19148a13d4517f3c4fd97b79aa69de8cb99daf6d8895352bd99138157f0",
+      "capturedAt": "2026-10-23T01:58:21.450538+00:00"
+    },
+    {
+      "id": "human-interaction-answer",
+      "source": "AgentUICreator",
+      "file": "human-interaction-answer.png",
+      "scenario": "Official platform template ask-user-question Mock, Agent continuation after selecting dashboard",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "captureSetup": "Capture-only registration of the existing human question adapter through the project toolkit; no template files modified",
+      "deviceScaleFactor": 2,
+      "dimensions": {
+        "width": 1424,
+        "height": 156
+      },
+      "sha256": "da90c06dc44124a1ebe47e7ec83d49e1f8a75d330d790973697da3196f1d95bc",
+      "capturedAt": "2026-10-23T01:58:22.219303+00:00"
+    },
+    {
+      "id": "theme-switch-light",
+      "source": "AgentUICreator",
+      "file": "theme-switch-light.png",
+      "scenario": "Official running platform template, using its existing theme service switched to light",
+      "url": "http://127.0.0.1:5180/",
+      "projectRoot": "examples/creator-host-sandbox",
+      "captureSetup": "Capture-only header composition; template files unchanged",
+      "deviceScaleFactor": 2,
+      "dimensions": {
+        "width": 2560,
+        "height": 1600
+      },
+      "sha256": "5519897861916e243dde36c3c173b4bf20b72d53ed4438e08001a70bf6717879",
+      "capturedAt": "2026-10-23T02:21:23.241806+00:00"
+    },
+    {
+      "file": "tool-result.png",
+      "scenario": "AG-UI ContentPart[]; audio/video playback without download entries; document download retained",
+      "projectRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/agent-ui-tool-result-xtrKZ8",
+      "captureSetup": "scripts/verify-tool-result-browser.mjs; standalone scratch host; maintained example Hosts unchanged",
+      "deviceScaleFactor": 1,
+      "dimensions": {
+        "width": 1100,
+        "height": 1315
+      },
+      "sha256": "ffbbed4bb27041740d6d0d5a01748d27ed8086192a846712ad206eb339be6f0f",
+      "capturedAt": "2026-10-28T06:19:14.857082+00:00"
     }
   ]
 }

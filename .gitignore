@@ -6,8 +6,13 @@ dist/
 coverage/
 *.tsbuildinfo
 .DS_Store
-.env.agentui.local
-.env.creator.local
+
+# Local Agent UI tooling data; project configuration and source records remain tracked.
+.agent-ui/creator/*
+!.agent-ui/creator/.env.example
+.agent-ui/operator/
+.agent-ui/connection.local.json
+.agent-ui/visual-observations/
 examples/creator-host-sandbox/.env.local
 examples/creator-assistant-host/.env.local
 examples/creator-embedded-host/.env.local
@@ -18,7 +23,6 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-packages/creator/platforms/*/sidecar.json
 apps/creator-workbench/test-results/
 apps/creator-workbench/playwright-report/
 
@@ -57,3 +61,6 @@ examples/creator-embedded-host/.agent-ui/*
 !examples/creator-embedded-host/.agent-ui/mocks/
 examples/creator-embedded-host/.agent-ui/mocks/*
 !examples/creator-embedded-host/.agent-ui/mocks/*.jsonl
+
+# Generated offline documentation handoff; copy with source into the intranet.
+artifacts/creator-documentation/

@@ -1210,6 +1210,9 @@
         "owned": {
           "type": "boolean"
         },
+        "projectOwned": {
+          "type": "boolean"
+        },
         "updateAvailable": {
           "type": "boolean"
         }
@@ -4067,6 +4070,20 @@
         },
         "compositionContract": {
           "$ref": "#/$defs/pluginApplicationCompositionContract"
+        },
+        "presentationContract": {
+          "$ref": "#/$defs/pluginComponentPresentationContract"
+        },
+        "propNames": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "localizedDefaults": {
+          "$ref": "#/$defs/pluginLocalizedDefaults"
         }
       },
       "oneOf": [
@@ -4164,13 +4181,13 @@
           "maxItems": 8,
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z_$][A-Za-z0-9_$]{0,99}(?:\\.[A-Za-z_$][A-Za-z0-9_$]{0,99}){0,8}$"
+            "pattern": "^[A-Za-z_$][A-Za-z0-9_$]{0,99}(?:\\.[A-Za-z_$][A-Za-z0-9_$-]{0,99}){0,8}$"
           }
         },
         "sharedModule": {
           "type": "string",
           "maxLength": 200,
-          "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+          "pattern": "^@za38\\.03/agent-ui-(?:core|renderer|runtime|plugins|web-component)(?:/[a-z][a-z0-9-]*)*$"
         }
       }
     },
@@ -4198,7 +4215,7 @@
         "module": {
           "type": "string",
           "maxLength": 200,
-          "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+          "pattern": "^@za38\\.03/agent-ui-(?:core|renderer|runtime|plugins|web-component)(?:/[a-z][a-z0-9-]*)*$"
         },
         "interpretation": {
           "type": "string",
@@ -4341,7 +4358,7 @@
                     },
                     "propNames": {
                       "type": "array",
-                      "maxItems": 384,
+                      "maxItems": 512,
                       "items": {
                         "type": "string",
                         "maxLength": 200
@@ -4383,30 +4400,127 @@
                 }
               },
               "presentationContract": {
+                "$ref": "#/$defs/pluginComponentPresentationContract"
+              },
+              "union": {
                 "type": "object",
                 "additionalProperties": false,
+                "required": [
+                  "commonMembersOnly",
+                  "variants",
+                  "variantsTruncated",
+                  "interpretation"
+                ],
                 "properties": {
-                  "presentation": {
-                    "type": "string",
-                    "maxLength": 1200
+                  "commonMembersOnly": {
+                    "const": true
                   },
-                  "composition": {
-                    "type": "string",
-                    "maxLength": 1200
+                  "variants": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "queryAvailable",
+                        "type",
+                        "truncated",
+                        "discriminants",
+                        "members",
+                        "membersTruncated"
+                      ],
+                      "properties": {
+                        "query": {
+                          "type": "string",
+                          "maxLength": 908
+                        },
+                        "queryAvailable": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "maxLength": 1200
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        },
+                        "discriminants": {
+                          "type": "array",
+                          "maxItems": 8,
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "name",
+                              "type",
+                              "truncated"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "type": {
+                                "type": "string",
+                                "maxLength": 1200
+                              },
+                              "truncated": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "members": {
+                          "type": "array",
+                          "maxItems": 16,
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "name",
+                              "type",
+                              "truncated"
+                            ],
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "type": {
+                                "type": "string",
+                                "maxLength": 1200
+                              },
+                              "truncated": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "membersTruncated": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
                   },
-                  "portal": {
-                    "type": "string",
-                    "maxLength": 1200
+                  "variantsTruncated": {
+                    "type": "boolean"
                   },
-                  "interaction": {
-                    "type": "string",
-                    "maxLength": 1200
-                  },
-                  "styles": {
+                  "interpretation": {
                     "type": "string",
                     "maxLength": 1200
                   }
                 }
+              },
+              "memberNames": {
+                "type": "array",
+                "maxItems": 512,
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "memberNamesTruncated": {
+                "type": "boolean"
               }
             },
             "oneOf": [
@@ -4564,7 +4678,7 @@
         },
         "customizationProps": {
           "type": "array",
-          "maxItems": 64,
+          "maxItems": 512,
           "items": {
             "type": "string",
             "maxLength": 200
@@ -4583,6 +4697,12 @@
         },
         "compositionContract": {
           "$ref": "#/$defs/pluginApplicationCompositionContract"
+        },
+        "presentationContract": {
+          "$ref": "#/$defs/pluginComponentPresentationContract"
+        },
+        "localizedDefaults": {
+          "$ref": "#/$defs/pluginLocalizedDefaults"
         }
       }
     },
@@ -4657,6 +4777,41 @@
           "maxLength": 2000
         }
       }
+    },
+    "pluginComponentPresentationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "presentation": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "composition": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "portal": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "interaction": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "styles": {
+          "type": "string",
+          "maxLength": 1200
+        }
+      }
+    },
+    "pluginLocalizedDefaults": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "maxProperties": 128
     }
   },
   "oneOf": [

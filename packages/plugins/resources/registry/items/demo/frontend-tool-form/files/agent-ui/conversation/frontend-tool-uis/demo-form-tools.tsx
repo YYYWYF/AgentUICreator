@@ -1,6 +1,6 @@
 import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";
-import { useAgentUILocale } from "../../i18n/useAgentUILocale";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 function receipt(value: unknown): Record<string, unknown> { return typeof value === "object" && value !== null ? value as Record<string, unknown> : {}; }
 /** Historical receipts only: never reads or mutates current form state. */
 export function DemoFormToolUI({ args, result, status, isError, toolName }: ConversationToolCallProps) {

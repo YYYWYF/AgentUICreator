@@ -1,13 +1,2 @@
-export * from "./PluginRegistry";
-export * from "./PluginServiceContext";
-export * from "./PluginServiceProvider";
-export * from "./PluginServiceRuntime";
-export * from "./PluginInstanceRenderer";
-export * from "./PluginRenderScope";
-export * from "./PluginErrorBoundary";
-export * from "./usePluginServiceSnapshot";
-export * from "./UIPluginRuntime";
-export * from "../application/ApplicationLifecycleContext";
-export * from "../application/ApplicationLifecycleRuntime";
-export * from "../diagnostics";
-export * from "../slots/SlotRegistry";
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/runtime/plugins/index";

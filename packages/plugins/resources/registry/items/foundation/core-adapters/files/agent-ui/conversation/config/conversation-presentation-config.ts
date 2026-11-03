@@ -1,11 +1,5 @@
-export interface ConversationWelcomeConfig {
-  title?: string;
-  description?: string;
-}
-
-export interface ConversationPresentationConfig {
-  welcome: ConversationWelcomeConfig;
-}
+import type { ConversationWelcomeConfig, ConversationPresentationConfig } from "@za38.03/agent-ui-runtime/ui";
+export type { ConversationWelcomeConfig, ConversationPresentationConfig } from "@za38.03/agent-ui-runtime/ui";
 
 /**
  * Application-owned Conversation presentation defaults. This is high-code

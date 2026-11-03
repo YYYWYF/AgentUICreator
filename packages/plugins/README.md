@@ -4,6 +4,56 @@ One npm package provides the runtime components/official Composer, the source
 catalog and matching source assets. No standalone Source Registry package is
 required. Existing runtime exports remain available.
 
+## Plugin authoring API
+
+Import `UIPluginDefinition`, `UIPluginComponentProps`, `parseUIPluginManifest`,
+`usePluginActions`, `usePluginEvents`, `usePluginInstance`, `usePluginService`,
+`usePluginServiceSnapshot`, `usePluginRenderScope` and `useApplicationLifecycle`
+from `@za38.03/agent-ui-plugins`. The matching Providers and Contexts are owned
+by this package; generated project modules forward to these same instances.
+Agent snapshot hooks and `AgentRuntimeProvider` belong to
+`@za38.03/agent-ui-runtime`.
+
+Node tools can import the types and manifest parser from
+`@za38.03/agent-ui-plugins/contracts` without loading React components. Extend
+`UIPluginServiceMap` by augmenting this contracts subpath. Runtime `/ui` owns
+service activation, SlotRegistry, AppUIModel validation and compilation. The
+project owns its AppUIModel, Plugin applications and business service bindings.
+Existing projects need an explicit Context/import migration; updating the npm
+package alone does not rewrite project files or source baselines.
+
+## Production bundles and styles
+
+Generated projects import each official Plugin through its own npm subpath.
+The generated registry keeps metadata for every persisted instance, but emits
+implementation imports only for Plugin types with an enabled instance.
+Disabled entries keep a callable metadata-only loader so existing project
+Runtimes can still validate them. It cannot activate a disabled implementation;
+re-enabling regenerates the real import. No project Runtime files need to be
+overwritten for this compatibility path. After
+changing enablement, regenerate the registry before building. Enabling one
+instance retains the implementation shared by all instances of that Plugin.
+
+New project templates import `@za38.03/agent-ui-plugins/styles-base.css` for
+shared themes and foundations. Plugin entries import precompiled utility CSS:
+one common module and private Plugin utilities. Disabling the last instance
+removes that Plugin entry and its private styles from the production graph;
+shared styles and project-authored CSS can remain. Generated semantic Slots use
+`ConversationThreadBase`, which has no built-in response footer; the existing
+`ConversationThread` facade keeps its default footer and actions. Source-owned implementations
+continue to use the project's local Tailwind scan. Optional Lexical styling
+follows the `/lexical` entry, including source-owned integrations.
+
+The existing `styles.css` entry remains the complete stylesheet for direct
+facade consumers and existing projects. Updating this package does not replace
+an existing project's stylesheet or framework files. Project customizations
+remain project-owned.
+
+Run `node scripts/verify-plugin-demand-build.mjs` from the repository root after
+building Plugins to compare complete Vite production builds in disposable Host
+copies. This checks typechecking, disabled implementation removal, production
+tooling isolation, and raw/gzip CSS sizes without editing maintained Hosts.
+
 ## Source ownership
 
 - `src/plugins/<id>/upstream/`: plugin-specific original upstream presentation.
@@ -45,15 +95,16 @@ Node filesystem loaders, historical providers and update orchestration are in
 loaders enter the browser runtime entry. `verify:sources` checks that published
 snapshots still match the canonical source and package identity.
 
-This merge does **not** implement the future user-authorized source-takeover UI
-or make every existing source plugin a packaged runtime plugin. Those remain
-separate work under the accepted architecture. Existing resource installation,
-legacy versions and BASE/LOCAL/TARGET updates remain supported.
+The catalog supports project-owned applications, user-confirmed source takeover
+and implementation-only BASE/LOCAL/TARGET synchronization for all 46 official
+Plugins. Automatic layering of existing customized source and a complete audit
+of every upstream public API remain separate work. npm upgrades preserve the
+application layer, local implementation and source baseline.
 
 ## Source takeover
 
 `dist/catalog.json` declares `takeover` only for complete, validated portable
-closures for the 43 official Plugins. Operator resolves
+closures for the 46 official Plugins. Operator resolves
 these assets from the target project's installed package, never its own copy.
 Creator asks for consent through its human-input interrupt before internal apply.
 The local presentation includes Composer/queue/textarea code; shared contexts,

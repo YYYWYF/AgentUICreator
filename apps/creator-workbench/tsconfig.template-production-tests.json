@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/template-production-host.spec.ts", "playwright.template-production.config.ts"],
+  "exclude": []
+}

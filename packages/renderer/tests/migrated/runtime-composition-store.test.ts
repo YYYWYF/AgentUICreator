@@ -2,10 +2,11 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, it, vi } from "vitest";
 
-import type { UIPluginDefinition } from "../../../operator/control/src/framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   createPluginCapabilityCatalog,
   createRuntimeCompositionStore,
+  buildRuntimeComposition,
   type RuntimeCompositionStore,
 } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
 
@@ -87,6 +88,30 @@ async function publishInitial(
 }
 
 describe("RuntimeCompositionStore", () => {
+  it("compiles disabled instances from metadata without loading their implementations", async () => {
+    const source = JSON.parse(modelSource(["alpha", "disabled"]));
+    source.root.plugins[1].enabled = false;
+    const unused = vi.fn(() => Promise.reject(new Error("must not load")));
+    const result = await buildRuntimeComposition({
+      appUIModelSource: JSON.stringify(source), capabilityCatalogRevision: "a".repeat(64),
+      capabilityCatalog: createPluginCapabilityCatalog([
+        { manifest: definition("alpha").manifest, provides: [], inject: [], optionalInject: [], loadDefinition: async () => definition("alpha") },
+        { manifest: definition("disabled").manifest, provides: [], inject: [], optionalInject: [], loadDefinition: unused },
+      ]),
+    });
+    expect(unused).not.toHaveBeenCalled();
+    expect(result.activeRegistry.get("disabled")).toBeUndefined();
+    expect(result.runtimeModel.pluginInstances["disabled-main"]!.enabled).toBe(false);
+    const metadataOnly = await buildRuntimeComposition({
+      appUIModelSource: JSON.stringify(source), capabilityCatalogRevision: "b".repeat(64),
+      capabilityCatalog: createPluginCapabilityCatalog([
+        { manifest: definition("alpha").manifest, provides: [], inject: [], optionalInject: [], loadDefinition: async () => definition("alpha") },
+        { manifest: definition("disabled").manifest, provides: [], inject: [], optionalInject: [] },
+      ]),
+    });
+    expect(metadataOnly.activeRegistry.list()).toHaveLength(1);
+  });
+
   it("retains the previous module's published snapshot until a fresh candidate is valid", async () => {
     const previousStore = createRuntimeCompositionStore();
     await publishInitial(previousStore);

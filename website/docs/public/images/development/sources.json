@@ -1,0 +1,32 @@
+{
+  "capturedDate": "2026-10-27",
+  "source": "Chromium: disposable generated Host and actual Creator connection controls",
+  "sourceFiles": [
+    "apps/creator-workbench/tests/agent-connection-host.spec.ts",
+    "apps/creator-workbench/tests/support/agent-connection-host.ts",
+    "packages/creator/src/ui/AgentConnectionPanel.tsx"
+  ],
+  "notes": [
+    "Captured by the turning-off-Mock integration test before disabling the temporary connection.",
+    "Cropped to controls; browser chrome and unrelated Host content excluded.",
+    "The empty address shows the built-in placeholder. Mock is selected; no production backend or model request was submitted.",
+    "Browser UI evidence on macOS only; not Windows acceptance."
+  ],
+  "screenshots": [
+    {
+      "file": "agent-connection.png",
+      "scenario": "Connection controls with the new Turn off temporary connection button.",
+      "sha256": "6b5375c05668689f3292198f60c934bde05a95888e6e010ebc0fe1cbf87ca475",
+      "dimensions": {
+        "width": 419,
+        "height": 448
+      },
+      "crop": {
+        "left": 0,
+        "top": 0,
+        "right": 419,
+        "bottom": 448
+      }
+    }
+  ]
+}

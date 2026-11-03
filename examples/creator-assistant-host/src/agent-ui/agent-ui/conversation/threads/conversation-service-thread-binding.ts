@@ -16,7 +16,7 @@ import type {
   ConversationSnapshot,
   ConversationSummary,
 } from "../../../services/conversations";
-import { useMemo, useRef } from "react";
+import { useRef, useState } from "react";
 
 /** The application decides whether this exact persisted snapshot has a durable run. */
 export type ConversationRunResumeProvider<TState = unknown> = (snapshot: {
@@ -33,9 +33,12 @@ export function useConversationServiceThreadBinding<TState = unknown>(
 ): ConversationServiceThreadBinding<TState> {
   const providerRef = useRef(resumeProvider);
   providerRef.current = resumeProvider;
-  return useMemo(() => createConversationServiceThreadBinding<TState>(
+  // This owns conversation identities, not a disposable render cache. React
+  // Fast Refresh invalidates useMemo even with [], while preserving state.
+  const [binding] = useState(() => createConversationServiceThreadBinding<TState>(
     snapshot => providerRef.current?.(snapshot), initialThreadId,
-  ), []);
+  ));
+  return binding;
 }
 
 export interface ConversationServiceThreadBinding<TState = unknown>

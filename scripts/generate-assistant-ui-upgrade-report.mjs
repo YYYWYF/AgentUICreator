@@ -11,8 +11,8 @@ const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SESSION_FILE = ".assistant-ui-update-session.json";
 const CANCELLATION_UPSTREAM_PATTERNS = [
-  /(^|\/)packages\/react-ag-ui\/src\/runtime\/adapter\/subscriber\./u,
-  /(^|\/)packages\/react-ag-ui\/src\/runtime\/AgUiThreadRuntimeCore\./u,
+  /(^|\/)packages\/react-ag-ui\/src\/runtime\/adapter\/(?:subscriber|run-aggregator)\./u,
+  /(^|\/)packages\/react-ag-ui\/src\/runtime\/(?:AgUiThreadRuntimeCore|AgUiThreadController|agUiThreadState)\./u,
   /(^|\/)packages\/react-ag-ui\/src\/useAgUiRuntime\./u,
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
@@ -218,7 +218,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   if (duplicateClientVersions) reasons.push("multiple @ag-ui/client versions resolved");
   if (cancellationRelevantUpstreamChanges.length > 0) reasons.push("cancellation-related upstream transport files changed");
   if (upstreamDiffUnavailable) reasons.push("upstream change set unavailable");
-  const cancellationShimReauditRequired =
+  const cancellationReauditRequired =
     !nextCompatibility.compatible ||
     dependencyRangeChanged ||
     agUiPinnedVersionChanged ||
@@ -226,13 +226,13 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     transportBaselineChanged ||
     cancellationRelevantUpstreamChanges.length > 0 ||
     upstreamDiffUnavailable;
-  const cancellationStatus = cancellationShimReauditRequired
+  const cancellationStatus = cancellationReauditRequired
     ? "REVIEW REQUIRED"
     : "SAFE: AG-UI transport baseline unchanged";
   const cancellationCompatibility = {
     ...nextCompatibility,
     guardStatus: nextCompatibility.status,
-    cancellationShim: "ACTIVE",
+    cancellationTransport: "UPSTREAM",
     previousAgUi,
     previousAgUiCompatibility: previousCompatibility,
     nextAgUiCompatibility: nextCompatibility,
@@ -243,7 +243,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     upstreamChangedFiles,
     cancellationRelevantUpstreamChanges,
     transportBaselineChanged,
-    reAuditRequired: cancellationShimReauditRequired,
+    reAuditRequired: cancellationReauditRequired,
     reasons,
     status: cancellationStatus,
   };
@@ -302,7 +302,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     { capability: "Composer / Message Footer / Thread List / Attachments / Suggestions", status: "REVIEW REQUIRED: report does not validate behavior" },
     { capability: "LangChain / LangGraph persisted message conversion", status: langGraphStatus },
     { capability: "ConversationSubagentTool compatibility presentation", status: "PRODUCT COMPOSITION: validate nested transcript compatibility" },
-    { capability: "CancellationAwareHttpAgent / AG-UI transport", status: cancellationStatus },
+    { capability: "HTTP cancellation boundary / AG-UI transport", status: cancellationStatus },
   ];
   const current = {
     ...prior,
@@ -356,7 +356,7 @@ To:
 - @assistant-ui/react-ag-ui ${target.packages["@assistant-ui/react-ag-ui"]}
 - @assistant-ui/react-langgraph ${target.packages["@assistant-ui/react-langgraph"]}
 - @assistant-ui/react-markdown ${target.packages["@assistant-ui/react-markdown"]}
-- @assistant-ui/react-generative-ui ${target.packages["@assistant-ui/react-generative-ui"] ?? "not targeted"}
+- @assistant-ui/generative-ui ${target.packages["@assistant-ui/generative-ui"] ?? "not targeted"}
 - upstream revision: ${current.toRevision}
 - Generative UI release revision: ${target.generativeUiReleaseRevision ?? "not targeted"}
 
@@ -374,7 +374,7 @@ ${nextCompatibility.reactAgUiClientRange ?? "unknown"}
 Resolved lockfile versions:
 ${resolvedAgUiClientVersions.length === 0 ? "unknown" : resolvedAgUiClientVersions.join(", ")}
 
-CancellationAwareHttpAgent: ${cancellationCompatibility.cancellationShim}
+HTTP cancellation boundary: ${cancellationCompatibility.cancellationTransport}
 
 Status:
 ${cancellationStatus}

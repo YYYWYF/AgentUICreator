@@ -1,4 +1,3 @@
-import { withAgentUILocalEnv } from "./agentui.vite-env.mjs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { realpathSync } from "node:fs";
@@ -8,17 +7,16 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-import { readCreatorHostConfigValue } from "../../packages/operator/src/creatorRuntimeConfig.js";
-import { createCreatorDevServerPlugin } from "../../packages/operator/src/vitePlugin.js";
-import { CreatorWorkspaceManager } from "../../packages/operator/src/workspace/CreatorWorkspaceManager.js";
-import { PythonCreatorProcessManager } from "../../packages/operator/src/PythonCreatorProcessManager.js";
-import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/dev";
+import { readCreatorHostConfigValue } from "../../packages/creator/src/creatorRuntimeConfig.js";
+import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
+import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
+import { CreatorProcessManager } from "../../packages/creator/src/CreatorProcessManager.js";
+import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-creator/project/dev";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
-import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/operator/dev";
-import type { MockProjectInspector } from "../../packages/operator/src/mock/demo-compatibility";
-import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-creator/operator/dev";
-import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/operator/dev";
-import { installDemoPlugin } from "@za38.03/agent-ui-creator/operator/dev";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/project/dev";
+import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
+import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-creator/project/dev";
+import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/project/dev";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
 
 const workspaceRoot = path.resolve(
@@ -33,14 +31,14 @@ const workspaceManager = new CreatorWorkspaceManager({
   initializeProject: input => initializeAgentUIProject(input, initializationHost),
   validateProjectSetup: validateAgentUIProjectSetup,
   suggestSourceRoot: suggestAgentUISourceRoot,
-  createPythonManager: (projectRoot) => new PythonCreatorProcessManager({
+  createRuntimeManager: (projectRoot) => new CreatorProcessManager({
     projectRoot,
     configRoot: workspaceRoot,
     allowExternalEndpoint: false,
   }),
 });
 
-export default withAgentUILocalEnv(defineConfig({
+export default defineConfig({
   envDir: workspaceRoot,
   define: {
     __CREATOR_HOST_WORKSPACE_ID__: JSON.stringify(
@@ -65,9 +63,8 @@ export default withAgentUILocalEnv(defineConfig({
     },
     createCreatorDevServerPlugin({
       workspaceManager,
-      installMockPlugin: installDemoPlugin,
       installOfficialAgentUIResource: async (projectRoot, resourceId) => { await installOfficialAgentUIResource(projectRoot, resourceId); },
-      // Host adapter calls the same formal protocol as Python Creator tools.
+      // Host adapter calls the same formal protocol as Creator Agent tools.
       inspectMockProject: async target => {
         const composition = await handleUIOperatorRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
         const sources = await handleUIOperatorRequest({ operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
@@ -95,18 +92,18 @@ export default withAgentUILocalEnv(defineConfig({
         workspaceRoot,
         "packages/plugins/src/styles.css",
       ),
-      "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/operator/src/host-preview/hostPreviewWorkbench.ts"),
+      "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
       "@za38.03/agent-ui-creator/ui": path.join(
         workspaceRoot,
-        "packages/operator/src/ui/CreatorWorkbench.tsx",
+        "packages/creator/src/ui/CreatorWorkbench.tsx",
       ),
       "@za38.03/agent-ui-creator/runtime-diagnostics": path.join(
         workspaceRoot,
-        "packages/operator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
+        "packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
       ),
       "@za38.03/agent-ui-creator/visual-observation": path.join(
         workspaceRoot,
-        "packages/operator/src/visual-observation/VisualObservationReporter.ts",
+        "packages/creator/src/visual-observation/VisualObservationReporter.ts",
       ),
       "@za38.03/agent-ui-plugins/lexical": path.join(workspaceRoot, "packages/plugins/src/lexical.tsx"),
       "@za38.03/agent-ui-plugins": path.join(
@@ -137,4 +134,4 @@ export default withAgentUILocalEnv(defineConfig({
     strictPort: true,
     fs: { allow: [workspaceRoot] },
   },
-}));
+});

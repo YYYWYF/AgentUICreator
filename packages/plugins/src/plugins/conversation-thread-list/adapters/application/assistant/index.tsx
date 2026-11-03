@@ -1,3 +1,4 @@
+import { useConversationActions } from "../../services/hooks/useConversationActions";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import {
   AgentUIPopover,
@@ -8,33 +9,21 @@ import {
   useAgentUILocale,
 } from "@za38.03/agent-ui-plugins";
 import { Clock } from "lucide-react";
-import {
-  usePluginService,
-  usePluginServiceSnapshot,
-} from "../../runtime/plugins";
-import {
-  AGENT_UI_CONVERSATION_SERVICE,
-  EMPTY_CONVERSATION_SNAPSHOT,
-  type ConversationService,
-} from "../../services/conversations";
-import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";
-import { useAgentRun } from "../../runtime/context";
+import { useConversations } from "../../services/hooks/useConversations";
+import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui";
+import { useAgentRun } from "@za38.03/agent-ui-runtime";
 import "./assistant.css";
 
 export function ConversationThreadListPlugin(
   props: ComponentProps<typeof CanonicalConversationThreadList>,
 ) {
-  const conversation = usePluginService<ConversationService>(
-    AGENT_UI_CONVERSATION_SERVICE,
-  );
-  const snapshot = usePluginServiceSnapshot(
-    conversation,
-    EMPTY_CONVERSATION_SNAPSHOT,
-  );
+  const { snapshot, serviceAvailable } = useConversations();
+  const { refresh } = useConversationActions();
   const theme = useAgentUITheme();
   const run = useAgentRun();
   const messages = useAgentUILocale("threadList");
   const [open, setOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
   const actions = useRef<{ close: () => void; unmount: () => void } | null>(
     null,
   );
@@ -64,6 +53,15 @@ export function ConversationThreadListPlugin(
           <Clock aria-hidden="true" />
         </AgentUIPopoverTrigger>
         <AgentUIPopoverContent
+          ref={popupRef}
+          initialFocus={(interactionType) => {
+            const popup = popupRef.current;
+            const search = popup?.querySelector<HTMLElement>('[role="searchbox"], input[type="search"]');
+            // Preserve touch keyboard behavior and focus access without moving the Host.
+            const target = interactionType === "touch" ? popup : search ?? popup;
+            target?.focus({ preventScroll: true });
+            return false;
+          }}
           align="end"
           sideOffset={12}
           className="conversation-thread-list-popover"
@@ -73,10 +71,10 @@ export function ConversationThreadListPlugin(
           <CanonicalConversationThreadList
             {...props}
             headerActions={props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}
-            listProps={{ showSearch: true, ...props.listProps }}
+            showSearch={props.showSearch ?? true}
             snapshot={snapshot}
-            serviceAvailable={conversation !== undefined}
-            onRefresh={() => conversation?.refresh()}
+            serviceAvailable={serviceAvailable}
+            onRefresh={refresh}
             theme={theme}
             runStatus={run.status}
           />
@@ -89,10 +87,8 @@ export function ConversationThreadListPlugin(
 export function ConversationThreadListRailAction(
   props: ComponentProps<typeof RailImplementation>,
 ) {
-  const conversation = usePluginService<ConversationService>(
-    AGENT_UI_CONVERSATION_SERVICE,
-  );
+  const { serviceAvailable } = useConversations();
   return (
-    <RailImplementation enabled={conversation !== undefined} {...props} />
+    <RailImplementation enabled={serviceAvailable} {...props} />
   );
 }

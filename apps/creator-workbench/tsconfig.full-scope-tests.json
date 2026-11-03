@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/full-scope-host.spec.ts", "tests/run-resume-production-refresh.e2e.spec.ts", "playwright.full-scope.config.ts"],
+  "exclude": []
+}

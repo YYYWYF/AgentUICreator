@@ -110,6 +110,46 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/ui/tooltip.tsx") {
+    installed = replaceExactlyOnce(installed,
+      '      <TooltipPrimitive.Positioner\n',
+      '      <TooltipPrimitive.Positioner\n        data-agent-ui-owned=""\n        data-slot="tooltip-positioner"\n', localPath);
+    installed = replaceExactlyOnce(installed,
+      '        className="isolate z-50"',
+      '        // Floating Hosts can have a zero-width root. Size from the content,\n' +
+      '        // bounded by Base UI\'s collision area, rather than that containing block.\n' +
+      '        className="isolate z-50 w-max max-w-[var(--available-width)]"', localPath);
+    installed = replaceExactlyOnce(installed,
+      'inline-flex w-fit max-w-xs origin-(--transform-origin)',
+      'inline-flex w-max max-w-[min(20rem,var(--available-width))] whitespace-normal break-words origin-(--transform-origin)', localPath);
+  }
+  // Preserve the public media controls seam when regenerating product adapters.
+  if (localPath === "components/assistant-ui/elements/file.tsx") {
+    installed = replaceExactlyOnce(installed, '  sourceType?: "url" | "id" | undefined;\n}\n\nfunction FilePlayer',
+      '  sourceType?: "url" | "id" | undefined;\n  controlsList?: string | undefined;\n}\n\nfunction FilePlayer', localPath);
+    installed = replaceExactlyOnce(installed, '  sourceType,\n  className,\n  ...props\n}: FilePlayerProps)',
+      '  sourceType,\n  controlsList,\n  className,\n  ...props\n}: FilePlayerProps)', localPath);
+    installed = replaceExactlyOnce(installed, '<VideoPlayer src={src} title={filename} />',
+      '<VideoPlayer src={src} title={filename} controlsList={controlsList} />', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/media-player.tsx") {
+    installed = replaceExactlyOnce(installed, '  src: string;\n  poster?: string | undefined;',
+      '  src: string;\n  controlsList?: string | undefined;\n  poster?: string | undefined;', localPath);
+    installed = replaceExactlyOnce(installed, 'export function VideoPlayer({\n  src,\n',
+      'export function VideoPlayer({\n  src,\n  controlsList,\n', localPath);
+    installed = replaceExactlyOnce(installed, '          controls\n          playsInline',
+      '          controls\n          controlsList={controlsList}\n          playsInline', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/attachment.aui.tsx") {
+    // A size override lets cn discard Avatar's default size-8. Separate h/w
+    // overrides leave size-8 present and depend on split CSS loading order.
+    installed = replaceExactlyOnce(installed,
+      'aui-attachment-tile-avatar h-full w-full rounded-none after:hidden',
+      'aui-attachment-tile-avatar size-full rounded-none after:hidden', localPath);
+    installed = replaceExactlyOnce(installed,
+      'text-white after:absolute after:-inset-1.5 hover:bg-black/70!',
+      'text-white after:pointer-events-none hover:bg-black/70!', localPath);
+  }
   if (localPath === "components/ui/badge.tsx") {
     installed = replaceExactlyOnce(installed, '  const defaultProps = {\n', '  const defaultProps = {\n    "data-agent-ui-owned": "",\n', localPath);
   }
@@ -133,6 +173,31 @@ export function applyProductAdaptations(source, localPath) {
   }
   if (localPath === "components/assistant-ui/elements/web-search.tsx") {
     installed = replaceExactlyOnce(installed, 'className="flex min-h-[5.75rem] flex-col"', 'className={cn("flex flex-col", searching && "min-h-[5.75rem]")}', localPath);
+    installed = replaceExactlyOnce(installed, '  domain: string;\n}', `  domain: string;
+  url?: string;
+  snippet?: string;
+}
+
+function webSearchHref(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+  } catch { return undefined; }
+}`, localPath);
+    installed = replaceExactlyOnce(installed,
+      '{take(results, visibleResults).map((result) => (',
+      '{take(results, visibleResults).map((result, index) => {\n          const href = webSearchHref(result.url);\n          return (', localPath);
+    installed = replaceExactlyOnce(installed, 'key={`${cycle}-${result.domain}`}', 'key={`${cycle}-${index}`}', localPath);
+    installed = replaceExactlyOnce(installed, `            <span className="text-foreground/90 min-w-0 flex-1 truncate text-[13.5px]">
+              {result.title}
+            </span>`, `            <div className="min-w-0 flex-1">
+              {href ? <a href={href} target="_blank" rel="noopener noreferrer" className="text-foreground/90 focus-visible:ring-ring/50 block truncate rounded-sm text-[13.5px] outline-none hover:underline focus-visible:ring-1">
+                <span>{result.title}</span>
+              </a> : <span className="text-foreground/90 block truncate text-[13.5px]">{result.title}</span>}
+              {typeof result.snippet === "string" && result.snippet ? <p className="text-muted-foreground mt-1 text-xs">{result.snippet}</p> : null}
+            </div>`, localPath);
+    installed = replaceExactlyOnce(installed, '        ))}', '          );\n        })}', localPath);
   }
   if (localPath === "components/assistant-ui/elements/thread-list.aui.tsx") {
     for (const [before, after] of [

@@ -1,3 +1,2 @@
-export * from "./ApplicationLifecycleContext";
-export * from "./ApplicationLifecycleRuntime";
-export * from "./ApplicationGateSurface";
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/runtime/application/index";

@@ -2,13 +2,14 @@ import { useEffect } from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
+import { CanonicalWebSearch } from "@za38.03/agent-ui-plugins";
 import { ApplicationSessionBoundary, useApplicationSessionConnection } from "../../plugins/resources/registry/items/foundation/core/files/application/ApplicationSessionBoundary";
 import { createAuthSession } from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/session";
 import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin/auth-gate/files/services/auth/mock-adapter";
 import { createPluginRegistry } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/tools";
 import gateManifest from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/manifest.json";
-import { parseUIPluginManifest } from "../../operator/control/src/framework/contracts/ui-plugin";
+import { parseUIPluginManifest } from "../../creator/operator/src/framework/contracts/ui-plugin";
 
 it("starts no conversation subtree while blocked and disposes it across logout and identity changes", async () => {
   const adapter = createDemoAuthAdapter({ demo: true }); const session = createAuthSession(adapter);
@@ -44,16 +45,26 @@ it("starts no conversation subtree while blocked and disposes it across logout a
   } finally { await act(async () => root.unmount()); host.remove(); }
 });
 
-it("preserves the original ungated conversation lifetime through composition updates", async () => {
+it("localizes ungated toolkit renderers while preserving the conversation and draft through locale/composition updates", async () => {
   const mounts = vi.fn(); const cleanups = vi.fn();
-  function Probe() { useEffect(() => { mounts(); return cleanups; }, []); return <div>Ungated</div>; }
+  function Probe() { useEffect(() => { mounts(); return cleanups; }, []); return <div>Ungated<input defaultValue="Draft" /></div>; }
   const registry = createPluginRegistry([]);
   const composition = { runtimeModel: { root: { type: "slot", id: "main", slotId: "main" }, pluginInstances: {} }, activeRegistry: registry } as any;
   const tools = new AppFrontendToolRuntime(new AppFrontendToolRegistry([]));
   const host = document.createElement("div"); const root = createRoot(host);
+  const content = (locale: "zh-CN" | "en-US") => <ApplicationSessionBoundary locale={locale} composition={{ ...composition }} frontendTools={tools}>
+    <Probe />
+    <CanonicalWebSearch toolCallId="search" toolName="web_search" args={{ query: "query" }} status={{ type: "complete" }} result={{ results: [{ title: "Result", domain: "example.test" }] }} />
+  </ApplicationSessionBoundary>;
   try {
-    await act(async () => root.render(<ApplicationSessionBoundary composition={composition} frontendTools={tools}><Probe /></ApplicationSessionBoundary>));
-    await act(async () => root.render(<ApplicationSessionBoundary composition={{ ...composition }} frontendTools={tools}><Probe /></ApplicationSessionBoundary>));
+    await act(async () => root.render(content("zh-CN")));
+    expect(host.textContent).toContain("已读取 1 个来源");
+    const input = host.querySelector("input")!; input.value = "Unsent draft";
+    await act(async () => root.render(content("en-US")));
+    expect(host.textContent).toContain("Read 1 sources");
+    await act(async () => root.render(content("zh-CN")));
+    expect(host.textContent).toContain("已读取 1 个来源");
+    expect(host.querySelector("input")).toBe(input); expect(input.value).toBe("Unsent draft");
     expect(mounts).toHaveBeenCalledTimes(1); expect(cleanups).not.toHaveBeenCalled();
   } finally { await act(async () => root.unmount()); }
 });

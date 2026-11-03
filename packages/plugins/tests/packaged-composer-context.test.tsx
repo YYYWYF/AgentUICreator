@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { AssistantRuntimeProvider, useLocalRuntime } from "@assistant-ui/react";
 import { expect, it } from "vitest";
@@ -32,7 +32,7 @@ it("published Composer forwards application input and root props and preserves c
     runtime = useLocalRuntime({ async *run() { runs++; yield { content: [{ type: "text" as const, text: "done" }] }; } });
     return <AssistantRuntimeProvider runtime={runtime}>
       <ConversationComposerPlugin renderSlot={(_slot, fallback) => fallback} renderScopedSlot={() => null}
-        rootProps={{ "aria-label": "custom-form" }} beforeInput={<span data-testid="application-before">custom</span>}
+        aria-label={"custom-form"} beforeInput={<span data-testid="application-before">custom</span>}
         inputProps={{ submitMode: "ctrlEnter", minRows: 2, maxRows: 8, placeholder: "custom-placeholder", "aria-label": "custom-input", onKeyDown: () => keys++ }} />
     </AssistantRuntimeProvider>;
   }
@@ -50,4 +50,26 @@ it("published Composer forwards application input and root props and preserves c
     await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", {key:"Enter", ctrlKey:true, bubbles:true, cancelable:true})); });
     expect(runs).toBe(1); expect(keys).toBe(2);
   } finally { await act(async () => root.unmount()); container.remove(); }
+});
+
+it("published Lexical keeps legacy IME Enter out of submission while forwarding application key handlers", async () => {
+  let runtime!: ReturnType<typeof useLocalRuntime>;
+  let runs = 0, keys = 0, childMounts = 0, childCleanups = 0;
+  function ApplicationChild() { useEffect(() => { childMounts++; return () => { childCleanups++; }; }, []); return null; }
+  function Host() {
+    runtime = useLocalRuntime({ async *run() { runs++; yield { content: [{ type: "text" as const, text: "done" }] }; } });
+    return <AssistantRuntimeProvider runtime={runtime}><ConversationCanonicalComposer input={<ConversationComposerLexicalInput onKeyDown={() => keys++}><ApplicationChild /></ConversationComposerLexicalInput>} /></AssistantRuntimeProvider>;
+  }
+  const container = document.createElement("div"); document.body.append(container);
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(<Host />));
+    expect(childMounts).toBe(1);
+    await act(async () => runtime.thread.composer.setText("中文候选输入"));
+    const input = container.querySelector('[contenteditable="true"]')!;
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 229, isComposing: false, bubbles: true, cancelable: true })); });
+    expect(runs).toBe(0); expect(keys).toBe(1); expect(runtime.thread.composer.getState().text).toBe("中文候选输入");
+    await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", bubbles: true, cancelable: true })); });
+    expect(runs).toBe(1); expect(keys).toBe(2);
+  } finally { await act(async () => root.unmount()); expect(childCleanups).toBe(1); container.remove(); }
 });

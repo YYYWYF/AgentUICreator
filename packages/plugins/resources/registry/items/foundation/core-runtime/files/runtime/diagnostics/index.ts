@@ -1,5 +1,2 @@
-export * from "./app-ui-model-hash";
-export * from "./layout-observation";
-export * from "./PluginDiagnosticContext";
-export * from "./types";
-export * from "./width-compatibility";
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/runtime/diagnostics/index";

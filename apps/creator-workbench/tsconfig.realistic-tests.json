@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/realistic-host.spec.ts", "playwright.realistic.config.ts"],
+  "exclude": []
+}

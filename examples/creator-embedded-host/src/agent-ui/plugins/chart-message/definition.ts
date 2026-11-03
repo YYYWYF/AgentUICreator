@@ -1,4 +1,4 @@
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";
 import implementation from "@za38.03/agent-ui-plugins/chart-message";
 import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";
 import { ChartMessagePlugin } from "./index";

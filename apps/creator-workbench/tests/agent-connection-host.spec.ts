@@ -1,7 +1,9 @@
 import { expect, test as base } from "@playwright/test";
 import { existsSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createConnectionHostFixture } from "./support/agent-connection-host.js";
+
 const test = base.extend<{ preview: Awaited<ReturnType<typeof createConnectionHostFixture>> }>({
   preview: async ({}, use) => { const fixture = await createConnectionHostFixture(); try { await use(fixture); } finally { await fixture.close(); } },
 });
@@ -17,25 +19,50 @@ test.beforeEach(async ({ page, preview }) => {
   await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
 });
 
-test("ordinary Host receives Mock thread list, history and chat through Creator", async ({ page, preview }) => {
+for (const width of [1440, 900]) {
+test(`ordinary Host receives Mock thread list, history and chat through Creator at ${width}px`, async ({ page, preview }, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.setViewportSize({ width, height: 1000 });
   expect(existsSync(path.join(preview.hostRoot, "node_modules/@za38.03/agent-ui-creator"))).toBe(false);
   await page.getByRole("button", { name: "返回对话", exact: true }).click();
   const host = page.frameLocator('iframe[title="Host Application"]');
   const list = host.locator('[data-ui-plugin="conversation-thread-list"]');
-  await expect(list).toContainText("历史：基础会话");
+  await expect(host.locator("[data-layout-responsive]")).toHaveAttribute("data-layout-responsive", width === 900 ? "drawer" : "grid");
+  const toggle = host.locator(".app-ui-layout-drawer-controls button");
+  if (width === 900) await toggle.click();
+  await expect(list.getByText("历史：基础会话", { exact: true })).toBeVisible();
   await list.getByText("历史：基础会话", { exact: true }).click();
   await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("我们先从 Runtime、Frontend State 和 UI Plugin 的边界开始");
   await expect(host.locator('[data-plugin-state="error"]')).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("history-loaded.png"), animations: "disabled" });
   const selection = await page.request.post(`${preview.creatorOrigin}__agent-ui/creator/mock/select`, { data: { scenarioId: "simple-chat", speed: 0 } });
   expect(selection.ok()).toBe(true);
+  // The AppUIModel responsive Row uses its native dialog controls.
+  if (width === 900) {
+    await page.keyboard.press("Escape");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(list).toBeHidden();
+    await toggle.click();
+    await expect(list).toBeVisible();
+  }
   await list.getByRole("button", { name: /新建会话|New Thread/ }).click();
+  if (width === 900) await page.keyboard.press("Escape");
+  await expect(host.locator('[data-ui-plugin="conversation-surface"]')).not.toContainText("我们先从 Runtime、Frontend State 和 UI Plugin 的边界开始");
   const response = page.waitForResponse(value => value.url().startsWith(`${preview.hostOrigin}__agent-ui/mock`) && value.request().method() === "POST");
   await host.locator(".aui-composer-root").getByRole("textbox").fill("Mock chat through ordinary Host");
   await host.locator(".aui-composer-send").click();
   expect((await response).status()).toBe(200);
   await expect(host.locator('[data-slot="aui_assistant-message-root"]')).toContainText("你好，这是一个纯文本流式回复。");
-  await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).not.toHaveAttribute("data-conversation-list-status", "error");
+  await page.screenshot({ path: testInfo.outputPath("new-thread-completed.png"), animations: "disabled" });
+  if (width === 900) {
+    await expect(list).toBeHidden();
+    await toggle.click();
+  }
+  await expect(list).toHaveAttribute("data-conversation-list-status", "ready");
+  expect(errors).toEqual([]);
 });
+}
 
 test("generated Host mounts independently without a root tsconfig or Creator preview", async ({ page, preview }) => {
   expect(existsSync(path.join(preview.hostRoot, "tsconfig.json"))).toBe(false);
@@ -113,4 +140,66 @@ test("no-CORS Connected Agent streams before completion and Source switching iso
   await expect(endpoint).toHaveValue(preview.agentEndpoint);
   await expect(host.getByText("历史：基础会话", { exact: true })).toHaveCount(0);
   await expect(host.getByText(/wire:first/)).toHaveCount(0);
+});
+
+for (const source of ["mock", "connected"] as const) {
+test(`turning off ${source} restores the application endpoint and stays off after a workbench reload`, async ({ page, preview }) => {
+  preview.enableCors();
+  const endpoint = `${preview.agentEndpoint}?application=1`;
+  await writeFile(path.join(preview.hostRoot, "src/main.tsx"), `import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import "./host.css"; createRoot(document.getElementById("root")!).render(<Agent endpoint={${JSON.stringify(endpoint)}} />);`);
+  if (source === "connected") {
+    await page.getByRole("textbox", { name: "Agent 服务地址" }).fill(preview.agentEndpoint);
+    await page.getByRole("button", { name: "使用此地址", exact: true }).click();
+  }
+  if (source === "mock") await page.locator(".creator-agent-connection").screenshot({ path: path.resolve("../../artifacts/docs-agent-connection-20261027/connection-enabled.png") });
+  await page.getByRole("button", { name: "关闭临时连接", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("临时连接已关闭，当前使用应用代码中的 endpoint。");
+  await expect(page.getByRole("button", { name: "关闭临时连接", exact: true })).toBeDisabled();
+  if (source === "mock") await page.locator(".creator-agent-connection").screenshot({ path: path.resolve("../../artifacts/docs-agent-connection-20261027/connection-disabled.png") });
+  if (source === "connected") await expect(page.getByRole("textbox", { name: "Agent 服务地址" })).toHaveValue(preview.agentEndpoint);
+
+  await page.reload();
+  const host = page.frameLocator('iframe[title="Host Application"]');
+  await expect(host.locator(".aui-composer-root").getByRole("textbox")).toBeEditable();
+  await expect(host.getByText("历史：基础会话", { exact: true })).toHaveCount(0);
+  const response = page.waitForResponse(value => value.url() === endpoint && value.request().method() === "POST");
+  await host.locator(".aui-composer-root").getByRole("textbox").fill("Use the application endpoint");
+  await host.locator(".aui-composer-send").click();
+  expect((await response).status()).toBe(200);
+  await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:first");
+  expect(preview.runUrls()).toEqual(["/agent?application=1"]);
+  preview.finishRun();
+  await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:finished");
+
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByRole("button", { name: "连接 Agent", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("临时连接已关闭");
+  await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
+  await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");
+});
+}
+
+test("turning off a dock connection restores the outer application without reloading", async ({ page, preview }) => {
+  preview.enableCors();
+  const endpoint = `${preview.agentEndpoint}?application=dock`;
+  await writeFile(path.join(preview.hostRoot, "src/main.tsx"), `import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import "./host.css"; createRoot(document.getElementById("root")!).render(<Agent endpoint={${JSON.stringify(endpoint)}} />);`);
+  await page.goto(preview.hostOrigin);
+  await page.getByRole("button", { name: /Creator Agent/ }).click();
+  const dock = page.frameLocator('iframe[title="Creator Agent"]');
+  await dock.getByRole("button", { name: "设置", exact: true }).click();
+  await dock.getByRole("button", { name: "连接 Agent", exact: true }).click();
+  await dock.getByRole("textbox", { name: "Agent 服务地址" }).fill(preview.agentEndpoint);
+  await dock.getByRole("button", { name: "使用此地址", exact: true }).click();
+  await expect(dock.getByText("当前使用：自己的 Agent 服务", { exact: true })).toBeVisible();
+  await dock.getByRole("button", { name: "关闭临时连接", exact: true }).click();
+  await expect(dock.getByRole("status")).toContainText("临时连接已关闭");
+  await page.getByRole("button", { name: /收起 Creator/ }).click();
+  const response = page.waitForResponse(value => value.url() === endpoint && value.request().method() === "POST");
+  await page.locator(".aui-composer-root").getByRole("textbox").fill("Use the application endpoint from the dock");
+  await page.locator(".aui-composer-send").click();
+  expect((await response).status()).toBe(200);
+  await expect(page.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:first");
+  expect(preview.runUrls()).toEqual(["/agent?application=dock"]);
+  preview.finishRun();
+  await expect(page.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:finished");
 });

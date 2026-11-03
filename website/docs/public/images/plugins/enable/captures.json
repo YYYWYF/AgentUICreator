@@ -1,0 +1,1022 @@
+{
+  "capturedDate": "2026-10-27",
+  "source": "Current Creator /enable menu in a presentation-only fixture at http://127.0.0.1:5196/. Catalog disabled/available states reproduce the previous documentation fixture; no plugin mutation submitted.",
+  "screenshots": [
+    {
+      "id": "add-attachment-action",
+      "label": "添加附件",
+      "file": "add-attachment-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:17.158Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/add-attachment-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable add-attachment-action",
+      "options": [
+        "添加附件\nadd-attachment-action\n选择文件、加入当前消息，发送前可移除。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "d5792fab796d00a66e84f36f8f11064280a16d4961739e97a01f7db1b6501c9b"
+    },
+    {
+      "id": "agent-identity",
+      "label": "显示 Agent 名称与头像",
+      "file": "agent-identity.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:17.526Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/agent-identity.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable agent-identity",
+      "options": [
+        "显示 Agent 名称与头像\nagent-identity\n显示当前 Agent 的名称、头像和介绍。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "f5cc2f16a213e2f16c6400f953bdb02e1301f660202366a30552015a7ea2e8c4"
+    },
+    {
+      "id": "agent-plan-message",
+      "label": "查看计划步骤与完成情况",
+      "file": "agent-plan-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:17.916Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/agent-plan-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable agent-plan-message",
+      "options": [
+        "查看计划步骤与完成情况\nagent-plan-message\n显示计划步骤、当前步骤和已完成步骤。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "7f58bb062b1b13859ded79bf7e48ae5fecabe9ea5a4ea461f7027ec5602c921a"
+    },
+    {
+      "id": "agent-status-message",
+      "label": "显示 Agent 当前工作状态",
+      "file": "agent-status-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:18.331Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/agent-status-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable agent-status-message",
+      "options": [
+        "显示 Agent 当前工作状态\nagent-status-message\n用简短状态文字说明 Agent 当前正在做什么。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "8389c048409fa2bcaee467759e805950276dfaf1f06ede250985ec81436fb86b"
+    },
+    {
+      "id": "auth-account",
+      "label": "查看账号与退出登录",
+      "file": "auth-account.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:18.646Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/auth-account.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable auth-account",
+      "options": [
+        "查看账号与退出登录\nauth-account\n显示当前用户资料，并按接入情况提供退出登录。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "7998bd8b49120ed4d46a395a2e2ff2716d00b77a9280012c263ae0c5db6af5ad"
+    },
+    {
+      "id": "auth-gate",
+      "label": "登录后进入聊天",
+      "file": "auth-gate.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:19.058Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/auth-gate.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable auth-gate",
+      "options": [
+        "登录后进入聊天\nauth-gate\n在进入聊天前显示登录页，认证成功后进入应用。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "0e967b97eb57e1e149c5247af67021929dc012817409d44c99ef3d35a6351e6a"
+    },
+    {
+      "id": "chart-message",
+      "label": "查看图表",
+      "file": "chart-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:19.431Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/chart-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable chart-message",
+      "options": [
+        "查看图表\nchart-message\n把数值结果显示为可比较的图表。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "c62bd780313ff5da25200567c726a4d9859795f238110a0d072c756638e32a2e"
+    },
+    {
+      "id": "composer",
+      "label": "输入消息",
+      "file": "composer.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:19.772Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/composer.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable composer",
+      "options": [
+        "输入消息\ncomposer\n编辑待发送的消息，并容纳附件、引用和发送按钮。\n已停用",
+        "在输入框显示 @ 与 / 标签\nlexical-composer-input\n把已选中的 @ 对象和 / 指令显示成完整标签。\n尚未添加 · 由 Creator 检查页面后安排位置",
+        "编辑已发送的消息与标签\nlexical-edit-composer\n编辑已发送的用户消息，并保留其中的引用标签。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 344,
+        "width": 405,
+        "height": 393
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 393
+      },
+      "sha256": "64f11db553f0ba9dc2e63c6e9375944e7918da603b42df5e85237eb30c7d84f7"
+    },
+    {
+      "id": "context-retrieval-message",
+      "label": "查看上下文检索结果",
+      "file": "context-retrieval-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:24.624Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/context-retrieval-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable context-retrieval-message",
+      "options": [
+        "查看上下文检索结果\ncontext-retrieval-message\n展开阅读本次提供给 Agent 参考的检索资料。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "1434b185c4c2940cb75ea29ab84014ceee621d323dc3c8c24842560ec5ce96fc"
+    },
+    {
+      "id": "conversation-new",
+      "label": "新建会话",
+      "file": "conversation-new.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:24.996Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-new.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable conversation-new",
+      "options": [
+        "新建会话\nconversation-new\n开始新对话，保留原有聊天记录。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "d2fadec20ac9fdc0b66431fb82bea024decb71f8516e4a95db517c48dad931f2"
+    },
+    {
+      "id": "conversation-quote",
+      "label": "引用消息",
+      "file": "conversation-quote.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:25.431Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-quote.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable conversation-quote",
+      "options": [
+        "引用消息\nconversation-quote\n选中已有回复的一段文字，引用后继续提问。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "82bd34c392b9a32186b2c2497ac42e4b8f68943a7cee6f3baf9d1f6cefdaab0b"
+    },
+    {
+      "id": "conversation-suggestions",
+      "label": "使用开场建议",
+      "file": "conversation-suggestions.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:25.815Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-suggestions.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable conversation-suggestions",
+      "options": [
+        "使用开场建议\nconversation-suggestions\n显示可点击的示例问题，帮助用户开始对话。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "299a46ec9cfc2065c250eefab2756fd9bfdf6e0669152c558c29993d320fce9b"
+    },
+    {
+      "id": "conversation-surface",
+      "label": "显示完整对话区",
+      "file": "conversation-surface.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:26.261Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-surface.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable conversation-surface",
+      "options": [
+        "显示完整对话区\nconversation-surface\n把历史消息、回复和输入框组成完整聊天界面。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "58d50860ead1575c9539c034c2593ffc7fdddf16009c1efe5b734aa225aaea43"
+    },
+    {
+      "id": "conversation-thread-list",
+      "label": "查找与切换会话",
+      "file": "conversation-thread-list.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:26.680Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-thread-list.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable conversation-thread-list",
+      "options": [
+        "查找与切换会话\nconversation-thread-list\n在侧栏搜索、打开和管理历史会话。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "d42c02b08ed3ab2060a0777b221efb187afc384bc9dbd23477db89199eb6dcf3"
+    },
+    {
+      "id": "copy-action",
+      "label": "复制回复",
+      "file": "copy-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:26.995Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/copy-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable copy-action",
+      "options": [
+        "复制回复\ncopy-action\n把当前这次完整回复复制到剪贴板。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "3cdca36b656c46bc31b665f6c939a4fb57cbb627d9efc03d74033b2de85e8814"
+    },
+    {
+      "id": "dictation-action",
+      "label": "语音输入",
+      "file": "dictation-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:27.402Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/dictation-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable dictation-action",
+      "options": [
+        "语音输入\ndictation-action\n开始或停止听写，把识别文字放入草稿。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "0a7b94d0054ce3940ce9170993fb801cc0fe86b738949914c3f36a2169aa07ed"
+    },
+    {
+      "id": "export-markdown-action",
+      "label": "导出回复",
+      "file": "export-markdown-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:27.905Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/export-markdown-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable export-markdown-action",
+      "options": [
+        "导出回复\nexport-markdown-action\n把当前这次完整回复下载成 Markdown 文件。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "54733ce8415fd3c11c1771986484e94fa148bb5d9d6bf88fc4d20b04e1f8d4f0"
+    },
+    {
+      "id": "feedback-actions",
+      "label": "评价回复",
+      "file": "feedback-actions.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:28.217Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/feedback-actions.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable feedback-actions",
+      "options": [
+        "评价回复\nfeedback-actions\n让用户评价当前回复是否有帮助。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "d35b2090c8ddd5a755a798100149fa2bb048118dced1967ce6108d9709c389a1"
+    },
+    {
+      "id": "generated-file-message",
+      "label": "获取生成文件",
+      "file": "generated-file-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:28.629Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/generated-file-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable generated-file-message",
+      "options": [
+        "获取生成文件\ngenerated-file-message\n显示生成文件的名称和下载入口。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "43219780f399ede6ba64658dc9f3c58d429efdd6204d3e2bbbd210c09e5e370d"
+    },
+    {
+      "id": "job-progress-message",
+      "label": "查看后台任务进度",
+      "file": "job-progress-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:29.040Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/job-progress-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable job-progress-message",
+      "options": [
+        "查看后台任务进度\njob-progress-message\n显示后台作业的阶段和进度，业务支持时可取消。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "51e123ef64adf0b2d613a3da03964408aef2f067526949fe5114dcab391c0185"
+    },
+    {
+      "id": "lexical-composer-input",
+      "label": "在输入框显示 @ 与 / 标签",
+      "file": "lexical-composer-input.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:29.398Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/lexical-composer-input.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable lexical-composer-input",
+      "options": [
+        "在输入框显示 @ 与 / 标签\nlexical-composer-input\n把已选中的 @ 对象和 / 指令显示成完整标签。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "f3dc8943b462adc84b4ee211606b633ac6c85a984002ebbcef1d3383b399d2a2"
+    },
+    {
+      "id": "lexical-edit-composer",
+      "label": "编辑已发送的消息与标签",
+      "file": "lexical-edit-composer.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:29.861Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/lexical-edit-composer.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable lexical-edit-composer",
+      "options": [
+        "编辑已发送的消息与标签\nlexical-edit-composer\n编辑已发送的用户消息，并保留其中的引用标签。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "3abfebe72ee4288e9b1cb9d65edf933683d9430b8843b9ed20e6b83466325eb5"
+    },
+    {
+      "id": "locale-switch",
+      "label": "切换界面语言",
+      "file": "locale-switch.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:30.275Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/locale-switch.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable locale-switch",
+      "options": [
+        "切换界面语言\nlocale-switch\n切换中英文界面，保留当前对话和草稿。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "04d6eb61839beb4894b9cb12d3b676325925cc9e988a8e500590207d426dd271"
+    },
+    {
+      "id": "mention-trigger",
+      "label": "输入 @ 搜索对象",
+      "file": "mention-trigger.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:30.579Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/mention-trigger.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable mention-trigger",
+      "options": [
+        "输入 @ 搜索对象\nmention-trigger\n输入 @ 搜索并选择要引用的人或资料。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "055ed7244546f3d77e74e46d17b0aecd8c70736da1340808eae40f1bd31ce077"
+    },
+    {
+      "id": "reasoning",
+      "label": "展开 Agent 思考内容",
+      "file": "reasoning.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:36.737Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/reasoning.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable reasoning",
+      "options": [
+        "展开 Agent 思考内容\nreasoning\n展开或折叠 Agent 返回的思考文字。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "f5a93ad811a769250f409da3b3f4486046547f878a7022ee189dffec2557a521"
+    },
+    {
+      "id": "reload-action",
+      "label": "重新生成回复",
+      "file": "reload-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:37.121Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/reload-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable reload-action",
+      "options": [
+        "重新生成回复\nreload-action\n让 Agent 针对当前问题重新生成回复。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "0ebf9f86d3e131dd623d6e29b1a127d218bb23f7bf0dcdd9ac1f00d684e0e39e"
+    },
+    {
+      "id": "response-footer",
+      "label": "回复操作栏",
+      "file": "response-footer.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:37.475Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/response-footer.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable response-footer",
+      "options": [
+        "回复操作栏\nresponse-footer\n把复制、重试、评价和导出等按钮放在完整回复下方。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 443,
+        "width": 405,
+        "height": 294
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 294
+      },
+      "sha256": "d53f206d5fcf229268127cc8bed344ce63dd63bf50b69382bf878db9ca557088"
+    },
+    {
+      "id": "retrieval-chunks",
+      "label": "查看文档检索片段",
+      "file": "retrieval-chunks.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:37.874Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/retrieval-chunks.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable retrieval-chunks",
+      "options": [
+        "查看文档检索片段\nretrieval-chunks\n阅读文档搜索命中的原文片段。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "a1b41c42e021ccbb9306114deb28741f68c499293bfc33663e7264b780cb7848"
+    },
+    {
+      "id": "slash-command-trigger",
+      "label": "输入 / 使用命令",
+      "file": "slash-command-trigger.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:38.184Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/slash-command-trigger.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable slash-command-trigger",
+      "options": [
+        "输入 / 使用命令\nslash-command-trigger\n输入 / 选择快捷操作，或把指令加入草稿。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "0e78db8b6a8a10bc436ebfbe0d4c86598338e8adf2493f7906e818671202cf27"
+    },
+    {
+      "id": "source-citations-message",
+      "label": "查看引用来源",
+      "file": "source-citations-message.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:38.597Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/source-citations-message.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable source-citations-message",
+      "options": [
+        "查看引用来源\nsource-citations-message\n列出回答引用的网页和文档来源。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "902b4fe53a6d1ae66e1a43211e440b836fdcb3a4e0ed235374712101b04f8a5a"
+    },
+    {
+      "id": "submit-action",
+      "label": "发送与停止",
+      "file": "submit-action.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:38.920Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/submit-action.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable submit-action",
+      "options": [
+        "发送与停止\nsubmit-action\n发送问题，或在 Agent 回复期间请求停止。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "d20921c910c6aac748912b3a6d3fd0dec46f241370d8eacdd2a8a812bc1e2e98"
+    },
+    {
+      "id": "task-group",
+      "label": "查看 SubAgent 任务与结果",
+      "file": "task-group.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:39.210Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/task-group.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable task-group",
+      "options": [
+        "查看 SubAgent 任务与结果\ntask-group\n展开 SubAgent 任务，查看各自的执行状态、过程和结果。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "2783792d588c568385bf693a78f0a68ce08247bf37f39fb73283b758625d65e9"
+    },
+    {
+      "id": "theme-switch",
+      "label": "切换主题",
+      "file": "theme-switch.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:39.625Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/theme-switch.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable theme-switch",
+      "options": [
+        "切换主题\ntheme-switch\n让用户切换浅色、深色和紫色主题。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "a957c9a049f2a347e6683bef0e6e508ef90e61d851b075bae4c0b82936d9f115"
+    },
+    {
+      "id": "thinking-indicator",
+      "label": "显示正在思考提示",
+      "file": "thinking-indicator.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:40.037Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/thinking-indicator.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable thinking-indicator",
+      "options": [
+        "显示正在思考提示\nthinking-indicator\n在尚未显示回答时提示 Agent 仍在思考或处理。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "7577e76218861230f838736c86da02757e6fe2e00140f98d6765893bf3c2d7cd"
+    },
+    {
+      "id": "tool-fallback",
+      "label": "查看工具调用详情",
+      "file": "tool-fallback.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:40.391Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/tool-fallback.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable tool-fallback",
+      "options": [
+        "查看工具调用详情\ntool-fallback\n展开单次工具调用的参数和结果，必要时允许或拒绝执行。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 443,
+        "width": 405,
+        "height": 294
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 294
+      },
+      "sha256": "9373c575099c41c8a2b95e1b053c7e2536b5aed5a8f83898efd21592aa443cc6"
+    },
+    {
+      "id": "tool-group",
+      "label": "展开多个工具调用",
+      "file": "tool-group.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:40.758Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/tool-group.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable tool-group",
+      "options": [
+        "展开多个工具调用\ntool-group\n把多个工具调用归为一组，展开查看各项调用。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 459,
+        "width": 405,
+        "height": 278
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 278
+      },
+      "sha256": "11b953adf2411902b646a84a3ec37df481a1d082f7232e5bd522e5ded1e1c9b7"
+    },
+    {
+      "id": "tool-timeline",
+      "label": "汇总工具执行过程",
+      "file": "tool-timeline.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:41.154Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/tool-timeline.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable tool-timeline",
+      "options": [
+        "汇总工具执行过程\ntool-timeline\n汇总一条回复中的工具执行状态，展开查看过程。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "13f0fd471574223d4a4302641047219c448991ce5cd0c709de7bc7416ffdd29b"
+    },
+    {
+      "id": "transient-assistant-messages",
+      "label": "显示临时通知",
+      "file": "transient-assistant-messages.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:41.468Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/transient-assistant-messages.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable transient-assistant-messages",
+      "options": [
+        "显示临时通知\ntransient-assistant-messages\n在对话中显示不发送给 Agent、不写入后端历史的页面提示。\n已停用"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 443,
+        "width": 405,
+        "height": 294
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 294
+      },
+      "sha256": "5e88df3de73526365e1b7b554781c0795732ef7ac24d1cb9ce3d5e2ee9699748"
+    },
+    {
+      "id": "web-search",
+      "label": "查看网页搜索结果",
+      "file": "web-search.jpg",
+      "capturedDate": "2026-10-27",
+      "capturedAt": "2026-10-27T01:05:41.776Z",
+      "source": "artifacts/creator-command-layout-20261027/docs-raw/web-search.png",
+      "sourceUrl": "http://127.0.0.1:5196/",
+      "command": "/enable web-search",
+      "options": [
+        "查看网页搜索结果\nweb-search\n查看网页搜索结果并打开原网页。\n尚未添加 · 由 Creator 检查页面后安排位置"
+      ],
+      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
+      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
+      "clip": {
+        "x": 132,
+        "y": 437,
+        "width": 405,
+        "height": 300
+      },
+      "dimensions": {
+        "width": 405,
+        "height": 300
+      },
+      "sha256": "11aaaea6446cae02e3bfec2ab5c114553f4d15b64000f36a00b35fe0f461bb2b"
+    }
+  ]
+}

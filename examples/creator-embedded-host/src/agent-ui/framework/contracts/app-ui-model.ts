@@ -160,7 +160,7 @@ const nonBlankStringSchema = z.string().refine(
 );
 const nonNegativeNumberSchema = z.number().nonnegative();
 export const rowDrawerPolicySchema: z.ZodType<RowDrawerPolicy> = z.strictObject({
-  type: z.literal("trailing-drawer"),
+  type: z.enum(["drawer", "trailing-drawer"]),
   primaryIndex: z.number().int().nonnegative(),
   drawerIndex: z.number().int().nonnegative(),
   minPrimaryWidth: z.number().positive().finite(),
@@ -326,7 +326,8 @@ export const appUIModelSchema = z.preprocess(stripGeneratedAppUIIds,
       }
       if (node.type === "row" && node.responsive !== undefined && (
           node.responsive.primaryIndex >= node.children.length ||
-          node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+          node.responsive.primaryIndex === node.responsive.drawerIndex ||
+          (node.responsive.type === "trailing-drawer" && node.responsive.primaryIndex > node.responsive.drawerIndex) ||
           node.responsive.drawerIndex > node.children.length)) {
         context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row responsive indices must identify an existing primary child and a drawer position at or before the end", input: node.responsive });
       }

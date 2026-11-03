@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { createEphemeralConversationThreadBinding } from "../src/threads/ephemeral-thread-binding.js";
-import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
+import { HttpAgent } from "@ag-ui/client";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -39,7 +39,7 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
     }
     await act(async () => {
       renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" threadBinding={binding}
-        unstable_agentFactory={({ endpoint, threadId }) => new CancellationAwareHttpAgent({ url: endpoint, threadId,
+        unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId,
           fetch: async (_url, init) => {
             const input = JSON.parse(String(init.body)) as typeof inputs[number];
             inputs.push(input);

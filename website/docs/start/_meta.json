@@ -3,35 +3,5 @@
     "type": "file",
     "name": "index",
     "label": "快速上手"
-  },
-  {
-    "type": "file",
-    "name": "install-creator",
-    "label": "安装并启动 Creator"
-  },
-  {
-    "type": "file",
-    "name": "project-modes",
-    "label": "创建助理界面"
-  },
-  {
-    "type": "file",
-    "name": "first-agent-ui",
-    "label": "挂载界面与首次对话"
-  },
-  {
-    "type": "file",
-    "name": "ai-assisted",
-    "label": "首次使用 Creator 修改界面"
-  },
-  {
-    "type": "file",
-    "name": "generated-files",
-    "label": "生成文件与修改位置"
-  },
-  {
-    "type": "file",
-    "name": "read-documentation",
-    "label": "文档导航与 AI 阅读"
   }
 ]

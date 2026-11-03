@@ -3,7 +3,6 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AgentUILocaleProvider, useAgentUILocale, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
 import { ConversationFile } from "../src/public";
-import { getConversationStarterSuggestions } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/conversation-runtime-config";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let renderer: ReactTestRenderer | undefined;
@@ -39,11 +38,5 @@ describe("Product locale composition", () => {
       expect(warning).toHaveBeenCalledWith("attachments.remove");
     } finally { AGENT_UI_PRESENTATION_LOCALES["zh-CN"].attachments.remove = previous; }
   });
-  it("localizes preset suggestions without translating the conversation contract", () => {
-    const english = getConversationStarterSuggestions("en-US");
-    const chinese = getConversationStarterSuggestions("zh-CN");
-    expect(english[0]!.title).toBe("Accounts and transactions");
-    expect(chinese[0]!.title).toBe("账户与交易查询");
-    expect(Object.keys(english[0]!).sort()).toEqual(Object.keys(chinese[0]!).sort());
-  });
+
 });

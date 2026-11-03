@@ -16,15 +16,15 @@ ConversationMentionSource.search("张")
 
 ## Shared text contract
 
-`@agent-ui/core` exports `AgentUIDirectiveReference`, `AgentUIDirectiveSegment`, `parseAgentUIDirectives` and `trySerializeAgentUIDirective`. This pure codec has no React, assistant-ui or AG-UI dependencies. React adapts directive segments to assistant-ui mention segments internally; Mention insertion, Slash directives and historical DirectiveText use the same contract.
+`@za38.03/agent-ui-core` exports `AgentUIDirectiveReference`, `AgentUIDirectiveSegment`, `parseAgentUIDirectives` and `trySerializeAgentUIDirective`. This pure codec has no React, assistant-ui or AG-UI dependencies. React adapts directive segments to assistant-ui mention segments internally; Mention insertion, Slash directives and historical DirectiveText use the same contract.
 
 The wire format remains `:type[label]{name=id}`; when ID equals label, `{name=…}` is omitted. Unclosed or empty bracket directives remain ordinary text. Parsing retains the pinned upstream grammar, including its optional name attribute behavior: `:user[x]{name=}` parses the valid `:user[x]` prefix and leaves `{name=}` as text. Serialization rejects unsafe references rather than escaping or changing the wire format. Unknown types can be parsed; presentation and backend resolution independently select supported types.
 
 The conformance guard compares fixed serialized and parsed cases with the installed assistant-ui default formatter, inspected in the local upstream repository at revision `3542d602272a62eddeb8989befc910841c267022`. A dependency upgrade that changes the grammar fails the guard; maintainers must explicitly choose whether to update the product contract or retain it.
 
-## Backend reference API
+## Internal backend reference
 
-`@za38.03/agent-ui-creator/mock-agent` forwards Operator's `resolveDirectiveContexts(input, resolvers, { signal })` and resolver types. A resolver receives `{ type, label, id }` and an AbortSignal, and returns `Promise<Context | null>`.
+The private Creator Mock implementation uses `resolveDirectiveContexts(input, resolvers, { signal })` and resolver types as an internal backend reference. These helpers are not exported by `@za38.03/agent-ui-creator/mock-agent`. A resolver receives `{ type, label, id }` and an AbortSignal, and returns `Promise<Context | null>`.
 
 Every run scans all user messages, including text parts in multimodal content. Other roles, binary data and URLs are ignored. References are deduplicated by the tuple `(type, id)` across the complete transcript; labels do not affect deduplication. Only explicitly registered types are resolved. The result is a new RunAgentInput with original context followed by server context; the original request, message contents and attachments are not modified.
 

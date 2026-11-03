@@ -1,5 +1,5 @@
 /** Opt-in Generative UI API. Upstream implementation and styling stay inside this package. */
-import { JSONGenerativeUI, createActionRegistry, type ActionRegistry, type GenerativeUILibrary } from "@assistant-ui/react-generative-ui";
+import { JSONGenerativeUI, createActionRegistry, type ActionRegistry, type GenerativeUILibrary } from "@assistant-ui/generative-ui/react";
 import { styledGenerativeUILibrary } from "./internal/vendor-generated/assistant-ui/generative-ui/styled-generative-ui.js";
 export type { GenerativeUILibrary, ActionRegistry };
 export interface AgentUIGenerativeUIOptions {

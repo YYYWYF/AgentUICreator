@@ -1,0 +1,3 @@
+# Documentation tooling is installed separately from the product workspace.
+packages:
+  - "."

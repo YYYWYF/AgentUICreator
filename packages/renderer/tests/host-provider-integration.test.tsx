@@ -3,13 +3,13 @@ import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import type { AgentUIHost } from "@za38.03/agent-ui-runtime";
 
-const control = vi.hoisted(() => ({ agents: 0, streams: [] as Array<{ finish(): void }> }));
+const control = vi.hoisted(() => ({ agents: 0, endpoints: [] as Array<string | undefined>, users: [] as unknown[], streams: [] as Array<{ finish(): void }> }));
 vi.mock("@za38.03/agent-ui-runtime", async importOriginal => {
   const actual = await importOriginal<typeof import("@za38.03/agent-ui-runtime")>();
-  const { CancellationAwareHttpAgent } = await import("../../runtime/src/compatibility/cancellation-aware-http-agent");
+  const { HttpAgent } = await import("@ag-ui/client");
   const factory: NonNullable<import("@za38.03/agent-ui-runtime").ConversationRuntimeProviderProps["unstable_agentFactory"]> = ({ threadId }) => {
     control.agents++;
-    return new CancellationAwareHttpAgent({ url: "http://example.test/agent", threadId,
+    return new HttpAgent({ url: "http://example.test/agent", threadId,
       fetch: async (_url, init) => {
         const input = JSON.parse(String(init?.body));
         const encoder = new TextEncoder();
@@ -28,11 +28,15 @@ vi.mock("@za38.03/agent-ui-runtime", async importOriginal => {
       },
     });
   };
-  return { ...actual, ConversationRuntimeProvider: (props: import("@za38.03/agent-ui-runtime").ConversationRuntimeProviderProps) =>
-    <actual.ConversationRuntimeProvider {...props} unstable_agentFactory={factory} /> };
+  function UserProbe() { control.users.push(actual.useAgentUIUser()); return null; }
+  return { ...actual, ConversationRuntimeProvider: (props: import("@za38.03/agent-ui-runtime").ConversationRuntimeProviderProps) => {
+    control.endpoints.push(props.endpoint);
+    return <actual.ConversationRuntimeProvider {...props} unstable_agentFactory={factory}><UserProbe />{props.children}</actual.ConversationRuntimeProvider>;
+  } };
 });
 
-import { Agent, AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "../../plugins/resources/registry/items/foundation/core/files";
+import { Agent } from "../../plugins/resources/registry/items/foundation/core/files";
+import { AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "@za38.03/agent-ui-runtime";
 import { agentCompositionStore } from "../../plugins/resources/registry/items/foundation/core/files/application/composition-store";
 
 async function until(predicate: () => boolean) {
@@ -43,7 +47,7 @@ async function until(predicate: () => boolean) {
   throw new Error("HOST_PROVIDER_TEST_TIMEOUT");
 }
 
-it("shares one real conversation with Host controls before opening, survives panel removal and displays the streamed reply", async () => {
+it("shares one real conversation with Host controls before opening, survives panel hiding and displays the streamed reply", async () => {
   expect(typeof AgentUIProvider).toBe("function");
   expect(typeof Agent).toBe("function");
   const mount = document.createElement("div"); document.body.append(mount); const root = createRoot(mount);
@@ -55,7 +59,7 @@ it("shares one real conversation with Host controls before opening, survives pan
     const [open, setOpen] = useState(false);
     useAgentUIEvent("run-end", ended);
     useEffect(() => { mounts(); return cleanup; }, []);
-    return <><button disabled={!ready} onClick={() => setOpen(value => !value)}>toggle</button>{open && <Agent />}</>;
+    return <><button disabled={!ready} onClick={() => setOpen(value => !value)}>toggle</button><aside hidden={!open}><Agent endpoint="/business-agent" locale="en-US" /></aside></>;
   }
   try {
     await act(async () => root.render(<AgentUIProvider><Page /></AgentUIProvider>));
@@ -64,14 +68,16 @@ it("shares one real conversation with Host controls before opening, survives pan
     });
     const initializedAgents = control.agents;
     expect(initializedAgents).toBeGreaterThan(0);
-    expect(mount.querySelector("[data-agent-ui-outlet]")).toBeNull();
+    expect(mount.querySelector("aside")?.hidden).toBe(true);
+    expect(control.endpoints).toContain("/business-agent");
     let pending!: Promise<void>;
     await act(async () => { pending = host.sendMessage("Host question"); await Promise.resolve(); });
     await until(() => control.streams.length === 1);
     expect(host.getSnapshot().runtime?.run.status).toBe("running");
     await act(async () => mount.querySelector("button")!.click());
-    await until(() => mount.querySelector("[data-agent-ui-outlet]") !== null);
+    expect(mount.querySelector("aside")?.hidden).toBe(false);
     await act(async () => mount.querySelector("button")!.click());
+    expect(mount.querySelector("aside")?.hidden).toBe(true);
     expect(host.getSnapshot().runtime?.run.status).toBe("running");
     await act(async () => control.streams[0]!.finish());
     await act(async () => { await pending; });
@@ -83,4 +89,43 @@ it("shares one real conversation with Host controls before opening, survives pan
     expect(mounts).toHaveBeenCalledTimes(1); expect(cleanup).not.toHaveBeenCalled();
   } finally { await act(async () => root.unmount()); mount.remove(); }
   await expect(host.sendMessage("late")).rejects.toMatchObject({ code: "AGENT_UI_NOT_READY" });
+});
+
+it("runs standalone without a business Provider and updates Agent profile props without rebuilding the session", async () => {
+  const mount = document.createElement("div"); document.body.append(mount); const root = createRoot(mount);
+  const before = control.agents;
+  try {
+    await act(async () => root.render(<Agent endpoint="/standalone-agent" user={{ userName: "First" }} />));
+    await until(() => control.agents > before && control.users.length > 0);
+    const initialized = control.agents;
+    expect(mount.querySelector("[data-agent-ui-outlet]")).not.toBeNull();
+    expect(control.endpoints).toContain("/standalone-agent");
+    expect(control.users.at(-1)).toMatchObject({ userName: "First" });
+    await act(async () => root.render(<Agent endpoint="/standalone-agent" user={null} />));
+    expect(control.users.at(-1)).toBeNull();
+    expect(control.agents).toBe(initialized);
+  } finally { await act(async () => root.unmount()); mount.remove(); }
+});
+
+it("inherits the npm Provider profile, lets Agent override it and ends the session when Agent is removed", async () => {
+  const mount = document.createElement("div"); document.body.append(mount); const root = createRoot(mount);
+  let host!: AgentUIHost;
+  function Controls() { host = useAgentUI(); return null; }
+  const view = (agent: boolean, override: boolean) => <AgentUIProvider user={{ userName: "Business user" }}>
+    <Controls />{agent && <Agent endpoint="/business-agent" {...(override ? { user: null } : {})} />}
+  </AgentUIProvider>;
+  try {
+    await act(async () => root.render(view(true, false)));
+    await until(() => host.getSnapshot().status === "ready");
+    expect(control.users.at(-1)).toMatchObject({ userName: "Business user" });
+    await act(async () => root.render(view(true, true)));
+    expect(control.users.at(-1)).toBeNull();
+    let pending!: Promise<void>;
+    await act(async () => { pending = host.sendMessage("pending question"); await Promise.resolve(); });
+    const rejected = expect(pending).rejects.toMatchObject({ code: "AGENT_UI_SESSION_ENDED" });
+    await act(async () => root.render(view(false, false)));
+    await rejected;
+    expect(host.getSnapshot().status).toBe("initializing");
+    await expect(host.sendMessage("after removal")).rejects.toMatchObject({ code: "AGENT_UI_NOT_READY" });
+  } finally { await act(async () => root.unmount()); mount.remove(); }
 });

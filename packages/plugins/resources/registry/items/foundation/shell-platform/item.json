@@ -1,0 +1,21 @@
+{
+  "id": "foundation/shell-platform",
+  "kind": "foundation",
+  "description": "Project-owned platform shell, installed only for the selected project Mode",
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/application/shell/PlatformShell.tsx",
+      "target": "application/shell/PlatformShell.tsx"
+    },
+    {
+      "source": "files/application/shell/platform-shell.css",
+      "target": "application/shell/platform-shell.css"
+    }
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

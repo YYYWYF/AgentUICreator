@@ -37,6 +37,12 @@ for (const plugin of catalog.plugins.filter(plugin => plugin.application?.hostAp
   if(JSON.stringify(plugin.application.services)!==JSON.stringify(recipe.services)) throw new Error(`Stale application services: ${plugin.id}`);
   for(const file of [...plugin.application.files,...plugin.application.sharedFiles]) if(createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot,"dist"),file.path))).digest("hex")!==file.sha256) throw new Error(`Stale application template: ${plugin.id}/${file.target}`);
 }
+for (const recipe of deliveries.filter(delivery => delivery.applicationSharedFiles?.length)) {
+  const actual = catalog.plugins.find(plugin => plugin.id === recipe.id)?.application?.sharedFiles;
+  const expected = recipe.applicationSharedFiles.map(([target, origin]) => ({ target, path: origin.replace(/^src\//u, "sources/") }));
+  if (!Array.isArray(actual) || JSON.stringify(actual.map(({target, path}) => ({target, path}))) !== JSON.stringify(expected)) throw new Error(`Stale shared application template plan: ${recipe.id}`);
+  for (const file of actual) if (createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot, "dist"), file.path))).digest("hex") !== file.sha256) throw new Error(`Stale shared application template: ${recipe.id}/${file.target}`);
+}
 for (const recipe of deliveries.filter(delivery => Object.keys(delivery.applicationModeFiles ?? {}).length)) {
   const plugin = catalog.plugins.find(plugin => plugin.id === recipe.id);
   if (!plugin?.application) throw new Error(`Missing mode application templates: ${recipe.id}`);

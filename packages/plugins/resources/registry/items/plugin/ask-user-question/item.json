@@ -1,0 +1,26 @@
+{
+  "id": "plugin/ask-user-question",
+  "kind": "agent-component",
+  "description": "Interactive question flow for human tool calls",
+  "files": [
+    {
+      "source": "files/plugins/ask-user-question/definition.ts",
+      "target": "plugins/ask-user-question/definition.ts"
+    },
+    {
+      "source": "files/plugins/ask-user-question/index.tsx",
+      "target": "plugins/ask-user-question/index.tsx"
+    },
+    {
+      "source": "files/plugins/ask-user-question/manifest.json",
+      "target": "plugins/ask-user-question/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": ">=18 <20",
+    "@za38.03/agent-ui-plugins": "0.0.1"
+  }
+}

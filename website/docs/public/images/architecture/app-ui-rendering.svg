@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1120" viewBox="0 0 960 1120" role="img" aria-labelledby="title desc">
+  <title id="title">app-ui.json、布局与插件的渲染关系</title>
+  <desc id="desc">app-ui.json 描述布局、插件身份和语义组合，项目插件定义提供合同与组件入口。编译器校验后生成运行时模型，LayoutRenderer 排列区域，SlotRegistry 连接区域与插件实例，UIPluginRuntime 调用项目插件组件，最终形成含会话区和输入区的界面。应用级插件参与服务与生命周期，不直接占据布局位置。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#68728c"/></marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: #20273d; font-size: 20px; }
+      .heading { font-size: 23px; font-weight: 600; }
+      .small { font-size: 18px; fill: #505d77; }
+      .code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 19px; }
+      .box { fill: #fff; stroke: #d7dce8; stroke-width: 2; }
+      .flow { fill: none; stroke: #68728c; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="960" height="1120" rx="20" fill="#f8f9fd"/>
+
+  <rect class="box" x="28" y="28" width="530" height="220" rx="14"/>
+  <text class="heading" x="52" y="65">app-ui.json · 界面怎么组织</text>
+  <text class="code" x="52" y="103">root → row / column / panel / slot</text>
+  <text x="52" y="139">布局：区域大小、排列与位置</text>
+  <text x="52" y="173">组合：插件身份、启停、顺序与嵌套</text>
+  <text class="small" x="52" y="218">applicationPlugins：应用级服务与渲染注册</text>
+
+  <rect class="box" x="586" y="28" width="346" height="220" rx="14"/>
+  <text class="heading" x="610" y="65">项目插件 · 组件怎么实现</text>
+  <text x="610" y="108">插件定义：ID、语义 Slot 合同</text>
+  <text x="610" y="145">应用层：props、组合、renderer</text>
+  <text class="small" x="610" y="184">默认引用官方 npm 组件</text>
+  <text class="small" x="610" y="216">接管后可引用本地实现</text>
+
+  <path class="flow" d="M293 248 V276 H420 V300"/>
+  <path class="flow" d="M759 248 V276 H540 V300"/>
+  <rect x="190" y="300" width="580" height="84" rx="14" fill="#eeebff" stroke="#c6bcf1" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="480" y="335">解析配置 → 校验合同 → 编译组合</text>
+  <text class="code" text-anchor="middle" x="480" y="365">compileAppUIModel()</text>
+
+  <path class="flow" d="M480 384 V417"/>
+  <rect class="box" x="190" y="417" width="580" height="84" rx="14"/>
+  <text class="heading" text-anchor="middle" x="480" y="451">AppUIRuntimeModel · 只读编译结果</text>
+  <text text-anchor="middle" x="480" y="482">布局树 ＋ 插件实例 ＋ 挂载目标与顺序</text>
+
+  <path d="M480 501 V526 H174 V554 M480 526 V554 M480 526 H786 V554" fill="none" stroke="#68728c" stroke-width="2"/>
+  <rect class="box" x="28" y="554" width="292" height="118" rx="14"/>
+  <text class="heading" text-anchor="middle" x="174" y="590">LayoutRenderer</text>
+  <text text-anchor="middle" x="174" y="625">排列容器，留出 Slot 区域</text>
+  <text class="small" text-anchor="middle" x="174" y="652">负责区域的形状与尺寸</text>
+  <rect class="box" x="334" y="554" width="292" height="118" rx="14"/>
+  <text class="heading" text-anchor="middle" x="480" y="590">SlotRegistry</text>
+  <text text-anchor="middle" x="480" y="625">区域 ↔ 插件实例</text>
+  <text class="small" text-anchor="middle" x="480" y="652">管理有效挂载及顺序</text>
+  <rect class="box" x="640" y="554" width="292" height="118" rx="14"/>
+  <text class="heading" text-anchor="middle" x="786" y="590">UIPluginRuntime</text>
+  <text text-anchor="middle" x="786" y="625">调用项目注册的插件组件</text>
+  <text class="small" text-anchor="middle" x="786" y="652">继续渲染内部语义 Slot</text>
+
+  <path class="flow" d="M174 672 V698 H480 V738"/>
+  <path d="M480 672 V698 M786 672 V698 H480" fill="none" stroke="#68728c" stroke-width="2"/>
+  <text class="small" x="28" y="724">三者协作 · 把插件放进对应的布局区域</text>
+
+  <rect class="box" x="28" y="738" width="904" height="300" rx="14"/>
+  <text class="heading" x="52" y="775">最终界面（局部示意）</text>
+  <rect x="52" y="795" width="856" height="220" rx="10" fill="#f0f2f8" stroke="#d7dce8"/>
+  <text class="small" x="72" y="824">布局区域 Slot → conversation-surface 插件</text>
+  <rect x="72" y="841" width="816" height="52" rx="8" fill="#fff"/>
+  <text x="92" y="874">消息与回复内容</text>
+  <rect x="72" y="908" width="816" height="88" rx="8" fill="#eeebff" stroke="#c6bcf1"/>
+  <text class="small" x="92" y="936">语义 Slot：composer → composer 插件</text>
+  <text x="92" y="973">附件按钮</text>
+  <text x="400" y="973">消息输入框</text>
+  <text x="776" y="973">发送按钮</text>
+
+  <text class="small" text-anchor="middle" x="480" y="1072">布局决定“放在哪里”，插件代码决定“长什么样、如何交互”。</text>
+  <text class="small" text-anchor="middle" x="480" y="1100">应用级插件参与服务与生命周期，不直接占据布局位置。</text>
+</svg>

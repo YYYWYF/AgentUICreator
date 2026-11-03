@@ -3,7 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it } from "vitest";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
-import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
+import { HttpAgent } from "@ag-ui/client";
 import type { ConversationThreadBinding } from "../src/threads/types.js";
 import type { AgentFrontendToolSource, AgentRuntime } from "@za38.03/agent-ui-core";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -28,7 +28,7 @@ async function fixture(enableMessageQueue?: boolean, frontendTools?: AgentFronte
   let renderer!: ReactTestRenderer;
   await act(async () => {
     renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} enableMessageQueue={enableMessageQueue} frontendTools={frontendTools}
-      unstable_agentFactory={({ endpoint, threadId }) => new CancellationAwareHttpAgent({ url: endpoint, threadId, fetch: async (_url, init) => {
+      unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId, fetch: async (_url, init) => {
         const input = JSON.parse(String(init.body)) as RunInput;
         const encoder = new TextEncoder(); let controller!: ReadableStreamDefaultController<Uint8Array>;
         const body = new ReadableStream<Uint8Array>({ start(c) { controller = c; } });
@@ -145,28 +145,6 @@ describe("native AG-UI follow-up Queue", () => {
       await act(async () => f.runs[1]!.finish());
       await until(() => f.runs.length === 3);
       expect(f.runs[2]!.input.messages.at(-1)?.content).toBe("B");
-    } finally { await f.dispose(); }
-  });
-  // Known pinned-upstream race. A future upstream fix should turn this into a normal passing test.
-  it.fails("holds already queued follow-ups across the client-tool handoff (pinned upstream limitation)", async () => {
-    const tools: AgentFrontendToolSource = {
-      listTools: () => [{ name: "confirm", description: "Confirm", inputSchema: { type: "object", properties: {} } }],
-      subscribe: () => () => {}, getRevision: () => 0,
-      execute: () => new Promise(() => {}),
-    };
-    const f = await fixture(true, tools);
-    try {
-      await f.send("A"); await until(() => f.runs.length === 1); await f.send("B");
-      await act(async () => {
-        f.runs[0]!.emit({ type: "TOOL_CALL_START", toolCallId: "confirm-1", toolCallName: "confirm", parentMessageId: "answer-0" });
-        f.runs[0]!.emit({ type: "TOOL_CALL_ARGS", toolCallId: "confirm-1", delta: "{}" });
-        f.runs[0]!.emit({ type: "TOOL_CALL_END", toolCallId: "confirm-1" });
-      });
-      await act(async () => { await new Promise(r => setTimeout(r, 10)); });
-      await act(async () => f.runs[0]!.finish());
-      await act(async () => { await new Promise(r => setTimeout(r, 30)); });
-      expect(f.runs).toHaveLength(1);
-      expect(f.queue.map(x => x.prompt)).toEqual(["B"]);
     } finally { await f.dispose(); }
   });
   it.each(["edit", "reload"] as const)("clears pending queue on native %s", async action => {

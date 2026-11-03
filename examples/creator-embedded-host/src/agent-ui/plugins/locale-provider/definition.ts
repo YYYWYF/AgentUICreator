@@ -1,6 +1,6 @@
 import implementation from "@za38.03/agent-ui-plugins/locale-provider";
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";
+import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins";
 import { agentUILocaleConfig } from "../../agent-ui/i18n/locale-config";
 import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
 import { LocaleProviderPlugin } from "./index";

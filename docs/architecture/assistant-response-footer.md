@@ -1,14 +1,12 @@
 # Assistant Response Group and Footer
 
-Status: implemented; validation pending.
-
 The Assistant Response Footer belongs to a Conversation Turn. A Turn contains
 one user request and all top-level assistant messages until the next user request.
 System/tool records do not end a Turn and never participate in response actions.
 Leading assistant messages without a user request form a synthetic leading Turn.
 Nested subagent messages stay inside their tool parts.
 
-`ConversationTurnGroup` is the single grouping source of truth in `@agent-ui/react`:
+`ConversationTurnGroup` is the single grouping source of truth in `@za38.03/agent-ui-plugins`:
 
 ```text
 ConversationTurnGroup
@@ -37,7 +35,7 @@ while the Thread is not running and renders only for the Turn tail. Footer
 height remains in normal layout flow.
 
 The single semantic Slot is `assistantResponseFooter`, implemented by
-`assistant-ui-response-footer`. Its scope is data-free; actions consume the
+`response-footer`. Its scope is data-free; actions consume the
 Response Context through the facade. Copy, Reload, and Export Plugin ids remain
 stable, with capability `conversation-assistant-response-action`. AppUIModel,
 presets, generated Registry, Source Registry, and authoring placement use this
@@ -56,9 +54,7 @@ Footer ownership and action targets belong to the same Conversation Turn. The vi
 shell reuses upstream ActionBarPrimitive.Root with `autohide="not-last"`:
 autohide/hover presentation still reads the tail Message Context's
 `message.isLast` and `message.isHovering`. Hovering an earlier message in a
-historical response does not reveal its Footer. This is not full response hover
-semantics; a separate Response hover scope should be designed only if hovering
-any message in the response needs to reveal the Footer.
+historical response does not reveal its Footer. Hover visibility follows the tail message context.
 Response actions do not use message-scoped Copy, Reload, Export,
 or BranchPicker primitives. Text extraction includes only text parts, joined
 with two newlines within and between messages. Copy feedback is local to the
@@ -77,16 +73,4 @@ For `User, A, System, B, C`, one Footer belongs to C. Copy and Export produce
 `A\n\nB\n\nC`; System text is excluded. Reload and Branch operate on A.
 A second user request starts a separate Turn and a separate Footer.
 
-The feature does not modify vendor Elements, react-ag-ui, Runtime message models,
-or AG-UI event projection. The standard `multi-message-response` Mock Scenario
-runs through react-ag-ui in the integration test source. Resolver, hydration,
-two-round, copy/export, reload/branch, streaming gaps, and ownership coverage are
-included but have not been executed for this delivery.
-
-## Upstream replacement condition
-
-Reassess this adapter when upstream supplies TurnPrimitive, ResponsePrimitive,
-a first-class turn/response runtime, arbitrary response targets for ActionBar,
-or official multi-message grouping. When upstream covers grouping, copy,
-reload, branch, and export together, delete the AssistantResponse adapter and
-return to the upstream canonical implementation. Do not maintain both paths.
+The feature does not modify vendor Elements or AG-UI event projection. Validate grouping, hydration, copy/export, reload/branch, streaming gaps and actual browser interaction for the current change; test source presence alone is not acceptance.

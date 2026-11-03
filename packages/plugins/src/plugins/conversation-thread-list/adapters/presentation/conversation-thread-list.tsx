@@ -2,14 +2,15 @@ import type { ComponentProps, ReactNode } from "react";
 import { PlusIcon as Plus } from "../../../../plugin-support.js";
 import { getAgentUIThemeColorScheme, Button, useConversationNavigation, ConversationThreadListNew, useAgentUISidebarNavigation, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent, useAgentUILocale, type AgentUITheme } from "../../../../public.js";
 import { PolicyThreadList, type PolicyThreadListProps } from "./PolicyThreadList.js";
-export interface ConversationThreadListPluginProps {
+export interface ConversationThreadListPluginProps extends Omit<ComponentProps<"aside">, "children">, Pick<PolicyThreadListProps, "showSearch" | "showArchived" | "searchProps" | "itemProps" | "components"> {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
+  renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
   headerActions?: ReactNode;
-  rootProps?: ComponentProps<"aside">; listProps?: Omit<PolicyThreadListProps, "labels">; children?: ReactNode;
+   children?: ReactNode;
   snapshot?: { activeConversationId?: string | undefined; listStatus?: string; detailStatus?: string; listError?: string | undefined; detailError?: string | undefined; detailErrorConversationId?: string | undefined };
   serviceAvailable?: boolean; onRefresh?: () => void | Promise<void>; theme?: AgentUITheme; runStatus?: string;
 }
-export function CanonicalConversationThreadList({rootProps, listProps, children, headerActions, snapshot = {}, onRefresh, serviceAvailable = false, theme = "light", runStatus}: ConversationThreadListPluginProps) {
+export function CanonicalConversationThreadList({renderSlot: _renderSlot, renderScopedSlot: _renderScopedSlot, showSearch, showArchived, searchProps, itemProps, components, children, headerActions, snapshot = {}, onRefresh, serviceAvailable = false, theme = "light", runStatus, ...rootProps}: ConversationThreadListPluginProps) {
   const labels = useAgentUILocale("threadList");
   const conversationNavigation = useConversationNavigation();
 
@@ -29,7 +30,7 @@ export function CanonicalConversationThreadList({rootProps, listProps, children,
       data-ui-plugin="conversation-thread-list"
     >
       {headerActions && <div className="conversation-thread-list-header-actions">{headerActions}</div>}
-      {children ?? rootProps?.children ?? <PolicyThreadList labels={labels} {...listProps} />}
+      {children ?? <PolicyThreadList labels={labels} {...(showSearch === undefined ? {} : { showSearch })} {...(showArchived === undefined ? {} : { showArchived })} {...(searchProps === undefined ? {} : { searchProps })} {...(itemProps === undefined ? {} : { itemProps })} {...(components === undefined ? {} : { components })} />}
 
       {snapshot.listStatus === "error" ? (
         <div className="conversation-thread-list-error" role="alert">
@@ -85,16 +86,16 @@ export function CanonicalConversationThreadList({rootProps, listProps, children,
   );
 }
 
-export interface ConversationThreadListRailActionProps { renderSlot?: (name: string, fallback?: ReactNode) => ReactNode; enabled?: boolean; newProps?: ComponentProps<typeof ConversationThreadListNew>; tooltipProps?: ComponentProps<typeof AgentUITooltip>; tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>; }
+export interface ConversationThreadListRailActionProps { renderSlot?: (name: string, fallback?: ReactNode) => ReactNode; enabled?: boolean; buttonProps?: ComponentProps<typeof ConversationThreadListNew>; tooltipProps?: ComponentProps<typeof AgentUITooltip>; tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>; }
 /** @deprecated Place the independent conversation-new Plugin in the application layout. */
-export function CanonicalConversationThreadListRailAction({enabled = true, newProps, tooltipProps, tooltipContentProps}: ConversationThreadListRailActionProps) {
+export function CanonicalConversationThreadListRailAction({enabled = true, buttonProps, tooltipProps, tooltipContentProps}: ConversationThreadListRailActionProps) {
   const labels = useAgentUILocale("threadList");
   const navigate = useAgentUISidebarNavigation();
   if (!enabled) return null;
   return <AgentUITooltip {...tooltipProps}>
     <AgentUITooltipTrigger render={<ConversationThreadListNew
-      className="conversation-thread-list-rail-new" aria-label={labels.newThread} {...newProps} onClick={event => { newProps?.onClick?.(event); if (!event.defaultPrevented) navigate(); }}>
-      {newProps?.children ?? <Plus aria-hidden="true" />}
+      className="conversation-thread-list-rail-new" aria-label={labels.newThread} {...buttonProps} onClick={event => { buttonProps?.onClick?.(event); if (!event.defaultPrevented) navigate(); }}>
+      {buttonProps?.children ?? <Plus aria-hidden="true" />}
     </ConversationThreadListNew>} />
     <AgentUITooltipContent side="right" {...tooltipContentProps}>{tooltipContentProps?.children ?? labels.newThread}</AgentUITooltipContent>
   </AgentUITooltip>;

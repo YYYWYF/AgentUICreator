@@ -1,168 +1,25 @@
-# Optional authentication plugins
+# 可选认证与账号插件
 
-`plugin/auth-gate` owns `auth.gate` and `auth.session`. `plugin/auth-account`
-can display a Host-owned `user` directly, or consume the optional session; it
-owns no authentication state and does not require the gate source. Neither plugin
-is included in any default preset. Installing source is
-separate from adding instances to AppUIModel.
+auth-gate 拥有 auth.gate 与 auth.session；auth-account 展示当前用户或可选的会话状态。两者均不属于默认 preset。官方实现通过 Plugins npm 包交付，项目保留薄应用入口与自己的业务认证配置。
 
-## Existing Host login: profile presentation only
+## 已有 Host 登录
 
-Install `plugin/auth-account` and mount an instance in an ordinary layout Slot
-through AppUIModel. Do not install `plugin/auth-gate` for this mode. No auth adapter
-is generated or configured. The generated React entry accepts an optional public profile. With a shared
-`AgentUIProvider`, pass `user` on that Provider and render `<Agent />` inside it;
-all account consumers use the same package-owned context. All profile fields
-are optional: `userId?: string`, `userName?: string`, `avatar?: string`. Missing or
-blank names display localized “Not signed in”; missing or blank avatars use the
-default account icon; missing or blank user IDs omit the secondary line.
-`<Agent />`, `<Agent user={null} />`, and `<Agent user={{}} />` all work.
+只需要展示 Host 用户时，组合 auth-account，不额外创建登录 Gate。业务组件与 Agent 使用 Runtime 的 AgentUIProvider 或 Agent.user 传入公开 profile，复用现有用户上下文。
 
-For example:
+userId、userName、avatar 均可选。Agent、Agent user=null 和空 profile 保留各自公开语义；展示 profile 不等于完成认证，也不能绕过已存在的 Gate。Host 登录、权限、会话和凭据仍属于业务应用。
 
-```tsx
-import { Agent, type AgentUser } from "./agent-ui";
+## Plugin 管理的登录
 
-export function AgentPage() {
-  const currentUser = useCurrentUser(); // The Host's existing reactive auth state.
-  const user: AgentUser | null = currentUser ? {
-    userId: currentUser.userId,
-    userName: currentUser.userName,
-    ...(currentUser.avatar ? { avatar: currentUser.avatar } : {}),
-  } : null;
-  return <Agent user={user} />;
-}
-```
+auth-gate 是 Application Gate，加入 AppUIModel.applicationPlugins，不放在普通布局或弹窗位置。它提供的服务在 setup 中注册，异步会话恢复使用现有 Adapter，Gate 根据真实状态决定 checking、blocked、ready 或 error。
 
-Replace `useCurrentUser` and the import path with the Host's existing hook and
-Agent UI installation path. Profile changes update the account display on the
-next React render. Each Agent instance has its own profile context. Only
-`userId`, `userName`, and optional `avatar` are projected into that context.
+配置应用现有 auth Adapter，保留已有 services 声明与实现。只有缺失文件按安装 catalog 的受控模板初始化；不覆盖业务认证代码，不因 npm 更新重置连接或身份配置。新增公共 Service 契约使用独立的具体方案授权。
 
-- A supplied user displays the avatar, userName and userId without a login or
-  logout action; the Host owns authentication and its UI.
-- `user={null}` shows a default avatar and localized “Not signed in”, even if
-  an optional auth session exists. The enabled account plugin remains visible;
-  only layout/plugin enablement controls its presence.
-- Omitting `user` preserves the plugin-owned `auth.session` display and logout.
-  Without a session user, the account also shows the signed-out default.
-- `user` is presentation only: it is not sent to AG-UI, persisted, or used as an
-  authorization/session gate. The Host owns access control and conversation
-  lifecycle on logout/user switching (for example, unmount Agent, or key it by
-  userId and supply only that user's initialThreadId).
-- An explicitly installed auth gate remains active and still requires its
-  adapter; supplying user does not bypass it. Use account-only composition for
-  an existing Host login.
+可选 auth-account 放在用户要求的普通布局 Slot，沿用已有 Sidebar、Header、Footer 和实例。不要为了展示账号擅自重建整个布局。
 
-Existing generated projects need the updated foundation entry and account source
-before using the new prop. Source installation does not overwrite existing files
-or silently remove an installed gate.
+## 所有权与验证
 
-## Creator installation recipe (plugin-managed login)
+先定制项目薄层 props、公开组合和应用 Adapter；需要维护官方实现内部时才提出明确源码接管。安装、配置、组合和验证是不同事实，失败时准确报告实际已保存阶段。
 
-1. Inspect the project, existing authentication, services, selected UI stack,
-   application plugins, Sidebar Header/items/content and occupied Footer.
-2. Propose the Host adapter seam, the unique `auth-gate` service owner and optional
-   `auth-account` Footer. Get one confirmation covering that scope. Honor explicit
-   authorization already given by the user. Use the existing Host service-contract
-   authorization when creating or changing a public service contract.
-3. Use `apply_agent_ui_source_item` for `plugin/auth-gate` and optionally
-   `plugin/auth-account`. Both must be installed explicitly for full login mode;
-   source installation does not install an application instance. Existing files
-   are protected by
-   the Source Registry's conflict handling; never overwrite existing auth code.
-4. Configure `services/auth/adapter.ts` against the Host's real auth client. The
-   shipped template fails closed. The first version uses typed account/password
-   input; replace that seam and LoginScreen for an explicitly chosen SSO flow,
-   without adding a generic form engine or another authentication runtime.
-5. In one existing AppUIModel mutation transaction, add the `auth-gate-main`
-   instance to `applicationPlugins` with `pluginId: "auth-gate"`. Add the optional
-   `auth-account-main` instance to `sidebar.footer`, an ordinary Slot. Reuse the
-   existing Sidebar object and preserve its Header/items/content, all plugin
-   instances, and enabled flags. If Footer is occupied, propose moving/replacing
-   its current content first. For projects without Sidebar, propose wrapping the
-   existing root as Sidebar content, or use login-only mode.
-6. Source and model steps are not an atomic transaction together. On failure,
-   report which step committed, preserve the last valid model, and use existing
-   Host recovery/rollback facilities. Check service dependencies, generated
-   registry, model compilation and build. Browser acceptance is a separate step.
+验证已有 Host 登录、空 profile、登录/退出、会话恢复、失败、Gate 阻止进入、服务停用与账号展示，以及主题、语言和用户信息隔离。业务认证必须使用真实服务或明确的测试 Adapter；Mock 登录和静态构建不证明真实权限正确。
 
-For an existing Sidebar, the additional structure is:
-
-```json
-{
-  "applicationPlugins": [
-    { "id": "auth-gate-main", "pluginId": "auth-gate", "enabled": true }
-  ],
-  "footer": {
-    "type": "slot",
-    "plugins": [
-      { "id": "auth-account-main", "pluginId": "auth-account", "enabled": true }
-    ]
-  }
-}
-```
-
-This is a fragment: append the application instance to the existing list and put
-Footer on the existing Sidebar, not at the model top level. Do not replace the
-user's model with this fragment. Footer can be emptied, moved or disabled through
-ordinary plugin operations without removing the application gate.
-
-## Host adapter contract
-
-Implement `restore`, `signIn`, `signOut`, and preferably `subscribe` in
-`services/auth/adapter.ts`. Return only `{ userId, userName, avatar? }`.
-The service projects these fields and discards extra properties. Passwords are
-submitted directly to the Host adapter and cleared from the form after submit.
-Tokens and cookies remain in the Host client; they never enter AppUIModel,
-service snapshots or diagnostics. Session failures expose fixed codes/localized
-messages rather than backend exception details.
-
-`restore()` returns null for an anonymous/expired session; throw only for an
-unrecoverable initialization error. `subscribe(listener)` must notify null on
-expiry or a protected API's 401, and the current public profile on updates.
-The Host's API client must reject or cancel protected requests after invalidation.
-The backend must authorize every protected request independently of this UI.
-
-Application Gate is outside both native React and compatibility conversation
-providers. Until ready, conversation providers, history binding and generated
-conversation integrations are absent. Revocation synchronously aborts the current
-run and unmounts the conversation subtree; the next ready epoch gets a fresh
-provider and thread binding. `initialThreadId` is used only for the first epoch,
-so a new user cannot accidentally reopen the previous user's initial thread.
-Workspace plugin services are deactivated by the existing Application lifecycle.
-The Foundation gate/session owner stays mounted throughout these changes.
-
-## Explicit demo
-
-The production adapter never imports/enables the demo. To run a disposable demo,
-explicitly replace the Host adapter factory with:
-
-```ts
-import { createDemoAuthAdapter } from "./mock-adapter";
-export function createHostAuthAdapter() {
-  return createDemoAuthAdapter({ demo: true });
-}
-```
-
-Use any nonempty account and password `demo`. Wrong passwords stay blocked with
-localized feedback. Each factory call has its own in-memory profile/listeners.
-For refresh restoration, explicitly provide `storage: sessionStorage` and a
-unique `storageKey` for that Host instance. Storage contains demo display data
-only; it is not an authentication/token protocol and must not protect production
-APIs. `failRestore: true` demonstrates startup error. `updateUser(profile)`
-demonstrates profile changes and `updateUser(null)` simulates expiry.
-
-Full demo: install both source items and both model instances. Login-only demo:
-install the gate/application instance and leave Footer absent or empty. Disabling
-account UI must never disable/remove the gate. Replace the demo adapter before
-shipping a real authenticated application.
-
-## Upgrade boundary
-
-SidebarFrame renders a generic Footer Slot using the existing SidebarFooter.
-Footer contains at most one visual content plugin and needs no Sidebar navigation
-metadata. Narrow Sheet portals stay local to the Host, and application gate sizes
-use the Host container rather than viewport dimensions. No assistant-ui vendor,
-AG-UI protocol or conversation semantic micro-slot was changed. New minimum
-package versions are React facade `0.1.6` and Layout runtime `0.1.3`.
+应用层与共享服务保护见 [源码所有权](../../architecture/npm-default-plugin-source-ownership.md)，Gate 与 Service 的公开合同见 [插件开发接口](../../../website/docs/development/plugin-api.md)。

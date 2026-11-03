@@ -44,7 +44,7 @@ Do not choose a tool operation from the wording alone.
 - Repair only defects introduced by this run or necessarily included in the
   user's requested final state. Report unrelated workspace-integrity blockers.
 
-Treat `/app-ui/app-ui.json` as the editable authoring source of truth. Runtime
+Treat `/app-ui.json` as the editable authoring source of truth. Runtime
 IR, Runtime slot ids, compiler-generated Layout ids, contributions, mounts, and
 SlotRegistry state are derived and must never be edited or passed to Creator
 tools. Use Operator inspections for current facts and
@@ -81,6 +81,12 @@ Composition revision; it does not need a separate Service scan.
   are snapshot-scoped authoring references.
 - Array order is display order; do not create a separate contribution order.
 - Row or Column `sizes`, when present, has one entry per child.
+- Adding another visual Plugin to a Layout Slot does not enlarge its containing
+  track. Check the parent track size and existing occupants: a fixed header sized
+  for one control can clip or overlap them after insertion. Use separate Layout
+  Slots in a Row/Column or adjust the containing track to fit the requested
+  composition. Preserve the existing controls' visible content and verify their
+  actual bounds; enablement and a successful transaction do not prove visibility.
 - Creator Row/Column track sizes always use explicit CSS strings such as
   `"280px"`, `"1fr"`, or `"minmax(0, 1fr)"`. Never send numeric Row/Column
   track sizes through Creator mutation operations: Runtime numeric Row/Column
@@ -121,9 +127,9 @@ Composition revision; it does not need a separate Service scan.
   parent instance and declared Slot name. Do not replace this with remove plus
   insert or expose Layout refs to the Resolver.
 - `remove_plugin` / `remove_plugin_default`: Host internal Composition removal
-  primitives. Never use them as the final user-facing Plugin removal result.
-  Permanent removal uses `purge_ui_plugin`; temporary removal uses
-  `set_plugin_enabled(false)`.
+  primitives for an explicitly requested composition instance removal.
+  Permanent source removal uses `purge_ui_plugin`; unspecified or temporary
+  removal uses `set_plugin_enabled(false)`.
 - `replace_plugin`: replace an instance subtree in place.
 - `set_plugin_enabled`: hide or restore an existing instance.
 - Layout operations use snapshot-scoped refs. All refs in a transaction are
@@ -146,9 +152,9 @@ and commits atomically only when its gates succeed.
   sourceStateHash)`. Host computes all instances, orphan Provider cleanup,
   Source ownership and dependencies, final registry, verification and one atomic
   transaction. Never supply paths, dependencies or cleanup lists.
-- Ambiguous “去掉/删除”: use `ask_user_question` to choose hiding (source kept,
-  directly restorable) or permanent deletion (source deleted, later reinstall
-  or recreation). Make no writes before the choice; reuse recent clarification.
+- Unspecified “不要了/不需要了/去掉”: disable the existing instance and retain
+  its identity, placement, children and source. Clarify an uncertain target;
+  permanent source deletion still requires the Host confirmation.
 
 ### Hide or purge a child Plugin
 
@@ -326,7 +332,8 @@ a hidden Renderer Plugin, or modify reasoning Runtime state.
 
 User request: Restore the reasoning process.
 Semantic delta: enable the existing reasoning instance.
-Correct tool: insert the existing Plugin instance through Composition.
+Correct operation: set_plugin_enabled with the observed instanceId and enabled=true.
+Do not insert a second reasoning instance; preserve its current parent Slot.
 ```
 
 
@@ -379,6 +386,13 @@ New platform presets select history by default; Assistant presets stay collapsed
 Models without Header retain the legacy navigation rail. A Header with one
 enabled navigation item uses a single column without a duplicate history icon.
 
+### Attachment, dictation and feedback service configuration
+
+Use built-in defaults and project-owned business service implementations; only
+the AG-UI endpoint is an external connection prop.
+For business-service wiring, read [service configuration](../ag-ui-frontend/references/service-configuration.md).
+Do not ask users to implement adapters or copy Runtime code.
+
 ### Optional Sidebar Footer and authentication
 
 `sidebar.footer` is an optional ordinary Layout Slot with at most one visual
@@ -389,13 +403,16 @@ Footer silently. Footer is not a child slot of the Header or a special auth node
 
 For an existing Host login that only needs profile display, install account source
 alone and pass `<Agent user={{ userId, userName, avatar }} />` (or `user={null}`
-to show the signed-out default). For Host business interaction, use the generated
-public `AgentUIProvider` and Hooks; put user/connection options on the Provider
-and render `<Agent />` inside it. The Provider is framework integration, not an
+to show the signed-out default). For Host business interaction, import
+`AgentUIProvider` and Hooks from `@za38.03/agent-ui-runtime` in business code
+and wrap the business components and `<Agent />`. Keep connection, theme and
+adapter options on Agent; Provider accepts children and an optional shared user.
+The template exports Agent, not a project-defined Provider. Keep Agent mounted
+when hiding the panel to preserve the conversation. The Provider is framework integration, not an
 AppUIModel plugin. Do not add a gate or request adapter edits for display-only mode.
 
-For an explicitly requested plugin-managed login feature, follow
-`docs/implementation/authentication/README.md`: prepare `plugin/auth-gate` source
+For an explicitly requested plugin-managed login feature, inspect the installed
+auth assets and Services, then prepare `plugin/auth-gate` source
 and put its unique owner in `applicationPlugins`; optionally prepare
 `plugin/auth-account` and mount it in Footer. Install the gate source explicitly
 for plugin-managed login; source installation never installs model instances
@@ -404,3 +421,9 @@ account leaves authentication enabled. Configure the Host adapter explicitly;
 never enable the demo by default or overwrite existing authentication. Confirm
 owner, adapter and layout scope once, honoring authorization already supplied.
 Use existing service-contract authorization and model/source recovery facilities.
+The generated services/auth/adapter.ts fails closed until a real Host adapter is
+configured. Use the confirmed private service implementation change tools for this adapter.
+Read [service configuration](../ag-ui-frontend/references/service-configuration.md),
+explain authentication and shared caller impact, apply the exact confirmed edits
+and verify the implementation before claiming login is usable.
+Never enable a demo adapter as a substitute for the Host's authentication.

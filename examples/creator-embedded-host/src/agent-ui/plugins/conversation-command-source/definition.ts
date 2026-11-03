@@ -1,5 +1,5 @@
 import implementation from "@za38.03/agent-ui-plugins/conversation-command-source";
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins";
 import { CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../../services/composer-triggers";
 import { ConversationCommandSourcePlugin } from "./index";
 import { AGENT_UI_LOCALES } from "../../agent-ui/i18n/locale-registry";

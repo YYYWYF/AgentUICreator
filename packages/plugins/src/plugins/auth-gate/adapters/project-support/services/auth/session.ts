@@ -1,4 +1,4 @@
-import type { UIApplicationGateService } from "../../framework/contracts/ui-plugin";
+import type { UIApplicationGateService } from "@za38.03/agent-ui-plugins/contracts";
 export const AUTH_SESSION_SERVICE = "auth.session";
 export const AUTH_GATE_SERVICE = "auth.gate";
 export interface AuthUser { userId: string; userName: string; avatar?: string; }
@@ -25,6 +25,6 @@ export interface AuthSessionService {
   gate: UIApplicationGateService;
   dispose(): void;
 }
-declare module "../../framework/contracts/ui-plugin" {
+declare module "@za38.03/agent-ui-plugins/contracts" {
   interface UIPluginServiceMap { "auth.session": AuthSessionService; "auth.gate": UIApplicationGateService; }
 }

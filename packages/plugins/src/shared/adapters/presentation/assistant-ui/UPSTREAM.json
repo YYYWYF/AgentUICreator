@@ -23,7 +23,7 @@
     {
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
       "upstreamInstalledSha256": "b682a8cd3aa4c4c5ebfb49410c1a4cecf229d798842dbcac983f8d9723916ea5",
-      "installedSha256": "977ed222451c4103b9a379cd7a225aa1a3074c6dbdfad0523887f7128f769c1c"
+      "installedSha256": "9f16e436638e950acbce6fb21a199d75514993e87714d64298550b482374aeec"
     },
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
@@ -43,7 +43,7 @@
     {
       "localPath": "components/assistant-ui/elements/file.tsx",
       "upstreamInstalledSha256": "4a22cffb8cf001bff90d1ecaa0b113479e3bbf1f35c847c4b3a6df8b839747bc",
-      "installedSha256": "7cdd69e8c480f7402ce522f609a4980c80f949ccffa0a333bab0c10e71f31b36"
+      "installedSha256": "0b4eed34bd7b5d2d7faf446ec9a772065648de9deaac187ea82c88cd5ed30ded"
     },
     {
       "localPath": "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
@@ -68,7 +68,7 @@
     {
       "localPath": "components/assistant-ui/elements/media-player.tsx",
       "upstreamInstalledSha256": "91dc13e23108a810913f0a70207340505fcd8cdef4130dfa2d15dbfccaa5a682",
-      "installedSha256": "fb5558b994f4e740c72d53c919db3a39d2a3dc35252c9cbfdbc67ba8e8ba5bfe"
+      "installedSha256": "3d4c4cbc2a626a3b6d35ec18e70aac2e58d5c635a8363b6415e47c34e10be615"
     },
     {
       "localPath": "components/assistant-ui/elements/option-list.tsx",
@@ -153,7 +153,7 @@
     {
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamInstalledSha256": "032f0ce13ef9f537fff0dcc38b7c37a4986b3a8ec1fe11d457864a3a90ca4c97",
-      "installedSha256": "c485980e4906986d2ff708a3f1f344a3e5ca5bbe2edf97790d364ad3a4df88af"
+      "installedSha256": "a0938a1fcb9184ea841b3821badb6324965abe4cece315cb29e571587f9fd98a"
     },
     {
       "localPath": "components/ui/badge.tsx",
@@ -203,7 +203,7 @@
     {
       "localPath": "components/ui/tooltip.tsx",
       "upstreamInstalledSha256": "cdbf8fa744fe61171e1d7bc9224e04f45dc7c1d3119eaacd434c603a11e789ec",
-      "installedSha256": "ead5ed5e205acabb8a0d968f4476dfc3d1e347a347b6b74dd047c44db5a6386b"
+      "installedSha256": "3c7d2f5a3bd094926338274ee86b8ca1b996f9f4ff6faabff5cf331cc4085944"
     }
   ]
 }

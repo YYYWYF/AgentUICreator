@@ -1,9 +1,2 @@
-export {
-  AppFrontendToolRegistry,
-  defineFrontendTool,
-} from "./AppFrontendToolRegistry";
-export type {
-  AppFrontendToolDefinition,
-  AppFrontendToolExecutionContext,
-} from "./AppFrontendToolRegistry";
-export { AppFrontendToolRuntime } from "./AppFrontendToolRuntime";
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/runtime/tools/index";

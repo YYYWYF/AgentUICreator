@@ -1,67 +1,74 @@
 ---
-title: "查看图表（chart-message）"
+title: "图表展示（chart-message）"
 ---
 
-# 查看图表（chart-message）
-
-把 Agent 返回的数值数据画成图表，方便比较不同项目的大小。
-
-## 界面与功能
+# 图表展示（chart-message）
 
 例如把四个季度的销售额显示为条形图，同时保留项目名称和数值，用户不用只阅读一段数字。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![查看图表（chart-message）界面示例](/images/plugins/chart-message.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable chart-message`，点击下图中的 **「查看图表」**。
 
-当前官方预设：未默认加入三种形态，需要按项目需求启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「查看图表」，插件 ID 为 chart-message](/images/plugins/enable/chart-message.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「查看图表」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
-
-## 使用前提
-
-需返回符合组件要求的数据，并加载项目图表样式。正确显示不等于数据计算正确，仍需检查单位与来源。
-
-## 属性
-
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
-
-| 参数 | 用途 |
+| 可以改什么 | 效果 |
 | --- | --- |
-| `rootProps` | 最外层区域的样式和 DOM 属性。 |
-| `captionProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `listProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `itemProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `labelProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `trackProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `barProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `valueProps` | 定制对应区域的 DOM、样式或交互参数。 |
-| `renderItem` | 替换对应内容的展示，保留当前数据与交互。 |
-| `renderChart` | 替换对应内容的展示，保留当前数据与交互。 |
+| 图表大小和间距 | 调整图表宽度，以及各条数据之间的距离。 |
+| 标题和文字 | 调整标题、名称和数值的字号、颜色。 |
+| 条形外观 | 调整条形的高度、颜色和圆角。 |
+| 数字格式 | 例如把 12345 显示为 12,345，或添加单位。 |
+| 单条数据或整张图表 | 自定义每条数据的排版，或替换整个图表展示。 |
 
-下面是复用公开组件的应用层写法，放在现有组件上下文中使用。`props` 来自该组件公开类型，文案由项目语言配置传入：
+## 需求示例
 
-```tsx
-import type { ComponentProps } from "react";
-import { CanonicalChartMessage } from "@za38.03/agent-ui-plugins";
-
-type Props = ComponentProps<typeof CanonicalChartMessage>;
-export function ProjectView(props: Props) {
-  return <CanonicalChartMessage {...props} />;
-}
+```text
+请修改「查看图表（chart-message）」：
+修改：条形颜色改为【蓝色】，高度设为【8px】，数值显示【千位分隔符】。
+保留：Agent 返回的名称和数值。
 ```
 
-## 验证结果
+## 手动开发
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+打开项目中的 `plugins/chart-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+### 属性
 
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-## 继续阅读
+组件：`CanonicalChartMessage`；类型：`ChartMessageProps`。继承 `figure` 原生属性，排除 `children`、原生 `title`。
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `data` | `unknown` | 必需；校验为 `ChartMessageData`，无效时不渲染 |
+| `title?` | `ReactNode` | 默认数据中的图表标题 |
+| `classNames?` | `Partial<Record<ChartRegion, string>>` | 图表各部分的样式类 |
+| `styles?` | `Partial<Record<ChartRegion, CSSProperties>>` | 图表各部分的内联样式 |
+| `formatValue?` | `(value: number, item: ChartMessageItem) => ReactNode` | 默认直接显示数值 |
+| `renderItem?` | `(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode` | 替换单条图表内容 |
+| `renderChart?` | `(data: ChartMessageData) => ReactNode` | 替换整个图表，自行处理根外观与标题 |
+
+`ChartRegion` 是本表对分区键的简称：`'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value'`，不是额外的 npm 导出类型。`ChartMessageData` 为 `{ title: string; items: readonly ChartMessageItem[] }`，`ChartMessageItem` 为 `{ label: string; value: number }`。
+
+#### 原生属性
+
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalChartMessage } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalChartMessage>;
+```
+
+完整格式化与渲染示例见[自定义图表展示](/development/custom-renderers)。

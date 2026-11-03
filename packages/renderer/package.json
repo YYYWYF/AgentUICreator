@@ -20,7 +20,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "build": "node ../../scripts/clean-package-dist.mjs renderer && node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer",
     "typecheck": "node ../../scripts/run-plugin-source-views-check.mjs typecheck",
     "test": "node ../../scripts/run-plugin-source-views-check.mjs test",
     "prepack": "node ../../scripts/sync-package-release-metadata.mjs renderer",
@@ -48,13 +48,13 @@
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-react": "6.0.2",
     "vite": "8.3.0",
-    "@ag-ui/client": "0.0.59",
-    "@ag-ui/core": "0.0.59",
+    "@ag-ui/client": "1.0.3",
+    "@ag-ui/core": "1.0.3",
     "rxjs": "7.8.1",
     "react-hook-form": "7.88.0",
     "@assistant-ui/react-hook-form": "0.12.34",
-    "@assistant-ui/react-generative-ui": "0.0.22",
-    "react-markdown": "10.1.0"
+    "react-markdown": "10.1.0",
+    "@assistant-ui/generative-ui": "0.0.7"
   },
   "publishConfig": {
     "access": "public"

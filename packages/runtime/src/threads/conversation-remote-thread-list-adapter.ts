@@ -2,13 +2,16 @@ import type { RemoteThreadListAdapter } from "@assistant-ui/react";
 import type { ConversationThreadBinding, ConversationThreadListItem } from "./types.js";
 
 type RemoteThreadMetadata = Awaited<ReturnType<RemoteThreadListAdapter["fetch"]>>;
+type TitleStreamChunk = Awaited<ReturnType<RemoteThreadListAdapter["generateTitle"]>> extends ReadableStream<infer Chunk> ? Chunk : never;
 
 /** Persistence and identity only; assistant-ui owns the runtime cache and lifecycle. */
 export function createConversationRemoteThreadListAdapter<TState>(binding: ConversationThreadBinding<TState>) {
   const identities = new Map<string, string>();
   const initialized = new Map<string, RemoteThreadMetadata>();
+  const persistedIds = new Set<string>();
   const deletedIds = new Set<string>();
   const pendingDeletes = new Map<string, Promise<void>>();
+  const pendingChanges = new Set<Promise<void>>();
   const initialId = binding.getThreadId();
   const identity = (localId: string, remoteId?: string) => {
     const existing = identities.get(localId);
@@ -18,20 +21,39 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
     if (remoteId === undefined) binding.reserveThread?.(id);
     return id;
   };
-  const metadata = (item: ConversationThreadListItem<"regular" | "archived">): RemoteThreadMetadata => ({
-    remoteId: item.id, status: item.status,
-    ...(item.title === undefined ? {} : { title: item.title }),
-    ...(item.custom === undefined ? {} : { custom: item.custom }),
-  });
-  const unsupported = async () => { throw new Error("Conversation persistence does not support this operation."); };
+  const metadata = (item: ConversationThreadListItem<"regular" | "archived">): RemoteThreadMetadata => {
+    persistedIds.add(item.id);
+    const title = item.title?.trim() ? item.title : initialized.get(item.id)?.title;
+    return {
+      remoteId: item.id, status: item.status,
+      ...(title === undefined ? {} : { title }),
+      ...(item.custom === undefined ? {} : { custom: item.custom }),
+    };
+  };
+  const change = async (remoteId: string, persist: () => Promise<void>, patch: Partial<RemoteThreadMetadata>) => {
+    if (deletedIds.has(remoteId)) throw new Error(`Conversation "${remoteId}" was deleted.`);
+    const operation = Promise.resolve().then(async () => {
+      await persist();
+      const cached = initialized.get(remoteId);
+      if (cached !== undefined && !deletedIds.has(remoteId)) initialized.set(remoteId, { ...cached, ...patch });
+    });
+    pendingChanges.add(operation);
+    try { await operation; } finally { pendingChanges.delete(operation); }
+  };
   const adapter: RemoteThreadListAdapter = {
     async list() {
       // Service notifications can trigger reload before delete finishes clearing
       // initialized metadata. Wait so that reload cannot restore the deleted row.
-      await Promise.allSettled(pendingDeletes.values());
+      await Promise.allSettled([...pendingDeletes.values(), ...pendingChanges]);
       const snapshot = binding.getThreadListSnapshot?.();
       const items = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].map(metadata).filter(item => !deletedIds.has(item.remoteId));
       const ids = new Set(items.map(item => item.remoteId));
+      // A complete refreshed list may omit a record deleted by another client.
+      // Keep optimistic local threads, but never reinsert known persisted rows
+      // solely because a mounted thread previously cached their metadata.
+      if (snapshot !== undefined && !snapshot.isLoading) {
+        for (const id of persistedIds) if (!ids.has(id)) initialized.delete(id);
+      }
       return { threads: [...items, ...[...initialized.values()].filter(item => !ids.has(item.remoteId) && !deletedIds.has(item.remoteId))] };
     },
     async fetch(id) {
@@ -45,7 +67,7 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       }
       const cached = initialized.get(id);
       if (cached !== undefined) return cached;
-      if (id === initialId) {
+      if (id === initialId && !persistedIds.has(id)) {
         const initial: RemoteThreadMetadata = { remoteId: id, status: "regular" };
         initialized.set(id, initial);
         return initial;
@@ -67,7 +89,18 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       initialized.set(remoteId, { remoteId, status: "regular" });
       return { remoteId };
     },
-    rename: unsupported, archive: unsupported, unarchive: unsupported,
+    async rename(remoteId, title) {
+      if (binding.renameThread === undefined) throw new Error("Conversation persistence does not support renaming threads.");
+      await change(remoteId, () => binding.renameThread!(remoteId, title), { title });
+    },
+    async archive(remoteId) {
+      if (binding.archiveThread === undefined) throw new Error("Conversation persistence does not support archiving threads.");
+      await change(remoteId, () => binding.archiveThread!(remoteId), { status: "archived" });
+    },
+    async unarchive(remoteId) {
+      if (binding.unarchiveThread === undefined) throw new Error("Conversation persistence does not support unarchiving threads.");
+      await change(remoteId, () => binding.unarchiveThread!(remoteId), { status: "regular" });
+    },
     async delete(remoteId) {
       if (binding.deleteThread === undefined) {
         throw new Error("Conversation persistence does not support deleting threads.");
@@ -90,9 +123,32 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
         pendingDeletes.delete(remoteId);
       }
     },
-    async generateTitle() {
-      // Existing backends own titles. Do not invent a second title workflow.
-      return new ReadableStream({ start(controller) { controller.close(); } });
+    async generateTitle(remoteId, messages) {
+      const snapshot = binding.getThreadListSnapshot?.();
+      const item = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].find(item => item.id === remoteId);
+      const current = item === undefined ? initialized.get(remoteId) : metadata(item);
+      // Keep existing titles; only the first user message supplies the default.
+      const firstUserMessage = messages.find(message => message.role === "user");
+      const title = current?.title?.trim() ? current.title : firstUserMessage?.content
+        .filter(part => part.type === "text")
+        .map(part => part.text)
+        .join("\n").trim();
+      const visibleTitle = deletedIds.has(remoteId) ? undefined : title;
+      if (visibleTitle) {
+        initialized.set(remoteId, {
+          ...(current ?? { remoteId, status: "regular" }), title: visibleTitle,
+        });
+      }
+      return new ReadableStream<TitleStreamChunk>({
+        start(controller) {
+          if (visibleTitle) {
+            controller.enqueue({ type: "part-start", path: [0], part: { type: "text" } });
+            controller.enqueue({ type: "text-delta", path: [0], textDelta: visibleTitle });
+            controller.enqueue({ type: "part-finish", path: [0] });
+          }
+          controller.close();
+        },
+      });
     },
   };
   return { adapter, identity, initialId };

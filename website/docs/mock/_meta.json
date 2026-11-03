@@ -1,0 +1,22 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Mock 服务"
+  },
+  {
+    "type": "file",
+    "name": "getting-started",
+    "label": "启动与连接"
+  },
+  {
+    "type": "file",
+    "name": "builtin-scenarios",
+    "label": "内置场景"
+  },
+  {
+    "type": "file",
+    "name": "local-recordings",
+    "label": "本地数据回放"
+  }
+]

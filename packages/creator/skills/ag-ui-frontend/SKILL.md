@@ -42,6 +42,16 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 
 For interaction semantics, reason from product needs and AG-UI first. Treat external Agent UI projects as references, not runtime dependencies or public contracts.
 
+## History, attachments, speech and feedback services
+
+These capabilities have built-in defaults and project-owned service wiring.
+Business URLs/auth belong in implementation code, not Agent props. Before connecting a business history, upload, transcription or feedback
+service, read [service configuration](references/service-configuration.md).
+Users supply endpoint/authentication/payload details. Creator edits wiring and uses the confirmed private implementation change tools
+for services/ HTTP integration. Explain operation and shared impact before
+confirmation; public Service contract changes use their separate tools. Report
+applied changes and verification accurately. Preserve explicit custom adapters and Plugin layout.
+
 ## Frontend Tool execution and replay contract
 
 For capability or renderer integration details, read the packaged

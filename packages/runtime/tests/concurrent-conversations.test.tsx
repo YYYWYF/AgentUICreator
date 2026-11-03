@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
-import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
+import { HttpAgent } from "@ag-ui/client";
 import { ConversationAgentRuntimeBridge } from "../src/compatibility/conversation-runtime-bridge.js";
 import type {
   ConversationLoadedThread,
@@ -84,7 +84,7 @@ function createPersistenceFixture() {
 
 type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; input: { threadId: string; runId: string; resume?: unknown[] } };
 async function fixture(failFirstBHistory = false, providedBinding?: ConversationThreadBinding) {
-  const agents = new Map<string, CancellationAwareHttpAgent>();
+  const agents = new Map<string, HttpAgent>();
   const streams = new Map<string, Stream>();
   const bridges = new Map<string, AgentRuntime>();
   let currentId = "A";
@@ -119,7 +119,7 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
   await act(async () => {
     renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
       unstable_agentFactory={({ threadId }) => {
-        const agent = new CancellationAwareHttpAgent({ url: "http://example.test/agent", threadId,
+        const agent = new HttpAgent({ url: "http://example.test/agent", threadId,
           fetch: async (_url, init) => {
             const input = JSON.parse(String(init.body)) as Stream["input"];
             const encoder = new TextEncoder();

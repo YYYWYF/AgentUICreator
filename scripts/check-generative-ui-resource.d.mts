@@ -1,1 +1,1 @@
-export function checkGenerativeUiResource(options?: { repoRoot?: string; target?: { packages?: Record<string, string>; generativeUiReleaseRevision?: string } }): Promise<string[]>;
+export function checkGenerativeUiResource(options?: { repoRoot?: string; target?: { packages?: Record<string, string>; generativeUiReleaseRevision?: string; generativeUiPresentationRevision?: string } }): Promise<string[]>;

@@ -4,7 +4,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 const exact = /^(?:npm:(?:@[^/\s]+\/)?[^@\s]+@)?\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/u;
-const exactPython = /^[\w.-]+==(?:\d+!)?\d+(?:\.\d+)*(?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?(?:\+[a-z\d]+(?:[._-][a-z\d]+)*)?$/iu;
 const skipped = new Set(["node_modules", "dist", ".git", ".generated", "vendor", "upstream"]);
 
 export async function checkDependencyPins(root = workspaceRoot) {
@@ -49,20 +48,10 @@ export async function checkDependencyPins(root = workspaceRoot) {
   }
   await check(path.join(root, "package.json"));
   for (const directory of ["packages", "apps", "examples", "scripts", "website"]) await visit(path.join(root, directory));
-  const pythonManifest = await readFile(path.join(root, "packages/creator/python/pyproject.toml"), "utf8");
-  for (const block of pythonManifest.matchAll(/(?:dependencies|requires|test)\s*=\s*\[([\s\S]*?)\]/gu)) {
-    for (const quoted of block[1].matchAll(/"([^"]+)"/gu)) {
-      if (!exactPython.test(quoted[1])) failures.push(`pyproject.toml: ${quoted[1]}`);
-    }
-  }
-  const pythonLock = await readFile(path.join(root, "packages/creator/python/requirements.lock"), "utf8");
-  for (const line of pythonLock.split(/\r?\n/u)) {
-    if (line.trim() && !line.startsWith("#") && !exactPython.test(line)) failures.push(`requirements.lock: ${line}`);
-  }
   if (failures.length) throw new Error(`Dependencies must use exact versions:\n${failures.join("\n")}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   await checkDependencyPins();
-  console.log("All active JS/Python install requirements, overrides and pnpm use exact versions. Peer compatibility ranges and historical snapshots are preserved.");
+  console.log("All active JavaScript install requirements, overrides and pnpm use exact versions. Peer compatibility ranges and historical snapshots are preserved.");
 }

@@ -1,4 +1,4 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
 import { collectUserDetailsParameters } from "../../agent-contract/human-tools/collect-user-details";
 import { CollectUserDetailsToolUI } from "../../agent-ui/conversation/human-tool-uis/collect-user-details";
 import manifest from "./manifest.json";

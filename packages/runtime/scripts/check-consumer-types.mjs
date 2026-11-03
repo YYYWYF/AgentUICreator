@@ -19,15 +19,16 @@ async function run(command, args, cwd = consumerRoot) {
   const options = { cwd, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, CI: "true", NODE_PATH: "" } };
   const child = command === "pnpm" ? spawnPnpm(args, options) : spawn(command, args, options);
   let output = "";
+  let stderr = "";
   child.stdout.setEncoding("utf8");
   child.stderr.setEncoding("utf8");
   child.stdout.on("data", chunk => { output += chunk; });
-  child.stderr.on("data", chunk => { output += chunk; });
+  child.stderr.on("data", chunk => { stderr += chunk; });
   const exitCode = await new Promise((resolve, reject) => {
     child.on("error", reject);
     child.on("close", resolve);
   });
-  if (exitCode !== 0) throw new Error(output.trim() || `${command} exited with code ${exitCode}`);
+  if (exitCode !== 0) throw new Error((output + stderr).trim() || `${command} exited with code ${exitCode}`);
   return output;
 }
 
@@ -81,10 +82,11 @@ module.exports = { hooks: { readPackage(pkg) {
 `);
   const storePath = (await run("pnpm", ["store", "path"], packageRoot)).trim();
   // Markdown 0.14.6 declares assistant-ui React ^0.14.18; the reviewed
-  // intranet combination uses 0.15.30 with the memoize import adaptation.
+  // intranet combination uses 0.15.31 with the memoize import adaptation.
   // Allow this known peer conflict and retain strict consumer TypeScript checks.
-  await run("pnpm", ["install", "--ignore-scripts", "--no-frozen-lockfile",
-    "--cache-dir", path.join(consumerRoot, "cache"), "--store-dir", path.dirname(storePath), "--fetch-retries=0", "--fetch-timeout=15000",
+  // Keep the installation isolated, while reusing verified downloads and registry metadata.
+  await run("pnpm", ["install", "--ignore-scripts", "--no-frozen-lockfile", "--prefer-offline",
+    "--store-dir", path.dirname(storePath), "--fetch-retries=2", "--fetch-timeout=45000",
     "--strict-peer-dependencies=false", "--config.enableGlobalVirtualStore=false", "--config.packageImportMethod=copy", "--config.nodeLinker=isolated"]);
   const installedRoot = path.join(consumerRoot, "node_modules", "@za38.03", "agent-ui-runtime");
   const installedRealPath = await realpath(installedRoot);
@@ -111,16 +113,33 @@ module.exports = { hooks: { readPackage(pkg) {
   await writeFile(path.join(consumerRoot, "index.ts"), `import {
   AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError,
   createEphemeralConversationThreadBinding, type ConversationRuntimeProviderProps,
-  AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent,
+  type ConversationRunContextGetter,
+  AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent,
+  createAgentUIFrontendTools, combineAgentFrontendToolSources,
   type AgentUIUser, type AgentUIHost,
 } from "@za38.03/agent-ui-runtime";
 
+import { AgentApplication, createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter, ConversationWelcomeFallback, createRuntimeCompositionStore, type AgentUIProjectOptions } from "@za38.03/agent-ui-runtime/ui";
+import { parseAppUIModel, compileAppUIModel } from "@za38.03/agent-ui-runtime/ui/framework/contracts/index";
+import { createConversationService } from "@za38.03/agent-ui-runtime/ui/services/conversations";
+import "@za38.03/agent-ui-runtime/ui/styles.css";
+const projectStore: AgentUIProjectOptions["compositionStore"] = createRuntimeCompositionStore();
+void [createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter, ConversationWelcomeFallback, AgentApplication, projectStore, parseAppUIModel, compileAppUIModel, createConversationService];
 const optionalUser: AgentUIUser = {};
 const hostHook: () => AgentUIHost = useAgentUI;
-void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, optionalUser];
+void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, optionalUser];
+const hostTools = createAgentUIFrontendTools([{
+  name: "open_record", description: "Open record", inputSchema: { type: "object" },
+  execute(input, context) { context.signal.throwIfAborted(); return { input, call: context.toolCallId }; },
+}]);
+const mergedTools = combineAgentFrontendToolSources(hostTools);
+const hostBusinessListener = (host: AgentUIHost) => host.onAppEvent<{ id: string }>("app.record.selected", event => { void event.payload.id; });
+void [mergedTools, hostBusinessListener];
 
 ${checkReactCompatibility ? `import { createElement } from "react";
-import { Button } from "@za38.03/agent-ui-plugins";
+import { Button, ConversationSurface } from "@za38.03/agent-ui-plugins";
+import { createSearchFilesExampleToolkit } from "@za38.03/agent-ui-plugins/search-files-example";
+void [ConversationSurface, createSearchFilesExampleToolkit];
 import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 import { CreatorWorkbench } from "@za38.03/agent-ui-creator/ui";
 const hostUI = createElement(Button, null, "Send");
@@ -151,13 +170,22 @@ const dictationAdapter: NonNullable<ConversationRuntimeProviderProps["dictationA
 };
 const props: ConversationRuntimeProviderProps = {
   endpoint: "https://example.test/agent", threadBinding: binding,
+  attachments: { uploadUrl: "/api/files", urlField: "body.url", maxSizeBytes: 1024 },
+  dictation: { url: "/api/transcribe", textField: "body.text" },
+  feedback: { url: "/api/feedback", headers: { Authorization: "Bearer user-token" } },
   attachmentAdapter: adapter, dictationAdapter, children: null,
+  getRunContext: ({ messages, runConfig }) => [{ description: "page", value: JSON.stringify({ count: messages.length, custom: runConfig?.custom }) }],
 };
+const contextGetter: ConversationRunContextGetter = () => [{ description: "selectedRecord", value: "record-1" }];
+// @ts-expect-error context must be available synchronously for request construction
+const asyncContext: ConversationRunContextGetter = async () => [];
+// @ts-expect-error AG-UI context values are strings, not arbitrary business objects
+const invalidContext: ConversationRunContextGetter = () => [{ description: "page", value: {} }];
 // @ts-expect-error upstream adapter contract must not become an untyped seam
 const invalid: ConversationRuntimeProviderProps["attachmentAdapter"] = { accept: "image/*" };
 // @ts-expect-error dictation must provide the official listen method
 const invalidDictation: ConversationRuntimeProviderProps["dictationAdapter"] = { accept: "audio/*" };
-void [AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError, props, invalid, invalidDictation];
+void [AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError, props, invalid, invalidDictation, contextGetter, asyncContext, invalidContext];
 `);
   if (checkReactCompatibility) {
     await writeFile(path.join(consumerRoot, "runtime-smoke.mjs"),

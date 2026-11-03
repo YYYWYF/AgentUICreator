@@ -6,9 +6,9 @@ import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
-  ConversationRuntimeProvider,
+  ConversationRuntimeProvider, combineAgentFrontendToolSources,
   AgentUIProvider as RuntimeAgentUIProvider, AgentUIConversationBinding, AgentUIConnectionState,
-  AgentUIOutlet, useAgentUISurfaceTarget, useOptionalAgentUI,
+  AgentUIOutlet, AgentUIHostUserProvider, useAgentUIUser, useAgentUISurfaceTarget, useOptionalAgentUI,
 } from "@za38.03/agent-ui-runtime";
 
 import appUIModelSource from "../app-ui/app-ui.json?raw";
@@ -41,7 +41,11 @@ const revisionSources = import.meta.glob<string>("../app-ui/composition-revision
 const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
 
 export interface AgentProps {
-  /** Host-controlled presentation theme; omitted uses the project theme service/default. */
+  /** Explicit Host-owned page operations, combined with the project tool allowlist. */
+  frontendTools?: ConversationRuntimeProviderProps["frontendTools"];
+  /** Read current Host data into AG-UI context on each run and interrupt resume. */
+  getRunContext?: ConversationRuntimeProviderProps["getRunContext"];
+  /** Host-controlled presentation theme; omitted starts with the built-in theme and allows internal switching. */
   theme?: AgentUITheme | undefined;
   /** Reports theme changes requested by the UI. Update theme to accept a controlled change. */
   onThemeChange?: ((theme: AgentUITheme) => void) | undefined;
@@ -53,7 +57,7 @@ export interface AgentProps {
   locale?: AgentUILocaleCode;
   /** Reports language changes initiated by the UI, including locale-switch. */
   onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined;
-  /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
+  /** The Host application's AG-UI endpoint. Defaults to /agent. */
   endpoint?: string;
   observability?: AgentObservability;
   /** Application errors and Agent run errors reported by the conversation provider. */
@@ -70,7 +74,7 @@ export interface AgentProps {
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
   const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
     setPresentationLocale(nextLocale);
@@ -78,6 +82,7 @@ function AgentSession({ transientMessages, theme, onThemeChange, locale, onLocal
   }, [onLocaleChange]);
   const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);
   const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
+  const combinedFrontendTools = useMemo(() => combineAgentFrontendToolSources(frontendToolRuntime, frontendTools), [frontendToolRuntime, frontendTools]);
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -121,12 +126,12 @@ function AgentSession({ transientMessages, theme, onThemeChange, locale, onLocal
   return (
     <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale} theme={theme} onThemeChange={onThemeChange}
       renderGate={(content, phase) => <><AgentUIConnectionState status={phase === "error" ? "error" : phase === "blocked" ? "blocked" : "initializing"} /><AgentSurfacePortal>{content}</AgentSurfacePortal></>}>
-    <AuthenticatedConversation {...{ transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
+    <AuthenticatedConversation {...{ frontendTools: combinedFrontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
     </ApplicationSessionBoundary>
   );
 }
 
-function AuthenticatedConversation({ transientMessages, theme, onThemeChange, locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
   endpoint: string;
   presentationLocale: AgentUILocaleCode;
   setPresentationLocale: (locale: AgentUILocaleCode) => void;
@@ -146,7 +151,8 @@ function AuthenticatedConversation({ transientMessages, theme, onThemeChange, lo
       onError={onError}
       attachmentAdapter={attachmentAdapter}
       dictationAdapter={dictationAdapter}
-      frontendTools={frontendToolRuntime}
+      frontendTools={frontendTools}
+      getRunContext={getRunContext}
       frontendToolUIs={generatedFrontendToolUIs}
       suggestions={suggestions}
       threadBinding={threadBinding}
@@ -162,16 +168,16 @@ function AuthenticatedConversation({ transientMessages, theme, onThemeChange, lo
   );
 }
 
-/** Project-only binding; the Host API and lifecycle implementation live in the runtime package. */
-export interface AgentUIProviderProps extends AgentProps { children: ReactNode; }
-export function AgentUIProvider({ children, user, ...props }: AgentUIProviderProps) {
+/** Project composition belongs to Agent; the optional shared Host provider comes from npm. */
+function AgentContent({ user, ...props }: AgentProps) {
+  const inheritedUser = useAgentUIUser();
   const preview = usePreviewAgentEnvironment();
   const previewPending = import.meta.env.DEV && new URLSearchParams(window.location.search).has("creator-preview") && !preview;
-  return <RuntimeAgentUIProvider user={user}>
-    {children}
+  return <AgentUIHostUserProvider user={user === undefined ? inheritedUser : user}>
+    <AgentUIOutlet />
     {previewPending ? null : <AgentSession key={JSON.stringify([preview?.identity ?? "product", props.endpoint ?? "/agent"])} {...props}
       {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
-  </RuntimeAgentUIProvider>;
+  </AgentUIHostUserProvider>;
 }
 
 /** Preserve conversation context while mounting the visible surface in the Host's chosen region. */
@@ -180,12 +186,9 @@ function AgentSurfacePortal({ children }: { children: ReactNode }) {
   return target ? createPortal(children, target) : null;
 }
 
-/** Reuse an enclosing Host provider, or retain the standalone entry for existing projects. */
+/** Standalone by default; business code can opt into the package-owned shared Host provider. */
 export function Agent(props: AgentProps = {}) {
   const host = useOptionalAgentUI();
-  if (host) {
-    if (Object.keys(props).length > 0) throw new Error("AGENT_UI_CONFIGURE_OUTER_PROVIDER");
-    return <AgentUIOutlet />;
-  }
-  return <AgentUIProvider {...props}><AgentUIOutlet /></AgentUIProvider>;
+  if (host) return <AgentContent {...props} />;
+  return <RuntimeAgentUIProvider><AgentContent {...props} /></RuntimeAgentUIProvider>;
 }

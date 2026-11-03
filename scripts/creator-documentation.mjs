@@ -4,15 +4,18 @@ import { mkdtemp, readFile, readdir, mkdir, rm, copyFile, writeFile } from 'node
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnPnpmSync } from './pnpm-process.mjs';
+import { agentIndexPath, buildAgentDocumentation, referenceDocuments, referenceManifest, verifyAgentDocumentation } from './creator-agent-documentation.mjs';
 
 const repositoryRoot = fileURLToPath(new URL('../', import.meta.url));
 const hash = data => createHash('sha256').update(data).digest('hex');
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-const modules = ['core', 'renderer', 'runtime', 'plugins', 'web-component', 'operator', 'creator'];
-const skipped = new Set(['node_modules', 'doc_build', '.rspress', '.git']);
+const modules = ['core', 'renderer', 'runtime', 'plugins', 'web-component', 'creator'];
+const skipped = new Set(['node_modules', 'doc_build', '.rspress', '.git', 'pnpm-lock.yaml']);
+const textSourceExtensions = new Set(['.md', '.mdx', '.txt', '.json', '.yaml', '.yml', '.ts', '.tsx', '.js', '.mjs', '.css']);
 const resourceExtensions = new Set(['.md', '.txt', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif']);
 
 export function isDocumentationResource(name) {
+  if (name === agentIndexPath) return true;
   const extension = path.posix.extname(name).toLowerCase();
   return extension === '.txt'
     ? name === 'llms.txt' || name === 'llms-full.txt'
@@ -46,9 +49,12 @@ async function filesUnder(root, skip = new Set()) {
   return files.sort(compare);
 }
 
-async function sourceIdentity(root) {
+export async function documentationIdentity(root) {
   const versions = {};
-  const inputs = ['pnpm-lock.yaml', 'scripts/creator-documentation.mjs'];
+  // Installation locks may be regenerated for an intranet registry. They do not
+  // change documentation content and are not part of its portable identity.
+  const inputs = ['scripts/creator-documentation.mjs', 'scripts/creator-agent-documentation.mjs', referenceManifest,
+    ...(await referenceDocuments(root)).map(document => document.path)];
   for (const module of modules) {
     const name = `packages/${module}/package.json`;
     const manifest = JSON.parse(await readFile(artifactPath(root, name), 'utf8'));
@@ -57,7 +63,14 @@ async function sourceIdentity(root) {
   }
   for (const name of await filesUnder(path.join(root, 'website'), skipped)) inputs.push(`website/${name}`);
   const records = [];
-  for (const name of inputs.sort(compare)) records.push([name, hash(await readFile(artifactPath(root, name)))]);
+  for (const name of inputs.sort(compare)) {
+    const bytes = await readFile(artifactPath(root, name));
+    // Git may use CRLF in a Windows source checkout. Static artifact hashes stay
+    // byte-exact, but equivalent source line endings must not invalidate handoff.
+    const content = textSourceExtensions.has(path.posix.extname(name))
+      ? bytes.toString('utf8').replace(/\r\n/gu, '\n') : bytes;
+    records.push([name, hash(content)]);
+  }
   return { versions, sourceDigest: hash(JSON.stringify(records)) };
 }
 
@@ -73,6 +86,7 @@ export async function verifyDocumentation(directory, expected = {}) {
   assert(Array.isArray(index.files) && index.files.some(file => file.path.endsWith('.md')), 'Missing Markdown pages');
   const names = index.files.map(file => file.path);
   assert(names.includes('llms.txt') && names.includes('llms-full.txt'), 'Missing LLM indexes');
+  assert(names.includes(agentIndexPath), 'Missing Creator document index');
   assert.equal(new Set(names).size, names.length, 'Duplicate documentation paths');
   for (const file of index.files) {
     const bytes = await readFile(artifactPath(directory, file.path));
@@ -82,32 +96,34 @@ export async function verifyDocumentation(directory, expected = {}) {
     assert.equal(hash(bytes), file.sha256, `Documentation hash mismatch: ${file.path}`);
   }
   assert.deepEqual(await filesUnder(directory), [...names, 'index.json'].sort(compare), 'Unindexed documentation files');
+  const catalog = await verifyAgentDocumentation(directory);
+  assert(catalog.documents.every(document => names.includes(document.path)), 'Unindexed Creator document');
   return index;
 }
 
-export async function prepareDocumentation(root = repositoryRoot, checkOnly = false) {
-  const destination = path.join(root, 'packages/creator/dist/documentation');
-  const identity = await sourceIdentity(root);
-  if (checkOnly) {
-    await verifyDocumentation(destination, { version: identity.versions['@za38.03/agent-ui-creator'], sourceDigest: identity.sourceDigest });
-    return;
-  }
-  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-docs', 'build'], { cwd: root, stdio: 'inherit' });
+export async function generateDocumentation(root = repositoryRoot) {
+  const destination = path.join(root, 'artifacts/creator-documentation');
+  const identity = await documentationIdentity(root);
+  const result = spawnPnpmSync(['build'], { cwd: path.join(root, 'website'), stdio: 'inherit' });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`Documentation build failed (${result.status})`);
-  assert.deepEqual(await sourceIdentity(root), identity, 'Documentation source changed while building; retry');
+  assert.deepEqual(await documentationIdentity(root), identity, 'Documentation source changed while building; retry');
   const output = path.join(root, 'website/doc_build');
   await mkdir(path.dirname(destination), { recursive: true });
   const staging = await mkdtemp(path.join(path.dirname(destination), '.documentation-'));
   try {
-    const files = [];
     for (const name of await filesUnder(output)) {
       if (!isDocumentationResource(name)) continue;
       const source = artifactPath(output, name);
       const target = artifactPath(staging, name);
-      const bytes = await readFile(source);
       await mkdir(path.dirname(target), { recursive: true });
       await copyFile(source, target);
+    }
+    await buildAgentDocumentation(root, staging);
+    assert.deepEqual(await documentationIdentity(root), identity, 'Documentation source changed while indexing; retry');
+    const files = [];
+    for (const name of await filesUnder(staging)) {
+      const bytes = await readFile(artifactPath(staging, name));
       files.push({ path: name, bytes: bytes.length, sha256: hash(bytes) });
     }
     const index = {
@@ -133,7 +149,40 @@ export async function prepareDocumentation(root = repositoryRoot, checkOnly = fa
   }
 }
 
+// Build/prepack consumes an already generated, portable snapshot. Never launches
+// a package manager or documentation compiler on the packaging machine.
+export async function prepareDocumentation(root = repositoryRoot, checkOnly = false) {
+  const source = path.join(root, 'artifacts/creator-documentation');
+  const destination = path.join(root, 'packages/creator/dist/documentation');
+  const identity = await documentationIdentity(root);
+  const expected = { version: identity.versions['@za38.03/agent-ui-creator'], sourceDigest: identity.sourceDigest };
+  try {
+    const index = await verifyDocumentation(source, expected);
+    assert.deepEqual(index.versions, identity.versions, 'Documentation package versions are stale');
+  } catch (error) {
+    throw new Error('Offline documentation handoff is missing, stale or invalid. Run pnpm docs:install and pnpm docs:package on the external build machine, then copy artifacts/creator-documentation with the source repository.', { cause: error });
+  }
+  if (checkOnly) {
+    await verifyDocumentation(destination, expected);
+    return;
+  }
+  await rm(destination, { recursive: true, force: true });
+  await mkdir(destination, { recursive: true });
+  for (const name of await filesUnder(source)) {
+    const target = artifactPath(destination, name);
+    await mkdir(path.dirname(target), { recursive: true });
+    await copyFile(artifactPath(source, name), target);
+  }
+  await verifyDocumentation(destination, expected);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  await prepareDocumentation(repositoryRoot, process.argv.includes('--check'));
-  console.log('Creator offline documentation verified.');
+  if (process.argv.includes('--generate')) {
+    await generateDocumentation();
+    await prepareDocumentation();
+    console.log('Creator offline documentation generated and verified. Copy artifacts/creator-documentation with the source repository.');
+  } else {
+    await prepareDocumentation(repositoryRoot, process.argv.includes('--check'));
+    console.log('Creator offline documentation verified.');
+  }
 }

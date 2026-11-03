@@ -1,14 +1,2 @@
-import { createContext, useContext } from "react";
-
-import type { AgentRuntime } from "@za38.03/agent-ui-core";
-
-export const AgentRuntimeContext =
-  createContext<AgentRuntime<unknown> | null>(null);
-
-export function useRequiredAgentRuntime<TState = unknown>(): AgentRuntime<TState> {
-  const runtime = useContext(AgentRuntimeContext);
-  if (runtime === null) {
-    throw new Error("AgentRuntimeProvider is missing");
-  }
-  return runtime as AgentRuntime<TState>;
-}
+/** Legacy resource import; implementation is owned by the Runtime npm package. */
+export * from "@za38.03/agent-ui-runtime/ui/runtime/context/AgentRuntimeContext";

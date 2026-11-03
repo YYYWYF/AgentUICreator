@@ -1,5 +1,7 @@
 "use client";
 
+import type { UIPluginElementProps } from "../../../../public.js";
+
 import { useAgentUILocale, useConversationCommandDecision, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../plugin-support.js";
 
 import {
@@ -1252,12 +1254,15 @@ function ToolFallbackApprovalImpl({
   );
 }
 
-export interface ToolFallbackPresentationProps {
-  rootProps?: ToolFallbackRootProps;
-  triggerProps?: Omit<React.ComponentProps<typeof ToolFallbackTrigger>, "toolName" | "status" | "responseDeliveryStatus">;
+export interface ToolFallbackPresentationProps extends UIPluginElementProps {
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  buttonProps?: Omit<React.ComponentProps<typeof ToolFallbackTrigger>, "toolName" | "status" | "responseDeliveryStatus">;
   contentProps?: React.ComponentProps<typeof ToolFallbackContent>;
   argsProps?: Omit<React.ComponentProps<typeof ToolFallbackArgs>, "argsText" | "children">;
   resultProps?: Omit<React.ComponentProps<typeof ToolFallbackResult>, "result" | "children">;
+  renderResult?: (result: unknown) => React.ReactNode;
   errorProps?: Omit<React.ComponentProps<typeof ToolFallbackError>, "status" | "children">;
   approvalProps?: Omit<React.ComponentPropsWithoutRef<"div">, "children">;
   children?: React.ReactNode;
@@ -1279,7 +1284,7 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
   respondToApproval,
   decisionRequest,
   submitDecision,
-  rootProps, triggerProps, contentProps, argsProps, resultProps, errorProps, approvalProps, children,
+  expanded, defaultExpanded, onExpandedChange, className, style, id, role, "aria-label": ariaLabel, "aria-describedby": ariaDescription, onClick, buttonProps, contentProps, argsProps, resultProps, renderResult, errorProps, approvalProps, children,
 }) => {
   const isCancelled =
     status?.type === "incomplete" && status.reason === "cancelled";
@@ -1289,7 +1294,7 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
     decisionRequest != null ||
     (isRequiresAction && offersInterruptAction(status, approval, interrupt, decisionRequest));
 
-  const [open, setOpen] = useState(rootProps?.defaultOpen ?? isRequiresAction);
+  const [open, setOpen] = useState(defaultExpanded ?? isRequiresAction);
   const [prevRequiresAction, setPrevRequiresAction] =
     useState(isRequiresAction);
   if (isRequiresAction !== prevRequiresAction) {
@@ -1323,13 +1328,13 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
   }, [approval, isRequiresAction, status?.type]);
 
   return (
-    <ToolFallbackRoot {...rootProps} open={rootProps?.open ?? open} onOpenChange={(value) => { setOpen(value); rootProps?.onOpenChange?.(value); }}>
-      {rootProps?.children ?? <>
+    <ToolFallbackRoot className={className} style={style} id={id} role={role} aria-label={ariaLabel} aria-describedby={ariaDescription} onClick={onClick} open={expanded ?? open} onOpenChange={(value) => { setOpen(value); onExpandedChange?.(value); }}>
+      {<>
       <ToolFallbackTrigger
         toolName={toolName}
         status={status}
         responseDeliveryStatus={responseDeliveryStatus}
-        {...triggerProps}
+        {...buttonProps}
       />
       <ToolFallbackContent {...contentProps}>
         {contentProps?.children ?? <>
@@ -1374,7 +1379,7 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
             }}
           />
         )}
-        <ToolFallbackResult result={result} {...resultProps} />
+        {renderResult ? renderResult(result) : <ToolFallbackResult result={result} {...resultProps} />}
         {children}
         </>}
       </ToolFallbackContent>

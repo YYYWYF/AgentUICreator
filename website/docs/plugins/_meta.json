@@ -2,7 +2,12 @@
   {
     "type": "file",
     "name": "index",
-    "label": "插件总览与选用"
+    "label": "功能概览"
+  },
+  {
+    "type": "file",
+    "name": "default-plugins",
+    "label": "插件默认启用情况"
   },
   {
     "type": "custom-link",
@@ -11,11 +16,11 @@
     "collapsed": false,
     "items": [
       {
-        "label": "显示完整对话区",
+        "label": "会话界面",
         "link": "/plugins/conversation-surface.html"
       },
       {
-        "label": "查找与切换会话",
+        "label": "会话列表",
         "link": "/plugins/conversation-thread-list.html"
       },
       {
@@ -23,12 +28,12 @@
         "link": "/plugins/conversation-new.html"
       },
       {
-        "label": "使用开场建议",
+        "label": "开场建议",
         "link": "/plugins/conversation-suggestions.html"
       },
       {
         "type": "custom-link",
-        "label": "临时提示消息",
+        "label": "临时通知",
         "link": "/plugins/transient-assistant-messages"
       }
     ]
@@ -40,7 +45,7 @@
     "collapsed": false,
     "items": [
       {
-        "label": "输入消息",
+        "label": "消息输入",
         "link": "/plugins/composer.html"
       },
       {
@@ -48,15 +53,15 @@
         "link": "/plugins/submit-action.html"
       },
       {
-        "label": "添加附件",
+        "label": "附件添加",
         "link": "/plugins/add-attachment-action.html"
       },
       {
-        "label": "引用消息",
+        "label": "消息引用",
         "link": "/plugins/conversation-quote.html"
       },
       {
-        "label": "编辑已发送的消息与标签",
+        "label": "消息与标签编辑",
         "link": "/plugins/lexical-edit-composer.html"
       },
       {
@@ -64,15 +69,15 @@
         "link": "/plugins/dictation-action.html"
       },
       {
-        "label": "输入 @ 搜索对象（高级）",
+        "label": "@ 提及搜索（高级）",
         "link": "/plugins/mention-trigger.html"
       },
       {
-        "label": "输入 / 使用命令（高级）",
+        "label": "/ 快捷命令（高级）",
         "link": "/plugins/slash-command-trigger.html"
       },
       {
-        "label": "在输入框显示 @ 与 / 标签（高级）",
+        "label": "输入标签展示（高级）",
         "link": "/plugins/lexical-composer-input.html"
       }
     ]
@@ -88,19 +93,19 @@
         "link": "/plugins/response-footer.html"
       },
       {
-        "label": "复制回复",
+        "label": "回复复制",
         "link": "/plugins/copy-action.html"
       },
       {
-        "label": "重新生成回复",
+        "label": "回复重新生成",
         "link": "/plugins/reload-action.html"
       },
       {
-        "label": "导出回复",
+        "label": "Markdown 回复导出",
         "link": "/plugins/export-markdown-action.html"
       },
       {
-        "label": "评价回复（高级）",
+        "label": "回复评价（高级）",
         "link": "/plugins/feedback-actions.html"
       }
     ]
@@ -112,39 +117,51 @@
     "collapsed": false,
     "items": [
       {
-        "label": "展开 Agent 思考内容",
+        "label": "思考内容展示",
         "link": "/plugins/reasoning.html"
       },
       {
-        "label": "展开多个工具调用",
+        "label": "工具调用分组",
         "link": "/plugins/tool-group.html"
       },
       {
-        "label": "查看工具详情与执行确认",
+        "label": "工具调用详情",
         "link": "/plugins/tool-fallback.html"
       },
       {
-        "label": "显示正在思考提示（高级）",
+        "label": "工具结果（多模态）",
+        "link": "/plugins/tool-result.html"
+      },
+      {
+        "label": "询问用户",
+        "link": "/plugins/ask-user-question.html"
+      },
+      {
+        "label": "人机交互与操作确认",
+        "link": "/plugins/human-interaction.html"
+      },
+      {
+        "label": "思考状态提示（高级）",
         "link": "/plugins/thinking-indicator.html"
       },
       {
-        "label": "汇总工具执行过程（高级）",
+        "label": "工具执行时间线（高级）",
         "link": "/plugins/tool-timeline.html"
       },
       {
-        "label": "查看 SubAgent 任务与结果（高级）",
+        "label": "SubAgent 任务与结果（高级）",
         "link": "/plugins/task-group.html"
       },
       {
-        "label": "显示 Agent 当前工作状态（高级）",
+        "label": "Agent 工作状态（高级）",
         "link": "/plugins/agent-status-message.html"
       },
       {
-        "label": "查看计划步骤与完成情况（高级）",
+        "label": "任务计划与完成状态（高级）",
         "link": "/plugins/agent-plan-message.html"
       },
       {
-        "label": "查看后台任务进度（高级）",
+        "label": "后台任务进度（高级）",
         "link": "/plugins/job-progress-message.html"
       }
     ]
@@ -156,27 +173,27 @@
     "collapsed": false,
     "items": [
       {
-        "label": "查看上下文检索结果",
+        "label": "上下文检索结果",
         "link": "/plugins/context-retrieval-message.html"
       },
       {
-        "label": "获取生成文件（高级）",
+        "label": "生成文件（高级）",
         "link": "/plugins/generated-file-message.html"
       },
       {
-        "label": "查看图表（高级）",
+        "label": "图表展示（高级）",
         "link": "/plugins/chart-message.html"
       },
       {
-        "label": "查看引用来源（高级）",
+        "label": "引用来源（高级）",
         "link": "/plugins/source-citations-message.html"
       },
       {
-        "label": "查看文档检索片段（高级）",
+        "label": "文档检索片段（高级）",
         "link": "/plugins/retrieval-chunks.html"
       },
       {
-        "label": "查看网页搜索结果（高级）",
+        "label": "网页搜索结果（高级）",
         "link": "/plugins/web-search.html"
       }
     ]
@@ -188,47 +205,52 @@
     "collapsed": false,
     "items": [
       {
-        "label": "显示 Agent 名称与头像",
+        "label": "Agent 名称与头像",
         "link": "/plugins/agent-identity.html"
       },
       {
-        "label": "切换主题（高级）",
+        "label": "主题切换（高级）",
         "link": "/plugins/theme-switch.html"
       },
       {
-        "label": "切换界面语言（高级）",
+        "label": "界面语言切换（高级）",
         "link": "/plugins/locale-switch.html"
       },
       {
-        "label": "登录后进入聊天（高级）",
+        "label": "登录认证（高级）",
         "link": "/plugins/auth-gate.html"
       },
       {
-        "label": "查看账号与退出登录（高级）",
+        "label": "账号信息与退出登录（高级）",
         "link": "/plugins/auth-account.html"
       }
     ]
   },
   {
     "type": "custom-link",
-    "label": "开发自定义插件",
+    "label": "配置与服务",
     "collapsible": true,
-    "collapsed": true,
+    "collapsed": false,
     "items": [
       {
-        "type": "custom-link",
-        "label": "开发能力与示例",
-        "link": "/plugins/development"
+        "label": "会话命令源",
+        "link": "/plugins/conversation-command-source"
       },
       {
-        "type": "custom-link",
-        "label": "创建与注册 UI Plugin",
-        "link": "/plugins/create-plugin"
+        "label": "会话数据源",
+        "link": "/plugins/conversation-data-source"
       },
       {
-        "type": "custom-link",
-        "label": "定义、生命周期与服务",
-        "link": "/plugins/plugin-contract"
+        "label": "会话服务",
+        "link": "/plugins/conversation-service"
+      },
+      {
+        "label": "语言服务",
+        "link": "/plugins/locale-provider"
+      },
+      {
+        "label": "主题服务",
+        "link": "/plugins/theme-provider"
       }
     ]
   }

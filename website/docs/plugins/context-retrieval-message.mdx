@@ -1,45 +1,68 @@
 ---
-title: "查看上下文检索结果（context-retrieval-message）"
+title: "上下文检索结果（context-retrieval-message）"
 ---
 
-# 查看上下文检索结果（context-retrieval-message）
-
-展示本次提供给 Agent 参考的检索内容，帮助用户了解回答使用了哪些资料。
-
-## 界面与功能
+# 上下文检索结果（context-retrieval-message）
 
 例如 Agent 查询请假制度后，卡片按检索词列出供它参考的制度片段，用户可以展开阅读。它展示已提供给 Agent 的上下文；文档检索片段插件则展示文档搜索工具的命中结果。
 
+日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+
 ![查看上下文检索结果（context-retrieval-message）界面示例](/images/plugins/context-retrieval-message.png)
 
-## 如何启用和使用
+## 启用与使用
 
-在已创建的工程中启用此 Plugin，放到当前组合支持的位置。可以请 Creator 按下方示例调整；先保留已有页面和其他功能，再检查预览效果。
+在 **Creator 输入框**输入 `/enable context-retrieval-message`，点击下图中的 **「查看上下文检索结果」**。
 
-当前官方预设：在工作台、悬浮式、嵌入式中启用。已有项目可能已经定制，以实际页面为准。
+![Creator 启用菜单：点击「查看上下文检索结果」，插件 ID 为 context-retrieval-message](/images/plugins/enable/context-retrieval-message.jpg)
 
-可以把下面的需求发给 Creator：
+## 定制选项
 
-> 在当前工程中配置「查看上下文检索结果」，保留已有布局和其他功能。先检查所需服务是否可用，完成后说明改了哪里、怎样验证。
+通过 `className`、`style` 调整卡片样式，通过 `defaultExpanded` 设置默认展开，通过 `title` 替换卡片标题；需要改变内容排版时使用 `renderContent`。检索词和片段内容继续来自 Agent 返回的数据。
 
-## 使用前提
+## 需求示例
 
-需要相应上下文检索数据，与普通工具的文档检索结果分别接入。显示卡片不代表用户可访问所有原文。
+```text
+请修改「查看上下文检索结果（context-retrieval-message）」：
+修改：卡片最大宽度设为【640px】并居中，卡片间距设为【12px】。
+保留：Agent 返回的来源、检索词和片段内容。
+```
 
-## 属性
+## 手动开发
 
-优先在项目已有 Plugin 应用文件中设置参数；不需要为了改外观复制官方实现。
+打开项目中的 `plugins/context-retrieval-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-| 参数 | 用途 |
-| --- | --- |
+### 属性
 
-## 验证结果
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-在当前项目检查正常、不可用、失败和取消中与此功能相关的状态。涉及附件、语音、登录、历史和恢复时，分别测试实际业务服务；使用 Mock 时注明它是演示数据。
+组件：`CanonicalContextRetrievalMessage`；类型：`ContextRetrievalMessageProps`。继承 `details` 原生属性，排除 `children`、`title`、`open`、`onToggle`。
 
-如果只通过类型检查或构建，仍需在页面验证。失败时查看具体提示，不直接清空工程或覆盖已有定制。
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `data` | `unknown` | 必需；有效结构为 `ContextRetrievalData`，无效时不渲染 |
+| `title?` | `ReactNode` | 默认按来源使用统一检索文案或来源值 |
+| `expanded?` | `boolean` | 受控展开 |
+| `defaultExpanded?` | `boolean` | 默认 `false` |
+| `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
+| `renderContent?` | `(data: ContextRetrievalData, defaultContent: ReactNode) => ReactNode` | 替换检索正文，保留标题和展开容器 |
 
+`ContextRetrievalData` 为 `{ source: string; content: readonly ContextRetrievalGroup[] }`。每个分组为 `{ query: string; context: readonly string[] }`。
 
-## 继续阅读
+#### 原生属性
 
-[通过 Creator 修改界面](../guide/request-changes) · [应用层定制](../customization/application-layer) · [问题排查](../troubleshooting/plugins-and-input) · [返回 Plugin 总览](./)
+支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalContextRetrievalMessage } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalContextRetrievalMessage>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+这里的工具或消息参数由会话传入，属于数据接口；需要更换结构时，在项目注册处包装或更换渲染函数。

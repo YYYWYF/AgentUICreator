@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { initializeAgentUIProject } from '@za38.03/agent-ui-creator/bootstrap';
-import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '@za38.03/agent-ui-creator/operator/host';
+import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '@za38.03/agent-ui-creator/project/host';
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const root = await mkdtemp(path.join(tmpdir(), 'agent-ui-compatibility-'));
@@ -26,7 +26,7 @@ try {
   await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@za38.03/agent-ui-web-component': '^0.0.1' } }));
   await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: true, types: ['vite/client', 'node'] }, include: ['src'] }));
   const host = createAgentUIInitializationHost();
-  await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installOperatorEntry: async () => [], installDevelopmentDefaults: async () => [] });
+  await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installOperatorEntry: async () => [] });
   const before = await inspectOfficialAgentUIResourceCatalog(root);
   assert.equal(before.find(item => item.id === 'web-component-bridge').status, 'missing');
   const result = await installOfficialAgentUIResource(root, 'web-component-bridge', { runPackages: async () => { throw new Error('Fixture dependencies should already satisfy the normal installation plan'); } });
@@ -35,9 +35,11 @@ try {
   assert.equal((await installOfficialAgentUIResource(root, 'web-component-bridge')).changed, false);
   // The producer's edited React Plugin must enter its own bundle, rather than
   // silently loading the bridge package's default preset.
-  const plugin = path.join(root, 'src/agent-ui/plugins/slash-command-trigger/index.tsx');
+  const plugin = path.join(root, 'src/agent-ui/plugins/conversation-surface/index.tsx');
   const source = await readFile(plugin, 'utf8');
-  await writeFile(plugin, source.replace('return <ConversationComposerCommandTrigger source={source} labels={labels} />;', 'return <div data-compatibility-fixture="local-plugin"><ConversationComposerCommandTrigger source={source} labels={labels} /></div>;'));
+  const customized = source.replace(/return (<Implementation\b[\s\S]*\/>);/u, 'return <div data-compatibility-fixture="local-plugin">$1</div>;');
+  assert.notEqual(customized, source, 'The enabled project application component must actually be customized');
+  await writeFile(plugin, customized);
   const build = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/vite/bin/vite.js'), 'build', '--config', 'src/agent-ui/integrations/web-component-bridge/vite.config.ts'], { cwd: root, encoding: 'utf8' });
   assert.equal(build.status, 0, build.stdout + build.stderr);
   const script = await readFile(path.join(root, 'dist/agent-ui-web-component/agent-ui.js'), 'utf8');
@@ -55,7 +57,7 @@ export default defineConfig({ plugins: [react(), tailwindcss()], build: { outDir
   const nativeScript = await readFile(path.join(root, 'dist/native/native.js'), 'utf8');
   assert(!nativeScript.includes('agent-ui-bridge-mount'));
   assert(!nativeScript.includes('__AGENT_UI_BUNDLED_PLUGIN_CSS__'));
-  const typecheck = spawnSync(path.join(packageRoot, 'node_modules/.bin/tsc'), ['--noEmit'], { cwd: root, encoding: 'utf8' });
+  const typecheck = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/typescript/bin/tsc'), '--noEmit'], { cwd: root, encoding: 'utf8' });
   assert.equal(typecheck.status, 0, typecheck.stdout + typecheck.stderr);
   console.log('Resource discovery, normal install plan/apply, idempotence, customized project bundle and native React build/typecheck passed.');
 } finally { await rm(root, { recursive: true, force: true }); }

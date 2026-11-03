@@ -58,7 +58,10 @@ export interface ConversationThreadBinding<TState = unknown> {
   activateThread?(threadId: string): void;
   reserveThread?(threadId: string): void;
   initializeThread?(threadId: string): Promise<string>;
-  getThreadMetadata?(threadId: string): Promise<ConversationThreadListItem<"regular">>;
+  getThreadMetadata?(threadId: string): Promise<ConversationThreadListItem<"regular" | "archived">>;
+  renameThread?(threadId: string, title: string): Promise<void>;
+  archiveThread?(threadId: string): Promise<void>;
+  unarchiveThread?(threadId: string): Promise<void>;
   deleteThread?(threadId: string): Promise<void>;
   subscribe(listener: () => void): () => void;
   createNewThread(): Promise<string>;

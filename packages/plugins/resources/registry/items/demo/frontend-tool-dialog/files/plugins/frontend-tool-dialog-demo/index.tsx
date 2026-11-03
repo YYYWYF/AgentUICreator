@@ -1,7 +1,7 @@
 import { AgentUIDialog as Dialog } from "@za38.03/agent-ui-plugins";
-import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
+import { usePluginService, usePluginServiceSnapshot } from "@za38.03/agent-ui-runtime/ui/runtime/plugins/index";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from "../../services/demo-dialog";
-import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 import "./styles.css";
 const closed: DemoDialogSnapshot = { open: false, title: "", message: "" };
 export function FrontendToolDialogDemoPlugin() {

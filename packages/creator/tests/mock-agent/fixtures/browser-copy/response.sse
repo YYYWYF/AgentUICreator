@@ -1,0 +1,10 @@
+data: {"type":"RUN_STARTED","threadId":"captured-thread","runId":"captured-run"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"captured-message","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"captured-message","delta":"  copied 中文\ttext\n  preserved  "}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"captured-message"}
+
+data: {"type":"RUN_FINISHED","threadId":"captured-thread","runId":"captured-run"}
+

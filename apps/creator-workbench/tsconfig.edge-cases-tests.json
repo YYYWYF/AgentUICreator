@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/question-unmount-scale.spec.ts", "playwright.edge-cases.config.ts"],
+  "exclude": []
+}

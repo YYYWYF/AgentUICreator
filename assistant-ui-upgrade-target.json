@@ -3,36 +3,37 @@
   "project": "assistant-ui/assistant-ui",
   "source": "https://github.com/assistant-ui/assistant-ui.git#a46d6634e7a75eddd85d51415b1a615886d4ad0e",
   "revision": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
-  "generativeUiReleaseRevision": "3542d602272a62eddeb8989befc910841c267022",
+  "generativeUiReleaseRevision": "d8124e7b427021d977abf9aabc9a057705a81644",
   "packages": {
-    "@assistant-ui/react": "0.15.30",
-    "@assistant-ui/react-ag-ui": "0.0.63",
+    "@assistant-ui/react": "0.15.31",
+    "@assistant-ui/react-ag-ui": "0.1.0",
     "@assistant-ui/react-langgraph": "0.14.29",
     "@assistant-ui/react-markdown": "0.14.6",
-    "@assistant-ui/react-generative-ui": "0.0.22",
     "@assistant-ui/react-lexical": "0.2.15",
-    "@assistant-ui/core": "0.3.30",
+    "@assistant-ui/core": "0.3.31",
     "@assistant-ui/store": "0.3.22",
     "@assistant-ui/tap": "0.9.24",
-    "assistant-stream": "0.3.53",
-    "assistant-cloud": "0.2.7"
+    "assistant-stream": "0.3.54",
+    "assistant-cloud": "0.2.8",
+    "@assistant-ui/generative-ui": "0.0.7"
   },
   "agUi": {
-    "@ag-ui/core": "0.0.59",
-    "@ag-ui/client": "0.0.59"
+    "@ag-ui/core": "1.0.3",
+    "@ag-ui/client": "1.0.3"
   },
   "releasePinned": true,
   "packageRevisions": {
-    "@assistant-ui/react": "79e5919d8c9c72bd4697c672f0f228c2a62edec4",
-    "@assistant-ui/react-ag-ui": "3542d602272a62eddeb8989befc910841c267022",
+    "@assistant-ui/react": "d8124e7b427021d977abf9aabc9a057705a81644",
+    "@assistant-ui/react-ag-ui": "d8124e7b427021d977abf9aabc9a057705a81644",
     "@assistant-ui/react-langgraph": "f6bcca7cd0c901ae5a0a58a9ad3ce75fcf07bb09",
     "@assistant-ui/react-markdown": "1e6141f720b0cc398a44af10c1519d4e5db9481d",
-    "@assistant-ui/react-generative-ui": "3542d602272a62eddeb8989befc910841c267022",
     "@assistant-ui/react-lexical": "f008537f39f0936992b0f6d2433c092935df5faf",
-    "@assistant-ui/core": "79e5919d8c9c72bd4697c672f0f228c2a62edec4",
+    "@assistant-ui/core": "d8124e7b427021d977abf9aabc9a057705a81644",
     "@assistant-ui/store": "79e5919d8c9c72bd4697c672f0f228c2a62edec4",
     "@assistant-ui/tap": "79e5919d8c9c72bd4697c672f0f228c2a62edec4",
-    "assistant-stream": "79e5919d8c9c72bd4697c672f0f228c2a62edec4",
-    "assistant-cloud": "feef5f30aad9c96c1ab1f7f12722e2be17ac9978"
-  }
+    "assistant-stream": "d8124e7b427021d977abf9aabc9a057705a81644",
+    "assistant-cloud": "d8124e7b427021d977abf9aabc9a057705a81644",
+    "@assistant-ui/generative-ui": "d8124e7b427021d977abf9aabc9a057705a81644"
+  },
+  "generativeUiPresentationRevision": "3542d602272a62eddeb8989befc910841c267022"
 }

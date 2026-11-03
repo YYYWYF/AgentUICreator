@@ -1,6 +1,6 @@
 import implementation from "@za38.03/agent-ui-plugins/conversation-service";
-import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";
+import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,

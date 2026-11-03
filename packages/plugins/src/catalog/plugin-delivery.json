@@ -14,6 +14,7 @@
       "ConversationComposerTextareaInput"
     ],
     "supportEntry": "composer-support",
+    "publicPresentationTypes": true,
     "presentationOwner": "composer",
     "implementationModule": "composer",
     "applicationAlias": "Composer",
@@ -295,7 +296,8 @@
       "conversation-suggestions.tsx"
     ],
     "implementationExports": [
-      "ConversationCanonicalSuggestions"
+      "ConversationCanonicalSuggestions",
+      "ConversationSuggestionItem"
     ],
     "preserveLegacySource": true,
     "supportEntry": "plugin-support",
@@ -754,6 +756,16 @@
     },
     "definitionExports": [
       "ConversationThreadListRailAction"
+    ],
+    "applicationSharedFiles": [
+      [
+        "services/hooks/useConversations.ts",
+        "src/shared/project/services/hooks/useConversations.ts"
+      ],
+      [
+        "services/hooks/useConversationActions.ts",
+        "src/shared/project/services/hooks/useConversationActions.ts"
+      ]
     ]
   },
   {
@@ -864,10 +876,6 @@
       [
         "definition.ts",
         "adapters/application-definition.ts"
-      ],
-      [
-        "config.ts",
-        "adapters/project/config.ts"
       ]
     ],
     "projectFiles": [
@@ -922,6 +930,10 @@
       [
         "services/auth/session.ts",
         "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts"
+      ],
+      [
+        "services/hooks/useAuthSession.ts",
+        "src/shared/project/services/hooks/useAuthSession.ts"
       ]
     ]
   },
@@ -988,6 +1000,10 @@
       [
         "services/auth/session.ts",
         "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts"
+      ],
+      [
+        "services/hooks/useAuthSession.ts",
+        "src/shared/project/services/hooks/useAuthSession.ts"
       ]
     ]
   },
@@ -1165,6 +1181,12 @@
     "projectFiles": [
       "styles.css",
       "styles.css.d.ts"
+    ],
+    "applicationSharedFiles": [
+      [
+        "services/hooks/useConversations.ts",
+        "src/shared/project/services/hooks/useConversations.ts"
+      ]
     ]
   },
   {
@@ -1571,5 +1593,86 @@
       "styles.css",
       "styles.css.d.ts"
     ]
+  },
+  {
+    "id": "ask-user-question",
+    "component": "AskUserQuestionPlugin",
+    "symbol": "askUserQuestionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "ask-user-question.tsx",
+      "question-flow.tsx",
+      "contract.ts"
+    ],
+    "implementationExports": [
+      "CanonicalAskUserQuestion",
+      "AskUserQuestionProps"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "ask-user-question",
+    "implementationModule": "ask-user-question",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "ask_user_question"
+    },
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "askUserQuestionParameters",
+      "parseHumanQuestionRequest",
+      "parseHumanQuestionResult",
+      "HumanQuestionOption",
+      "HumanQuestionStep",
+      "HumanQuestionRequest",
+      "HumanQuestionResult"
+    ]
+  },
+  {
+    "id": "tool-result",
+    "component": "ConversationToolResultPlugin",
+    "symbol": "toolResultPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "tool-result.tsx",
+      "content.ts"
+    ],
+    "implementationExports": [
+      "ConversationToolResult",
+      "ConversationToolResultContent",
+      "ConversationToolResultProps",
+      "ToolResultContentProps",
+      "ToolResultPart",
+      "ToolResultSource"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "tool-result",
+    "implementationModule": "tool-result",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "scopeKind": "conversation.tool-fallback",
+    "componentSource": "adapters/component.tsx"
   }
 ]

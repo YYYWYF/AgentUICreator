@@ -1,5 +1,5 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
+import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
+import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
 import { createHostAuthAdapter } from "../../services/auth/adapter";
 import { AUTH_GATE_SERVICE, AUTH_SESSION_SERVICE } from "../../services/auth/session";
 import { createAuthSession } from "./session";

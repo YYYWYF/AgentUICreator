@@ -133,6 +133,12 @@
     },
     "locale-switch": {
       "version": "0.0.1"
+    },
+    "ask-user-question": {
+      "version": "0.0.1"
+    },
+    "tool-result": {
+      "version": "0.0.1"
     }
   }
 }

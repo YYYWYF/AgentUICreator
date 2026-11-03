@@ -1,4 +1,5 @@
 import { createConversationRemoteThreadListAdapter } from "../src/threads/conversation-remote-thread-list-adapter.js";
+import { HttpAgent } from "@ag-ui/client";
 import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
 import {
   act,
@@ -14,7 +15,7 @@ import {
   type ConversationThreadBinding,
 } from "../src/index.js";
 
-function threadMessage(id: string): ThreadMessage {
+function threadMessage(id: string): Extract<ThreadMessage, { role: "user" }> {
   return {
     id,
     role: "user",
@@ -80,12 +81,10 @@ function createBinding() {
 }
 
 function createAgent(): ReturnType<ConversationAgentFactory> {
-  return {
-    threadId: "live",
+  return Object.assign(new HttpAgent({ url: "http://example.test/agent", threadId: "live" }), {
     runAgent: vi.fn(),
     abortRun: vi.fn(),
-    subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),
-  } as never;
+  });
 }
 
 function RuntimeFixture({
@@ -97,7 +96,8 @@ function RuntimeFixture({
   binding: ConversationThreadBinding;
   onRuntime: (runtime: AssistantRuntime) => void;
 }) {
-  const agentFactory: ConversationAgentFactory = ({ threadId }) => ({ ...agent, threadId }) as never;
+  const agentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =>
+    Object.assign(new HttpAgent({ url: endpoint, threadId }), { runAgent: agent.runAgent, abortRun: agent.abortRun });
   return (
     <ConversationRuntimeProvider
       endpoint="http://example.test/agent"
@@ -110,6 +110,79 @@ function RuntimeFixture({
 }
 
 describe("runtime-assistant-ui thread-list binding", () => {
+  it("removes a previously persisted cached row after another client deletes it, while retaining an unsaved local thread", async () => {
+    const { binding } = createBinding();
+    let items = [{ id: "live", status: "regular" as const, title: "Current" }, { id: "history", status: "regular" as const, title: "Deleted elsewhere" }];
+    binding.getThreadListSnapshot = () => ({ threads: items, archivedThreads: [] });
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    await adapter.list(); await adapter.fetch("history");
+    const persisted = await adapter.initialize("persisted-local");
+    items = [...items, { id: persisted.remoteId, status: "regular", title: "Persisted from a local run" }];
+    await adapter.list();
+    const local = await adapter.initialize("unsaved-local");
+    items = items.filter(item => item.id !== "history" && item.id !== persisted.remoteId);
+    const latest = await adapter.list();
+    expect(latest.threads.map(item => item.remoteId)).toEqual(["live", local.remoteId]);
+    items = [...items, { id: "history", status: "regular", title: "Restored by backend" }];
+    expect((await adapter.list()).threads.find(item => item.remoteId === "history")?.title).toBe("Restored by backend");
+    items = [];
+    await adapter.list();
+    await expect(adapter.fetch("live")).rejects.toThrow('Conversation "live" was not found.');
+    await adapter.generateTitle("history", [threadMessage("late title")]);
+    expect((await adapter.list()).threads.map(item => item.remoteId)).toEqual([local.remoteId]);
+  });
+
+  it.each([false, true])("automatically titles a conversation from its first user message (new thread: %s)", async (startNewThread) => {
+    const { binding } = createBinding();
+    const renameThread = vi.fn(async () => {});
+    binding.renameThread = renameThread;
+    let runtime!: AssistantRuntime;
+    let renderer: ReactTestRenderer | undefined;
+    const fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      const input = JSON.parse(String(init?.body));
+      const messageId = `${input.runId}-answer`;
+      const events = [
+        { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
+        { type: "TEXT_MESSAGE_START", messageId, role: "assistant" },
+        { type: "TEXT_MESSAGE_CONTENT", messageId, delta: "Done" },
+        { type: "TEXT_MESSAGE_END", messageId },
+        { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId },
+      ];
+      return new Response(events.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), {
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    });
+    try {
+      await act(async () => {
+        renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
+          unstable_agentFactory={({ threadId }) => new HttpAgent({ url: "http://example.test/agent", threadId, fetch })}>
+          <RuntimeCapture onRuntime={next => { runtime = next; }} />
+        </ConversationRuntimeProvider>);
+        await new Promise<void>(resolve => setImmediate(resolve));
+      });
+      await act(async () => {
+        if (startNewThread) await runtime.threads.switchToNewThread();
+      });
+      await act(async () => {
+        runtime.thread.append({ role: "user", content: [{ type: "text", text: "First request" }], startRun: true });
+        await new Promise<void>(resolve => setImmediate(resolve));
+      });
+      await act(async () => {
+        expect(fetch).toHaveBeenCalledTimes(1);
+        await vi.waitFor(() => expect(runtime.threads.mainItem.getState().title).toBe("First request"));
+      });
+      await act(async () => {
+        runtime.thread.append({ role: "user", content: [{ type: "text", text: "Follow-up request" }], startRun: true });
+        await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+      });
+      expect(runtime.threads.mainItem.getState().title).toBe("First request");
+      // Opening explicit management APIs must not turn local default titles into writes.
+      expect(renameThread).not.toHaveBeenCalled();
+    } finally {
+      if (renderer) await act(async () => { renderer?.unmount(); });
+    }
+  });
+
   it("switches the assistant-ui Runtime through the ThreadBinding", async () => {
     const { binding, historyMessages, liveMessages, selectThread } =
       createBinding();
@@ -155,6 +228,64 @@ describe("runtime-assistant-ui thread-list binding", () => {
   });
 });
 
+describe("conversation default titles", () => {
+  async function readTitle(stream: Awaited<ReturnType<ReturnType<typeof createConversationRemoteThreadListAdapter>["adapter"]["generateTitle"]>>) {
+    const reader = stream.getReader();
+    let title = "";
+    try {
+      while (true) {
+        const result = await reader.read();
+        if (result.done) return title;
+        if (result.value.type === "text-delta") title += result.value.textDelta;
+      }
+    } finally { reader.releaseLock(); }
+  }
+
+  it("uses the first user's text, retains all text parts, and does not retitle on follow-ups", async () => {
+    const { binding } = createBinding();
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    const first = { ...threadMessage("first"), content: [
+      { type: "text" as const, text: "  First line" },
+      { type: "text" as const, text: "Second line  " },
+    ] };
+    expect(await readTitle(await adapter.generateTitle(remoteId, [first, threadMessage("later")]))).toBe("First line\nSecond line");
+    expect(await readTitle(await adapter.generateTitle(remoteId, [threadMessage("edited")]))).toBe("First line\nSecond line");
+    expect(await adapter.fetch(remoteId)).toMatchObject({ title: "First line\nSecond line" });
+    expect((await adapter.list()).threads.find(item => item.remoteId === remoteId)?.title).toBe("First line\nSecond line");
+  });
+
+  it("keeps the local default through an untitled reload and respects a backend title", async () => {
+    const { binding } = createBinding();
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    await readTitle(await adapter.generateTitle("live", [threadMessage("first")]));
+    expect(await adapter.fetch("live")).toMatchObject({ title: "first" });
+    expect((await adapter.list()).threads.find(item => item.remoteId === "live")?.title).toBe("first");
+    binding.getThreadListSnapshot = () => ({ threads: [{ id: "live", status: "regular", title: "Backend title" }], archivedThreads: [] });
+    expect(await readTitle(await adapter.generateTitle("live", [threadMessage("first")]))).toBe("Backend title");
+    expect(await adapter.fetch("live")).toMatchObject({ title: "Backend title" });
+  });
+
+  it("leaves a textless first user message untitled instead of using a later message", async () => {
+    const { binding } = createBinding();
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    expect(await readTitle(await adapter.generateTitle("live", [
+      { ...threadMessage("attachment-only"), content: [] }, threadMessage("later"),
+    ]))).toBe("");
+    expect(await readTitle(await adapter.generateTitle("history", []))).toBe("");
+  });
+
+  it("does not restore a deleted thread when title generation runs late", async () => {
+    const { binding } = createBinding();
+    binding.deleteThread = async () => {};
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    await adapter.delete(remoteId);
+    expect(await readTitle(await adapter.generateTitle(remoteId, [threadMessage("late")]))).toBe("");
+    expect((await adapter.list()).threads.some(item => item.remoteId === remoteId)).toBe(false);
+  });
+});
+
 
 describe("conversation remote adapter deletion", () => {
   it("delegates exact identity and forgets initialized threads only after success", async () => {
@@ -188,6 +319,50 @@ describe("conversation remote adapter deletion", () => {
     const { binding } = createBinding();
     const { adapter } = createConversationRemoteThreadListAdapter(binding);
     await expect(adapter.delete("history")).rejects.toThrow("does not support deleting threads");
+  });
+});
+
+describe("conversation remote adapter management", () => {
+  it("delegates rename/archive/unarchive and retains metadata across reloads", async () => {
+    const { binding } = createBinding();
+    binding.getThreadListSnapshot = () => ({ threads: [], archivedThreads: [] });
+    binding.renameThread = vi.fn(async () => {});
+    binding.archiveThread = vi.fn(async () => {});
+    binding.unarchiveThread = vi.fn(async () => {});
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    await adapter.rename(remoteId, "Renamed");
+    await adapter.archive(remoteId);
+    expect(binding.renameThread).toHaveBeenCalledExactlyOnceWith(remoteId, "Renamed");
+    expect(binding.archiveThread).toHaveBeenCalledExactlyOnceWith(remoteId);
+    expect((await adapter.list()).threads).toEqual([{ remoteId, title: "Renamed", status: "archived" }]);
+    await adapter.unarchive!(remoteId);
+    expect(binding.unarchiveThread).toHaveBeenCalledExactlyOnceWith(remoteId);
+    expect(await adapter.fetch(remoteId)).toMatchObject({ title: "Renamed", status: "regular" });
+  });
+
+  it.each(["rename", "archive", "unarchive"] as const)("does not accept %s without successful persistence", async operation => {
+    const { binding } = createBinding();
+    binding.getThreadListSnapshot = () => ({ threads: [], archivedThreads: [] });
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    const invoke = () => operation === "rename" ? adapter.rename(remoteId, "Changed") : adapter[operation]!(remoteId);
+    await expect(invoke()).rejects.toThrow("does not support");
+    const reject = async () => { throw new Error("permission denied"); };
+    binding.renameThread = reject; binding.archiveThread = reject; binding.unarchiveThread = reject;
+    await expect(invoke()).rejects.toThrow("permission denied");
+    expect(await adapter.fetch(remoteId)).toEqual({ remoteId, status: "regular" });
+  });
+
+  it("waits for a successful archive when binding notifications trigger a reload", async () => {
+    const { binding } = createBinding();
+    binding.getThreadListSnapshot = () => ({ threads: [], archivedThreads: [] });
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    const { remoteId } = await adapter.initialize("local");
+    let reload: ReturnType<typeof adapter.list> | undefined;
+    binding.archiveThread = async () => { reload = adapter.list(); };
+    await adapter.archive(remoteId);
+    expect((await reload!).threads).toEqual([{ remoteId, status: "archived" }]);
   });
 });
 

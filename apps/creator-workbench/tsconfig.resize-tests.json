@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/resize-observer-host.spec.ts", "tests/ag-ui-runtime-host.spec.ts", "playwright.resize.config.ts"],
+  "exclude": []
+}

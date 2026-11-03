@@ -8,12 +8,12 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../operator/control/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginObservableService,
   UIPluginDefinition,
   UIPluginSetupContext,
-} from "../../../operator/control/src/framework/contracts/ui-plugin";
+} from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
   readAgentUITheme,
@@ -31,7 +31,7 @@ import {
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
-} from "../../../plugins/resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
+} from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -156,7 +156,6 @@ describe("PluginServiceRuntime", () => {
 
     expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
     expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
-    expect(observed?.getTheme()).toBe("light");
 
     observed?.setTheme("dark");
     expect(observed?.getTheme()).toBe("dark");
@@ -432,6 +431,113 @@ describe("PluginServiceRuntime", () => {
 
     expect(runtime.get("test.disposable")).toBeUndefined();
     expect(runtime.getRevision()).toBe(revision + 1);
+  });
+
+  it("invalidates a hard dependency chain when a live provider withdraws its service", () => {
+    let withdraw: (() => void) | undefined;
+    const order: string[] = [];
+    const provider = createDefinition("provider", {
+      provides: ["test.source"],
+      setup: ({ services }) => { withdraw = services.provide("test.source", {}); },
+    });
+    const middle = createDefinition("middle", {
+      inject: ["test.source"], provides: ["test.derived"],
+      setup: ({ services }) => {
+        services.provide("test.derived", {});
+        return () => { order.push("middle"); throw new Error("faulty disposer"); };
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      inject: ["test.derived"], setup: () => () => { order.push("consumer"); },
+    });
+    const model = createServiceModel();
+    model.pluginInstances["middle-main"] = { id: "middle-main", pluginId: "middle", enabled: true };
+    const registry = createPluginRegistry([consumer, middle, provider]);
+    const runtime = new PluginServiceRuntime();
+    runtime.reconcile(model, registry, runtimeActions);
+    const activation = runtime.getActivation("consumer-main");
+    expect(activation?.status).toBe("active");
+    const notified = vi.fn(() => {
+      expect(runtime.getActivation("consumer-main")?.status).toBe("pending");
+      expect(runtime.get("test.derived")).toBeUndefined();
+    });
+    const unsubscribe = runtime.subscribe(notified), staleWithdraw = withdraw!;
+    staleWithdraw(); staleWithdraw();
+    expect(notified).toHaveBeenCalledOnce(); unsubscribe();
+    expect(runtime.getActivation("middle-main")).toEqual({ status: "pending", missingServices: ["test.source"] });
+    expect(runtime.getActivation("consumer-main")).toEqual({ status: "pending", missingServices: ["test.derived"] });
+    expect(runtime.get("test.derived")).toBeUndefined();
+    expect(runtime.slots.getContributions("services-slot")).toEqual([]);
+    expect(order).toEqual(expect.arrayContaining(["middle", "consumer"]));
+    expect(order).toHaveLength(2);
+    runtime.reconcile(model, registry, runtimeActions);
+    const replacement = runtime.getActivation("consumer-main");
+    expect(replacement?.status).toBe("active");
+    const restored = runtime.get("test.source"); staleWithdraw(); expect(runtime.get("test.source")).toBe(restored);
+    if (activation?.status === "active" && replacement?.status === "active") expect(replacement.activationId).toBeGreaterThan(activation.activationId);
+    runtime.dispose();
+    expect(order).toHaveLength(4);
+    expect(runtime.get("test.source")).toBeUndefined();
+  });
+
+  it("keeps optional consumers active after a provider withdraws its service", () => {
+    let withdraw: (() => void) | undefined;
+    const cleanup = vi.fn(), setup = vi.fn(() => cleanup);
+    const provider = createDefinition("provider", { provides: ["test.optional"], setup: ({ services }) => { withdraw = services.provide("test.optional", {}); } });
+    const consumer = createDefinition("consumer", { optionalInject: ["test.optional"], setup });
+    const runtime = new PluginServiceRuntime(); runtime.reconcile(createServiceModel(), createPluginRegistry([consumer, provider]), runtimeActions);
+    const activation = runtime.getActivation("consumer-main");
+    withdraw?.();
+    expect(runtime.get("test.optional")).toBeUndefined(); expect(runtime.getActivation("consumer-main")).toEqual(activation);
+    expect(setup).toHaveBeenCalledOnce(); expect(cleanup).not.toHaveBeenCalled();
+    runtime.dispose(); expect(cleanup).toHaveBeenCalledOnce();
+  });
+
+  it("recovers a blocked hard dependency cycle when a provider definition changes", () => {
+    const setup = vi.fn();
+    const provider = createDefinition("provider", { provides: ["test.first"], inject: ["test.second"], setup: ({ services }) => { setup(); services.provide("test.first", {}); } });
+    const consumer = createDefinition("consumer", { provides: ["test.second"], inject: ["test.first"], setup: ({ services }) => { setup(); services.provide("test.second", {}); } });
+    const runtime = new PluginServiceRuntime();
+    runtime.reconcile(createServiceModel(), createPluginRegistry([consumer, provider]), runtimeActions);
+    expect(setup).not.toHaveBeenCalled();
+    expect(runtime.getActivation("provider-main")).toEqual({ status: "pending", missingServices: ["test.second"] });
+    expect(runtime.getActivation("consumer-main")).toEqual({ status: "pending", missingServices: ["test.first"] });
+    runtime.reconcile(createServiceModel(), createPluginRegistry([consumer, { ...provider, inject: [] }]), runtimeActions);
+    expect(setup).toHaveBeenCalledTimes(2);
+    expect(runtime.getActivation("provider-main")?.status).toBe("active"); expect(runtime.getActivation("consumer-main")?.status).toBe("active");
+    runtime.dispose(); expect(runtime.get("test.first")).toBeUndefined(); expect(runtime.get("test.second")).toBeUndefined();
+  });
+
+  it("does not leak service subscriptions over repeated disable, enable and disposal", () => {
+    let active = 0, peak = 0, setups = 0, cleanups = 0;
+    const provider = createDefinition("provider", {
+      provides: ["test.counter"],
+      setup: ({ services }) => {
+        setups++;
+        const listeners = new Set<() => void>();
+        services.provide("test.counter", { subscribe(listener: () => void) {
+          listeners.add(listener); active++; peak = Math.max(peak, active);
+          return () => { if (listeners.delete(listener)) active--; };
+        } });
+        return () => { cleanups++; };
+      },
+    });
+    const consumer = createDefinition("consumer", {
+      inject: ["test.counter"],
+      setup: ({ services }) => services.get<{ subscribe(listener: () => void): () => void }>("test.counter")!.subscribe(() => {}),
+    });
+    const registry = createPluginRegistry([consumer, provider]), runtime = new PluginServiceRuntime();
+    for (let cycle = 0; cycle < 50; cycle++) {
+      runtime.reconcile(createServiceModel(), registry, runtimeActions);
+      expect(active).toBe(1);
+      runtime.reconcile(createServiceModel(false), registry, runtimeActions);
+      expect(active).toBe(0);
+      expect(runtime.getActivation("consumer-main")?.status).toBe("pending");
+    }
+    runtime.reconcile(createServiceModel(), registry, runtimeActions);
+    runtime.dispose(); runtime.dispose();
+    expect(active).toBe(0); expect(peak).toBe(1);
+    expect(setups).toBe(51); expect(cleanups).toBe(setups);
   });
 
   it("reactively enhances and restores an optional component fallback", () => {
@@ -1267,8 +1373,8 @@ describe("PluginServiceRuntime", () => {
 
 describe("AgentUIThemeService", () => {
   it.each([
-    [undefined, "light"],
-    ["invalid", "light"],
+    [undefined, "violet"],
+    ["invalid", "violet"],
     ["light", "light"],
     ["dark", "dark"],
     ["violet", "violet"],

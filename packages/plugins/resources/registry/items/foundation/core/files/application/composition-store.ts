@@ -1,6 +1,6 @@
 import type { AppAgentState } from "../agent-contract/agent-state";
-import { createRuntimeCompositionStore } from "../runtime/composition";
-import type { RuntimeCompositionSnapshot } from "../runtime/composition";
+import { createRuntimeCompositionStore } from "@za38.03/agent-ui-runtime/ui/runtime/composition/index";
+import type { RuntimeCompositionSnapshot } from "@za38.03/agent-ui-runtime/ui/runtime/composition/index";
 
 /** Keep the last valid composition while Vite updates authored files. */
 export const agentCompositionStore = createRuntimeCompositionStore<AppAgentState>(

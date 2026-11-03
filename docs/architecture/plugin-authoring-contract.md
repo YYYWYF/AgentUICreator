@@ -135,7 +135,7 @@ Theme tokens and dark variants are inherited from `AgentUIRoot`. Isolation cover
 ordinary Host global and reset CSS; Host rules that explicitly target Agent UI
 with `!important` are outside this contract.
 
-Plugins use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog
+Plugins use the `@za38.03/agent-ui-plugins` Agent UI Tooltip, Popover, and Dialog
 facades for overlays. They must not import Base UI Portal primitives directly
 or mount overlays on `document.body`.
 
@@ -144,7 +144,7 @@ An unsafe selector or CSS import produces the blocking diagnostic
 `PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED`; Creator must repair the CSS source.
 Direct Base UI Dialog, Popover, Tooltip, or Sheet imports in Plugin source
 produce `PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED`; use the corresponding
-`@agent-ui/react` facade.
+`@za38.03/agent-ui-plugins` facade.
 
 The browser acceptance gate is `pnpm verify:style-isolation` (also available as
 `pnpm test:style-isolation`). CI runs it for Agent UI changes. It checks Host

@@ -1,15 +1,22 @@
+import { createAttachmentAdapter, createDictationAdapter, createFeedbackAdapter } from "./service-adapters.js";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import type { AttachmentConfig, DictationConfig, FeedbackConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
 import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { fetchWithSseLineEndings } from "./compatibility/sse-line-endings.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
+import { useFrontendToolSource } from "./tools/use-frontend-tool-source.js";
+import { installCancelledToolContinuationGuard } from "./compatibility/cancelled-tool-continuation.js";
 import {
   AuiConfig,
   AssistantRuntimeProvider,
   Suggestions,
   Tools,
   useAui,
+  useAuiEvent,
   useAuiState,
   useRemoteThreadListRuntime,
   type AssistantRuntime,
@@ -42,7 +49,7 @@ import {
   createConversationAgentRuntimeBridge,
   type ConversationAgentRuntimeBridge,
 } from "./compatibility/conversation-runtime-bridge.js";
-import { CancellationAwareHttpAgent } from "./compatibility/cancellation-aware-http-agent.js";
+import { HttpAgent } from "@ag-ui/client";
 import { ConversationApplicationEventSource } from "./events/conversation-application-event-source.js";
 import type {
   ConversationThreadBinding,
@@ -53,7 +60,7 @@ import type {
 import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
 import { createAssistantUiFrontendToolkit } from "./tools/assistant-ui-frontend-tool-adapter.js";
-import type { ConversationStarterSuggestion } from "./conversation-types.js";
+import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -72,7 +79,14 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   frontendToolUIs?: ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
-  /** File preparation/storage belongs to the application-provided upstream adapter. */
+  getRunContext?: ConversationRunContextGetter | undefined;
+  /** Built-in file handling, with optional upload service configuration. */
+  attachments?: AttachmentConfig | false | undefined;
+  /** Browser speech recognition or a configured transcription service. */
+  dictation?: DictationConfig | false | undefined;
+  /** In-session selection or a configured persistence service. */
+  feedback?: FeedbackConfig | false | undefined;
+  /** Advanced override of concrete file configuration. */
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Speech-to-text belongs to the application-provided upstream adapter. */
   dictationAdapter?: DictationAdapter | undefined;
@@ -86,20 +100,25 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
 }
 
 const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =>
-  new CancellationAwareHttpAgent({
+  new HttpAgent({
     url: endpoint,
     threadId,
     headers: { Accept: "text/event-stream" },
+    fetch: fetchWithSseLineEndings,
   });
 
 export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
   endpoint,
   threadBinding,
-  frontendTools,
+  frontendTools: providedFrontendTools,
   frontendToolUIs,
   toolkit,
   suggestions,
+  getRunContext,
+  attachments,
+  dictation,
+  feedback: feedbackConfig,
   attachmentAdapter,
   dictationAdapter,
   feedbackAdapter,
@@ -108,6 +127,17 @@ export function ConversationRuntimeProvider<TState = unknown>({
   onError,
   unstable_agentFactory = defaultAgentFactory,
 }: Readonly<ConversationRuntimeProviderProps<TState>>) {
+  const serviceMessages = useAgentUILocale("serviceAdapters");
+  const frontendTools = useFrontendToolSource(providedFrontendTools);
+  // Concrete configuration is serializable; inline JSX objects must not replace adapters on every render.
+  const attachmentKey = JSON.stringify(attachments);
+  const dictationKey = JSON.stringify(dictation);
+  const feedbackKey = JSON.stringify(feedbackConfig);
+  const attachmentTransfers = useRef(new Map<string, AbortController>());
+  useEffect(() => () => { for (const controller of attachmentTransfers.current.values()) controller.abort(); attachmentTransfers.current.clear(); }, []);
+  const resolvedAttachments = useMemo(() => attachmentAdapter ?? (attachments === false ? undefined : createAttachmentAdapter(attachments ?? {}, serviceMessages, attachmentTransfers.current)), [attachmentAdapter, attachmentKey, serviceMessages]);
+  const resolvedDictation = useMemo(() => dictationAdapter ?? (dictation === false ? undefined : createDictationAdapter(dictation ?? {}, serviceMessages, onError)), [dictationAdapter, dictationKey, serviceMessages, onError]);
+  const resolvedFeedback = useMemo(() => feedbackAdapter ?? (feedbackConfig === false ? undefined : createFeedbackAdapter(feedbackConfig ?? {}, serviceMessages)), [feedbackAdapter, feedbackKey, serviceMessages]);
   const [defaultTransientMessages] = useState(createConversationTransientMessageService);
   const transientMessageService = transientMessages ?? defaultTransientMessages;
   const toolRevision = useSyncExternalStore(
@@ -162,6 +192,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
       subscribe: listener => threadBinding.subscribe(listener),
       createNewThread: () => threadBinding.createNewThread(),
     }), [ownedId, threadBinding]);
+    const toolContinuation = useMemo(() => installCancelledToolContinuationGuard(agent), [agent]);
+    // Composer cancellation can stop a frontend tool after the wire run has
+    // already finished, so AG-UI's onCancel will not fire. Mark this turn before
+    // upstream publishes the tool cancellation receipt and attempts continuation.
+    useAuiEvent("composer.cancel", () => toolContinuation.cancel());
+    useLayoutEffect(() => () => toolContinuation.cancel(), [toolContinuation, frontendTools]);
     const [historyFailed, setHistoryFailed] = useState(false);
     const resumeRef = useRef<ConversationRunResume | undefined>(undefined);
     const history = useMemo<ThreadHistoryAdapter>(() => ({
@@ -215,7 +251,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
       () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
     );
-    const feedback = useMemo<FeedbackAdapter | undefined>(() => feedbackAdapter === undefined ? undefined : ({
+    const feedback = useMemo<FeedbackAdapter | undefined>(() => resolvedFeedback === undefined ? undefined : ({
       submit({ message, type, comment }) {
         // Upstream owns optimistic selection. Catch both sync and async Host failures.
         const report = (cause: unknown) => {
@@ -228,34 +264,71 @@ export function ConversationRuntimeProvider<TState = unknown>({
           }
         };
         try {
-          void Promise.resolve(feedbackAdapter.submit({
+          void Promise.resolve(resolvedFeedback.submit({
             threadId: ownedId, messageId: message.id, type,
             ...(comment === undefined ? {} : { comment }),
           })).catch(report);
         } catch (error) { report(error); }
       },
-    }), [feedbackAdapter, ownedId, item.id, onError]);
+    }), [resolvedFeedback, ownedId, item.id, onError]);
+    // Upstream reports getter errors through onError but still sends the run.
+    // Keep that non-fatal error out of the bridge's inference-failure state.
+    const contextError = useRef<Error | undefined>(undefined);
+    const readRunContext = useMemo<ConversationRunContextGetter | undefined>(() => getRunContext === undefined ? undefined : input => {
+      try { return getRunContext(input); }
+      catch (cause) {
+        const error = cause instanceof Error ? cause : new Error(String(cause));
+        contextError.current = error;
+        throw error;
+      }
+    }, [getRunContext]);
     const runtime = useAgUiRuntime({
       agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: enableMessageQueue,
+      ...(readRunContext === undefined ? {} : { getRunContext: readRunContext }),
       adapters: {
         history,
         ...(feedback === undefined ? {} : { feedback }),
-        ...(attachmentAdapter === undefined ? {} : { attachments: attachmentAdapter }),
-        ...(dictationAdapter === undefined ? {} : { dictation: dictationAdapter }),
+        ...(resolvedAttachments === undefined ? {} : { attachments: resolvedAttachments }),
+        ...(resolvedDictation === undefined ? {} : { dictation: resolvedDictation }),
       },
       onCancel: () => bridgeRef.current?.recordCancellation(),
       onError: error => {
-        bridgeRef.current?.recordError(error);
+        const isContextError = contextError.current === error;
+        contextError.current = undefined;
+        if (!isContextError) bridgeRef.current?.recordError(error);
         // A foreground callback must not project a background error into the current UI.
         if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
       },
     });
+    useEffect(() => {
+      // The initial controlled thread is already regular, so upstream does
+      // not arm its new-thread trigger. Reuse the public title lifecycle once.
+      if (item.remoteId === undefined) return;
+      let requested = false;
+      const updateTitle = () => {
+        if (requested) return;
+        const threads = outerRuntime.current?.threads;
+        // Thread removal can notify the message subscription before effect cleanup.
+        if (!threads?.getState().threadIds.includes(item.id)) return;
+        const entry = threads.getItemById(item.id);
+        const firstUser = runtime.thread.getState().messages.find(message => message.role === "user");
+        if (!entry || entry.getState().title || !firstUser?.content.some(part => part.type === "text" && part.text.trim())) return;
+        requested = true;
+        void entry.generateTitle().catch(error => {
+          requested = false;
+          onError?.(error instanceof Error ? error : new Error(String(error)));
+        });
+      };
+      const unsubscribe = runtime.thread.subscribe(updateTitle);
+      updateTitle();
+      return unsubscribe;
+    }, [runtime, item.id, item.remoteId, onError]);
     const applicationEvents = useMemo(() => new ConversationApplicationEventSource(agent), [agent]);
     const commandForwarder = commandForwarderRef.current;
     const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
-      runtime, threadBinding: ownedBinding, applicationEvents, commandForwarder,
+      runtime, threadBinding: ownedBinding, applicationEvents, commandForwarder, onAbort: () => toolContinuation.cancel(),
       switchToNewThread: () => outerRuntime.current!.threads.switchToNewThread(),
-    }), [runtime, ownedBinding, applicationEvents, commandForwarder]);
+    }), [runtime, ownedBinding, applicationEvents, commandForwarder, toolContinuation]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
       agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding,
@@ -273,7 +346,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter, feedbackAdapter, enableMessageQueue]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation, resolvedFeedback, enableMessageQueue]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,

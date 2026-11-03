@@ -74,7 +74,14 @@ Plugin needs capability X
 - `optionalInject` is for an enhancement with a complete fallback when the Service is unavailable.
 - A missing optional Service is not permission to create it. Omit the dependency unless the user explicitly authorizes a new shared capability.
 - A new Plugin does not declare `provides` merely because another Plugin might use its behavior later.
-- If the User explicitly identifies the Service Owner and Consumer, pass an exact substring of the current User message as authorization evidence and do not repeat confirmation. Never fabricate or paraphrase evidence.
+- Pass the entire current User message unchanged as userAuthorizationEvidence,
+  never a substring or paraphrase. Current direct admission requires that exact
+  message to contain the serviceName and a supported action word (新增, 创建,
+  修改, 实现, create, change, implement), without a read-only/analysis exclusion
+  (不要, 是否, 只读, 分析, 评估, do not). Owner and Consumer names alone do not
+  satisfy this check. Otherwise the Host asks for approval of the concrete plan;
+  consume that result instead of assuming authorization. The Host also validates
+  the actual owner/consumer topology and current contract file.
 - To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, authorize the exact impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
 - Generic `edit_file` and Plugin tools never write `/services/**`; only authorized Service Contract tools may do so.
 - A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
@@ -83,9 +90,14 @@ Plugin needs capability X
 ## Creating a Plugin
 
 1. Classify the Plugin, decide whether it should be Creator-operable, and define its Runtime, Composition, and optional Creator Authoring contracts.
-2. Read the relevant declarations in `/framework/contracts/ui-plugin.ts` and one
-   closest existing Plugin end to end. A self-contained local-state Plugin does
-   not need every unrelated Runtime and child-Slot declaration in that contract.
+2. Use the installed public `UIPluginDefinition`, `UIPluginManifest` and
+   `UIPluginComponentProps` contracts from `@za38.03/agent-ui-plugins/contracts`.
+   For unresolved fields, query those symbols through `inspect_ui_plugin` with
+   that `sharedModule`. Current Bootstrap projects do not contain
+   `/framework/contracts/ui-plugin.ts`. A nearby thin application is sufficient
+   evidence for registration and locale conventions; do not search for a fully
+   copied official implementation. A self-contained local-state Plugin needs
+   only the relevant component, manifest and optional child-Slot contracts.
 3. For a new visible Plugin, draft its manifest and call `preflight_ui_plugin_placement` with the current AppUIModel hash, capability catalog revision, and intended instance id before writing source. Use its canonical `defaultPlacement` only if it matches the user's location and lifecycle. A rejection requires a same-semantics repair or a user decision; do not switch to application scope, another side, or a conditional Slot as fallback. Preflight does not verify source, Services, or narrow Runtime geometry, and the final mutation checks again. Once eligible, proceed to locale edits and the atomic `create_ui_plugin` call; further source searches need a specific unresolved API.
 4. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, accurate `data.messages`, `data.state`, or `data.events` declarations, and the authoring contract when Add/Restore is intended.
    `data.messages`, `data.state`, and `data.messageUI` are booleans for AG-UI subscriptions; `data.events` is an array of event names. Local React `useState` is private Plugin state and does not belong in `manifest.data`.
@@ -131,13 +143,21 @@ For requests such as “不登录不能进入应用”, “打开应用必须先
 
 When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Each local Slot name maps to a required `description`, `cardinality: "one" | "many"`, and optional `optional` flag. Names must be static string literals; do not create dynamic `renderSlot(slot)` outlets or global Runtime slot ids. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
 
-For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`, and `accepts.anyOfCapabilities`, then call `renderScopedSlot("localName", scope)`. Renderer Slots have no presentation fallback: an empty, disabled, unavailable, inactive, or capability-mismatched occupant renders nothing. Omitted `mode` means ordinary content. The renderer Plugin reads `usePluginRenderScope()` and checks its `kind`; a Plugin that requires scope declares `requiresRenderScope: true` and returns `null` without the expected scope. Prefer changing the renderer Plugin instance in AppUIModel when changing Reasoning, Tool Group, or Tool Fallback presentation. Keep Agent UI grouping, part order, named Tool UI selection, and message lifecycle in the canonical Thread.
+For an npm-backed Plugin, the project application may add a new semantic outlet
+without source takeover. Preserve every installed canonical child Slot unchanged,
+declare the additional Slot in the local manifest, expose that combined manifest
+from the local definition, and render the new outlet explicitly in the application.
+Keep forwarding the original props and Slots into the npm component. The Host
+combines only the additional local Slots with the installed canonical contract;
+the npm component does not implicitly render project-added outlets.
 
-- Read Agent data through the domain hooks exported by `/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
+For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`, and `accepts.anyOfCapabilities`, then call `renderScopedSlot("localName", scope)`. Renderer Slots have no implicit presentation fallback. A fallback must be explicitly supplied by the owning parent; otherwise an empty, disabled, unavailable, inactive, or capability-mismatched occupant renders nothing. Omitted `mode` means ordinary content. The renderer Plugin reads `usePluginRenderScope()` and checks its `kind`; a Plugin that requires scope declares `requiresRenderScope: true` and returns `null` without the expected scope. Prefer changing the renderer Plugin instance in AppUIModel when changing Reasoning, Tool Group, or Tool Fallback presentation. Keep Agent UI grouping, part order, named Tool UI selection, and message lifecycle in the canonical Thread.
+
+- Read Agent data through the installed Runtime public APIs and the project's existing domain/Service Hooks. Inspect their actual exports and signatures; initialized projects do not contain a local `/runtime/context` module. Keep the existing Provider and canonical Conversation Runtime.
 - Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
-- Before a Plugin consumes a backend Application Event, read `/agent-contract/agent-events.ts`, reuse or add the application-owned payload schema, then declare the same exact name in `manifest.data.events`. Preserve an explicitly supplied Custom Event name exactly; lowercase dot-separated naming is recommended only when the application has not already chosen a name. A manifest declaration consumes an application-owned contract; it does not register one.
+- Before a Plugin consumes a backend Application Event, inspect the existing `Agent.appEventSchemas` binding and `/agent-contract/agent-events.ts` when present, reuse or add the application-owned payload schema, then declare the same exact name in `manifest.data.events`. Preserve an explicitly supplied Custom Event name exactly; lowercase dot-separated naming is recommended only when the application has not already chosen a name. A manifest declaration consumes an application-owned contract; it does not register one.
 - Prefer the project-local `subscribeAppEvent` helper so the registered payload type is inferred; `usePluginEvents().subscribe` and `setup({ events })` remain the underlying scoped APIs. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, interrupts, Frontend Tools, or local Plugin communication. If the backend payload contract is unknown, ask for it instead of inventing fields.
-- Use `usePluginActions()` for instance-scoped Agent commands; `useAgentRuntimeActions()` is available when only Agent commands are needed. Keep runtime-only UI state in a named service or runtime store rather than mutating AppUIModel composition. Never create a separate Agent Runtime inside a Plugin.
+- Use `usePluginActions()` for instance-scoped Agent commands and the installed Runtime's public Host API for application-owned commands. Keep transient UI state out of AppUIModel; use private component state within one Plugin and Services across Plugins. Never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
 - Service contracts are stable project-owned capability seams, not concrete
   Provider Plugins or Runtime Core actions:
@@ -180,17 +200,19 @@ Plugin Component effects manage UI/component lifecycle only. They must never
 simulate Frontend Tool execution by opening a dialog, navigating or mutating a
 capability when a Tool renderer mounts. Follow the `ag-ui-frontend` skill's
 Frontend Tool execution and replay contract. For integration details, read the
-packaged [Frontend Tool lifecycle reference](../ag-ui-frontend/references/frontend-tool-lifecycle.md).
+packaged [Frontend Tool lifecycle reference](../../ag-ui-frontend/references/frontend-tool-lifecycle.md).
 
 
 
 ## Delivery obligations
 
-For new-Plugin gap discovery, `inspect_ui_capabilities` is a live,
-paged navigation index over the existing Operator catalog, formal Sources,
-and project component paths. Complete every page before treating an inventory
-as complete; filenames alone never prove component behavior. Inspect the selected
-implementation and use an existing Plugin or formal Source whenever it fits.
+For new-Plugin gap discovery, `inspect_ui_capabilities({})` returns two current
+Operator results: plugins from list_ui_plugins and services from inspect_ui_services.
+It has no detail or cursor parameters and does not include formal Source Items
+or a project component index. Use inspect_agent_ui_sources separately for formal
+resources and targeted file tools for project components. Do not infer absence
+from this combined Plugin/Service result alone. Filenames never prove component
+behavior. Inspect the selected implementation and reuse it whenever it fits.
 
 For first new-Plugin implementation, provide `deliveryContract` to
 `prepare_ui_plugin_development`: `capability`, `renderingCategory`, `placement`,
@@ -242,5 +264,6 @@ same recipe, obtain authorization, then use `apply_agent_ui_integration`. Check
 manual or automatic changes with `verify_agent_ui_integration` and the original
 recipe. Never generate Vue-specific snippets, infer Host versions/entries in the
 prompt, or install the React producer build closure into the Vue consumer. React
-uses its canonical Source Item path; Nuxt is unsupported. See
-`docs/architecture/host-integration-recipe.md` for the Host contract.
+uses its canonical Source Item path; Nuxt is unsupported. Read the packaged
+[Host integration recipes](../../task-guidance/references/host-integration.md)
+and use the current plan result for exact project-specific edits.

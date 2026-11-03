@@ -1,976 +1,152 @@
-# Creator 开发控制面实施计划
+# Creator 开发控制面实现
 
-> 2026-10-22：TS 工具实现拆至 `packages/operator`，项目控制模块在 `control/`；Python Agent和 npm 入口归 `packages/creator`。Creator 自动依赖 Operator 和平台 Python 产物，用户只安装 Creator。Node/Python 继续共享 `packages/creator/contracts` 的唯一协议与 golden fixtures；拆包不改变编排、受控执行和确认边界。
+Creator 是面向 Agent 前端工程的通用 Coding Agent。模型决定检查、编辑和验证的具体顺序；确定性的权限、事务、组合校验与完成证据约束其执行。本文说明当前实现，不定义另一套工作流。
 
-> 当前 ownership：TS 工具属于 `packages/operator`，项目控制模块属于 `control/`，初始化 transaction 属于 `control/src/bootstrap`，协议 Mock 属于 `src/mock-agent`。Python Agent 源码属于 `packages/creator/python`，通过 Creator 自动依赖的平台 npm 包分发。下面的阶段记录保留历史设计语义；Host example 只承载生成源文件与 Host Integration。
->
-> 状态：Approved design companion / Creator 控制面已完成 Python-only 收口；React Workbench、Vite 代理和浏览器 reporter 继续保留在 TypeScript
->
-> 设计依据：[Agent UI Plugin Creator 最终设计与启动计划](./agent-ui-plugin-creator-launch-plan.md) 与仓库根目录 `AGENTS.md`。本文负责把最终设计落实为可执行的工程阶段，不建立新的产品架构。
+产品与职责边界见 [启动计划](./agent-ui-plugin-creator-launch-plan.md)、[插件交付与源码所有权](./architecture/npm-default-plugin-source-ownership.md) 和仓库 `AGENTS.md`。发行与进程说明见 [Creator TypeScript 发行](../packages/creator/docs/typescript-distribution.md)。
 
-## 1. 实施目标
+## 1. 代码与发行职责
 
-本轮改造把 Creator 从“具有受限文件写权限的 Coding Agent”升级为：
+用户只安装开发依赖 `@za38.03/agent-ui-creator`。Agent 和内部 Operator 都使用 TypeScript，随同一个 npm 包交付，不需要 Python 或独立 Operator 包。
 
-> 能准确观察目标 UI 项目、通过事务语义修改 AppUIModel、确定性维护 Capability Catalog 与 Active Registry、区分停用与删除、读取运行时诊断，并用当前 revision 的证据完成交付的 UI Coding Agent。
+| 能力 | 当前 owner |
+| --- | --- |
+| Agent loop、模型、工具和权限判定 | `packages/creator/src/agent/runner.ts`、`tools.ts`、`execution-decision.ts` |
+| 已读范围、文件状态与编辑 | `src/agent/project-read.ts`、`files/`、`line-edit.ts` |
+| 修改 revision、事务、回执与撤销 | `src/agent/activity.ts`、`src/agent/server.ts` |
+| 完成条件与当前证据复核 | `src/agent/outcome.ts`、`validation.ts`、`runtime-evidence.ts` |
+| CLI、HTTP 宿主与子进程 | `src/cli.ts`、`standaloneServer.ts`、`CreatorProcessManager.ts` |
+| 工程切换与修改互斥 | `src/workspace/CreatorWorkspaceManager.ts` |
+| 组合检查、Registry 和项目操作 | `packages/creator/operator/src/project/` |
+| 初始化与模板选择 | `operator/src/bootstrap/`、`operator/presets/` |
+| npm 更新发现、计划、产物验证与恢复 | `operator/src/updates/`、`src/updates/` |
+| 协议和 golden fixtures | `packages/creator/contracts/creator/` |
+| Creator UI 与统一文案 | `packages/creator/src/ui/`、`src/ui/i18n/` |
 
-改造后仍保持：
+表中缩写路径均相对于 `packages/creator/`。公开项目操作入口为 `/project`、`/project/*`；初始化为 `/bootstrap`，源码目录 Node API 为 `/source-registry`，Mock 为 `/mock-agent`。这些入口均为开发工具，不进入最终前端的生产依赖或浏览器模块图。
 
-- Creator 是通用 Coding Agent，不是固定 Workflow；
-- AppUIModel 是 UI 组合唯一事实源；
-- Plugin 源码属于生成项目和用户；
-- UI Runtime 确定性渲染，不承担 AI 判断；
-- Capability Catalog 使用 manifest metadata 与 lazy definition loader，Active Registry 只包含当前 composition；
-- 目标项目不依赖 `@za38.03/agent-ui-creator` 或 Operator，可独立 `dev`、`test`、`typecheck`、`build`；
-- Creator 不规定目标项目使用 Ant Design、MUI、Tailwind 或任何 major version。
+## 2. 工程与 Runtime 边界
 
-## 2. 非目标
+AppUIModel 拥有生成项目的布局、Plugin 实例身份、启用关系和语义组合。React props、renderer、业务服务与产品外壳属于项目代码，不写入布局 JSON。
 
-本计划不实施：
+通用 AppUIModel 校验/编译、Plugin 生命周期、SlotRegistry、服务注入和应用组装由 `@za38.03/agent-ui-runtime/ui` 交付。正式 Conversation Adapter 仍使用 canonical assistant-ui Runtime，不为某个 Plugin 创建另一条连接。官方 Plugin 默认引用 Plugins npm 实现，项目保留自己的薄应用入口。
 
-- DeepSeek/Cordis 动态 Package Runner；
-- 生产环境动态安装或任意路径 import Plugin；
-- Plugin Marketplace；
-- 通用 Slot Capability 类型系统；
-- 多页面或多 Agent Runtime；
-- Creator 自动视觉验收；
-- 为了热插拔预先重写生产加载链；
-- Tool、Skill、Runtime 或 Model Plugin Creator。
+初始化只生成所选产品形态的 `application/shell/` 组件与 CSS，通过 `createAgentUIProject({ Shell })` 静态绑定。Runtime 通过 Shell 的 `surfaceRef` 观察实际容器；关闭面板隐藏内容并保持子树挂载。Shell 定制是普通项目代码修改，无需源码接管。
 
-## 3. 当前基线
+主题、语言、文案、欢迎内容、附件/听写/反馈适配、历史数据源等通过 `Agent` props 传入。服务地址、鉴权和特殊协议适配由项目实现。Host 的数据源覆盖仍要求对应提供插件启用，不绕过 AppUIModel。
 
-### 3.1 已具备能力
+## 3. 检查与渐进上下文
 
-当前代码已经具备后续改造应复用的基础：
+模型首轮获得精简的 Plugin 目录，包括身份、启用状态、位置和应用 owner。它是导航事实，不是文件读取或源码接管授权。
 
-| 能力 | 当前位置 | 实施策略 |
-| --- | --- | --- |
-| AppUIModel Zod 与跨字段校验 | `examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-model.ts` | 继续作为目标项目事实源，不在 Creator 复制 Schema |
-| Plugin Contract 与 Service 生命周期 | `framework/contracts/ui-plugin.ts`、`runtime/plugins/PluginServiceRuntime.ts` | 保留，不引入动态 Package 模型 |
-| Creator 文件和命令权限 | `packages/creator/python/agent_ui_creator/minimal_agent/`、`domain_agent/` | Python PathPolicy 与领域工具统一拥有 |
-| mutation revision 与修改回执 | `packages/creator/python/agent_ui_creator/activity/recorder.py` | 稳定 run id、hash 与 transaction 记录 |
-| Verified Completion Gate | `packages/creator/python/agent_ui_creator/domain_agent/completion_gate.py` | 绑定当前 revision 的验证与 runtime diagnostics 证据 |
-| AG-UI 流、压缩快照和新会话 | `packages/creator/python/agent_ui_creator/streaming/`、`packages/operator/src/ui/CreatorWorkbench.tsx` | Python 发流，Workbench 消费并保存会话 |
-| 本地 JSONL 诊断日志 | `packages/creator/python/agent_ui_creator/observability/run_logger.py` | 与 transaction journal 分开保存 |
-| Plugin Error Boundary | `runtime/plugins/PluginErrorBoundary.tsx` | 增加开发期结构化上报出口 |
+- `inspect_ui_project` 检查组合、实例、目录和问题；`detail: "full"` 返回完整检查。
+- `inspect_ui_plugin` 获取指定插件的 API、组合与所有权。
+- `inspect_ui_edit_context` 聚合 owner、应用源码、样式、实际安装版本 API 和编辑指导。
+- `inspect_ui_capabilities` 查询项目能力与已安装 Plugins catalog。
+- 通用文件读取、搜索和编辑工具继续可用，不强制专用工具顺序。
 
-### 3.2 已知基线问题
+同轮 composition 检查只有在工程内容、元数据和安装 catalog 身份一致时才复用；失败不缓存。静态验证只在同轮、同 mode、同修订与内容且此前成功时复用，`force: true` 可重新执行。依赖工程外部可变输入时必须重新验证；build、权限和 Runtime 证据不复用。
 
-AppUIModel 不暴露 Runtime mount。视觉 Plugin 直接位于 Layout Slot 或 parent Plugin 的 local Slot 中；headless Plugin 与 Application Gate 位于顶层 `applicationPlugins`。Runtime mount 只存在于 `compileAppUIModel()` 生成的 AppUIRuntimeModel，实施人员不得为了让检查通过擅自删除 authoring node 或 Plugin 源码。
+连续编辑使用按工程真实路径和会话隔离的进程内工作集，下一轮重新检查权限、owner、安装身份及文件内容后，只预读相关区域。不复用授权、checkpoint 或验证结果。预算不足时关闭缓存并执行原检查，不能用缓存容量限制工程准入。
 
-### 3.3 工作树保护
+## 4. 权限、读后写与事务
 
-当前仓库存在未提交的功能改动。开始每个阶段前必须：
+结构化权限判定区分当前请求和最近会话；解析失败不授予写权限。文件写入必须使用当前已读范围及内容 hash，保留 LF/CRLF 和相邻行边界。框架、Runtime 和 vendor 不能作为普通插件定制的写入捷径。
 
-1. 记录 `git status --short`；
-2. 只修改该阶段列出的文件；
-3. 不 reset、checkout、stash 或重排无关改动；
-4. 将已有失败与本阶段新增失败分别记录；
-5. 对与已有改动重叠的文件先读完整 diff，再做最小增量编辑。
+`RunActivity` 跟踪本轮实际修改、revision、验证及回执。事务保存在 `.agent-ui/creator/transactions`，撤销前逐文件检查当前内容是否仍等于 after；后续编辑造成冲突时整体拒绝。再次应用同样检查 before，旧验证不能证明重新应用后的工程已通过。
 
-## 4. 目标数据流
+源码接管必须先展示绑定指定 Plugin、实际安装包、文件闭包、实例及工程状态的具体计划，再获得用户同意。普通组件定制和项目薄应用层的存在不构成接管授权。接管和同步的实现范围、BASE 采用条件遵循插件所有权文档。
 
-### 4.1 每次 Creator run
+停用、移除实例与删除源码是不同操作。删除 `plugins/<id>/` 前必须检查全部 AppUIModel 和跨插件引用，并有明确删除授权；停用不删除源码、依赖或基线。
 
-```text
-用户请求
-  ↓
-读取 compact ProjectSnapshot
-  ↓
-通用 Coding Agent 自主判断
-  ├─ 精确 inspect
-  ├─ 编辑 Plugin 源码
-  ├─ 事务式修改 AppUIModel + Capability Catalog revision
-  ├─ 必要时询问一个用户侧问题
-  └─ 读取 runtime diagnostics
-  ↓
-verify:ui + typecheck（绑定最新 mutation revision）
-  ↓
-同模型根据真实 diff 与证据复核
-  ↓
-最终答复 + receipt + undo run id
-```
+### 快捷命令的受控执行
 
-### 4.2 组合事务
+快捷命令的使用方式见 [公开指南](../website/docs/guide/commands.md)。Host 的 `GET /__creator/commands` 与 `POST /__creator/commands/execute` 绑定当前 workspace；运行中或有待答问题时拒绝冲突修改，未知命令不转为普通 Agent 请求。
+
+启停按实例执行，保留原位置、源码、配置和 BASE，不隐式启用父项或接入业务服务。缺失文件/依赖的准备只读，确认绑定 workspace、目标、包/锁状态和受保护文件，有有效期且单次使用；变化后重新准备。只补齐缺失应用文件，不覆盖定制实现。
+
+新增插件的 add 选项交给通用 Creator Agent 检查与组合；发现阶段不运行模型，交接回执不代表已经新增。注册表同步使用项目锁、预期 hash、事务与后置检查；真实 no-op 不生成虚假修改。
+
+命令活动独立于 `agentMessages`，沿用 Creator locale 和回执。失败、恢复、依赖安装、源码事务及 Runtime/视觉验收分别表达，不把一个阶段成功当成全部完成。
+
+## 5. AppUIModel 组合事务
+
+模型使用 `mutate_app_ui_model` 提交语义操作，Host 使用本轮仍有效的权威观察 hash 作为 CAS token。不能以模型提供的任意完整 JSON 覆盖组合。
 
 ```text
-expectedAppUIModelHash
-  ↓
-获取项目内组合事务锁
-  ↓
-读取并验证当前 AppUIModel
-  ↓
-在内存应用 operations[]
-  ↓
-完整 Schema / 关系校验
-  ↓
-从 plugins/* inventory 生成稳定 Capability Catalog source
-  ↓
-compileAppUIModel() 并执行 Runtime composition validation
-  ↓
-计算结构化 diff
-  ↓
-单 artifact 时只写 app-ui.json；多 artifact 时 descriptor-first 原子提交
-  ↓
-记录 before content / after hash / mutation revision
+检查当前工程及权威 AppUIModel hash
+  → 获取项目组合锁并恢复待处理事务
+  → 在内存应用 operations[]
+  → 校验完整 Schema、引用、服务与 Slot 关系
+  → 生成 Registry / Capability Catalog 并编译组合
+  → 发布所需 artifact 与修订描述
+  → 记录真实变更、revision 和回执
 ```
 
-失败时所有 transaction artifact 都保持修改前内容，不允许暴露中间 revision。
+单个 artifact 与多个 artifact 使用各自的受控发布路径；失败不暴露部分组合。Layout Slot 只保留语义节点，Plugin 挂载关系进入编译结果及 SlotRegistry。完整目录与当前启用组合分开维护；停用项保留可验证的元数据，生产 import 只覆盖实际启用的 Plugin 类型。
 
-### 4.3 运行时诊断
+初始化模板只提供起点，启动和 npm 升级不能覆盖项目后续修改。维护示例 Host 必须来自 canonical presets 和应用模板；探索性 Creator 测试在独立工程中进行。
 
-```text
-Plugin Error Boundary / setup failure
-  ↓
-开发期 DiagnosticReporter
-  ↓
-Creator Vite middleware 的有界缓冲区
-  ↓
-inspect_runtime_errors
-  ↓
-Creator 修复源码或组合
-```
+## 6. 流、问答、取消与恢复
 
-生产构建不启用 reporter endpoint，Plugin Runtime 也不能依赖 Creator package。
+Agent 的模型调用和图步数没有固定累计上限；LangGraph factory 与共享 streaming runner 显式设置正无穷。调用次数用于遥测，仍保留单次模型超时、取消、无进展检测、权限和显式确认。
 
-## 5. 核心接口
+`ask_user_question` 在当前线程内中断并恢复执行。Creator 自己的问答与生成前端的 Human Tool、后端 structured interrupt/resume 各自拥有协议，不混用结果。
 
-下面的类型是实施目标，可在编码时按现有 TypeScript 约定拆分，但不能改变语义。
+任务由工程的 Creator 子进程持有，HTTP 连接只是订阅。Host 热更新或页面重载后，面板按线程与任务重连并重放事件，不重复提交修改。`.agent-ui/creator/run-streams` 保存当前进程的订阅重放数据，不提供进程重启后的 checkpoint 恢复。停止按钮显式取消；切换或关闭工程停止旧工程子进程。
 
-### 5.1 ProjectSnapshot
+## 7. 验证与完成证据
 
-```ts
-interface CreatorProjectSnapshot {
-  appUIModel: {
-    hash: string
-    layout: CompactLayoutNode
-    slots: Array<{
-      target:
-        | { type: "layout_slot"; slotRef: string }
-        | { type: "plugin_slot"; parentInstanceId: string; slot: string }
-      nodeRef: string
-      plugins: AppUIPluginNode[]
-    }>
-  }
-  plugins: Array<{
-    id: string
-    pluginId: string
-    enabled: boolean
-    target:
-      | { type: "application" }
-      | { type: "layout_slot"; slotRef: string }
-      | { type: "plugin_slot"; parentInstanceId: string; slot: string }
-    index: number
-  }>
-  capabilityCatalog: {
-    revision: string
-    pluginIds: string[]
-    generatedFileFresh: boolean
-  }
-  activeComposition: {
-    selectedPluginIds: string[]
-    resolvedPluginIds: string[]
-    headlessPluginIds: string[]
-  }
-  issues: ProjectIssue[]
-  pluginAssets: Array<{
-    pluginId: string
-    directory: string
-    selected: boolean
-    capabilities: string[]
-  }>
-  catalogs: Array<{ id: string; path: string }>
-  uiStack: Array<{ packageName: string; version: string }>
-  evidence: {
-    mutationRevision: number
-    lastValidation?: RevisionEvidence
-    lastRuntimeDiagnostic?: RevisionEvidence
-  }
-}
-```
+成功答复必须有本轮实际修改、恢复、经过验证的目标条件、受控 no-op 或用户决策等执行证据。`verify_creator_outcome` 只读核对有效启用状态或文件精确文本，收尾时重查；它不授予写权限，也不替代 Runtime 或浏览器验证。
 
-约束：
+同一未变化修订若连续无证据停止，完成检查最多重试两次；插入只读工具不重置计数，仍无证据则返回 `CREATOR_NO_COMPLETION_EVIDENCE`。这不限制持续有进展任务的累计调用，不把 Creator 变成固定流程。
 
-- 默认序列化结果设置明确字节上限；
-- Layout 只返回导航需要的节点 id、type、尺寸和层级，不展开任意 props；
-- 精确 manifest、组件源码和完整 props 仍通过专项 inspect 获取；
-- `lastValidation` 与 `lastRuntimeDiagnostic` 必须标记 `current: boolean`，不能暗示旧证据仍有效。
+静态验证、受控 Mock、浏览器交互、真实服务及视觉验收分别表达。验证后再修改文件会使旧证据过期；失败、截断、缺失或 unavailable 不能作为通过。
 
-### 5.2 AppUIModel 操作
+## 8. 开发预览与运行诊断
 
-模型侧只暴露一个事务工具 `mutate_app_ui_model`，内部使用 discriminated union，避免把十几个独立工具塞进固定 Tool Catalog：
+最终应用只暴露通用 observability callback 和开发观察事件，不导入 Creator。开发 Host 适配器与 Workbench 连接当前工程、线程的已认证预览通道，转交 Runtime diagnostics 和布局观察；生产构建不加载这些工具适配器。
 
-```ts
-interface MutateAppUIModelInput {
-  expectedAppUIModelHash: string
-  operations: AppUIOperation[]
-}
+`inspect_runtime_errors` 读取当前组合相关错误；`inspect_runtime_layout` 请求新采集并按 request ID 有界等待，缓存重放不算本次采集。无效 authoring ref、错误参数和观察超时分别返回原因。Runtime instance ID 与 authoring ref 的对应关系由实际组合检查提供，不能把 DOM nodeId 当作 nodeRef。
 
-type AppUIOperation =
-  | InsertPluginOperation
-  | UpdatePluginPropsOperation
-  | SetPluginEnabledOperation
-  | MovePluginOperation
-  | ReplacePluginOperation
-  | RemovePluginOperation
-  | InsertLayoutNodeOperation
-  | UpdateLayoutNodePropsOperation
-  | MoveLayoutNodeOperation
-  | ReplaceLayoutNodeOperation
-  | RemoveLayoutNodeOperation
-  | InsertLayoutRelativeOperation
-```
+布局观察提供几何、语义区域和计算样式：最多 6 个区域、每区 24 个节点、结构预算 18,000 字符，裁剪与不可用明确标记。不接受任意选择器或脚本，不读取页面文字和输入值，不扩大源码权限。几何证据不能替代外观、焦点和真实交互验收。
 
-关键行为：
+### Mock 宿主管理
 
-- `insert_plugin` 接受完整 plugin node、authoring target 和可选数组位置；
-- Plugin instance configuration is not part of AppUIModel; application/runtime
-  source edits own product content and behavior configuration.
-- `move_plugin` 在一个操作内移动完整 plugin subtree；
-- `replace_plugin` 在原位置原子替换完整 plugin subtree；
-- target 只能是 application、snapshot-scoped Layout Slot `slotRef` 或 parent Plugin 的 local Slot，不能传 Runtime slot id 或 mount；
-- Layout `nodeRef`/`slotRef` 只在当前 `appUIModel.hash` 下有效，同一 operations batch 内保持绑定；新节点只能用 transaction-local `$localRef`，不得落盘；
-- 删除带 Plugin 的 Layout 子树时，若同一 transaction 没有处理受影响 plugin node 则拒绝；
-- 任一中间状态可以暂时不完整，但 operations 全部应用后的最终模型必须完整有效；
-- visual Plugin 位于 visual tree，headless/Gate Plugin 位于 `applicationPlugins`；
-- 工具结果返回新 hash、revision、归一化 operations、模型 diff、Capability Catalog diff、Active Composition 和 warnings。
+Mock 操作和回放格式见 [Mock 服务](../website/docs/mock/index.md) 与 [本地回放](../website/docs/mock/local-recordings.md)。Mock 只播放官方预设或当前工程录制数据，不理解 Creator 任务，也不替代真实业务服务。
 
-### 5.3 Capability Catalog generator
+公开 `@za38.03/agent-ui-creator/mock-agent` 提供官方目录、按 ID 执行、HTTP/Vite 接入与本地数据解析/回放；任意场景执行回调属于内部实现。独立本机服务由 Creator 持有并在退出时清理，预览使用既有连接桥接，不修改生产 endpoint。
 
-目标项目提供纯函数和 CLI 两层：
+工具凭据从 `--config-root` 指定的配置根（默认启动目录）的 `.agent-ui/creator/.env.local` 读取。切换目标工程不切换密钥来源；`CREATOR_*` 保持服务端，不使用 `VITE_` 密钥。场景选择、资源准备和实际运行是不同事实，分别报告结果。项目切换、服务生命周期和资源写入复用当前互斥；详细路由和回放隔离见 [开发连接](architecture/agent-connection-preview-source.md)。
 
-```ts
-interface GeneratePluginCatalogResult {
-  capabilityCatalog: {
-    source: string
-    revision: string
-    pluginIds: string[]
-  }
-  activeComposition: {
-    selectedPluginIds: string[]
-    resolvedPluginIds: string[]
-    headlessPluginIds: string[]
-  }
-  assets: PluginAsset[]
-  issues: ProjectIssue[]
-}
+## 9. 检查与剩余边界
 
-generatePluginRegistry(projectRoot, appUIModel): Promise<GeneratePluginCatalogResult>
-```
+在仓库根目录按变更范围运行现有命令：
 
-生成规则：
-
-1. 扫描一级 `plugins/*/manifest.json` 建立完整 capability inventory；
-2. 校验重复 id、manifest 与 definition entry；
-3. 生成按 plugin id 稳定排序的 manifest metadata 与 lazy definition loader；
-4. 输出 `plugins/registry.generated.ts` 与 `capabilityCatalogRevision`；
-5. `plugins/index.ts` 只 re-export `pluginCapabilityCatalog` 和 revision；
-6. AppUIModel selection 只用于 active definition resolve、compile 与 diagnostics，不控制 catalog membership；
-7. 未选择 implementation 不 eager import，不进入当前 Preview module graph。
-
-`registry.generated.ts` 纳入版本控制。`generate:registry` 是显式开发命令；`verify:ui`、`typecheck` 和 `build` 只检查或消费现有生成物，不在执行时修改工作树。
-
-### 5.4 事务与撤销记录
-
-```ts
-interface CreatorTransactionRecord {
-  runId: string
-  createdAt: string
-  mutationRevision: number
-  files: Array<{
-    path: string
-    before: { exists: boolean; content?: string; hash?: string }
-    after: { exists: boolean; hash?: string }
-  }>
-  verificationStatus: "pending" | "passed" | "failed"
-}
-```
-
-存放位置：
-
-```text
-.agent-ui/creator/transactions/<runId>.json
-```
-
-安全约束：
-
-- 仅记录本 run 实际修改且位于授权范围内的文件；
-- `.agent-ui/creator` 保持本地 ignore，不上传；
-- undo 在写入前逐个验证当前文件等于 after 状态；
-- 任意目标冲突则整体拒绝，不做部分撤销；
-- 撤销本身形成一个新 run 和新 transaction，可再次审计；
-- 删除源码的 before 内容也必须可恢复，但要设置单 run 大小上限，超限则删除工具拒绝执行。
-
-### 5.5 RuntimeDiagnostic
-
-```ts
-interface RuntimeDiagnostic {
-  id: string
-  kind: "render" | "activation" | "tagged-console"
-  level: "error" | "warning"
-  message: string
-  stack?: string
-  pluginId?: string
-  instanceId?: string
-  slotId?: string
-  appUIModelHash: string
-  mutationRevision?: number
-  occurredAt: string
-  lastSeenAt: string
-  count: number
-}
-```
-
-同一 `{kind, pluginId, instanceId, message, appUIModelHash}` 去重累计；缓冲区必须限制条数、单条大小和存活时间。
-
-`appUIModelHash` 统一定义为 `app-ui.json` 精确 UTF-8 字节的 SHA-256。目标应用在开发构建中从同一原始 JSON source 获得该值，避免 Creator、验证器和浏览器各自对对象做不同的序列化。Plugin 源码等其他文件使用各自的 observed content hash，不复用该字段。
-
-### 5.6 ask_creator_user
-
-```ts
-interface AskCreatorUserInput {
-  id: string
-  header?: string
-  question: string
-  options?: Array<{ label: string; description?: string }>
-}
-```
-
-第一版限制：
-
-- 普通 run 最多调用一次；
-- 每次只允许一个短问题；
-- 只问检查项目无法回答的用户意图、创意偏好或破坏性确认；
-- 问题通过 AG-UI `CUSTOM` 事件发送，Workbench 使用独立 answer endpoint 回答；
-- 原 `/__creator/run` 流保持打开，答案作为普通 Tool result 回到同一 Agent loop；
-- 页面刷新、用户新建会话、run abort 或连接关闭都会取消 pending question；
-- 不使用问题工具询问文件位置、现有代码行为或其他可检查事实。
-
-## 6. 分阶段实施
-
-阶段按依赖顺序执行。每个阶段都必须独立通过本阶段测试后再进入下一阶段。
-
-### Phase 0：建立干净、可归因的基线
-
-目标：确认当前验证结果和未提交改动，不让旧故障污染后续验收。
-
-实施状态（2026-09-02）：自动化基线已恢复并通过；HMR 四场景对照尚未执行，保留到进入 HMR 策略阶段前补齐。
-
-任务：
-
-1. 与项目所有者确认 `agent-conversations-main` 应挂载还是禁用；
-2. 用最小 AppUIModel 改动恢复 `verify:ui` 绿线；
-3. 运行并记录目标项目 `verify:ui`、`typecheck`、`test`、`build`；
-4. 运行并记录 Creator package `typecheck`、`test`、`build`；
-5. 将环境或依赖造成的基线失败与代码失败分开记录；
-6. 保存 HMR 四种场景的当前行为，作为 Phase 8 对照组。
-
-验收：
-
-- 基线失败全部有归属；
-- 没有通过删除 Plugin 源码或放宽验证器来消除错误；
-- 后续阶段可以明确指出新增或消除的失败。
-
-### Phase 1：目标项目 Control Core 与 Registry 生成器
-
-目标：先让目标项目自身能够纯计算快照、验证资产并生成静态 Registry，尚不接入模型工具。
-
-实施状态（2026-09-02）：已完成。目标项目可独立生成、只读验证、typecheck、测试和生产构建；Phase 2 已通过固定控制入口将这些观察能力接入 Creator。
-
-正式实现位置（2026-09-27 已归入 package）：
-
-```text
-packages/operator/control/src/project/types.ts
-packages/operator/control/src/project/project-inspector.ts
-packages/operator/control/src/project/project-config.ts
-packages/operator/control/src/project/plugin-assets.ts
-packages/operator/control/src/project/registry-generator.ts
-packages/operator/control/src/generate-plugin-registry.ts
-examples/creator-host-sandbox/src/agent-ui/plugins/registry.generated.ts
-packages/operator/control/tests/migrated/plugin-registry-generator.test.ts
-packages/operator/control/tests/migrated/project-inspector.test.ts
-```
-
-建议修改：
-
-```text
-examples/creator-host-sandbox/src/agent-ui/plugins/*/definition.ts
-examples/creator-host-sandbox/src/agent-ui/plugins/index.ts
-packages/operator/control/src/verify-ui.ts
-examples/creator-host-sandbox/package.json
-```
-
-实施步骤：
-
-1. 为现有每个 Plugin definition 增加 default export，保留 named export；
-2. 实现 Plugin asset 扫描与重复 id、缺文件诊断；
-3. 用目标项目显式 `project-config.ts` 声明开发期 Catalog 与 `_shared` 等非 Plugin 目录路径，不通过目录名猜测；
-4. 实现纯 Capability Catalog source generator，并用 TypeScript AST 而非正则确认 selected definition 具有 default export；
-5. 生成初始 `registry.generated.ts`，让 `plugins/index.ts` 稳定 re-export；
-6. 增加 `pnpm generate:registry`；
-7. 改写 `verify:ui`：直接复用 generator 的纯计算结果，比较期望源码与磁盘源码；
-8. 删除当前对 `plugins/index.ts` 的正则 AST 猜测；
-9. 验证未选择源码与 Catalog 只是资产，不产生错误。
-
-测试矩阵：
-
-- selected instance 生成 import；
-- disabled、未挂载 instance 仍生成 import；
-- headless instance 生成 import且不要求 Slot；
-- 最后一个实例移除后 import 消失；
-- 两个实例共享 plugin id 时只生成一次；
-- duplicate manifest id 失败；
-- selected manifest/definition 缺失失败；
-- stale generated file 让 `verify:ui` 失败但不改文件；
-- Catalog 和 unselected asset 不进入输出；
-- 连续生成两次字节完全一致。
-
-退出标准：
-
-- 应用生产 import graph 只包含当前 AppUIModel 选中的 definitions；
-- `verify:ui` 全程只读；
-- `registry.generated.ts` 已提交，`typecheck` 和 `build` 不触发 codegen；
-- 克隆目标项目后不需要 Creator package 即可生成、验证、构建。
-
-### Phase 2：ProjectSnapshot 与渐进 Inspect
-
-目标：让 Creator 每个 run 都有可靠导航信息，同时保留按需读取能力。
-
-实施状态（2026-09-02）：已完成。固定 JSON 控制入口、Creator Adapter、12,000 字符上限的 run 快照、四个渐进 inspect 工具、revision/validation freshness 元数据和缺失/不兼容诊断均已接入；Runtime diagnostics 明确标记为尚不可用，留待 Phase 6。
-
-建议新增：
-
-```text
-packages/creator/python/agent_ui_creator/operator/client.py
-packages/creator/python/agent_ui_creator/operator/models.py
-packages/creator/python/agent_ui_creator/domain_tools/operator_tools.py
-packages/creator/python/agent_ui_creator/domain_state/observation_context.py
-packages/creator/python/tests/test_operator_client.py
-packages/creator/python/tests/test_domain_tools.py
-```
-
-正式协议实现由 Operator package 持有；Host 初始化安装固定 Node JSON 控制入口：
-
-```text
-packages/operator/control/src/handler.ts
-<Host project>/.agent-ui/operator/entry.mjs
-```
-
-实现边界：
-
-- Creator Adapter 只能调用固定入口并通过 stdin/stdout 交换经过 Schema 校验的 JSON；
-- 模型不能提供 executable、shell command 或任意 script path；
-- 目标入口复用 Phase 1 的 inspector 和 generator，不复制逻辑；
-- `inspect_ui_project` 合并目标项目结构数据与 Creator 自己保存的 revision/validation/diagnostic 元数据；
-- run 首次模型调用在稳定 system prompt 之后追加 compact snapshot；
-- `inspect_app_ui_model`、`list_ui_plugins`、`inspect_ui_plugin` 返回精确信息并设置大小上限。
-
-需要修改：
-
-```text
-packages/creator/python/agent_ui_creator/domain_agent/agent.py
-packages/creator/python/agent_ui_creator/server.py
-packages/creator/python/agent_ui_creator/streaming/deepagent_v3_runner.py
-packages/creator/python/agent_ui_creator/domain_agent/prompt.py
-packages/operator/src/PythonCreatorClient.ts
-```
-
-测试矩阵：
-
-- authoring Slot、plugin target/path 和 application scope 状态准确；
-- Registry stale 状态准确；
-- UI 栈版本来自目标 `package.json` / lockfile 可用信息，而非猜测；
-- 超大 props 和大量 assets 不突破快照上限；
-- 最近验证 revision 不匹配时标记为 stale；
-- 目标控制入口缺失或版本不兼容时给出可诊断错误，不回退到猜测。
-
-退出标准：
-
-- “右侧面板”“历史会话组件”等模糊引用可以从快照定位；
-- 模型无需每轮 `ls + grep + read` 才知道基本组合；
-- 目标项目仍不依赖 Creator。
-
-### Phase 3：事务式 AppUIModel 语义修改
-
-目标：用一个原子 transaction 维护 AppUIModel 与必要的 Capability Catalog revision，不再让模型手工编辑组合 JSON 或生成 catalog。
-
-实施状态（2026-09-16）：`mutate_app_ui_model` 通过目标项目固定控制入口接入 Creator；提交前执行精确 hash、完整 AppUIModel、visual/headless 挂载和 candidate compile。纯 composition change 只写 AppUIModel；capability 同时变化时，CompositionRevision、AppUIModel 与 Capability Catalog 使用项目内 journal、临时文件和 descriptor-first rename 提交。下一次控制入口可完成中断事务，外部文件冲突时拒绝覆盖。Creator Activity 仅按真实 `changedPaths` 记录 revision 与 diff，no-op 不产生 revision。
-
-目标项目建议新增：
-
-```text
-packages/operator/control/src/project/app-ui-operations.ts
-packages/operator/control/src/project/app-ui-transaction.ts
-examples/creator-host-sandbox/tests/app-ui-operations.test.ts
-examples/creator-host-sandbox/tests/app-ui-transaction.test.ts
-```
-
-Creator 建议新增：
-
-```text
-packages/creator/python/agent_ui_creator/app_ui_model/mutation_tool.py
-packages/creator/python/tests/test_app_ui_model_mutation.py
-```
-
-实施步骤：
-
-1. 为 Layout Tree 建立快照 nodeRef index：`nodeRef -> node / parent / child index`，并由统一 preorder walker 生成；
-2. 实现全部 discriminated operations；
-3. 每个 transaction 开始时验证 `expectedAppUIModelHash`；
-4. 对 projectRoot 级组合写入加进程内互斥锁；
-5. 在内存完成 model parse、关系校验与 Registry generation；
-6. 捕获两个目标文件 before 状态；
-7. 先写 transaction journal 和两个临时文件，再依次 rename；普通失败时恢复 before，进程异常退出后由下一次控制入口根据未完成 journal 恢复或完成提交；
-8. Python mutation service 把实际 changed paths 交给 `CreatorActivityRecorder`，只对真实变化递增 revision；
-9. 工具返回结构化 diff 与新 snapshot token；
-10. 从 prompt/skill 中取消“直接手改 app-ui.json / plugins/index.ts”的首选指导。
-
-并发与失败测试：
-
-- expected hash stale 时无文件变化；
-- operation 中途失败时无文件变化；
-- Registry 生成失败时 AppUIModel 不落盘；
-- 第二个并发 transaction 串行化并重新检查 hash；
-- no-op operation 不递增 revision；
-- multi-operation 可从一个有效状态原子到另一个有效状态；
-- enabled visual instance 未挂载的最终状态被拒绝；
-- headless 和 disabled 最终状态被接受；
-- JSON 格式稳定且不重排无关语义。
-
-退出标准：
-
-- 普通布局、挂载、停用、移除和替换请求不需要模型直接编辑 AppUIModel；
-- AppUIModel、CompositionRevision 与 Capability Catalog 不会向 Preview 发布半提交；
-- Completion Gate 能看到领域工具造成的准确 revision 和 diff。
-
-### Phase 4：文件观察策略、run transaction 与安全 Undo
-
-目标：保护用户并发修改，并让一次 Creator run 可以安全恢复。
-
-实施状态（2026-09-02）：已完成。CLI Session 与 AG-UI 现在把同一个字符串 run id 交给 Activity、诊断日志和 transaction；通用 Plugin 文件编辑执行 run 内 read-before-edit/read-before-overwrite、hash freshness 检查以及同目录临时文件提交，新文件使用不覆盖创建。每个有净变化的成功、失败或中止 run 都持久化有大小和文件数上限的 before/after transaction，回执公开 run id 与实时可撤销状态。`undo_creator_run` 在零写入 preflight 后恢复 created/modified/deleted 文件，普通中途失败会回滚已恢复部分，并自动执行 `verify:ui` 与 typecheck；撤销本身形成独立 transaction，可继续安全恢复。Workbench 已显示撤销身份和冲突保护提示。
-
-建议新增：
-
-```text
-packages/creator/python/agent_ui_creator/files/observation_store.py
-packages/creator/python/agent_ui_creator/transactions/store.py
-packages/creator/python/agent_ui_creator/transactions/
-packages/creator/python/tests/test_creator_file_state.py
-packages/creator/python/tests/test_creator_transactions.py
-packages/creator/python/tests/test_creator_activity.py
-```
-
-建议修改：
-
-```text
-packages/creator/python/agent_ui_creator/minimal_agent/
-packages/creator/python/agent_ui_creator/activity/recorder.py
-packages/operator/src/receiptTypes.ts
-packages/operator/src/PythonCreatorClient.ts
-packages/creator/python/agent_ui_creator/streaming/
-packages/operator/src/ui/CreatorWorkbench.tsx
-```
-
-实施步骤：
-
-1. 统一 CLI 与 AG-UI run id；`activity.begin(runId)` 不再自行使用独立序号作为身份；
-2. 对 `read` / `readRaw` 记录文件存在状态和内容 hash；
-3. `edit` 必须已有 positive observation；覆盖已有文件的 `write` 必须有 observation；
-4. 写入前重新计算 hash，变化则返回 stale-version；
-5. ActivityRecorder 支持 created、modified、deleted 三种 receipt；
-6. run 结束时持久化 transaction record；
-7. 回执显示可撤销 run id 和是否仍可撤销；
-8. `undo_creator_run` 先完整检查所有 after hashes，再整体恢复；
-9. undo 后自动运行当前要求的验证，并生成独立回执。
-
-边界说明：普通编辑器不会参与 Creator 的锁，因此无法承诺跨进程无竞态的文件系统 CAS；实现应在真正写入前做 hash freshness check，并使用同目录临时文件 + rename 缩小竞态窗口。发现冲突时宁可拒绝，也不覆盖用户修改。
-
-测试矩阵：
-
-- 未读 edit 被拒绝；
-- 读后外部改动导致 stale-version；
-- 新文件 guarded create 不覆盖并发创建；
-- 同 run 多次修改只保存首次 before 与最终 after；
-- no-net-change 不生成可撤销 transaction；
-- after hash 完整匹配时 undo 成功；
-- 任意一个目标冲突时 undo 零写入；
-- 创建文件、修改文件和受控删除都能恢复；
-- 超出 journal 大小上限时破坏性工具提前拒绝。
-
-退出标准：
-
-- Creator 不再无条件覆盖未观察文件；
-- 用户或其他任务继续编辑后，undo 不会抹掉其成果；
-- 不依赖 Git 工作树是否干净。
-
-### Phase 5：停用、移除、替换与受限源码删除
-
-目标：把用户语言映射成安全、明确的领域语义。
-
-实施状态（2026-09-16）：Prompt 与内置 skills 把隐藏、移除实例、替换和永久删除源码映射为四种不同语义；前三种继续由 AppUIModel transaction 完成并默认保留源码。受限删除依次拒绝仍有实例、Capability Catalog 非新鲜、源码引用、非单目录路径、链接/特殊文件、不可无损恢复的二进制文件和 journal 超限；合法文本源码删除可由 run transaction 完整恢复。`delete_ui_plugin_source` 目前没有加入真实 Creator Tool Catalog，`CREATOR_PLUGIN_SOURCE_DELETE_ENABLED_BY_DEFAULT` 固定为 `false`。
-
-普通语义通过 Phase 3 operations 完成：
-
-- 隐藏：`set_plugin_enabled(false)`，保留原 authoring 位置；
-- 移除功能：`remove_plugin`；
-- 移动现有 Plugin：`move_plugin`，由 Host 的语义 `move_plugin_to` 原子执行；
-- 替换：`replace_plugin`；
-- 源码保留是默认行为。
-
-源码删除建议新增：
-
-```text
-packages/creator/python/agent_ui_creator/source_tools/
-packages/creator/python/tests/test_plugin_source_deletion.py
-```
-
-Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOURCE_DELETE` 保持关闭；等 Phase 7 的同 run 确认通道完成后再对真实 Creator 会话启用。
-
-删除前置检查：
-
-1. 用户当前请求明确写出删除代码，或本 run 有有效 `ask_creator_user` 确认 token；
-2. AppUIModel 中没有该 plugin id 的实例；
-3. 当前 Active Registry 中没有该 plugin id；Capability Catalog 可保留到源码 transaction 提交；
-4. 使用 TypeScript compiler/module resolution 检查其他 Plugin、services、app source 中没有指向该目录或其导出的引用，并补充对 manifest id 字符串引用的保守检查；
-5. 目标精确解析为 `plugins/<one-directory>`，禁止 glob 和父目录；
-6. transaction journal 能在大小限制内保存全部删除内容；
-7. 删除后 `verify:ui` 与 typecheck 必须通过，否则 Completion Gate 不允许成功答复。
-
-需要同步更新：
-
-```text
-packages/creator/python/agent_ui_creator/domain_agent/prompt.py
-packages/creator/skills/app-ui-model/SKILL.md
-packages/creator/skills/ui-plugin-development/SKILL.md
-packages/creator/skills/ui-debugging/SKILL.md
-```
-
-测试矩阵：
-
-- “不要显示”不删 instance/source；
-- “移除功能”删 instance 不删 source；
-- 替换保留旧源码；
-- 普通 delete backend 仍拒绝；
-- 无授权、仍被引用、路径逃逸、journal 超限均拒绝源码删除；
-- 合法源码删除可通过 undo 完整恢复。
-
-退出标准：
-
-- 模型无需猜“移除”是否意味着销毁；
-- 任意文件删除能力仍未开放；
-- 源码删除具备明确授权、引用证明和可恢复性。
-
-### Phase 6：运行时诊断桥
-
-目标：覆盖“typecheck 通过但页面渲染/激活失败”的盲区。
-
-目标项目建议新增或修改：
-
-```text
-examples/creator-host-sandbox/src/agent-ui/runtime/diagnostics/types.ts
-examples/creator-host-sandbox/src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.ts
-examples/creator-host-sandbox/src/agent-ui/runtime/plugins/PluginErrorBoundary.tsx
-examples/creator-host-sandbox/src/agent-ui/runtime/plugins/UIPluginRuntime.tsx
-examples/creator-host-sandbox/src/agent-ui/runtime/plugins/PluginServiceRuntime.ts
-examples/creator-host-sandbox/src/App.tsx
-examples/creator-host-sandbox/tests/plugin-runtime-diagnostics.test.tsx
-```
-
-Creator 建议新增或修改：
-
-```text
-packages/creator/python/agent_ui_creator/runtime_diagnostics/store.py
-packages/creator/python/agent_ui_creator/runtime_diagnostics/tool.py
-packages/operator/src/vitePlugin.ts
-packages/creator/python/agent_ui_creator/domain_agent/agent.py
-packages/creator/python/tests/test_runtime_diagnostic_store.py
-apps/creator-workbench/src/main.tsx
-```
-
-实施步骤：
-
-1. 在 App 启动时计算当前 AppUIModel hash；
-2. Runtime 从 Layout index 获得 instance 对应 Slot；
-3. Error Boundary 上报 render failure、component stack、plugin/instance/slot/hash；
-4. PluginServiceRuntime 将 activation failed 通过回调上报；
-5. 目标 `App` 和 UI Runtime 只暴露可选的通用 `onRuntimeDiagnostic` callback，不知道 Creator endpoint；
-6. `apps/creator-workbench` 作为同时依赖 Creator 与目标项目的开发组合层，把 Creator-owned reporter callback 传给目标 `App`；
-7. 只有 Creator-owned reporter 通过独立 endpoint 把诊断发送给 Vite middleware；
-8. middleware 有界、去重、按 project/thread 隔离保存；
-9. `inspect_runtime_errors` 默认只返回当前 hash 的诊断，可显式查看 stale 历史；
-10. 成功重渲染或 hash 更新后，旧错误标记 resolved/stale，不直接删除审计信息；
-11. 独立目标应用不传 callback，生产 bundle 不导入 Creator、Creator endpoint 或 Creator reporter。
-
-测试矩阵：
-
-- render error 可定位 plugin、instance、slot；
-- setup error 可定位 instance；
-- 同一错误重复只累加 count；
-- 不同 AppUIModel hash 不混为当前错误；
-- reporter endpoint 不可用时应用仍正常运行；
-- standalone target 和 production bundle 不包含 Creator endpoint 或 package import；
-- 只有 workbench composition shell 负责连接 target callback 与 Creator reporter；
-- 普通无来源 console error 不被错误归因。
-
-退出标准：
-
-- Creator 能修复至少一个静态验证捕获不到的真实渲染错误；
-- runtime diagnostics 可作为当前 revision 的辅助证据，但不替代 typecheck / verify:ui。
-
-实施状态（2026-09-02）：已完成。目标 Runtime 以可选 callback 上报带 AppUIModel SHA-256、PluginInstance、Slot 路径和 component stack 的 render/setup 诊断；Workbench 作为唯一组合层连接 Creator-owned reporter，Vite middleware 按 project/thread 有界去重并保留 resolved/stale 审计，Creator 已接入 `inspect_runtime_errors` 和每轮摘要。测试覆盖错误定位、恢复、重复计数、hash/thread 隔离、端点不可用和普通 console error 不归因；独立生产构建已确认不包含 Creator package 或 `/__creator/` endpoint 字符串。静态验证仍保持独立门禁。
-
-### Phase 7：同 run 澄清通道
-
-目标：只在用户拥有答案的歧义或破坏性确认上暂停，并在同一 Agent loop 继续。
-
-建议新增：
-
-```text
-packages/creator/python/agent_ui_creator/user_questions/broker.py
-packages/creator/python/agent_ui_creator/user_questions/tool.py
-packages/creator/python/agent_ui_creator/user_questions/models.py
-packages/creator/python/tests/test_creator_user_questions.py
-```
-
-建议修改：
-
-```text
-packages/creator/python/agent_ui_creator/streaming/
-packages/operator/src/vitePlugin.ts
-packages/operator/src/shared.ts
-packages/operator/src/ui/CreatorWorkbench.tsx
-packages/operator/src/ui/creator-workbench.css
-packages/creator/python/agent_ui_creator/domain_agent/prompt.py
-```
-
-传输设计：
-
-- pending question 由 broker 以 `{threadId, runId, requestId}` 定位；
-- AG-UI 流发送 `CUSTOM` 事件 `creator.user-question.requested`；
-- Workbench 渲染 options 与自由输入；
-- 独立 POST answer endpoint 提交 `{requestId, answers}`；
-- broker 只接受第一个匹配答案并 resolve tool promise；
-- abort、断线、新建会话和重复答案都得到确定结果；
-- 答案进入 ToolMessage，现有 AG-UI 历史保存和压缩继续工作。
-
-测试矩阵：
-
-- tool 等待后在同一 run 收到答案并继续；
-- 错误 thread/run 的答案被拒绝；
-- 重复答案幂等或明确冲突；
-- abort 释放 promise 和 broker 状态；
-- 页面刷新不会留下永远 pending 的调用；
-- 同 run 第二次普通澄清被拒绝；
-- 源码删除确认可以生成仅限本 run、仅限目标 plugin id 的 authorization token。
-
-退出标准：
-
-- Creator 不需要用最终答复冒充澄清；
-- 普通明确请求不会增加多余询问；
-- 源码删除具备可验证的同 run 用户确认。
-
-### Phase 8：完成门禁、技能与 Workbench 收口
-
-目标：让所有新能力进入一致的证据链和用户体验。
-
-实施事项：
-
-1. Completion Gate 继续自动运行 `pnpm verify:ui` 与 `pnpm typecheck`；
-2. 验证结果写入 Creator project state，带 run id、revision 和 AppUIModel hash；
-3. 验证后发生任何写入即让结果失效；
-4. 完成复核证据增加 Registry freshness、runtime diagnostics 摘要和 undo availability；
-5. Workbench 回执展示当前/过期证据，不把旧 runtime error 当成当前失败；
-6. 更新所有 Creator skills，删除手工注册表和一刀切“不得删除 Plugin”的旧指导；
-7. System prompt 保持短小，只保留角色、边界、Inspect-first 与安全语义；
-8. 用真实模糊请求验证 Agent 会先使用快照而非猜测；
-9. model name 改为 host 配置允许值，但保持 provider、endpoint 与配置文件归 Creator host 所有；
-10. 不因模型可配置而把模型 SDK 或配置写入生成项目。
-
-建议修改：
-
-```text
-packages/creator/python/agent_ui_creator/domain_agent/completion_gate.py
-packages/creator/python/agent_ui_creator/activity/recorder.py
-packages/operator/src/receiptTypes.ts
-packages/creator/python/agent_ui_creator/model_factory.py
-packages/operator/src/ui/CreatorWorkbench.tsx
-packages/creator/python/agent_ui_creator/domain_agent/prompt.py
-packages/creator/skills/*/SKILL.md
-packages/creator/python/tests/test_plugin_development_golden.py
-packages/creator/python/tests/test_model_factory.py
-```
-
-验收场景：
-
-1. “右边增加工具详情”：快照定位布局，必要时创建 Plugin，事务把 plugin node 插入目标 Slot，Registry 自动生成；
-2. “右边太宽”：只修改 Layout，无 Plugin source diff；
-3. “这个先不要显示”：plugin node disabled 并保留位置，源码保留；
-4. “移除这个功能”：plugin node 与 Active Registry entry 消失，Capability Catalog 和源码保留；
-5. “换成历史会话”：Creator 通过快照定位候选，在一个 transaction 中 `replace_plugin`；
-6. “代码也删掉”：若原请求没有明确范围则询问一次，确认后受限删除；
-7. 人工在 Creator 读取后修改同一文件：Creator stale-version 拒绝覆盖；
-8. 撤销前人工又修改文件：undo 整体拒绝；
-9. Plugin render throw：typecheck 通过但 runtime diagnostics 使 Creator 能定位并修复；
-10. Plugin inventory 手工修改但忘记 generate：`verify:ui` 报 Capability Catalog stale 且不写文件；纯 AppUIModel 修改不要求 codegen。
-
-退出标准：
-
-- receipt 中每条“通过”都能追溯到当前 revision/hash；
-- 目标项目的独立 build 不包含 Creator；
-- 通用 Agent 仍可自由读代码、编辑 Plugin 和选择工具，没有固定节点 Workflow。
-
-### Phase 9：HMR 实测后的条件性改进
-
-这一阶段不是默认编码任务。先重跑 Phase 0 的 HMR 对照矩阵：
-
-| 变更 | 期望最低行为 | 重点观察 |
-| --- | --- | --- |
-| Plugin JSX/CSS | Fast Refresh | Plugin 局部状态是否保留 |
-| AppUIModel | Preview 自动更新 | Agent 会话与 Runtime 状态是否保留 |
-| 新增 definition + Registry | Preview 可用 | 是否整页刷新、错误是否可诊断 |
-| 移除最后实例 | UI 和 service 正确卸载 | disposer、consumer 失效、状态残留 |
-
-只有实测出现不可接受问题时，才设计最小 dev-only 修复。优先顺序：
-
-1. 明确 Vite `import.meta.hot.accept` 边界；
-2. 保持 AgentRuntime 实例在稳定模块中；
-3. 让 model/registry 更新触发 React 重渲染而非重建整个页面；
-4. 最后才考虑 dev-only virtual module。
-
-禁止把修复扩张为生产动态 import、目录 glob registry 或 Cordis Package Runner。
-
-## 7. 验证策略
-
-### 7.1 每阶段最低命令
-
-目标项目改动：
-
-```text
-pnpm verify:ui
-pnpm typecheck
-pnpm test
-pnpm build
-```
-
-Creator 控制面或 Node host 改动：
-
-```text
-pnpm test:python
-pnpm --filter @za38.03/agent-ui-operator typecheck
-pnpm --filter @za38.03/agent-ui-operator test
-pnpm --filter @za38.03/agent-ui-creator build
+```sh
 pnpm --filter @za38.03/agent-ui-creator typecheck
+pnpm --filter @za38.03/agent-ui-creator typecheck:operator
+pnpm --filter @za38.03/agent-ui-creator test
+pnpm check:operator-contract
+pnpm check:i18n
 ```
 
-Workspace 边界改动：
+Windows 路径、文件 URL、进程解析与退出必须使用跨平台 helper；pnpm 调用使用 `scripts/pnpm-process.mjs`。macOS 上的静态、单元或浏览器结果不等于真实 Windows 验收。
 
-```text
-pnpm typecheck
-pnpm test
-pnpm build
-```
+统一更新中心的安装与恢复限定为已有锁文件的独立 npm/pnpm 工程；Creator 工具版本在更新页展示，由实际安装宿主管理升级与重启。已有定制源码保持原结构，实际公开 API 和验证范围以安装包与当前工程为准。
 
-若 pnpm 因网络、签名或离线环境失败，应优先使用仓库已经安装的 package-local binary 复现同一检查，并明确记录环境失败，不得把它描述为代码通过。
+## 按需文档索引
 
-### 7.2 必须包含的测试层级
+`inspect_ui_edit_context` 为官方薄应用层和自定义项目 Plugin 提供同一入口：返回实际 owner、definition/manifest 与语义 Slots、实例、Service 依赖、父级组合、已安装公开 API/共享类型及相关文档导航。无 application 元数据的自定义 Plugin 从真实 definition 定位，再跟随本地字面量 import 读取组件、样式和服务契约，不猜测入口必须叫 index.tsx。
 
-- 纯函数单测：hash、Layout index、operations、generator、diagnostic dedupe；
-- 文件事务集成测试：临时项目、stale hash、rollback、undo conflict；
-- Creator tool 测试：Schema、权限、结果大小、revision 记录；
-- AG-UI 流测试：question request/answer/abort、diagnostic events；
-- Runtime React 测试：render/activation diagnostics 与错误恢复；
-- 独立性测试：目标项目 package scripts 不引用 Creator；
-- 真实 Workbench UI 测试：模糊定位、澄清、回执、撤销和错误修复。
+可写请求首句明确点名唯一一个已有本地 owner 时，在首个执行模型调用前预取这份上下文；同目标已有新鲜 working set 时沿用既有续改入口。只读问题、名称歧义、多个目标或无本地 owner 均不强制源码预取。该判断只使用当前目录的真实身份与已有名称词汇，不选择修改操作或增加固定任务流程；日志单独记录预取策略、Operator 调用和源码读取数量，避免把自动预取成本混入模型工具次数。
 
-### 7.3 不允许的“通过”方式
+源码采用既有新鲜读取与 hash 校验，单次汇总最多读取 8 个文件、24000 个字符，每文件先读 120 行、最多 6000 字符；未读/截断项在 `coverage.fileNavigation` 提供 `nextRead`，不把有界汇总声称为完整依赖图。包导入与 alias 保留为导航。大型返回通过既有运行内归档按路径回查，汇总不再次截掉已返回的 API 成员；归档摘要保留 owner、服务/Slots、文件与文档入口。定义、manifest 或任一已读源码变动使本次汇总失效并撤销这些读取证据。此机制不授予开发、Service 修改或源码接管权限，也不读取 vendor。 滚动工作上下文在原有 token 预算内优先保留已读组件实现、最近的 Service 契约及实际修改文件；definition/manifest 导航元数据作为回退，不再长期挤掉组件正文。
 
-- 在 `verify:ui` 或 typecheck 中顺便生成/改写文件；
-- 把 enabled 未挂载从 error 降为 warning；
-- eager import 全部 Plugin implementation；
-- 删除失败 Plugin 源码以消除错误；
-- 放宽 Creator 写权限到整个项目；
-- 用 mock runtime 通过来替代至少一个真实浏览器渲染失败测试；
-- 用旧 revision 的验证或诊断证明当前状态。
+Creator 的只读核心工具 `read_creator_documentation` 使用随包发布的离线文档，不从目标工程寻找仓库 `docs/`。公开目录由 Website 生成的 `llms.txt` 派生；内部参考的路径、主题和摘要由 `packages/creator/contracts/documentation/references.json` 维护，正文仍以原 `docs/` 文件为唯一 Owner。人可阅读的入口为包内 `dist/documentation/creator-index.md`。
 
-## 8. 发布与迁移
+- `action=index` 先返回主题与数量；通过 `query`、`source` 或 `topic` 获取每页 8 条目录。检索包含标题、摘要、章节和正文中的 API 名称，但输出只有元数据、章节链接和可继续调用的 `nextRead`。
+- `action=read` 加 `documentId` 返回章节目录，每页 32 条；再加 `sectionId` 才读取正文，默认 4000、最多 8000 个 UTF-16 单元，使用 `nextOffset` 续读，不拆开 Unicode 代理对。
+- 文档索引和正文由发行 manifest 校验 hash。生成、离线交接及 prepack 同时验证公开文档与内部参考；来源或版本变化会使旧产物失效，不悄悄漏掉内部文档。
+- 结果标明 Creator 文档版本与 `referenceOnly`；目标项目的实际文件及安装包声明仍是编辑依据。文档读取不登记源文件观察、不授予开发或源码接管权限。更换关键词但没有找到新文档，不算调查进展。
 
-### 8.1 兼容迁移顺序
-
-1. 先给所有 definition 增加 default export，不切换入口；
-2. 引入 generator 与 generated file；
-3. 切换 `plugins/index.ts`；
-4. 更新 verifier 并删除正则解析；
-5. 上线 Snapshot/Inspect；
-6. 上线语义 transaction，同时暂时保留直接 JSON 编辑作为紧急兼容路径；
-7. 实测稳定后，在 prompt/skill 中把直接 JSON 编辑降为诊断性 fallback；
-8. 上线 undo；
-9. 上线 runtime diagnostics；
-10. 上线 ask-user 后才开放源码删除。
-
-### 8.2 Feature flags
-
-建议开发期使用 host-side flags 分步启用：
-
-```text
-CREATOR_PROJECT_SNAPSHOT
-CREATOR_APP_UI_TRANSACTIONS
-CREATOR_RUN_UNDO
-CREATOR_RUNTIME_DIAGNOSTICS
-CREATOR_USER_QUESTIONS
-CREATOR_PLUGIN_SOURCE_DELETE
-```
-
-flags 属于 Creator host 配置，不写入生成应用。正式稳定后删除已永久启用的 flag 和双路径代码，避免长期维护两套机制。
-
-### 8.3 回滚
-
-- Registry 切换失败：恢复旧 `plugins/index.ts`，保留 default exports；
-- Snapshot/Inspect 失败：关闭 host flag，Creator 仍可使用只读文件工具；
-- transaction 失败：关闭 flag 回退到受限文件编辑，但继续禁止 Registry 手工改动直到路径一致；
-- diagnostics 失败：关闭开发 reporter，不影响生成应用；
-- ask-user 失败：关闭工具并继续禁止源码删除。
-
-回滚不能放宽生产静态 Registry、生成项目独立性或源码删除安全边界。
-
-## 9. 完成定义
-
-全部实施完成必须同时满足：
-
-- `inspect_ui_project` 能准确解释当前 Layout、Slots、instances、assets、Registry 和 UI stack；
-- AppUIModel 与必要的 Capability Catalog revision 由 hash-guarded transaction 以 descriptor-first staging 提交；
-- Registry 是 AppUIModel 的确定性静态派生物，验证命令只读；
-- 隐藏、移除实例、替换和删除源码具有不同可测试语义；
-- run undo 不覆盖任何 after hash 已变化的文件；
-- Creator 能读取带 plugin/instance/slot/hash 的真实渲染或激活错误；
-- Creator 能在同一 run 询问必要问题并继续；
-- Completion Gate 的所有证据都匹配当前 revision/hash；
-- 目标项目独立通过 `verify:ui`、`typecheck`、`test`、`build`；
-- Creator package 通过自己的 `typecheck`、`test`、`build`；
-- 真实 Workbench 验收覆盖新增、布局修改、停用、移除、替换、受限删除、撤销和运行时修复；
-- 生产 Bundle 不包含 Creator、Catalog 根、动态目录加载器或第二个 Agent Runtime。
-
-## 10. 实施优先级摘要
-
-```text
-P0  基线绿线与现状记录
- ↓
-P1  目标项目 Inspector + 静态 Registry generator
- ↓
-P2  Creator Snapshot + progressive Inspect
- ↓
-P3  AppUIModel transaction + revision/hash
- ↓
-P4  read-before-edit + run undo
- ↓
-P5  remove/replace/delete safety semantics
- ↓
-P6  runtime diagnostics
- ↓
-P7  same-run clarification
- ↓
-P8  completion evidence / skills / workbench 收口
- ↓
-P9  仅在实测需要时修 HMR
-```
-
-最先交付观察面和事务组合，能够直接降低理解错误与结构损坏；运行时诊断补齐静态门禁盲区；澄清通道只处理剩余用户侧歧义。源码删除必须等澄清、引用检查和 undo 三项基础能力同时就绪后才能对真实 Creator 会话启用。
+此入口供通用 Agent 按任务使用，不增加固定工作流、累计调用上限或新的模型摘要步骤。随包文档缺失、被改动或无法读取时明确报告，不能据此断言功能不存在。
