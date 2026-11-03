@@ -24,8 +24,16 @@ test('removes stale distribution files while preserving source and sibling resou
 });
 
 test('distribution URLs preserve Windows drives, Unicode, spaces and UNC shares', () => {
-  assert.equal(fileURLToPath(packageDistUrl('runtime', new URL('file:///C:/Code%20Root/%E7%94%A8%E6%88%B7/')), { windows: true }), 'C:\\Code Root\\用户\\packages\\runtime\\dist');
-  assert.equal(fileURLToPath(packageDistUrl('core', new URL('file://server/share/Code%20Root/')), { windows: true }), '\\\\server\\share\\Code Root\\packages\\core\\dist');
+  const drive = packageDistUrl('runtime', new URL('file:///C:/Code%20Root/%E7%94%A8%E6%88%B7/'));
+  const unc = packageDistUrl('core', new URL('file://server/share/Code%20Root/'));
+  assert.equal(drive.href, 'file:///C:/Code%20Root/%E7%94%A8%E6%88%B7/packages/runtime/dist');
+  assert.equal(unc.href, 'file://server/share/Code%20Root/packages/core/dist');
+  // Node 22.0 has no fileURLToPath({ windows }) override. Windows CI checks
+  // native conversion; every platform checks the portable URL contract above.
+  if (process.platform === 'win32') {
+    assert.equal(fileURLToPath(drive), 'C:\\Code Root\\用户\\packages\\runtime\\dist');
+    assert.equal(fileURLToPath(unc), '\\\\server\\share\\Code Root\\packages\\core\\dist');
+  }
 });
 
 test('CLI entry cleans the checkout owning the script from a path with spaces and Unicode', async () => {

@@ -55,25 +55,6 @@ title: "会话界面（conversation-surface）"
 
 `ConversationThreadLabels` 包含必需的 `generationStopped: string`，以及可选的 `editCancel`、`editUpdate`、`editInput` 字符串。`Adapter` 属性包括 `autoFocus`、`className`、`rendererSlots`、`labels`、`welcome`、`suggestions`、`composer`、`renderScopedSlot`；完整类型见 `ConversationSurfaceAdapterProps`。外层 `className`／`style` 用于插件容器，不会自动变为 `Adapter` 组件的属性。
 
-#### 原生属性
-
-支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
-
-#### 子插件渲染
-
-这些函数由插件运行环境（Runtime）提供，用于显示配置好的子插件，通常无需自行编写。
-
-| 属性 | 类型 | 用途 |
-| --- | --- | --- |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 显示欢迎区、建议问题、顶部操作和输入区中配置的子插件 |
-| `renderScopedSlot?` | `(name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode` | 根据当前消息、工具调用或分组的数据，显示对应的子插件 |
-
-参数说明：
-
-- `name`：插槽名称，决定在哪个位置显示子插件。
-- `fallback`：该位置没有可用子插件时显示的备用内容。
-- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
-
 ### 类型查询
 
 可在编辑器中通过公开组件取得完整属性类型：

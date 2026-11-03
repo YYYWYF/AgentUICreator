@@ -22,12 +22,12 @@ function fixture(work) {
   finally { rmSync(root, { recursive: true, force: true }); }
 }
 test("unsupported Node releases stop before dependency installation", () => fixture(root => {
-  for (const nodeVersion of ["20.20.2", "22.23.4", "24.0.0", "24.20.0", "24.21.9", "24.22.0", "24.22.1-rc.1", "25.9.0", "26.12.1", "invalid"]) {
-    assert.throws(() => ensureWorkspaceDependencies({ root, nodeVersion, run: () => { throw new Error("must not install"); } }), /Creator requires Node.js 24\.22\.1/);
+  for (const nodeVersion of ["20.20.2", "21.7.0", "22.0.0-rc.1", "24.0.0", "24.20.0", "24.21.9", "24.22.0", "24.22.1-rc.1", "25.9.0", "26.12.1", "invalid"]) {
+    assert.throws(() => ensureWorkspaceDependencies({ root, nodeVersion, run: () => { throw new Error("must not install"); } }), /Creator requires Node.js 22\.x/);
   }
 }));
-test("Node 24.22.1 and later stable 24.x versions use the frozen install", () => fixture(root => {
-  for (const nodeVersion of ["24.22.1", "24.22.2", "24.23.0"]) {
+test("supported stable Node 22.x and 24.x versions use the frozen install", () => fixture(root => {
+  for (const nodeVersion of ["22.0.0", "22.23.4", "24.22.1", "24.22.2", "24.23.0"]) {
     ensureWorkspaceDependencies({ root, nodeVersion, run: args => {
       assert.equal(args[0], "install");
       assert.equal(args[1], "--frozen-lockfile");

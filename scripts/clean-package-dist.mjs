@@ -1,5 +1,6 @@
 import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { realpathSync } from 'node:fs';
 
 const owners = new Set(['core', 'renderer', 'runtime']);
 export function packageDistUrl(owner, repository = new URL('../', import.meta.url)) {
@@ -9,6 +10,6 @@ export function packageDistUrl(owner, repository = new URL('../', import.meta.ur
 export async function cleanPackageDist(owner, repository) {
   await rm(fileURLToPath(packageDistUrl(owner, repository)), { recursive: true, force: true });
 }
-// Repository build tooling runs on its pinned Node 24; avoid path-case or
-// symlink comparisons when distinguishing CLI execution from test imports.
-if (import.meta.main) await cleanPackageDist(process.argv[2]);
+// Node 22.0 has no import.meta.main; resolve both native paths for case/symlink identity.
+const main = import.meta.main ?? (process.argv[1] !== undefined && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)));
+if (main) await cleanPackageDist(process.argv[2]);

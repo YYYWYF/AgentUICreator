@@ -46,7 +46,7 @@ title: "消息输入（composer）"
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-输入组件：`ConversationCanonicalComposer`；类型：`ConversationCanonicalComposerProps`。继承表单原生属性，排除 `children`；插件入口还接收下方的子插件渲染函数。
+输入组件：`ConversationCanonicalComposer`；类型：`ConversationCanonicalComposerProps`。继承表单原生属性，排除 `children`。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -86,26 +86,6 @@ title: "消息输入（composer）"
 `dropzoneProps` 继承 `div` 原生属性，另公开 `asChild?: boolean`、`render?: ReactElement`、`disabled?: boolean`。当前 Composer 默认通过 `asChild` 把拖放事件交给已有容器处理；`disabled` 与会话禁用状态叠加。它不是另一个上传服务配置入口。
 
 同一位置已经配置子插件时，优先显示该子插件；没有配置时，才使用相应的内容属性。`input` 已替换时，根上的 `rows` 等不会自动配置任意自定义组件。
-
-#### 原生属性
-
-支持本节注明的元素／根组件原生 React 属性，包括 `className?: string`、`style?: CSSProperties`、`id?: string`、`role`、`aria-*`、`data-*` 和相应事件回调；排除项与单独定义的属性以上文为准。
-
-#### 子插件渲染
-
-这些函数由插件运行环境（Runtime）提供，用于显示配置好的子插件，通常无需自行编写。
-
-| 属性 | 类型 | 用途 |
-| --- | --- | --- |
-| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 显示输入框的触发器、输入组件和各操作区的子插件 |
-| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 为子插件传入本次渲染的数据；当前输入框入口未调用此函数 |
-
-参数说明：
-
-- `name`：插槽名称，决定在哪个位置显示子插件。
-- `fallback`：该位置没有可用子插件时显示的备用内容。
-- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
-- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
 
 ### 类型查询
 

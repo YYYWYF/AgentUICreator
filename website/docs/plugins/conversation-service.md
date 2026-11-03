@@ -19,7 +19,6 @@ title: "会话服务（conversation-service）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `children?` | `ReactNode` | 默认不渲染内容 |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
 
 会话服务仍由项目现有的宿主组件创建并提供，在不再使用时清理。这里的展示组件只负责显示 `children`。
 

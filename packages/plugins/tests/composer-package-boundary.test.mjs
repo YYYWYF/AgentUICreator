@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { mkdtemp, writeFile, rm, readFile } from "node:fs/promises";

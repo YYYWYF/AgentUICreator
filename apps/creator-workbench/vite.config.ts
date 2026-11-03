@@ -79,6 +79,7 @@ export default defineConfig({
       configRoot: workspaceRoot,
     }),
   ],
+  optimizeDeps: { include: ["react", "react-dom/client", "@za38.03/agent-ui-creator > html-to-image"] },
   resolve: {
     alias: {
       "@za38.03/agent-ui-plugins/composer-support": path.join(workspaceRoot, "packages/plugins/src/composer-support.ts"),

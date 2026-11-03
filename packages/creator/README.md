@@ -3,7 +3,7 @@
 在你自己的开发页面里，用对话检查和修改 Agent UI。
 业务工程照常启动，需要 Creator 时再启动工具服务。Creator 图形界面只能通过宿主开发页面中的入口使用，不提供独立页面。
 
-以下适用于 React + Vite 项目。安装和使用 Creator 要求 Node.js 24，最低版本为 `24.22.1`（`^24.22.1`）；Creator Agent 和 Operator 工具均使用 TypeScript，随同一个 npm 包交付。工程结构见 [Creator TS 发行](docs/typescript-distribution.md)。
+以下适用于 React + Vite 项目。安装和使用 Creator 要求 Node.js 22（最低 `22.0.0`），也支持 Node.js 24（最低 `24.22.1`）；声明范围为 `^22.0.0 || ^24.22.1`。Creator Agent 和 Operator 工具均使用 TypeScript，随同一个 npm 包交付。工程结构见 [Creator TS 发行](docs/typescript-distribution.md)。
 
 ## 1. 安装
 

@@ -10,7 +10,7 @@ await build({
   build: {
     outDir: fileURLToPath(new URL("../dist/browser/", import.meta.url)),
     emptyOutDir: true,
-    rolldownOptions: { input: {
+    rollupOptions: { input: {
       dock: fileURLToPath(new URL("../browser/dock.html", import.meta.url)),
     } },
   },

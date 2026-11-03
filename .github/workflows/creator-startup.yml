@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: ['24.22.1']
+        node: ['22.0.0', '24.22.1']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:

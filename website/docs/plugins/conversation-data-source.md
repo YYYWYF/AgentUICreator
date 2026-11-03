@@ -19,7 +19,6 @@ title: "会话数据源（conversation-data-source）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `children?` | `ReactNode` | 默认不渲染内容 |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
 
 历史数据继续通过项目现有服务读取；请求地址和适配器的设置见[历史会话服务](/development/history-backend)。
 

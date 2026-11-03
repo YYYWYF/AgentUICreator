@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { createRequire } from "node:module";
 import { RunActivity } from "../src/agent/activity.js";
 import { prepareServiceImplementation, applyServiceImplementation } from "../src/agent/service-implementation-tools.js";
 import { createTools, visibleTool, type ToolContext } from "../src/agent/tools.js";
@@ -65,8 +66,8 @@ it("shows exact edits and statically derived consumers, waits without writing, t
   // Execute the edited, real HTTP template against a mocked transport.
   const bundled = await build({ entryPoints: [path.join(context.root, target)], bundle: true, write: false, format: "esm", platform: "node",
     alias: {
-      zod: fileURLToPath(import.meta.resolve("zod")),
-      "@za38.03/agent-ui-runtime/ui/services/conversations/contract": fileURLToPath(import.meta.resolve("@za38.03/agent-ui-runtime/ui/services/conversations/contract")),
+      zod: createRequire(import.meta.url).resolve("zod"),
+      "@za38.03/agent-ui-runtime/ui/services/conversations/contract": fileURLToPath(new URL("../../runtime/dist/ui/services/conversations/contract.js", import.meta.url)),
     } });
   const implementation = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString("base64")}`);
   const fetch = vi.fn(async () => new Response(null, { status: 204 }));

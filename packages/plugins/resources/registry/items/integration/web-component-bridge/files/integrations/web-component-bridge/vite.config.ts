@@ -21,5 +21,5 @@ export default defineConfig({
     },
   }],
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
-  build: { outDir: "dist/agent-ui-web-component", lib: { entry: fileURLToPath(new URL("./register.tsx", import.meta.url)), formats: ["es"], fileName: () => "agent-ui.js" }, rolldownOptions: { output: { codeSplitting: false } } },
+  build: { outDir: "dist/agent-ui-web-component", lib: { entry: fileURLToPath(new URL("./register.tsx", import.meta.url)), formats: ["es"], fileName: () => "agent-ui.js" }, rollupOptions: { output: { inlineDynamicImports: true } } },
 });

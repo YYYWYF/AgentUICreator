@@ -67,7 +67,15 @@ import {
 
 `manifest.id` 是插件身份；`app-ui.json` 中的实例 `id` 是这一次使用的身份，二者不同。`manifest` 的必填项为 `id`、`name`、`description`、`version`。
 
+## 组件原生属性
+
+组件属性继承某个 HTML 元素或根组件时，可使用其类型允许的 `className`、`style`、`id`、`role`、`aria-*`、`data-*` 和事件回调。具体继承对象、排除项和单独定义的属性见对应插件的属性说明；完整类型以项目实际安装版本为准。
+
+这些属性设置在项目插件入口的 JSX 中，不写入 `app-ui.json`。根组件属性不会自动传给内部输入框、按钮或自定义子组件，需使用相应的嵌套属性或直接配置子组件。
+
 ## 组件与子插槽
+
+`renderSlot` 和 `renderScopedSlot` 由插件运行环境通过 `UIPluginComponentProps` 提供。修改已有插件时保留其原有调用；没有子插槽的组件通常无需使用它们。
 
 | 方法 | 参数 | 返回 / 用途 |
 | --- | --- | --- |
@@ -75,6 +83,8 @@ import {
 | `renderScopedSlot(name, scope, fallback?)` | 插槽名、`{ kind, value }`、可选默认内容 | `ReactNode`，在当前消息或工具的上下文中渲染对应插件 |
 
 `renderSlot` 用于普通内容位置，例如一组操作按钮；`renderScopedSlot` 用于需要当前对象数据的展示位置，例如某次工具调用的详情。后者的 `scope.kind` 标识数据类型，`scope.value` 存放数据；新增数据类型仍使用同一个函数。`fallback` 是没有可用子插件时显示的备用内容。运行环境会检查插槽类型，声明为 `mode: "renderer"` 的位置使用 `renderScopedSlot`，普通内容位置使用 `renderSlot`。
+
+`name` 是 manifest 中声明的本地插槽名。`renderSlot` 的可选 `options` 控制排列和大小：`layout` 为竖排 `stack` 或横排 `inline`，`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`；两个字段均可省略。
 
 开放一个普通操作区的组件示例：
 

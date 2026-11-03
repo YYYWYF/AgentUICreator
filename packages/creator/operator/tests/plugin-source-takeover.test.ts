@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { validateOperatorResult } from "../src/result-contract.mjs";
 import { verifyPluginChildSlots } from "../src/project/plugin-child-slot-verifier";
 import { OwnedPluginUpdateService } from "../src/project/owned-plugin-updates";

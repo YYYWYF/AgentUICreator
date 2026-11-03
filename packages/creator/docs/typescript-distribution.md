@@ -8,7 +8,7 @@ Creator Agent 与 Operator 合为一个开发工具 npm 包：`@za38.03/agent-ui
 - `contracts/creator`：canonical JSON Schema、工具合同和 fixtures；构建后复制至 `dist/contracts`。
 - `skills`：随 npm 包交付的只读领域知识。
 
-构建和运行 Creator 使用 Node.js 24（最低 `24.22.1`）和 pnpm；仓库通过 `.nvmrc` 固定验证版本 `24.22.1`。用户安装后由当前 Node 可执行文件启动 Agent 子进程，切换 Node 后需要重启已有 Creator 进程。API 使用 `CreatorProcessManager`、`CreatorClient`、`createCreatorClient` 和 `CREATOR_AGENT_MODE`。
+构建和运行 Creator 使用 Node.js 22（最低 `22.0.0`）或 Node.js 24（最低 `24.22.1`），声明范围为 `^22.0.0 || ^24.22.1`。仓库通过 `.nvmrc` 固定最低验证版本 `22.0.0`，使用 pnpm 8.12.0；CI 在 Windows/Linux 上覆盖 `22.0.0` 与 `24.22.1`。用户安装后由当前 Node 可执行文件启动 Agent 子进程，切换 Node 后需要重启已有 Creator 进程。API 使用 `CreatorProcessManager`、`CreatorClient`、`createCreatorClient` 和 `CREATOR_AGENT_MODE`。
 
 ```text
 pnpm install --frozen-lockfile

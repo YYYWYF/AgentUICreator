@@ -51,7 +51,7 @@ try {
   await writeFile(path.join(root, 'vite.native.config.ts'), `import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-export default defineConfig({ plugins: [react(), tailwindcss()], build: { outDir: "dist/native", lib: { entry: "src/agent-ui/index.ts", formats: ["es"], fileName: () => "native.js" }, rolldownOptions: { output: { codeSplitting: false } } } });`);
+export default defineConfig({ plugins: [react(), tailwindcss()], build: { outDir: "dist/native", lib: { entry: "src/agent-ui/index.ts", formats: ["es"], fileName: () => "native.js" }, rollupOptions: { output: { inlineDynamicImports: true } } } });`);
   const native = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/vite/bin/vite.js'), 'build', '--config', 'vite.native.config.ts'], { cwd: root, encoding: 'utf8' });
   assert.equal(native.status, 0, native.stdout + native.stderr);
   const nativeScript = await readFile(path.join(root, 'dist/native/native.js'), 'utf8');

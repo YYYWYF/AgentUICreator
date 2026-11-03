@@ -19,7 +19,6 @@ title: "语言服务（locale-provider）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `children?` | `ReactNode` | 默认不渲染内容 |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
 
 组件自身没有 `locale`／`locales` 属性。语言选择与覆盖通过项目 `Agent` 的 `locale`、`defaultLocale`、`onLocaleChange`、`locales` 接入；见[Agent 属性表](/development/react-host-api)。生成项目默认使用 `zh-CN`；单独使用展示组件、未提供语言设置时，默认使用 `en-US`。
 

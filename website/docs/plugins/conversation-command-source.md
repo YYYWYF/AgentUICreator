@@ -19,7 +19,6 @@ title: "会话命令源（conversation-command-source）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `children?` | `ReactNode` | 默认不渲染内容 |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
 
 命令列表在项目现有的命令服务中配置；这个组件没有 `commands` 或样式属性。
 

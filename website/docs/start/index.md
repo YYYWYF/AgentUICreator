@@ -24,7 +24,7 @@ sidebar: false
 先安装 Creator，配置启动脚本和页面入口，再启动服务。打开开发页面后，就可以进入 Creator 面板，选择要安装的 Agent UI 模板。
 
 :::tip 环境要求
-安装和使用 Creator 要求 **Node.js 24，最低版本为 `24.22.1`**。以下步骤使用 React + Vite 工程，命令以 pnpm 为例；包管理器沿用工程现有配置。
+安装和使用 Creator 要求 **Node.js 22，最低版本为 `22.0.0`**；也支持 Node.js 24（最低 `24.22.1`）。以下步骤使用 React + Vite 工程，命令以 pnpm 为例；包管理器沿用工程现有配置。
 :::
 
 ### 安装工具

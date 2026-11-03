@@ -25,8 +25,8 @@
   ],
   "packages": {
     "@za38.03/agent-ui-web-component": "0.0.1",
-    "vite": "8.3.0",
-    "@vitejs/plugin-react": "6.0.2",
+    "vite": "6.4.5",
+    "@vitejs/plugin-react": "4.7.0",
     "@tailwindcss/vite": "4.3.3"
   }
 }

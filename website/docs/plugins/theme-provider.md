@@ -19,7 +19,6 @@ title: "主题服务（theme-provider）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `children?` | `ReactNode` | 默认不渲染内容 |
-| `renderSlot?` | `(name: string, fallback?: ReactNode) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
 
 没有 `theme`、`palette` 或品牌颜色属性。主题通过已有 `Agent.theme`／主题服务接入；品牌色通过项目 CSS 覆盖。内置主题为 `light`、`dark`、`violet`，项目默认 `violet`。详见[样式与文案开发](/development/styling-and-localization)。
 

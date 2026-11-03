@@ -41,7 +41,7 @@ title: "回复复制（copy-action）"
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`ConversationCanonicalResponseCopyAction`。继承提示按钮属性，`tooltip` 可选；插件入口还接收下方的子插件渲染函数。
+组件：`ConversationCanonicalResponseCopyAction`。继承提示按钮属性，`tooltip` 可选。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -64,22 +64,6 @@ title: "回复复制（copy-action）"
 | `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
-
-#### 子插件渲染
-
-这些参数属于插件通用接口，由插件运行环境（Runtime）提供。当前组件没有调用它们；修改外观时使用上方的展示属性即可。
-
-| 属性 | 类型 | 用途 |
-| --- | --- | --- |
-| `renderSlot` | `(name: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions) => ReactNode` | 按插槽名称显示子插件；当前组件未调用此函数 |
-| `renderScopedSlot` | `(name: string, scope: UIPluginRenderScope, fallback?: ReactNode) => ReactNode` | 显示子插件并传入本次渲染的数据；当前组件未调用此函数 |
-
-参数说明：
-
-- `name`：插槽名称，决定在哪个位置显示子插件。
-- `fallback`：该位置没有可用子插件时显示的备用内容。
-- `scope`：本次渲染的数据。`kind` 标识数据类型，`value` 存放具体数据，例如当前工具调用或推理分组。不同类型仍使用同一个 `renderScopedSlot`。
-- `options`：可选的排列与大小设置。`layout` 为竖排 `stack` 或横排 `inline`；`sizing` 为按内容占用空间 `content` 或填满可用区域 `fill`，两个字段均可省略。
 
 ### 类型查询
 

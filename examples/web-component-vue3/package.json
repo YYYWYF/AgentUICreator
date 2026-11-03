@@ -16,13 +16,13 @@
     "@za38.03/agent-ui-plugins": "workspace:*"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "6.0.1",
-    "vite": "8.3.0",
+    "@vitejs/plugin-vue": "5.2.4",
+    "vite": "6.4.5",
     "typescript": "5.9.3",
     "vue-tsc": "3.0.6",
     "@za38.03/agent-ui-creator": "workspace:*"
   },
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.0.0 || ^24.22.1"
   }
 }

@@ -25,7 +25,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
   return {
     server: { fs: { allow: [root, realpathSync(tmpdir())] } },
     root: packageRoot,
-    resolve: { dedupe: ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/core"], alias: [
+    resolve: { dedupe: ["react", "react-dom"], alias: [
       { find: "@za38.03/agent-ui-runtime/ui/styles.css", replacement: path.join(root, "packages/runtime/dist/ui/styles.css") },
       { find: /^@za38\.03\/agent-ui-runtime\/ui\/(.*)$/, replacement: path.join(root, "packages/runtime/src/ui/$1") },
       { find: "@za38.03/agent-ui-runtime/ui", replacement: path.join(root, "packages/runtime/src/ui/index.ts") },
@@ -59,6 +59,8 @@ export function generatedSourceTestConfig(packageRoot: string) {
       name: "generated-source-fixtures",
       enforce: "pre" as const,
       transform(code: string, id: string) {
+        const nativeResolve = code.includes("import.meta.resolve") && !id.includes("node22-native-resolve") && !id.includes("node_modules");
+        if (nativeResolve) code = `import { nativeResolve as __node22NativeResolve } from ${JSON.stringify(pathToFileURL(path.join(root, "packages/creator/node22-native-resolve.mjs")).href)};\n` + code.replaceAll("import.meta.resolve", "__node22NativeResolve");
         // Contract fixtures do not participate in Vite HMR; Vitest's hot stub has no data bag.
         if (id.endsWith("/application/composition-store.ts") || id.endsWith("/application/project-config.tsx")) {
           return { code: code.replaceAll("import.meta.hot", "undefined"), map: null };
@@ -68,6 +70,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
         if ((id.includes("/tests/") || id.endsWith("/src/bootstrap/default-presets.ts") || id.endsWith("/source-catalog/loader.ts") || id.endsWith("/operator/src/install.mjs") || id.includes("/scripts/")) && code.includes("import.meta.url")) {
           return { code: code.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|import\.meta\.url/g, token => token === "import.meta.url" ? JSON.stringify(pathToFileURL(id.split("?")[0]!).href) : token), map: null };
         }
+        if (nativeResolve) return { code, map: null };
       },
       async resolveId(this: any, source: string, importer: string | undefined) {
         if (!importer) return;
@@ -106,6 +109,6 @@ export function generatedSourceTestConfig(packageRoot: string) {
         }
       },
     }],
-    test: { environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/creator/operator/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
+    test: { server: { deps: { external: [/node22-native-resolve/] } }, environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/creator/operator/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
   };
 }

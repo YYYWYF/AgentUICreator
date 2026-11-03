@@ -8,6 +8,6 @@ export default defineConfig({
   build: {
     lib: { entry: "src/register.ts", name: "AgentUIWebComponent", formats: ["es"], fileName: () => "agent-ui.es.js" },
     // All React, assistant-ui, Runtime and official Plugin code is bundled.
-    rolldownOptions: { output: { codeSplitting: false } },
+    rollupOptions: { output: { inlineDynamicImports: true } },
   },
 });
