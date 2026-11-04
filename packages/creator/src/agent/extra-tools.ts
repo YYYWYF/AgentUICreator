@@ -64,11 +64,15 @@ export function addExtraTools(context: ToolContext, add: Add) {
     await context.activity.recordRecovery(input.run_id, "undo", result.changedPaths);
     return { ...result, completion: { status: value.undone ? "already_recovered" : "recovered" } };
   });
-  add("verify_ui_plugin_behavior", "Run existing project Playwright tests for the approved delivery contract. Missing, skipped, flaky, stale or failed tests never prove completion. No model-supplied test path or command.", z.object({}), async () => {
-    const pluginId = context.activePluginId, plan = pluginId ? context.pluginPlans?.get(pluginId) : undefined;
-    if (!pluginId || plan?.status !== "authorized") throw new Error("PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED");
-    const result = await context.validation!.behavior(pluginId, plan.contract.interactions ?? []);
-    (context.behavior ??= new Map()).set(pluginId, { ...result, scopeHash: plan.scopeHash });
+  add("verify_ui_plugin_behavior", "Run project Playwright interactions for an existing Plugin or a newly created Plugin. Verification needs no development approval. Missing, skipped, flaky, stale or failed tests never prove completion.", z.object({ pluginId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u).optional(), interactions: z.array(z.string().min(1).max(1000)).max(100).optional() }), async input => {
+    const pluginId = input.pluginId ?? context.activePluginId ?? context.editingSelection?.target?.pluginId;
+    if (!pluginId) throw new Error("PLUGIN_VERIFICATION_TARGET_REQUIRED");
+    const definition = await read(context.root, `${await sourceRoot(context.root)}/plugins/${pluginId}/definition.ts`);
+    if (!definition.exists) throw new Error("PLUGIN_NOT_FOUND");
+    const plan = context.pluginPlans?.get(pluginId);
+    const interactions = input.interactions ?? plan?.contract.interactions ?? [];
+    const result = await context.validation!.behavior(pluginId, interactions);
+    (context.behavior ??= new Map()).set(pluginId, { ...result, interactionHash: hash(JSON.stringify(interactions)) });
     return result;
   });
   add("inspect_ui_plugin_delivery", "Inspect actual creation, registry, composition, static validation, runtime geometry and browser-test evidence for approved Plugin deliveries.", z.object({}), async () => {
@@ -89,7 +93,7 @@ export function addExtraTools(context: ToolContext, add: Add) {
       const composed = instances.length > 0 && (plan.contract.renderingCategory !== "application" || instances.every((item: any) => applicationIds.has(item.id)));
       const staticPassed = context.activity.validationRevision === context.activity.revision && context.activity.revision > 0;
       const behavior = context.behavior?.get(pluginId);
-      const behaviorPassed = behavior?.status === "passed" && behavior.revision === context.activity.revision && behavior.scopeHash === plan.scopeHash;
+      const behaviorPassed = behavior?.status === "passed" && behavior.revision === context.activity.revision && behavior.interactionHash === hash(JSON.stringify(plan.contract.interactions ?? []));
       let runtimePassed = false;
       if (context.verificationMode === "static_and_runtime" && !plan.sourceOnly) {
         const runtime = await inspectRuntime(context, { instanceIds: instances.map((item: any) => item.id) });

@@ -64,26 +64,21 @@ Plugin needs capability X
       -> no: keep the behavior private to the Plugin
       -> yes: resolve the natural Owner, exact Consumers and dependency modes
               -> prepare_ui_service_contract_change
-              -> confirmation-required: ask the User and stop project writes
-              -> authorized: create_ui_service_contract
+              -> ready: create_ui_service_contract using returned planId
                  -> wire Provider and Consumers
                  -> validate, then Runtime verify only in static_and_runtime mode
 ```
 
 - `inject` is only for a capability without which the Plugin's core behavior cannot work.
 - `optionalInject` is for an enhancement with a complete fallback when the Service is unavailable.
-- A missing optional Service is not permission to create it. Omit the dependency unless the user explicitly authorizes a new shared capability.
+- Omit unrelated optional Services; a missing dependency alone is not a reason to add shared behavior.
 - A new Plugin does not declare `provides` merely because another Plugin might use its behavior later.
-- Pass the entire current User message unchanged as userAuthorizationEvidence,
-  never a substring or paraphrase. Current direct admission requires that exact
-  message to contain the serviceName and a supported action word (新增, 创建,
-  修改, 实现, create, change, implement), without a read-only/analysis exclusion
-  (不要, 是否, 只读, 分析, 评估, do not). Owner and Consumer names alone do not
-  satisfy this check. Otherwise the Host asks for approval of the concrete plan;
-  consume that result instead of assuming authorization. The Host also validates
-  the actual owner/consumer topology and current contract file.
-- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, authorize the exact impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
-- Generic `edit_file` and Plugin tools never write `/services/**`; only authorized Service Contract tools may do so.
+- Project Service code is editable for the current task. Optional Service
+  preflight tools check topology, ownership and current hashes without asking
+  the user; apply their returned planId, or use ordinary read/edit/create tools.
+- Supporting Service work does not require another new-Plugin question.
+- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, inspect the impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
+- Generic project file tools can edit `/services/**`; use the structured tools when their topology or declaration checks are useful.
 - A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
 
 
@@ -177,7 +172,7 @@ For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`,
 - Structural interface service examples are acceptable, and `EventEmitter`-style ad-hoc emitters should remain project-local, not runtime API additions.
 - Do not place capability implementations into Plugin actions or Agent Runtime actions.
 - A Frontend Tool is an Agent-facing adapter for a selected capability operation; it is not a Plugin capability and is not registered by a Plugin.
-- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam, have the Provider Plugin declare `provides`, and expose the selected operation from `/agent-contract/agent-tools.ts`. If no suitable seam exists, use the authorized Service ownership flow; never use `create_ui_plugin` or generic writes for `/services`.
+- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam, have the Provider Plugin declare `provides`, and expose the selected operation from `/agent-contract/agent-tools.ts`. Implement necessary project Service code with ordinary project tools.
 - Frontend Tool names use `lower_snake_case`, inputs use `z.strictObject(...)`, descriptions explain when to call the Tool plus what it does and does not do, and results stay short, structured, and serializable.
 - Frontend Tool handlers call `services.get(...)` and must tolerate a capability disappearing before execution. Never bind a Tool to a React component, ref, DOM query, Plugin instance, or concrete Provider implementation.
 - Do not automatically expose every Service method. A Service may have zero, one, or many explicitly authorized Frontend Tools.
@@ -193,8 +188,8 @@ For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`,
 
 A Plugin capability consumed by an application-owned Frontend Tool is a valid
 cross-boundary reason for a public Service seam: Plugin provides Service,
-Frontend Tool consumes Service. Follow existing Service ownership and authorization
-rules; Service existence does not grant Agent exposure permission.
+Frontend Tool consumes Service. Preserve Service ownership and public contracts;
+Service existence does not grant Agent exposure permission.
 
 Plugin Component effects manage UI/component lifecycle only. They must never
 simulate Frontend Tool execution by opening a dialog, navigating or mutating a
@@ -214,14 +209,15 @@ resources and targeted file tools for project components. Do not infer absence
 from this combined Plugin/Service result alone. Filenames never prove component
 behavior. Inspect the selected implementation and reuse it whenever it fits.
 
-For first new-Plugin implementation, provide `deliveryContract` to
-`prepare_ui_plugin_development`: `capability`, `renderingCategory`, `placement`,
-`lifecycle`, `dependencies`, `reusedComponents`, `verificationMethod`, and
-`interactions`. `renderingCategory` is `panel`, `semantic-slot`, or `application`.
-`verificationMethod` is `runtime` or `browser-test`. Bind placement to actual
-current authoring choices. For requested dimensions/positions, include `geometry`
-entries with `instanceId`, `property` (`x`, `y`, `width`, `height`), `expected`, and
-`tolerance` in pixels. Do not change the Runtime manifest schema for this plan.
+Existing project Plugin behavior is edited directly. Ask `prepare_ui_plugin_development` only when creating a new Plugin identity, then implement its necessary supporting files and parent edits. File lists are implementation notes, not permissions. Formal Source Item lookup is needed only for a relevant unknown resource.
+
+Before creating a new Plugin, `prepare_ui_plugin_development` requires only
+`targetPluginId` and a short `desiredOutcome`. Ask whether to develop it; do not
+settle implementation dependencies or test design merely to ask this question.
+Optional `deliveryContract` details may be supplied after confirmation without
+asking again: capability, renderingCategory, placement, lifecycle, dependencies,
+verificationMethod, interactions and optional geometry. They are verification
+inputs, never file permissions.
 
 Creation, registration, enabled composition, static validation, Runtime observation,
 and behavioral validation are separate facts. The Host completion gate derives

@@ -1,6 +1,5 @@
 import { expect, it } from "vitest";
 import { EvidenceProgress } from "../src/agent/evidence-progress.js";
-import { isDirectPluginCommission } from "../src/agent/tools.js";
 
 it("recognizes covered ranges despite changed limits, new empty keywords and unrelated repeated reads", () => {
   const progress = new EvidenceProgress();
@@ -28,10 +27,52 @@ it("ignores telemetry and query wording but retains different directory scope an
   expect(progress.observe("ls", { path: "/a" }, [{ name: "index.tsx" }], 0).newEvidence).toBe(true);
   expect(progress.observe("ls", { path: "/b" }, [{ name: "index.tsx" }], 0).newEvidence).toBe(true);
 });
-it.each([
-  '给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。',
-  'Add a button plugin to the help card',
-  '新增一个按钮插件，不要修改 vendor 和 Runtime。',
-])("retains explicit plugin commissions: %s", message => expect(isDirectPluginCommission(message)).toBe(true));
-it.each(['不要添加新的插件，只分析', '是否新增一个按钮插件？', '先评估是否实现这个插件', 'Please do not add a new plugin', 'Should we add a new plugin?'])
-  ("does not turn discussion or refusal into a commission: %s", message => expect(isDirectPluginCommission(message)).toBe(false));
+it("does not count focus changes, suggested documents or repeated bundled source as implementation evidence", () => {
+  const progress = new EvidenceProgress();
+  const file = { path: "/src/界面/Card.tsx", hash: "card", content: "1: export const Card = 1;", totalLines: 1, nextOffset: null };
+  const bundle = (id: string) => ({ target: { id: "card" }, plugin: { pluginId: "card" }, files: [file], references: { documentation: { entries: [{ documentId: id }] } } });
+  expect(progress.observe("inspect_ui_edit_context", { focus: "service" }, bundle("service"), 0).newEvidence).toBe(true);
+  for (let i = 0; i < 6; i++) {
+    const result = progress.observe("inspect_ui_edit_context", { focus: String(i) }, bundle(String(i)), 0);
+    expect(result.newEvidence).toBe(false);
+    if (i === 5) expect(result.recovery?.action).toBe("review_stalled_investigation");
+  }
+  expect(progress.observe("read_file", {}, file, 0).newEvidence).toBe(false);
+  expect(progress.observe("inspect_ui_edit_context", {}, { ...bundle("service"), files: [{ ...file, hash: "changed" }] }, 0).newEvidence).toBe(true);
+});
+it("distinguishes documentation navigation from actually read sections and continuations", () => {
+  const progress = new EvidenceProgress();
+  progress.observe("read_creator_documentation", {}, { status: "available", sourceDigest: "docs", entries: [{ documentId: "a" }] }, 0);
+  expect(progress.observe("read_creator_documentation", {}, { status: "available", sourceDigest: "docs", entries: [{ documentId: "b" }] }, 0).newEvidence).toBe(false);
+  const section = { status: "available", sourceDigest: "docs", documentId: "api", sha256: "v1", sectionId: "service", offset: 0, content: "a".repeat(100) };
+  expect(progress.observe("read_creator_documentation", {}, section, 0).newEvidence).toBe(true);
+  expect(progress.observe("read_creator_documentation", {}, { ...section, offset: 10, content: "a".repeat(20) }, 0).newEvidence).toBe(false);
+  expect(progress.observe("read_creator_documentation", {}, { ...section, offset: 100 }, 0).newEvidence).toBe(true);
+});
+it("counts newly resolved installed symbols, not permutations or more guessed unavailable names", () => {
+  const progress = new EvidenceProgress();
+  const symbol = (name: string) => ({ name, status: "available", type: "() => void" });
+  const result = (symbols: any[]) => ({ asset: { id: "card" }, sharedTypes: { module: "plugin", packageVersion: "1", status: "available", symbols } });
+  expect(progress.observe("inspect_ui_plugin", {}, result([symbol("a"), symbol("b")]), 0).newEvidence).toBe(true);
+  expect(progress.observe("inspect_ui_plugin", {}, result([symbol("b"), symbol("a"), { name: "guessed", status: "unavailable" }]), 0).newEvidence).toBe(false);
+  expect(progress.observe("inspect_ui_plugin", {}, result([symbol("c")]), 0).newEvidence).toBe(true);
+});
+it("recognizes a mostly repeated investigation even when occasional new reads reset the consecutive counter", () => {
+  const progress = new EvidenceProgress();
+  progress.observe("read_file", {}, { path: "/src/owner.tsx", hash: "owner", totalLines: 20, nextOffset: null }, 0);
+  let reviews = 0;
+  for (let i = 0; i < 20; i++) {
+    const result = i % 4 === 3
+      ? progress.observe("read_file", {}, { path: `/src/other-${i}.ts`, hash: String(i), totalLines: 1, nextOffset: null }, 0)
+      : progress.observe("read_file", { limit: i + 30 }, { path: "/src/owner.tsx", hash: "owner", totalLines: 20, nextOffset: null }, 0);
+    if (result.recovery) reviews++;
+  }
+  expect(reviews).toBeGreaterThan(0);
+});
+it("reuses complete composition facts across full and summary projections while noticing actual source changes", () => {
+  const progress = new EvidenceProgress();
+  const base = { view: "composition", appUIModel: { hash: "same", slots: [] }, pluginSources: [{ pluginId: "card", hash: "source" }] };
+  expect(progress.observe("inspect_ui_project", {}, { ...base, capabilities: ["a"] }, 0).newEvidence).toBe(true);
+  expect(progress.observe("inspect_ui_project", {}, { ...base, projection: { detail: "summary" } }, 0).newEvidence).toBe(false);
+  expect(progress.observe("inspect_ui_project", {}, { ...base, pluginSources: [{ pluginId: "card", hash: "changed" }] }, 0).newEvidence).toBe(true);
+});

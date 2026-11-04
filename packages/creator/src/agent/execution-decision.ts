@@ -21,8 +21,8 @@ export const removalTargetSchema = {
   type: "object", additionalProperties: false,
   properties: {
     status: { type: "string", enum: ["not_requested", "resolved", "unresolved"] },
-    description: { type: "string" },
-    pluginIds: { type: "array", items: { type: "string" } },
+    description: { type: "string", maxLength: 240 },
+    pluginIds: { type: "array", uniqueItems: true, items: { type: "string" } },
   }, required: ["status", "description", "pluginIds"],
 };
 

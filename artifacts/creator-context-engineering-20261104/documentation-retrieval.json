@@ -1,0 +1,386 @@
+[
+  {
+    "query": "usePluginService 服务 provides inject 插件间通信",
+    "entries": [
+      {
+        "documentId": "public:development/plugin-api",
+        "sections": [
+          {
+            "sectionId": "s240",
+            "title": "自定义服务",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s240"
+              }
+            }
+          },
+          {
+            "sectionId": "s5",
+            "title": "公共能力速查",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s5"
+              }
+            }
+          },
+          {
+            "sectionId": "s200",
+            "title": "内置领域 Hook",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s200"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+        "sections": [
+          {
+            "sectionId": "s38",
+            "title": "Plugin Services",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s38"
+              }
+            }
+          },
+          {
+            "sectionId": "s53",
+            "title": "会话与 Agent 交互",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s53"
+              }
+            }
+          },
+          {
+            "sectionId": "s30",
+            "title": "项目应用层、实现与 Shell",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s30"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "internal:architecture/npm-default-plugin-source-ownership",
+        "sections": [
+          {
+            "sectionId": "s11",
+            "title": "1. 通用基础设施与应用配置",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:architecture/npm-default-plugin-source-ownership",
+                "sectionId": "s11"
+              }
+            }
+          },
+          {
+            "sectionId": "s131",
+            "title": "9. 默认组合与正式插件",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:architecture/npm-default-plugin-source-ownership",
+                "sectionId": "s131"
+              }
+            }
+          },
+          {
+            "sectionId": "s119",
+            "title": "8. 实现同步与基线采用",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:architecture/npm-default-plugin-source-ownership",
+                "sectionId": "s119"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "query": "服务上下文 子插件 继承 provides",
+    "entries": [
+      {
+        "documentId": "public:development/plugin-api",
+        "sections": [
+          {
+            "sectionId": "s50",
+            "title": "插件定义",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s50"
+              }
+            }
+          },
+          {
+            "sectionId": "s240",
+            "title": "自定义服务",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s240"
+              }
+            }
+          },
+          {
+            "sectionId": "s110",
+            "title": "setup 上下文",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s110"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+        "sections": [
+          {
+            "sectionId": "s38",
+            "title": "Plugin Services",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s38"
+              }
+            }
+          },
+          {
+            "sectionId": "s30",
+            "title": "项目应用层、实现与 Shell",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s30"
+              }
+            }
+          },
+          {
+            "sectionId": "s5",
+            "title": "职责与交付",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "internal:agent-ui-plugin-creator-launch-plan",
+                "sectionId": "s5"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "public:plugins/context-retrieval-message",
+        "sections": [
+          {
+            "sectionId": "s1",
+            "title": "上下文检索结果（context-retrieval-message）",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:plugins/context-retrieval-message",
+                "sectionId": "s1"
+              }
+            }
+          },
+          {
+            "sectionId": "s9",
+            "title": "启用与使用",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:plugins/context-retrieval-message",
+                "sectionId": "s9"
+              }
+            }
+          },
+          {
+            "sectionId": "s19",
+            "title": "需求示例",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:plugins/context-retrieval-message",
+                "sectionId": "s19"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "query": "renderSlot 子插件 上下文 slot children",
+    "entries": [
+      {
+        "documentId": "public:development/layout-and-composition",
+        "sections": [
+          {
+            "sectionId": "s236",
+            "title": "新增页面或内部插槽",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/layout-and-composition",
+                "sectionId": "s236"
+              }
+            }
+          },
+          {
+            "sectionId": "s77",
+            "title": "常用插件插槽",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/layout-and-composition",
+                "sectionId": "s77"
+              }
+            }
+          },
+          {
+            "sectionId": "s187",
+            "title": "布局与尺寸",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/layout-and-composition",
+                "sectionId": "s187"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "public:development/plugin-api",
+        "sections": [
+          {
+            "sectionId": "s72",
+            "title": "组件与子插槽",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s72"
+              }
+            }
+          },
+          {
+            "sectionId": "s5",
+            "title": "公共能力速查",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s5"
+              }
+            }
+          },
+          {
+            "sectionId": "s110",
+            "title": "setup 上下文",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/plugin-api",
+                "sectionId": "s110"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "documentId": "public:development/component-customization",
+        "sections": [
+          {
+            "sectionId": "s49",
+            "title": "选择合适的定制方式",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/component-customization",
+                "sectionId": "s49"
+              }
+            }
+          },
+          {
+            "sectionId": "s7",
+            "title": "示例：调整输入框",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/component-customization",
+                "sectionId": "s7"
+              }
+            }
+          },
+          {
+            "sectionId": "s1",
+            "title": "组件属性与组合定制",
+            "nextRead": {
+              "tool": "read_creator_documentation",
+              "input": {
+                "action": "read",
+                "documentId": "public:development/component-customization",
+                "sectionId": "s1"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

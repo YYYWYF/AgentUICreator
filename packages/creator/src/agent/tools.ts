@@ -30,19 +30,14 @@ import { namesRequestedRemoval } from "./plugin-target-names.js";
 import { ToolRecovery, toolReadIdentity } from "./tool-recovery.js";
 import { EvidenceProgress } from "./evidence-progress.js";
 import { readCreatorDocumentation } from "./documentation.js";
-
-export function isDirectPluginCommission(message: string) {
-  return /(?:开发|创建|新建|新增|添加|编写|实现|扩展|增强).{0,60}(?:插件|Plugin)|\b(?:develop|build|create|add|implement|extend)\b.{0,90}\bplugin\b/iu.test(message)
-    && !/(?:不要|无需|禁止|是否|要不要|分析|评估|讨论).{0,30}(?:开发|创建|新建|新增|添加|实现)/u.test(message)
-    && !/\b(?:do not|don't|whether to|should we)\b[^.!?;\n]{0,30}\b(?:develop|build|create|add|implement|extend)\b/iu.test(message);
-}
+import { prepareDevelopment } from "./development-tools.js";
 
 export interface ToolContext {
   documentationRoot?: string;
   contextWindow?: import("./context-window.js").CreatorContextWindow;
   root: string; skills: string; contracts: string; activity: RunActivity;
   readOnly: boolean; userMessage: string; threadId: string; signal: AbortSignal;
-  groups: Set<string>; authorizedPlugins: Set<string>; approvedServices: Set<string>;
+  groups: Set<string>; authorizedPlugins: Set<string>;
   diagnostics: Map<string, any>; verificationMode: string;
   requestRuntimeObservation?: (request: { requestId: string; currentHash: string; nodeIds?: string[]; instanceIds?: string[] }) => Promise<void>;
   runtimeObservationRefresh?: { key: string; pending: Promise<{ status: string; requestId: string }> };
@@ -60,7 +55,7 @@ export interface ToolContext {
   debugging?: DebuggingEvidence;
   blocker?: { code: string; message: string };
   toolObservations?: { toolName: string; status: string; reason?: string }[];
-  pluginPlans?: Map<string, { scopeHash: string; contract: any; workKind: string; evidence: Record<string, string>; status: string; sourceOnly?: boolean }>;
+  pluginPlans?: Map<string, { scopeHash: string; contract: any; workKind: string; status: string; sourceOnly?: boolean }>;
   activePluginId?: string;
   behavior?: Map<string, any>;
   developmentDecision?: "adjust" | "defer";
@@ -68,11 +63,12 @@ export interface ToolContext {
   deliveries?: any[];
   readRanges?: Map<string, { hash: string; start: number; end: number }[]>;
   editingSelection?: EditingSelection;
+  pluginOwnerships?: Map<string, { pluginId: string; entryPath?: string; assetOwnership?: string; implementationOwnership: "npm" | "project" | "unknown" }>;
   editingTargets?: { target: EditingTarget; identity: string }[];
   noChangeOutcome?: { toolName: string; status: "already_current" | "declined"; identity: string; file?: { path: string; hash: string }; metadataOnly?: boolean; postconditions?: CreatorPostcondition[] };
 }
 const READ_TOOLS = new Set(["verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "enable_creator_tools", "inspect_static_diagnostics", "inspect_runtime_errors", "inspect_runtime_layout", "inspect_creator_transactions", "inspect_creator_transaction"]);
-const CORE = new Set(["verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "edit_file", "edit_file_from_read", "create_ui_source_file", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "validate_creator_changes", "enable_creator_tools"]);
+const CORE = new Set(["prepare_ui_plugin_development", "verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "edit_file", "edit_file_from_read", "create_ui_source_file", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "validate_creator_changes", "enable_creator_tools"]);
 export const TOOL_GROUPS: Record<string, string[]> = {
   composition: ["inspect_ui_slots", "preflight_ui_plugin_placement", "mutate_app_ui_model", "inspect_app_ui_model_source", "repair_app_ui_model", "purge_ui_plugin"],
   plugin_authoring: ["list_ui_plugins", "inspect_agent_ui_sources", "apply_agent_ui_source_item", "inspect_ui_plugin_source_references", "prepare_ui_plugin_development", "create_ui_plugin", "create_custom_plugin", "takeover_plugin_source", "plan_plugin_source_takeover", "mutate_ui_plugin_source", "verify_ui_plugin_behavior", "inspect_ui_plugin_delivery"],
@@ -94,14 +90,8 @@ async function assertWrite(context: ToolContext, file: string) {
   context.debugging?.assertPath(name, source);
   const relative = name.slice(source.length + 1);
   if (["app-ui.json", "composition-revision.generated.json", "app-ui/app-ui.json", "app-ui/composition-revision.generated.json", "plugins/registry.generated.ts"].includes(relative.toLowerCase())) throw new Error("TOOL_PERMISSION_DENIED: use Operator mutation");
-  if (relative.startsWith("services/") && !context.approvedServices.has(relative)) throw new Error("SERVICE_AUTHORIZATION_REQUIRED: use prepare_ui_service_implementation_change for private implementations or prepare_ui_service_contract_change for public contracts");
   const match = /^plugins\/([^/]+)\//u.exec(relative);
   if (match) {
-    const plan = context.pluginPlans?.get(match[1]!);
-    if (plan?.status === "authorized") for (const [ref, expected] of Object.entries(plan.evidence)) {
-      const current = await fileState(context.root, ref);
-      if (current.hash !== expected && context.activity.before.get(ref)?.hash !== expected) throw new Error("PLUGIN_DEVELOPMENT_PLAN_STALE");
-    }
     const definition = await fileState(context.root, `${source}/plugins/${match[1]}/definition.ts`);
     const manifest = await fileState(context.root, `${source}/plugins/${match[1]}/manifest.json`);
     if (!definition.exists && !manifest.exists && !context.authorizedPlugins.has(match[1]!)) throw new Error("PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED");
@@ -185,8 +175,11 @@ export async function createTools(context: ToolContext) {
   for (const operation of operations.filter(item => item.agentExposed)) {
     const schema = operation.name === "inspect_ui_project"
       ? z.object({ view: z.literal("composition").optional(), detail: z.enum(["summary", "full"]).optional() })
+      : operation.name === "takeover_plugin_source" ? z.object({ pluginId: z.string().min(1).max(100) })
       : inputSchema(operation);
-    const acceptsCancellation = JSON.stringify(schema).includes('"cancelMarker"');
+    // planHash and cancellation are Host-owned Operator inputs, not prerequisites
+    // for the model to reach the real takeover question.
+    const acceptsCancellation = JSON.stringify(inputSchema(operation)).includes('"cancelMarker"');
     add(operation.name, descriptions[operation.name] ?? `Use the authoritative target Operator operation ${operation.name}. Use exact returned identities, paths and hashes.`, schema, async input => {
       const detail = operation.name === "inspect_ui_project" ? input.detail : undefined;
       if (operation.name === "inspect_ui_project") { const { detail: _detail, ...operatorInput } = input; input = operatorInput; }
@@ -231,8 +224,9 @@ export async function createTools(context: ToolContext) {
         : await requestOperator(context.root, operation.name, mutation && acceptsCancellation && context.cancelMarker ? { ...input, cancelMarker: context.cancelMarker } : input, context.signal); }
       finally { if (snapshot) await context.activity.observeOperatorChanges(snapshot, result); }
       if (operation.name === "inspect_ui_plugin") {
-        try { await rememberInspectedPlugin(context, result); }
-        catch { context.signal.throwIfAborted(); delete context.editingSelection; }
+        const referenceOnly = Boolean(input.sharedModule || input.sharedSymbols?.length);
+        try { await rememberInspectedPlugin(context, result, { referenceOnly }); }
+        catch { context.signal.throwIfAborted(); if (!referenceOnly) delete context.editingSelection; }
       }
       if (operation.name === "inspect_ui_project") await rememberProjectTargets(context, result);
       if (operation.name === "inspect_ui_project" && context.verificationMode === "static_and_runtime") result = { ...result, runtimeObservation: runtimeObservationNavigation(result) };
@@ -330,16 +324,16 @@ export async function createTools(context: ToolContext) {
     contracts.validate("MutateUIPluginSourceInput", input);
     return mutatePlugin(context, input, file => assertWrite(context, file));
   });
-  add("prepare_ui_service_contract_change", "Prepare a confirmed Service plan for existing or Host-authorized planned Plugins. contractPath is sourceRoot-relative services/*.ts. Confirmation authorizes only this contract scope.", contracts.schema("PrepareUIServiceContractChangeInput"), input => {
+  add("prepare_ui_service_contract_change", "Preflight a project Service contract change against current identities, ownership and file state. No user confirmation. contractPath is sourceRoot-relative services/*.ts. Ordinary project file editing is also available.", contracts.schema("PrepareUIServiceContractChangeInput"), input => {
     contracts.validate("PrepareUIServiceContractChangeInput", input); return prepareService(context, input);
   });
-  for (const [name, schema, kind] of [["create_ui_service_contract", "CreateUIServiceContractInput", "create"], ["mutate_ui_service_contract", "MutateUIServiceContractInput", "mutate"]] as const) add(name, "Apply exactly the authorized Service contract change; retain ownership, current file hash and scope.", contracts.schema(schema), input => {
+  for (const [name, schema, kind] of [["create_ui_service_contract", "CreateUIServiceContractInput", "create"], ["mutate_ui_service_contract", "MutateUIServiceContractInput", "mutate"]] as const) add(name, "Apply a preflighted Service contract change using planId; recheck topology and file state. No user confirmation.", contracts.schema(schema), input => {
     contracts.validate(schema, input); return applyService(context, input, kind);
   });
-  add("prepare_ui_service_implementation_change", "Propose exact edits to an existing project-private services implementation. Inspect references and explain operation/shared impact, preserve public contracts, and obtain user confirmation before mutation. Read the target first.", contracts.schema("PrepareUIServiceImplementationChangeInput"), input => {
+  add("prepare_ui_service_implementation_change", "Preflight exact edits to an existing project Service implementation. Inspect references and preserve public declarations. No user confirmation; ordinary project edits are also available. Read the target first.", contracts.schema("PrepareUIServiceImplementationChangeInput"), input => {
     contracts.validate("PrepareUIServiceImplementationChangeInput", input); return prepareServiceImplementation(context, input);
   });
-  add("apply_ui_service_implementation_change", "Apply only the exact confirmed implementation diff. Authorization is single-use and bound to current file and reference state. Run validation and verify actual requests after applying.", contracts.schema("ApplyUIServiceImplementationChangeInput"), input => {
+  add("apply_ui_service_implementation_change", "Apply the exact preflighted implementation diff using planId. It is single-use and checks current file/reference state. No user confirmation. Validate actual requests afterwards.", contracts.schema("ApplyUIServiceImplementationChangeInput"), input => {
     contracts.validate("ApplyUIServiceImplementationChangeInput", input); return applyServiceImplementation(context, input);
   });
   const questionSchema = z.object({ steps: z.array(z.object({ id: z.string().min(1), question: z.string().min(1), description: z.string().optional(), options: z.array(z.object({ id: z.string(), label: z.string(), description: z.string().optional() })).min(2).max(7), selectionMode: z.enum(["single", "multiple"]), minSelections: z.number().int().min(0), maxSelections: z.number().int().min(1) })).min(1).max(3) });
@@ -348,36 +342,9 @@ export async function createTools(context: ToolContext) {
     if (!question) throw new Error("CREATOR_QUESTION_INVALID");
     return interrupt({ kind: "ask_user_question", steps: question.steps });
   });
-  add("prepare_ui_plugin_development", "Present a concrete plan before creating a new Plugin or adding new business behavior. Inspect existing Plugin/Source capabilities and actual Host component bases. Explicit development commissions need no duplicate confirmation.", contracts.schema("PrepareUIPluginDevelopmentInput"), async input => {
+  add("prepare_ui_plugin_development", "Ask once before creating a NEW Plugin identity. Existing project Plugin behavior and supporting files are edited directly. Only targetPluginId and desiredOutcome are required; implementation and verification details may be added later without another question. No full catalog search is required. npm source takeover uses its own question.", contracts.schema("PrepareUIPluginDevelopmentInput"), input => {
     contracts.validate("PrepareUIPluginDevelopmentInput", input);
-    if (context.readOnly) throw new Error("TOOL_PERMISSION_DENIED");
-    if (!/^[a-z0-9][a-z0-9-]{0,99}$/u.test(input.targetPluginId)) throw new Error("PLUGIN_ID_INVALID");
-    const observed = context.toolObservations?.filter(item => item.status === "success").map(item => item.toolName) ?? [];
-    const missing = [];
-    if (!observed.some(name => ["list_ui_plugins", "inspect_ui_capabilities", "inspect_ui_project"].includes(name))) missing.push("inspect_ui_capabilities");
-    if (!observed.includes("inspect_agent_ui_sources")) missing.push("inspect_agent_ui_sources");
-    if (missing.length) throw new Error("PLUGIN_DEVELOPMENT_DISCOVERY_REQUIRED: complete these read-only tools, then retry the same plan: " + missing.join(", "));
-    const evidence: Record<string, string> = {};
-    for (const ref of input.componentBasisRefs ?? []) evidence[logical(ref)] = (await context.activity.observations.assertFreshForEdit(logical(ref))).hash;
-    if (["panel", "semantic-slot"].includes(input.deliveryContract.renderingCategory) && !Object.keys(evidence).length) throw new Error("PLUGIN_COMPONENT_BASIS_REQUIRED");
-    const scopeHash = creatorContentHash(json({ ...input, evidence }));
-    const previous = context.pluginPlans?.get(input.targetPluginId);
-    if (previous?.status === "pending" && previous.scopeHash !== scopeHash) throw new Error("PLUGIN_DEVELOPMENT_PLAN_STALE");
-    const sourceOnly = /(?:只|仅).{0,12}(?:源码|代码)|不(?:要)?(?:挂载|接入|组合)|source.only/iu.test(context.userMessage);
-    (context.pluginPlans ??= new Map()).set(input.targetPluginId, { scopeHash, contract: input.deliveryContract, workKind: input.workKind ?? "create-plugin", evidence, status: "pending", sourceOnly });
-    const direct = isDirectPluginCommission(context.userMessage);
-    if (!direct) {
-      const answer: any = interrupt({ kind: "ask_user_question", steps: [{ id: "plugin-development-decision", question: messages.developmentQuestion, description: json(input), options: [{ id: "start", label: messages.start }, { id: "adjust", label: messages.adjust }, { id: "defer", label: messages.defer }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] });
-      if (answer.answers?.["plugin-development-decision"]?.[0] !== "start") {
-        context.developmentDecision = answer.answers?.["plugin-development-decision"]?.[0] === "adjust" ? "adjust" : "defer";
-        context.pluginPlans!.get(input.targetPluginId)!.status = "declined";
-        return { status: "declined" };
-      }
-    }
-    context.authorizedPlugins.add(input.targetPluginId);
-    (context.pluginPlans ??= new Map()).set(input.targetPluginId, { scopeHash, contract: input.deliveryContract, workKind: input.workKind ?? "create-plugin", evidence, status: "authorized", sourceOnly });
-    context.activePluginId = input.targetPluginId;
-    return { status: "authorized", scopeHash, planHash: scopeHash, targetPluginId: input.targetPluginId, deliveryContract: input.deliveryContract };
+    return prepareDevelopment(context, input);
   });
   add("inspect_ui_capabilities", "Inspect installed capabilities and current project composition; no ownership or mutation authority is granted.", z.object({}), async () => ({ plugins: await requestOperator(context.root, "list_ui_plugins", {}, context.signal), services: await requestOperator(context.root, "inspect_ui_services", {}, context.signal) }));
   add("validate_creator_changes", "Run target typecheck and structural validation for the current revision, optionally build. When includeBuild is true, call this tool alone, without any other tool call in the same response. Preserve unchanged unrelated baseline diagnostics as warnings in delta mode. Identical successful checks in this run may be reused; force reruns them.", z.object({ includeBuild: z.boolean().default(false), mode: z.enum(["delta", "clean"]).default("delta"), force: z.boolean().default(false) }), input => context.validation!.validate(input));

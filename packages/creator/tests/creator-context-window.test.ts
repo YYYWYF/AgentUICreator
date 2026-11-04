@@ -76,6 +76,19 @@ it("retries transient summary requests and counts every attempt across bounded p
   expect(logs.filter(x => x.event === "context_summary_model_retry")).toEqual([expect.objectContaining({ attempt: 1, kind: "fresh" })]);
   expect(JSON.stringify(messages)).toBe(before);
 });
+it("retries an incomplete summary without accepting it or changing checkpoint messages", async () => {
+  let attempts = 0;
+  const { manager, logs } = setup(() => ++attempts === 1
+    ? new AIMessage({ content: "incomplete summary", response_metadata: { finish_reason: "length" } })
+    : new AIMessage("Verified historical source facts; implementation and interaction checks remain unfinished."));
+  const messages = history(), before = JSON.stringify(messages);
+  const result = await manager.project(messages, []);
+  expect(manager.stats.summaryModelCalls).toBe(manager.stats.compactions + 1);
+  expect(logs.find(row => row.event === "context_summary_model_retry")).toMatchObject({ kind: "invalid_summary", attempt: 1 });
+  expect(JSON.stringify(messages)).toBe(before);
+  expect(result.some(message => String(message.content).includes("incomplete summary"))).toBe(false);
+  assertPairs(result);
+});
 it("preserves the underlying timeout after exhausting summary retries without caching a fallback", async () => {
   const timeout = Object.assign(new Error("request timeout"), { name: "TimeoutError" });
   const { manager, logs } = setup(() => { throw timeout; }, undefined, { CREATOR_MODEL_MAX_RETRIES: "1" });
@@ -172,4 +185,22 @@ it("counts system/schema/output reservations, skips short requests and supports 
   await expect(manager.project(history(), [{ type: "function", function: { name: "large", description: "schema".repeat(4000), parameters: { type: "object", properties: {} } } }])).rejects.toThrow("CREATOR_CONTEXT_FIXED_BUDGET_EXCEEDED");
   const disabled = new CreatorContextWindow({ environment: { CREATOR_CONTEXT_COMPRESSION: "0" }, request: "do not edit", signal: () => new AbortController().signal, model: () => model, log: async () => {} });
   const original = history(); expect(await disabled.project(original, [])).toEqual(original); expect(model.prompts).toHaveLength(0);
+});
+
+it("budgets provider reasoning, counts native blocks once, and retains recent continuation data", async () => {
+  const value = "synthetic reasoning ".repeat(120);
+  const plain = new AIMessage("visible");
+  const provider = new AIMessage({ content: "visible", additional_kwargs: { reasoning_content: value } });
+  expect(estimateMessageTokens([provider])).toBeGreaterThan(estimateMessageTokens([plain]) + 500);
+  const native = new AIMessage({ content: [{ type: "reasoning", reasoning: value }, { type: "text", text: "visible" }], response_metadata: { output_version: "v1" } });
+  const aliased = new AIMessage({ content: native.content, additional_kwargs: { reasoning_content: value }, response_metadata: native.response_metadata });
+  expect(estimateMessageTokens([aliased])).toBe(estimateMessageTokens([native]));
+  const { manager } = setup();
+  const recent = new AIMessage({ content: "", additional_kwargs: { reasoning_content: "recent-synthetic" }, tool_calls: [{ name: "read_file", args: {}, id: "recent", type: "tool_call" }] });
+  const messages = [...history(), recent, new ToolMessage({ content: "recent result", tool_call_id: "recent" })];
+  const before = JSON.stringify(messages);
+  const projected = await manager.project(messages, []);
+  expect(manager.stats.compactions).toBeGreaterThan(0);
+  expect(projected.find(message => AIMessage.isInstance(message) && message.tool_calls?.some(call => call.id === "recent"))?.additional_kwargs.reasoning_content).toBe("recent-synthetic");
+  expect(JSON.stringify(messages)).toBe(before);
 });

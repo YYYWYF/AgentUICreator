@@ -1,8 +1,7 @@
 ---
 name: ui-plugin-development
-description: Inspect or customize UI Plugins; implement a new Plugin or new behavior only after a direct user commission, satisfied conditional commission, or approval of a bound development proposal.
+description: Edit project-owned UI Plugin code directly. Ask only before creating a new Plugin identity or first taking over an npm implementation.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: enable_creator_tools takeover_plugin_source ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
 ---
 
 # UI Plugin development
@@ -26,15 +25,15 @@ explicit user agreement. Canonical Runtime/Context, vendor and generated registr
 remain protected. A thin wrapper's omitted public seam is not justification for
 requiring takeover.
 
-Before first new Plugin source or new business behavior, the Host must authorize
-the bounded `prepare_ui_plugin_development` plan. Direct commissions, satisfied
-conditional commissions and approved proposals retain their specific semantics;
-a Skill or inspection does not grant development permission. A normal existing
-Plugin customization does not need a new development approval. For a genuinely new
-Plugin, consult [authoring contracts](references/authoring-contracts.md) for admission,
-manifest/placement, Service/data and delivery obligations. For a new visual Plugin
-or actual UI-system choice also consult [UI selection](references/default-ui-composition.md).
-Do not load new-Plugin investigation requirements for a local presentation repair.
+Ask `prepare_ui_plugin_development` once before creating a NEW Plugin identity,
+including wrapping a component as a new Plugin. After confirmation, implement
+its source, supporting modules, existing parent changes, composition and tests.
+The question result is not a per-file allowlist; changed implementation details
+never require the same development question again. Existing Plugin behavior,
+new interactions and project Service files are ordinary edits. Only actual npm
+implementation changes need the separate source-takeover question.
+For new Plugin manifest/placement and delivery details consult only relevant
+sections of [authoring contracts](references/authoring-contracts.md).
 
 ## Local change evidence
 

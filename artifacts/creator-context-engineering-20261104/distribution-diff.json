@@ -1,0 +1,26 @@
+{
+  "changedFiles": [
+    "dist/agent/documentation.d.ts.map",
+    "dist/agent/documentation.js",
+    "dist/agent/documentation.js.map",
+    "dist/agent/edit-context.d.ts",
+    "dist/agent/edit-context.d.ts.map",
+    "dist/agent/edit-context.js",
+    "dist/agent/edit-context.js.map",
+    "dist/agent/tools.d.ts.map",
+    "dist/agent/tools.js",
+    "dist/agent/tools.js.map",
+    "dist/agent/working-context.d.ts.map",
+    "dist/agent/working-context.js",
+    "dist/agent/working-context.js.map",
+    "dist/operator/dist/runtime/build.json",
+    "dist/operator/dist/runtime/operator-runtime.mjs"
+  ],
+  "beforeFiles": 1350,
+  "afterFiles": 1350,
+  "operator": {
+    "inputsEqual": true,
+    "normalizedBundleEqual": true,
+    "onlyRandomBuildIdentityChanged": true
+  }
+}

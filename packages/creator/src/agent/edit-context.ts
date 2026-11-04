@@ -78,13 +78,33 @@ function pluginTarget(inspection: Record<string, any>): EditingTarget | undefine
     ...(asset.manifestPath ? { manifestPath: asset.manifestPath } : {}) };
 }
 
-export async function rememberInspectedPlugin(context: ToolContext, inspection: Record<string, any>) {
+/** Preserve inspected ownership, separately from grants and source freshness. */
+export async function rememberPluginOwnership(context: ToolContext, inspection: Record<string, any>) {
+  const asset = inspection.asset;
+  if (!asset?.pluginId) return;
+  const implementation = inspection.application?.implementationOwnership ?? asset.application?.implementationOwnership;
+  const candidate = pluginTarget(inspection)?.entryPath;
+  const entry = candidate ? logicalProjectPath(candidate) : undefined;
+  const entryPath = entry?.startsWith(await sourceRoot(context.root) + "/") && !/(?:^|\/)(?:upstream|vendor|vendors|runtime|framework)(?:\/|$)/iu.test(entry) ? entry : undefined;
+  const value = { pluginId: asset.pluginId, ...(entryPath ? { entryPath } : {}), assetOwnership: asset.ownership,
+    implementationOwnership: implementation === "npm" ? "npm" as const : implementation === "project" || asset.ownership === "project_source" ? "project" as const : "unknown" as const };
+  const known = context.pluginOwnerships ??= new Map();
+  known.delete(value.pluginId); known.set(value.pluginId, value);
+  if (known.size > 64) known.delete(known.keys().next().value!);
+  return { ...value, projectEntryEdits: context.readOnly ? "read-only" : value.entryPath ? "editable within current user request" : "no project entry inspected",
+    implementationTakeoverRequired: value.implementationOwnership === "unknown" ? null : value.implementationOwnership === "npm" };
+}
+
+export async function rememberInspectedPlugin(context: ToolContext, inspection: Record<string, any>, options: { referenceOnly?: boolean } = {}) {
+  await rememberPluginOwnership(context, inspection);
+  if (options.referenceOnly) return;
   const target = pluginTarget(inspection);
   if (!target) { delete context.editingSelection; return; }
   target.entryPath = logicalProjectPath(target.entryPath);
   if (!target.entryPath.startsWith(await sourceRoot(context.root) + "/")) { delete context.editingSelection; return; }
   const styles = (inspection.files ?? []).filter((file: any) => file.kind === "file" && /\/(?:styles|style)\.css$/u.test(file.path)).slice(0, 1);
-  await selectEditingTarget(context, target, [target.entryPath, ...styles.map((file: any) => file.path), target.definitionPath, target.manifestPath].filter((file): file is string => Boolean(file)));
+  const previousFiles = context.editingSelection?.target.entryPath === target.entryPath ? context.editingSelection.filePaths : [];
+  await selectEditingTarget(context, target, [target.entryPath, ...previousFiles, ...styles.map((file: any) => file.path), target.definitionPath, target.manifestPath].filter((file): file is string => Boolean(file)));
 }
 
 function references(inspection: Record<string, any>) {
@@ -167,7 +187,9 @@ export async function inspectEditingContext(context: ToolContext, input: z.infer
     throw new Error("EDITING_CONTEXT_STALE");
   }
   await selectEditingTarget(context, target, files.map(file => file.path), identity);
+  const editingPolicy = inspection ? await rememberPluginOwnership(context, inspection) : undefined;
   return { status: files.some(file => file.path === "/" + target.entryPath) ? "resolved" : "partial", target, files, unavailableFiles,
+    ...(editingPolicy ? { editingPolicy } : {}),
     ...(inspection ? { plugin: { pluginId: target.pluginId, instances: inspection.instances, manifest: inspection.manifest,
       definitionSource: inspection.definitionSource, implementationOwnership: inspection.application?.implementationOwnership ?? inspection.asset?.application?.implementationOwnership ?? "project",
       application: inspection.application ? { entryPath: inspection.application.entryPath, implementationImport: inspection.application.implementationImport,

@@ -1,0 +1,59 @@
+[
+  {
+    "case": "ui-defer",
+    "started": "2026-11-03T10:31:31.440Z",
+    "model": "qa-scripted-ui",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 23022,
+    "purpose": "permission",
+    "status": 200,
+    "returnedModel": "qa-scripted-ui",
+    "usage": {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    "ended": "2026-11-03T10:31:31.442Z",
+    "seconds": 0.002
+  },
+  {
+    "case": "ui-defer",
+    "started": "2026-11-03T10:31:33.059Z",
+    "model": "qa-scripted-ui",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 44727,
+    "messageCharacters": 58236,
+    "purpose": "agent",
+    "status": 200,
+    "returnedModel": "qa-scripted-ui",
+    "usage": {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    "ended": "2026-11-03T10:31:33.061Z",
+    "seconds": 0.002
+  },
+  {
+    "case": "ui-defer",
+    "started": "2026-11-03T10:31:33.097Z",
+    "model": "qa-scripted-ui",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 44727,
+    "messageCharacters": 63768,
+    "purpose": "agent",
+    "status": 200,
+    "returnedModel": "qa-scripted-ui",
+    "usage": {
+      "prompt_tokens": 1,
+      "completion_tokens": 1,
+      "total_tokens": 2
+    },
+    "ended": "2026-11-03T10:31:33.098Z",
+    "seconds": 0.001
+  }
+]

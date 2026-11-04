@@ -3,17 +3,14 @@ import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from "node:fs/promis
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Annotation, Command, END, MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { prepareCompositionApplications } from "../src/agent/plugin-applications.js";
 import { RunActivity } from "../src/agent/activity.js";
-import { defaultAgentMessages } from "../src/agent/messages.js";
 import type { ToolContext } from "../src/agent/tools.js";
 
-const repository = fileURLToPath(new URL("../../../", import.meta.url));
-const roots: string[] = [];
+const repository = fileURLToPath(new URL("../../../", import.meta.url)), roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 async function fixture() {
-  const root = await mkdtemp(path.join(tmpdir(), "creator application 确认-")); roots.push(root);
+  const root = await mkdtemp(path.join(tmpdir(), "creator application 中文-")); roots.push(root);
   const host = path.join(repository, "examples/creator-host-sandbox");
   await mkdir(path.join(root, ".agent-ui")); await mkdir(path.join(root, "src/ui"), { recursive: true });
   await writeFile(path.join(root, "package.json"), await readFile(path.join(host, "package.json")));
@@ -22,63 +19,53 @@ async function fixture() {
   await writeFile(path.join(root, "src/ui/app-ui.json"), '{"root":{"type":"slot","plugins":[]}}');
   const signal = new AbortController().signal;
   const context: ToolContext = { root, threadId: "application", skills: "", contracts: "", signal,
-    readOnly: false, userMessage: "增加主题切换控件", groups: new Set(), authorizedPlugins: new Set(), approvedServices: new Set(),
-    diagnostics: new Map(), verificationMode: "static_only", messages: defaultAgentMessages, activity: new RunActivity(root, "application", signal) };
-  const State = Annotation.Root({ status: Annotation<string>() });
-  const graph = new StateGraph(State).addNode("prepare", async () => {
-    const result = await prepareCompositionApplications(context, { operations: [{ type: "insert_plugin", plugin: { pluginId: "theme-switch" } }] });
-    return { status: result ? "declined" : "ready" };
-  }).addEdge(START, "prepare").addEdge("prepare", END).compile({ checkpointer: new MemorySaver() });
-  const config = { configurable: { thread_id: "application" } };
-  const entry = path.join(root, "src/ui/plugins/theme-switch/index.tsx");
-  await graph.invoke({ status: "pending" }, config);
-  const pending = await graph.getState(config);
-  const step = (pending.tasks[0]?.interrupts?.[0]?.value as { steps: any[] } | undefined)?.steps[0];
-  expect(step?.question).toContain("theme-switch");
-  expect(step?.description).toContain("src/ui/plugins/theme-switch/index.tsx");
-  await expect(readFile(entry)).rejects.toMatchObject({ code: "ENOENT" });
-  expect(context.activity.revision).toBe(0);
-  return { root, graph, config, context, entry, step };
+    readOnly: false, userMessage: "增加主题切换控件", groups: new Set(), authorizedPlugins: new Set(),
+    diagnostics: new Map(), verificationMode: "static_only", activity: new RunActivity(root, "application", signal) };
+  return { root, context, entry: path.join(root, "src/ui/plugins/theme-switch/index.tsx") };
 }
+const insert = (pluginId: string) => ({ type: "insert_plugin", plugin: { pluginId } });
 
-it("creates the installed-version application and Host service binding only after confirmation, with a recoverable receipt", async () => {
-  const f = await fixture();
-  const result = await f.graph.invoke(new Command({ resume: { answers: { [f.step.id]: ["approve"] } } }), f.config);
-  expect(result.status).toBe("ready");
+it("prepares a requested installed Plugin's thin application without an extra question or source takeover", async () => {
+  const f = await fixture(), before = await readFile(path.join(f.root, "package.json"), "utf8");
+  await expect(prepareCompositionApplications(f.context, { operations: [insert("theme-switch")] })).resolves.toBeUndefined();
   expect(await readFile(f.entry, "utf8")).toContain("usePluginService");
   expect(await readFile(f.entry, "utf8")).toContain("service={service}");
   const receipt = await f.context.activity.persist();
   expect(receipt.files.some(file => file.path === "src/ui/plugins/theme-switch/index.tsx")).toBe(true);
   expect(receipt.transaction.undoable).toBe(true);
-  expect(receipt.files.every(file => !file.path.includes("/source/") && !file.path.includes("/vendor/") && !file.path.includes("/upstream/"))).toBe(true);
+  expect(receipt.files.every(file => !/\/(?:source|vendor|upstream)\//u.test(file.path))).toBe(true);
   expect(await readFile(path.join(f.root, "src/ui/app-ui.json"), "utf8")).toBe('{"root":{"type":"slot","plugins":[]}}');
-  // An already prepared application must not ask for confirmation again.
-  await expect(prepareCompositionApplications(f.context, { operations: [{ type: "insert_plugin", plugin: { pluginId: "theme-switch" } }] })).resolves.toBeUndefined();
+  expect(await readFile(path.join(f.root, "package.json"), "utf8")).toBe(before);
 }, 30000);
 
-it("declining creates no application files and ends the mutation request", async () => {
+it("preserves an existing customized application on later composition", async () => {
   const f = await fixture();
-  expect((await f.graph.invoke(new Command({ resume: { answers: { [f.step.id]: ["decline"] } } }), f.config)).status).toBe("declined");
-  await expect(readFile(f.entry)).rejects.toMatchObject({ code: "ENOENT" });
-  expect(f.context.executionDecision?.status).toBe("user_cancelled");
-  expect(f.context.activity.revision).toBe(0);
+  await prepareCompositionApplications(f.context, { operations: [insert("theme-switch")] });
+  const custom = (await readFile(f.entry, "utf8")) + "\n// Project customization\n";
+  await writeFile(f.entry, custom);
+  await prepareCompositionApplications(f.context, { operations: [insert("theme-switch")] });
+  expect(await readFile(f.entry, "utf8")).toBe(custom);
 });
 
-it("rejects confirmation against a changed project instead of adopting a fresh plan silently", async () => {
+it("prepares multiple applications against fresh shared Host bindings", async () => {
   const f = await fixture();
-  await writeFile(path.join(f.root, "src/ui/app-ui.json"), '{"root":{"type":"column","children":[]}}');
-  await expect(f.graph.invoke(new Command({ resume: { answers: { [f.step.id]: ["approve"] } } }), f.config)).rejects.toThrow("PLUGIN_ENABLEMENT_PREPARATION_STALE");
-  await expect(readFile(f.entry)).rejects.toMatchObject({ code: "ENOENT" });
-  expect(f.context.activity.revision).toBe(0);
+  await prepareCompositionApplications(f.context, { operations: [insert("theme-switch"), insert("locale-switch")] });
+  expect(await readFile(f.entry, "utf8")).toContain("service={service}");
+  expect(await readFile(path.join(f.root, "src/ui/plugins/locale-switch/index.tsx"), "utf8")).toContain("service={service}");
 });
 
-it("requires separate preparations for multiple missing applications before creating either one", async () => {
-  const f = await fixture();
-  await expect(prepareCompositionApplications(f.context, { operations: [
-    { type: "insert_plugin", plugin: { pluginId: "theme-switch" } },
-    { type: "insert_plugin", plugin: { pluginId: "locale-switch" } },
-  ] })).rejects.toThrow("PLUGIN_APPLICATION_PREPARATION_BATCH_REQUIRED");
+it("keeps dependency installation outside ordinary application preparation", async () => {
+  const f = await fixture(), file = path.join(f.root, "package.json"), manifest = JSON.parse(await readFile(file, "utf8"));
+  delete manifest.dependencies["@za38.03/agent-ui-plugins"];
+  await writeFile(file, JSON.stringify(manifest));
+  const before = await readFile(file, "utf8");
+  await expect(prepareCompositionApplications(f.context, { operations: [insert("theme-switch")] })).rejects.toThrow("PLUGIN_ENABLEMENT_DEPENDENCIES_REQUIRED");
+  expect(await readFile(file, "utf8")).toBe(before);
   await expect(readFile(f.entry)).rejects.toMatchObject({ code: "ENOENT" });
-  await expect(readFile(path.join(f.root, "src/ui/plugins/locale-switch/index.tsx"))).rejects.toMatchObject({ code: "ENOENT" });
-  expect(f.context.activity.revision).toBe(0);
+});
+
+it("never creates application files for a read-only request", async () => {
+  const f = await fixture(); f.context.readOnly = true;
+  await expect(prepareCompositionApplications(f.context, { operations: [insert("theme-switch")] })).rejects.toThrow("TOOL_PERMISSION_DENIED");
+  await expect(readFile(f.entry)).rejects.toMatchObject({ code: "ENOENT" });
 });

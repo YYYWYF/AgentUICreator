@@ -1,0 +1,286 @@
+{
+  "model": "deepseek-v4.1-flash",
+  "contextBudget": 65536,
+  "outputBudget": 8192,
+  "temperature": 0.2,
+  "singleRequestTimeoutSeconds": 120,
+  "qaObservationDeadlineSeconds": 1200,
+  "noProductCumulativeCallLimit": true,
+  "platform": "macOS; real Windows not run",
+  "unitTests": 492,
+  "unitTestFiles": 49,
+  "sourceTakeoverOperatorTests": 10,
+  "typecheck": "passed",
+  "i18n": "passed",
+  "operatorContractInventory": "aligned",
+  "creatorBuild": "passed",
+  "serialTestLog": "final-tests.log",
+  "timingNotes": "First two runs were diagnostic stops, not complete speed comparisons. Final is natural end-to-end with no scripted model decisions; a QA click confirms only the displayed new-Plugin question in a disposable project. UI cases use a scripted local provider to test native confirmation/cancellation, not model intent quality. Some CPU load from independent checks occurred early in the final run; this is not a controlled performance benchmark.",
+  "tokenNotes": "Completed provider usage only, including cache/reasoning as reported; unfinished calls make totals lower bounds. Compression before/after numbers are byte-based estimates, not tokenizer measurements.",
+  "cases": [
+    {
+      "case": "diagnostic-full-contract",
+      "status": "MANUAL_DIAGNOSTIC_STOP",
+      "seconds": 668.365,
+      "toolCalls": 68,
+      "toolCounts": {
+        "inspect_ui_plugin": 6,
+        "inspect_ui_project": 2,
+        "read_file": 34,
+        "read_creator_documentation": 5,
+        "ls": 7,
+        "grep": 11,
+        "glob": 2,
+        "enable_creator_tools": 1
+      },
+      "agentRequests": 28,
+      "summaryRequests": 6,
+      "providerReportedUsageLowerBound": {
+        "input_tokens": 901671,
+        "output_tokens": 69905,
+        "total_tokens": 971576,
+        "cached_input_tokens": 147072
+      },
+      "compactions": 6,
+      "summarySeconds": 175.69484391700004,
+      "compression": [
+        {
+          "beforeEstimatedTokens": 66222,
+          "afterEstimatedTokens": 46543,
+          "seconds": 32.428879417000005
+        },
+        {
+          "beforeEstimatedTokens": 67221,
+          "afterEstimatedTokens": 46429,
+          "seconds": 32.58559604100001
+        },
+        {
+          "beforeEstimatedTokens": 66694,
+          "afterEstimatedTokens": 47007,
+          "seconds": 27.820600665999983
+        },
+        {
+          "beforeEstimatedTokens": 69210,
+          "afterEstimatedTokens": 48094,
+          "seconds": 26.716131083999993
+        },
+        {
+          "beforeEstimatedTokens": 67392,
+          "afterEstimatedTokens": 48572,
+          "seconds": 28.708972041999978
+        },
+        {
+          "beforeEstimatedTokens": 72125,
+          "afterEstimatedTokens": 52333,
+          "seconds": 27.434664667000064
+        }
+      ],
+      "firstNewPluginPreparation": null,
+      "firstMutationAttempt": null,
+      "newPluginQuestions": 0,
+      "qaConfirmationSeconds": null,
+      "changedFiles": [],
+      "evidenceReads": 64,
+      "unchangedEvidenceReads": 28,
+      "toolFailures": [
+        {
+          "toolName": "read_file",
+          "code": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        },
+        {
+          "toolName": "read_file",
+          "code": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        },
+        {
+          "toolName": "grep",
+          "code": "CREATOR_REGEX_INVALID"
+        }
+      ],
+      "interaction": null,
+      "originalSourceHashSetMatchesBaseline": true
+    },
+    {
+      "case": "diagnostic-minimal-question",
+      "status": "MANUAL_DIAGNOSTIC_STOP",
+      "seconds": 602.9,
+      "toolCalls": 51,
+      "toolCounts": {
+        "inspect_ui_edit_context": 5,
+        "read_creator_documentation": 12,
+        "read_file": 19,
+        "prepare_ui_plugin_development": 2,
+        "ls": 6,
+        "enable_creator_tools": 1,
+        "inspect_ui_project": 1,
+        "glob": 1,
+        "inspect_ui_plugin": 3,
+        "list_ui_plugins": 1
+      },
+      "agentRequests": 25,
+      "summaryRequests": 5,
+      "providerReportedUsageLowerBound": {
+        "input_tokens": 827608,
+        "output_tokens": 50570,
+        "total_tokens": 878178,
+        "cached_input_tokens": 55168
+      },
+      "compactions": 5,
+      "summarySeconds": 167.20595395999996,
+      "compression": [
+        {
+          "beforeEstimatedTokens": 72709,
+          "afterEstimatedTokens": 50008,
+          "seconds": 28.266166042000005
+        },
+        {
+          "beforeEstimatedTokens": 69931,
+          "afterEstimatedTokens": 47778,
+          "seconds": 29.374956958999974
+        },
+        {
+          "beforeEstimatedTokens": 74547,
+          "afterEstimatedTokens": 46585,
+          "seconds": 34.42691099999996
+        },
+        {
+          "beforeEstimatedTokens": 67946,
+          "afterEstimatedTokens": 48630,
+          "seconds": 43.70796087500005
+        },
+        {
+          "beforeEstimatedTokens": 68647,
+          "afterEstimatedTokens": 51696,
+          "seconds": 31.42995908399997
+        }
+      ],
+      "firstNewPluginPreparation": {
+        "toolNumber": 14,
+        "seconds": 196.905,
+        "tool": "prepare_ui_plugin_development"
+      },
+      "firstMutationAttempt": null,
+      "newPluginQuestions": 1,
+      "qaConfirmationSeconds": 198.596,
+      "changedFiles": [],
+      "evidenceReads": 48,
+      "unchangedEvidenceReads": 23,
+      "toolFailures": [],
+      "interaction": null,
+      "originalSourceHashSetMatchesBaseline": true
+    },
+    {
+      "case": "final",
+      "status": "TIMEOUT",
+      "seconds": 1200.645,
+      "toolCalls": 104,
+      "toolCounts": {
+        "inspect_ui_plugin": 8,
+        "inspect_ui_project": 2,
+        "read_file": 50,
+        "ls": 16,
+        "grep": 9,
+        "inspect_ui_edit_context": 1,
+        "read_creator_documentation": 13,
+        "enable_creator_tools": 1,
+        "prepare_ui_plugin_development": 2,
+        "inspect_ui_services": 1,
+        "read_creator_context": 1
+      },
+      "agentRequests": 42,
+      "summaryRequests": 10,
+      "providerReportedUsageLowerBound": {
+        "input_tokens": 1421767,
+        "output_tokens": 108012,
+        "total_tokens": 1529779,
+        "cached_input_tokens": 167552
+      },
+      "compactions": 9,
+      "summarySeconds": 300.0985774179999,
+      "compression": [
+        {
+          "beforeEstimatedTokens": 74660,
+          "afterEstimatedTokens": 43866,
+          "seconds": 39.329924917
+        },
+        {
+          "beforeEstimatedTokens": 69940,
+          "afterEstimatedTokens": 47247,
+          "seconds": 27.992568042
+        },
+        {
+          "beforeEstimatedTokens": 69308,
+          "afterEstimatedTokens": 51124,
+          "seconds": 19.757038
+        },
+        {
+          "beforeEstimatedTokens": 70014,
+          "afterEstimatedTokens": 49550,
+          "seconds": 45.94310637499997
+        },
+        {
+          "beforeEstimatedTokens": 70911,
+          "afterEstimatedTokens": 53722,
+          "seconds": 36.10857762500004
+        },
+        {
+          "beforeEstimatedTokens": 68807,
+          "afterEstimatedTokens": 51690,
+          "seconds": 24.32052749999997
+        },
+        {
+          "beforeEstimatedTokens": 69487,
+          "afterEstimatedTokens": 50607,
+          "seconds": 27.304848499999963
+        },
+        {
+          "beforeEstimatedTokens": 71332,
+          "afterEstimatedTokens": 51214,
+          "seconds": 36.24416524999996
+        },
+        {
+          "beforeEstimatedTokens": 66959,
+          "afterEstimatedTokens": 50017,
+          "seconds": 43.09782120899996
+        }
+      ],
+      "firstNewPluginPreparation": {
+        "toolNumber": 59,
+        "seconds": 581.918,
+        "tool": "prepare_ui_plugin_development"
+      },
+      "firstMutationAttempt": null,
+      "newPluginQuestions": 1,
+      "qaConfirmationSeconds": 583.592,
+      "changedFiles": [],
+      "evidenceReads": 100,
+      "unchangedEvidenceReads": 50,
+      "toolFailures": [
+        {
+          "toolName": "grep",
+          "code": "TOOL_PERMISSION_DENIED"
+        }
+      ],
+      "interaction": null,
+      "originalSourceHashSetMatchesBaseline": true
+    }
+  ],
+  "controlledUICases": [
+    {
+      "case": "ui-defer",
+      "controlledLocalProvider": true,
+      "seconds": 18.844,
+      "status": "success",
+      "questions": 1,
+      "changedFiles": []
+    },
+    {
+      "case": "takeover-decline",
+      "controlledLocalProvider": true,
+      "seconds": 10.999,
+      "status": "success",
+      "questions": 1,
+      "changedFiles": []
+    }
+  ],
+  "protectedReadFailureNote": "Final run had one protected-path grep denial. No write tool was attempted, so there was no write-permission rejection. New-Plugin creation was confirmed once."
+}

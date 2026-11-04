@@ -1,0 +1,26 @@
+{
+  "kind": "simulated isolated QA user declines the displayed creation/takeover",
+  "seconds": 9.378,
+  "question": {
+    "id": "plugin-source-8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20",
+    "question": "是否将 composer 的实现源码接管到项目？",
+    "description": "{\"pluginId\":\"composer\",\"package\":{\"name\":\"@za38.03/agent-ui-plugins\",\"version\":\"0.0.1\"},\"pluginVersion\":\"0.0.1\",\"catalogHash\":\"b42521f50ef10214d1a0d832f2774973c1ccfaf5c6e106bfc4c148584bd101ae\",\"stateHash\":\"b00de0103501f012f04695c4c71fe886f9f51d3e554be1b08fd1b3b6fa335c21\",\"applicationChanges\":[\"index.tsx\",\"definition.ts\"],\"files\":[\"plugins/composer/source/THIRD_PARTY_NOTICES.md\",\"plugins/composer/source/adapters/composer.tsx\",\"plugins/composer/source/adapters/textarea.tsx\",\"plugins/composer/source/definition.ts\",\"plugins/composer/source/index.tsx\",\"plugins/composer/source/manifest.json\"],\"instances\":[\"auto_45aacb74a8476bb8\"],\"sharedDependencies\":[\"react\",\"@za38.03/agent-ui-core\",\"@za38.03/agent-ui-renderer\",\"@za38.03/agent-ui-runtime\",\"@za38.03/agent-ui-plugins/composer-support\",\"@za38.03/agent-ui-plugins/styles.css\"],\"dependencyChanges\":[],\"compatibility\":{\"composerSupport\":1},\"origins\":{\"definition.ts\":\"src/plugins/composer/adapters/project/definition.ts\",\"manifest.json\":\"src/plugins/composer/plugin.json\",\"index.tsx\":\"src/plugins/composer/adapters/project/index.tsx\",\"adapters/composer.tsx\":\"src/plugins/composer/adapters/presentation/composer.tsx\",\"adapters/textarea.tsx\":\"src/plugins/composer/adapters/presentation/textarea.tsx\",\"THIRD_PARTY_NOTICES.md\":\"THIRD_PARTY_NOTICES.md\"},\"planHash\":\"8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20\"}",
+    "options": [
+      {
+        "id": "approve",
+        "label": "同意接管"
+      },
+      {
+        "id": "decline",
+        "label": "取消"
+      }
+    ],
+    "selectionMode": "single",
+    "minSelections": 1,
+    "maxSelections": 1
+  },
+  "proposal": {
+    "targetPluginId": "composer"
+  },
+  "zeroSourceChangesBeforeApproval": true
+}

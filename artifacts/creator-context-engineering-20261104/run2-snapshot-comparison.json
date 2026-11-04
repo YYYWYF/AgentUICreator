@@ -1,0 +1,98 @@
+[
+  {
+    "path": "dist/agent/prompts.json",
+    "before": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "after": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "equal": true,
+    "beforeBytes": 52817,
+    "afterBytes": 52817
+  },
+  {
+    "path": "dist/agent/context-window.js",
+    "before": "ce4121c47b01dd9d3b33fe715b47c25d9e5a68fb8aae477dfbcad18f85dd8830",
+    "after": "ce4121c47b01dd9d3b33fe715b47c25d9e5a68fb8aae477dfbcad18f85dd8830",
+    "equal": true,
+    "beforeBytes": 20856,
+    "afterBytes": 20856
+  },
+  {
+    "path": "dist/agent/evidence-progress.js",
+    "before": "bf9d3b7c33a7f7fd0517c2fb107fce94ce3d6ebf639c0f379db73cdf09d5e915",
+    "after": "bf9d3b7c33a7f7fd0517c2fb107fce94ce3d6ebf639c0f379db73cdf09d5e915",
+    "equal": true,
+    "beforeBytes": 7606,
+    "afterBytes": 7606
+  },
+  {
+    "path": "dist/agent/runner.js",
+    "before": "f27362ab1ac0187acd6d6c37fbc554c74aefefc8ac2374b6a8d8ef0d86eadd03",
+    "after": "f27362ab1ac0187acd6d6c37fbc554c74aefefc8ac2374b6a8d8ef0d86eadd03",
+    "equal": true,
+    "beforeBytes": 47214,
+    "afterBytes": 47214
+  },
+  {
+    "path": "dist/agent/working-context.js",
+    "before": "34eca2da42d6edd60b0a11c105416a7e00db65b02457b1c6fdd0c2273b90997e",
+    "after": "cbd7b2cc12f28e30f466ab7455f5468738f7d3354de9bdd979c58b8761b17033",
+    "equal": false,
+    "beforeBytes": 5939,
+    "afterBytes": 6326
+  },
+  {
+    "path": "dist/agent/edit-context.js",
+    "before": "ce47d5863c21064cb5ab9f56951d52dbd6f877ef860b35ba270bb86362ff8f05",
+    "after": "f1ca5967ece5678ca56f4a3c47c7fc40712e3a0b89f30ec532677d6ef3315a93",
+    "equal": false,
+    "beforeBytes": 16261,
+    "afterBytes": 16432
+  },
+  {
+    "path": "dist/agent/tools.js",
+    "before": "4efe27afb373aa026bbcbd9ce6b42aaf60c76243ff045a60d36c41baacec39ba",
+    "after": "3ef2e75208532d95e3432e1c2f6d37846b5d95b4e793880aa9340927b0e9c0e3",
+    "equal": false,
+    "beforeBytes": 39303,
+    "afterBytes": 39464
+  },
+  {
+    "path": "dist/agent/documentation.js",
+    "before": "5551427b83f147051a2303bc38da021046244c5dff0e148ba1887184ad8954ba",
+    "after": "942ebc9b809c5b1e22cd0e2b218ead32f45d5d62cb8cb8010b3e8e4c4efe7c0d",
+    "equal": false,
+    "beforeBytes": 11842,
+    "afterBytes": 13519
+  },
+  {
+    "path": "dist/agent/development-tools.js",
+    "before": "d71937e5904a54e57a7ec46c974e084abdc7bb2af3d02cf930ce73c88ac8572f",
+    "after": "503d2b54aa61ff73be5bb72ed7abfae88b436db8f349c29bbb03119742f558c1",
+    "equal": false,
+    "beforeBytes": 4107,
+    "afterBytes": 4177
+  },
+  {
+    "path": "skills/ui-plugin-development/SKILL.md",
+    "before": "d16638fb9d258001f57838e0d1ed8825997e8f323dc570b4ef1990f589272da5",
+    "after": "d16638fb9d258001f57838e0d1ed8825997e8f323dc570b4ef1990f589272da5",
+    "equal": true,
+    "beforeBytes": 6426,
+    "afterBytes": 6426
+  },
+  {
+    "path": "skills/ui-plugin-development/references/authoring-contracts.md",
+    "before": "4c7bfa546fced2bc0882bb9eeedb39b1aeb74b5d062aea70fbb787c98e4b6dcd",
+    "after": "5bec5caae6352380c2e2b0ac5afe9c767896123b48b55902b20be4a4d73e5ea6",
+    "equal": false,
+    "beforeBytes": 25125,
+    "afterBytes": 25009
+  },
+  {
+    "path": "skills/ag-ui-frontend/references/frontend-tool-lifecycle.md",
+    "before": "875e0a886b39de94e9034ea34d9f5b0b91625258067bff9dffba0aa1df94ce20",
+    "after": "19908181013f0883f09327f933ee5db1755eb9ed4c460aebff9b441d7ed081c8",
+    "equal": false,
+    "beforeBytes": 4897,
+    "afterBytes": 4854
+  }
+]

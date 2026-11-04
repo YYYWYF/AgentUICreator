@@ -1,0 +1,56 @@
+[
+  {
+    "path": "dist/agent/prompts.json",
+    "before": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "after": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "equal": true
+  },
+  {
+    "path": "dist/agent/context-window.js",
+    "before": "ce4121c47b01dd9d3b33fe715b47c25d9e5a68fb8aae477dfbcad18f85dd8830",
+    "after": "ce4121c47b01dd9d3b33fe715b47c25d9e5a68fb8aae477dfbcad18f85dd8830",
+    "equal": true
+  },
+  {
+    "path": "dist/agent/evidence-progress.js",
+    "before": "bf9d3b7c33a7f7fd0517c2fb107fce94ce3d6ebf639c0f379db73cdf09d5e915",
+    "after": "bf9d3b7c33a7f7fd0517c2fb107fce94ce3d6ebf639c0f379db73cdf09d5e915",
+    "equal": true
+  },
+  {
+    "path": "dist/agent/runner.js",
+    "before": "f27362ab1ac0187acd6d6c37fbc554c74aefefc8ac2374b6a8d8ef0d86eadd03",
+    "after": "f27362ab1ac0187acd6d6c37fbc554c74aefefc8ac2374b6a8d8ef0d86eadd03",
+    "equal": true
+  },
+  {
+    "path": "dist/agent/working-context.js",
+    "before": "34eca2da42d6edd60b0a11c105416a7e00db65b02457b1c6fdd0c2273b90997e",
+    "after": "cbd7b2cc12f28e30f466ab7455f5468738f7d3354de9bdd979c58b8761b17033",
+    "equal": false
+  },
+  {
+    "path": "dist/agent/edit-context.js",
+    "before": "ce47d5863c21064cb5ab9f56951d52dbd6f877ef860b35ba270bb86362ff8f05",
+    "after": "f1ca5967ece5678ca56f4a3c47c7fc40712e3a0b89f30ec532677d6ef3315a93",
+    "equal": false
+  },
+  {
+    "path": "dist/agent/tools.js",
+    "before": "4efe27afb373aa026bbcbd9ce6b42aaf60c76243ff045a60d36c41baacec39ba",
+    "after": "3ef2e75208532d95e3432e1c2f6d37846b5d95b4e793880aa9340927b0e9c0e3",
+    "equal": false
+  },
+  {
+    "path": "dist/agent/documentation.js",
+    "before": "5551427b83f147051a2303bc38da021046244c5dff0e148ba1887184ad8954ba",
+    "after": "942ebc9b809c5b1e22cd0e2b218ead32f45d5d62cb8cb8010b3e8e4c4efe7c0d",
+    "equal": false
+  },
+  {
+    "path": "skills/ui-plugin-development/SKILL.md",
+    "before": "d16638fb9d258001f57838e0d1ed8825997e8f323dc570b4ef1990f589272da5",
+    "after": "d16638fb9d258001f57838e0d1ed8825997e8f323dc570b4ef1990f589272da5",
+    "equal": true
+  }
+]

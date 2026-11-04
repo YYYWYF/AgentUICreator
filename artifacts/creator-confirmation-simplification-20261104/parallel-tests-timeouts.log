@@ -1,0 +1,47 @@
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+ ❯ tests/creator-agent-runtime.test.ts (40 tests | 2 failed) 35109ms
+   × continues progressing beyond the LangGraph default step limit 5012ms
+   × retries a failed query after new evidence without treating it as a stuck loop 5047ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-agent-runtime.test.ts > continues progressing beyond the LangGraph default step limit
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/creator-agent-runtime.test.ts:117:1
+    115|   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: …
+    116| });
+    117| it("continues progressing beyond the LangGraph default step limit", as…
+       | ^
+    118|   const root = await project();
+    119|   mock.model = new ScriptedModel(index => index < 30 ? call("read_file…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/creator-agent-runtime.test.ts > continues progressing beyond the LangGraph default step limit
+Error: ENOTEMPTY: directory not empty, rmdir '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator TS 中文 3BIxrj/.agent-ui/creator/logs'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/creator-agent-runtime.test.ts > retries a failed query after new evidence without treating it as a stuck loop
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/creator-agent-runtime.test.ts:199:1
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/creator-agent-runtime.test.ts > retries a failed query after new evidence without treating it as a stuck loop
+Error: ENOTEMPTY: directory not empty, rmdir '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator TS 中文 4Zwq9M/.agent-ui/creator/logs'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed | 48 passed (49)
+      Tests  2 failed | 490 passed (492)
+   Start at  10:05:35
+   Duration  50.20s (transform 17.90s, setup 0ms, import 117.85s, tests 186.32s, environment 34.61s)
+
+undefined
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run

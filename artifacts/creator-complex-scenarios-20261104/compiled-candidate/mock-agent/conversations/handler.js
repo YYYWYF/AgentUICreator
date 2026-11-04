@@ -1,0 +1,156 @@
+import { mockConversationFixtures, } from "./fixtures.js";
+import { mockDurableRuns } from "../durable-run-store.js";
+function normalizeEndpoint(endpoint) {
+    if (!endpoint.startsWith("/")) {
+        throw new Error("Mock Conversation API endpoint must start with '/'.");
+    }
+    return endpoint.replace(/\/+$/, "");
+}
+function sendJson(response, statusCode, value) {
+    response.statusCode = statusCode;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify(value));
+}
+function waitForDelay(milliseconds, signal) {
+    return new Promise((resolve) => {
+        if (signal.aborted || milliseconds <= 0) {
+            resolve();
+            return;
+        }
+        const timer = setTimeout(resolve, milliseconds);
+        signal.addEventListener("abort", () => {
+            clearTimeout(timer);
+            resolve();
+        }, { once: true });
+    });
+}
+export function createMockConversationApiHandler({ endpoint = "/__agent-ui/mock-data", durableStore = mockDurableRuns, fixtures = mockConversationFixtures, listDelayMs = 400, detailDelayMs = 700, } = {}) {
+    const baseEndpoint = normalizeEndpoint(endpoint);
+    const conversationsEndpoint = `${baseEndpoint}/conversations`;
+    const detailsById = new Map(fixtures.map((fixture) => [fixture.detail.id, fixture.detail]));
+    const deletedIds = new Set();
+    return async (request, response) => {
+        const url = new URL(request.url ?? "/", "http://mock-data.local");
+        const resumeBase = `${baseEndpoint}/run-resume`;
+        if (url.pathname === `${resumeBase}/threads` && request.method === "GET") {
+            sendJson(response, 200, { threads: durableStore.list() });
+            return true;
+        }
+        if (url.pathname.startsWith(`${resumeBase}/threads/`) && request.method === "GET") {
+            const path = url.pathname.slice(`${resumeBase}/threads/`.length).split("/");
+            let id;
+            try {
+                id = decodeURIComponent(path[0] ?? "");
+            }
+            catch {
+                sendJson(response, 400, { error: "Invalid thread id." });
+                return true;
+            }
+            const snapshot = durableStore.snapshot(id);
+            if (snapshot === undefined) {
+                sendJson(response, 404, { error: "Unknown run." });
+                return true;
+            }
+            if (path.length === 1) {
+                sendJson(response, 200, snapshot);
+                return true;
+            }
+            if (path.length === 2 && path[1] === "stream") {
+                response.statusCode = 200;
+                response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+                response.setHeader("Cache-Control", "no-cache, no-transform");
+                response.flushHeaders();
+                if (snapshot.scenarioId === "resumable-agent-plan") {
+                    const unsubscribe = durableStore.subscribeAgentPlanResume(id, event => {
+                        if (!response.destroyed)
+                            response.write(`data: ${JSON.stringify(event)}\n\n`);
+                    }, () => {
+                        if (!response.destroyed)
+                            response.end();
+                    });
+                    response.once("close", unsubscribe);
+                    return true;
+                }
+                const unsubscribe = durableStore.subscribeContinuation(id, text => {
+                    if (!response.destroyed) {
+                        response.write(`data: ${JSON.stringify({ text })}\n\n`);
+                        response.end();
+                    }
+                });
+                response.once("close", unsubscribe);
+                return true;
+            }
+            sendJson(response, 404, { error: "Unknown run route." });
+            return true;
+        }
+        const isList = url.pathname === conversationsEndpoint;
+        // Keep the plural detail alias for Hosts generated with older templates.
+        const legacyDetailPrefix = `${conversationsEndpoint}/`;
+        const isLegacyDetail = url.pathname.startsWith(legacyDetailPrefix);
+        const detailPrefix = isLegacyDetail ? legacyDetailPrefix : `${baseEndpoint}/conversation/`;
+        const isDetail = url.pathname.startsWith(detailPrefix);
+        if (!isList && !isDetail)
+            return false;
+        if (request.method !== "GET" && !(isLegacyDetail && request.method === "DELETE")) {
+            response.setHeader("Allow", isLegacyDetail ? "GET, DELETE" : "GET");
+            sendJson(response, 405, { error: "Method not allowed for this conversation endpoint." });
+            return true;
+        }
+        const controller = new AbortController();
+        const abort = () => controller.abort();
+        request.once("aborted", abort);
+        response.once("close", abort);
+        try {
+            await waitForDelay(isList ? listDelayMs : detailDelayMs, controller.signal);
+            if (controller.signal.aborted || response.destroyed)
+                return true;
+            if (isList) {
+                sendJson(response, 200, {
+                    conversations: fixtures
+                        .filter(fixture => !deletedIds.has(fixture.summary.id))
+                        .map(fixture => fixture.summary).concat(durableStore.list()
+                        .filter(item => !deletedIds.has(item.id))
+                        .map(({ id, title }) => ({ id, title }))),
+                });
+                return true;
+            }
+            let id;
+            try {
+                id = decodeURIComponent(url.pathname.slice(detailPrefix.length));
+            }
+            catch {
+                sendJson(response, 400, { error: "Invalid conversation id." });
+                return true;
+            }
+            const run = durableStore.snapshot(id);
+            const detail = detailsById.get(id) ?? (run === undefined ? undefined : {
+                id, title: durableStore.list().find(item => item.id === id).title,
+                state: { values: { messages: [
+                            { id: `${run.runId}-user`, type: "human", content: run.userText },
+                            { id: `${run.runId}-partial`, type: "ai", content: run.assistantText },
+                        ] } },
+            });
+            if (detail === undefined) {
+                sendJson(response, 404, { error: `Conversation not found: ${id}` });
+                return true;
+            }
+            if (request.method === "DELETE") {
+                deletedIds.add(id);
+                response.statusCode = 204;
+                response.end();
+                return true;
+            }
+            if (deletedIds.has(id)) {
+                sendJson(response, 404, { error: `Conversation not found: ${id}` });
+                return true;
+            }
+            sendJson(response, 200, detail);
+            return true;
+        }
+        finally {
+            request.removeListener("aborted", abort);
+            response.removeListener("close", abort);
+        }
+    };
+}
+//# sourceMappingURL=handler.js.map

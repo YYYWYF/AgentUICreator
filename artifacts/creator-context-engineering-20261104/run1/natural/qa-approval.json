@@ -1,0 +1,52 @@
+{
+  "kind": "simulated isolated QA user selection",
+  "seconds": 904.876,
+  "question": {
+    "id": "plugin-development-decision",
+    "question": "是否按此方案开发？",
+    "description": "目标: 在 quick-help-card（实例 p24，layout_slot l10）的 headerActions 子插槽中新增独立的「知道了」按钮插件：点击后折叠卡片帮助内容并隐藏 body；卡片标题按钮仍可重新展开；主题切换到亮色/暗色/紫色后行为与外观仍正常。quick-help-content（实例 p25）继续保留在 body 插槽。\n\n目标插件与位置: quick-help-dismiss-button\n\n需要新增的能力: 未安装可复用的“帮助卡片关闭/折叠”按钮能力，headerActions 目前没有任何子插件\n\nquick-help-card 实例 p24 的 headerActions 子插槽（p24 位于 layout_slot l10）",
+    "options": [
+      {
+        "id": "start",
+        "label": "开始开发"
+      },
+      {
+        "id": "adjust",
+        "label": "调整需求"
+      },
+      {
+        "id": "defer",
+        "label": "暂不处理"
+      }
+    ],
+    "selectionMode": "single",
+    "minSelections": 1,
+    "maxSelections": 1
+  },
+  "proposal": {
+    "targetPluginId": "quick-help-dismiss-button",
+    "desiredOutcome": "在 quick-help-card（实例 p24，layout_slot l10）的 headerActions 子插槽中新增独立的「知道了」按钮插件：点击后折叠卡片帮助内容并隐藏 body；卡片标题按钮仍可重新展开；主题切换到亮色/暗色/紫色后行为与外观仍正常。quick-help-content（实例 p25）继续保留在 body 插槽。",
+    "workKind": "create-plugin",
+    "missingCapabilities": [
+      "未安装可复用的“帮助卡片关闭/折叠”按钮能力，headerActions 目前没有任何子插件"
+    ],
+    "deliveryContract": {
+      "capability": "在帮助卡片头部提供“知道了/Got it”按钮，点击折叠并隐藏帮助内容",
+      "renderingCategory": "semantic-slot",
+      "placement": "quick-help-card 实例 p24 的 headerActions 子插槽（p24 位于 layout_slot l10）",
+      "lifecycle": "由 headerActions 插槽挂载与卸载；折叠状态由 quick-help-card 通过跨插件服务共享，卡片标题切换与按钮共享同一状态，不依赖主题属性，因此切换主题后仍生效",
+      "dependencies": [
+        "quick-help-card（新增 agent-ui 服务提供者，承载展开/折叠状态）",
+        "agent-ui.locale（可选注入，用于 zh-CN / en-US 文案）"
+      ],
+      "interactions": [
+        "点击「知道了」后帮助内容隐藏（body 不渲染可见内容）",
+        "再次点击卡片标题后帮助内容重新显示",
+        "亮色/暗色/紫色主题切换后上述点击行为与按钮样式仍正常"
+      ],
+      "verificationMethod": "runtime"
+    }
+  },
+  "zeroNewPluginFilesBeforeApproval": true,
+  "existingChangesBeforeApproval": []
+}

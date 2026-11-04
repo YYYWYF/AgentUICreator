@@ -1,0 +1,16 @@
+{
+  "root": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/resource isolated 中文 KRsFhV",
+  "scope": "Recovery inside the disposable failed-install fixture",
+  "conversation-command-source": {
+    "changed": true,
+    "verification": "passed"
+  },
+  "composer-trigger-demo": {
+    "changed": false
+  },
+  "verification": {
+    "status": "passed",
+    "errors": []
+  },
+  "status": "passed"
+}

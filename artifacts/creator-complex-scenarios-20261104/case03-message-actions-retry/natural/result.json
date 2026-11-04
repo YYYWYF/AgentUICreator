@@ -1,0 +1,75 @@
+{
+  "case": "natural",
+  "prompt": "回答生成完以后，再显示复制、评价和重新生成按钮。生成过程中只显示停止按钮，停止后可以重新生成。",
+  "timedOut": false,
+  "seconds": 92.061,
+  "status": "needs_user_input",
+  "finish": {
+    "runtime": "typescript",
+    "completion": "needs_user_input",
+    "toolProtocol": {
+      "modelCalls": 5,
+      "toolCalls": 10
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 2
+    }
+  },
+  "runErrors": [],
+  "questions": [
+    {
+      "type": "CUSTOM",
+      "name": "on_interrupt",
+      "value": {
+        "id": "c8e686b472017a0dd99dfa949203decd",
+        "reason": "human_input",
+        "metadata": {
+          "kind": "ask_user_question",
+          "steps": [
+            {
+              "id": "plugin-application-feedback-actions-1fa84e33997be92964a458b4529bfb5a0876675f922e204155880290e6c1c707",
+              "question": "是否为 feedback-actions 创建下列缺失的项目应用文件，继续使用 npm 实现而不接管源码？",
+              "description": "{\"pluginId\":\"feedback-actions\",\"files\":[\"src/agent-ui/plugins/feedback-actions/application.json\",\"src/agent-ui/plugins/feedback-actions/manifest.json\",\"src/agent-ui/plugins/feedback-actions/index.tsx\",\"src/agent-ui/plugins/feedback-actions/definition.ts\"],\"implementationOwnership\":\"npm\",\"sourceTakeover\":false}",
+              "options": [
+                {
+                  "id": "approve",
+                  "label": "创建应用文件"
+                },
+                {
+                  "id": "decline",
+                  "label": "取消"
+                }
+              ],
+              "selectionMode": "single",
+              "minSelections": 1,
+              "maxSelections": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "tools": [
+    "inspect_ui_plugin",
+    "inspect_ui_plugin",
+    "inspect_ui_project",
+    "read_file",
+    "read_creator_documentation",
+    "read_creator_documentation",
+    "read_creator_documentation",
+    "read_file",
+    "read_file",
+    "mutate_app_ui_model"
+  ],
+  "firstPreparation": null,
+  "firstMutationAttempt": {
+    "toolNumber": 10,
+    "seconds": 89.153,
+    "tool": "mutate_app_ui_model"
+  },
+  "changedPaths": [],
+  "browserErrors": []
+}

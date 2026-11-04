@@ -1,0 +1,517 @@
+{
+  "model": "deepseek-v4.1-flash",
+  "settings": {
+    "created": "2026-11-04T03:32:45.560Z",
+    "model": "deepseek-v4.1-flash",
+    "budget": 65536,
+    "keep": 12000,
+    "output": 8192,
+    "temperature": 0.2,
+    "modelTimeoutSeconds": 120,
+    "compression": true,
+    "providerFingerprint": "1d0c8dae4013f0dd0883ac7692d61535aa7cdbad5eab0302c57fa1d0f07fe77a",
+    "platform": "darwin",
+    "node": "v24.22.1",
+    "initialProject": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-4qkKVm/host",
+    "baselinePromptSha256": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "treatmentPromptSha256": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+    "evaluationDeadlineSeconds": 1200,
+    "scope": "Natural end-to-end original task, no scripted model responses. Exact previous initial source and production packages. Only the new-Plugin question is answered by an automated QA selection in this disposable project. Supporting existing-code edits before the question are allowed. No source takeover or dependency-install decision is simulated. The observation deadline is QA-only, not a Creator call/step ceiling."
+  },
+  "notes": [
+    "Provider-reported cumulative usage for Agent plus summary calls; cached input is included in input, reasoning is included in output. Permission classification is recorded separately. Missing usage makes counts lower bounds.",
+    "Same original task, pristine initial source and production dependency snapshots. One native new-Plugin question may be answered by QA in the disposable project. No scripted model decisions.",
+    "Source-cache replay is deterministic regression evidence, not proof of real-model task completion.",
+    "macOS run; real Windows not run."
+  ],
+  "before": {
+    "label": "before",
+    "status": "TIMEOUT",
+    "seconds": 1200.645,
+    "model": "deepseek-v4.1-flash",
+    "prompt": "给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。",
+    "toolCalls": 104,
+    "toolCounts": {
+      "inspect_ui_plugin": 8,
+      "inspect_ui_project": 2,
+      "read_file": 50,
+      "ls": 16,
+      "grep": 9,
+      "inspect_ui_edit_context": 1,
+      "read_creator_documentation": 13,
+      "enable_creator_tools": 1,
+      "prepare_ui_plugin_development": 2,
+      "inspect_ui_services": 1,
+      "read_creator_context": 1
+    },
+    "agentRequests": 42,
+    "summaryRequests": 10,
+    "providerReportedUsage": {
+      "input": 1421767,
+      "output": 108012,
+      "total": 1529779,
+      "cachedInput": 167552,
+      "reasoningOutput": 83504,
+      "requestsWithoutUsage": 1
+    },
+    "agentUsage": {
+      "input": 1323338,
+      "output": 65176,
+      "total": 1388514,
+      "cachedInput": 167296,
+      "reasoningOutput": 57237,
+      "requestsWithoutUsage": 0
+    },
+    "summaryUsage": {
+      "input": 98429,
+      "output": 42836,
+      "total": 141265,
+      "cachedInput": 256,
+      "reasoningOutput": 26267,
+      "requestsWithoutUsage": 1
+    },
+    "permissionUsage": {
+      "input": 4911,
+      "output": 719,
+      "total": 5630,
+      "cachedInput": 0,
+      "reasoningOutput": 692,
+      "requestsWithoutUsage": 0
+    },
+    "compactions": 9,
+    "summarySeconds": 300.0985774179999,
+    "compression": [
+      {
+        "beforeEstimatedTokens": 74660,
+        "afterEstimatedTokens": 43866,
+        "seconds": 39.329924917
+      },
+      {
+        "beforeEstimatedTokens": 69940,
+        "afterEstimatedTokens": 47247,
+        "seconds": 27.992568042
+      },
+      {
+        "beforeEstimatedTokens": 69308,
+        "afterEstimatedTokens": 51124,
+        "seconds": 19.757038
+      },
+      {
+        "beforeEstimatedTokens": 70014,
+        "afterEstimatedTokens": 49550,
+        "seconds": 45.94310637499997
+      },
+      {
+        "beforeEstimatedTokens": 70911,
+        "afterEstimatedTokens": 53722,
+        "seconds": 36.10857762500004
+      },
+      {
+        "beforeEstimatedTokens": 68807,
+        "afterEstimatedTokens": 51690,
+        "seconds": 24.32052749999997
+      },
+      {
+        "beforeEstimatedTokens": 69487,
+        "afterEstimatedTokens": 50607,
+        "seconds": 27.304848499999963
+      },
+      {
+        "beforeEstimatedTokens": 71332,
+        "afterEstimatedTokens": 51214,
+        "seconds": 36.24416524999996
+      },
+      {
+        "beforeEstimatedTokens": 66959,
+        "afterEstimatedTokens": 50017,
+        "seconds": 43.09782120899996
+      }
+    ],
+    "firstPreparation": {
+      "toolNumber": 59,
+      "seconds": 581.918,
+      "tool": "prepare_ui_plugin_development"
+    },
+    "firstMutationAttempt": null,
+    "successfulWriteTools": 0,
+    "changedPaths": [],
+    "questions": 1,
+    "qaConfirmationSeconds": 583.592,
+    "interaction": null,
+    "browserErrors": [],
+    "failures": [
+      {
+        "seconds": 1010.349,
+        "tool": "grep",
+        "code": "TOOL_PERMISSION_DENIED"
+      }
+    ],
+    "evidenceReads": 100,
+    "unchangedEvidenceReads": 50,
+    "sourceHashSetMatchesBaseline": true,
+    "modelBatchRejections": [],
+    "completionRejections": [],
+    "transportRecoveries": [],
+    "toolSchemaCounts": {
+      "25": 17,
+      "41": 25
+    },
+    "confirmedStateDeliveredRequests": 19,
+    "completeCardSourceDeliveredRequests": 0,
+    "runtimeErrors": [
+      {
+        "code": "CREATOR_RUN_STOPPED",
+        "message": "CREATOR_RUN_STOPPED",
+        "verification": {
+          "status": "no-project-change",
+          "projectRevision": 0,
+          "validationRevision": null,
+          "auditAttempts": 0,
+          "checks": [],
+          "verificationMode": "static_only",
+          "runtimeStatus": "not-run"
+        }
+      }
+    ],
+    "runIds": [
+      "3ef56778-3b62-4190-9230-528a81875756",
+      "6d717db4-5e22-49a3-8529-2b650f3ac987"
+    ],
+    "allReportedUsage": {
+      "input": 1426678,
+      "output": 108731,
+      "total": 1535409,
+      "requestsWithoutUsage": 1
+    }
+  },
+  "after": {
+    "label": "after",
+    "status": "TIMEOUT",
+    "seconds": 1200.359,
+    "model": "deepseek-v4.1-flash",
+    "prompt": "给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。",
+    "toolCalls": 97,
+    "toolCounts": {
+      "inspect_ui_project": 3,
+      "ls": 10,
+      "inspect_ui_plugin": 13,
+      "read_file": 39,
+      "grep": 10,
+      "enable_creator_tools": 1,
+      "read_creator_documentation": 18,
+      "inspect_ui_edit_context": 1,
+      "prepare_ui_plugin_development": 2
+    },
+    "agentRequests": 49,
+    "summaryRequests": 12,
+    "providerReportedUsage": {
+      "input": 1689512,
+      "output": 111826,
+      "total": 1801338,
+      "cachedInput": 108416,
+      "reasoningOutput": 84539,
+      "requestsWithoutUsage": 1
+    },
+    "agentUsage": {
+      "input": 1567108,
+      "output": 68987,
+      "total": 1636095,
+      "cachedInput": 108416,
+      "reasoningOutput": 60665,
+      "requestsWithoutUsage": 0
+    },
+    "summaryUsage": {
+      "input": 122404,
+      "output": 42839,
+      "total": 165243,
+      "cachedInput": 0,
+      "reasoningOutput": 23874,
+      "requestsWithoutUsage": 1
+    },
+    "permissionUsage": {
+      "input": 5065,
+      "output": 150,
+      "total": 5215,
+      "cachedInput": 4992,
+      "reasoningOutput": 80,
+      "requestsWithoutUsage": 0
+    },
+    "compactions": 11,
+    "summarySeconds": 309.3580099579995,
+    "compression": [
+      {
+        "beforeEstimatedTokens": 67704,
+        "afterEstimatedTokens": 47290,
+        "seconds": 23.304612125
+      },
+      {
+        "beforeEstimatedTokens": 68502,
+        "afterEstimatedTokens": 49987,
+        "seconds": 27.725510582999995
+      },
+      {
+        "beforeEstimatedTokens": 67973,
+        "afterEstimatedTokens": 48453,
+        "seconds": 24.962928958000035
+      },
+      {
+        "beforeEstimatedTokens": 69258,
+        "afterEstimatedTokens": 55836,
+        "seconds": 22.668268125
+      },
+      {
+        "beforeEstimatedTokens": 75125,
+        "afterEstimatedTokens": 50048,
+        "seconds": 25.31911495799996
+      },
+      {
+        "beforeEstimatedTokens": 66359,
+        "afterEstimatedTokens": 47939,
+        "seconds": 21.776309124999912
+      },
+      {
+        "beforeEstimatedTokens": 70104,
+        "afterEstimatedTokens": 47119,
+        "seconds": 29.865782291999903
+      },
+      {
+        "beforeEstimatedTokens": 70950,
+        "afterEstimatedTokens": 51346,
+        "seconds": 37.48606183299993
+      },
+      {
+        "beforeEstimatedTokens": 71220,
+        "afterEstimatedTokens": 48720,
+        "seconds": 29.801660582999933
+      },
+      {
+        "beforeEstimatedTokens": 67790,
+        "afterEstimatedTokens": 46971,
+        "seconds": 40.69746133399999
+      },
+      {
+        "beforeEstimatedTokens": 66765,
+        "afterEstimatedTokens": 49481,
+        "seconds": 25.7503000419999
+      }
+    ],
+    "firstPreparation": {
+      "toolNumber": 50,
+      "seconds": 617.134,
+      "tool": "prepare_ui_plugin_development"
+    },
+    "firstMutationAttempt": null,
+    "successfulWriteTools": 0,
+    "changedPaths": [],
+    "questions": 1,
+    "qaConfirmationSeconds": 618.881,
+    "interaction": null,
+    "browserErrors": [],
+    "failures": [
+      {
+        "seconds": 118.003,
+        "tool": "grep",
+        "code": "TOOL_PERMISSION_DENIED"
+      }
+    ],
+    "evidenceReads": 93,
+    "unchangedEvidenceReads": 41,
+    "sourceHashSetMatchesBaseline": true,
+    "modelBatchRejections": [],
+    "completionRejections": [],
+    "transportRecoveries": [],
+    "toolSchemaCounts": {
+      "25": 11,
+      "35": 38
+    },
+    "confirmedStateDeliveredRequests": 23,
+    "completeCardSourceDeliveredRequests": 46,
+    "runtimeErrors": [
+      {
+        "code": "CREATOR_RUN_STOPPED",
+        "message": "CREATOR_RUN_STOPPED",
+        "verification": {
+          "status": "no-project-change",
+          "projectRevision": 0,
+          "validationRevision": null,
+          "auditAttempts": 0,
+          "checks": [],
+          "verificationMode": "static_only",
+          "runtimeStatus": "not-run"
+        }
+      }
+    ],
+    "runIds": [
+      "9026bc65-54b8-4b50-9857-72412996f6f5",
+      "fc58d95e-c6ba-4124-b860-9b16a73c518d"
+    ],
+    "allReportedUsage": {
+      "input": 1694577,
+      "output": 111976,
+      "total": 1806553,
+      "requestsWithoutUsage": 1
+    }
+  },
+  "firstEngineeringRun": {
+    "label": "after",
+    "status": "TIMEOUT",
+    "seconds": 1200.412,
+    "model": "deepseek-v4.1-flash",
+    "prompt": "给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。",
+    "toolCalls": 92,
+    "toolCounts": {
+      "inspect_ui_plugin": 9,
+      "inspect_ui_edit_context": 4,
+      "read_file": 35,
+      "grep": 7,
+      "ls": 7,
+      "read_creator_documentation": 25,
+      "inspect_ui_project": 3,
+      "prepare_ui_plugin_development": 2
+    },
+    "agentRequests": 40,
+    "summaryRequests": 9,
+    "providerReportedUsage": {
+      "input": 1356353,
+      "output": 95486,
+      "total": 1451839,
+      "cachedInput": 757248,
+      "reasoningOutput": 73282,
+      "requestsWithoutUsage": 1
+    },
+    "agentUsage": {
+      "input": 1251567,
+      "output": 60812,
+      "total": 1312379,
+      "cachedInput": 757248,
+      "reasoningOutput": 52682,
+      "requestsWithoutUsage": 0
+    },
+    "summaryUsage": {
+      "input": 104786,
+      "output": 34674,
+      "total": 139460,
+      "cachedInput": 0,
+      "reasoningOutput": 20600,
+      "requestsWithoutUsage": 1
+    },
+    "permissionUsage": {
+      "input": 4911,
+      "output": 184,
+      "total": 5095,
+      "cachedInput": 0,
+      "reasoningOutput": 157,
+      "requestsWithoutUsage": 0
+    },
+    "compactions": 8,
+    "summarySeconds": 268.17342224999976,
+    "compression": [
+      {
+        "beforeEstimatedTokens": 71844,
+        "afterEstimatedTokens": 42346,
+        "seconds": 33.90031595800001
+      },
+      {
+        "beforeEstimatedTokens": 70281,
+        "afterEstimatedTokens": 45127,
+        "seconds": 34.18862045900003
+      },
+      {
+        "beforeEstimatedTokens": 72770,
+        "afterEstimatedTokens": 47372,
+        "seconds": 38.37379449999996
+      },
+      {
+        "beforeEstimatedTokens": 70381,
+        "afterEstimatedTokens": 45613,
+        "seconds": 31.843331915999997
+      },
+      {
+        "beforeEstimatedTokens": 65761,
+        "afterEstimatedTokens": 47668,
+        "seconds": 31.635636707999975
+      },
+      {
+        "beforeEstimatedTokens": 72667,
+        "afterEstimatedTokens": 47263,
+        "seconds": 44.334191624999974
+      },
+      {
+        "beforeEstimatedTokens": 70152,
+        "afterEstimatedTokens": 47535,
+        "seconds": 27.485488416999928
+      },
+      {
+        "beforeEstimatedTokens": 67791,
+        "afterEstimatedTokens": 48297,
+        "seconds": 26.412042666999856
+      }
+    ],
+    "firstPreparation": {
+      "toolNumber": 68,
+      "seconds": 903.122,
+      "tool": "prepare_ui_plugin_development"
+    },
+    "firstMutationAttempt": null,
+    "successfulWriteTools": 0,
+    "changedPaths": [],
+    "questions": 1,
+    "qaConfirmationSeconds": 904.876,
+    "interaction": null,
+    "browserErrors": [],
+    "failures": [
+      {
+        "seconds": 338.428,
+        "tool": "grep",
+        "code": "TOOL_PERMISSION_DENIED"
+      },
+      {
+        "seconds": 946.299,
+        "tool": "read_file",
+        "code": "CREATOR_PROJECT_PATH_NOT_FOUND"
+      }
+    ],
+    "evidenceReads": 88,
+    "unchangedEvidenceReads": 52,
+    "sourceHashSetMatchesBaseline": true,
+    "runtimeErrors": [
+      {
+        "code": "CREATOR_RUN_STOPPED",
+        "message": "CREATOR_RUN_STOPPED",
+        "verification": {
+          "status": "no-project-change",
+          "projectRevision": 0,
+          "validationRevision": null,
+          "auditAttempts": 0,
+          "checks": [],
+          "verificationMode": "static_only",
+          "runtimeStatus": "not-run"
+        }
+      }
+    ],
+    "runIds": [
+      "0fbeaa66-9fc5-411d-a6e5-3c96be8b4795",
+      "0685a499-ca07-4f65-8dc7-6bf0ccb4dd19"
+    ],
+    "allReportedUsage": {
+      "input": 1361264,
+      "output": 95670,
+      "total": 1456934,
+      "requestsWithoutUsage": 1
+    }
+  },
+  "validation": {
+    "testFiles": 49,
+    "tests": 497,
+    "nodeAndBrowserTypecheck": "passed",
+    "creatorBuild": "passed",
+    "offlineDocumentation": "verified",
+    "diffWhitespace": "passed",
+    "platform": "macOS; real Windows not run"
+  },
+  "experimentNotes": [
+    "Main system prompt, main Skill, summary policy, budgets and graph runner match the previous frozen run. Final follow-up additionally removes contradictory Service restrictions from two reference files; their combined size decreased by 159 bytes.",
+    "First new run did not enable plugin_authoring. Final follow-up explicitly enabled it before confirmation, so that run does not isolate the effect of auto-enabling creation tools. Native graph and unit regressions cover automatic tool visibility after start, reuse, defer and adjust.",
+    "Both tests ended via the QA-only 1200-second observation stop. No production cumulative call/step limit was added. No behavior implementation was created, so interaction validation did not run."
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "name": "order event renders business fields",
+      "status": "passed"
+    },
+    {
+      "name": "long order has working expansion",
+      "status": "passed"
+    },
+    {
+      "name": "malformed order leaves composer usable",
+      "status": "passed"
+    }
+  ],
+  "protocolEventsSent": [
+    {
+      "at": "2026-11-04T09:19:17.416Z",
+      "event": {
+        "type": "CUSTOM",
+        "name": "app.order.summary",
+        "value": {
+          "order_no": "O-20261104-001",
+          "status": "paid",
+          "currency": "CNY",
+          "total_amount": 258,
+          "items": [
+            {
+              "name": "键盘",
+              "quantity": 1,
+              "unit_price": 199
+            },
+            {
+              "name": "鼠标垫",
+              "quantity": 1,
+              "unit_price": 59
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-11-04T09:19:17.960Z",
+      "event": {
+        "type": "CUSTOM",
+        "name": "app.order.summary",
+        "value": {
+          "order_no": "O-LONG",
+          "status": "paid",
+          "currency": "CNY",
+          "total_amount": 258,
+          "items": [
+            {
+              "name": "扩展商品-1",
+              "quantity": 1,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-2",
+              "quantity": 2,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-3",
+              "quantity": 3,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-4",
+              "quantity": 4,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-5",
+              "quantity": 5,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-6",
+              "quantity": 6,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-7",
+              "quantity": 7,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-8",
+              "quantity": 8,
+              "unit_price": 10
+            },
+            {
+              "name": "扩展商品-9",
+              "quantity": 9,
+              "unit_price": 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-11-04T09:19:18.719Z",
+      "event": {
+        "type": "CUSTOM",
+        "name": "app.order.summary",
+        "value": {
+          "order_no": "O-INVALID",
+          "items": null,
+          "total_amount": "bad"
+        }
+      }
+    }
+  ],
+  "caseId": "case05-order",
+  "scope": "Independent standalone Host browser verification after native Creator run; no Agent UI implementation edits.",
+  "httpRequests": [
+    {
+      "url": "http://127.0.0.1:64294/agent"
+    },
+    {
+      "url": "http://127.0.0.1:64294/agent"
+    },
+    {
+      "url": "http://127.0.0.1:64294/agent"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "agentUiHashesUnchanged": true
+}

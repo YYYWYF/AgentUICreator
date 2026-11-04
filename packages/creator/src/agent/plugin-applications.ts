@@ -1,14 +1,11 @@
 import { preparePluginEnablement, completePluginEnablement, type PluginEnablementPreparation } from "@za38.03/agent-ui-creator/project/commands";
-import { interrupt } from "@langchain/langgraph";
 import { inspectProject } from "./inspection.js";
-import { cancelExecution } from "./execution-decision.js";
 import type { ToolContext } from "./tools.js";
-import { defaultAgentMessages } from "./messages.js";
 
 /** Composition must use the installed Plugin's project application and Host
  * bindings. Preparing that thin layer is separate from implementation takeover. */
 export async function prepareCompositionApplications(context: ToolContext, input: { operations?: any[] }) {
-  const messages = context.messages ?? defaultAgentMessages;
+  if (context.readOnly) throw new Error("TOOL_PERMISSION_DENIED");
   const ids = new Set<string>();
   const visit = (value: any) => {
     if (!value || typeof value !== "object") return;
@@ -43,24 +40,18 @@ export async function prepareCompositionApplications(context: ToolContext, input
     if (!plan.files.length) continue;
     plans.push(plan);
   }
-  // One checkpoint-bound preparation per native tool call avoids changing the
-  // interrupt replay order after an earlier application has been created.
-  if (plans.length > 1) throw new Error("PLUGIN_APPLICATION_PREPARATION_BATCH_REQUIRED: Split additions of missing npm applications into separate mutate_app_ui_model calls; preserve every requested Plugin.");
   for (const plan of plans) {
-    const pluginId = plan.pluginId;
-    const key = `plugin-application-${pluginId}-${plan.stateHash}`;
-    const answer: any = interrupt({ kind: "ask_user_question", steps: [{ id: key,
-      question: messages.pluginApplicationQuestion.replace("{0}", pluginId),
-      description: JSON.stringify({ pluginId, files: plan.files, implementationOwnership: "npm", sourceTakeover: false }),
-      options: [{ id: "approve", label: messages.approvePluginApplication }, { id: "decline", label: messages.cancel }],
-      selectionMode: "single", minSelections: 1, maxSelections: 1 }] });
-    if (!(key in (answer.answers ?? {}))) throw new Error("PLUGIN_ENABLEMENT_PREPARATION_STALE");
-    if (answer.answers[key]?.[0] !== "approve") return cancelExecution(context, "mutate_app_ui_model");
+    // Requested installed Plugins already have an identity and npm source.
+    // Missing thin application files are ordinary project code, not takeover.
+    // Earlier applications can add shared Host bindings; replan against them.
+    const current = await preparePluginEnablement(context.root, plan.pluginId);
+    if (current.packages.length) throw Object.assign(new Error("PLUGIN_ENABLEMENT_DEPENDENCIES_REQUIRED"), { code: "PLUGIN_ENABLEMENT_DEPENDENCIES_REQUIRED", preparation: current });
+    if (!current.files.length) continue;
     context.signal.throwIfAborted();
     const snapshot = await context.activity.captureSource();
     let result;
     try {
-      const applied = await completePluginEnablement(context.root, plan);
+      const applied = await completePluginEnablement(context.root, current);
       result = { ...applied, changedPaths: applied.createdPaths };
     } finally { await context.activity.observeOperatorChanges(snapshot, result); }
     context.signal.throwIfAborted();

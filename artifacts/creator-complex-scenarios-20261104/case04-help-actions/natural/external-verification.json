@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "name": "example action fills current composer without sending",
+      "status": "passed"
+    },
+    {
+      "name": "filled example can be sent by user",
+      "status": "passed"
+    }
+  ],
+  "protocolEventsSent": [],
+  "caseId": "case04-help-actions",
+  "scope": "Independent standalone Host browser verification after native Creator run; no Agent UI implementation edits.",
+  "browserErrors": [],
+  "consoleErrors": [],
+  "agentUiHashesUnchanged": true
+}

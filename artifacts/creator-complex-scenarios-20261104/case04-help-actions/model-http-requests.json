@@ -1,0 +1,3325 @@
+[
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:45:17.320Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 23579,
+    "purpose": "permission",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 51,
+    "incomingReasoningCharacters": 945,
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 5047,
+      "completion_tokens": 219,
+      "total_tokens": 5266,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 192
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0017769,
+        "allowance": 0.00106614,
+        "tokens": {
+          "input": 5047,
+          "output": 219,
+          "reasoning": 192,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "ended": "2026-11-04T08:45:22.846Z",
+    "seconds": 5.526
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:45:25.041Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 59118,
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 266,
+    "incomingReasoningCharacters": 4038,
+    "usage": {
+      "prompt_tokens": 26316,
+      "completion_tokens": 1053,
+      "total_tokens": 27369,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 883
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0091584,
+        "allowance": 0.00549504,
+        "tokens": {
+          "input": 26316,
+          "output": 1053,
+          "reasoning": 883,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:45:39.323Z",
+    "seconds": 14.282
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:45:46.320Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 100065,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/definition.ts",
+        "hash": "929e9d6f8d685cedf00eb4fcc030db3a61a7b042100e0a71a1aa6daf4fad23b7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 77,
+    "incomingReasoningCharacters": 1216,
+    "usage": {
+      "prompt_tokens": 37220,
+      "completion_tokens": 360,
+      "total_tokens": 37580,
+      "prompt_tokens_details": {
+        "cached_tokens": 26240
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 247
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00388344,
+        "allowance": 0.00233006,
+        "tokens": {
+          "input": 10980,
+          "output": 360,
+          "reasoning": 247,
+          "cache_read": 26240,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:45:52.931Z",
+    "seconds": 6.611
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:45:53.117Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 103684,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/definition.ts",
+        "hash": "929e9d6f8d685cedf00eb4fcc030db3a61a7b042100e0a71a1aa6daf4fad23b7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 58,
+    "incomingReasoningCharacters": 923,
+    "usage": {
+      "prompt_tokens": 37997,
+      "completion_tokens": 355,
+      "total_tokens": 38352,
+      "prompt_tokens_details": {
+        "cached_tokens": 34560
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 200
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00166446,
+        "allowance": 0.00099868,
+        "tokens": {
+          "input": 3437,
+          "output": 355,
+          "reasoning": 200,
+          "cache_read": 34560,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:46:00.148Z",
+    "seconds": 7.031
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:46:00.239Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 107176,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 923,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "3f03d21bea33f4ffae5411031d32e109fb84112d16e4aeeb0e79dd05d367d1f0",
+        "start": 1,
+        "end": 4,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 25,
+    "incomingReasoningCharacters": 374,
+    "usage": {
+      "prompt_tokens": 38945,
+      "completion_tokens": 187,
+      "total_tokens": 39132,
+      "prompt_tokens_details": {
+        "cached_tokens": 35328
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 91
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00152147,
+        "allowance": 0.00091288,
+        "tokens": {
+          "input": 3617,
+          "output": 187,
+          "reasoning": 91,
+          "cache_read": 35328,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:46:05.425Z",
+    "seconds": 5.186
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:46:09.306Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 119369,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 923,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 374,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "3f03d21bea33f4ffae5411031d32e109fb84112d16e4aeeb0e79dd05d367d1f0",
+        "start": 1,
+        "end": 4,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 598,
+    "incomingReasoningCharacters": 8635,
+    "usage": {
+      "prompt_tokens": 41809,
+      "completion_tokens": 2020,
+      "total_tokens": 43829,
+      "prompt_tokens_details": {
+        "cached_tokens": 36224
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1853
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00431684,
+        "allowance": 0.00259011,
+        "tokens": {
+          "input": 5585,
+          "output": 2020,
+          "reasoning": 1853,
+          "cache_read": 36224,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:46:35.021Z",
+    "seconds": 25.715
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:46:35.109Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 47348,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 1129,
+    "incomingReasoningCharacters": 18224,
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 10184,
+      "completion_tokens": 4440,
+      "total_tokens": 14624,
+      "prompt_tokens_details": {
+        "cached_tokens": 256,
+        "cache_write_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3657
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00830794,
+        "allowance": 0.00498476,
+        "tokens": {
+          "input": 9928,
+          "output": 4440,
+          "reasoning": 3657,
+          "cache_read": 256,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "ended": "2026-11-04T08:47:27.452Z",
+    "seconds": 52.343
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:47:27.498Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 89922,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 923,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 374,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 8635,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 34,
+    "incomingReasoningCharacters": 581,
+    "usage": {
+      "prompt_tokens": 35564,
+      "completion_tokens": 223,
+      "total_tokens": 35787,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 119
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00604464,
+        "allowance": 0.00362678,
+        "tokens": {
+          "input": 18924,
+          "output": 223,
+          "reasoning": 119,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T08:47:32.220Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:47:32.353Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 100235,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 923,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 374,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 8635,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 581,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 163,
+    "incomingReasoningCharacters": 2306,
+    "usage": {
+      "prompt_tokens": 38490,
+      "completion_tokens": 583,
+      "total_tokens": 39073,
+      "prompt_tokens_details": {
+        "cached_tokens": 32896
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 467
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00257518,
+        "allowance": 0.00154511,
+        "tokens": {
+          "input": 5594,
+          "output": 583,
+          "reasoning": 467,
+          "cache_read": 32896,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:47:43.114Z",
+    "seconds": 10.761
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:47:43.169Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 105231,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4038,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1216,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 923,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 374,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 8635,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 581,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2306,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 631,
+    "incomingReasoningCharacters": 9018,
+    "usage": {
+      "prompt_tokens": 39833,
+      "completion_tokens": 2063,
+      "total_tokens": 41896,
+      "prompt_tokens_details": {
+        "cached_tokens": 35840
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2036
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00388854,
+        "allowance": 0.00233312,
+        "tokens": {
+          "input": 3993,
+          "output": 2063,
+          "reasoning": 2036,
+          "cache_read": 35840,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:48:07.012Z",
+    "seconds": 23.843
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:48:08.796Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 62512,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 1445,
+    "incomingReasoningCharacters": 19908,
+    "usage": {
+      "prompt_tokens": 16079,
+      "completion_tokens": 5519,
+      "total_tokens": 21598,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4208
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0114465,
+        "allowance": 0.0068679,
+        "tokens": {
+          "input": 16079,
+          "output": 5519,
+          "reasoning": 4208,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T08:48:47.913Z",
+    "seconds": 39.117
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:48:47.956Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 69476,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2306,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 9018,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 674,
+    "incomingReasoningCharacters": 9354,
+    "usage": {
+      "prompt_tokens": 30197,
+      "completion_tokens": 2158,
+      "total_tokens": 32355,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2113
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00675654,
+        "allowance": 0.00405392,
+        "tokens": {
+          "input": 13557,
+          "output": 2158,
+          "reasoning": 2113,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:49:14.517Z",
+    "seconds": 26.561
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:49:14.582Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 79366,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2306,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 9018,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 9354,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 986,
+    "incomingReasoningCharacters": 13606,
+    "usage": {
+      "prompt_tokens": 32984,
+      "completion_tokens": 3188,
+      "total_tokens": 36172,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3058
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00882864,
+        "allowance": 0.00529718,
+        "tokens": {
+          "input": 16344,
+          "output": 3188,
+          "reasoning": 3058,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:49:52.777Z",
+    "seconds": 38.195
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:49:53.622Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 119987,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2306,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 9018,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 9354,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 13606,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "3f03d21bea33f4ffae5411031d32e109fb84112d16e4aeeb0e79dd05d367d1f0",
+        "start": 1,
+        "end": 4,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 284,
+    "incomingReasoningCharacters": 3701,
+    "usage": {
+      "prompt_tokens": 43483,
+      "completion_tokens": 985,
+      "total_tokens": 44468,
+      "prompt_tokens_details": {
+        "cached_tokens": 30336
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 831
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00530812,
+        "allowance": 0.00318487,
+        "tokens": {
+          "input": 13147,
+          "output": 985,
+          "reasoning": 831,
+          "cache_read": 30336,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:50:07.608Z",
+    "seconds": 13.986
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:50:07.698Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 37391,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 776,
+    "incomingReasoningCharacters": 10695,
+    "usage": {
+      "prompt_tokens": 8911,
+      "completion_tokens": 3766,
+      "total_tokens": 12677,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2168
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00711724,
+        "allowance": 0.00427034,
+        "tokens": {
+          "input": 8655,
+          "output": 3766,
+          "reasoning": 2168,
+          "cache_read": 256,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T08:50:51.205Z",
+    "seconds": 43.507
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:50:51.245Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 85305,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 13606,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3701,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 207,
+    "incomingReasoningCharacters": 2795,
+    "usage": {
+      "prompt_tokens": 35624,
+      "completion_tokens": 656,
+      "total_tokens": 36280,
+      "prompt_tokens_details": {
+        "cached_tokens": 17280
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 629
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00639408,
+        "allowance": 0.00383645,
+        "tokens": {
+          "input": 18344,
+          "output": 656,
+          "reasoning": 629,
+          "cache_read": 17280,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:51:02.053Z",
+    "seconds": 10.808
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:51:02.970Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 114447,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 13606,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3701,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 512,
+    "incomingReasoningCharacters": 7733,
+    "usage": {
+      "prompt_tokens": 42399,
+      "completion_tokens": 2533,
+      "total_tokens": 44932,
+      "prompt_tokens_details": {
+        "cached_tokens": 32896
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1942
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00608788,
+        "allowance": 0.00365273,
+        "tokens": {
+          "input": 9503,
+          "output": 2533,
+          "reasoning": 1942,
+          "cache_read": 32896,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T08:51:27.657Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:51:27.688Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 114888,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 13606,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3701,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 889,
+    "incomingReasoningCharacters": 12634,
+    "usage": {
+      "prompt_tokens": 42483,
+      "completion_tokens": 3540,
+      "total_tokens": 46023,
+      "prompt_tokens_details": {
+        "cached_tokens": 42368
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3066
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00453671,
+        "allowance": 0.00272202,
+        "tokens": {
+          "input": 115,
+          "output": 3540,
+          "reasoning": 3066,
+          "cache_read": 42368,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:52:07.472Z",
+    "seconds": 39.784
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:52:08.641Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 46806,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 568,
+    "incomingReasoningCharacters": 8554,
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 12257,
+      "completion_tokens": 3699,
+      "total_tokens": 15956,
+      "prompt_tokens_details": {
+        "cached_tokens": 512,
+        "cache_write_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1766
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00796537,
+        "allowance": 0.00477922,
+        "tokens": {
+          "input": 11745,
+          "output": 3699,
+          "reasoning": 1766,
+          "cache_read": 512,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "ended": "2026-11-04T08:53:15.832Z",
+    "seconds": 67.191
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:15.890Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 75586,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 21,
+    "incomingReasoningCharacters": 336,
+    "usage": {
+      "prompt_tokens": 32240,
+      "completion_tokens": 154,
+      "total_tokens": 32394,
+      "prompt_tokens_details": {
+        "cached_tokens": 17280
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 71
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00477648,
+        "allowance": 0.00286589,
+        "tokens": {
+          "input": 14960,
+          "output": 154,
+          "reasoning": 71,
+          "cache_read": 17280,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:53:22.354Z",
+    "seconds": 6.464
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:22.426Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 78200,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "3f03d21bea33f4ffae5411031d32e109fb84112d16e4aeeb0e79dd05d367d1f0",
+        "start": 1,
+        "end": 4,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 5,
+    "incomingReasoningCharacters": 80,
+    "usage": {
+      "prompt_tokens": 32984,
+      "completion_tokens": 195,
+      "total_tokens": 33179,
+      "prompt_tokens_details": {
+        "cached_tokens": 29568
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 16
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00143621,
+        "allowance": 0.00086172,
+        "tokens": {
+          "input": 3416,
+          "output": 195,
+          "reasoning": 16,
+          "cache_read": 29568,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:53:27.279Z",
+    "seconds": 4.853
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:27.328Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 79054,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "51a44dbe9638f0fbb537545c5f215d9428d27d9570a383744624d52e8109cadf",
+        "start": 1,
+        "end": 58,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 5,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 253,
+    "incomingReasoningCharacters": 4017,
+    "usage": {
+      "prompt_tokens": 33213,
+      "completion_tokens": 1958,
+      "total_tokens": 35171,
+      "prompt_tokens_details": {
+        "cached_tokens": 30336
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 980
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00339472,
+        "allowance": 0.00203683,
+        "tokens": {
+          "input": 2877,
+          "output": 1958,
+          "reasoning": 980,
+          "cache_read": 30336,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:53:46.164Z",
+    "seconds": 18.836
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:46.218Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 86101,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "09b62afa881fff99d184e369aef8375b29bee0baeb74f31d2e47c8a46079d1fc",
+        "start": 1,
+        "end": 81,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 16,
+    "incomingReasoningCharacters": 161,
+    "usage": {
+      "prompt_tokens": 34806,
+      "completion_tokens": 377,
+      "total_tokens": 35183,
+      "prompt_tokens_details": {
+        "cached_tokens": 30592
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 38
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00190015,
+        "allowance": 0.00114009,
+        "tokens": {
+          "input": 4214,
+          "output": 377,
+          "reasoning": 38,
+          "cache_read": 30592,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:53:50.785Z",
+    "seconds": 4.567
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:50.835Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 86300,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 161,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/definition.ts",
+        "hash": "929e9d6f8d685cedf00eb4fcc030db3a61a7b042100e0a71a1aa6daf4fad23b7",
+        "start": 1,
+        "end": 14,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 16,
+    "incomingReasoningCharacters": 153,
+    "usage": {
+      "prompt_tokens": 34679,
+      "completion_tokens": 216,
+      "total_tokens": 34895,
+      "prompt_tokens_details": {
+        "cached_tokens": 32512
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 37
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00110437,
+        "allowance": 0.00066262,
+        "tokens": {
+          "input": 2167,
+          "output": 216,
+          "reasoning": 37,
+          "cache_read": 32512,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:53:55.525Z",
+    "seconds": 4.69
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:53:55.569Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 87285,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 161,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 153,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 57,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+        "hash": "25182348a1daf0e0f62f91d745666b6d04ec9517981f72b35961992a6597059a",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/definition.ts",
+        "hash": "929e9d6f8d685cedf00eb4fcc030db3a61a7b042100e0a71a1aa6daf4fad23b7",
+        "start": 1,
+        "end": 14,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 40,
+    "incomingReasoningCharacters": 545,
+    "usage": {
+      "prompt_tokens": 34936,
+      "completion_tokens": 284,
+      "total_tokens": 35220,
+      "prompt_tokens_details": {
+        "cached_tokens": 32896
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 127
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00115018,
+        "allowance": 0.00069011,
+        "tokens": {
+          "input": 2040,
+          "output": 284,
+          "reasoning": 127,
+          "cache_read": 32896,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:54:05.916Z",
+    "seconds": 10.347
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:54:05.996Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 97897,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 161,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 153,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 545,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "66c9ed60e04a5799d857e8466e9155099e5c9862edf0b0a33537a257face8198",
+        "start": 1,
+        "end": 41,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 13,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 42,
+    "incomingReasoningCharacters": 402,
+    "usage": {
+      "prompt_tokens": 37955,
+      "completion_tokens": 289,
+      "total_tokens": 38244,
+      "prompt_tokens_details": {
+        "cached_tokens": 33152
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 119
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00198661,
+        "allowance": 0.00119197,
+        "tokens": {
+          "input": 4803,
+          "output": 289,
+          "reasoning": 119,
+          "cache_read": 33152,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:54:12.816Z",
+    "seconds": 6.82
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:54:17.331Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 101398,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 161,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 153,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 545,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 402,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "66c9ed60e04a5799d857e8466e9155099e5c9862edf0b0a33537a257face8198",
+        "start": 1,
+        "end": 41,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 13,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 19,
+    "incomingReasoningCharacters": 280,
+    "usage": {
+      "prompt_tokens": 38954,
+      "completion_tokens": 136,
+      "total_tokens": 39090,
+      "prompt_tokens_details": {
+        "cached_tokens": 35456
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 61
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00142534,
+        "allowance": 0.0008552,
+        "tokens": {
+          "input": 3498,
+          "output": 136,
+          "reasoning": 61,
+          "cache_read": 35456,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:54:23.444Z",
+    "seconds": 6.113
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:54:27.560Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 102862,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2795,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 12634,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 336,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 80,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4017,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 161,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 153,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 545,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 402,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 280,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "66c9ed60e04a5799d857e8466e9155099e5c9862edf0b0a33537a257face8198",
+        "start": 1,
+        "end": 41,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 13,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 41,
+    "incomingReasoningCharacters": 462,
+    "usage": {
+      "prompt_tokens": 39313,
+      "completion_tokens": 220,
+      "total_tokens": 39533,
+      "prompt_tokens_details": {
+        "cached_tokens": 36480
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 107
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00133278,
+        "allowance": 0.00079967,
+        "tokens": {
+          "input": 2833,
+          "output": 220,
+          "reasoning": 107,
+          "cache_read": 36480,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T08:54:35.612Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:54:38.189Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 58792,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 786,
+    "incomingReasoningCharacters": 14744,
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 14989,
+      "completion_tokens": 5075,
+      "total_tokens": 20064,
+      "prompt_tokens_details": {
+        "cached_tokens": 512,
+        "cache_write_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3193
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.01043617,
+        "allowance": 0.0062617,
+        "tokens": {
+          "input": 14477,
+          "output": 5075,
+          "reasoning": 3193,
+          "cache_read": 512,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "ended": "2026-11-04T08:55:51.984Z",
+    "seconds": 73.795
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:55:52.032Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 79634,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 462,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "66c9ed60e04a5799d857e8466e9155099e5c9862edf0b0a33537a257face8198",
+        "start": 1,
+        "end": 41,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useQuickHelpCardExpanded.ts",
+        "hash": "1dda0a27e93079f2baecc6e1c41a53322501f81cc2c955c9b0b556167a12b7e9",
+        "start": 1,
+        "end": 13,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 202,
+    "incomingReasoningCharacters": 2792,
+    "usage": {
+      "prompt_tokens": 35256,
+      "completion_tokens": 771,
+      "total_tokens": 36027,
+      "prompt_tokens_details": {
+        "cached_tokens": 17280
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 612
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00642168,
+        "allowance": 0.00385301,
+        "tokens": {
+          "input": 17976,
+          "output": 771,
+          "reasoning": 612,
+          "cache_read": 17280,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:56:04.643Z",
+    "seconds": 12.611
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:56:04.721Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 88103,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 462,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2792,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "c31737f174eba6714061350929cc3bd5917d5df3e3384b7ab0f627854f17a396",
+        "start": 1,
+        "end": 115,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/hooks/useComposerDraftFill.ts",
+        "hash": "1252e4567a1550496ed65e7e51e2d51a2969400d62b4a80d1442c0a7bf62ebe5",
+        "start": 1,
+        "end": 60,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/composer/index.tsx",
+        "hash": "66c9ed60e04a5799d857e8466e9155099e5c9862edf0b0a33537a257face8198",
+        "start": 1,
+        "end": 41,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 265,
+    "incomingReasoningCharacters": 3779,
+    "usage": {
+      "prompt_tokens": 38058,
+      "completion_tokens": 902,
+      "total_tokens": 38960,
+      "prompt_tokens_details": {
+        "cached_tokens": 32768
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 817
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00286601,
+        "allowance": 0.0017196,
+        "tokens": {
+          "input": 5290,
+          "output": 902,
+          "reasoning": 817,
+          "cache_read": 32768,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:56:22.558Z",
+    "seconds": 17.837
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:56:22.665Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 96757,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 462,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2792,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3779,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "c31737f174eba6714061350929cc3bd5917d5df3e3384b7ab0f627854f17a396",
+        "start": 1,
+        "end": 115,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 139,
+    "incomingReasoningCharacters": 2055,
+    "usage": {
+      "prompt_tokens": 40259,
+      "completion_tokens": 823,
+      "total_tokens": 41082,
+      "prompt_tokens_details": {
+        "cached_tokens": 35328
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 451
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00267887,
+        "allowance": 0.00160732,
+        "tokens": {
+          "input": 4931,
+          "output": 823,
+          "reasoning": 451,
+          "cache_read": 35328,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T08:56:33.571Z",
+    "seconds": 10.906
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T08:56:36.333Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 30,
+    "toolSchemaCharacters": 44545,
+    "messageCharacters": 102335,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 462,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2792,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3779,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2055,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "hash": "4bfac6c8d95cd1a11a48fd5eb3e14f8cce47bd244ccf4b57794707da30d81858",
+        "start": 1,
+        "end": 106,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+        "hash": "c31737f174eba6714061350929cc3bd5917d5df3e3384b7ab0f627854f17a396",
+        "start": 1,
+        "end": 115,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "quick-help-card",
+            "entryPath": "src/agent-ui/plugins/quick-help-card/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "composer",
+            "entryPath": "src/agent-ui/plugins/composer/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 102,
+    "incomingReasoningCharacters": 1211,
+    "usage": {
+      "prompt_tokens": 41738,
+      "completion_tokens": 984,
+      "total_tokens": 42722,
+      "prompt_tokens_details": {
+        "cached_tokens": 37504
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 263
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00267602,
+        "allowance": 0.00160561,
+        "tokens": {
+          "input": 4234,
+          "output": 984,
+          "reasoning": 263,
+          "cache_read": 37504,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T08:56:55.194Z",
+    "seconds": 18.861
+  }
+]

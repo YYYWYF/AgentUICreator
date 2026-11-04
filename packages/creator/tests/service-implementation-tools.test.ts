@@ -38,30 +38,25 @@ async function fixture() {
   const signal = new AbortController().signal;
   const context: ToolContext = { root, threadId: "history-delete", skills: root, contracts: fileURLToPath(new URL("../contracts/creator", import.meta.url)),
     activity: new RunActivity(root, "delete-1", signal), signal, readOnly: false, userMessage: "配置删除某一条历史会话的接口", groups: new Set(["services"]),
-    authorizedPlugins: new Set(), approvedServices: new Set(), diagnostics: new Map(), verificationMode: "static_only",
+    authorizedPlugins: new Set(), diagnostics: new Map(), verificationMode: "static_only",
     validation: { ensureBaseline: vi.fn(async () => ({})) } as any };
   await context.activity.observations.observe(target);
   return context;
 }
 
-it("shows exact edits and statically derived consumers, waits without writing, then applies only the confirmed deletion change", async () => {
+it("preflights derived consumers without asking, then applies the exact deletion change", async () => {
   const context = await fixture();
   const original = await readFile(path.join(context.root, target), "utf8");
-  // A request to configure an API does not bypass the actual confirmation.
-  await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("Awaiting real user");
-  expect(await readFile(path.join(context.root, target), "utf8")).toBe(original);
-  const description = JSON.parse(state.prompts[0].steps[0].description);
-  expect(description).toMatchObject({ edits: [edit], impactSummary: proposal.impactSummary, affectedPlugins: ["conversation-data-source"] });
-  expect(description.affectedFiles).toContain(`${source}/plugins/conversation-data-source/definition.ts`);
-  state.decision = "approve";
   const plan = await prepareServiceImplementation(context, proposal);
-  expect(plan.status).toBe("authorized");
+  expect(state.prompts).toHaveLength(0);
+  expect(plan).toMatchObject({ affectedPlugins: ["conversation-data-source"] });
+  expect(plan.affectedFiles).toContain(`${source}/plugins/conversation-data-source/definition.ts`);
+  expect(plan.status).toBe("ready");
   expect(await readFile(path.join(context.root, target), "utf8")).toBe(original);
-  const result = await applyServiceImplementation(context, { authorizationId: ("authorizationId" in plan ? plan.authorizationId! : "missing") });
+  const result = await applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") });
   expect(result).toMatchObject({ status: "applied", changedPaths: [target] });
   expect(await readFile(path.join(context.root, target), "utf8")).toBe(original.replace(edit.oldText, edit.newText));
-  expect(context.approvedServices.size).toBe(0);
-  await expect(applyServiceImplementation(context, { authorizationId: ("authorizationId" in plan ? plan.authorizationId! : "missing") })).rejects.toThrow("AUTHORIZATION_REQUIRED");
+  await expect(applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).rejects.toThrow("PLAN_INVALID");
 
   // Execute the edited, real HTTP template against a mocked transport.
   const bundled = await build({ entryPoints: [path.join(context.root, target)], bundle: true, write: false, format: "esm", platform: "node",
@@ -78,22 +73,13 @@ it("shows exact edits and statically derived consumers, waits without writing, t
   await expect(dataSource.delete("other")).rejects.toThrow("403");
 });
 
-it("declining records cancellation and leaves the implementation untouched", async () => {
-  const context = await fixture(); state.decision = "decline";
-  const original = await readFile(path.join(context.root, target), "utf8");
-  expect(await prepareServiceImplementation(context, proposal)).toMatchObject({ status: "declined" });
-  expect(context.executionDecision?.status).toBe("user_cancelled");
-  expect(await readFile(path.join(context.root, target), "utf8")).toBe(original);
-  expect(context.activity.revision).toBe(0);
-});
-
 it.each(["file", "consumer", "topology"])("requires replanning when %s changes after confirmation", async kind => {
   const context = await fixture(); state.decision = "approve";
   const plan = await prepareServiceImplementation(context, proposal);
   if (kind === "file") await writeFile(path.join(context.root, target), (await readFile(path.join(context.root, target), "utf8")) + "\n// external change\n");
   if (kind === "consumer") await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import "../../services/conversations/http-data-source.js"; export const changed = true;');
   if (kind === "topology") state.topology.services.push({ name: "agent-ui.other", contractPaths: [] });
-  await expect(applyServiceImplementation(context, { authorizationId: ("authorizationId" in plan ? plan.authorizationId! : "missing") })).rejects.toThrow(/STALE|CHANGED_EXTERNALLY|stale-version/);
+  await expect(applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).rejects.toThrow(/STALE|CHANGED_EXTERNALLY|stale-version/);
   expect(await readFile(path.join(context.root, target), "utf8")).toContain(edit.oldText);
 });
 
@@ -115,21 +101,22 @@ it("cannot use read-only mode, a different run or invented approval", async () =
   const context = await fixture();
   context.readOnly = true;
   await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("TOOL_PERMISSION_DENIED");
-  await expect(applyServiceImplementation(context, { authorizationId: "invented" })).rejects.toThrow("TOOL_PERMISSION_DENIED");
+  await expect(applyServiceImplementation(context, { planId: "invented" })).rejects.toThrow("TOOL_PERMISSION_DENIED");
   context.readOnly = false; state.decision = "approve";
   const plan = await prepareServiceImplementation(context, proposal);
   const other = await fixture();
-  await expect(applyServiceImplementation(other, { authorizationId: ("authorizationId" in plan ? plan.authorizationId! : "missing") })).rejects.toThrow("AUTHORIZATION_REQUIRED");
+  await expect(applyServiceImplementation(other, { planId: ("planId" in plan ? plan.planId! : "missing") })).rejects.toThrow("PLAN_INVALID");
 });
 
-it("exposes the supported implementation tools but keeps generic service writes protected", async () => {
+it("exposes optional implementation preflights and permits ordinary Service edits without questions", async () => {
   const context = await fixture();
   const tools = await createTools(context);
   for (const name of ["prepare_ui_service_implementation_change", "apply_ui_service_implementation_change"]) {
     expect(tools.some(tool => tool.name === name)).toBe(true);
     expect(visibleTool(name, context)).toBe(true);
   }
-  await expect(context.hostTools!.get("edit_file")!({ file_path: `/${target}`, old_string: edit.oldText, new_string: edit.newText })).rejects.toThrow("SERVICE_AUTHORIZATION_REQUIRED");
+  await context.hostTools!.get("edit_file")!({ file_path: `/${target}`, old_string: edit.oldText, new_string: edit.newText });
+  expect(state.prompts).toHaveLength(0);
 });
 
 it("resolves configured import aliases and forward-slash paths with Windows-style sourceRoot metadata", async () => {
@@ -138,17 +125,6 @@ it("resolves configured import aliases and forward-slash paths with Windows-styl
   await writeFile(path.join(context.root, "tsconfig.json"), JSON.stringify({ compilerOptions: { paths: { "@/*": ["./src/应用/*"] } }, include: ["src/**/*"] }));
   await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import { createHttpConversationDataSource } from "@/services/conversations/http-data-source"; export default createHttpConversationDataSource;');
   const plan = await prepareServiceImplementation(context, proposal);
-  expect(JSON.parse(state.prompts[0].steps[0].description).affectedPlugins).toEqual(["conversation-data-source"]);
-  expect(await applyServiceImplementation(context, { authorizationId: ("authorizationId" in plan ? plan.authorizationId! : "missing") })).toMatchObject({ status: "applied" });
-});
-
-it("requires a new proposal rather than treating stale resumed answers as cancellation", async () => {
-  const context = await fixture();
-  await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("Awaiting real user");
-  const oldStep = state.prompts[0].steps[0].id;
-  await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import "../../services/conversations/http-data-source.js"; export const modified = true;');
-  state.decision = "approve"; state.resumeAnswers = { [oldStep]: ["approve"] };
-  await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("SERVICE_IMPLEMENTATION_PLAN_STALE");
-  expect(context.executionDecision).toBeUndefined();
-  expect(context.activity.revision).toBe(0);
+  expect(plan.affectedPlugins).toEqual(["conversation-data-source"]);
+  expect(await applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).toMatchObject({ status: "applied" });
 });

@@ -24,23 +24,21 @@ async function fixture() {
     activity: new RunActivity(root, "service-run", signal), authorizedPlugins: new Set(["dismiss"]),
     pluginPlans: new Map([["dismiss", { status: "authorized", workKind: "create-plugin", scopeHash: "bound", evidence: {}, contract: {} }]]),
     validation: { ensureBaseline: vi.fn(async () => {}) } } as unknown as ToolContext;
-  const proposal = { mode: "propose", changeKind: "create", serviceName: "help.card", contractPath: "services/help-card.ts",
+  const proposal = { changeKind: "create", serviceName: "help.card", contractPath: "services/help-card.ts",
     ownerPluginId: "card", consumers: [{ pluginId: "dismiss", dependencyMode: "required" }], reason: "Existing card owns the cross-Plugin action" };
   return { context, proposal };
 }
-it.each(["help.card", "project.quick-help", "agent-ui.help"])("proposes %s for a bound new Plugin, still requires consent, and writes under sourceRoot", async serviceName => {
+it.each(["help.card", "project.quick-help", "agent-ui.help"])("proposes %s for a bound new Plugin, requires no extra consent, and writes under sourceRoot", async serviceName => {
   const { context, proposal } = await fixture();
   proposal.serviceName = serviceName;
-  await expect(prepareService(context, proposal)).rejects.toThrow("Awaiting real user");
-  expect(JSON.parse(approvals.payload.steps[0].description).resolvedContractPath).toBe("src/界面/services/help-card.ts");
   expect(context.activity.before.size).toBe(0);
-  approvals.allow = true;
   const plan = await prepareService(context, proposal);
+  expect(approvals.payload).toBeUndefined();
   const content = 'export const HELP_CARD_SERVICE="help.card"; export interface HelpCardService { collapse():void; }';
-  await applyService(context, { authorizationId: plan.authorizationId, content }, "create");
+  await applyService(context, { planId: plan.planId, content }, "create");
   expect(await readFile(path.join(context.root, "src/界面/services/help-card.ts"), "utf8")).toBe(content);
   await expect(readFile(path.join(context.root, "services/help-card.ts"))).rejects.toMatchObject({ code: "ENOENT" });
-  await expect(applyService(context, { authorizationId: plan.authorizationId, content }, "create")).rejects.toThrow("AUTHORIZATION_SCOPE_MISMATCH");
+  await expect(applyService(context, { planId: plan.planId, content }, "create")).rejects.toThrow("PLAN_INVALID");
 });
 it.each(["pending", "unbound"])("does not admit an %s new Plugin as an existing identity", async state => {
   const { context, proposal } = await fixture();
@@ -53,6 +51,6 @@ it("invalidates concrete Service authorization if sourceRoot changes", async () 
   const { context, proposal } = await fixture(); approvals.allow = true;
   const plan = await prepareService(context, proposal);
   await writeFile(path.join(context.root, ".agent-ui/project.json"), '{"sourceRoot":"src/other"}');
-  await expect(applyService(context, { authorizationId: plan.authorizationId, content: "export {};" }, "create")).rejects.toThrow("AUTHORIZATION_STALE");
+  await expect(applyService(context, { planId: plan.planId, content: "export {};" }, "create")).rejects.toThrow("PLAN_STALE");
   expect(context.validation!.ensureBaseline).not.toHaveBeenCalled();
 });

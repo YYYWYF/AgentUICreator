@@ -1,0 +1,69 @@
+{
+  "name": "@za38.03/agent-ui-renderer",
+  "version": "0.0.1",
+  "description": "Official deterministic React layout runtime for Agent UI frontends",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./compatibility.json": "./dist/compatibility.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/clean-package-dist.mjs renderer && node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "typecheck": "node ../../scripts/run-plugin-source-views-check.mjs typecheck",
+    "test": "node ../../scripts/run-plugin-source-views-check.mjs test",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs renderer --publish"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20",
+    "react-dom": ">=18 <20"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.8",
+    "jsdom": "26.1.0",
+    "zod": "4.5.4",
+    "react-test-renderer": "19.1.1",
+    "@types/react-test-renderer": "19.1.0",
+    "tsx": "4.20.6",
+    "semver": "7.8.5",
+    "@types/semver": "7.7.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "4.7.0",
+    "vite": "6.4.5",
+    "@ag-ui/client": "1.0.3",
+    "@ag-ui/core": "1.0.3",
+    "rxjs": "7.8.1",
+    "react-hook-form": "7.88.0",
+    "@assistant-ui/react-hook-form": "0.12.34",
+    "react-markdown": "10.1.0",
+    "@assistant-ui/generative-ui": "0.0.7"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "agentUI": {
+    "schemaVersion": 1,
+    "compatibility": {
+      "schemaVersion": 1,
+      "releases": []
+    }
+  }
+}

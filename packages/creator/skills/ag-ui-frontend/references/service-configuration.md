@@ -26,26 +26,20 @@ Connect or change business services in project-owned implementation code:
 
 ## Current Creator editing boundary
 
-Inspect the actual sourceRoot and files before proposing changes. Public Plugin
-Service contracts (names, types, owner and consumers) use
-prepare_ui_service_contract_change and its contract mutation tools.
-Project-private HTTP implementations are a separate editing scope, even when
-stored under services/. Read the existing file, then use
-prepare_ui_service_implementation_change with the sourceRoot-relative
-implementationPath, exact edits and a user-language impactSummary. The tool
-inspects static import references and presents the diff and affected files/Plugins
-for real user confirmation. Apply the returned single-use authorizationId with
-apply_ui_service_implementation_change. Changed source/reference evidence requires
-a fresh proposal; confirmation never grants unrestricted services/ writes.
+Inspect the actual sourceRoot and existing files, then edit project-owned Service
+implementations with ordinary read/edit/create tools. Optional
+prepare_ui_service_contract_change and prepare_ui_service_implementation_change
+provide topology, declaration and reference preflights without user confirmation.
+Apply their single-use planId with the corresponding apply tool. Changed file or
+reference evidence requires refreshing the preflight, not a new user decision.
 
 For history deletion, inspect services/conversations/http-data-source.ts and
 existing transport/auth. Adapt deleteUrl and the DELETE request as needed while
 preserving list/detail behavior and the delete(id) public contract. Distinguish
 one operation's route from shared base URL, credentials, headers and response
 helpers. Explain which callers and operations change; static imports cannot
-prove all runtime callers. Public declarations remain protected and require the
-contract channel. Do not invent a public Service contract for a private helper,
-move code to bypass authorization, or ask users to make supported edits externally.
+prove all runtime callers. Use the contract preflight when changing public declarations to inspect affected consumers. Do not invent a public Service contract for a private helper,
+move unrelated code, or ask users to make supported edits externally.
 A confirmation of code changes does not authorize deleting actual business data.
 After applying, run validation and verify request method, encoded ID, URL,
 auth and success/failure handling using an isolated test backend. Only test real

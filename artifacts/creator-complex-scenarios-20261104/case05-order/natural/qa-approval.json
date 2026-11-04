@@ -1,0 +1,54 @@
+{
+  "kind": "simulated isolated QA user selection",
+  "seconds": 97.071,
+  "question": {
+    "id": "plugin-development-decision",
+    "question": "是否按此方案开发？",
+    "description": "目标: 注册 AG-UI CUSTOM 消息名 \"app.order.summary\"，在聊天消息流中渲染订单卡片：订单号、订单状态徽标、商品清单（名称、数量、单价）、合计金额（按 currency 格式化，如 CNY 258.00）；商品较多时默认折叠，可点击展开/收起查看全部商品。\n\n目标插件与位置: order-summary-message\n\n需要新增的能力: 现有 catalog 中没有注册 app.order.summary 这个数据消息名; 缺少订单卡片展示界面（订单号/状态/商品/金额/可展开列表）\n\n注册为 assistant 消息内的 data message UI，渲染在聊天消息流中",
+    "options": [
+      {
+        "id": "start",
+        "label": "开始开发"
+      },
+      {
+        "id": "adjust",
+        "label": "调整需求"
+      },
+      {
+        "id": "defer",
+        "label": "暂不处理"
+      }
+    ],
+    "selectionMode": "single",
+    "minSelections": 1,
+    "maxSelections": 1
+  },
+  "proposal": {
+    "targetPluginId": "order-summary-message",
+    "desiredOutcome": "注册 AG-UI CUSTOM 消息名 \"app.order.summary\"，在聊天消息流中渲染订单卡片：订单号、订单状态徽标、商品清单（名称、数量、单价）、合计金额（按 currency 格式化，如 CNY 258.00）；商品较多时默认折叠，可点击展开/收起查看全部商品。",
+    "workKind": "create-plugin",
+    "missingCapabilities": [
+      "现有 catalog 中没有注册 app.order.summary 这个数据消息名",
+      "缺少订单卡片展示界面（订单号/状态/商品/金额/可展开列表）"
+    ],
+    "deliveryContract": {
+      "capability": "将 AG-UI CUSTOM 事件 app.order.summary 渲染为可展开的订单卡片",
+      "renderingCategory": "semantic-slot",
+      "placement": "注册为 assistant 消息内的 data message UI，渲染在聊天消息流中",
+      "lifecycle": "纯展示渲染，无副作用；按消息 payload 展开/收起本地状态",
+      "dependencies": [
+        "@za38.03/agent-ui-plugins defineDataMessageUI",
+        "现有项目 UI 样式约定与统一 locale 命名空间"
+      ],
+      "verificationMethod": "runtime",
+      "interactions": [
+        "点击「展开全部商品」显示所有商品项",
+        "点击「收起」恢复折叠状态",
+        "状态徽标随 status 变化文案"
+      ],
+      "reusedComponents": []
+    }
+  },
+  "zeroNewPluginFilesBeforeApproval": true,
+  "existingChangesBeforeApproval": []
+}

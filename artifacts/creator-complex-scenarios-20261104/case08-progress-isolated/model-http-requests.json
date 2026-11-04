@@ -1,0 +1,4112 @@
+[
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:06.133Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 24019,
+    "purpose": "permission",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 138,
+    "incomingReasoningCharacters": 2012,
+    "usage": {
+      "prompt_tokens": 5177,
+      "completion_tokens": 457,
+      "total_tokens": 5634,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 430
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0021015,
+        "allowance": 0.0012609,
+        "tokens": {
+          "input": 5177,
+          "output": 457,
+          "reasoning": 430,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T09:17:13.961Z",
+    "seconds": 7.828
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:15.834Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 59467,
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 26419,
+      "completion_tokens": 76,
+      "total_tokens": 26495,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0080169,
+        "allowance": 0.00481014,
+        "tokens": {
+          "input": 26419,
+          "output": 76,
+          "reasoning": 0,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:17:20.840Z",
+    "seconds": 5.006
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:21.045Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 64510,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 9,
+    "incomingReasoningCharacters": 109,
+    "usage": {
+      "prompt_tokens": 27752,
+      "completion_tokens": 152,
+      "total_tokens": 27904,
+      "prompt_tokens_details": {
+        "cached_tokens": 26368
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 19
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00075581,
+        "allowance": 0.00045348,
+        "tokens": {
+          "input": 1384,
+          "output": 152,
+          "reasoning": 19,
+          "cache_read": 26368,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:17:25.503Z",
+    "seconds": 4.458
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:25.556Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 75562,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 109,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 107,
+    "incomingReasoningCharacters": 1607,
+    "usage": {
+      "prompt_tokens": 30016,
+      "completion_tokens": 681,
+      "total_tokens": 30697,
+      "prompt_tokens_details": {
+        "cached_tokens": 27648
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 370
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00169349,
+        "allowance": 0.00101609,
+        "tokens": {
+          "input": 2368,
+          "output": 681,
+          "reasoning": 370,
+          "cache_read": 27648,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:17:34.250Z",
+    "seconds": 8.694
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:34.369Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 91947,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 109,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1607,
+        "toolCalls": 4
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 76,
+    "incomingReasoningCharacters": 1239,
+    "usage": {
+      "prompt_tokens": 33963,
+      "completion_tokens": 397,
+      "total_tokens": 34360,
+      "prompt_tokens_details": {
+        "cached_tokens": 29952
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 260
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00185941,
+        "allowance": 0.00111565,
+        "tokens": {
+          "input": 4011,
+          "output": 397,
+          "reasoning": 260,
+          "cache_read": 29952,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T09:17:40.852Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:41.033Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 96500,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 109,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1607,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 44,
+    "incomingReasoningCharacters": 665,
+    "usage": {
+      "prompt_tokens": 34891,
+      "completion_tokens": 235,
+      "total_tokens": 35126,
+      "prompt_tokens_details": {
+        "cached_tokens": 33664
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 146
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00085208,
+        "allowance": 0.00051125,
+        "tokens": {
+          "input": 1227,
+          "output": 235,
+          "reasoning": 146,
+          "cache_read": 33664,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:17:49.793Z",
+    "seconds": 8.76
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:17:53.591Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 125671,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 109,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1607,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 84,
+    "incomingReasoningCharacters": 1255,
+    "usage": {
+      "prompt_tokens": 41434,
+      "completion_tokens": 437,
+      "total_tokens": 41871,
+      "prompt_tokens_details": {
+        "cached_tokens": 34560
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 277
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00279396,
+        "allowance": 0.00167638,
+        "tokens": {
+          "input": 6874,
+          "output": 437,
+          "reasoning": 277,
+          "cache_read": 34560,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:18:00.599Z",
+    "seconds": 7.008
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:18:00.802Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 117859,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 0,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 109,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1607,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 25,
+    "incomingReasoningCharacters": 331,
+    "usage": {
+      "prompt_tokens": 39947,
+      "completion_tokens": 173,
+      "total_tokens": 40120,
+      "prompt_tokens_details": {
+        "cached_tokens": 34816
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 74
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0019558,
+        "allowance": 0.00117348,
+        "tokens": {
+          "input": 5131,
+          "output": 173,
+          "reasoning": 74,
+          "cache_read": 34816,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:18:06.365Z",
+    "seconds": 5.563
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:18:06.559Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 76839,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 1547,
+    "incomingReasoningCharacters": 21091,
+    "usage": {
+      "prompt_tokens": 17097,
+      "completion_tokens": 5992,
+      "total_tokens": 23089,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4541
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0123195,
+        "allowance": 0.0073917,
+        "tokens": {
+          "input": 17097,
+          "output": 5992,
+          "reasoning": 4541,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T09:19:16.000Z",
+    "seconds": 69.441
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:16.144Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 57766,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 74,
+    "incomingReasoningCharacters": 1040,
+    "usage": {
+      "prompt_tokens": 27239,
+      "completion_tokens": 375,
+      "total_tokens": 27614,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 246
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00372954,
+        "allowance": 0.00223772,
+        "tokens": {
+          "input": 10599,
+          "output": 375,
+          "reasoning": 246,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:19:22.060Z",
+    "seconds": 5.916
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:22.201Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 74464,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 34,
+    "incomingReasoningCharacters": 463,
+    "usage": {
+      "prompt_tokens": 31020,
+      "completion_tokens": 307,
+      "total_tokens": 31327,
+      "prompt_tokens_details": {
+        "cached_tokens": 19456
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 117
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00395434,
+        "allowance": 0.0023726,
+        "tokens": {
+          "input": 11564,
+          "output": 307,
+          "reasoning": 117,
+          "cache_read": 19456,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:19:27.392Z",
+    "seconds": 5.191
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:27.473Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 88723,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 463,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 99,
+    "incomingReasoningCharacters": 1398,
+    "usage": {
+      "prompt_tokens": 34586,
+      "completion_tokens": 541,
+      "total_tokens": 35127,
+      "prompt_tokens_details": {
+        "cached_tokens": 30336
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 314
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00210622,
+        "allowance": 0.00126373,
+        "tokens": {
+          "input": 4250,
+          "output": 541,
+          "reasoning": 314,
+          "cache_read": 30336,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:19:33.881Z",
+    "seconds": 6.408
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:33.947Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 94551,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 463,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1398,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 93,
+    "incomingReasoningCharacters": 1235,
+    "usage": {
+      "prompt_tokens": 36384,
+      "completion_tokens": 521,
+      "total_tokens": 36905,
+      "prompt_tokens_details": {
+        "cached_tokens": 33920
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 300
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00156792,
+        "allowance": 0.00094075,
+        "tokens": {
+          "input": 2464,
+          "output": 521,
+          "reasoning": 300,
+          "cache_read": 33920,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:19:44.157Z",
+    "seconds": 10.21
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:44.229Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 101497,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 463,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1398,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1235,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 57,
+    "incomingReasoningCharacters": 757,
+    "usage": {
+      "prompt_tokens": 38564,
+      "completion_tokens": 389,
+      "total_tokens": 38953,
+      "prompt_tokens_details": {
+        "cached_tokens": 35712
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 202
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00153667,
+        "allowance": 0.000922,
+        "tokens": {
+          "input": 2852,
+          "output": 389,
+          "reasoning": 202,
+          "cache_read": 35712,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:19:50.190Z",
+    "seconds": 5.961
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:19:50.282Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 106941,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 463,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1398,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1235,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 757,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 256,
+    "incomingReasoningCharacters": 3414,
+    "usage": {
+      "prompt_tokens": 40335,
+      "completion_tokens": 908,
+      "total_tokens": 41243,
+      "prompt_tokens_details": {
+        "cached_tokens": 37888
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 764
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00205103,
+        "allowance": 0.00123062,
+        "tokens": {
+          "input": 2447,
+          "output": 908,
+          "reasoning": 764,
+          "cache_read": 37888,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T09:20:02.449Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:20:02.553Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 111899,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1239,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 665,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1255,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 331,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1040,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 463,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1398,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1235,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 757,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 34,
+    "incomingReasoningCharacters": 481,
+    "usage": {
+      "prompt_tokens": 41536,
+      "completion_tokens": 311,
+      "total_tokens": 41847,
+      "prompt_tokens_details": {
+        "cached_tokens": 39424
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 113
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00124334,
+        "allowance": 0.00074601,
+        "tokens": {
+          "input": 2112,
+          "output": 311,
+          "reasoning": 113,
+          "cache_read": 39424,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:20:09.892Z",
+    "seconds": 7.339
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:20:16.921Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 68156,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 1995,
+    "incomingReasoningCharacters": 13228,
+    "usage": {
+      "prompt_tokens": 18152,
+      "completion_tokens": 5082,
+      "total_tokens": 23234,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2811
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.011544,
+        "allowance": 0.0069264,
+        "tokens": {
+          "input": 18152,
+          "output": 5082,
+          "reasoning": 2811,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T09:21:04.760Z",
+    "seconds": 47.839
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:04.813Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 65145,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 248,
+    "incomingReasoningCharacters": 3235,
+    "usage": {
+      "prompt_tokens": 28960,
+      "completion_tokens": 856,
+      "total_tokens": 29816,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 773
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00482304,
+        "allowance": 0.00289382,
+        "tokens": {
+          "input": 12320,
+          "output": 856,
+          "reasoning": 773,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:16.841Z",
+    "seconds": 12.028
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:16.902Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 102104,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3235,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 72,
+    "incomingReasoningCharacters": 1107,
+    "usage": {
+      "prompt_tokens": 37248,
+      "completion_tokens": 331,
+      "total_tokens": 37579,
+      "prompt_tokens_details": {
+        "cached_tokens": 23296
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 229
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00472258,
+        "allowance": 0.00283355,
+        "tokens": {
+          "input": 13952,
+          "output": 331,
+          "reasoning": 229,
+          "cache_read": 23296,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:24.498Z",
+    "seconds": 7.596
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:24.580Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 113648,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3235,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 19,
+    "incomingReasoningCharacters": 231,
+    "usage": {
+      "prompt_tokens": 40258,
+      "completion_tokens": 162,
+      "total_tokens": 40420,
+      "prompt_tokens_details": {
+        "cached_tokens": 36096
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 61
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00165958,
+        "allowance": 0.00099575,
+        "tokens": {
+          "input": 4162,
+          "output": 162,
+          "reasoning": 61,
+          "cache_read": 36096,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:28.441Z",
+    "seconds": 3.861
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:28.694Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 116612,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3235,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 231,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 11,
+    "incomingReasoningCharacters": 120,
+    "usage": {
+      "prompt_tokens": 41115,
+      "completion_tokens": 158,
+      "total_tokens": 41273,
+      "prompt_tokens_details": {
+        "cached_tokens": 39040
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 39
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00104634,
+        "allowance": 0.0006278,
+        "tokens": {
+          "input": 2075,
+          "output": 158,
+          "reasoning": 39,
+          "cache_read": 39040,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:32.758Z",
+    "seconds": 4.064
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:32.816Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 119529,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3235,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 231,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 15,
+    "incomingReasoningCharacters": 178,
+    "usage": {
+      "prompt_tokens": 42037,
+      "completion_tokens": 264,
+      "total_tokens": 42301,
+      "prompt_tokens_details": {
+        "cached_tokens": 39936
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 40
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00118672,
+        "allowance": 0.00071203,
+        "tokens": {
+          "input": 2101,
+          "output": 264,
+          "reasoning": 40,
+          "cache_read": 39936,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:37.226Z",
+    "seconds": 4.41
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:37.306Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 125170,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3414,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 481,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3235,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 231,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 394,
+    "incomingReasoningCharacters": 5256,
+    "usage": {
+      "prompt_tokens": 43847,
+      "completion_tokens": 1373,
+      "total_tokens": 45220,
+      "prompt_tokens_details": {
+        "cached_tokens": 40832
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1173
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00279709,
+        "allowance": 0.00167826,
+        "tokens": {
+          "input": 3015,
+          "output": 1373,
+          "reasoning": 1173,
+          "cache_read": 40832,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:21:54.824Z",
+    "seconds": 17.518
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:21:59.333Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 68250,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 626,
+    "incomingReasoningCharacters": 16898,
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 16684,
+      "completion_tokens": 6316,
+      "total_tokens": 23000,
+      "prompt_tokens_details": {
+        "cached_tokens": 384,
+        "cache_write_tokens": null
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3637
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0124715,
+        "allowance": 0.0074829,
+        "tokens": {
+          "input": 16300,
+          "output": 6316,
+          "reasoning": 3637,
+          "cache_read": 384,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "ended": "2026-11-04T09:23:35.558Z",
+    "seconds": 96.225
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:23:35.744Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 63867,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5256,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 402,
+    "incomingReasoningCharacters": 5289,
+    "usage": {
+      "prompt_tokens": 29578,
+      "completion_tokens": 1330,
+      "total_tokens": 30908,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1233
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00557724,
+        "allowance": 0.00334634,
+        "tokens": {
+          "input": 12938,
+          "output": 1330,
+          "reasoning": 1233,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:23:55.677Z",
+    "seconds": 19.933
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:24:01.042Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 82259,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5256,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5289,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 116,
+    "incomingReasoningCharacters": 1423,
+    "usage": {
+      "prompt_tokens": 34010,
+      "completion_tokens": 720,
+      "total_tokens": 34730,
+      "prompt_tokens_details": {
+        "cached_tokens": 28416
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 361
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0027127,
+        "allowance": 0.00162762,
+        "tokens": {
+          "input": 5594,
+          "output": 720,
+          "reasoning": 361,
+          "cache_read": 28416,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T09:24:17.605Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:24:17.815Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 93824,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5256,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5289,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1423,
+        "toolCalls": 4
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/transient-assistant-messages/index.tsx",
+        "hash": "1d32f27f4f569e0f96de64f7f9c3a21972610595813922b1537e3a3d6c60d218",
+        "start": 1,
+        "end": 10,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 408,
+    "incomingReasoningCharacters": 5200,
+    "usage": {
+      "prompt_tokens": 37566,
+      "completion_tokens": 1494,
+      "total_tokens": 39060,
+      "prompt_tokens_details": {
+        "cached_tokens": 32896
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1196
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00339118,
+        "allowance": 0.00203471,
+        "tokens": {
+          "input": 4670,
+          "output": 1494,
+          "reasoning": 1196,
+          "cache_read": 32896,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:24:40.725Z",
+    "seconds": 22.91
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:24:40.864Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 106511,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5256,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5289,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1423,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 339,
+    "incomingReasoningCharacters": 4527,
+    "usage": {
+      "prompt_tokens": 40893,
+      "completion_tokens": 1261,
+      "total_tokens": 42154,
+      "prompt_tokens_details": {
+        "cached_tokens": 36352
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1040
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00309361,
+        "allowance": 0.00185617,
+        "tokens": {
+          "input": 4541,
+          "output": 1261,
+          "reasoning": 1040,
+          "cache_read": 36352,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:24:56.713Z",
+    "seconds": 15.849
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:24:56.988Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 116764,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 120,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 178,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5256,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5289,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1423,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "src/main.tsx",
+        "hash": "0bc02109285b3cee5e3ed231ee25a31603bcfa99cbff093909ffffd103dc61ee",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 442,
+    "incomingReasoningCharacters": 5942,
+    "usage": {
+      "prompt_tokens": 43837,
+      "completion_tokens": 1499,
+      "total_tokens": 45336,
+      "prompt_tokens_details": {
+        "cached_tokens": 39424
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1344
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00335924,
+        "allowance": 0.00201555,
+        "tokens": {
+          "input": 4413,
+          "output": 1499,
+          "reasoning": 1344,
+          "cache_read": 39424,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:25:17.580Z",
+    "seconds": 20.592
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:25:17.753Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 63912,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 3493,
+    "incomingReasoningCharacters": 15782,
+    "usage": {
+      "prompt_tokens": 17044,
+      "completion_tokens": 6666,
+      "total_tokens": 23710,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3492
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0131124,
+        "allowance": 0.00786744,
+        "tokens": {
+          "input": 17044,
+          "output": 6666,
+          "reasoning": 3492,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T09:25:54.533Z",
+    "seconds": 36.78
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:25:54.591Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 72982,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 43,
+    "incomingReasoningCharacters": 507,
+    "usage": {
+      "prompt_tokens": 31846,
+      "completion_tokens": 283,
+      "total_tokens": 32129,
+      "prompt_tokens_details": {
+        "cached_tokens": 16640
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 121
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00500124,
+        "allowance": 0.00300074,
+        "tokens": {
+          "input": 15206,
+          "output": 283,
+          "reasoning": 121,
+          "cache_read": 16640,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:26:01.134Z",
+    "seconds": 6.543
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:26:01.241Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 25,
+    "toolSchemaCharacters": 42004,
+    "messageCharacters": 76226,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 507,
+        "toolCalls": 3
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 98,
+    "incomingReasoningCharacters": 1273,
+    "usage": {
+      "prompt_tokens": 32717,
+      "completion_tokens": 661,
+      "total_tokens": 33378,
+      "prompt_tokens_details": {
+        "cached_tokens": 30208
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 302
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00172715,
+        "allowance": 0.00103629,
+        "tokens": {
+          "input": 2509,
+          "output": 661,
+          "reasoning": 302,
+          "cache_read": 30208,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:26:11.164Z",
+    "seconds": 9.923
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:26:21.066Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 78747,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 507,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1273,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 88,
+    "incomingReasoningCharacters": 1093,
+    "usage": {
+      "prompt_tokens": 35273,
+      "completion_tokens": 398,
+      "total_tokens": 35671,
+      "prompt_tokens_details": {
+        "cached_tokens": 18432
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 253
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00564049,
+        "allowance": 0.0033843,
+        "tokens": {
+          "input": 16841,
+          "output": 398,
+          "reasoning": 253,
+          "cache_read": 18432,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:26:35.752Z",
+    "seconds": 14.686
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:26:35.842Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 82861,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 507,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1273,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1093,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/registry.generated.ts",
+        "hash": "c8e0f4822109c6fda15f4b26073301e0463b12990629755ec5b236b7bf949246",
+        "start": 1,
+        "end": 60,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 17,
+    "incomingReasoningCharacters": 181,
+    "usage": {
+      "prompt_tokens": 36385,
+      "completion_tokens": 339,
+      "total_tokens": 36724,
+      "prompt_tokens_details": {
+        "cached_tokens": 33408
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 49
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00150035,
+        "allowance": 0.00090021,
+        "tokens": {
+          "input": 2977,
+          "output": 339,
+          "reasoning": 49,
+          "cache_read": 33408,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:26:42.196Z",
+    "seconds": 6.354
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:26:42.336Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 88418,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 507,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1273,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1093,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 181,
+        "toolCalls": 3
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 434,
+    "incomingReasoningCharacters": 5602,
+    "usage": {
+      "prompt_tokens": 38346,
+      "completion_tokens": 1501,
+      "total_tokens": 39847,
+      "prompt_tokens_details": {
+        "cached_tokens": 34560
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1324
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00314436,
+        "allowance": 0.00188662,
+        "tokens": {
+          "input": 3786,
+          "output": 1501,
+          "reasoning": 1324,
+          "cache_read": 34560,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:27:01.148Z",
+    "seconds": 18.812
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:27:09.862Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 113712,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5200,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4527,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5942,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 507,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1273,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1093,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 181,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5602,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 96,
+    "incomingReasoningCharacters": 1166,
+    "usage": {
+      "prompt_tokens": 44351,
+      "completion_tokens": 503,
+      "total_tokens": 44854,
+      "prompt_tokens_details": {
+        "cached_tokens": 36736
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 300
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00310852,
+        "allowance": 0.00186511,
+        "tokens": {
+          "input": 7615,
+          "output": 503,
+          "reasoning": 300,
+          "cache_read": 36736,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:27:18.981Z",
+    "seconds": 9.119
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:27:24.650Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 0,
+    "toolSchemaCharacters": 2,
+    "messageCharacters": 50153,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "hostSourceState": [],
+    "hostDevelopmentState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 1458,
+    "incomingReasoningCharacters": 19493,
+    "usage": {
+      "prompt_tokens": 13928,
+      "completion_tokens": 7283,
+      "total_tokens": 21211,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4207
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.01284274,
+        "allowance": 0.00770564,
+        "tokens": {
+          "input": 13672,
+          "output": 7283,
+          "reasoning": 4207,
+          "cache_read": 256,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "ended": "2026-11-04T09:28:37.734Z",
+    "seconds": 73.084
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:28:37.769Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 87752,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5602,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1166,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 27,
+    "incomingReasoningCharacters": 286,
+    "usage": {
+      "prompt_tokens": 36891,
+      "completion_tokens": 297,
+      "total_tokens": 37188,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 77
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0114237,
+        "allowance": 0.00685422,
+        "tokens": {
+          "input": 36891,
+          "output": 297,
+          "reasoning": 77,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "ended": "2026-11-04T09:28:46.983Z"
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:28:47.067Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 114621,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5602,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1166,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 286,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 605,
+    "incomingReasoningCharacters": 8737,
+    "usage": {
+      "prompt_tokens": 43402,
+      "completion_tokens": 2357,
+      "total_tokens": 45759,
+      "prompt_tokens_details": {
+        "cached_tokens": 28160
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2126
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00756996,
+        "allowance": 0.00454198,
+        "tokens": {
+          "input": 15242,
+          "output": 2357,
+          "reasoning": 2126,
+          "cache_read": 28160,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:29:16.645Z",
+    "seconds": 29.578
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:29:16.766Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 104306,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5602,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1166,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 286,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 8737,
+        "toolCalls": 3
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 35,
+    "incomingReasoningCharacters": 498,
+    "usage": {
+      "prompt_tokens": 41574,
+      "completion_tokens": 237,
+      "total_tokens": 41811,
+      "prompt_tokens_details": {
+        "cached_tokens": 35200
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 121
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0024078,
+        "allowance": 0.00144468,
+        "tokens": {
+          "input": 6374,
+          "output": 237,
+          "reasoning": 121,
+          "cache_read": 35200,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:29:25.377Z",
+    "seconds": 8.611
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:29:25.484Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 107984,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5602,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1166,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 286,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 8737,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 498,
+        "toolCalls": 1
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+        "hash": "870fe0835fcf66322a76d4083e9ffa8061fe0e2b142f5a917966047c23ecca3f",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "job-progress-panel"
+        ],
+        "owners": [
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          },
+          {
+            "pluginId": "conversation-surface",
+            "entryPath": "src/agent-ui/plugins/conversation-surface/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 849,
+    "incomingReasoningCharacters": 12564,
+    "usage": {
+      "prompt_tokens": 42704,
+      "completion_tokens": 3274,
+      "total_tokens": 45978,
+      "prompt_tokens_details": {
+        "cached_tokens": 39936
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3144
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00499882,
+        "allowance": 0.00299929,
+        "tokens": {
+          "input": 2768,
+          "output": 3274,
+          "reasoning": 3144,
+          "cache_read": 39936,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:29:57.209Z",
+    "seconds": 31.725
+  }
+]

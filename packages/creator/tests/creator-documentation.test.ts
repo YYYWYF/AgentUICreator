@@ -14,7 +14,7 @@ const digest = (text: string) => createHash("sha256").update(text).digest("hex")
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
 async function fixture() {
   const root = await mkdtemp(path.join(tmpdir(), "Creator 文档 空格 ")); roots.push(root);
-  const text = '# 插件接口\r\nINTRO_SENTINEL\r\n## 服务订阅\r\nusePluginServiceSnapshot()\r\n' + '状态🌟订阅\r\n'.repeat(1000) + '## 子插槽\r\nrenderScopedSlot()\r\nSLOT_SENTINEL';
+  const text = '# 插件接口\r\nINTRO_SENTINEL\r\n## 服务订阅\r\nusePluginServiceSnapshot()\r\n`provides`\r\n' + '状态🌟订阅\r\n'.repeat(1000) + '## 子插槽\r\nrenderScopedSlot()\r\nSLOT_SENTINEL';
   const service = text.indexOf('## 服务'), slot = text.indexOf('## 子');
   const documents = [{ id: "public:development/plugin-api", source: "public", topic: "开发文档", title: "插件接口", summary: "Service、子插槽", path: "development/plugin-api.md", sha256: digest(text),
     sections: [{ id: "s1", title: "插件接口", level: 1, start: 0, end: text.length }, { id: "s3", title: "服务订阅", level: 2, start: service, end: slot }, { id: "s1005", title: "子插槽", level: 2, start: slot, end: text.length }] },
@@ -105,16 +105,18 @@ it("exposes the real tool in read-only requests without granting mutation author
   const { root } = await fixture(), signal = new AbortController().signal;
   const contracts = fileURLToPath(new URL("../contracts/creator/", import.meta.url));
   const context: ToolContext = { root, documentationRoot: root, contracts, skills: root, activity: new RunActivity(root, "docs", signal), signal,
-    readOnly: true, userMessage: "查询插件接口", threadId: "docs", groups: new Set(), authorizedPlugins: new Set(), approvedServices: new Set(), diagnostics: new Map(), verificationMode: "static_only" };
+    readOnly: true, userMessage: "查询插件接口", threadId: "docs", groups: new Set(), authorizedPlugins: new Set(), diagnostics: new Map(), verificationMode: "static_only" };
   const tools = await createTools(context), tool = tools.find(tool => tool.name === "read_creator_documentation");
   expect(visibleTool(tool.name, context)).toBe(true);
   const output = JSON.parse(await tool.invoke({ query: "usePluginServiceSnapshot" }));
   expect(output).toMatchObject({ ok: true, result: { status: "available", referenceOnly: true } });
   expect(context.activity.before.size).toBe(0); expect(context.activity.observations.get("development/plugin-api.md")).toBeUndefined(); expect(context.readRanges).toBeUndefined();
-  expect(context.authorizedPlugins.size).toBe(0); expect(context.approvedServices.size).toBe(0);
-  expect(context.blocker).toBeUndefined(); expect(context.evidenceRevision).toBe(1);
+  expect(context.authorizedPlugins.size).toBe(0);
+  expect(context.blocker).toBeUndefined(); expect(context.evidenceRevision ?? 0).toBe(0);
   // Changing query wording to rediscover the same document is not progress.
   await tool.invoke({ query: "renderScopedSlot" });
+  expect(context.evidenceRevision ?? 0).toBe(0);
+  await tool.invoke(output.result.entries[0].matchingSections[0].nextRead.input);
   expect(context.evidenceRevision).toBe(1);
   expect(await readFile(path.join(root, "development/plugin-api.md"), "utf8")).toContain("INTRO_SENTINEL");
 });
@@ -123,4 +125,42 @@ it("does not count differently worded empty documentation searches as new eviden
   const progress = new EvidenceProgress();
   expect(progress.observe("read_creator_documentation", { query: "first" }, { query: "first", entries: [] }, 0).newEvidence).toBe(false);
   expect(progress.observe("read_creator_documentation", { query: "second" }, { query: "second", entries: [] }, 0)).toMatchObject({ newEvidence: false, unchangedReads: 2 });
+});
+
+it("reads an ancestor introduction and child links rather than paging through the whole API book", async () => {
+  const { root } = await fixture();
+  const result = await readCreatorDocumentation({ action: "read", documentId: "public:development/plugin-api", sectionId: "s1" }, root);
+  expect(result).toMatchObject({ nextOffset: null, childSections: [{ sectionId: "s3" }, { sectionId: "s1005" }] });
+  if (!("content" in result)) throw new Error("missing section");
+  expect(result.content).toContain("INTRO_SENTINEL");
+  expect(result.content).not.toContain("usePluginServiceSnapshot");
+});
+it("gives an unknown custom Plugin the public API table of contents instead of unrelated document matches", async () => {
+  const { root } = await fixture();
+  const { editingDocumentation } = await import("../src/agent/documentation.js");
+  const result = await editingDocumentation("quick-help-content", "", root);
+  expect(result).toMatchObject({ status: "available", entries: [{ documentId: "public:development/plugin-api", matchingSections: [] }] });
+});
+
+it("ranks exact API identifiers above generic context titles and returns the answer section instead of its ancestor", async () => {
+  const { root, documents, manifest } = await fixture();
+  const distraction = documents[1]!, text = "# 上下文 context\n上下文 context 插件 子插件 children slot";
+  Object.assign(distraction, { title: "上下文 context", summary: "上下文 context 子插件 children slot", sha256: digest(text),
+    sections: [{ id: "s1", title: "上下文 context", level: 1, start: 0, end: text.length }] });
+  await writeFile(path.join(root, ...distraction.path.split("/")), text);
+  const catalog = JSON.stringify({ schemaVersion: 1, documents });
+  manifest.files = [{ path: "agent-index.json", sha256: digest(catalog) }, ...documents.map(document => ({ path: document.path, sha256: document.sha256 }))];
+  await writeFile(path.join(root, "agent-index.json"), catalog);
+  await writeFile(path.join(root, "index.json"), JSON.stringify(manifest));
+  const query = "renderScopedSlot 子插件 上下文 slot children";
+  const result = await readCreatorDocumentation({ query }, root);
+  expect(result).toHaveProperty("entries.0.documentId", "public:development/plugin-api");
+  expect(result).toHaveProperty("entries.0.matchingSections.0.sectionId", "s1005");
+  const { editingDocumentation } = await import("../src/agent/documentation.js");
+  const editing = await editingDocumentation("quick-help-context", query, root);
+  expect(editing).toHaveProperty("entries.0.documentId", "public:development/plugin-api");
+  expect(editing).toHaveProperty("entries.0.matchingSections.0.sectionId", "s1005");
+  expect(await readCreatorDocumentation({ query: "服务上下文 子插件 继承 provides" }, root)).toHaveProperty("entries.0.documentId", "public:development/plugin-api");
+  // Generic context remains discoverable when it is the actual requested topic.
+  expect(await readCreatorDocumentation({ query: "上下文 context" }, root)).toHaveProperty("entries.0.documentId", distraction.id);
 });

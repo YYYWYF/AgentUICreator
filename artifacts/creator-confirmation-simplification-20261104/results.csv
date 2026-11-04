@@ -1,0 +1,4 @@
+case,status,seconds,tools,agentRequests,summaryRequests,inputTokensLowerBound,outputTokensLowerBound,totalTokensLowerBound,questions,changedFiles
+diagnostic-full-contract,MANUAL_DIAGNOSTIC_STOP,668.365,68,28,6,901671,69905,971576,0,0
+diagnostic-minimal-question,MANUAL_DIAGNOSTIC_STOP,602.9,51,25,5,827608,50570,878178,1,0
+final,TIMEOUT,1200.645,104,42,10,1421767,108012,1529779,1,0

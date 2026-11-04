@@ -1,0 +1,82 @@
+[live Creator] typescript runtime ready pid=29519 port=62864
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+5:16:55 PM [vite] (client) page reload src/main.tsx
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/host-preview/hostPreviewClient.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/host-preview/protocol.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/host-preview/layoutPresentation.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/visual-observation/VisualObservationReporter.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/runtime-diagnostics/runtimeDiagnosticReporter.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/shared.js" points to missing source files
+Sourcemap for "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator/dist/workspace/types.js" points to missing source files
+{"scenario":"case07-sales-isolated","case":"natural","started":"2026-11-04T09:17:00.744Z"}
+{"case":"natural","seconds":34.291,"toolNumber":1,"tool":"inspect_ui_plugin"}
+{"case":"natural","seconds":39.132,"toolNumber":2,"tool":"inspect_ui_project"}
+{"case":"natural","seconds":45.081,"toolNumber":3,"tool":"read_file"}
+{"case":"natural","seconds":45.136,"toolNumber":4,"tool":"read_file"}
+{"case":"natural","seconds":54.867,"toolNumber":5,"tool":"ls"}
+{"case":"natural","seconds":54.948,"toolNumber":6,"tool":"grep"}
+{"case":"natural","seconds":55.005,"toolNumber":7,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":61.185,"toolNumber":8,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":76.431,"toolNumber":9,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":76.481,"toolNumber":10,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":83.885,"toolNumber":11,"tool":"read_file"}
+{"case":"natural","seconds":83.942,"toolNumber":12,"tool":"read_file"}
+{"case":"natural","seconds":83.973,"toolNumber":13,"tool":"read_file"}
+{"case":"natural","seconds":83.987,"toolNumber":14,"tool":"grep"}
+{"case":"natural","seconds":184.785,"toolNumber":15,"tool":"ls"}
+{"case":"natural","seconds":184.822,"toolNumber":16,"tool":"read_file"}
+{"case":"natural","seconds":195.183,"toolNumber":17,"tool":"read_file"}
+{"case":"natural","seconds":195.279,"toolNumber":18,"tool":"read_file"}
+{"case":"natural","seconds":204.93,"toolNumber":19,"tool":"grep"}
+{"case":"natural","seconds":217.896,"toolNumber":20,"tool":"prepare_ui_plugin_development"}
+{"case":"natural","seconds":220.841,"toolNumber":21,"tool":"prepare_ui_plugin_development"}
+{"case":"natural","seconds":236.724,"toolNumber":22,"tool":"ls"}
+{"case":"natural","seconds":236.778,"toolNumber":23,"tool":"read_file"}
+{"case":"natural","seconds":245.261,"toolNumber":24,"tool":"inspect_ui_plugin"}
+{"case":"natural","seconds":251.104,"toolNumber":25,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":263.667,"toolNumber":26,"tool":"inspect_ui_plugin"}
+{"case":"natural","seconds":347.865,"toolNumber":27,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":359.194,"toolNumber":28,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":359.351,"toolNumber":29,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":359.419,"toolNumber":30,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":359.469,"toolNumber":31,"tool":"read_file"}
+{"case":"natural","seconds":389.425,"toolNumber":32,"tool":"inspect_agent_ui_sources"}
+{"case":"natural","seconds":391.81,"toolNumber":33,"tool":"read_file"}
+{"case":"natural","seconds":391.901,"toolNumber":34,"tool":"read_file"}
+{"case":"natural","seconds":408.062,"toolNumber":35,"tool":"read_file"}
+{"case":"natural","seconds":408.155,"toolNumber":36,"tool":"ls"}
+{"case":"natural","seconds":408.238,"toolNumber":37,"tool":"read_file"}
+{"case":"natural","seconds":433.856,"toolNumber":38,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":433.923,"toolNumber":39,"tool":"grep"}
+{"case":"natural","seconds":469.478,"toolNumber":40,"tool":"read_file"}
+{"case":"natural","seconds":469.565,"toolNumber":41,"tool":"read_file"}
+{"case":"natural","seconds":469.63,"toolNumber":42,"tool":"read_file"}
+{"case":"natural","seconds":469.652,"toolNumber":43,"tool":"read_file"}
+{"case":"natural","seconds":516.761,"toolNumber":44,"tool":"grep"}
+{"case":"natural","seconds":516.929,"toolNumber":45,"tool":"grep"}
+{"case":"natural","seconds":551.752,"toolNumber":46,"tool":"create_ui_plugin"}
+{"case":"natural","seconds":601.376,"toolNumber":47,"tool":"grep"}
+{"case":"natural","seconds":601.787,"toolNumber":48,"tool":"inspect_ui_project"}
+{"case":"natural","seconds":616.387,"toolNumber":49,"tool":"read_file"}
+{"case":"natural","seconds":616.56,"toolNumber":50,"tool":"ls"}
+{"case":"natural","seconds":623.121,"toolNumber":51,"tool":"grep"}
+{"case":"natural","seconds":623.364,"toolNumber":52,"tool":"ls"}
+{"case":"natural","seconds":628.675,"toolNumber":53,"tool":"read_file"}
+{"case":"natural","seconds":628.757,"toolNumber":54,"tool":"read_file"}
+{"case":"natural","seconds":637.06,"toolNumber":55,"tool":"grep"}
+{"case":"natural","seconds":637.154,"toolNumber":56,"tool":"inspect_ui_capabilities"}
+{"case":"natural","seconds":648.7,"toolNumber":57,"tool":"enable_creator_tools"}
+{"case":"natural","seconds":657.156,"toolNumber":58,"tool":"mutate_app_ui_model"}
+{"case":"natural","seconds":666.549,"toolNumber":59,"tool":"inspect_agent_ui_sources"}
+{"case":"natural","seconds":673.453,"toolNumber":60,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":726.003,"toolNumber":61,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":743.574,"toolNumber":62,"tool":"inspect_ui_edit_context"}
+{"case":"natural","seconds":770.347,"toolNumber":63,"tool":"read_file"}
+{"case":"natural","seconds":770.445,"toolNumber":64,"tool":"read_file"}
+{"case":"natural","seconds":770.504,"toolNumber":65,"tool":"read_file"}
+{"case":"natural","seconds":770.521,"toolNumber":66,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":779.348,"toolNumber":67,"tool":"read_creator_documentation"}
+{"case":"natural","seconds":779.425,"toolNumber":68,"tool":"read_creator_documentation"}

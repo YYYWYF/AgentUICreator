@@ -1,0 +1,59 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 220.698,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 把 Agent 返回的 CUSTOM 事件 app.sales.report（value.payload 为 JSON 字符串，含 title 与 rows[{month,revenue,order_count}]）在聊天消息里渲染为表格：显示月份、收入、订单数三列，支持按收入升/降序排序，点击某一行展开显示该月 order_count；payload 缺失或 JSON 非法时显示提示文案而不是崩溃。\n\n目标插件与位置: sales-report-message\n\n需要新增的能力: 没有 app.sales.report 的 CUSTOM 数据消息渲染器（现有插件仅注册 CONTEXT_CONTENT）\n\n插件实例位于 application 层、自身不渲染可见内容；实际表格通过数据消息 UI 名称 app.sales.report 渲染在助手消息的语义消息槽中",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "sales-report-message",
+      "workKind": "create-plugin",
+      "desiredOutcome": "把 Agent 返回的 CUSTOM 事件 app.sales.report（value.payload 为 JSON 字符串，含 title 与 rows[{month,revenue,order_count}]）在聊天消息里渲染为表格：显示月份、收入、订单数三列，支持按收入升/降序排序，点击某一行展开显示该月 order_count；payload 缺失或 JSON 非法时显示提示文案而不是崩溃。",
+      "missingCapabilities": [
+        "没有 app.sales.report 的 CUSTOM 数据消息渲染器（现有插件仅注册 CONTEXT_CONTENT）"
+      ],
+      "deliveryContract": {
+        "capability": "以 defineDataMessageUI 注册 name='app.sales.report' 的数据消息 UI，解析 value.payload JSON 字符串并渲染月份/收入/订单数表格，支持收入排序与行点击展开订单数详情",
+        "renderingCategory": "semantic-slot",
+        "placement": "插件实例位于 application 层、自身不渲染可见内容；实际表格通过数据消息 UI 名称 app.sales.report 渲染在助手消息的语义消息槽中",
+        "lifecycle": "无副作用渲染器；仅本地 UI 状态（排序方向、当前选中行），不发起请求、不写存储、不新增 Runtime",
+        "dependencies": [
+          "@za38.03/agent-ui-plugins",
+          "zod",
+          "react"
+        ],
+        "reusedComponents": [
+          "defineDataMessageUI",
+          "useAgentUILocaleCode"
+        ],
+        "verificationMethod": "runtime",
+        "interactions": [
+          "按收入点击排序表头在升序/降序之间切换并重排行顺序",
+          "点击一行后显示该月 order_count",
+          "payload 非法时显示可读错误提示"
+        ]
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true,
+    "existingChangesBeforeApproval": []
+  }
+]

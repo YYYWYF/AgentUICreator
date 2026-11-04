@@ -2,13 +2,10 @@ import path from "node:path";
 import { API, ModifierFlags } from "typescript/unstable/sync";
 import type { Node, SourceFile } from "typescript/unstable/ast";
 import { isInterfaceDeclaration, isTypeAliasDeclaration, isModuleDeclaration, isEnumDeclaration, isFunctionDeclaration, isVariableStatement, isStringLiteral, isExportDeclaration, isExportAssignment, isClassDeclaration } from "typescript/unstable/ast/is";
-import { interrupt } from "@langchain/langgraph";
 import { sourceRoot, walk } from "./activity.js";
 import { creatorContentHash as hash, readCreatorFileState as read } from "./files/creatorFileState.js";
-import { defaultAgentMessages } from "./messages.js";
 import { requestOperator } from "./operator.js";
 import { applyEdits, commitBatch } from "./source-tools.js";
-import { cancelExecution } from "./execution-decision.js";
 import type { ToolContext } from "./tools.js";
 
 interface ImplementationPlan {
@@ -17,7 +14,7 @@ interface ImplementationPlan {
   content: string;
   sourceHash: string;
   evidenceHash: string;
-  status: "pending" | "authorized" | "applied";
+  status: "ready" | "applied";
 }
 const plans = new WeakMap<ToolContext, Map<string, ImplementationPlan>>();
 function store(context: ToolContext) {
@@ -133,32 +130,19 @@ export async function prepareServiceImplementation(context: ToolContext, input: 
     sourceHash: inspected.before.hash, content, evidenceHash: inspected.evidenceHash, impactSummary: input.impactSummary }));
   let plan = store(context).get(id);
   if (!plan) {
-    plan = { id, file: inspected.file, content, sourceHash: inspected.before.hash, evidenceHash: inspected.evidenceHash, status: "pending" };
+    plan = { id, file: inspected.file, content, sourceHash: inspected.before.hash, evidenceHash: inspected.evidenceHash, status: "ready" };
     store(context).set(id, plan);
   }
-  if (plan.status !== "pending") throw new Error("SERVICE_IMPLEMENTATION_PLAN_CONSUMED");
-  const messages = context.messages ?? defaultAgentMessages;
-  const step = `service-implementation-${id}`;
-  const answer: any = interrupt({ kind: "ask_user_question", steps: [{ id: step, question: messages.serviceImplementationQuestion,
-    description: JSON.stringify({ implementationPath: input.implementationPath, analysisRoot: await sourceRoot(context.root), impactSummary: input.impactSummary, edits: input.edits,
-      affectedFiles: inspected.affectedFiles, affectedPlugins: inspected.affectedPlugins, unresolvedImports: inspected.unresolvedImports,
-      scopeNote: messages.serviceImplementationScopeNote }),
-    options: [{ id: "approve", label: messages.approveService }, { id: "decline", label: messages.cancel }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] });
-  const choice = answer.answers?.[step]?.[0];
-  // A replay can observe new content/reference evidence while carrying answers
-  // for the old confirmation card. That is stale authority, not cancellation.
-  if (choice !== "approve" && choice !== "decline") throw new Error("SERVICE_IMPLEMENTATION_PLAN_STALE: inspect and propose again");
-  if (choice === "decline") return cancelExecution(context, "prepare_ui_service_implementation_change");
-  const current = await inspectImplementation(context, input.implementationPath);
-  if (current.before.hash !== plan.sourceHash || current.evidenceHash !== plan.evidenceHash) throw new Error("SERVICE_IMPLEMENTATION_PLAN_STALE: inspect and propose again");
-  plan.status = "authorized";
-  return { status: "authorized", authorizationId: id, implementationPath: input.implementationPath, verificationRequired: true };
+  if (plan.status === "applied") throw new Error("SERVICE_IMPLEMENTATION_PLAN_CONSUMED");
+  return { status: "ready", planId: id, implementationPath: input.implementationPath,
+    affectedFiles: inspected.affectedFiles, affectedPlugins: inspected.affectedPlugins,
+    unresolvedImports: inspected.unresolvedImports, verificationRequired: true };
 }
 
-export async function applyServiceImplementation(context: ToolContext, input: { authorizationId: string }) {
+export async function applyServiceImplementation(context: ToolContext, input: { planId: string }) {
   if (context.readOnly) throw new Error("TOOL_PERMISSION_DENIED");
-  const plan = store(context).get(input.authorizationId);
-  if (!plan || plan.status !== "authorized") throw new Error("SERVICE_IMPLEMENTATION_AUTHORIZATION_REQUIRED");
+  const plan = store(context).get(input.planId);
+  if (!plan || plan.status !== "ready") throw new Error("SERVICE_IMPLEMENTATION_PLAN_INVALID");
   const source = await sourceRoot(context.root);
   const inspected = await inspectImplementation(context, plan.file.slice(source.length + 1));
   if (inspected.file !== plan.file || inspected.before.hash !== plan.sourceHash || inspected.evidenceHash !== plan.evidenceHash) throw new Error("SERVICE_IMPLEMENTATION_PLAN_STALE: inspect and propose again");

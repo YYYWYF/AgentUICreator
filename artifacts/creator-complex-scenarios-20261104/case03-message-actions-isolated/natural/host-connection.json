@@ -1,0 +1,5 @@
+{
+  "agentEndpoint": "http://127.0.0.1:64364/agent",
+  "creatorOrigin": "http://127.0.0.1:5180/",
+  "hostOrigin": "http://127.0.0.1:5175/"
+}

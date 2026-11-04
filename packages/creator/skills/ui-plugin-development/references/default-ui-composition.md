@@ -18,10 +18,11 @@ required consumer proving an npm API. Use installed public contracts rather than
 searching node_modules, Runtime or generated files. Source Items are relevant for
 missing formal resources, not an obligatory detour for supported public controls.
 
-For new panel/semantic-slot plans, componentBasisRefs contains real inspected UI
-selection paths; reuseEvidenceRefs describes capability reuse. Bind the plan to
-actual imports, Provider/theme and the chosen UI system. Refresh stale evidence
-when the Host requires it. Do not fabricate references or treat admission as
+For new panel/semantic-slot plans the Host reuses fresh source observations from
+the selected editing owner. componentBasisRefs may specify other relevant inspected
+UI paths; an existing component being modified is valid evidence. No unrelated
+Provider/theme reads or UI-system comparisons are required to propose a plan.
+Refresh only stale relevant evidence when the Host requires it. Do not fabricate references or treat admission as
 permission to change another layer.
 
 A new side panel must fit its actual Layout, tracks, existing dimensions and

@@ -1,0 +1,228 @@
+.inspection-result {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.inspection-result--invalid {
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.inspection-result__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.inspection-result__heading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inspection-result__target {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.inspection-result__target-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.inspection-result__target-value {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.inspection-result__group {
+  margin-top: 10px;
+}
+
+.inspection-result__group-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.inspection-result__passed-list,
+.inspection-result__failed-list,
+.inspection-result__other-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inspection-result__passed-item,
+.inspection-result__other-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.inspection-result__mark {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.inspection-result__check-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inspection-result__other-status {
+  flex: 0 0 auto;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.inspection-result__failed-item {
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, #dc2626 40%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, #dc2626 7%, var(--card));
+}
+
+.inspection-result__failed-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inspection-result__failed-toggle:hover {
+  background: color-mix(in srgb, #dc2626 12%, var(--card));
+}
+
+.inspection-result__failed-toggle:focus-visible {
+  outline: 2px solid var(--ring, var(--border));
+  outline-offset: -2px;
+}
+
+.inspection-result__failed-item .inspection-result__mark {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.inspection-result__failed-label {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #dc2626 16%, transparent);
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.inspection-result__indicator {
+  flex: 0 0 auto;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.inspection-result__detail {
+  padding: 0 8px 8px 30px;
+  font-size: 12px;
+}
+
+.inspection-result__detail-list {
+  margin: 0;
+}
+
+.inspection-result__detail-row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.inspection-result__detail-row dt {
+  flex: 0 0 auto;
+  opacity: 0.7;
+}
+
+.inspection-result__detail-row dd {
+  min-width: 0;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+
+.inspection-result__detail-raw {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--muted);
+  font-size: 11px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.inspection-result__detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.inspection-result__copy {
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.inspection-result__copy:hover {
+  background: var(--muted);
+}
+
+.inspection-result__copy:focus-visible {
+  outline: 2px solid var(--ring, var(--border));
+  outline-offset: 2px;
+}
+
+.inspection-result__copy-status {
+  font-size: 11px;
+  opacity: 0.75;
+}

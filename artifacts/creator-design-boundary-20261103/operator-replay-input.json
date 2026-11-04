@@ -1,0 +1,1 @@
+{"operation": "inspect_ui_plugin", "input": {"pluginId": "quick-help-card", "sharedModule": "@za38.03/agent-ui-plugins", "sharedSymbols": ["UIPluginSlotRenderOptions", "UIPluginRenderSlot", "UIPluginComponentProps"]}}

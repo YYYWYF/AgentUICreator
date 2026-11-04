@@ -40,13 +40,13 @@ async function project(threadId = "edit") {
   await writeFile(path.join(root, "src/应用/plugins/composer/manifest.json"), '{"id":"composer"}');
   const context: ToolContext = { root, threadId, skills: path.join(root, "skills"), contracts,
     signal: new AbortController().signal, readOnly: false, userMessage: "把输入框高一点", groups: new Set(), authorizedPlugins: new Set(),
-    approvedServices: new Set(), diagnostics: new Map(), verificationMode: "static_only", activity: new RunActivity(root, threadId + "-1", new AbortController().signal) };
+    diagnostics: new Map(), verificationMode: "static_only", activity: new RunActivity(root, threadId + "-1", new AbortController().signal) };
   return context;
 }
 function next(context: ToolContext, runId = "next", readOnly = false): ToolContext {
   const { editingSelection: _selection, validation: _validation, ...rest } = context;
   return { ...rest, activity: new RunActivity(context.root, runId, context.signal), groups: new Set(), authorizedPlugins: new Set(),
-    approvedServices: new Set(), readOnly, readRanges: new Map() };
+    readOnly, readRanges: new Map() };
 }
 async function inspectResult(root: string) {
   return { asset: { pluginId: "composer", name: "Composer", definitionPath: "src/应用/plugins/composer/definition.ts", manifestPath: "src/应用/plugins/composer/manifest.json" },
@@ -185,7 +185,7 @@ it("returns a custom Plugin's real definition, nonstandard component, slots, sty
   expect(paths).toEqual(expect.arrayContaining(["/" + definition, "/" + directory + "/manifest.json", "/" + directory + "/presentation/CardView.tsx", "/" + directory + "/presentation/card.css", "/src/应用/services/help.ts"]));
   expect(paths).not.toContain("/" + entry); // Never guesses index.tsx from a directory name.
   expect(state.inspect).toHaveBeenCalledWith(context.root, "inspect_ui_plugin", { pluginId: "local-card", sharedSymbols: ["UIPluginRenderProps"] }, context.signal);
-  expect(context.authorizedPlugins.size).toBe(0); expect(context.approvedServices.size).toBe(0);
+  expect(context.authorizedPlugins.size).toBe(0);
 });
 
 it("resolves a custom Plugin by catalog search without application metadata", async () => {
@@ -272,6 +272,42 @@ it("supports working sets established by ordinary plugin inspection and read_fil
   await sessions.remember(context);
   expect(await sessions.prepare(next(context))).toMatchObject({ status: "fresh", target: { entryPath: entry } });
   expect(state.inspect).toHaveBeenCalledTimes(1);
+});
+
+it("keeps the selected owner and its source closure while querying another Plugin's installed public types", async () => {
+  const context = await project();
+  state.inspect.mockImplementation(async (_root, _operation, input) => input.pluginId === "composer" ? inspectResult(context.root) : {
+    asset: { pluginId: "reference", ownership: "project_source", definitionPath: "src/应用/plugins/reference/definition.ts" },
+    application: { entryPath: "src/应用/plugins/reference/index.tsx", implementationOwnership: "npm" },
+    sharedTypes: { module: "@za38.03/agent-ui-plugins", symbols: [{ name: "usePluginService", status: "available" }] },
+  });
+  const tools = await createTools(context);
+  await inspectEditingContext(context, { pluginId: "composer" });
+  const selection = context.editingSelection;
+  const query = tools.find(tool => tool.name === "inspect_ui_plugin")!;
+  const result = JSON.parse(await query.invoke({ pluginId: "reference", sharedSymbols: ["usePluginService"], sharedModule: "@za38.03/agent-ui-plugins" }));
+  expect(result.ok).toBe(true); expect(result.result.sharedTypes.symbols[0].name).toBe("usePluginService");
+  expect(context.editingSelection).toBe(selection);
+  expect(context.pluginOwnerships!.get("reference")?.implementationOwnership).toBe("npm");
+  expect(context.authorizedPlugins.size).toBe(0);
+  // A deliberate owner inspection can still select a different target.
+  await query.invoke({ pluginId: "reference" });
+  expect(context.editingSelection?.target.pluginId).toBe("reference");
+});
+
+it("does not replace a resolved custom Plugin's component closure with metadata-only navigation on reinspection", async () => {
+  const context = await project();
+  const definition = "src/应用/plugins/composer/definition.ts", manifest = "src/应用/plugins/composer/manifest.json";
+  await writeFile(path.join(context.root, definition), 'import { Composer } from "./index"; export default { Component: Composer };');
+  state.inspect.mockImplementation(() => ({ asset: { pluginId: "composer", ownership: "project_source", definitionPath: definition, manifestPath: manifest },
+    files: [{ path: css, kind: "file" }] }));
+  await createTools(context);
+  const result = await inspectEditingContext(context, { pluginId: "composer" });
+  expect(result).toMatchObject({ editingPolicy: { projectEntryEdits: "editable within current user request" } });
+  expect(context.editingSelection!.filePaths).toContain(entry);
+  await context.hostTools!.get("inspect_ui_plugin")!({ pluginId: "composer" });
+  expect(context.editingSelection!.filePaths).toContain(entry);
+  expect(context.editingSelection!.filePaths).toContain(css);
 });
 
 it("keeps a bounded source range, rejects edits to unread lines and reuses the ordinary path protections", async () => {
@@ -1200,7 +1236,7 @@ it("ends a non-recoverable Host capacity failure without inviting further model 
   expect(state.model.calls).toBe(2);
 });
 
-it.each(["approve", "decline"])("handles real graph interruption and %s for a single history-delete implementation change", async decision => {
+it("edits a history-delete implementation through the real graph without an extra confirmation", async () => {
   const context = await project("history-service"); passingValidation();
   const target = "src/应用/services/conversations/http-data-source.ts";
   const original = 'export async function deleteHistory(id: string): Promise<void> { await fetch(`/conversations/${encodeURIComponent(id)}`, { method: "DELETE" }); }\n';
@@ -1216,25 +1252,20 @@ it.each(["approve", "decline"])("handles real graph interruption and %s for a si
       edits: [{ oldText: "/conversations/", newText: "/history/" }], impactSummary: "修改单条历史会话删除路径，影响所有使用此实现的删除调用，保留其他历史操作。",
     }, "prepare-history");
     if (index === 4) {
-      const result = JSON.parse(String(messages.at(-1)!.content));
-      expect(result).toMatchObject({ ok: true, result: { status: "authorized" } });
-      return call("apply_ui_service_implementation_change", { authorizationId: result.result.authorizationId }, "apply-history");
+      const result = JSON.parse(String([...messages].reverse().find(message => message.type === "tool")!.content));
+      expect(result).toMatchObject({ ok: true, result: { status: "ready" } });
+      return call("apply_ui_service_implementation_change", { planId: result.result.planId }, "apply-history");
     }
     return new AIMessage("已完成删除接口配置。");
   });
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   const publish = async (event: any) => { events.push(event); };
   await runtime.run({ threadId: "history-service", runId: "history-service-1", messages: [{ role: "user", content: "接入删除某一个历史会话的接口" }] }, context.signal, publish);
-  const pending = events.find(event => event.name === "on_interrupt").value;
-  expect(await readFile(path.join(context.root, target), "utf8")).toBe(original);
-  const step = pending.metadata.steps[0];
-  expect(step.description).toContain("影响所有使用此实现");
-  await runtime.run({ threadId: "history-service", runId: "history-service-2", messages: [], forwardedProps: { command: { resume: { interruptId: pending.id, answers: { [step.id]: [decision] } } } } }, context.signal, publish);
+  expect(events.some(event => event.name === "on_interrupt")).toBe(false);
   expect(runtime.pending.size).toBe(0);
-  expect(await readFile(path.join(context.root, target), "utf8")).toBe(decision === "approve" ? original.replace("/conversations/", "/history/") : original);
+  expect(await readFile(path.join(context.root, target), "utf8")).toBe(original.replace("/conversations/", "/history/"));
   expect(events.at(-1)?.result.completion).toBe("success");
-  if (decision === "decline") expect(state.model.calls).toBe(4);
-  else expect(events.at(-1).result.receipt.files.map((file: any) => file.path)).toEqual([target]);
+  expect(events.at(-1).result.receipt.files.map((file: any) => file.path)).toEqual([target]);
 });
 
 it("keeps flat and legacy layout/revision files under Operator mutation", async () => {
@@ -1243,4 +1274,86 @@ it("keeps flat and legacy layout/revision files under Operator mutation", async 
     await expect(context.hostTools!.get("create_ui_source_file")!({ path: `src/应用/${file}`, content: "{}" })).rejects.toThrow("use Operator mutation");
   }
   expect(context.activity.revision).toBe(0);
+});
+
+it("resumes one joint development decision through LangGraph and writes its Plugin and Service without another approval", async () => {
+  const context = await project("joint-development"); const root = context.root; passingValidation();
+  state.inspect.mockImplementation(async (_root: string, name: string) => name === "list_ui_plugins" ? { pluginAssets: [{ pluginId: "composer" }] }
+    : name === "inspect_ui_services" ? { services: [] } : name === "inspect_ui_plugin" ? inspectResult(root) : directoryFixture());
+  const proposal = { targetPluginId: "dismiss", desiredOutcome: "Add a dismiss action", missingCapabilities: ["No cross-plugin collapse action exists"],
+    deliveryContract: { capability: "dismiss", renderingCategory: "semantic-slot", placement: "composer.actions", lifecycle: "with composer", dependencies: ["help.card"], verificationMethod: "runtime" },
+  };
+  state.model = new ScriptedModel((index, messages) => {
+    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
+    if (index === 1) return call("read_file", { file_path: "/" + entry }, "owner");
+    if (index === 2) return call("prepare_ui_plugin_development", proposal, "proposal");
+    if (index === 3) return call("enable_creator_tools", { groups: ["services"] }, "enable-services");
+    if (index === 4) return call("prepare_ui_service_contract_change", { changeKind: "create", serviceName: "help.card", contractPath: "services/help-card.ts", ownerPluginId: "composer", consumers: [{ pluginId: "dismiss", dependencyMode: "required" }], reason: "Share the requested action" }, "preflight-service");
+    if (index === 5) {
+      const ready = JSON.parse(String([...messages].reverse().find(message => message.type === "tool")!.content));
+      expect(ready.result.status).toBe("ready");
+      return call("create_ui_service_contract", { planId: ready.result.planId, content: "export interface HelpCard { collapse(): void; }" }, "service");
+    }
+    if (index === 6) return call("create_ui_plugin", { pluginId: "dismiss", files: [
+      { relativePath: "manifest.json", content: '{"id":"dismiss","name":"Dismiss","version":"0.0.1"}' },
+      { relativePath: "definition.ts", content: "export default {};" }, { relativePath: "index.tsx", content: "export const Dismiss = () => null;" },
+    ] }, "plugin");
+    return call("ask_user_question", { steps: [{ id: "test-checkpoint", question: "Continue verification?", options: [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "checkpoint");
+  });
+  const runtime = new CreatorAgentRuntime(root, context.skills, contracts); const events: any[] = []; const publish = async (event: any) => { events.push(event); };
+  await runtime.run({ threadId: "joint", runId: "joint-1", messages: [{ role: "user", content: "给 composer 添加一个按钮插件。" }] }, new AbortController().signal, publish);
+  const question = events.find(event => event.type === "CUSTOM" && event.name === "on_interrupt");
+  expect(question.value.metadata.steps[0].id).toBe("plugin-development-decision");
+  expect(runtime.pending.get("joint")!.context.authorizedPlugins.size).toBe(0);
+  await expect(readFile(path.join(root, "src/应用/services/help-card.ts"))).rejects.toMatchObject({ code: "ENOENT" });
+  await runtime.run({ threadId: "joint", runId: "joint-2", messages: [], forwardedProps: { command: { resume: { interruptId: question.value.id, answers: { "plugin-development-decision": ["start"] } } } } }, new AbortController().signal, publish);
+  expect(events.filter(event => event.type === "RUN_ERROR")).toEqual([]);
+  expect(await readFile(path.join(root, "src/应用/services/help-card.ts"), "utf8")).toContain("collapse");
+  expect(await readFile(path.join(root, "src/应用/plugins/dismiss/index.tsx"), "utf8")).toContain("Dismiss");
+  const questions = events.filter(event => event.type === "CUSTOM" && event.name === "on_interrupt");
+  expect(questions.map(event => event.value.metadata.steps[0].id)).toEqual(["plugin-development-decision", "test-checkpoint"]);
+  expect(runtime.pending.get("joint")!.context.authorizedPlugins.has("dismiss")).toBe(true);
+  expect(events.at(-1).result.receipt.files).toHaveLength(4);
+});
+
+it("keeps project source ownership distinct from npm implementation takeover in editing evidence", async () => {
+  const context = await project();
+  const npm = await inspectResult(context.root); state.inspect.mockResolvedValue(npm);
+  const thin = await inspectEditingContext(context, { pluginId: "composer" });
+  expect(thin).toMatchObject({ editingPolicy: { implementationOwnership: "npm", implementationTakeoverRequired: true, entryPath: entry } });
+  const custom = { ...npm, asset: { ...npm.asset, ownership: "project_source" }, application: undefined };
+  state.inspect.mockResolvedValue(custom);
+  const owned = await inspectEditingContext(context, { pluginId: "composer" });
+  expect(owned).toMatchObject({ editingPolicy: { implementationOwnership: "project", implementationTakeoverRequired: false } });
+  expect(context.pluginOwnerships!.get("composer")!.implementationOwnership).toBe("project");
+  expect(context.authorizedPlugins.size).toBe(0); // ownership never fabricates a new-development grant
+});
+
+it.each(["approve", "decline"])("uses the native source-takeover question for %s and permits subsequent owned-source edits", async choice => {
+  const context = await project("takeover-question"); passingValidation(); let applications = 0;
+  state.inspect.mockImplementation(async (_root: string, name: string) => {
+    if (name === "inspect_ui_plugin") return inspectResult(context.root);
+    if (name === "plan_plugin_source_takeover") return { pluginId: "composer", planHash: "a".repeat(64), version: "1.0.0" };
+    if (name === "takeover_plugin_source") { applications++; await writeFile(path.join(context.root, entry), original + "// owned implementation selected\n"); return { status: "applied" }; }
+    return directoryFixture();
+  });
+  state.model = new ScriptedModel(index => {
+    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
+    if (index === 1) return call("enable_creator_tools", { groups: ["plugin_authoring"] }, "takeover-group");
+    if (index === 2) return call("takeover_plugin_source", { pluginId: "composer" }, "takeover");
+    if (index === 3) return call("read_file", { file_path: entry }, "owned-read");
+    if (index === 4) return call("edit_file", { file_path: entry, old_string: "minHeight: 48", new_string: "minHeight: 64" }, "owned-edit");
+    return new AIMessage("已接管并修改输入框。");
+  });
+  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
+  const publish = async (event: any) => { events.push(event); };
+  await runtime.run({ threadId: "takeover-question", runId: "takeover-question-1", messages: [{ role: "user", content: "接管 composer 的实现源码并修改输入框" }] }, context.signal, publish);
+  const pending = events.find(event => event.name === "on_interrupt").value;
+  expect(applications).toBe(0); expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
+  const key = pending.metadata.steps[0].id;
+  expect(key).toBe("plugin-source-" + "a".repeat(64));
+  await runtime.run({ threadId: "takeover-question", runId: "takeover-question-2", messages: [], forwardedProps: { command: { resume: { interruptId: pending.id, answers: { [key]: [choice] } } } } }, context.signal, publish);
+  expect(applications).toBe(choice === "approve" ? 1 : 0);
+  expect(events.filter(event => event.name === "on_interrupt")).toHaveLength(1);
+  expect(await readFile(path.join(context.root, entry), "utf8")).toBe(choice === "approve" ? original.replace("minHeight: 48", "minHeight: 64") + "// owned implementation selected\n" : original);
 });

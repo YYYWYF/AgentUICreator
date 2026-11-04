@@ -1,0 +1,2470 @@
+[
+  {
+    "label": "before",
+    "modelRoundsAfterFullContext": 35,
+    "cardSourceRetained": 26,
+    "selectedCard": 30,
+    "rounds": [
+      {
+        "modelCall": 1,
+        "afterTool": 0
+      },
+      {
+        "modelCall": 2,
+        "afterTool": 2,
+        "selected": "quick-help-card",
+        "files": []
+      },
+      {
+        "modelCall": 3,
+        "afterTool": 6,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/manifest.json",
+            "start": 1,
+            "end": 46,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 4,
+        "afterTool": 10,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 5,
+        "afterTool": 12,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 6,
+        "afterTool": 14,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 7,
+        "afterTool": 18,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 8,
+        "afterTool": 20,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 9,
+        "afterTool": 22,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 10,
+        "afterTool": 25,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 44,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 11,
+        "afterTool": 28,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 12,
+        "afterTool": 30,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 13,
+        "afterTool": 33,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 14,
+        "afterTool": 34,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 15,
+        "afterTool": 36,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 16,
+        "afterTool": 40,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 17,
+        "afterTool": 43,
+        "selected": "theme-provider",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 2,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 18,
+        "afterTool": 44,
+        "selected": "theme-provider",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 80,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 2,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 19,
+        "afterTool": 48,
+        "selected": "theme-provider",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 20,
+        "afterTool": 52,
+        "selected": "theme-provider",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 21,
+        "afterTool": 54,
+        "selected": "theme-provider",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 22,
+        "afterTool": 56,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 23,
+        "afterTool": 58,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 24,
+        "afterTool": 60,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 25,
+        "afterTool": 61,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 26,
+        "afterTool": 63,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 27,
+        "afterTool": 65,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 28,
+        "afterTool": 69,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 29,
+        "afterTool": 72,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 30,
+        "afterTool": 74,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 31,
+        "afterTool": 78,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 32,
+        "afterTool": 81,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 33,
+        "afterTool": 83,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 34,
+        "afterTool": 86,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 3,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 35,
+        "afterTool": 88,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 42,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 36,
+        "afterTool": 90,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 41,
+            "end": 52,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 37,
+        "afterTool": 92,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 38,
+        "afterTool": 94,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 39,
+        "afterTool": 96,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 40,
+        "afterTool": 98,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 41,
+        "afterTool": 100,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 42,
+        "afterTool": 102,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/add-attachment-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 40,
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "after",
+    "modelRoundsAfterFullContext": 35,
+    "cardSourceRetained": 35,
+    "selectedCard": 35,
+    "rounds": [
+      {
+        "modelCall": 1,
+        "afterTool": 0
+      },
+      {
+        "modelCall": 2,
+        "afterTool": 2,
+        "selected": "quick-help-card",
+        "files": []
+      },
+      {
+        "modelCall": 3,
+        "afterTool": 6,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/manifest.json",
+            "start": 1,
+            "end": 46,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 4,
+        "afterTool": 10,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 5,
+        "afterTool": 12,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 6,
+        "afterTool": 14,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 7,
+        "afterTool": 18,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 8,
+        "afterTool": 20,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 9,
+        "afterTool": 22,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 10,
+        "afterTool": 25,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 23,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 11,
+        "afterTool": 28,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-provider/index.tsx",
+            "start": 1,
+            "end": 4,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 12,
+        "afterTool": 30,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 13,
+        "afterTool": 33,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 14,
+        "afterTool": 34,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 15,
+        "afterTool": 36,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 16,
+        "afterTool": 40,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 60,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 17,
+        "afterTool": 43,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 54,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 18,
+        "afterTool": 44,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "start": 1,
+            "end": 54,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 19,
+        "afterTool": 48,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 20,
+        "afterTool": 52,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 21,
+        "afterTool": 54,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 22,
+        "afterTool": 56,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 23,
+        "afterTool": 58,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 24,
+        "afterTool": 60,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 25,
+        "afterTool": 61,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 26,
+        "afterTool": 63,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 27,
+        "afterTool": 65,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 16,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 28,
+        "afterTool": 69,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 29,
+        "afterTool": 72,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/theme-switch/index.tsx",
+            "start": 1,
+            "end": 12,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 30,
+        "afterTool": 74,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-content/index.tsx",
+            "start": 1,
+            "end": 19,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 31,
+        "afterTool": 78,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 32,
+        "afterTool": 81,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 33,
+        "afterTool": 83,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/index.ts",
+            "start": 1,
+            "end": 5,
+            "truncated": false
+          }
+        ]
+      },
+      {
+        "modelCall": 34,
+        "afterTool": 86,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 29,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/reload-action/index.tsx",
+            "start": 1,
+            "end": 3,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 35,
+        "afterTool": 88,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 36,
+        "afterTool": 90,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 37,
+        "afterTool": 92,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 38,
+        "afterTool": 94,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 39,
+        "afterTool": 96,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 40,
+        "afterTool": 98,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 41,
+        "afterTool": 100,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/composer-triggers.ts",
+            "start": 1,
+            "end": 20,
+            "truncated": true
+          }
+        ]
+      },
+      {
+        "modelCall": 42,
+        "afterTool": 102,
+        "selected": "quick-help-card",
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+            "start": 1,
+            "end": 52,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+            "start": 1,
+            "end": 81,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/add-attachment-action/index.tsx",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/services/conversations.ts",
+            "start": 1,
+            "end": 7,
+            "truncated": false
+          }
+        ]
+      }
+    ]
+  }
+]

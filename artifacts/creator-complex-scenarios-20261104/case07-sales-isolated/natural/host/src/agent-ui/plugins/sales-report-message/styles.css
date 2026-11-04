@@ -1,0 +1,146 @@
+.sales-report {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sales-report--invalid {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.sales-report__scroll {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.sales-report__table {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+
+.sales-report__caption {
+  padding: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.sales-report__head {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sales-report__head--revenue {
+  width: 40%;
+  text-align: right;
+}
+
+.sales-report__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sales-report__sort:hover {
+  text-decoration: underline;
+}
+
+.sales-report__sort:focus-visible,
+.sales-report__row-toggle:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sales-report__sort-icon {
+  font-size: 11px;
+}
+
+.sales-report__row {
+  cursor: pointer;
+}
+
+.sales-report__row:hover {
+  background: var(--muted);
+}
+
+.sales-report__row--expanded {
+  background: var(--muted);
+}
+
+.sales-report__cell {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.sales-report__cell--revenue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-report__row-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sales-report__chevron {
+  width: 10px;
+  font-size: 10px;
+}
+
+.sales-report__detail-cell {
+  padding: 6px 8px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.sales-report__detail-label {
+  margin-right: 8px;
+  opacity: 0.75;
+}
+
+.sales-report__detail-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-report__hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.7;
+}

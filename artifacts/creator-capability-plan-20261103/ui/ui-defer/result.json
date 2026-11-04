@@ -1,0 +1,173 @@
+{
+  "case": "ui-defer",
+  "prompt": "给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。",
+  "timedOut": false,
+  "seconds": 8.882,
+  "status": "success",
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "noChangeOutcome": {
+      "toolName": "prepare_ui_plugin_development",
+      "status": "declined"
+    },
+    "executionPolicy": "domain-write",
+    "receipt": {
+      "files": [],
+      "validations": [],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-03T10-01-48.320Z_d62c85362020d036784d9b7d93d7ef3123deb532c2a6e4daad4a4239cb19da28.jsonl"
+      },
+      "transaction": {
+        "runId": "cc67c35f-0d60-4dc2-a926-32950c1b7895",
+        "undoable": false,
+        "reapplyable": false,
+        "changedPaths": [],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "no-project-change",
+        "projectRevision": 0,
+        "validationRevision": null,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 2,
+      "toolCalls": 3
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "questions": [
+    {
+      "type": "CUSTOM",
+      "name": "on_interrupt",
+      "value": {
+        "id": "d5d76da54e554bf061e43777b3f9481c",
+        "reason": "human_input",
+        "metadata": {
+          "kind": "ask_user_question",
+          "steps": [
+            {
+              "id": "plugin-development-decision",
+              "question": "是否按此方案开发？",
+              "description": "目标: 点击知道了收起帮助内容，点击标题重新展开；切换主题后仍可使用。\n\n需要新增的能力: 卡片当前没有供子插件使用的展开控制接口\n\n目标插件与位置: quick-help-dismiss\nquick-help-card.headerActions\n\n涉及的依赖: help.card\n\n预计修改范围: src/agent-ui/plugins/quick-help-dismiss/\nsrc/agent-ui/plugins/quick-help-card/index.tsx\nsrc/agent-ui/plugins/quick-help-card/definition.ts\nsrc/agent-ui/services/help-card.ts\n\n一并授权的服务及提供方 → 使用方:\nhelp.card: quick-help-card → quick-help-dismiss\n\n验证方式与交互: runtime\n收起与重新展开; 主题切换\n\n不包含 vendor、Runtime 修改或源码接管；这些操作需要独立授权。",
+              "options": [
+                {
+                  "id": "start",
+                  "label": "开始开发"
+                },
+                {
+                  "id": "adjust",
+                  "label": "调整需求"
+                },
+                {
+                  "id": "defer",
+                  "label": "暂不处理"
+                }
+              ],
+              "selectionMode": "single",
+              "minSelections": 1,
+              "maxSelections": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "tools": [
+    "read_file",
+    "prepare_ui_plugin_development",
+    "prepare_ui_plugin_development"
+  ],
+  "firstPreparation": {
+    "toolNumber": 2,
+    "seconds": 2.737,
+    "tool": "prepare_ui_plugin_development"
+  },
+  "firstMutationAttempt": null,
+  "changedPaths": [],
+  "qaApproval": {
+    "kind": "simulated isolated QA user selects defer",
+    "seconds": 6.2,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 点击知道了收起帮助内容，点击标题重新展开；切换主题后仍可使用。\n\n需要新增的能力: 卡片当前没有供子插件使用的展开控制接口\n\n目标插件与位置: quick-help-dismiss\nquick-help-card.headerActions\n\n涉及的依赖: help.card\n\n预计修改范围: src/agent-ui/plugins/quick-help-dismiss/\nsrc/agent-ui/plugins/quick-help-card/index.tsx\nsrc/agent-ui/plugins/quick-help-card/definition.ts\nsrc/agent-ui/services/help-card.ts\n\n一并授权的服务及提供方 → 使用方:\nhelp.card: quick-help-card → quick-help-dismiss\n\n验证方式与交互: runtime\n收起与重新展开; 主题切换\n\n不包含 vendor、Runtime 修改或源码接管；这些操作需要独立授权。",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "quick-help-dismiss",
+      "desiredOutcome": "点击知道了收起帮助内容，点击标题重新展开；切换主题后仍可使用。",
+      "missingCapabilities": [
+        "卡片当前没有供子插件使用的展开控制接口"
+      ],
+      "componentBasisRefs": [
+        "src/agent-ui/plugins/quick-help-card/index.tsx"
+      ],
+      "affectedFiles": [
+        "src/agent-ui/plugins/quick-help-card/index.tsx",
+        "src/agent-ui/plugins/quick-help-card/definition.ts"
+      ],
+      "deliveryContract": {
+        "capability": "dismiss-help",
+        "renderingCategory": "semantic-slot",
+        "placement": "quick-help-card.headerActions",
+        "lifecycle": "随帮助卡片启用",
+        "dependencies": [
+          "help.card"
+        ],
+        "verificationMethod": "runtime",
+        "interactions": [
+          "收起与重新展开",
+          "主题切换"
+        ]
+      },
+      "relatedServices": [
+        {
+          "changeKind": "create",
+          "serviceName": "help.card",
+          "contractPath": "services/help-card.ts",
+          "ownerPluginId": "quick-help-card",
+          "consumers": [
+            {
+              "pluginId": "quick-help-dismiss",
+              "dependencyMode": "required"
+            }
+          ],
+          "reason": "按钮和卡片共用展开状态"
+        }
+      ]
+    },
+    "zeroSourceChangesBeforeApproval": true
+  },
+  "browserErrors": []
+}

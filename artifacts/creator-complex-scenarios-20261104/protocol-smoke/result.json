@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "path": "HTTP SSE -> AG-UI client -> existing named Data Message UI -> DOM",
+  "customEvent": "CONTEXT_CONTENT",
+  "errors": []
+}

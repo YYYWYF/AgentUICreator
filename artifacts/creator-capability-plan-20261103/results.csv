@@ -1,0 +1,4 @@
+case,scope,seconds,tools,realAgentRequests,summaryRequests,scriptedSetupRequests,inputTokensLowerBound,outputTokensLowerBound,totalTokensLowerBound,changedFiles,status
+自然执行（早期修复版本）,natural-end-to-end,1200.242,64,33,6,0,959492,67585,1027077,0,TIMEOUT
+批准后执行（权限措辞修复前）,execution-stage-isolation,600.215,69,28,7,2,1031175,57087,1088262,0,TIMEOUT
+批准后执行（最终版本）,execution-stage-isolation,600.265,84,40,6,2,1342305,67869,1410174,1,TIMEOUT

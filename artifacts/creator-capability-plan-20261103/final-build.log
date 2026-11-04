@@ -1,0 +1,383 @@
+
+> agent-ui-creator-workspace@0.0.1 docs:package /Users/yifei/Coding/AgentUICreator
+> node scripts/creator-documentation.mjs --generate
+
+
+> @za38.03/agent-ui-docs@ build /Users/yifei/Coding/AgentUICreator/website
+> rspress build
+
+🔥 Rspress v2.0.23
+
+info    build started...
+info    Rendering md pages...
+success Markdown rendered in 78 ms.
+ready   built in 1.75s (node_md)
+info    Rendering pages...
+success Pages rendered in 235 ms.
+ready   built in 2.08s (node)
+ready   built in 2.08s (web)
+
+File (web)                                                   Size        Gzip   
+doc_build/static/js/async/2.b98a219ef5.js                    0.12 kB     0.10 kB
+doc_build/static/js/styles.a9d73d9284.js                     0.51 kB     0.26 kB
+doc_build/static/js/async/route-2308615ee227.b2ab9183f3.js   0.89 kB     0.62 kB
+doc_build/static/js/async/route-4aaef3220123.06dfde4a58.js   1.9 kB      0.97 kB
+doc_build/static/js/async/route-124dfbca8840.d358839c18.js   2.6 kB      1.4 kB
+doc_build/static/js/async/route-2fa1789a9d33.5ca01541bb.js   3.1 kB      1.3 kB
+doc_build/static/js/async/route-5ad4115c8748.4f03dffac4.js   3.2 kB      1.4 kB
+doc_build/static/js/async/route-9702c67514ff.0922bb2b80.js   3.2 kB      1.3 kB
+doc_build/static/js/async/route-c75534896ba5.b9092a2dfc.js   3.3 kB      1.5 kB
+doc_build/static/js/async/route-81910baaee36.1df86575ad.js   3.4 kB      1.4 kB
+doc_build/static/js/async/route-98b4b92fecba.02070ee407.js   3.4 kB      1.6 kB
+doc_build/static/js/async/route-8946d84b15ef.5a3273cfb7.js   3.4 kB      1.6 kB
+doc_build/static/js/async/route-7131ca0d51fa.749a2f7f35.js   3.5 kB      1.7 kB
+doc_build/static/js/async/route-7cf28ed14e52.7605ce08ad.js   3.5 kB      1.4 kB
+doc_build/static/js/async/route-331559ba000d.77aaee93be.js   3.7 kB      1.7 kB
+doc_build/static/js/async/route-380936e296df.9c489ad38d.js   3.8 kB      1.6 kB
+doc_build/static/js/async/route-3238e8cb788d.e6205a7682.js   4.2 kB      2.0 kB
+doc_build/static/js/async/route-e6f72c9cb6ab.6d081dd578.js   4.2 kB      1.9 kB
+doc_build/static/js/async/route-419f26561ccb.3884b84d27.js   4.4 kB      2.0 kB
+doc_build/static/js/async/route-e9ea978b11b4.6832905109.js   4.9 kB      1.9 kB
+doc_build/static/js/async/route-b7c44f1316a9.3c9159d283.js   5.5 kB      2.3 kB
+doc_build/static/js/async/route-f65d5a28016c.97f97041e1.js   5.7 kB      2.3 kB
+doc_build/static/js/async/route-ffa3d4c1118a.cd3695d3a1.js   5.9 kB      2.5 kB
+doc_build/static/js/async/route-06db84e4ba17.21dcb4f9ad.js   6.1 kB      2.3 kB
+doc_build/static/js/async/route-df4e92e7b1bb.b9a799caed.js   6.2 kB      2.3 kB
+doc_build/static/js/async/route-ab0bade7f345.344acbe714.js   6.4 kB      2.5 kB
+doc_build/static/js/async/route-4c3c7c303038.9ede9f95d2.js   6.5 kB      2.6 kB
+doc_build/static/js/async/route-fc1ba7c8ea36.9e143f6ef5.js   6.5 kB      2.3 kB
+doc_build/static/js/async/route-f5828462f0b1.7a5a854efb.js   6.6 kB      2.6 kB
+doc_build/static/js/async/route-20bf929f0a6c.975d091c27.js   7.8 kB      3.0 kB
+doc_build/static/js/async/route-b18d1f482f70.7b281d9a0e.js   7.9 kB      3.1 kB
+doc_build/static/js/async/route-c111d19bd549.8ab3bbe5fb.js   8.1 kB      2.6 kB
+doc_build/static/js/async/route-f507d3f43b22.6d92f3f8aa.js   8.4 kB      3.0 kB
+doc_build/static/js/async/route-1d00657a3cb2.9e354c7955.js   8.5 kB      2.8 kB
+doc_build/static/js/async/route-54dd1afa4047.12eb5c45bc.js   9.1 kB      2.6 kB
+doc_build/static/js/async/route-86559e030e73.4d146d575f.js   9.9 kB      2.8 kB
+doc_build/static/js/async/route-b0d2ee0a85d5.654dbe9589.js   10.3 kB     3.4 kB
+doc_build/static/js/async/route-9d47076dfb43.ec7e5360f7.js   10.5 kB     3.0 kB
+doc_build/static/js/async/route-0b3e242b750f.c8325231f4.js   10.5 kB     2.9 kB
+doc_build/static/js/async/route-ff9c6f720131.cd89b784d8.js   10.6 kB     2.9 kB
+doc_build/static/js/async/route-43be47d18630.fa9a67467b.js   10.6 kB     3.0 kB
+doc_build/static/js/async/route-ae2db2edb213.57e2054ec6.js   10.6 kB     3.1 kB
+doc_build/static/js/async/route-b4e3e15c69e8.2130711240.js   10.6 kB     2.9 kB
+doc_build/static/js/async/route-2489e7f9f119.2d8a52571f.js   10.7 kB     2.8 kB
+doc_build/static/js/async/route-8dc0e539c8e2.eb2f2232a7.js   10.8 kB     2.9 kB
+doc_build/static/js/async/route-d3ad3acde67a.2ab39439f7.js   10.9 kB     3.0 kB
+doc_build/static/js/async/route-50d101b54e63.8dd4029dbd.js   11.0 kB     3.1 kB
+doc_build/static/js/async/route-065ee1a3c540.ddcbf88d34.js   11.1 kB     3.0 kB
+doc_build/static/js/async/route-d7994c498a9e.392e61fd4f.js   11.4 kB     2.4 kB
+doc_build/static/js/async/route-a2cc8e510c05.2c6ae83ae6.js   11.6 kB     3.1 kB
+doc_build/static/js/async/route-2f5e32cc730f.0686299522.js   11.7 kB     2.7 kB
+doc_build/static/js/async/route-014a3a765773.7abf5a364f.js   11.9 kB     3.1 kB
+doc_build/static/js/async/route-2eda3fd118df.5aa7b99999.js   12.0 kB     3.3 kB
+doc_build/static/js/async/route-a561a4d764d3.7debf5444d.js   12.0 kB     3.0 kB
+doc_build/static/js/async/route-7025045c12d2.20286c0b6c.js   12.1 kB     3.2 kB
+doc_build/static/js/async/route-543ede69fb91.75cb0423f7.js   12.2 kB     3.2 kB
+doc_build/static/js/async/route-687f4f92c849.63837e6e37.js   12.3 kB     3.2 kB
+doc_build/static/js/async/route-56ab66b577cf.b756818bda.js   12.4 kB     3.3 kB
+doc_build/static/js/async/route-9203c47a3b0b.c148d9917a.js   12.6 kB     3.1 kB
+doc_build/static/js/async/route-37d7ccbf5c2d.ab5a0be0a7.js   12.6 kB     3.2 kB
+doc_build/static/js/async/route-be202107190f.728f366fd4.js   13.0 kB     3.3 kB
+doc_build/static/js/async/route-d5b6a3d3d02c.69ab33ea8f.js   13.1 kB     2.8 kB
+doc_build/static/js/async/route-f5374009fbdd.810f00d5c3.js   13.1 kB     3.6 kB
+doc_build/static/js/async/route-3a23d148a7e9.946798bc5d.js   13.2 kB     2.8 kB
+doc_build/static/js/async/route-715b8e6aef86.3318acc911.js   13.3 kB     3.2 kB
+doc_build/static/js/async/route-7a2411a65a27.1594039d71.js   13.5 kB     3.4 kB
+doc_build/static/js/async/route-682912daf561.d3ba174be2.js   13.8 kB     3.4 kB
+doc_build/static/js/async/route-2e8143349e3d.a74f286b79.js   14.0 kB     4.3 kB
+doc_build/static/js/async/route-c7435ddcbd7f.aa928b298f.js   14.2 kB     3.6 kB
+doc_build/static/js/async/route-ae09403887a5.14b41d8971.js   15.1 kB     3.4 kB
+doc_build/static/js/async/route-c47a61a965fb.5abd821b6c.js   15.4 kB     4.0 kB
+doc_build/static/js/async/route-abc6d383e64b.1cd3f38d91.js   16.2 kB     3.9 kB
+doc_build/static/js/async/route-6c9dced4c104.7773578985.js   16.7 kB     3.2 kB
+doc_build/static/js/async/route-533a0b14d564.2592d6799a.js   16.8 kB     3.8 kB
+doc_build/static/js/async/route-9f48f5e0d444.310653febe.js   16.9 kB     3.8 kB
+doc_build/static/js/async/route-081e28692c71.942ff55636.js   17.3 kB     4.0 kB
+doc_build/static/js/async/route-7634e282c269.4ec695ccd9.js   17.7 kB     3.5 kB
+doc_build/static/js/async/route-a977f95b7ded.2b900e5a19.js   17.8 kB     4.1 kB
+doc_build/static/js/async/route-25c78456e406.959a52a0ff.js   18.1 kB     4.1 kB
+doc_build/static/js/async/route-d8867c9523af.7da015cb6e.js   18.3 kB     4.2 kB
+doc_build/static/js/async/route-0686c9281436.d08645a193.js   19.1 kB     4.2 kB
+doc_build/static/js/async/route-4dec09b47606.973d52f479.js   19.4 kB     3.6 kB
+doc_build/static/js/async/route-1a02856911f9.fddf3f9c51.js   19.5 kB     3.4 kB
+doc_build/static/js/async/route-b79c8586aed9.549b6609aa.js   19.9 kB     3.6 kB
+doc_build/static/js/async/route-bb13b31a650c.524f276e96.js   20.0 kB     3.8 kB
+doc_build/static/js/async/route-853d5266c031.d80d2bbbd4.js   21.6 kB     4.8 kB
+doc_build/static/js/async/route-584ea8bee87a.1caaefb29f.js   24.6 kB     4.7 kB
+doc_build/static/js/async/route-d8ad0f05888f.3b4a1c8d02.js   27.3 kB     5.7 kB
+doc_build/static/js/async/route-b3da1d208222.da1765bb30.js   27.8 kB     4.1 kB
+doc_build/static/js/async/route-34b38c76a175.bd811fb256.js   28.7 kB     5.6 kB
+doc_build/static/js/async/route-90f50c127164.6a68f60e28.js   30.3 kB     5.5 kB
+doc_build/static/js/async/route-dfaf4423c383.0588e4feaa.js   30.7 kB     4.9 kB
+doc_build/static/js/async/route-906c6a577de7.b08e77154f.js   36.0 kB     5.9 kB
+doc_build/static/js/lib-router.6c80aca87c.js                 36.0 kB     12.9 kB
+doc_build/static/js/async/route-be8d7a65da50.e26bf3ccaf.js   38.0 kB     8.7 kB
+doc_build/static/js/async/route-55ba3e2e5e64.7ff3f7f6a4.js   39.8 kB     4.0 kB
+doc_build/static/js/async/route-64d453bdca74.85ac26156a.js   44.6 kB     8.4 kB
+doc_build/static/js/async/route-95e07fa85c96.282e2d79ef.js   46.6 kB     10.0 kB
+doc_build/static/js/async/route-1d90f4ace966.46c1d1923b.js   60.6 kB     6.3 kB
+doc_build/static/css/styles.5bb9d09699.css                   74.7 kB     14.0 kB
+doc_build/static/js/async/route-a8cd86840322.4c9683e4c7.js   118.7 kB    14.3 kB
+doc_build/static/js/index.461a57dbc5.js                      128.7 kB    30.9 kB
+doc_build/static/js/lib-react.5f6031218c.js                  182.0 kB    57.7 kB
+doc_build/static/js/m.35baf96cc1.js                          238.8 kB    79.8 kB
+doc_build/static/search_index.zh.7b966b7f.json               435.5 kB    117.7 kB
+
+                                                    Total:   2526.2 kB   638.9 kB
+
+File (node)                                                 Size        Gzip   
+doc_build/404.html                                          7.1 kB      2.2 kB
+doc_build/index.html                                        9.4 kB      3.1 kB
+doc_build/updates/index.html                                11.2 kB     3.2 kB
+doc_build/updates/creator-maintenance.html                  13.4 kB     4.3 kB
+doc_build/updates/release-notes.html                        15.2 kB     4.8 kB
+doc_build/mock/index.html                                   16.7 kB     5.4 kB
+doc_build/mock/getting-started.html                         18.1 kB     5.1 kB
+doc_build/guide/examples/understand-project.html            19.8 kB     4.5 kB
+doc_build/guide/adjustments/state-and-events.html           20.1 kB     4.7 kB
+doc_build/guide/adjustments/custom-renderers.html           20.2 kB     4.6 kB
+doc_build/guide/examples/index.html                         20.2 kB     5.0 kB
+doc_build/guide/adjustments/generative-ui.html              20.4 kB     4.7 kB
+doc_build/guide/adjustments/themes.html                     20.5 kB     4.7 kB
+doc_build/guide/adjustments/localization.html               20.6 kB     4.6 kB
+doc_build/development/source-takeover.html                  20.8 kB     4.5 kB
+doc_build/guide/add-function.html                           21.0 kB     4.9 kB
+doc_build/guide/examples/brand-copy.html                    21.1 kB     5.0 kB
+doc_build/mock/builtin-scenarios.html                       21.2 kB     6.6 kB
+doc_build/guide/adjustments/index.html                      22.1 kB     5.3 kB
+doc_build/guide/adjustments/mention-and-commands.html       22.3 kB     5.3 kB
+doc_build/guide/examples/verify-results.html                22.6 kB     5.3 kB
+doc_build/guide/commands.html                               22.6 kB     5.5 kB
+doc_build/guide/cli.html                                    22.8 kB     5.6 kB
+doc_build/development/index.html                            22.9 kB     5.1 kB
+doc_build/guide/index.html                                  23.1 kB     5.8 kB
+doc_build/guide/configuration.html                          24.3 kB     5.9 kB
+doc_build/development/connect-agent.html                    25.5 kB     5.9 kB
+doc_build/development/project-structure.html                26.9 kB     6.1 kB
+doc_build/mock/local-recordings.html                        28.3 kB     6.3 kB
+doc_build/guide/creator-dock-vite.html                      28.8 kB     5.7 kB
+doc_build/development/custom-renderers.html                 29.3 kB     6.1 kB
+doc_build/development/web-component-api.html                29.7 kB     6.2 kB
+doc_build/plugins/theme-provider.html                       30.4 kB     5.1 kB
+doc_build/plugins/conversation-service.html                 30.6 kB     5.0 kB
+doc_build/plugins/conversation-command-source.html          30.7 kB     5.0 kB
+doc_build/plugins/locale-provider.html                      30.9 kB     5.1 kB
+doc_build/plugins/conversation-data-source.html             30.9 kB     5.1 kB
+doc_build/development/attachments-dictation-feedback.html   31.4 kB     6.6 kB
+doc_build/plugins/index.html                                34.2 kB     6.3 kB
+doc_build/development/frontend-tools.html                   34.6 kB     6.8 kB
+doc_build/development/styling-and-localization.html         35.4 kB     6.3 kB
+doc_build/development/component-customization.html          36.5 kB     6.9 kB
+doc_build/plugins/human-interaction.html                    37.9 kB     7.1 kB
+doc_build/plugins/task-group.html                           39.4 kB     6.7 kB
+doc_build/plugins/thinking-indicator.html                   40.0 kB     6.9 kB
+doc_build/plugins/conversation-new.html                     40.1 kB     7.0 kB
+doc_build/plugins/conversation-quote.html                   40.2 kB     6.9 kB
+doc_build/plugins/tool-timeline.html                        40.3 kB     7.0 kB
+doc_build/plugins/chart-message.html                        40.3 kB     7.1 kB
+doc_build/plugins/agent-identity.html                       40.3 kB     7.0 kB
+doc_build/plugins/slash-command-trigger.html                40.4 kB     7.1 kB
+doc_build/plugins/mention-trigger.html                      40.4 kB     7.2 kB
+doc_build/plugins/context-retrieval-message.html            40.4 kB     7.0 kB
+doc_build/plugins/locale-switch.html                        40.5 kB     7.2 kB
+doc_build/plugins/tool-group.html                           40.5 kB     7.1 kB
+doc_build/plugins/transient-assistant-messages.html         40.6 kB     7.2 kB
+doc_build/plugins/theme-switch.html                         40.9 kB     7.2 kB
+doc_build/plugins/conversation-surface.html                 40.9 kB     7.2 kB
+doc_build/plugins/agent-plan-message.html                   41.1 kB     7.1 kB
+doc_build/plugins/reasoning.html                            41.1 kB     7.3 kB
+doc_build/plugins/auth-account.html                         41.4 kB     7.4 kB
+doc_build/plugins/copy-action.html                          41.5 kB     7.3 kB
+doc_build/plugins/reload-action.html                        41.5 kB     7.3 kB
+doc_build/plugins/auth-gate.html                            41.6 kB     7.5 kB
+doc_build/plugins/response-footer.html                      41.8 kB     7.3 kB
+doc_build/plugins/add-attachment-action.html                41.8 kB     7.4 kB
+doc_build/plugins/lexical-composer-input.html               42.1 kB     7.8 kB
+doc_build/plugins/feedback-actions.html                     42.2 kB     7.5 kB
+doc_build/development/create-plugin.html                    42.2 kB     6.8 kB
+doc_build/plugins/export-markdown-action.html               42.3 kB     7.6 kB
+doc_build/plugins/submit-action.html                        42.4 kB     7.6 kB
+doc_build/plugins/default-plugins.html                      42.6 kB     7.3 kB
+doc_build/plugins/dictation-action.html                     43.0 kB     7.8 kB
+doc_build/plugins/conversation-thread-list.html             43.7 kB     8.1 kB
+doc_build/development/web-component.html                    43.9 kB     7.3 kB
+doc_build/plugins/lexical-edit-composer.html                44.1 kB     8.3 kB
+doc_build/plugins/generated-file-message.html               44.2 kB     8.0 kB
+doc_build/plugins/composer.html                             44.2 kB     8.3 kB
+doc_build/plugins/agent-status-message.html                 44.4 kB     8.1 kB
+doc_build/plugins/retrieval-chunks.html                     44.7 kB     8.3 kB
+doc_build/plugins/source-citations-message.html             44.7 kB     8.2 kB
+doc_build/plugins/web-search.html                           45.0 kB     8.4 kB
+doc_build/plugins/conversation-suggestions.html             45.2 kB     7.7 kB
+doc_build/plugins/job-progress-message.html                 45.6 kB     8.4 kB
+doc_build/guide/creator-dock-rsbuild-webpack.html           46.5 kB     7.7 kB
+doc_build/plugins/tool-fallback.html                        47.4 kB     9.0 kB
+doc_build/development/history-backend.html                  49.7 kB     9.2 kB
+doc_build/development/vue.html                              50.2 kB     9.2 kB
+doc_build/development/agent-options.html                    53.4 kB     8.7 kB
+doc_build/development/react.html                            53.6 kB     8.7 kB
+doc_build/plugins/ask-user-question.html                    53.8 kB     9.9 kB
+doc_build/development/react-host-api.html                   55.8 kB     11.8 kB
+doc_build/plugins/tool-result.html                          61.0 kB     10.1 kB
+doc_build/development/layout-and-composition.html           61.4 kB     12.4 kB
+doc_build/development/custom-ag-ui-events.html              62.8 kB     7.8 kB
+doc_build/start/index.html                                  68.3 kB     13.1 kB
+doc_build/development/react-host-control.html               75.9 kB     10.0 kB
+doc_build/development/plugin-api.html                       134.1 kB    18.0 kB
+
+                                                   Total:   3629.0 kB   678.9 kB
+
+File (node_md)                                            Size        Gzip   
+doc_build/index.md                                        0.15 kB     0.16 kB
+doc_build/updates/index.md                                0.65 kB     0.41 kB
+doc_build/plugins/conversation-service.md                 0.95 kB     0.64 kB
+doc_build/development/source-takeover.md                  0.96 kB     0.69 kB
+doc_build/plugins/conversation-command-source.md          0.99 kB     0.65 kB
+doc_build/plugins/conversation-data-source.md             1.0 kB      0.71 kB
+doc_build/plugins/theme-provider.md                       1.1 kB      0.73 kB
+doc_build/plugins/locale-provider.md                      1.1 kB      0.74 kB
+doc_build/guide/examples/understand-project.md            1.2 kB      0.84 kB
+doc_build/guide/adjustments/state-and-events.md           1.4 kB      0.93 kB
+doc_build/guide/adjustments/custom-renderers.md           1.5 kB      0.95 kB
+doc_build/guide/adjustments/generative-ui.md              1.6 kB      0.99 kB
+doc_build/guide/adjustments/themes.md                     1.6 kB      0.99 kB
+doc_build/guide/adjustments/localization.md               1.6 kB      0.94 kB
+doc_build/guide/add-function.md                           2.0 kB      1.2 kB
+doc_build/updates/creator-maintenance.md                  2.0 kB      1.3 kB
+doc_build/guide/examples/brand-copy.md                    2.0 kB      1.2 kB
+doc_build/guide/creator-dock-vite.md                      2.1 kB      1.3 kB
+doc_build/guide/examples/index.md                         2.2 kB      1.3 kB
+doc_build/guide/cli.md                                    2.2 kB      1.3 kB
+doc_build/development/styling-and-localization.md         2.7 kB      1.6 kB
+doc_build/development/connect-agent.md                    2.7 kB      1.6 kB
+doc_build/guide/adjustments/mention-and-commands.md       2.9 kB      1.5 kB
+doc_build/guide/adjustments/index.md                      2.9 kB      1.6 kB
+doc_build/plugins/task-group.md                           2.9 kB      1.5 kB
+doc_build/guide/examples/verify-results.md                3.0 kB      1.5 kB
+doc_build/updates/release-notes.md                        3.0 kB      1.7 kB
+doc_build/development/custom-renderers.md                 3.1 kB      1.7 kB
+doc_build/guide/commands.md                               3.2 kB      1.7 kB
+doc_build/plugins/thinking-indicator.md                   3.2 kB      1.7 kB
+doc_build/guide/configuration.md                          3.2 kB      1.7 kB
+doc_build/development/web-component-api.md                3.3 kB      1.7 kB
+doc_build/development/index.md                            3.3 kB      1.4 kB
+doc_build/plugins/index.md                                3.4 kB      1.8 kB
+doc_build/development/create-plugin.md                    3.5 kB      2.0 kB
+doc_build/plugins/slash-command-trigger.md                3.5 kB      1.9 kB
+doc_build/plugins/tool-timeline.md                        3.6 kB      1.8 kB
+doc_build/plugins/conversation-quote.md                   3.7 kB      1.7 kB
+doc_build/mock/getting-started.md                         3.7 kB      1.8 kB
+doc_build/plugins/mention-trigger.md                      3.7 kB      2.0 kB
+doc_build/plugins/transient-assistant-messages.md         3.8 kB      1.9 kB
+doc_build/development/attachments-dictation-feedback.md   3.8 kB      2.0 kB
+doc_build/mock/index.md                                   3.9 kB      2.2 kB
+doc_build/plugins/conversation-new.md                     3.9 kB      1.8 kB
+doc_build/plugins/agent-identity.md                       4.0 kB      1.9 kB
+doc_build/plugins/context-retrieval-message.md            4.0 kB      1.9 kB
+doc_build/plugins/chart-message.md                        4.0 kB      1.9 kB
+doc_build/plugins/agent-plan-message.md                   4.1 kB      1.9 kB
+doc_build/development/frontend-tools.md                   4.2 kB      2.2 kB
+doc_build/mock/local-recordings.md                        4.2 kB      2.3 kB
+doc_build/development/web-component.md                    4.3 kB      2.2 kB
+doc_build/plugins/tool-group.md                           4.3 kB      2.0 kB
+doc_build/development/custom-ag-ui-events.md              4.4 kB      2.1 kB
+doc_build/guide/index.md                                  4.5 kB      2.1 kB
+doc_build/development/project-structure.md                4.5 kB      2.2 kB
+doc_build/plugins/copy-action.md                          4.6 kB      2.1 kB
+doc_build/plugins/auth-account.md                         4.6 kB      2.2 kB
+doc_build/plugins/add-attachment-action.md                4.6 kB      2.1 kB
+doc_build/plugins/reload-action.md                        4.6 kB      2.1 kB
+doc_build/plugins/reasoning.md                            4.7 kB      2.1 kB
+doc_build/plugins/conversation-surface.md                 4.8 kB      2.1 kB
+doc_build/plugins/locale-switch.md                        4.8 kB      2.0 kB
+doc_build/plugins/feedback-actions.md                     4.9 kB      2.2 kB
+doc_build/plugins/auth-gate.md                            5.0 kB      2.3 kB
+doc_build/plugins/human-interaction.md                    5.1 kB      2.4 kB
+doc_build/plugins/theme-switch.md                         5.2 kB      2.0 kB
+doc_build/plugins/conversation-suggestions.md             5.3 kB      2.3 kB
+doc_build/plugins/export-markdown-action.md               5.3 kB      2.3 kB
+doc_build/guide/creator-dock-rsbuild-webpack.md           5.4 kB      2.5 kB
+doc_build/plugins/response-footer.md                      5.5 kB      2.2 kB
+doc_build/development/component-customization.md          5.6 kB      2.4 kB
+doc_build/plugins/submit-action.md                        5.7 kB      2.3 kB
+doc_build/plugins/dictation-action.md                     5.8 kB      2.4 kB
+doc_build/plugins/lexical-composer-input.md               6.2 kB      2.5 kB
+doc_build/development/agent-options.md                    6.6 kB      3.2 kB
+doc_build/development/react.md                            6.8 kB      3.1 kB
+doc_build/plugins/agent-status-message.md                 6.9 kB      2.7 kB
+doc_build/plugins/conversation-thread-list.md             6.9 kB      2.7 kB
+doc_build/plugins/source-citations-message.md             7.1 kB      2.8 kB
+doc_build/plugins/generated-file-message.md               7.1 kB      2.7 kB
+doc_build/plugins/lexical-edit-composer.md                7.4 kB      2.9 kB
+doc_build/plugins/retrieval-chunks.md                     7.6 kB      3.0 kB
+doc_build/plugins/web-search.md                           7.6 kB      3.1 kB
+doc_build/development/vue.md                              7.7 kB      3.6 kB
+doc_build/development/react-host-control.md               8.0 kB      3.7 kB
+doc_build/plugins/composer.md                             8.0 kB      3.0 kB
+doc_build/mock/builtin-scenarios.md                       8.3 kB      3.5 kB
+doc_build/plugins/job-progress-message.md                 8.4 kB      3.1 kB
+doc_build/development/history-backend.md                  8.5 kB      3.9 kB
+doc_build/plugins/tool-fallback.md                        9.3 kB      3.6 kB
+doc_build/plugins/default-plugins.md                      9.5 kB      3.0 kB
+doc_build/plugins/ask-user-question.md                    9.6 kB      4.2 kB
+doc_build/plugins/tool-result.md                          12.5 kB     4.5 kB
+doc_build/development/layout-and-composition.md           15.4 kB     6.6 kB
+doc_build/start/index.md                                  18.7 kB     7.5 kB
+doc_build/development/react-host-api.md                   20.1 kB     6.7 kB
+doc_build/llms.txt                                        27.9 kB     10.1 kB
+doc_build/development/plugin-api.md                       28.1 kB     9.8 kB
+doc_build/llms-full.txt                                   492.6 kB    123.1 kB
+
+                                                 Total:   1008.7 kB   351.2 kB
+
+Creator offline documentation generated and verified. Copy artifacts/creator-documentation with the source repository.
+
+> @za38.03/agent-ui-creator@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/creator
+> node ../../scripts/sync-package-release-metadata.mjs creator && node operator/scripts/build.mjs && node scripts/clean-dist.mjs && node scripts/copy-operator-assets.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator && node ../../scripts/creator-documentation.mjs
+
+vite v6.4.5 building for production...
+transforming...
+src/ui/components/popover.tsx (1:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+src/ui/components/popover.tsx (1:0): Module level directives cause errors when bundled, "use client" in "src/ui/components/popover.tsx" was ignored.
+../../node_modules/.pnpm/lucide-react@1.41.0_react@19.1.1/node_modules/lucide-react/dist/esm/context.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/lucide-react@1.41.0_react@19.1.1/node_modules/lucide-react/dist/esm/context.mjs" was ignored.
+../../node_modules/.pnpm/lucide-react@1.41.0_react@19.1.1/node_modules/lucide-react/dist/esm/Icon.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/lucide-react@1.41.0_react@19.1.1/node_modules/lucide-react/dist/esm/Icon.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-popover@1.1.23_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-popover/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-popover@1.1.23_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-popover/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-focus-guards@1.1.6_@types+react@19.3.0_react@19.1.1/node_modules/@radix-ui/react-focus-guards/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-focus-guards@1.1.6_@types+react@19.3.0_react@19.1.1/node_modules/@radix-ui/react-focus-guards/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-dismissable-layer@1.1.19_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-dismissable-layer@1.1.19_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-focus-scope@1.1.16_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-focus-scope/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-focus-scope@1.1.16_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-focus-scope/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-portal@1.1.17_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-portal/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-portal@1.1.17_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-portal/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-presence@1.1.10_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-presence/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-presence@1.1.10_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-presence/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/@radix-ui+react-popper@1.3.7_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-popper/dist/index.mjs (1:0): Module level directives cause errors when bundled, "use client" in "../../node_modules/.pnpm/@radix-ui+react-popper@1.3.7_@types+react-dom@19.3.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@radix-ui/react-popper/dist/index.mjs" was ignored.
+../../node_modules/.pnpm/zod@4.5.4/node_modules/zod/v4/core/util.js (330:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "../../node_modules/.pnpm/zod@4.5.4/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/.pnpm/zod@4.5.4/node_modules/zod/v4/core/regexes.js (70:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "../../node_modules/.pnpm/zod@4.5.4/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2657 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/browser/dock.html                     0.50 kB │ gzip:   0.33 kB
+../dist/browser/assets/dock-ChVwp1xS.css     87.26 kB │ gzip:  15.64 kB
+../dist/browser/assets/dock-SLhcTldZ.js   1,162.83 kB │ gzip: 329.34 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.59s
+vite v6.4.5 building for production...
+transforming...
+✓ 22 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/browser/dock-client.js  29.86 kB │ gzip: 11.30 kB
+✓ built in 35ms
+Creator offline documentation verified.

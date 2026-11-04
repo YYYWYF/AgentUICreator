@@ -1,0 +1,18 @@
+{
+  "created": "2026-11-04T08:39:26.678Z",
+  "model": "deepseek-v4.1-flash",
+  "budget": 65536,
+  "keep": 12000,
+  "output": 8192,
+  "temperature": 0.2,
+  "modelTimeoutSeconds": 120,
+  "compression": true,
+  "providerFingerprint": "1d0c8dae4013f0dd0883ac7692d61535aa7cdbad5eab0302c57fa1d0f07fe77a",
+  "platform": "darwin",
+  "node": "v24.22.1",
+  "initialProject": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-4qkKVm/host",
+  "baselinePromptSha256": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+  "treatmentPromptSha256": "ba2f85ce6fdd3bd2f5c741d855c3f199b7e49e83d4ab7d3377035fa60c135a85",
+  "evaluationDeadlineSeconds": 1200,
+  "scope": "Natural end-to-end original task, no scripted model responses. Exact previous initial source and production packages. Only the new-Plugin question is answered by an automated QA selection in this disposable project. Supporting existing-code edits before the question are allowed. No source takeover or dependency-install decision is simulated. The observation deadline is QA-only, not a Creator call/step ceiling."
+}

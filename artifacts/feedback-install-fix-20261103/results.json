@@ -1,0 +1,63 @@
+{
+  "scope": "macOS; rebuilt public Creator project API; actual local Creator worker and command HTTP transaction; prepared local dependencies; no model calls, browser acceptance, fresh online install or real Windows run",
+  "steps": [
+    {
+      "name": "official-resource-install",
+      "status": "passed",
+      "changed": true,
+      "feedbackInstanceId": "feedback-actions-main",
+      "existingActions": [
+        "copy-action",
+        "reload-action",
+        "export-markdown-action"
+      ]
+    },
+    {
+      "name": "repeat-install-is-idempotent",
+      "status": "passed"
+    },
+    {
+      "name": "slash-disable-through-real-worker",
+      "status": "passed"
+    },
+    {
+      "name": "slash-enable-through-real-worker",
+      "status": "passed",
+      "sourceLockAndApplicationPreserved": true
+    },
+    {
+      "name": "consumer-typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "consumer-production-build",
+      "status": "passed"
+    }
+  ],
+  "status": "passed",
+  "regressionTests": {
+    "feedbackInstallation": {
+      "passed": 4,
+      "templates": [
+        "platform",
+        "assistant",
+        "embedded"
+      ],
+      "singleSlotProtection": true
+    },
+    "pluginCommandsAndEnablement": {
+      "passed": 10
+    },
+    "packagedPluginProps": {
+      "passed": 2
+    },
+    "totalPassed": 16
+  },
+  "additionalChecks": {
+    "operatorTypecheck": "passed",
+    "creatorBuild": "passed",
+    "diffCheck": "passed",
+    "packagedOperatorIncludesFix": true,
+    "buildId": "38584d90-4fea-4eec-8029-7bf5264c3aca"
+  }
+}

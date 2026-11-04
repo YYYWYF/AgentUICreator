@@ -9,8 +9,8 @@ the generated application's chosen UI stack; no particular UI library is require
 A Plugin provides an activation-scoped Service. The application explicitly permits
 selected operations in `agent-contract/agent-tools.ts`. A Service method is not
 an Agent Tool until the application authorizes it. Reuse existing Service seams;
-follow the host's Service ownership/authorization flow for new or changed public
-contracts. Plugins cannot self-register tools or own another Agent Runtime.
+preserve Service ownership and public contracts. Plugins cannot self-register
+tools or own another Agent Runtime.
 
 ```text
 Plugin -> Service capability

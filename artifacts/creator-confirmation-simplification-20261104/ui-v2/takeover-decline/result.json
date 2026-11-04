@@ -1,0 +1,121 @@
+{
+  "case": "takeover-decline",
+  "prompt": "给刚才的帮助卡片添加一个“知道了”按钮插件，放进 headerActions。点击后隐藏帮助内容，再次点击卡片标题能重新展开。切换主题后功能仍然正常。",
+  "timedOut": false,
+  "seconds": 5.286,
+  "status": "success",
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "noChangeOutcome": {
+      "toolName": "takeover_plugin_source",
+      "status": "user_cancelled"
+    },
+    "executionPolicy": "domain-write",
+    "receipt": {
+      "files": [],
+      "validations": [],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-04T01-55-53.401Z_306188545ef80cef4c0d4f19557c12ed2114e975f0693a1509d5c782168c3a27.jsonl"
+      },
+      "transaction": {
+        "runId": "c1168103-6f92-44b0-87db-93a2626b4d81",
+        "undoable": false,
+        "reapplyable": false,
+        "changedPaths": [],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "no-project-change",
+        "projectRevision": 0,
+        "validationRevision": null,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 2,
+      "toolCalls": 3
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "questions": [
+    {
+      "type": "CUSTOM",
+      "name": "on_interrupt",
+      "value": {
+        "id": "712547ce5ecf9e4bbdf1de378028bbe9",
+        "reason": "human_input",
+        "metadata": {
+          "kind": "ask_user_question",
+          "steps": [
+            {
+              "id": "plugin-source-8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20",
+              "question": "是否将 composer 的实现源码接管到项目？",
+              "description": "{\"pluginId\":\"composer\",\"package\":{\"name\":\"@za38.03/agent-ui-plugins\",\"version\":\"0.0.1\"},\"pluginVersion\":\"0.0.1\",\"catalogHash\":\"b42521f50ef10214d1a0d832f2774973c1ccfaf5c6e106bfc4c148584bd101ae\",\"stateHash\":\"b00de0103501f012f04695c4c71fe886f9f51d3e554be1b08fd1b3b6fa335c21\",\"applicationChanges\":[\"index.tsx\",\"definition.ts\"],\"files\":[\"plugins/composer/source/THIRD_PARTY_NOTICES.md\",\"plugins/composer/source/adapters/composer.tsx\",\"plugins/composer/source/adapters/textarea.tsx\",\"plugins/composer/source/definition.ts\",\"plugins/composer/source/index.tsx\",\"plugins/composer/source/manifest.json\"],\"instances\":[\"auto_45aacb74a8476bb8\"],\"sharedDependencies\":[\"react\",\"@za38.03/agent-ui-core\",\"@za38.03/agent-ui-renderer\",\"@za38.03/agent-ui-runtime\",\"@za38.03/agent-ui-plugins/composer-support\",\"@za38.03/agent-ui-plugins/styles.css\"],\"dependencyChanges\":[],\"compatibility\":{\"composerSupport\":1},\"origins\":{\"definition.ts\":\"src/plugins/composer/adapters/project/definition.ts\",\"manifest.json\":\"src/plugins/composer/plugin.json\",\"index.tsx\":\"src/plugins/composer/adapters/project/index.tsx\",\"adapters/composer.tsx\":\"src/plugins/composer/adapters/presentation/composer.tsx\",\"adapters/textarea.tsx\":\"src/plugins/composer/adapters/presentation/textarea.tsx\",\"THIRD_PARTY_NOTICES.md\":\"THIRD_PARTY_NOTICES.md\"},\"planHash\":\"8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20\"}",
+              "options": [
+                {
+                  "id": "approve",
+                  "label": "同意接管"
+                },
+                {
+                  "id": "decline",
+                  "label": "取消"
+                }
+              ],
+              "selectionMode": "single",
+              "minSelections": 1,
+              "maxSelections": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "tools": [
+    "enable_creator_tools",
+    "takeover_plugin_source",
+    "takeover_plugin_source"
+  ],
+  "firstPreparation": null,
+  "firstMutationAttempt": null,
+  "changedPaths": [],
+  "qaApproval": {
+    "kind": "simulated isolated QA user declines the displayed creation/takeover",
+    "seconds": 4.737,
+    "question": {
+      "id": "plugin-source-8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20",
+      "question": "是否将 composer 的实现源码接管到项目？",
+      "description": "{\"pluginId\":\"composer\",\"package\":{\"name\":\"@za38.03/agent-ui-plugins\",\"version\":\"0.0.1\"},\"pluginVersion\":\"0.0.1\",\"catalogHash\":\"b42521f50ef10214d1a0d832f2774973c1ccfaf5c6e106bfc4c148584bd101ae\",\"stateHash\":\"b00de0103501f012f04695c4c71fe886f9f51d3e554be1b08fd1b3b6fa335c21\",\"applicationChanges\":[\"index.tsx\",\"definition.ts\"],\"files\":[\"plugins/composer/source/THIRD_PARTY_NOTICES.md\",\"plugins/composer/source/adapters/composer.tsx\",\"plugins/composer/source/adapters/textarea.tsx\",\"plugins/composer/source/definition.ts\",\"plugins/composer/source/index.tsx\",\"plugins/composer/source/manifest.json\"],\"instances\":[\"auto_45aacb74a8476bb8\"],\"sharedDependencies\":[\"react\",\"@za38.03/agent-ui-core\",\"@za38.03/agent-ui-renderer\",\"@za38.03/agent-ui-runtime\",\"@za38.03/agent-ui-plugins/composer-support\",\"@za38.03/agent-ui-plugins/styles.css\"],\"dependencyChanges\":[],\"compatibility\":{\"composerSupport\":1},\"origins\":{\"definition.ts\":\"src/plugins/composer/adapters/project/definition.ts\",\"manifest.json\":\"src/plugins/composer/plugin.json\",\"index.tsx\":\"src/plugins/composer/adapters/project/index.tsx\",\"adapters/composer.tsx\":\"src/plugins/composer/adapters/presentation/composer.tsx\",\"adapters/textarea.tsx\":\"src/plugins/composer/adapters/presentation/textarea.tsx\",\"THIRD_PARTY_NOTICES.md\":\"THIRD_PARTY_NOTICES.md\"},\"planHash\":\"8d18ff3444e9e2483642ff19a9117cc1c16726bbf8991c4da9f41e79de3d7c20\"}",
+      "options": [
+        {
+          "id": "approve",
+          "label": "同意接管"
+        },
+        {
+          "id": "decline",
+          "label": "取消"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "composer"
+    },
+    "zeroSourceChangesBeforeApproval": true
+  },
+  "browserErrors": []
+}

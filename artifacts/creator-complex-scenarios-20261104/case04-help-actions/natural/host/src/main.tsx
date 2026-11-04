@@ -1,0 +1,1 @@
+import {createRoot} from "react-dom/client";import {Agent} from "./agent-ui";import "./host.css";createRoot(document.getElementById("root")!).render(<Agent endpoint={"http://127.0.0.1:64516/agent"}/>);

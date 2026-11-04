@@ -1,0 +1,115 @@
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+ ❯ tests/creator-node-process.test.ts (4 tests | 1 failed) 5338ms
+   × replays a completed run and rejects reusing its ID for different work 2048ms
+ ❯ tests/plugin-applications.test.ts (5 tests | 4 failed) 454ms
+   × prepares a requested installed Plugin's thin application without an extra question or source takeover 178ms
+   × preserves an existing customized application on later composition 87ms
+   × prepares multiple applications against fresh shared Host bindings 81ms
+   × keeps dependency installation outside ordinary application preparation 100ms
+ ❯ tests/creator-project-root-workspace.test.ts (1 test | 1 failed) 108ms
+   × serves the workspace API with only projectRoot, including refresh, switch and clear 106ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-node-process.test.ts > replays a completed run and rejects reusing its ID for different work
+CreatorRuntimeError: node:internal/modules/esm/resolve:272
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/yifei/Coding/AgentUICreator/packages/creator/node_modules/@za38.03/agent-ui-plugins/dist/catalog/index.js' imported from /Users/yifei/Coding/AgentUICreator/packages/creator/dist/operator/dist/runtime/operator-runtime.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:272:11)
+    at moduleResolve (node:internal/modules/esm/resolve:879:10)
+    at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:763:56)
+    at #resolve (node:internal/modules/esm/loader:687:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:607:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:276:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:381:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/yifei/Coding/AgentUICreator/packages/creator/node_modules/@za38.03/agent-ui-plugins/dist/catalog/index.js'
+}
+
+Node.js v24.22.1
+
+ ❯ ChildProcess.fail src/CreatorProcessManager.ts:87:73
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/creator-project-root-workspace.test.ts > serves the workspace API with only projectRoot, including refresh, switch and clear
+AssertionError: expected { status: 'broken', …(2) } to match object { status: 'uninitialized', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "uninitialized",
++   "status": "broken",
+    "workspace": {
+      "displayPath": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator 工程 with spaces-PuzmLq",
+    },
+  }
+
+ ❯ tests/creator-project-root-workspace.test.ts:37:30
+     35|   const state = await fetch(base);
+     36|   expect(state.headers.get("content-type")).toContain("application/jso…
+     37|   expect(await state.json()).toMatchObject({ status: "uninitialized", …
+       |                              ^
+     38|   const post = async (route: string, body = {}) => {
+     39|     const response = await fetch(`${base}${route}`, { method: "POST", …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/plugin-applications.test.ts > prepares a requested installed Plugin's thin application without an extra question or source takeover
+AssertionError: promise rejected "Error: Cannot find module '/var/folders/b… { …(2) }" instead of resolving
+ ❯ tests/plugin-applications.test.ts:30:99
+     28| it("prepares a requested installed Plugin's thin application without a…
+     29|   const f = await fixture(), before = await readFile(path.join(f.root,…
+     30|   await expect(prepareCompositionApplications(f.context, { operations:…
+       |                                                                                                   ^
+     31|   expect(await readFile(f.entry, "utf8")).toContain("usePluginService"…
+     32|   expect(await readFile(f.entry, "utf8")).toContain("service={service}…
+
+Caused by: Error: Cannot find module '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator application 中文-aCKq4D/node_modules/@za38.03/agent-ui-plugins/dist/theme-switch/index.js'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', path: '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator application 中文-aCKq4D/node_modules/@za38.03/agent-ui-plugins' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/plugin-applications.test.ts > preserves an existing customized application on later composition
+Error: Cannot find module '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator application 中文-GbdI9T/node_modules/@za38.03/agent-ui-plugins/dist/theme-switch/index.js'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/plugin-applications.test.ts > prepares multiple applications against fresh shared Host bindings
+Error: Cannot find module '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator application 中文-AqhN5Y/node_modules/@za38.03/agent-ui-plugins/dist/theme-switch/index.js'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/plugin-applications.test.ts > keeps dependency installation outside ordinary application preparation
+AssertionError: expected [Function] to throw error including 'PLUGIN_ENABLEMENT_DEPENDENCIES_REQUIR…' but got 'Cannot find module \'/var/folders/bl/…'
+
+Expected: "PLUGIN_ENABLEMENT_DEPENDENCIES_REQUIRED"
+Received: "Cannot find module '/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator application 中文-QqxJAX/node_modules/@za38.03/agent-ui-plugins/dist/theme-switch/index.js'"
+
+ ❯ tests/plugin-applications.test.ts:62:99
+     60|   await writeFile(file, JSON.stringify(manifest));
+     61|   const before = await readFile(file, "utf8");
+     62|   await expect(prepareCompositionApplications(f.context, { operations:…
+       |                                                                                                   ^
+     63|   expect(await readFile(file, "utf8")).toBe(before);
+     64|   await expect(readFile(f.entry)).rejects.toMatchObject({ code: "ENOEN…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  3 failed | 47 passed (50)
+      Tests  6 failed | 503 passed (509)
+   Start at  17:05:59
+   Duration  71.01s (transform 2.39s, setup 0ms, import 17.01s, tests 41.33s, environment 4.47s)
+
+undefined
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --maxWorkers=1

@@ -5,15 +5,16 @@ import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { createAgent, createMiddleware } from "langchain";
 import { tool } from "@langchain/core/tools";
+import { z } from "zod";
 import { MemorySaver, Command } from "@langchain/langgraph";
 import { AIMessage, SystemMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
 import { createModel, hostEnvironment } from "./config.js";
 import { RunActivity, sourceRoot } from "./activity.js";
-import { createTools, visibleTool, type ToolContext } from "./tools.js";
+import { createTools, visibleTool, TOOL_GROUPS, type ToolContext } from "./tools.js";
 import { inspectEditingContext, requestedEditingPlugin } from "./edit-context.js";
 import { retryKind, retryDelay } from "./model-policy.js";
 import { CreatorContextWindow } from "./context-window.js";
-import { workingSourceContext } from "./working-context.js";
+import { workingContext } from "./working-context.js";
 import { inspectRuntime } from "./runtime-evidence.js";
 import { editingProjectIdentity, EditingSessionStore } from "./editing-session.js";
 import { projectCheckIdentity } from "./inspection.js";
@@ -145,7 +146,8 @@ export class CreatorAgentRuntime {
         }
         if (attempt >= retries || (!retryKind(error) && (error as any)?.code !== "CREATOR_REQUEST_ROUTE_INVALID")) throw error;
         await retryDelay(300 * (attempt + 1), signal);
-        routeMessages.push(new SystemMessage('The previous classification was rejected. Return exactly one JSON object with the permission field. Do not execute or describe the user task.'));
+        // Retry the original complete schema contract. A permission-only repair
+        // instruction drops the required removal target and cannot validate.
       }
     }
   }
@@ -188,7 +190,7 @@ export class CreatorAgentRuntime {
       await publish({ type: "STEP_STARTED", stepName: "creator.resolve", metadata: { phase: "understanding", status: "running" } });
       context = { root: this.root, skills: this.skills, contracts: this.contracts, activity, readOnly: true,
         userMessage: String(input.messages.filter(item => item.role === "user").at(-1)?.content ?? ""),
-        threadId, signal, messages: presentation, groups: new Set(), authorizedPlugins: new Set(), approvedServices: new Set(), diagnostics: this.diagnostics, verificationMode: this.verificationMode };
+        threadId, signal, messages: presentation, groups: new Set(), authorizedPlugins: new Set(), diagnostics: this.diagnostics, verificationMode: this.verificationMode };
       context.requestRuntimeObservation = request => publish({ type: "CUSTOM", name: "creator_runtime_observation_requested", value: { ...request, threadId } });
       if (cancelMarker) context.cancelMarker = cancelMarker;
       const tools = await createTools(context);
@@ -239,7 +241,7 @@ export class CreatorAgentRuntime {
       const seen = new Map<string, number>();
       context.contextWindow = new CreatorContextWindow({ environment: this.environment, request: context.userMessage,
         signal: () => context.signal, model: () => createModel(this.environment, `${threadId}:summary:${randomUUID()}`),
-        workingContext: budget => workingSourceContext(context, budget),
+        workingContext: budget => workingContext(context, budget),
         log: (event, data) => activity.log(event, data) });
       let completionRepairs = 0, completionRevision = activity.revision;
       const serialFileCalls = new Map<string, { before: Promise<void>; release: () => void; batch: { failed: boolean } }>();
@@ -345,7 +347,23 @@ export class CreatorAgentRuntime {
             const count = (seen.get(key) ?? 0) + 1; seen.set(key, count);
             if (seen.size > 1000) seen.delete(seen.keys().next().value!);
             if (count >= 4) throw new Error("CREATOR_NO_PROGRESS");
-            if (!visibleTool(request.toolCall.name, context)) throw new Error("TOOL_PERMISSION_DENIED");
+            if (!visibleTool(request.toolCall.name, context)) {
+              const toolName = request.toolCall.name;
+              const groups = Object.entries(TOOL_GROUPS).filter(([, names]) => names.includes(toolName)).map(([group]) => group);
+              const readOnlyDenied = context.readOnly && visibleTool(toolName, { ...context, readOnly: false });
+              const code = readOnlyDenied ? "TOOL_PERMISSION_DENIED" : "CREATOR_TOOL_NOT_AVAILABLE";
+              const reason = readOnlyDenied ? "read_only_request" : groups.length ? "tool_group_not_enabled" : "unknown_tool";
+              if (serial) serial.batch.failed = true;
+              (context.toolObservations ??= []).push({ toolName, status: "error", reason: code });
+              await activity.log("tool_finished", { toolName, status: "error", code, reason, revision: activity.revision });
+              const unavailable = tool(async () => JSON.stringify({ ok: false, error: {
+                code, toolName, reason,
+                ...(reason === "tool_group_not_enabled" ? { recovery: { tool: "enable_creator_tools", groups } } : {}),
+              } }), { name: toolName, description: request.tool?.description ?? toolName, schema: request.tool?.schema ?? z.object({}).passthrough() });
+              // Keep a normal tool-result boundary. Unavailable tools do not
+              // execute or gain authority, and a general Agent can recover.
+              return await handler({ ...request, tool: unavailable });
+            }
             const result = await handler(request);
             if (serial && typeof result.content === "string") {
               try { if (JSON.parse(result.content).ok === false) serial.batch.failed = true; } catch { serial.batch.failed = true; }

@@ -1,0 +1,1 @@
+import {runUIProjectVerificationCli} from "file:///Users/yifei/Coding/AgentUICreator/artifacts/creator-edit-flow-20261103/frozen-v3/creator-snapshot/dist/operator/dist/runtime/operator-runtime.mjs"; await runUIProjectVerificationCli(process.cwd());

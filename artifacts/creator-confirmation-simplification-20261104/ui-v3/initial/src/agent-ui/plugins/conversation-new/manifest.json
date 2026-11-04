@@ -1,0 +1,15 @@
+{
+  "id": "conversation-new",
+  "name": "New Conversation",
+  "description": "Starts a new conversation independently of history management.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-create"
+  ],
+  "authoring": {
+    "intents": [
+      "start a new conversation"
+    ],
+    "visualRole": "conversation header action"
+  }
+}

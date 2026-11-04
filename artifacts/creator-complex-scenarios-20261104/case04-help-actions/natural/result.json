@@ -1,0 +1,182 @@
+{
+  "case": "natural",
+  "prompt": "在聊天顶部的帮助卡片底部加一排操作按钮，先放一个“查看示例”。点击后，把“请给我一个使用示例”填进聊天输入框，由我点击发送。以后我还想往这排加其他按钮。",
+  "timedOut": false,
+  "seconds": 706.009,
+  "status": "success",
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "noChangeOutcome": {
+      "toolName": "verify_creator_outcome",
+      "status": "already_current"
+    },
+    "executionPolicy": "domain-write",
+    "receipt": {
+      "files": [
+        {
+          "path": "src/agent-ui/hooks/useComposerDraftFill.ts",
+          "status": "created",
+          "diff": "--- a/src/agent-ui/hooks/useComposerDraftFill.ts\n+++ b/src/agent-ui/hooks/useComposerDraftFill.ts\n@@ -1,1 +1,60 @@\n-\n+import { useEffect, useRef } from \"react\";\n+\n+/**\n+ * Draft bridge for project Plugins that render outside the composer subtree.\n+ *\n+ * The composer adapter registers the conversation composer's `setText`; other\n+ * Plugins (for example the quick help card action row) only ever write the\n+ * draft. Sending stays a user action, so this module intentionally exposes no\n+ * `send` or `cancel` path.\n+ */\n+type ComposerDraftWriter = (text: string) => void;\n+\n+let writer: ComposerDraftWriter | null = null;\n+let pendingText: string | null = null;\n+\n+function flushPendingText(): void {\n+  if (writer === null || pendingText === null) {\n+    return;\n+  }\n+  const text = pendingText;\n+  pendingText = null;\n+  writer(text);\n+}\n+\n+export function registerComposerDraftWriter(next: ComposerDraftWriter | null): void {\n+  writer = next;\n+  flushPendingText();\n+}\n+\n+/** Replace the current composer draft. Never sends it. */\n+export function fillComposerDraft(text: string): void {\n+  if (writer === null) {\n+    // The composer is not mounted yet; apply the text as soon as it registers.\n+    pendingText = text;\n+    return;\n+  }\n+  writer(text);\n+}\n+\n+/**\n+ * Called by the composer adapter so Plugins outside the composer subtree can\n+ * fill the draft while the composer is mounted.\n+ */\n+export function useComposerDraftWriter(setText: ComposerDraftWriter): void {\n+  const latest = useRef(setText);\n+\n+  useEffect(() => {\n+    latest.current = setText;\n+  }, [setText]);\n+\n+  useEffect(() => {\n+    registerComposerDraftWriter((text) => {\n+      latest.current(text);\n+    });\n+    return () => {\n+      registerComposerDraftWriter(null);\n+    };\n+  }, []);\n+}\n+",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/plugins/composer/index.tsx",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/composer/index.tsx\n+++ b/src/agent-ui/plugins/composer/index.tsx\n@@ -1,37 +1,41 @@\n-import { useAgentUILocaleCode, useConversationComposer } from \"@za38.03/agent-ui-plugins\";\n-import { ConversationComposerPlugin as Composer } from \"@za38.03/agent-ui-plugins/composer\";\n-import type { ComponentProps } from \"react\";\n-\n-const MAX_COMPOSER_LENGTH = 200;\n-\n-/** Project-owned counter messages keyed by the unified Agent UI locale code. */\n-const composerCounterMessages = {\n-  \"zh-CN\": { limitReached: \"已达到字数上限\" },\n-  \"en-US\": { limitReached: \"Character limit reached\" },\n-} as const;\n-\n-export function ConversationComposerPlugin(props: ComponentProps<typeof Composer>) {\n-  const { inputProps, ...rest } = props;\n-  const { text } = useConversationComposer();\n-  const localeCode = useAgentUILocaleCode();\n-  const usedLength = text.length;\n-  const atLimit = usedLength >= MAX_COMPOSER_LENGTH;\n-  const messages = composerCounterMessages[localeCode];\n-\n-  return (\n-    <div className=\"aui-composer-counter-root\">\n-      <Composer {...rest} inputProps={{ ...inputProps, maxLength: MAX_COMPOSER_LENGTH }} />\n-      <div className=\"aui-composer-counter\" data-at-limit={atLimit}>\n-        <span className=\"aui-composer-counter-value\">\n-          {usedLength}/{MAX_COMPOSER_LENGTH}\n-        </span>\n-        {atLimit ? (\n-          <span className=\"aui-composer-counter-limit\" role=\"status\">\n-            {messages.limitReached}\n-          </span>\n-        ) : null}\n-      </div>\n-    </div>\n-  );\n-}\n-\n+import { useAgentUILocaleCode, useConversationComposer } from \"@za38.03/agent-ui-plugins\";\n+import { ConversationComposerPlugin as Composer } from \"@za38.03/agent-ui-plugins/composer\";\n+import type { ComponentProps } from \"react\";\n+import { useComposerDraftWriter } from \"../../hooks/useComposerDraftFill\";\n+\n+const MAX_COMPOSER_LENGTH = 200;\n+\n+/** Project-owned counter messages keyed by the unified Agent UI locale code. */\n+const composerCounterMessages = {\n+  \"zh-CN\": { limitReached: \"已达到字数上限\" },\n+  \"en-US\": { limitReached: \"Character limit reached\" },\n+} as const;\n+\n+export function ConversationComposerPlugin(props: ComponentProps<typeof Composer>) {\n+  const { inputProps, ...rest } = props;\n+  const { text, setText } = useConversationComposer();\n+  // Lets Plugins outside the composer subtree (for example the quick help card\n+  // action row) fill the draft. This never sends the message.\n+  useComposerDraftWriter(setText);\n+  const localeCode = useAgentUILocaleCode();\n+  const usedLength = text.length;\n+  const atLimit = usedLength >= MAX_COMPOSER_LENGTH;\n+  const messages = composerCounterMessages[localeCode];\n+\n+  return (\n+    <div className=\"aui-composer-counter-root\">\n+      <Composer {...rest} inputProps={{ ...inputProps, maxLength: MAX_COMPOSER_LENGTH }} />\n+      <div className=\"aui-composer-counter\" data-at-limit={atLimit}>\n+        <span className=\"aui-composer-counter-value\">\n+          {usedLength}/{MAX_COMPOSER_LENGTH}\n+        </span>\n+        {atLimit ? (\n+          <span className=\"aui-composer-counter-limit\" role=\"status\">\n+            {messages.limitReached}\n+          </span>\n+        ) : null}\n+      </div>\n+    </div>\n+  );\n+}\n+",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/plugins/quick-help-card/index.tsx",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/quick-help-card/index.tsx\n+++ b/src/agent-ui/plugins/quick-help-card/index.tsx\n@@ -1,58 +1,106 @@\n-import { useAgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n-import { useId } from \"react\";\n-import {\n-  toggleQuickHelpCardExpanded,\n-  useQuickHelpCardExpanded,\n-} from \"../../hooks/useQuickHelpCardExpanded\";\n-import type { ReactNode } from \"react\";\n-import \"./styles.css\";\n-\n-type QuickHelpCardProps = {\n-  renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;\n-};\n-\n-const messages: Record<string, { title: string; expand: string; collapse: string }> = {\n-  \"zh-CN\": { title: \"使用帮助\", expand: \"展开\", collapse: \"折叠\" },\n-  \"en-US\": { title: \"Usage Help\", expand: \"Expand\", collapse: \"Collapse\" },\n-};\n-\n-export function QuickHelpCardPlugin(props: QuickHelpCardProps) {\n-  const localeCode = useAgentUILocaleCode();\n-  const text = messages[localeCode] ?? messages[\"zh-CN\"]!;\n-  // Shared with header actions such as the \"知道了\" action, so both plugins\n-  // control the same expansion state and it survives theme switching.\n-  const expanded = useQuickHelpCardExpanded();\n-  const bodyId = useId();\n-\n-  const headerActions = props.renderSlot ? props.renderSlot(\"headerActions\", null) : null;\n-  const body = props.renderSlot ? props.renderSlot(\"body\", null) : null;\n-\n-  return (\n-    <section className=\"quick-help-card\" aria-label={text.title}>\n-      <div className=\"quick-help-card__header\">\n-        <button\n-          type=\"button\"\n-          className=\"quick-help-card__toggle\"\n-          aria-expanded={expanded}\n-          aria-controls={bodyId}\n-          onClick={toggleQuickHelpCardExpanded}\n-        >\n-          <span className=\"quick-help-card__title\">{text.title}</span>\n-          <span className=\"quick-help-card__indicator\" aria-hidden=\"true\">\n-            {expanded ? \"▾\" : \"▸\"}\n-          </span>\n-          <span className=\"quick-help-card__toggle-label\">\n-            {expanded ? text.collapse : text.expand}\n-          </span>\n-        </button>\n-        {headerActions ? (\n-          <div className=\"quick-help-card__header-actions\">{headerActions}</div>\n-        ) : null}\n-      </div>\n-      <div className=\"quick-help-card__body\" id={bodyId} hidden={!expanded}>\n-        {body}\n-      </div>\n-    </section>\n-  );\n-}\n-\n+import { useAgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n+import { useId } from \"react\";\n+import { fillComposerDraft } from \"../../hooks/useComposerDraftFill\";\n+import {\n+  toggleQuickHelpCardExpanded,\n+  useQuickHelpCardExpanded,\n+} from \"../../hooks/useQuickHelpCardExpanded\";\n+import type { ReactNode } from \"react\";\n+import \"./styles.css\";\n+\n+type QuickHelpCardProps = {\n+  renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;\n+};\n+\n+const messages: Record<\n+  string,\n+  { title: string; expand: string; collapse: string; actions: string }\n+> = {\n+  \"zh-CN\": {\n+    title: \"使用帮助\",\n+    expand: \"展开\",\n+    collapse: \"折叠\",\n+    actions: \"快捷操作\",\n+  },\n+  \"en-US\": {\n+    title: \"Usage Help\",\n+    expand: \"Expand\",\n+    collapse: \"Collapse\",\n+    actions: \"Quick actions\",\n+  },\n+};\n+\n+type QuickHelpCardAction = {\n+  id: string;\n+  /** Button copy keyed by the unified Agent UI locale code. */\n+  label: Record<string, string>;\n+  /** Text written into the conversation draft. Clicking never sends it. */\n+  draft: string;\n+};\n+\n+/**\n+ * Bottom action row. Append entries here to add more prompt buttons; every\n+ * entry only fills the composer draft, sending stays a user action.\n+ */\n+const quickHelpActions: QuickHelpCardAction[] = [\n+  {\n+    id: \"view-example\",\n+    label: { \"zh-CN\": \"查看示例\", \"en-US\": \"View example\" },\n+    draft: \"请给我一个使用示例\",\n+  },\n+];\n+\n+export function QuickHelpCardPlugin(props: QuickHelpCardProps) {\n+  const localeCode = useAgentUILocaleCode();\n+  const text = messages[localeCode] ?? messages[\"zh-CN\"]!;\n+  // Shared with header actions such as the \"知道了\" action, so both plugins\n+  // control the same expansion state and it survives theme switching.\n+  const expanded = useQuickHelpCardExpanded();\n+  const bodyId = useId();\n+\n+  const headerActions = props.renderSlot ? props.renderSlot(\"headerActions\", null) : null;\n+  const body = props.renderSlot ? props.renderSlot(\"body\", null) : null;\n+\n+  return (\n+    <section className=\"quick-help-card\" aria-label={text.title}>\n+      <div className=\"quick-help-card__header\">\n+        <button\n+          type=\"button\"\n+          className=\"quick-help-card__toggle\"\n+          aria-expanded={expanded}\n+          aria-controls={bodyId}\n+          onClick={toggleQuickHelpCardExpanded}\n+        >\n+          <span className=\"quick-help-card__title\">{text.title}</span>\n+          <span className=\"quick-help-card__indicator\" aria-hidden=\"true\">\n+            {expanded ? \"▾\" : \"▸\"}\n+          </span>\n+          <span className=\"quick-help-card__toggle-label\">\n+            {expanded ? text.collapse : text.expand}\n+          </span>\n+        </button>\n+        {headerActions ? (\n+          <div className=\"quick-help-card__header-actions\">{headerActions}</div>\n+        ) : null}\n+      </div>\n+      <div className=\"quick-help-card__body\" id={bodyId} hidden={!expanded}>\n+        {body}\n+      </div>\n+      <div className=\"quick-help-card__actions\" role=\"group\" aria-label={text.actions}>\n+        {quickHelpActions.map((action) => (\n+          <button\n+            key={action.id}\n+            type=\"button\"\n+            className=\"quick-help-card__action\"\n+            onClick={() => {\n+              fillComposerDraft(action.draft);\n+            }}\n+          >\n+            {action.label[localeCode] ?? action.label[\"zh-CN\"]}\n+          </button>\n+        ))}\n+      </div>\n+    </section>\n+  );\n+}\n+",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/plugins/quick-help-card/styles.css",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/quick-help-card/styles.css\n+++ b/src/agent-ui/plugins/quick-help-card/styles.css\n@@ -1,81 +1,115 @@\n-.quick-help-card {\n-  box-sizing: border-box;\n-  width: 100%;\n-  min-width: 0;\n-  background: var(--card);\n-  color: var(--foreground);\n-  border-bottom: 1px solid var(--border);\n-}\n-\n-.quick-help-card__header {\n-  display: flex;\n-  align-items: center;\n-  gap: 8px;\n-  padding: 8px 12px;\n-}\n-\n-.quick-help-card__toggle {\n-  display: inline-flex;\n-  align-items: center;\n-  gap: 6px;\n-  flex: 1 1 auto;\n-  min-width: 0;\n-  margin: 0;\n-  padding: 4px 6px;\n-  border: none;\n-  border-radius: 6px;\n-  background: transparent;\n-  color: inherit;\n-  font: inherit;\n-  font-size: 13px;\n-  line-height: 1.5;\n-  text-align: left;\n-  cursor: pointer;\n-}\n-\n-.quick-help-card__toggle:hover {\n-  background: var(--muted);\n-}\n-\n-.quick-help-card__toggle:focus-visible {\n-  outline: 2px solid var(--ring, var(--border));\n-  outline-offset: 2px;\n-}\n-\n-.quick-help-card__title {\n-  font-weight: 600;\n-  overflow-wrap: anywhere;\n-}\n-\n-.quick-help-card__indicator {\n-  flex: 0 0 auto;\n-  font-size: 12px;\n-  opacity: 0.8;\n-}\n-\n-.quick-help-card__toggle-label {\n-  flex: 0 0 auto;\n-  font-size: 12px;\n-  opacity: 0.7;\n-}\n-\n-.quick-help-card__header-actions {\n-  display: flex;\n-  align-items: center;\n-  gap: 4px;\n-  flex: 0 0 auto;\n-  min-width: 0;\n-}\n-\n-.quick-help-card__body {\n-  box-sizing: border-box;\n-  min-width: 0;\n-  padding: 0 12px 8px;\n-  font-size: 13px;\n-  line-height: 1.5;\n-}\n-\n-.quick-help-card__body[hidden] {\n-  display: none;\n-}\n-\n+.quick-help-card {\n+  box-sizing: border-box;\n+  width: 100%;\n+  min-width: 0;\n+  background: var(--card);\n+  color: var(--foreground);\n+  border-bottom: 1px solid var(--border);\n+}\n+\n+.quick-help-card__header {\n+  display: flex;\n+  align-items: center;\n+  gap: 8px;\n+  padding: 8px 12px;\n+}\n+\n+.quick-help-card__toggle {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 6px;\n+  flex: 1 1 auto;\n+  min-width: 0;\n+  margin: 0;\n+  padding: 4px 6px;\n+  border: none;\n+  border-radius: 6px;\n+  background: transparent;\n+  color: inherit;\n+  font: inherit;\n+  font-size: 13px;\n+  line-height: 1.5;\n+  text-align: left;\n+  cursor: pointer;\n+}\n+\n+.quick-help-card__toggle:hover {\n+  background: var(--muted);\n+}\n+\n+.quick-help-card__toggle:focus-visible {\n+  outline: 2px solid var(--ring, var(--border));\n+  outline-offset: 2px;\n+}\n+\n+.quick-help-card__title {\n+  font-weight: 600;\n+  overflow-wrap: anywhere;\n+}\n+\n+.quick-help-card__indicator {\n+  flex: 0 0 auto;\n+  font-size: 12px;\n+  opacity: 0.8;\n+}\n+\n+.quick-help-card__toggle-label {\n+  flex: 0 0 auto;\n+  font-size: 12px;\n+  opacity: 0.7;\n+}\n+\n+.quick-help-card__header-actions {\n+  display: flex;\n+  align-items: center;\n+  gap: 4px;\n+  flex: 0 0 auto;\n+  min-width: 0;\n+}\n+\n+.quick-help-card__body {\n+  box-sizing: border-box;\n+  min-width: 0;\n+  padding: 0 12px 8px;\n+  font-size: 13px;\n+  line-height: 1.5;\n+}\n+\n+.quick-help-card__body[hidden] {\n+  display: none;\n+}\n+\n+.quick-help-card__actions {\n+  display: flex;\n+  flex-wrap: wrap;\n+  align-items: center;\n+  gap: 8px;\n+  padding: 0 12px 8px;\n+}\n+\n+.quick-help-card__action {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 4px;\n+  margin: 0;\n+  padding: 4px 10px;\n+  border: 1px solid var(--border);\n+  border-radius: 6px;\n+  background: transparent;\n+  color: inherit;\n+  font: inherit;\n+  font-size: 12px;\n+  line-height: 1.5;\n+  white-space: nowrap;\n+  cursor: pointer;\n+}\n+\n+.quick-help-card__action:hover {\n+  background: var(--muted);\n+}\n+\n+.quick-help-card__action:focus-visible {\n+  outline: 2px solid var(--ring, var(--border));\n+  outline-offset: 2px;\n+}\n+",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/app-ui.json",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/app-ui.json\n+++ b/src/agent-ui/app-ui.json\n@@ -1,201 +1,201 @@\n-{\n-  \"applicationPlugins\": [\n-    {\n-      \"pluginId\": \"conversation-data-source\"\n-    },\n-    {\n-      \"pluginId\": \"conversation-service\"\n-    },\n-    {\n-      \"pluginId\": \"theme-provider\"\n-    },\n-    {\n-      \"pluginId\": \"locale-provider\"\n-    },\n-    {\n-      \"pluginId\": \"context-retrieval-message\"\n-    }\n-  ],\n-  \"root\": {\n-    \"type\": \"row\",\n-    \"children\": [\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"theme-switch\"\n-                },\n-                {\n-                  \"pluginId\": \"agent-identity\"\n-                }\n-              ]\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-thread-list\",\n-                  \"slots\": {\n-                    \"headerActions\": [\n-                      {\n-                        \"pluginId\": \"conversation-new\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"52px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      },\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p23\",\n-                    \"pluginId\": \"test-notice\"\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p24\",\n-                    \"pluginId\": \"quick-help-card\",\n-                    \"slots\": {\n-                      \"body\": [\n-                        {\n-                          \"id\": \"p25\",\n-                          \"pluginId\": \"quick-help-content\"\n-                        }\n-                      ],\n-                      \"headerActions\": [\n-                        {\n-                          \"pluginId\": \"help-dismiss-action\"\n-                        }\n-                      ]\n-                    }\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-surface\",\n-                  \"slots\": {\n-                    \"emptySuggestions\": [\n-                      {\n-                        \"pluginId\": \"conversation-suggestions\"\n-                      }\n-                    ],\n-                    \"composer\": [\n-                      {\n-                        \"pluginId\": \"composer\",\n-                        \"slots\": {\n-                          \"leadingActions\": [\n-                            {\n-                              \"pluginId\": \"add-attachment-action\"\n-                            }\n-                          ],\n-                          \"submitAction\": [\n-                            {\n-                              \"pluginId\": \"submit-action\"\n-                            }\n-                          ],\n-                          \"beforeInput\": [\n-                            {\n-                              \"pluginId\": \"conversation-quote\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"reasoningGroup\": [\n-                      {\n-                        \"pluginId\": \"reasoning\"\n-                      }\n-                    ],\n-                    \"toolGroup\": [\n-                      {\n-                        \"pluginId\": \"tool-group\"\n-                      }\n-                    ],\n-                    \"toolFallback\": [\n-                      {\n-                        \"pluginId\": \"tool-result\"\n-                      }\n-                    ],\n-                    \"assistantResponseFooter\": [\n-                      {\n-                        \"pluginId\": \"response-footer\",\n-                        \"slots\": {\n-                          \"actions\": [\n-                            {\n-                              \"pluginId\": \"copy-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"reload-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"export-markdown-action\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"transientMessages\": [\n-                      {\n-                        \"pluginId\": \"transient-assistant-messages\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"40px\",\n-            \"44px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      }\n-    ],\n-    \"gap\": 0,\n-    \"sizes\": [\n-      \"300px\",\n-      \"minmax(0, 1fr)\"\n-    ],\n-    \"responsive\": {\n-      \"type\": \"drawer\",\n-      \"primaryIndex\": 1,\n-      \"drawerIndex\": 0,\n-      \"minPrimaryWidth\": 320\n-    }\n-  }\n-}\n-\n+{\n+  \"applicationPlugins\": [\n+    {\n+      \"pluginId\": \"conversation-data-source\"\n+    },\n+    {\n+      \"pluginId\": \"conversation-service\"\n+    },\n+    {\n+      \"pluginId\": \"theme-provider\"\n+    },\n+    {\n+      \"pluginId\": \"locale-provider\"\n+    },\n+    {\n+      \"pluginId\": \"context-retrieval-message\"\n+    }\n+  ],\n+  \"root\": {\n+    \"type\": \"row\",\n+    \"children\": [\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"theme-switch\"\n+                },\n+                {\n+                  \"pluginId\": \"agent-identity\"\n+                }\n+              ]\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-thread-list\",\n+                  \"slots\": {\n+                    \"headerActions\": [\n+                      {\n+                        \"pluginId\": \"conversation-new\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"52px\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      },\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p23\",\n+                    \"pluginId\": \"test-notice\"\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p24\",\n+                    \"pluginId\": \"quick-help-card\",\n+                    \"slots\": {\n+                      \"body\": [\n+                        {\n+                          \"id\": \"p25\",\n+                          \"pluginId\": \"quick-help-content\"\n+                        }\n+                      ],\n+                      \"headerActions\": [\n+                        {\n+                          \"pluginId\": \"help-dismiss-action\"\n+                        }\n+                      ]\n+                    }\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-surface\",\n+                  \"slots\": {\n+                    \"emptySuggestions\": [\n+                      {\n+                        \"pluginId\": \"conversation-suggestions\"\n+                      }\n+                    ],\n+                    \"composer\": [\n+                      {\n+                        \"pluginId\": \"composer\",\n+                        \"slots\": {\n+                          \"leadingActions\": [\n+                            {\n+                              \"pluginId\": \"add-attachment-action\"\n+                            }\n+                          ],\n+                          \"submitAction\": [\n+                            {\n+                              \"pluginId\": \"submit-action\"\n+                            }\n+                          ],\n+                          \"beforeInput\": [\n+                            {\n+                              \"pluginId\": \"conversation-quote\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"reasoningGroup\": [\n+                      {\n+                        \"pluginId\": \"reasoning\"\n+                      }\n+                    ],\n+                    \"toolGroup\": [\n+                      {\n+                        \"pluginId\": \"tool-group\"\n+                      }\n+                    ],\n+                    \"toolFallback\": [\n+                      {\n+                        \"pluginId\": \"tool-result\"\n+                      }\n+                    ],\n+                    \"assistantResponseFooter\": [\n+                      {\n+                        \"pluginId\": \"response-footer\",\n+                        \"slots\": {\n+                          \"actions\": [\n+                            {\n+                              \"pluginId\": \"copy-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"reload-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"export-markdown-action\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"transientMessages\": [\n+                      {\n+                        \"pluginId\": \"transient-assistant-messages\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"40px\",\n+            \"auto\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      }\n+    ],\n+    \"gap\": 0,\n+    \"sizes\": [\n+      \"300px\",\n+      \"minmax(0, 1fr)\"\n+    ],\n+    \"responsive\": {\n+      \"type\": \"drawer\",\n+      \"primaryIndex\": 1,\n+      \"drawerIndex\": 0,\n+      \"minPrimaryWidth\": 320\n+    }\n+  }\n+}\n+",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "pnpm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "\n> ordinary-preview-host@ typecheck /Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/case04-help-actions/natural/host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+          "truncated": false,
+          "revision": 6
+        },
+        {
+          "command": "verify_localized_defaults_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"coverage\":\"package-declared locale-backed default props\",\"issues\":[]}",
+          "truncated": false,
+          "revision": 6
+        },
+        {
+          "command": "verify_creator_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"status\":\"passed\",\"revision\":6,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/case04-help-actions/natural/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":6},{\"command\":\"verify_localized_defaults_delta\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"{\\\"coverage\\\":\\\"package-declared locale-backed default props\\\",\\\"issues\\\":[]}\",\"truncated\":false,\"revision\":6}],\"targetRemaining\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+          "truncated": false,
+          "revision": 6
+        }
+      ],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-04T08-45-16.365Z_168af5474c29c8f4f2b80c23d0507eb5bfa94709bea542f296b3404e4c056f2e.jsonl"
+      },
+      "transaction": {
+        "runId": "debb5a5b-fe84-4626-b4d5-18865caeaf9b",
+        "undoable": true,
+        "reapplyable": true,
+        "changedPaths": [
+          "src/agent-ui/hooks/useComposerDraftFill.ts",
+          "src/agent-ui/plugins/composer/index.tsx",
+          "src/agent-ui/plugins/quick-help-card/index.tsx",
+          "src/agent-ui/plugins/quick-help-card/styles.css",
+          "src/agent-ui/app-ui.json"
+        ],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 6,
+        "validationRevision": 6,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 27,
+      "toolCalls": 34
+    },
+    "contextCompression": {
+      "summaryModelCalls": 5,
+      "compactions": 5,
+      "summarySeconds": 276.164283499,
+      "offloadedArtifacts": 2
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "questions": [],
+  "tools": [
+    "inspect_ui_plugin",
+    "inspect_ui_edit_context",
+    "grep",
+    "ls",
+    "grep",
+    "read_file",
+    "inspect_ui_plugin",
+    "grep",
+    "read_file",
+    "read_creator_documentation",
+    "read_creator_documentation",
+    "inspect_app_ui_model",
+    "enable_creator_tools",
+    "read_file",
+    "inspect_runtime_layout",
+    "read_file",
+    "read_file",
+    "inspect_app_ui_model",
+    "create_ui_source_file",
+    "read_file",
+    "edit_file",
+    "edit_file_from_read",
+    "edit_file",
+    "edit_file",
+    "read_file",
+    "read_file",
+    "mutate_app_ui_model",
+    "validate_creator_changes",
+    "inspect_runtime_layout",
+    "inspect_runtime_errors",
+    "read_file",
+    "read_file",
+    "read_file",
+    "verify_creator_outcome"
+  ],
+  "firstPreparation": null,
+  "firstMutationAttempt": {
+    "toolNumber": 19,
+    "seconds": 411.157,
+    "tool": "create_ui_source_file"
+  },
+  "changedPaths": [
+    "src/agent-ui/app-ui.json",
+    "src/agent-ui/plugins/composer/index.tsx",
+    "src/agent-ui/plugins/quick-help-card/index.tsx",
+    "src/agent-ui/plugins/quick-help-card/styles.css",
+    "src/agent-ui/hooks/useComposerDraftFill.ts"
+  ],
+  "browserErrors": [],
+  "interaction": {
+    "status": "failed",
+    "checks": [
+      {
+        "name": "example action fills current composer without sending",
+        "status": "passed"
+      },
+      {
+        "name": "filled example can be sent by user",
+        "status": "failed",
+        "error": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate"
+      }
+    ],
+    "error": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+    "protocolEventsSent": []
+  }
+}

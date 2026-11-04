@@ -1,0 +1,52 @@
+{
+  "scope": "Latest rebuilt Creator; isolated React producer; local controlled AG-UI and feedback HTTP service; real browser actions",
+  "root": "/Users/yifei/Coding/AgentUICreator/artifacts/feedback-browser-20261103/host-BR8Ng1",
+  "creatorUrl": "http://127.0.0.1:47833",
+  "hostUrl": "http://127.0.0.1:5191",
+  "feedback": [
+    {
+      "threadId": "c57a5886-ed31-4ab0-8cb2-ceacc8aa7f1e",
+      "messageId": "feedback-answer-ws8EJCC",
+      "type": "positive",
+      "receivedAt": "2026-11-03T08:12:17.617Z"
+    },
+    {
+      "threadId": "c57a5886-ed31-4ab0-8cb2-ceacc8aa7f1e",
+      "messageId": "feedback-answer-ws8EJCC",
+      "type": "negative",
+      "receivedAt": "2026-11-03T08:12:23.690Z"
+    },
+    {
+      "threadId": "d0f7c698-464f-47e1-95cf-a6f7f0332049",
+      "messageId": "q3pHIck:assistant-message:7",
+      "type": "positive",
+      "receivedAt": "2026-11-03T08:19:30.547Z"
+    }
+  ],
+  "runs": [
+    {
+      "threadId": "c57a5886-ed31-4ab0-8cb2-ceacc8aa7f1e",
+      "runId": "ws8EJCC",
+      "messages": [
+        {
+          "id": "kdrOlW8",
+          "role": "user",
+          "content": "验证消息反馈按钮"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "installation": {
+    "resourceId": "message-feedback",
+    "changed": true,
+    "verification": "passed",
+    "at": "2026-11-03T08:09:21.240Z"
+  },
+  "restart": {
+    "previousPid": 38805,
+    "currentPid": 38834,
+    "samePort": true,
+    "completed": true
+  }
+}

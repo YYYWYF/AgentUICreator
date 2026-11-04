@@ -49,7 +49,9 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
     const occupant = locations.find(entry => entry.target.type === "plugin_slot" &&
       entry.target.parentInstanceId === target.parentInstanceId && entry.target.slot === target.slot &&
       entry.plugin.pluginId !== pluginId);
-    if (occupant) {
+    const parentAsset = inventory.assets.find(asset => asset.pluginId === placement.parentPluginId);
+    const allowsMultiple = parentAsset?.childSlots?.[target.slot]?.cardinality === "many";
+    if (occupant && !allowsMultiple) {
       throw new OfficialResourceError("RESOURCE_CONFLICT", "The default Plugin slot is already occupied.", {
         code: "PLUGIN_SLOT_OCCUPIED", pluginId, slot: target.slot,
         parentInstanceId: target.parentInstanceId, occupantPluginId: occupant.plugin.pluginId,

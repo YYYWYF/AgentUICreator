@@ -1,0 +1,173 @@
+const FIRST = "正在分析第一部分……";
+const REST = "第二部分完成……任务完成";
+const DURATION_MS = 9000;
+const AGENT_PLAN_FIRST_UPDATE_MS = 700;
+const AGENT_PLAN_CONTINUATION_MS = 9000;
+const AGENT_PLAN_FINISH_UPDATE_MS = 700;
+const AGENT_PLAN_MESSAGE_ID = "agent-plan-1";
+const AGENT_PLAN_ACTIVITY_TYPE = "agent-plan";
+const INITIAL_AGENT_PLAN = {
+    title: "工作区更新",
+    steps: [
+        { id: "inspect", label: "检查", description: "分析当前文件。" },
+        { id: "modify", label: "修改", description: "应用请求的更改。" },
+        { id: "test", label: "测试", description: "检查相关回归项。" },
+    ],
+    activeIndex: 0,
+};
+function userText(input) {
+    const last = [...input.messages].reverse().find(message => message.role === "user");
+    if (last === undefined)
+        return "执行一个长任务";
+    return typeof last.content === "string" ? last.content
+        : last.content.filter(part => part.type === "text").map(part => part.text).join("");
+}
+/** Shared by the two development HTTP plugins in one Vite server process. */
+export class MockDurableRunStore {
+    runs = new Map();
+    start(input, scenarioId = "resumable-long-run") {
+        const previous = this.runs.get(input.threadId);
+        const run = {
+            threadId: input.threadId, runId: input.runId, scenarioId, userText: userText(input),
+            runCount: (previous?.runCount ?? 0) + 1, completed: false,
+            ...(scenarioId === "resumable-agent-plan"
+                ? { activity: structuredClone(INITIAL_AGENT_PLAN) }
+                : {}),
+            events: [], listeners: new Set(), completionListeners: new Set(),
+        };
+        this.runs.set(input.threadId, run);
+        const emit = (event) => {
+            run.events.push(event);
+            run.listeners.forEach(listener => listener(event));
+        };
+        emit({ type: "RUN_STARTED", threadId: run.threadId, runId: run.runId });
+        if (scenarioId === "resumable-agent-plan") {
+            emit({
+                type: "ACTIVITY_SNAPSHOT",
+                threadId: run.threadId,
+                runId: run.runId,
+                messageId: AGENT_PLAN_MESSAGE_ID,
+                activityType: AGENT_PLAN_ACTIVITY_TYPE,
+                replace: true,
+                content: structuredClone(run.activity),
+            });
+            setTimeout(() => {
+                this.updateAgentPlan(run, emit, 1);
+                setTimeout(() => {
+                    this.updateAgentPlan(run, emit, 2);
+                    setTimeout(() => {
+                        this.updateAgentPlan(run, emit, 3);
+                        this.finish(run, emit);
+                    }, AGENT_PLAN_FINISH_UPDATE_MS);
+                }, AGENT_PLAN_CONTINUATION_MS);
+            }, AGENT_PLAN_FIRST_UPDATE_MS);
+            return run;
+        }
+        emit({ type: "TEXT_MESSAGE_START", messageId: `${run.runId}-answer`, role: "assistant" });
+        emit({ type: "TEXT_MESSAGE_CONTENT", messageId: `${run.runId}-answer`, delta: FIRST });
+        setTimeout(() => {
+            emit({ type: "TEXT_MESSAGE_CONTENT", messageId: `${run.runId}-answer`, delta: REST });
+            emit({ type: "TEXT_MESSAGE_END", messageId: `${run.runId}-answer` });
+            this.finish(run, emit);
+        }, DURATION_MS);
+        return run;
+    }
+    updateAgentPlan(run, emit, activeIndex) {
+        if (run.completed || run.activity === undefined)
+            return;
+        run.activity = { ...run.activity, activeIndex };
+        emit({
+            type: "ACTIVITY_DELTA",
+            threadId: run.threadId,
+            runId: run.runId,
+            messageId: AGENT_PLAN_MESSAGE_ID,
+            activityType: AGENT_PLAN_ACTIVITY_TYPE,
+            patch: [{ op: "replace", path: "/activeIndex", value: activeIndex }],
+        });
+    }
+    finish(run, emit) {
+        if (run.completed)
+            return;
+        emit({ type: "RUN_FINISHED", threadId: run.threadId, runId: run.runId });
+        run.completed = true;
+        run.completionListeners.forEach(listener => listener());
+        run.completionListeners.clear();
+    }
+    list() {
+        return [...this.runs.values()].map(run => ({
+            id: run.threadId,
+            title: run.scenarioId === "resumable-agent-plan"
+                ? "计划活动：刷新后继续"
+                : "长任务：刷新后继续",
+            runCount: run.runCount,
+        }));
+    }
+    snapshot(id) {
+        const run = this.runs.get(id);
+        if (run === undefined)
+            return undefined;
+        return {
+            threadId: id, runId: run.runId, runCount: run.runCount,
+            userText: run.userText,
+            scenarioId: run.scenarioId,
+            assistantText: run.scenarioId === "resumable-long-run"
+                ? FIRST + (run.completed ? REST : "")
+                : "",
+            ...(run.activity === undefined ? {} : { activity: structuredClone(run.activity) }),
+            resumable: !run.completed,
+        };
+    }
+    subscribeEvents(id, listener, onComplete) {
+        const run = this.runs.get(id);
+        if (run === undefined)
+            throw new Error(`Unknown durable run: ${id}`);
+        run.events.forEach(listener);
+        if (run.completed)
+            onComplete();
+        else {
+            run.listeners.add(listener);
+            run.completionListeners.add(onComplete);
+        }
+        return () => { run.listeners.delete(listener); run.completionListeners.delete(onComplete); };
+    }
+    /** Reattach to a live AgentPlan run from its latest complete Activity snapshot. */
+    subscribeAgentPlanResume(id, listener, onComplete) {
+        const run = this.runs.get(id);
+        if (run === undefined)
+            throw new Error(`Unknown durable run: ${id}`);
+        if (run.scenarioId !== "resumable-agent-plan" || run.activity === undefined) {
+            throw new Error(`Run ${id} does not contain resumable AgentPlan Activity.`);
+        }
+        if (!run.completed) {
+            run.listeners.add(listener);
+            run.completionListeners.add(onComplete);
+        }
+        listener({
+            type: "ACTIVITY_SNAPSHOT",
+            threadId: run.threadId,
+            runId: run.runId,
+            messageId: AGENT_PLAN_MESSAGE_ID,
+            activityType: AGENT_PLAN_ACTIVITY_TYPE,
+            replace: true,
+            content: structuredClone(run.activity),
+        });
+        if (run.completed) {
+            listener({ type: "RUN_FINISHED", threadId: run.threadId, runId: run.runId });
+            onComplete();
+        }
+        return () => { run.listeners.delete(listener); run.completionListeners.delete(onComplete); };
+    }
+    subscribeContinuation(id, listener) {
+        const run = this.runs.get(id);
+        if (run === undefined)
+            throw new Error(`Unknown durable run: ${id}`);
+        const complete = () => listener(REST);
+        if (run.completed)
+            complete();
+        else
+            run.completionListeners.add(complete);
+        return () => { run.completionListeners.delete(complete); };
+    }
+}
+export const mockDurableRuns = new MockDurableRunStore();
+//# sourceMappingURL=durable-run-store.js.map

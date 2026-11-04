@@ -1,0 +1,3 @@
+label,status,seconds,toolCalls,agentRequests,summaryRequests,input,output,total,firstWriteSeconds,changedFiles,compactions,summarySeconds
+before_reasoning_fix,TIMEOUT,1200.359,97,49,12,1689512,111826,1801338,,0,11,309.3580099579995
+after_reasoning_fix,blocked,727.56,52,40,4,1553127,44294,1597421,316.08,10,4,161.22116349900003

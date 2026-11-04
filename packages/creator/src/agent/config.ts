@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI, type ChatOpenAIFields } from "@langchain/openai";
 import { readCreatorHostEnvironment } from "../creatorRuntimeConfig.js";
+import { CreatorChatCompletions } from "./chat-completions.js";
 const version = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).version as string;
 
 export function hostEnvironment(root?: string): Record<string, string | undefined> {
@@ -23,7 +24,7 @@ export function createModel(environment: Record<string, string | undefined>, thr
   };
   const timeout = Math.ceil(number("CREATOR_MODEL_TIMEOUT_SECONDS", 120, 1) * 1000);
   if (!Number.isSafeInteger(timeout) || timeout > 2_147_483_647) throw new Error("CREATOR_MODEL_CONFIGURATION_INVALID: CREATOR_MODEL_TIMEOUT_SECONDS");
-  return new ChatOpenAI({
+  const fields: ChatOpenAIFields = {
     model: e.CREATOR_MODEL_NAME || "mimo-v2.5-pro",
     apiKey, temperature: number("CREATOR_MODEL_TEMPERATURE", 0.2, 0),
     maxTokens: number("CREATOR_MODEL_MAX_TOKENS", 8192, 1),
@@ -44,5 +45,6 @@ export function createModel(environment: Record<string, string | undefined>, thr
     }, defaultHeaders: {
       ...(e.CREATOR_MODEL_OPENCODE_SESSION_HEADER === "1" ? { "x-opencode-session": threadId } : {}),
     } },
-  });
+  };
+  return new ChatOpenAI({ ...fields, completions: new CreatorChatCompletions(fields) });
 }

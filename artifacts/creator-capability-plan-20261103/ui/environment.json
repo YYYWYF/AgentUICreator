@@ -1,0 +1,18 @@
+{
+  "created": "2026-11-03T10:01:43.304Z",
+  "model": "qa-scripted-ui",
+  "budget": 65536,
+  "keep": 12000,
+  "output": 8192,
+  "temperature": 0.2,
+  "modelTimeoutSeconds": 120,
+  "compression": true,
+  "providerFingerprint": "69a1f2a49320987f32cccb2d659269cc3f221a97bf00a17a212789ab28804e3d",
+  "platform": "darwin",
+  "node": "v24.22.1",
+  "initialProject": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-4qkKVm/host",
+  "baselinePromptSha256": "9fd264c80b61e896bdc6d17fb2c185e5e01b76b6a5b66c48135c665e13bb7d21",
+  "treatmentPromptSha256": "9fd264c80b61e896bdc6d17fb2c185e5e01b76b6a5b66c48135c665e13bb7d21",
+  "evaluationDeadlineSeconds": 1200,
+  "scope": "Post-change original task in an isolated QA project. Production dependencies and initial source match the previous paired fixture. Start is simulated only for the displayed bounded development plan; no takeover, vendor or dependency-install approval is simulated."
+}

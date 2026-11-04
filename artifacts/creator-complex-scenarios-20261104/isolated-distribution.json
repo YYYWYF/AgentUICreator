@@ -1,0 +1,29 @@
+{
+  "created": "2026-11-04T09:15:55.340Z",
+  "packageRoots": {
+    "@za38.03/agent-ui-core": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/core",
+    "@za38.03/agent-ui-renderer": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/renderer",
+    "@za38.03/agent-ui-runtime": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/runtime",
+    "@za38.03/agent-ui-plugins": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/plugins",
+    "@za38.03/agent-ui-web-component": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/web-component",
+    "@za38.03/agent-ui-creator": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-complex-scenarios-20261104/frozen/isolated/creator"
+  },
+  "changedCreatorModules": [
+    "dist/agent/runner.js",
+    "dist/agent/runner.js.map",
+    "dist/agent/runner.d.ts",
+    "dist/agent/runner.d.ts.map",
+    "dist/agent/context-window.js",
+    "dist/agent/context-window.js.map",
+    "dist/agent/context-window.d.ts",
+    "dist/agent/context-window.d.ts.map",
+    "dist/agent/plugin-applications.js",
+    "dist/agent/plugin-applications.js.map",
+    "dist/agent/plugin-applications.d.ts",
+    "dist/agent/plugin-applications.d.ts.map"
+  ],
+  "promptsUnchanged": true,
+  "summaryPromptUnchanged": true,
+  "productionDistribution": "Exact previous five production snapshots, with all Agent UI dependency edges pointing inside this frozen graph.",
+  "thirdPartyDependencies": "Resolved version-specific real paths; no live workspace package aliases."
+}

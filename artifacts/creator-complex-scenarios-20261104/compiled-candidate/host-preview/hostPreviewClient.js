@@ -1,0 +1,216 @@
+/// <reference types="vite/client" />
+import { createCreatorRuntimeCompositionReporter, createCreatorRuntimeDiagnosticReporter } from "../runtime-diagnostics/runtimeDiagnosticReporter.js";
+import { createVisualObservationReporter } from "../visual-observation/VisualObservationReporter.js";
+import { collectRuntimePresentation } from "./layoutPresentation.js";
+import { AGENT_UI_OBSERVATION_EVENT, AGENT_UI_OBSERVATION_REQUEST_EVENT, HOST_DOCK_CONNECT, HOST_PREVIEW_CONNECT, isHostPreviewSession, isRuntimeObservationRequest } from "./protocol.js";
+/** Dev client only. Standalone Hosts render without a Creator connection. */
+export function installCreatorHostPreviewBridge() {
+    let disposeSession = () => undefined;
+    let report;
+    let preview;
+    let composition;
+    const diagnostics = new Map();
+    const observe = (event) => {
+        const observation = event.detail;
+        if (!observation || typeof observation !== "object")
+            return;
+        switch (observation.type) {
+            case "preview-committed":
+                if (!(observation.root instanceof HTMLElement) || !/^[a-f0-9]{64}$/.test(observation.appUIModelHash))
+                    return;
+                if (preview?.appUIModelHash !== observation.appUIModelHash) {
+                    if (composition?.composition.appUIModelHash !== observation.appUIModelHash)
+                        composition = undefined;
+                }
+                preview = observation;
+                break;
+            case "runtime-composition":
+                composition = observation;
+                break;
+            case "runtime-diagnostic":
+                diagnostics.set(`${observation.diagnostic.appUIModelHash}:${observation.diagnostic.kind}:${observation.diagnostic.instanceId}:${observation.diagnostic.eventName}`, observation);
+                if (diagnostics.size > 128)
+                    diagnostics.delete(diagnostics.keys().next().value);
+                break;
+            default: return;
+        }
+        report?.(observation);
+    };
+    const connect = (event) => {
+        if (!isHostPreviewSession(event.data?.session))
+            return;
+        const dockFrame = document.getElementById("agent-ui-creator-dock")?.shadowRoot?.querySelector("#agent-ui-creator-frame");
+        const fromDock = event.data.type === HOST_DOCK_CONNECT && dockFrame?.contentWindow != null &&
+            event.source === dockFrame.contentWindow && event.origin === new URL(dockFrame.src, location.href).origin;
+        const fromPreview = event.data.type === HOST_PREVIEW_CONNECT && window.parent !== window &&
+            new URLSearchParams(location.search).has("creator-preview") && event.source === window.parent;
+        if (!fromDock && !fromPreview)
+            return;
+        const session = event.data.session;
+        const referrerOrigin = document.referrer ? new URL(document.referrer).origin : undefined;
+        const parentKey = "agent-ui-creator:preview-parent-origin";
+        let trustedParent = null;
+        try {
+            trustedParent = sessionStorage.getItem(parentKey);
+        }
+        catch { /* Storage can be unavailable. */ }
+        // An iframe's own full reload uses the Host as referrer. Retain only an origin
+        // previously authenticated against the initial parent referrer in this tab.
+        const parentMatches = referrerOrigin === event.origin ||
+            (referrerOrigin === location.origin && trustedParent === event.origin);
+        if (event.origin !== session.creatorOrigin || (!fromDock && !parentMatches))
+            return;
+        const port = event.ports[0];
+        if (port === undefined)
+            return;
+        if (fromPreview) {
+            try {
+                sessionStorage.setItem(parentKey, event.origin);
+            }
+            catch { /* The current port still works. */ }
+        }
+        disposeSession();
+        let running = false;
+        const applySource = (source) => {
+            if (running || !source || typeof source !== "object")
+                return;
+            if ("type" in source && source.type === "application") {
+                delete window.__agentUIPreviewEnvironment;
+                window.__agentUIPreviewEnvironmentReady = true;
+                window.dispatchEvent(new Event("agent-ui:preview-environment"));
+                return;
+            }
+            const value = source;
+            if (typeof value.identity !== "string" || typeof value.runtimeEndpoint !== "string")
+                return;
+            if (!["/__agent-ui/mock", "/__agent-ui/agent-proxy/run"].includes(value.runtimeEndpoint)) {
+                try {
+                    const endpoint = new URL(value.runtimeEndpoint);
+                    if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.username || endpoint.password || endpoint.hash || value.backendProxyPrefix !== endpoint.origin)
+                        return;
+                }
+                catch {
+                    return;
+                }
+            }
+            window.__agentUIPreviewEnvironment = value;
+            window.__agentUIPreviewEnvironmentReady = true;
+            window.dispatchEvent(new Event("agent-ui:preview-environment"));
+        };
+        const runState = (event) => {
+            running = Boolean(event.detail?.running);
+            port.postMessage({ type: "preview-running", running });
+        };
+        window.addEventListener("agent-ui:preview-run-state", runState);
+        window.dispatchEvent(new Event("agent-ui:preview-run-request"));
+        applySource(session.previewSource);
+        let nextId = 0;
+        const observationRequests = new Map();
+        let active = true;
+        const pending = new Map();
+        const upload = (_input, init) => new Promise((resolve, reject) => {
+            if (!active) {
+                reject(new Error("Preview session closed"));
+                return;
+            }
+            const id = ++nextId;
+            const timer = setTimeout(() => { pending.delete(id); reject(new Error("Preview upload timed out")); }, 15_000);
+            pending.set(id, { resolve, reject, timer });
+            port.postMessage({ id, endpoint: String(_input), body: String(init?.body ?? "") });
+        });
+        port.onmessage = (reply) => {
+            const message = reply.data;
+            if (message.type === "business-page-url-request") {
+                if (active && typeof message.requestId === "string")
+                    port.postMessage({ type: "business-page-url", requestId: message.requestId, pageUrl: location.href });
+                return;
+            }
+            if (message.type === "preview-source") {
+                applySource(message.source);
+                return;
+            }
+            if (message.type === "runtime-observation-request") {
+                if (session.runtimeDiagnostics && isRuntimeObservationRequest(message.request) && message.request.threadId === session.threadId) {
+                    observationRequests.set(message.request.requestId, { request: message.request, requestedAt: Date.now(), previousObservedAt: Date.parse(composition?.composition.observedAt ?? "") });
+                    if (observationRequests.size > 8)
+                        observationRequests.delete(observationRequests.keys().next().value);
+                    // Collect live registrations/geometry. Never tag a cached replay as a response.
+                    window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
+                }
+                return;
+            }
+            const request = pending.get(reply.data?.id);
+            if (!request)
+                return;
+            pending.delete(reply.data.id);
+            clearTimeout(request.timer);
+            if (reply.data.error || typeof reply.data.status !== "number" || !Number.isInteger(reply.data.status) || reply.data.status < 200 || reply.data.status > 599)
+                request.reject(new Error(reply.data.error || "Invalid preview response"));
+            else
+                request.resolve(new Response(null, { status: reply.data.status }));
+        };
+        port.start();
+        const options = { workspaceId: session.workspaceId, threadId: session.threadId, fetch: upload };
+        const diagnostic = createCreatorRuntimeDiagnosticReporter(options);
+        const runtimeComposition = createCreatorRuntimeCompositionReporter(options);
+        const visual = createVisualObservationReporter({ workspaceId: session.workspaceId, fetch: upload });
+        report = observation => {
+            if (observation.type === "runtime-diagnostic" && session.runtimeDiagnostics)
+                diagnostic(observation.diagnostic);
+            if (observation.type === "runtime-composition" && session.runtimeDiagnostics) {
+                const observedAt = Date.parse(observation.composition.observedAt ?? "");
+                const requests = [...observationRequests.values()].filter(pending => pending.request.currentHash === observation.composition.appUIModelHash &&
+                    observedAt >= pending.requestedAt && (!Number.isFinite(pending.previousObservedAt) || observedAt > pending.previousObservedAt));
+                if (!requests.length)
+                    runtimeComposition(observation.composition);
+                for (const { request } of requests) {
+                    const root = preview?.appUIModelHash === request.currentHash ? preview.root : undefined;
+                    runtimeComposition(observation.composition, request.requestId, collectRuntimePresentation(root, observation.composition, request));
+                    observationRequests.delete(request.requestId);
+                }
+            }
+            if (observation.type === "preview-committed" && session.visualObservation)
+                visual(observation.appUIModelHash, observation.root);
+        };
+        disposeSession = () => {
+            active = false;
+            window.removeEventListener("agent-ui:preview-run-state", runState);
+            report = undefined;
+            port.close();
+            for (const request of pending.values()) {
+                clearTimeout(request.timer);
+                request.reject(new Error("Preview session changed"));
+            }
+            pending.clear();
+        };
+        window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
+        // Replay after connecting, including observations published before the dev adapter loaded.
+        if (preview?.root.isConnected)
+            report(preview);
+        if (composition)
+            report(composition);
+        for (const diagnostic of diagnostics.values())
+            report(diagnostic);
+    };
+    // Vite applies CSS without a React commit. Ask the live Runtime to collect a
+    // new observation after the update; replay must retain its original timestamp.
+    const afterUpdate = () => {
+        if (report !== undefined)
+            window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
+    };
+    import.meta.hot?.on("vite:afterUpdate", afterUpdate);
+    window.addEventListener(AGENT_UI_OBSERVATION_EVENT, observe);
+    window.addEventListener("message", connect);
+    window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
+    return () => {
+        disposeSession();
+        import.meta.hot?.off?.("vite:afterUpdate", afterUpdate);
+        window.removeEventListener(AGENT_UI_OBSERVATION_EVENT, observe);
+        window.removeEventListener("message", connect);
+    };
+}
+const bridgeKey = "__agentUiCreatorHostPreviewDispose";
+const bridgeWindow = window;
+bridgeWindow[bridgeKey]?.();
+bridgeWindow[bridgeKey] = installCreatorHostPreviewBridge();
+//# sourceMappingURL=hostPreviewClient.js.map

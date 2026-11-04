@@ -1,0 +1,18 @@
+{
+  "created": "2026-11-03T10:31:25.630Z",
+  "model": "deepseek-v4.1-flash",
+  "budget": 65536,
+  "keep": 12000,
+  "output": 8192,
+  "temperature": 0.2,
+  "modelTimeoutSeconds": 120,
+  "compression": true,
+  "providerFingerprint": "1d0c8dae4013f0dd0883ac7692d61535aa7cdbad5eab0302c57fa1d0f07fe77a",
+  "platform": "darwin",
+  "node": "v24.22.1",
+  "initialProject": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-4qkKVm/host",
+  "baselinePromptSha256": "1062a9f8b939dc7f9a348ee6200f48a6726c1de891e65cb86da80f8d9d1b9467",
+  "treatmentPromptSha256": "1062a9f8b939dc7f9a348ee6200f48a6726c1de891e65cb86da80f8d9d1b9467",
+  "evaluationDeadlineSeconds": 600,
+  "scope": "Execution-stage isolation, not a natural end-to-end comparison: replay the exact proposal previously produced by DeepSeek with two scripted setup responses, perform real Host confirmation via simulated QA click, then hand control to the actual same DeepSeek model. No prior authorization token is reused. Same original task and initial source. Permission/vendor boundaries remain enforced."
+}

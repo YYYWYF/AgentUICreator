@@ -1,0 +1,89 @@
+{
+  "name": "@za38.03/agent-ui-web-component",
+  "version": "0.0.1",
+  "description": "Standalone Web Component compatibility host for the React Agent UI",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "main": "./dist/agent-ui.js",
+  "module": "./dist/agent-ui.es.js",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/agent-ui.es.js"
+    },
+    "./agent-ui.js": "./dist/agent-ui.js",
+    "./register": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/agent-ui.es.js"
+    },
+    "./host": {
+      "types": "./dist/types/src/host.d.ts",
+      "import": "./dist/host.js"
+    },
+    "./compatibility.json": "./dist/compatibility.json"
+  },
+  "sideEffects": true,
+  "scripts": {
+    "prepare:shell": "node scripts/prepare-shell.mjs",
+    "build": "node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "typecheck": "node scripts/prepare-shell.mjs && tsc --noEmit",
+    "test": "vitest run",
+    "test:distribution": "node tests/distribution.test.mjs",
+    "test:installation": "node tests/installation.test.mjs",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs web-component --publish"
+  },
+  "dependencies": {
+    "@za38.03/agent-ui-plugins": "workspace:*",
+    "@za38.03/agent-ui-runtime": "workspace:*",
+    "@za38.03/agent-ui-core": "workspace:*",
+    "@za38.03/agent-ui-renderer": "workspace:*",
+    "lucide-react": "1.41.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zod": "4.5.4",
+    "@assistant-ui/react-lexical": "0.2.15",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "lexical": "0.51.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "4.7.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
+    "typescript": "7.0.2",
+    "vite": "6.4.5",
+    "vitest": "4.1.8",
+    "jsdom": "26.1.0",
+    "esbuild": "0.25.12",
+    "@za38.03/agent-ui-creator": "workspace:*"
+  },
+  "agentUICompatibility": {
+    "kind": "compatibility",
+    "targets": [
+      "vue",
+      "legacy",
+      "html"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "agentUI": {
+    "schemaVersion": 1,
+    "compatibility": {
+      "schemaVersion": 1,
+      "releases": []
+    }
+  }
+}

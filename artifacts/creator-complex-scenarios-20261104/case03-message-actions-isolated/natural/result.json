@@ -1,0 +1,21 @@
+{
+  "case": "natural",
+  "prompt": "回答生成完以后，再显示复制、评价和重新生成按钮。生成过程中只显示停止按钮，停止后可以重新生成。",
+  "timedOut": false,
+  "seconds": 58.179,
+  "status": "ERROR",
+  "finish": null,
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_REQUEST_ROUTE_INVALID",
+      "message": "CREATOR_REQUEST_ROUTE_INVALID"
+    }
+  ],
+  "questions": [],
+  "tools": [],
+  "firstPreparation": null,
+  "firstMutationAttempt": null,
+  "changedPaths": [],
+  "browserErrors": []
+}

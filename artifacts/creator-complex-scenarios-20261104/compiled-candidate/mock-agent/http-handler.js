@@ -1,0 +1,212 @@
+import { EventSchemas, RunAgentInputSchema } from "@ag-ui/core/schemas";
+import { EventType } from "@ag-ui/core";
+import { runMockScenario } from "./scenario-runner.js";
+import { mockDurableRuns } from "./durable-run-store.js";
+const MAX_REQUEST_BYTES = 1024 * 1024;
+export function createScenarioMockRunResolver(registry) {
+    return (input, request) => {
+        const scenario = request.scenarioId === undefined ? registry.getDefault() : registry.get(request.scenarioId);
+        if (!scenario)
+            throw new Error(`Unknown mock scenario: ${request.scenarioId}`);
+        return runMockScenario(input, scenario, { signal: request.signal, timingScale: request.speed });
+    };
+}
+async function readJsonBody(request) {
+    const chunks = [];
+    let byteLength = 0;
+    for await (const chunk of request) {
+        const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        byteLength += buffer.byteLength;
+        if (byteLength > MAX_REQUEST_BYTES) {
+            throw new Error("Mock Agent request exceeds the 1 MiB limit.");
+        }
+        chunks.push(buffer);
+    }
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+}
+function sendJsonError(response, statusCode, message) {
+    if (response.headersSent) {
+        response.end();
+        return;
+    }
+    response.statusCode = statusCode;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify({ error: message }));
+}
+function sendJson(response, statusCode, value) {
+    response.statusCode = statusCode;
+    response.setHeader("Content-Type", "application/json; charset=utf-8");
+    response.end(JSON.stringify(value));
+}
+function parseRequestUrl(request) {
+    return new URL(request.url ?? "/", "http://mock-agent.local");
+}
+function isScenarioListRequest(url) {
+    return url.pathname.endsWith("/scenarios");
+}
+function parseTimingScale(url) {
+    const value = Number(url.searchParams.get("speed"));
+    if (!url.searchParams.has("speed") || !Number.isFinite(value))
+        return 1;
+    return Math.min(10, Math.max(0, value));
+}
+/** Creates a Node HTTP handler compatible with @ag-ui/client HttpAgent. */
+export function createMockAgentHttpHandler({ registry, resolveRun, durableStore = mockDurableRuns, }) {
+    const events = [];
+    // Server-owned pending state cannot be bypassed by editing client messages or
+    // choosing a different scenario on the same thread.
+    const pendingInterrupts = new Map();
+    const runResolver = resolveRun ?? createScenarioMockRunResolver(registry);
+    return async (request, response) => {
+        const requestUrl = parseRequestUrl(request);
+        if (requestUrl.pathname.endsWith("/events") && request.method === "GET") {
+            sendJson(response, 200, { events });
+            return;
+        }
+        if (isScenarioListRequest(requestUrl)) {
+            if (request.method !== "GET") {
+                response.setHeader("Allow", "GET");
+                sendJsonError(response, 405, "Mock Agent scenario list endpoint only accepts GET.");
+                return;
+            }
+            sendJson(response, 200, {
+                defaultScenarioId: registry.defaultScenarioId,
+                scenarios: registry.list(),
+            });
+            return;
+        }
+        if (request.method !== "POST") {
+            response.setHeader("Allow", "POST");
+            sendJsonError(response, 405, "Mock Agent endpoint only accepts POST.");
+            return;
+        }
+        const scenarioId = requestUrl.searchParams.get("scenario");
+        const scenario = scenarioId === null
+            ? registry.getDefault()
+            : registry.get(scenarioId);
+        if (resolveRun === undefined && scenario === undefined) {
+            sendJsonError(response, 404, `Unknown mock scenario: ${scenarioId}`);
+            return;
+        }
+        let parsedBody;
+        try {
+            parsedBody = await readJsonBody(request);
+        }
+        catch (error) {
+            sendJsonError(response, 400, error instanceof Error ? error.message : "Invalid JSON request body.");
+            return;
+        }
+        const parsedInput = RunAgentInputSchema.safeParse(parsedBody);
+        if (!parsedInput.success) {
+            sendJsonError(response, 400, "Request body is not a valid RunAgentInput.");
+            return;
+        }
+        const input = parsedInput.data;
+        const pending = pendingInterrupts.get(input.threadId);
+        const selectedScenarioId = scenarioId ?? registry.defaultScenarioId;
+        const resume = input.resume ?? [];
+        let rejection;
+        if (pending) {
+            if (!resume.length)
+                rejection = { code: "MOCK_INTERRUPT_PENDING", message: "发送新输入前，请先处理或取消所有待处理的中断。" };
+            else if (pending.scenarioId !== selectedScenarioId)
+                rejection = { code: "MOCK_INTERRUPT_CONTEXT_INVALID", message: "恢复运行必须使用产生该中断的场景。" };
+            else if (resume.length !== pending.interrupts.length || new Set(resume.map(entry => entry.interruptId)).size !== resume.length ||
+                pending.interrupts.some(interrupt => !resume.some(entry => entry.interruptId === interrupt.id))) {
+                rejection = { code: "MOCK_INTERRUPT_RESUME_INVALID", message: "恢复请求必须且只能处理每个待处理中断一次。" };
+            }
+            else if (pending.interrupts.some(interrupt => interrupt.expiresAt !== undefined && Date.parse(interrupt.expiresAt) <= Date.now())) {
+                rejection = { code: "MOCK_INTERRUPT_EXPIRED", message: "待处理中断已过期。" };
+            }
+        }
+        else if (resume.length) {
+            rejection = { code: "MOCK_INTERRUPT_NOT_FOUND", message: "当前会话没有待处理的中断。" };
+        }
+        if (!rejection && resolveRun === undefined && scenario?.durableRun) {
+            const durableScenarioId = scenario.id === "resumable-agent-plan"
+                ? "resumable-agent-plan"
+                : "resumable-long-run";
+            const run = durableStore.start(input, durableScenarioId);
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+            response.setHeader("Cache-Control", "no-cache, no-transform");
+            response.flushHeaders();
+            const unsubscribe = durableStore.subscribeEvents(run.threadId, event => {
+                const standardEvent = EventSchemas.parse(event);
+                events.push({
+                    threadId: parsedInput.data.threadId,
+                    runId: parsedInput.data.runId,
+                    type: standardEvent.type,
+                    timestamp: Date.now(),
+                });
+                if (events.length > 500)
+                    events.shift();
+                if (!response.destroyed)
+                    response.write(`data: ${JSON.stringify(standardEvent)}\n\n`);
+            }, () => { if (!response.destroyed)
+                response.end(); });
+            response.once("close", unsubscribe);
+            return;
+        }
+        const controller = new AbortController();
+        const abort = () => controller.abort();
+        request.once("aborted", abort);
+        response.once("close", abort);
+        let stream;
+        try {
+            stream = rejection ? (async function* () {
+                yield { type: EventType.RUN_STARTED, threadId: input.threadId, runId: input.runId };
+                yield { type: EventType.RUN_ERROR, ...rejection };
+            })() : await runResolver(input, {
+                ...(scenarioId === null ? {} : { scenarioId }),
+                speed: parseTimingScale(requestUrl), signal: controller.signal,
+            });
+        }
+        catch (error) {
+            request.removeListener("aborted", abort);
+            response.removeListener("close", abort);
+            sendJsonError(response, 400, error instanceof Error ? error.message : "Unable to resolve mock source.");
+            return;
+        }
+        if (controller.signal.aborted || response.destroyed) {
+            request.removeListener("aborted", abort);
+            response.removeListener("close", abort);
+            return;
+        }
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("Connection", "keep-alive");
+        response.setHeader("X-Accel-Buffering", "no");
+        response.flushHeaders();
+        try {
+            for await (const event of stream) {
+                if (controller.signal.aborted || response.destroyed)
+                    return;
+                const standardEvent = EventSchemas.parse(event);
+                if (standardEvent.type === "RUN_FINISHED") {
+                    if (standardEvent.outcome?.type === "interrupt") {
+                        pendingInterrupts.set(parsedInput.data.threadId, {
+                            scenarioId: scenarioId ?? registry.defaultScenarioId,
+                            interrupts: standardEvent.outcome.interrupts,
+                        });
+                    }
+                    else if (input.resume?.length) {
+                        pendingInterrupts.delete(parsedInput.data.threadId);
+                    }
+                }
+                events.push({ threadId: parsedInput.data.threadId, runId: parsedInput.data.runId, type: standardEvent.type, timestamp: Date.now() });
+                if (events.length > 500)
+                    events.shift();
+                response.write(`data: ${JSON.stringify(standardEvent)}\n\n`);
+            }
+            if (!response.destroyed)
+                response.end();
+        }
+        finally {
+            request.removeListener("aborted", abort);
+            response.removeListener("close", abort);
+        }
+    };
+}
+//# sourceMappingURL=http-handler.js.map

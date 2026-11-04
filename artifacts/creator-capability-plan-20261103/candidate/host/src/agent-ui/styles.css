@@ -1,0 +1,64 @@
+@import "@za38.03/agent-ui-plugins/styles-base.css";
+
+@source ".";
+@source "./plugins";
+
+/* Project overrides: public theme tokens and scoped component styling. */
+
+/*
+ * Default theme palette: blue.
+ * Blue is a project palette, not a built-in preset, so it is applied to the
+ * default preset scope. Brand and solid actions (buttons), focus rings
+ * (inputs and keyboard focus) and sidebar accents share the same blue.
+ */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
+  --agent-brand: #2563eb;
+  --agent-brand-solid: #2563eb;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --ring: #2563eb;
+  --sidebar-primary: #2563eb;
+  --sidebar-ring: #2563eb;
+}
+
+/* Composer outer frame: 16px radius, blue focus border, original border when unfocused. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"] {
+  border: 1px solid oklch(0.922 0 0);
+  border-radius: 16px;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"]:hover {
+  border-color: oklch(0.922 0 0);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_composer-shell"]:focus-within {
+  border-color: #2563eb;
+}
+
+/*
+ * Composer live character counter rendered below the input shell.
+ * Normal state uses the theme foreground with reduced emphasis; the
+ * limit state switches to a red that stays legible on light (violet
+ * default / light) and dark presets.
+ */
+.aui-composer-counter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 2px 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--foreground);
+  opacity: 0.65;
+}
+
+.aui-composer-counter[data-at-limit="true"] {
+  opacity: 1;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"] .aui-composer-counter[data-at-limit="true"] {
+  color: #f87171;
+}

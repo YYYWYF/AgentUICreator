@@ -1,0 +1,32 @@
+import { defineScenario } from "../scenario.js";
+export const retrievalChunksScenario = defineScenario({
+    id: "retrieval-chunks",
+    title: "Retrieval Chunks",
+    description: "标准 AG-UI 工具调用，通过独立 UI Plugin 展示检索片段。",
+    category: "tools",
+    capabilities: ["tool"],
+    resources: ["retrieval-chunks"],
+    reference: {
+        audience: "backend",
+        protocol: "AG-UI",
+        pattern: "Tool call → result → Agent UI Toolkit renderer",
+        presentation: "Agent UI RetrievalChunks",
+        eventFlow: ["TOOL_CALL_START", "TOOL_CALL_ARGS", "TOOL_CALL_END", "TOOL_CALL_RESULT"],
+        notes: ["Install retrieval-chunks explicitly; removing it restores ToolFallback without changing this scenario."],
+    },
+    steps: [{
+            type: "tool",
+            name: "search_docs",
+            args: { query: "退款政策是什么？" },
+            result: { chunks: [{
+                        id: "chunk-1",
+                        source: "退款政策.pdf",
+                        locator: "第 14 页",
+                        score: 0.91,
+                        text: "退款申请需在30天内提交。",
+                    }] },
+            prepareDurationMs: 600,
+            durationMs: 1800,
+        }],
+});
+//# sourceMappingURL=retrieval-chunks.js.map

@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
-import { rememberSourceRead, workingSourceContext } from "../src/agent/working-context.js";
+import { rememberSourceRead, workingSourceContext, workingDevelopmentContext } from "../src/agent/working-context.js";
 import { CreatorContextWindow, estimateMessageTokens } from "../src/agent/context-window.js";
 import type { ToolContext } from "../src/agent/tools.js";
 function context() {
@@ -57,8 +57,73 @@ it("keeps a custom component and Service contract ahead of its navigation metada
     rememberSourceRead(ctx, { path: "/" + file, hash: String(index), content: "1: " + ["definition metadata", "manifest metadata", "CARD_COMPONENT_STATE", "CARD_SERVICE_CONTRACT"][index], totalLines: 1, nextOffset: null }, 0);
   }
   const projected = JSON.parse(String(workingSourceContext(ctx, 1800)[0]!.content).split("\n").slice(1).join("\n"));
-  expect(projected.files.slice(0, 2).map((file: any) => file.path)).toEqual(["src/services/card.ts", "src/card/Card.tsx"]);
+  expect(projected.files.slice(0, 2).map((file: any) => file.path)).toEqual(["src/card/Card.tsx", "src/services/card.ts"]);
   expect(projected.files.every((file: any) => file.readInCurrentRun)).toBe(true);
   hashes.set("src/card/Card.tsx", { hash: "changed" });
   expect(String(workingSourceContext(ctx, 1800)[0]!.content)).not.toContain("CARD_COMPONENT_STATE");
+});
+
+it("keeps an actual approved development plan outside a summary claiming approval is unknown", async () => {
+  const { workingContext } = await import("../src/agent/working-context.js");
+  const { ctx } = context();
+  ctx.authorizedPlugins = new Set(["dismiss"]);
+  ctx.pluginPlans = new Map([["dismiss", { status: "authorized", scopeHash: "bound-plan", contract: {}, workKind: "create-plugin", evidence: {}, desiredOutcome: "Add dismiss control", missingCapabilities: ["No existing dismiss API"] }]]);
+  const window = new CreatorContextWindow({ environment: { CREATOR_CONTEXT_MAX_TOKENS: "6000", CREATOR_CONTEXT_KEEP_TOKENS: "500", CREATOR_MODEL_MAX_TOKENS: "512" },
+    request: "Add dismiss", signal: () => new AbortController().signal,
+    workingContext: budget => workingContext(ctx, budget), model: () => ({ invoke: async () => new AIMessage("Historical summary: approval is unknown.") }) as any, log: async () => {} });
+  const messages = await window.project([new HumanMessage("old material ".repeat(4000)), new HumanMessage("Add dismiss")], []);
+  expect(window.stats.compactions).toBeGreaterThan(0);
+  const host = messages.find(message => typeof message.content === "string" && message.content.startsWith("Host current development decisions"));
+  expect(host?.content).toContain('"confirmedNewPlugins":["dismiss"]'); expect(host?.content).not.toContain("bound-plan");
+  expect(estimateMessageTokens(workingContext(ctx, 800))).toBeLessThanOrEqual(800);
+});
+it("preserves project ownership and the minimal grant even when implementation prose is oversized", () => {
+  const { ctx } = context();
+  ctx.pluginOwnerships = new Map([["card", { pluginId: "card", entryPath: "src/plugins/card/definition.ts", assetOwnership: "project_source", implementationOwnership: "project" }]]);
+  ctx.authorizedPlugins = new Set(["dismiss"]);
+  ctx.pluginPlans = new Map([["dismiss", { status: "authorized", scopeHash: "confirmed", workKind: "create-plugin", contract: {}, evidence: {}, desiredOutcome: "中文".repeat(2000), missingCapabilities: ["缺口".repeat(2000)] }]]);
+  // State survives even when full descriptive fields cannot all fit.
+  const messages = workingDevelopmentContext(ctx, 750);
+  expect(messages).toHaveLength(1);
+  expect(String(messages[0]!.content)).toContain('"confirmedNewPlugins":["dismiss"]');
+  expect(String(messages[0]!.content)).toContain('"implementationTakeoverRequired":false');
+  expect(estimateMessageTokens(messages)).toBeLessThanOrEqual(750);
+});
+
+it("pins the selected custom component ahead of later unrelated reads when its entry is definition.ts", () => {
+  const { ctx, hashes } = context();
+  const owner = "src/card/index.tsx";
+  ctx.editingSelection = { target: { id: "card", kind: "plugin_source", name: "Card", entryPath: "src/card/definition.ts" }, identity: "p", guards: "g", filePaths: ["src/card/definition.ts", owner] };
+  for (const file of [owner, ...Array.from({ length: 8 }, (_, i) => `src/other-${i}/index.tsx`)]) {
+    hashes.set(file, { hash: file }); ctx.readRanges!.set(file, [{ hash: file, start: 1, end: 1 }]);
+    rememberSourceRead(ctx, { path: "/" + file, hash: file, content: "1: export const value = 1;", totalLines: 1, nextOffset: null }, 0);
+  }
+  expect(JSON.parse(String(workingSourceContext(ctx, 1000)[0]!.content).split("\n")[1]!).files[0].path).toBe(owner);
+});
+
+it("retains the custom component ahead of CSS even when styles were discovered first and later reads fill the cache", () => {
+  const { ctx, hashes } = context();
+  const directory = "src/应用/plugins/card/", owner = directory + "index.tsx", styles = directory + "styles.css";
+  ctx.editingSelection = { target: { id: "card", kind: "plugin_source", name: "Card", entryPath: directory + "definition.ts" },
+    identity: "p", guards: "g", filePaths: [directory + "definition.ts", directory + "manifest.json", styles, owner] };
+  for (const file of [styles, owner, ...Array.from({ length: 20 }, (_, i) => `src/other-${i}/index.tsx`)]) {
+    hashes.set(file, { hash: file }); ctx.readRanges!.set(file, [{ hash: file, start: 1, end: 30 }]);
+    rememberSourceRead(ctx, { path: "/" + file, hash: file, content: Array.from({ length: 30 }, (_, i) => `${i + 1}: ${file} state_${i}`).join("\n"), totalLines: 30, nextOffset: null }, 0);
+  }
+  const files = JSON.parse(String(workingSourceContext(ctx, 1000)[0]!.content).split("\n")[1]!).files;
+  expect(files[0].path).toBe(owner); expect(files[0].content).toContain("state_0");
+  expect(ctx.sourceSnapshots!.has(owner)).toBe(true);
+  expect(estimateMessageTokens(workingSourceContext(ctx, 1000))).toBeLessThanOrEqual(1000);
+});
+
+it("keeps an actually observed complete source after a narrower same-hash reread, but replaces it when content changes", () => {
+  const { ctx, hashes } = context(), file = "src/界面/index.tsx";
+  hashes.set(file, { hash: "read-hash" });
+  rememberSourceRead(ctx, { path: "/" + file, hash: "read-hash", content: "2: export default stable;", totalLines: 2, nextOffset: null }, 1);
+  expect(ctx.sourceSnapshots!.get(file)).toMatchObject({ start: 1, end: 2, truncated: false });
+  expect(String(workingSourceContext(ctx, 1000)[0]!.content)).toContain("export const stable");
+  hashes.set(file, { hash: "new-hash" }); ctx.readRanges!.set(file, [{ hash: "new-hash", start: 1, end: 1 }]);
+  rememberSourceRead(ctx, { path: "/" + file, hash: "new-hash", content: "1: export const changed = 2;", totalLines: 1, nextOffset: null }, 0);
+  const content = String(workingSourceContext(ctx, 1000)[0]!.content);
+  expect(content).toContain("changed = 2"); expect(content).not.toContain("export default stable");
 });

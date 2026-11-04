@@ -34,6 +34,43 @@ class ScriptedModel extends BaseChatModel {
 }
 const call = (name: string, args: object, id: string) => new AIMessage({ content: "", tool_calls: [{ name, args, id, type: "tool_call" }] });
 const contracts = fileURLToPath(new URL("../contracts/creator", import.meta.url));
+it("returns a disabled group's tool error and continues after explicit tool expansion", async () => {
+  const root = await project();
+  const model = mock.model = new ScriptedModel(index => {
+    if (index === 0) return call("inspect_creator_transactions", {}, "unavailable-history");
+    if (index === 1) {
+      const result = model.prompts.at(-1)!.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "unavailable-history");
+      expect(JSON.parse(result.content)).toMatchObject({ ok: false, error: { code: "CREATOR_TOOL_NOT_AVAILABLE", reason: "tool_group_not_enabled", recovery: { tool: "enable_creator_tools", groups: ["history"] } } });
+      return call("enable_creator_tools", { groups: ["history"] }, "enable-history");
+    }
+    if (index === 2) return call("inspect_creator_transactions", {}, "available-history");
+    const result = model.prompts.at(-1)!.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "available-history");
+    expect(JSON.parse(result.content).ok).toBe(true);
+    return new AIMessage("History inspected.");
+  });
+  const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
+  await runtime.run({ threadId: "tool-expansion", runId: "tool-expansion-1", messages: [{ role: "user", content: "只读检查历史记录" }] }, new AbortController().signal, async event => { events.push(event); });
+  expect(events.some(event => event.type === "RUN_ERROR")).toBe(false);
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED" });
+  expect(events.filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallId)).toEqual(["unavailable-history", "enable-history", "available-history"]);
+});
+it("returns a recoverable read-only denial without editing the file", async () => {
+  const root = await project(), before = await readFile(path.join(root, "src/readme.txt"), "utf8");
+  const model = mock.model = new ScriptedModel(index => {
+    if (index === 0) return call("edit_file", { file_path: "/src/readme.txt", old_string: "line 0", new_string: "changed" }, "denied-edit");
+    if (index === 1) {
+      const result = model.prompts.at(-1)!.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "denied-edit");
+      expect(JSON.parse(result.content)).toMatchObject({ ok: false, error: { code: "TOOL_PERMISSION_DENIED", reason: "read_only_request" } });
+      return call("read_file", { file_path: "/src/readme.txt", limit: 1 }, "allowed-read");
+    }
+    return new AIMessage("Inspection only.");
+  });
+  const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
+  await runtime.run({ threadId: "read-only-tool", runId: "read-only-tool-1", messages: [{ role: "user", content: "只读检查文件" }] }, new AbortController().signal, async event => { events.push(event); });
+  expect(await readFile(path.join(root, "src/readme.txt"), "utf8")).toBe(before);
+  expect(events.some(event => event.type === "RUN_ERROR")).toBe(false);
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED" });
+});
 it.each([
   "你能帮我做些什么？",
   "你能做什么？",
