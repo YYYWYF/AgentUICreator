@@ -4168,5 +4168,157 @@
     "finishReason": "tool_calls",
     "ended": "2026-11-04T09:30:00.066Z",
     "seconds": 8.827
+  },
+  {
+    "case": "natural",
+    "started": "2026-11-04T09:30:00.170Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 8192,
+    "toolCount": 35,
+    "toolSchemaCharacters": 48581,
+    "messageCharacters": 111467,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1688,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 492,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 506,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1127,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 892,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1756,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1249,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 850,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 213,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4041,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2974,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 192,
+        "toolCalls": 2
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/sales-report-message/styles.css",
+        "hash": "791e65727b627b68477dab94a758b346f825962afd9408c6ff9f5c9b506fc720",
+        "start": 119,
+        "end": 147,
+        "truncated": true
+      },
+      {
+        "path": "src/agent-ui/plugins/sales-report-message/index.tsx",
+        "hash": "82a7f55e867e4b70ed47698f22322d0b42da6c86b33c7ab0a838241459358b70",
+        "start": 119,
+        "end": 175,
+        "truncated": true
+      },
+      {
+        "path": "src/agent-ui/plugins/sales-report-message/schema.ts",
+        "hash": "ceabe3d4e20dc56d23e1f50da834ed3ea7b63b5715041414e2b1c82d479aebd2",
+        "start": 1,
+        "end": 102,
+        "truncated": true
+      }
+    ],
+    "hostDevelopmentState": [
+      {
+        "readOnly": false,
+        "confirmedNewPlugins": [
+          "sales-report-message"
+        ],
+        "owners": [
+          {
+            "pluginId": "sales-report-message",
+            "entryPath": "src/agent-ui/plugins/sales-report-message/definition.ts",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "project",
+            "implementationTakeoverRequired": false
+          },
+          {
+            "pluginId": "context-retrieval-message",
+            "entryPath": "src/agent-ui/plugins/context-retrieval-message/index.tsx",
+            "assetOwnership": "project_source",
+            "implementationOwnership": "npm",
+            "implementationTakeoverRequired": true
+          }
+        ],
+        "policy": "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply."
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "incomingReasoningChunks": 169,
+    "incomingReasoningCharacters": 2446,
+    "usage": {
+      "prompt_tokens": 44585,
+      "completion_tokens": 594,
+      "total_tokens": 45179,
+      "prompt_tokens_details": {
+        "cached_tokens": 40576
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 536
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00215896,
+        "allowance": 0.00129537,
+        "tokens": {
+          "input": 4009,
+          "output": 594,
+          "reasoning": 536,
+          "cache_read": 40576,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "ended": "2026-11-04T09:30:13.066Z",
+    "seconds": 12.896
   }
 ]
