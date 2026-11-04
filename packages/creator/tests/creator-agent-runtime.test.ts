@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm, open, readdir, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,48 @@ async function project() {
   await writeFile(path.join(root, "src/readme.txt"), Array.from({ length: 100 }, (_, index) => `line ${index}`).join("\n"));
   return root;
 }
+it("keeps diagnostic logs readable and ordered during concurrent appends and cancellation", async () => {
+  const root = await project(), controller = new AbortController();
+  const activity = new RunActivity(root, "live-log-reader", controller.signal);
+  const file = path.join(root, activity.logPath);
+  await activity.log("started", { index: -1 });
+  const heldReader = await open(file, "r");
+  let reading = true;
+  const reader = (async () => {
+    while (reading) {
+      const text = await readFile(file, "utf8");
+      // A live reader may observe an unfinished final append.
+      const complete = text.slice(0, text.lastIndexOf("\n") + 1);
+      for (const line of complete.split("\n").filter(Boolean)) JSON.parse(line);
+      await new Promise<void>(resolve => setImmediate(resolve));
+    }
+  })();
+  try {
+    await Promise.all(Array.from({ length: 150 }, (_, index) => activity.log("progress", { index, text: "日志\n".repeat(200) })));
+    controller.abort();
+    await activity.log("stopped", { index: 150 });
+    reading = false;
+    await reader;
+    const text = await readFile(file, "utf8");
+    expect(await heldReader.readFile("utf8")).toBe(text);
+    const entries = text.trim().split("\n").map(line => JSON.parse(line));
+    expect(entries.map(entry => entry.index)).toEqual(Array.from({ length: 152 }, (_, index) => index - 1));
+    expect(entries.every(entry => entry.runId === "live-log-reader")).toBe(true);
+    expect(entries.at(-1).event).toBe("stopped");
+  } finally {
+    reading = false;
+    await reader;
+    await heldReader.close();
+  }
+});
+it("rejects a diagnostic log directory linked outside the selected project", async () => {
+  const root = await project(), outside = await project();
+  await mkdir(path.join(outside, "logs"));
+  await symlink(outside, path.join(root, ".agent-ui/creator"), process.platform === "win32" ? "junction" : "dir");
+  const activity = new RunActivity(root, "outside-log", new AbortController().signal);
+  await expect(activity.log("started")).rejects.toThrow("Resolved path leaves the Creator project");
+  expect(await readdir(path.join(outside, "logs"))).toEqual([]);
+});
 class ScriptedModel extends BaseChatModel {
   calls = 0;
   prompts: any[][] = [];

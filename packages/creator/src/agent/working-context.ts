@@ -2,18 +2,68 @@ import { HumanMessage } from "@langchain/core/messages";
 import type { ToolContext } from "./tools.js";
 
 export interface SourceSnapshot { path: string; hash: string; content: string; start: number; end: number; truncated: boolean }
+export interface PublicApiSnapshot { module: string; packageVersion: string; symbol: Record<string, unknown> }
+
+/** Queries do not need the unrelated Plugin inventory/ownership envelope. */
+export function projectPublicApiRead(result: any, pluginId: string) {
+  const sharedTypes = result?.sharedTypes ?? result?.application?.sharedTypes ?? result?.references?.sharedTypes;
+  if (!sharedTypes) return result;
+  return { pluginId, sharedTypes, projection: { kind: "installed_public_api", referenceOnly: true,
+    pluginDetails: { tool: "inspect_ui_plugin", input: { pluginId } },
+    guidance: "API signatures only. For a large exported type, query the required export.member instead of reading all domains. This query does not select an editing target or grant source ownership." } };
+}
+
+/** Retain bounded, actually returned signatures, never guessed or missing APIs. */
+export function rememberPublicApiRead(context: ToolContext, result: any) {
+  const shared = result?.sharedTypes ?? result?.application?.sharedTypes ?? result?.references?.sharedTypes;
+  if (shared?.status !== "available" || !shared.module || !shared.packageVersion) return;
+  const cache = context.publicApiSnapshots ??= new Map();
+  for (const [key, value] of cache) if (value.module === shared.module && value.packageVersion !== shared.packageVersion) cache.delete(key);
+  for (const symbol of shared.symbols ?? []) {
+    const key = `${shared.module}:${symbol.name}`;
+    if (symbol.status !== "available") { cache.delete(key); continue; }
+    const snapshot = { name: symbol.name,
+      ...(typeof symbol.type === "string" && symbol.type.length <= 1000 ? { type: symbol.type, truncated: symbol.truncated } : { detailsOmitted: true }),
+      ...(symbol.members?.length ? { members: symbol.members.filter((member: any) => typeof member.type === "string" && member.type.length <= 500).slice(0, 4),
+        membersOmitted: Boolean(symbol.membersTruncated || symbol.members.length > 4 || symbol.members.some((member: any) => typeof member.type !== "string" || member.type.length > 500)) } : {}) };
+    cache.delete(key); cache.set(key, { module: shared.module, packageVersion: shared.packageVersion, symbol: snapshot });
+  }
+  while (cache.size > 16) cache.delete(cache.keys().next().value!);
+}
+
+export function workingPublicApiContext(context: ToolContext, maximumTokens: number) {
+  const observations: PublicApiSnapshot[] = [];
+  const make = () => new HumanMessage("Host same-run installed API observations (reference data, not permission or behavior verification; re-inspect after dependency changes).\n" + JSON.stringify({ observations }));
+  for (const value of [...(context.publicApiSnapshots?.values() ?? [])].reverse()) {
+    observations.push(value);
+    if (Math.ceil(Buffer.byteLength(JSON.stringify(make().content), "utf8") / 3) + 64 > maximumTokens) observations.pop();
+    if (observations.length >= 6) break;
+  }
+  return observations.length ? [make()] : [];
+}
 
 /** Host decisions survive lossy history summaries; they never imply fresh source or wider permission. */
 export function workingDevelopmentContext(context: ToolContext, maximumTokens: number) {
   if (!context.authorizedPlugins?.size && !context.pluginOwnerships?.size) return [];
   const confirmedNewPlugins = [...(context.authorizedPlugins ?? [])];
   const owners: any[] = [];
+  const implementations: any[] = [];
   const make = () => new HumanMessage("Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.\n" + JSON.stringify({
-    readOnly: context.readOnly, confirmedNewPlugins, owners,
+    readOnly: context.readOnly, confirmedNewPlugins, owners, implementations,
     policy: "Project-owned Agent UI code is editable for the current task, including existing Plugin behavior and supporting files. Ask only before creating a new Plugin identity or taking over an npm implementation. A confirmed new Plugin includes its necessary implementation and composition work; file lists are implementation notes, not write allowlists. Existing owned source requires no takeover. File freshness checks still apply.",
   }));
   const fits = () => Math.ceil(Buffer.byteLength(JSON.stringify(make().content), "utf8") / 3) + 64 <= maximumTokens;
   while (confirmedNewPlugins.length && !fits()) confirmedNewPlugins.shift();
+  // The plan is implementation context, not a new file allowlist or grant.
+  for (const pluginId of confirmedNewPlugins) {
+    const plan = context.pluginPlans?.get(pluginId);
+    if (plan?.status !== "authorized") continue;
+    const contract = Object.fromEntries(["capability", "renderingCategory", "placement", "lifecycle", "verificationMethod"]
+      .flatMap(key => typeof plan.contract?.[key] === "string" ? [[key, plan.contract[key].slice(0, 300)]] : []));
+    implementations.push({ pluginId, workKind: plan.workKind, notesOnly: true, contract,
+      detailsOmitted: Object.keys(plan.contract ?? {}).length !== Object.keys(contract).length || Object.values(plan.contract ?? {}).some(value => typeof value === "string" && value.length > 300) });
+    if (!fits()) implementations.pop();
+  }
   const ownerships = [...(context.pluginOwnerships?.values() ?? [])].reverse();
   const selected = context.editingSelection?.target?.pluginId;
   ownerships.sort((a, b) => Number(b.pluginId === selected) - Number(a.pluginId === selected));
@@ -25,9 +75,11 @@ export function workingDevelopmentContext(context: ToolContext, maximumTokens: n
 }
 
 export function workingContext(context: ToolContext, maximumTokens: number) {
-  const decisions = workingDevelopmentContext(context, Math.min(1000, maximumTokens));
+  const decisions = workingDevelopmentContext(context, Math.min(1200, maximumTokens));
   const used = decisions.reduce((sum, message) => sum + Math.ceil(Buffer.byteLength(JSON.stringify(message.content), "utf8") / 3) + 64, 0);
-  return [...decisions, ...workingSourceContext(context, Math.max(0, maximumTokens - used))];
+  const apis = workingPublicApiContext(context, Math.min(700, Math.max(0, maximumTokens - used) / 3));
+  const apiUsed = apis.reduce((sum, message) => sum + Math.ceil(Buffer.byteLength(JSON.stringify(message.content), "utf8") / 3) + 64, 0);
+  return [...decisions, ...apis, ...workingSourceContext(context, Math.max(0, maximumTokens - used - apiUsed))];
 }
 
 /** Cache only text actually returned by a same-run read. This does not read files or grant evidence. */

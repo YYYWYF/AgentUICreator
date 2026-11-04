@@ -21,7 +21,7 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - `useAgentExecutions()` exposes each Tool, Reasoning, Step, and Subagent lifecycle directly. Never replace local execution status with a generic Run loading flag.
 - `useAgentInterrupts()` returns only current pending interrupts.
 - `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntimeActions()` exposes only Agent Runtime commands. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel composition.
-- `usePluginEvents()` is the inbound, live-only Application Event channel. A Plugin may subscribe only to names declared in its manifest and registered by `/agent-contract/agent-events.ts`.
+- `usePluginEvents()` is the inbound, live-only Application Event channel. Subscribe only to names declared in the Plugin manifest and registered through the application's `Agent.appEventSchemas`.
 - `usePluginService()` remains the component API for named Plugin capabilities.
 - `/agent-contract/agent-tools.ts` owns the explicit set of frontend capability operations advertised to the Agent.
 
@@ -30,13 +30,14 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - Do not instantiate an AG-UI client or manage a second Agent Runtime inside a Plugin.
 - Do not invent a separate public message or state protocol when the Plugin Contract already exposes AG-UI data.
 - Event, snapshot, delta, streaming, tool-call, and error normalization belongs in the frontend Runtime layer; Plugins render the normalized hook values.
-- Never expose or import AG-UI `CUSTOM`, `CustomEvent`, `BaseEvent`, `RawEvent`, `rawEvent`, or `@ag-ui/core` from Plugin code. For a backend-originated, application-specific, transient occurrence with no standard AG-UI semantic, define its payload schema in `/agent-contract/agent-events.ts` before declaring it in `manifest.data.events`. Preserve explicitly supplied event names exactly; recommend lowercase dot-separated naming only when the application has not chosen a name, and never guess an unknown backend payload shape.
+- Never expose or import AG-UI `CUSTOM`, `CustomEvent`, `BaseEvent`, `RawEvent`, `rawEvent`, or `@ag-ui/core` from Plugin code. Preserve an explicitly supplied backend business event name and payload; never guess an unknown payload shape. Distinguish its consumers: a chat message renderer uses `defineDataMessageUI`, `definition.dataMessageUIs` and `manifest.data.messageUI`, and validates its raw `data`; a live Application Event subscriber uses `Agent.appEventSchemas`, `manifest.data.events` and `usePluginEvents`. Do not add a duplicate subscriber merely to render a chat message. Application schema transforms do not rewrite message data.
+- For Application Event subscriptions, reuse an existing schema module; otherwise create an application-owned module relative to actual sourceRoot (for example `agent-contract/agent-events.ts`) and wire it through `Agent.appEventSchemas`. That directory is optional, not a preinstalled Runtime requirement. A Plugin-local schema wired through the application is also valid.
 - Frontend Tools use standard AG-UI `RunAgentInput.tools`, `TOOL_CALL_*`, `ToolMessage`, and a continuation Run. Never encode a frontend Tool call as `CUSTOM`, a new UserMessage, or a Plugin-specific protocol.
 - The Agent calls a capability adapter, never React or a Plugin. Reuse or define a stable Service seam, let a Provider Plugin declare and provide that Service, then expose only the product-authorized operations in `/agent-contract/agent-tools.ts`.
 - Tool names use `lower_snake_case`; schemas use `z.strictObject(...)` as the single validation and JSON Schema source; handlers resolve Services at execution time and return short serializable results.
 - Do not infer that every Service method should be exposed. Capability ownership and Agent exposure permission are separate decisions.
 - Plugins must never self-register Frontend Tools or import AG-UI Tool types. They only provide capabilities through the existing Service lifecycle.
-- Do not use Application Events for persistent state, activity progress, standard lifecycle, local Plugin-to-Plugin communication, or frontend-to-backend commands. Application Events have no replay, persistence, or history.
+- Do not invent Application Events to replace standard Activity/Tool/Run lifecycle, persistent shared state, local Plugin communication, or frontend commands. An explicitly supplied business-job CUSTOM notification can drive a live panel through the application channel; it does not become standard Runtime execution progress or gain history/replay. A single Plugin's private projection may use component state and update by the supplied business ID. Subscribe in `useEffect` and return the unsubscribe function. Use existing shared state/services when persistence or cross-Plugin sharing is actually required.
 - A request for different layout or placement is not an AG-UI Runtime change.
 - During Phase 8, implement AG-UI presentation inside `/plugins/` while keeping Runtime and Framework source read-only.
 
@@ -121,9 +122,13 @@ source or from the presence of related CSS selectors.
 
 Vendor-owned code must remain locale-agnostic and unmodified; all product
 localization is owned by AgentUICreator composition, adapters, plugins, and Host
-UI. New user-visible copy must use the existing `useAgentUILocale` namespace and
-complete `en-US` / `zh-CN` dictionaries. Do not create per-Plugin i18n hooks or
-language conditionals. Preserve protocol IDs, enums, schema and persisted fields;
+UI. Reuse existing official domain copy through `useAgentUILocale(namespace)`;
+`Agent.locales` overrides only existing keys, not arbitrary new namespaces. For
+new business copy, reuse or create a project-owned shared messages module with
+domain namespaces and complete `en-US` / `zh-CN` parity. Select messages there
+with the unified `useAgentUILocaleCode()` value and pass messages to presentation
+helpers; do not create per-Plugin i18n hooks, language branches or another locale
+state. See the packaged Plugin API's localization example. Preserve protocol IDs, enums, schema and persisted fields;
 locale is a view concern. Prefer public props/composition, then owned adapters.
 If upstream lacks a seam, record a localization gap instead of modifying vendor.
 Include `pnpm check:i18n` where available and check new copy during upgrades.

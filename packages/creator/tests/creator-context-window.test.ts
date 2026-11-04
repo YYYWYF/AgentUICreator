@@ -119,7 +119,9 @@ it("bounds summary requests for uneven large tool results", async () => {
   const before = JSON.stringify(messages); const result = await manager.project(messages, []);
   expect(estimateMessageTokens(result) + 16384).toBeLessThan(65536);
   expect(model.prompts.length).toBeGreaterThan(0);
-  for (const prompt of model.prompts) expect(estimateMessageTokens(prompt) + 16384).toBeLessThan(65536);
+  // Summary calls use their independent 8192 output reservation; Agent calls
+  // still reserve the configured 16384 above.
+  for (const prompt of model.prompts) expect(estimateMessageTokens(prompt) + 8192).toBeLessThan(65536);
   expect(model.prompts.some(prompt => String(prompt[0]?.content).includes("source-marker-0"))).toBe(true);
   expect(JSON.stringify(messages)).toBe(before); assertPairs(result);
 });
@@ -203,4 +205,20 @@ it("budgets provider reasoning, counts native blocks once, and retains recent co
   expect(manager.stats.compactions).toBeGreaterThan(0);
   expect(projected.find(message => AIMessage.isInstance(message) && message.tool_calls?.some(call => call.id === "recent"))?.additional_kwargs.reasoning_content).toBe("recent-synthetic");
   expect(JSON.stringify(messages)).toBe(before);
+});
+
+it("reserves a separate summary output budget and asks for sourced decisions rather than an expanding tool history", async () => {
+  const limits: (number | undefined)[] = [], model = new SummaryModel(), logs: any[] = [];
+  const environment = { CREATOR_CONTEXT_MAX_TOKENS: "24000", CREATOR_MODEL_MAX_TOKENS: "16384", CREATOR_CONTEXT_SUMMARY_MAX_TOKENS: "4096" };
+  const manager = new CreatorContextWindow({ environment, request: "Add a panel", signal: () => new AbortController().signal,
+    model: limit => { limits.push(limit); return model; }, log: async (event, data) => { logs.push({ event, ...data }); } });
+  const original = history(12), saved = JSON.stringify(original);
+  const projected = await manager.project(original, []);
+  expect(limits.length).toBeGreaterThan(0); expect(limits.every(limit => limit === 4096)).toBe(true);
+  expect(environment.CREATOR_MODEL_MAX_TOKENS).toBe("16384");
+  expect(logs.find(row => row.event === "context_summary_input")).toMatchObject({ outputReserve: 4096, summaryTargetTokens: expect.any(Number) });
+  expect(String(model.prompts[0]?.[0]?.content)).toContain("never turn a Skill/API assumption into an explicit user requirement");
+  expect(String(model.prompts[0]?.[0]?.content)).toContain("at most 600 words");
+  expect(estimateMessageTokens(projected) + 16384).toBeLessThan(23000);
+  expect(JSON.stringify(original)).toBe(saved); assertPairs(projected);
 });

@@ -75,19 +75,27 @@ export function App() {
 
 ## 3. 编写消息组件
 
-新建同目录的 `index.tsx`，放入组件和中英文文案：
+先在项目共享消息模块中添加 `ticketSummary` 领域，保留其他已有领域；组织方式见[主题与多语言](./plugin-api#主题与多语言)：
+
+```ts
+// application/i18n/messages.ts：将这个领域合并进已有的双语表。
+import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+
+const zhCN = { ticketSummary: { heading: '工单摘要', invalid: '工单数据格式不正确。' } };
+const enUS: typeof zhCN = { ticketSummary: { heading: 'Ticket summary', invalid: 'Invalid ticket data.' } };
+const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US': enUS };
+export function getProjectMessages(locale: AgentUILocaleCode) { return messages[locale]; }
+```
+
+新建同目录的 `index.tsx`，组件消费共享领域文案：
 
 ```tsx
 import { defineDataMessageUI, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { getProjectMessages } from '../../application/i18n/messages';
 import { TICKET_SUMMARY_EVENT, parseTicketSummary } from './schema';
 
-const messages = {
-  'zh-CN': { heading: '工单摘要', invalid: '工单数据格式不正确。' },
-  'en-US': { heading: 'Ticket summary', invalid: 'Invalid ticket data.' },
-};
-
 export function TicketSummaryMessage({ data }: { data: unknown }) {
-  const labels = messages[useAgentUILocaleCode()];
+  const labels = getProjectMessages(useAgentUILocaleCode()).ticketSummary;
   const result = parseTicketSummary(data);
   if (!result.success) return <p role="alert">{labels.invalid}</p>;
 

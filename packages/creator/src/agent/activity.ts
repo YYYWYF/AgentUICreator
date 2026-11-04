@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, unlink, appendFile, rmdir, stat } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, rmdir, stat } from "node:fs/promises";
 import path from "node:path";
-import { creatorContentHash as hash, readCreatorFileState as state, replaceCreatorFileAtomically as replace, createCreatorFileAtomically as create, removeCreatorFile as remove, type CreatorFileState } from "./files/creatorFileState.js";
+import { creatorContentHash as hash, readCreatorFileState as state, appendCreatorFile as append, replaceCreatorFileAtomically as replace, createCreatorFileAtomically as create, removeCreatorFile as remove, type CreatorFileState } from "./files/creatorFileState.js";
 import { CreatorFileObservationStore } from "./files/CreatorFileObservationStore.js";
 
 const DIRECTORY = ".agent-ui/creator/transactions";
@@ -70,11 +70,8 @@ export class RunActivity {
   }
   log(event: string, data: object = {}) {
     this.logTail = this.logTail.then(async () => {
-      const name = this.logPath;
-      const current = await state(this.root, name);
       const line = JSON.stringify({ timestamp: new Date().toISOString(), runId: this.runId, event, ...data }) + "\n";
-      if (current.exists) await replace(this.root, name, (current.content ?? "") + line, current);
-      else await create(this.root, name, line);
+      await append(this.root, this.logPath, line);
     });
     return this.logTail;
   }

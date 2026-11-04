@@ -60,7 +60,7 @@ export function ComposerHint() {
 
 不直接按语言写条件分支，也不复制一套独立 i18n 状态。
 
-官方文案沿用现有域。新增业务文案时由项目声明自己的双语消息表，使用统一的 `useAgentUILocaleCode()` 选择语言；不要新建语言状态。示例见[插件 API](./plugin-api#主题与多语言)。
+官方文案沿用现有域；`Agent.locales` 不注册任意新命名空间或键。新增业务文案集中在项目共享消息模块，按领域组织完整双语表，通过统一的 `useAgentUILocaleCode()` 值选择文案。组件不写语言条件，不创建每插件国际化 Hook 或独立语言状态，纯展示函数接收文案参数。示例见[插件 API](./plugin-api#主题与多语言)。
 
 ## 验证
 

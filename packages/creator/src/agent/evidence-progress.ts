@@ -19,7 +19,7 @@ export class EvidenceProgress {
   private lastReview = -1;
   private reads = 0;
 
-  observe(name: string, input: any, result: any, revision: number) {
+  observe(name: string, input: any, result: any, revision: number, readOnly = false) {
     if (revision !== this.revision) { this.revision = revision; this.unchangedReads = 0; this.recentReads = []; this.lastReview = -1; this.reads = 0; }
     let newEvidence = false;
     const remember = (value: unknown) => {
@@ -56,7 +56,11 @@ export class EvidenceProgress {
         range(fingerprint([file.path.replace(/\\/gu, "/").replace(/^\//u, ""), file.hash]), offset, file.nextOffset ?? file.totalLines);
       }
     };
-    if (name === "read_file") source(result, input.offset ?? 0);
+    if (name === "read_creator_context") {
+      // Every archive was already observed when its original tool returned.
+      // New pages/JSON projections redisplay those facts; they are not progress
+      // or fresh filesystem evidence, even after the project revision changes.
+    } else if (name === "read_file") source(result, input.offset ?? 0);
     else if (name === "inspect_ui_edit_context" && Array.isArray(result?.files)) {
       for (const file of result.files) source(file);
       // Suggestions/coverage navigation can change with focus while every
@@ -90,12 +94,17 @@ export class EvidenceProgress {
     if (this.recentReads.length > 16) this.recentReads.shift();
     const repeatedReads = this.recentReads.filter(value => !value).length;
     const mixedStall = this.recentReads.length >= 12 && repeatedReads >= Math.ceil(this.recentReads.length * 0.75);
-    const review = (this.unchangedReads > 0 && this.unchangedReads % 6 === 0) || (mixedStall && this.reads - this.lastReview >= 6);
+    const repeated = (this.unchangedReads > 0 && this.unchangedReads % 6 === 0) || (mixedStall && this.reads - this.lastReview >= 6);
+    // An investigation can keep finding different facts without resolving its
+    // implementation question. This is advisory, never an execution ceiling.
+    const investigation = this.reads >= 12 && this.reads - this.lastReview >= 12;
+    const review = repeated || investigation;
     if (review) this.lastReview = this.reads;
     const recovery = review ? {
       action: "review_stalled_investigation", unchangedReads: this.unchangedReads, revision,
       recentReads: this.recentReads.length, repeatedReads,
-      instruction: "These reads added no new evidence. Same-run source observations remain recorded; edits check current hashes. Reuse the known contracts. Distinguish an unknown public API from project-owned behavior that needs implementation and later validation. Continue within authorization, or identify the exact missing external fact. No permissions or verification results changed.",
+      reason: repeated ? "repeated_evidence" : "investigation_without_mutation",
+      instruction: `${repeated ? "Recent investigation mostly repeats known facts." : "Investigation has continued at the same project revision; new facts alone do not establish task progress."} Identify the exact remaining external fact or conflicting instructions and why another read would resolve it. Reuse already resolved contracts; a missing project-owned file or behavior is implementation work, not proof of an unavailable API. ${readOnly ? "Stay read-only; conclude the analysis when supported or report the precise unresolved question." : "When the required contracts are known, consider a small reversible implementation and validate it; otherwise continue relevant research or report the precise conflict."} Same-run source observations remain recorded; edits still check current hashes. No permissions or verification results changed. This reminder does not require mutation or limit further calls.`,
     } : undefined;
     return { newEvidence, unchangedReads: this.unchangedReads, ...(recovery ? { recovery } : {}) };
   }

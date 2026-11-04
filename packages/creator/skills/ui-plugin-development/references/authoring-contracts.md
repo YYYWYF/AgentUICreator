@@ -150,7 +150,7 @@ For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`,
 
 - Read Agent data through the installed Runtime public APIs and the project's existing domain/Service Hooks. Inspect their actual exports and signatures; initialized projects do not contain a local `/runtime/context` module. Keep the existing Provider and canonical Conversation Runtime.
 - Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
-- Before a Plugin consumes a backend Application Event, inspect the existing `Agent.appEventSchemas` binding and `/agent-contract/agent-events.ts` when present, reuse or add the application-owned payload schema, then declare the same exact name in `manifest.data.events`. Preserve an explicitly supplied Custom Event name exactly; lowercase dot-separated naming is recommended only when the application has not already chosen a name. A manifest declaration consumes an application-owned contract; it does not register one.
+- Before a Plugin consumes a backend Application Event, inspect the existing `Agent.appEventSchemas` binding and any existing schema module; reuse or create an application-owned payload schema relative to actual sourceRoot, then declare the exact same name in `manifest.data.events`. `agent-contract/agent-events.ts` is one possible project location, not a required existing directory. Preserve an explicitly supplied Custom Event name exactly; recommend lowercase dot-separated naming only for new names. A manifest consumes a contract; it does not register one. An explicitly supplied business-job notification may drive a live component-state projection by business ID; do not replace standard Activity/Tool/Run progress or claim history replay.
 - Prefer the project-local `subscribeAppEvent` helper so the registered payload type is inferred; `usePluginEvents().subscribe` and `setup({ events })` remain the underlying scoped APIs. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, interrupts, Frontend Tools, or local Plugin communication. If the backend payload contract is unknown, ask for it instead of inventing fields.
 - Use `usePluginActions()` for instance-scoped Agent commands and the installed Runtime's public Host API for application-owned commands. Keep transient UI state out of AppUIModel; use private component state within one Plugin and Services across Plugins. Never create a separate Agent Runtime inside a Plugin.
 - Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
@@ -240,9 +240,11 @@ parity for the capabilities already enabled in the target project.
 
 Vendor-owned code must remain locale-agnostic and unmodified; all product
 localization is owned by AgentUICreator composition, adapters, plugins, and Host
-UI. New user-visible copy must use the existing `useAgentUILocale` namespace and
-complete `en-US` / `zh-CN` dictionaries. Do not create per-Plugin i18n hooks or
-language conditionals. Preserve protocol IDs, enums, schema and persisted fields;
+UI. Official copy uses existing `useAgentUILocale(namespace)` keys; `Agent.locales`
+overrides existing keys only. New business copy belongs in the project's shared
+namespaced message module with complete `en-US` / `zh-CN` parity, selected using
+the unified `useAgentUILocaleCode()` value. No per-Plugin i18n hooks, language
+branches or independent locale state. Preserve protocol IDs, enums, schema and persisted fields;
 locale is a view concern. Prefer public props/composition, then owned adapters.
 If upstream lacks a seam, record a localization gap instead of modifying vendor.
 Include `pnpm check:i18n` where available and check new copy during upgrades.

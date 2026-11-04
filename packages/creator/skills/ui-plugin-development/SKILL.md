@@ -48,6 +48,8 @@ composition where declared. sharedModule selects the installed public module;
 use the root module for presentation controls and /contracts for Plugin types.
 Use returned parameterContracts; follow exact parameterQueries only when a required
 signature is missing. `$element` accesses an array/index element, not React props.
+Query concrete exported types for overloaded Hooks, rather than repeatedly
+querying `$return`. Shared-symbol queries return API evidence, not an edit target.
 An unavailable guessed symbol is not a missing capability. Preserve declared
 composition slots when appending controls; replacement props can replace them.
 
@@ -74,7 +76,11 @@ Preserve the target's UI library, enabled capabilities, scope bridge, semantic
 slots and original approval/interrupt/error renderers. New user/screen-reader copy
 uses the unified domain locale namespace with en-US/zh-CN parity; never patch
 vendor for localization. Read locale targets when changing them, not for every
-style edit. Do not invent new per-Plugin i18n or Service abstractions.
+style edit. Official keys use `useAgentUILocale(namespace)` and `Agent.locales`;
+new business keys belong in the project's shared namespaced messages module,
+selected with the unified `useAgentUILocaleCode()` value. The official Hook is
+not an arbitrary namespace registry. Do not invent per-Plugin i18n hooks, locale
+state or Service abstractions. Follow the packaged Plugin API example.
 
 Styles must be imported and scoped to owned classes/data attributes; no global
 resets, Host ancestor selectors, Runtime/Portal changes or vendor overrides.
@@ -95,6 +101,10 @@ AppUIModel evidence and normal Host mutation/verification tools. Creation/catalo
 synchronization is not mounting: newly created capabilities must be composed when
 requested, and the final revision validated. Consume checks already performed by
 the Host rather than duplicating them. Respect returned repair limits.
+`validate_creator_changes` synchronizes changed Plugin manifest/definition files
+into `registry.generated.ts` before checking. It is the exposed synchronization
+entry; do not search for an npm script or edit the generated registry. Refresh
+composition after synchronization to discover the new capability before mounting.
 
 Keep static, Runtime and browser evidence distinct. Current tests/types or empty
 Runtime errors do not prove popup geometry, keyboard behavior or focus. Validate

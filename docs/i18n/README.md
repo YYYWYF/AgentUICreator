@@ -21,7 +21,13 @@ recording transcripts, sample payloads and backend diagnostic details remain dat
   do not copy full dictionaries or generate theme/locale service forwarding files.
 - The project owns custom business messages and welcome content. Official copy
   uses its existing domain namespace; project business messages use the unified
-  locale code rather than another language state. Runtime, services, AppUIModel
+  locale code rather than another language state. Keep business dictionaries in
+  the project's shared namespaced messages module (for example
+  `application/i18n/messages.ts`), with matching `en-US` / `zh-CN` fields and a
+  pure resolver receiving `AgentUILocaleCode`. Components read the unified code
+  and consume the selected domain; presentation helpers receive messages. No
+  per-Plugin i18n hooks or language branches. `Agent.locales` overrides official
+  keys only; it is not a project namespace registry. Runtime, services, AppUIModel
   and composer drafts survive language changes. Existing local files and Host
   overrides are preserved by npm upgrades.
 - Creator is a separate development tool. Its locale context and dictionaries

@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
-import { rememberSourceRead, workingSourceContext, workingDevelopmentContext } from "../src/agent/working-context.js";
+import { rememberSourceRead, workingSourceContext, workingDevelopmentContext, rememberPublicApiRead, workingPublicApiContext, projectPublicApiRead } from "../src/agent/working-context.js";
 import { CreatorContextWindow, estimateMessageTokens } from "../src/agent/context-window.js";
 import type { ToolContext } from "../src/agent/tools.js";
 function context() {
@@ -67,7 +67,7 @@ it("keeps an actual approved development plan outside a summary claiming approva
   const { workingContext } = await import("../src/agent/working-context.js");
   const { ctx } = context();
   ctx.authorizedPlugins = new Set(["dismiss"]);
-  ctx.pluginPlans = new Map([["dismiss", { status: "authorized", scopeHash: "bound-plan", contract: {}, workKind: "create-plugin", evidence: {}, desiredOutcome: "Add dismiss control", missingCapabilities: ["No existing dismiss API"] }]]);
+  ctx.pluginPlans = new Map([["dismiss", { status: "authorized", scopeHash: "bound-plan", contract: { capability: "Add dismiss control", lifecycle: "subscribe and return cleanup" }, workKind: "create-plugin", evidence: {}, desiredOutcome: "Add dismiss control", missingCapabilities: ["No existing dismiss API"] }]]);
   const window = new CreatorContextWindow({ environment: { CREATOR_CONTEXT_MAX_TOKENS: "6000", CREATOR_CONTEXT_KEEP_TOKENS: "500", CREATOR_MODEL_MAX_TOKENS: "512" },
     request: "Add dismiss", signal: () => new AbortController().signal,
     workingContext: budget => workingContext(ctx, budget), model: () => ({ invoke: async () => new AIMessage("Historical summary: approval is unknown.") }) as any, log: async () => {} });
@@ -75,7 +75,32 @@ it("keeps an actual approved development plan outside a summary claiming approva
   expect(window.stats.compactions).toBeGreaterThan(0);
   const host = messages.find(message => typeof message.content === "string" && message.content.startsWith("Host current development decisions"));
   expect(host?.content).toContain('"confirmedNewPlugins":["dismiss"]'); expect(host?.content).not.toContain("bound-plan");
+  expect(host?.content).toContain("subscribe and return cleanup");
   expect(estimateMessageTokens(workingContext(ctx, 800))).toBeLessThanOrEqual(800);
+});
+
+it("keeps only observed API signatures across compaction with version and evidence boundaries", () => {
+  const { ctx } = context();
+  const sharedTypes = { status: "available", module: "@za38.03/agent-ui-plugins", packageVersion: "1.2.3",
+    symbols: [{ name: "usePluginEvents", status: "available", type: "() => UIPluginEvents", truncated: false },
+      { name: "GuessedAPI", status: "unavailable" }] };
+  const result = { application: { sharedTypes }, asset: { implementation: "irrelevant inventory".repeat(3000) } };
+  rememberPublicApiRead(ctx, result);
+  const messages = workingPublicApiContext(ctx, 700);
+  expect(String(messages[0]!.content)).toContain("1.2.3");
+  expect(String(messages[0]!.content)).toContain("() => UIPluginEvents");
+  expect(String(messages[0]!.content)).not.toContain("GuessedAPI");
+  expect(String(messages[0]!.content)).toContain("re-inspect after dependency changes");
+  expect(estimateMessageTokens(messages)).toBeLessThanOrEqual(700);
+  expect(projectPublicApiRead(result, "reference")).toMatchObject({ sharedTypes, projection: { referenceOnly: true } });
+  expect(JSON.stringify(projectPublicApiRead(result, "reference"))).not.toContain("irrelevant inventory");
+  expect(workingPublicApiContext(ctx, 20)).toEqual([]);
+  rememberPublicApiRead(ctx, { sharedTypes: { ...sharedTypes, symbols: [{ name: "usePluginEvents", status: "unavailable" }] } });
+  expect(workingPublicApiContext(ctx, 700)).toEqual([]);
+  rememberPublicApiRead(ctx, { sharedTypes: { ...sharedTypes, packageVersion: "2.0.0",
+    symbols: [{ name: "ChangedAPI", status: "available", type: "() => number" }] } });
+  const refreshed = String(workingPublicApiContext(ctx, 700)[0]!.content);
+  expect(refreshed).toContain("2.0.0"); expect(refreshed).not.toContain("1.2.3"); expect(refreshed).not.toContain("usePluginEvents");
 });
 it("preserves project ownership and the minimal grant even when implementation prose is oversized", () => {
   const { ctx } = context();

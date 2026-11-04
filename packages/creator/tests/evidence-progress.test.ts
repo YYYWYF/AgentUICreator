@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import { EvidenceProgress } from "../src/agent/evidence-progress.js";
+import { ToolMessage } from "@langchain/core/messages";
+import { CreatorContextArtifacts } from "../src/agent/context-artifacts.js";
 
 it("recognizes covered ranges despite changed limits, new empty keywords and unrelated repeated reads", () => {
   const progress = new EvidenceProgress();
@@ -75,4 +77,34 @@ it("reuses complete composition facts across full and summary projections while 
   expect(progress.observe("inspect_ui_project", {}, { ...base, capabilities: ["a"] }, 0).newEvidence).toBe(true);
   expect(progress.observe("inspect_ui_project", {}, { ...base, projection: { detail: "summary" } }, 0).newEvidence).toBe(false);
   expect(progress.observe("inspect_ui_project", {}, { ...base, pluginSources: [{ pluginId: "card", hash: "changed" }] }, 0).newEvidence).toBe(true);
+});
+
+it("does not count pagination or JSON projections of an already observed archive as new evidence", () => {
+  const progress = new EvidenceProgress(), artifacts = new CreatorContextArtifacts();
+  const source = { path: "/skills/authoring.md", hash: "same", totalLines: 300, nextOffset: null, content: "合同🌟\n".repeat(5000) };
+  progress.observe("read_file", {}, source, 0);
+  const archive = artifacts.archive(new ToolMessage({ tool_call_id: "original", content: JSON.stringify({ ok: true, result: source }) }), "read_file")!;
+  for (const offset of [0, 8000, 16000]) {
+    const result = artifacts.read(archive.artifactId, ["result", "content"], offset, 8000);
+    expect(progress.observe("read_creator_context", {}, result, 0).newEvidence).toBe(false);
+  }
+  expect(progress.observe("read_creator_context", {}, artifacts.read(archive.artifactId, ["result"]), 1).newEvidence).toBe(false);
+  expect(progress.observe("read_file", {}, { ...source, hash: "actual-source-change" }, 1).newEvidence).toBe(true);
+});
+
+it("reviews a growing investigation without blocking new facts, and respects read-only work", () => {
+  const progress = new EvidenceProgress();
+  let reviews = 0;
+  for (let i = 0; i < 150; i++) {
+    const observed = progress.observe("read_file", {}, { path: `C:\\项目\\facts-${i}.ts`, hash: String(i), totalLines: 1, nextOffset: null }, 0, true);
+    expect(observed.newEvidence).toBe(true);
+    if (observed.recovery) {
+      reviews++;
+      expect(observed.recovery).toMatchObject({ reason: "investigation_without_mutation" });
+      expect(observed.recovery.instruction).toContain("Stay read-only");
+      expect(observed.recovery.instruction).toContain("does not require mutation or limit further calls");
+    }
+  }
+  expect(reviews).toBeGreaterThan(0);
+  expect(progress.observe("grep", {}, ["new"], 1).recovery).toBeUndefined();
 });

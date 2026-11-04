@@ -1040,9 +1040,12 @@ it("uses structured permissions with the latest request separated from bounded h
   expect(input[0].content).toContain("Never infer mutation authorization");
 });
 
-it("falls back only for an explicitly unsupported schema format and still rejects invalid authorization", async () => {
+it.each([
+  Object.assign(new Error("response_format json_schema is not supported"), { status: 400 }),
+  new Error('Streaming response failed: [400] Grammar error: Unimplemented keys: ["uniqueItems"]'),
+])("falls back only for an explicitly unsupported schema format and still rejects invalid authorization: %s", async rejection => {
   const context = await project();
-  const invoke = vi.fn().mockRejectedValueOnce(Object.assign(new Error("response_format json_schema is not supported"), { status: 400 }))
+  const invoke = vi.fn().mockRejectedValueOnce(rejection)
     .mockResolvedValueOnce(new AIMessage('{"permission":"inspect_read_only"}'));
   state.model = { invoke };
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
@@ -1314,6 +1317,10 @@ it("resumes one joint development decision through LangGraph and writes its Plug
   expect(questions.map(event => event.value.metadata.steps[0].id)).toEqual(["plugin-development-decision", "test-checkpoint"]);
   expect(runtime.pending.get("joint")!.context.authorizedPlugins.has("dismiss")).toBe(true);
   expect(events.at(-1).result.receipt.files).toHaveLength(4);
+  const creation = JSON.parse(events.find(event => event.type === "TOOL_CALL_RESULT" && event.toolCallId === "plugin").content);
+  expect(creation.result).toMatchObject({ delivery: { source: "created", registry: "requires_validation", composition: "not_changed" },
+    nextCheck: { tool: "validate_creator_changes", input: { includeBuild: true } } });
+  expect(creation.result.compositionGuidance).toContain("refresh composition");
 });
 
 it("keeps project source ownership distinct from npm implementation takeover in editing evidence", async () => {

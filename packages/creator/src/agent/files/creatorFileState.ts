@@ -157,6 +157,29 @@ async function stagedTextFile(
   return temporaryPath;
 }
 
+/** Append tooling records without replacing the file held by live readers. */
+export async function appendCreatorFile(
+  projectRoot: string,
+  filePath: string,
+  content: string,
+): Promise<void> {
+  const location = resolveCreatorProjectFile(projectRoot, filePath);
+  await ensureContainedParent(projectRoot, location.absolutePath);
+  const existing = await lstat(location.absolutePath).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+  // An existing dangling link is not a missing file we may create through.
+  if (existing) await assertExistingPathContained(projectRoot, location.absolutePath);
+  const handle = await open(location.absolutePath, "a", 0o600);
+  try {
+    await handle.writeFile(content, { encoding: "utf8" });
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+
 export async function replaceCreatorFileAtomically(
   projectRoot: string,
   filePath: string,

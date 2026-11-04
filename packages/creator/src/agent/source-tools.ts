@@ -70,7 +70,11 @@ export async function createPlugin(context: ToolContext, input: any) {
     if (before.exists) throw new Error("PLUGIN_ALREADY_EXISTS");
     candidates.push({ path: file, before, content });
   }
-  return commitBatch(context, candidates);
+  return { ...await commitBatch(context, candidates),
+    delivery: { source: "created", registry: "requires_validation", composition: "not_changed" },
+    nextCheck: { tool: "validate_creator_changes", input: { includeBuild: true },
+      reason: "When source edits are ready, validation synchronizes changed Plugin manifests/definitions into registry.generated.ts before checking/building. No project generator script or direct registry edit is needed." },
+    compositionGuidance: "Creation does not mount the Plugin. After registry synchronization, refresh composition evidence and use the normal AppUIModel tools for the requested placement; validate the final revision." };
 }
 export async function mutatePlugin(context: ToolContext, input: any, authorize: (file: string) => Promise<string>) {
   await context.validation!.ensureBaseline();

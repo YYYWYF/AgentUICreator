@@ -29,6 +29,7 @@ import { assertExecutionOpen, assertRemovalScope, assertInstanceRetention, cance
 import { namesRequestedRemoval } from "./plugin-target-names.js";
 import { ToolRecovery, toolReadIdentity } from "./tool-recovery.js";
 import { EvidenceProgress } from "./evidence-progress.js";
+import { rememberPublicApiRead, projectPublicApiRead } from "./working-context.js";
 import { readCreatorDocumentation } from "./documentation.js";
 import { prepareDevelopment } from "./development-tools.js";
 
@@ -51,6 +52,7 @@ export interface ToolContext {
   evidenceRevision?: number;
   evidenceProgress?: EvidenceProgress;
   sourceSnapshots?: Map<string, import("./working-context.js").SourceSnapshot>;
+  publicApiSnapshots?: Map<string, import("./working-context.js").PublicApiSnapshot>;
   metrics?: { modelCalls: number; toolCalls: number };
   debugging?: DebuggingEvidence;
   blocker?: { code: string; message: string };
@@ -139,7 +141,7 @@ export async function createTools(context: ToolContext) {
           }
         }
         if (/^(inspect_|list_|read_file$|read_creator_context$|read_creator_documentation$|ls$|glob$|grep$)/u.test(name)) {
-          const progress = (context.evidenceProgress ??= new EvidenceProgress()).observe(name, input, result, context.activity.revision);
+          const progress = (context.evidenceProgress ??= new EvidenceProgress()).observe(name, input, result, context.activity.revision, context.readOnly);
           if (progress.newEvidence) context.evidenceRevision = (context.evidenceRevision ?? 0) + 1;
           if (progress.recovery) context.recovery!.recordGuidance(progress.recovery);
           await context.activity.log("evidence_progress", { toolName: name, newEvidence: progress.newEvidence, unchangedReads: progress.unchangedReads, revision: context.activity.revision });
@@ -227,6 +229,8 @@ export async function createTools(context: ToolContext) {
         const referenceOnly = Boolean(input.sharedModule || input.sharedSymbols?.length);
         try { await rememberInspectedPlugin(context, result, { referenceOnly }); }
         catch { context.signal.throwIfAborted(); if (!referenceOnly) delete context.editingSelection; }
+        rememberPublicApiRead(context, result);
+        if (referenceOnly) result = projectPublicApiRead(result, input.pluginId);
       }
       if (operation.name === "inspect_ui_project") await rememberProjectTargets(context, result);
       if (operation.name === "inspect_ui_project" && context.verificationMode === "static_and_runtime") result = { ...result, runtimeObservation: runtimeObservationNavigation(result) };
@@ -316,7 +320,7 @@ export async function createTools(context: ToolContext) {
     context.activity.revision++; await context.activity.observations.observe(name);
     return { path: name, revision: context.activity.revision };
   });
-  add("create_ui_plugin", "Atomically create one approved project-owned UI Plugin. Supply manifest.json, definition.ts and index.tsx; do not copy official npm implementations or change Composition here.", contracts.schema("CreateUIPluginInput"), input => {
+  add("create_ui_plugin", "Atomically create one approved project-owned UI Plugin. Supply manifest.json, definition.ts and index.tsx; do not copy npm implementations or change Composition here. validate_creator_changes synchronizes its registry before checks; no project generator script is needed. Creation alone does not mount it.", contracts.schema("CreateUIPluginInput"), input => {
     contracts.validate("CreateUIPluginInput", input);
     return createPlugin(context, input);
   });
@@ -347,7 +351,7 @@ export async function createTools(context: ToolContext) {
     return prepareDevelopment(context, input);
   });
   add("inspect_ui_capabilities", "Inspect installed capabilities and current project composition; no ownership or mutation authority is granted.", z.object({}), async () => ({ plugins: await requestOperator(context.root, "list_ui_plugins", {}, context.signal), services: await requestOperator(context.root, "inspect_ui_services", {}, context.signal) }));
-  add("validate_creator_changes", "Run target typecheck and structural validation for the current revision, optionally build. When includeBuild is true, call this tool alone, without any other tool call in the same response. Preserve unchanged unrelated baseline diagnostics as warnings in delta mode. Identical successful checks in this run may be reused; force reruns them.", z.object({ includeBuild: z.boolean().default(false), mode: z.enum(["delta", "clean"]).default("delta"), force: z.boolean().default(false) }), input => context.validation!.validate(input));
+  add("validate_creator_changes", "Synchronize changed Plugin manifests/definitions into the generated registry, then run target typecheck and structural validation for the current revision, optionally build. This is the registry synchronization entry; do not search for a project generator script or hand-edit the registry. With includeBuild=true call this tool alone. Preserve unrelated baseline diagnostics as warnings in delta mode. Identical successful checks may be reused; force reruns them.", z.object({ includeBuild: z.boolean().default(false), mode: z.enum(["delta", "clean"]).default("delta"), force: z.boolean().default(false) }), input => context.validation!.validate(input));
   add("inspect_static_diagnostics", "Inspect current target TypeScript and structural diagnostics without claiming visual acceptance.", z.object({}), async () => { const result = await context.validation!.inspectStatic(); context.debugging!.observeStatic(result); return result; });
   add("inspect_runtime_errors", "Inspect diagnostics bound to this thread and the current AppUIModel hash. Stale or unavailable evidence is not a pass.", z.object({ includeStale: z.boolean().default(false) }), input => inspectRuntime(context, input));
   add("inspect_runtime_layout", "Request fresh bounded geometry, semantic-region structure and computed layout styles from the connected preview. Inspect zero widths and actual attribute locations using these facts before repeating source searches. Use current inspect_ui_project instance IDs and nodeRefs; runtime nodeId and arbitrary DOM selectors are not nodeRefs. Omit filters to discover geometry and root structure; narrow filters for truncated structure. No page text, input values or arbitrary JavaScript. A bounded refresh timeout is an observation gap, not a source defect.", z.object({ instanceIds: z.union([z.string(), z.array(z.string()).max(50)]).optional(), nodeRefs: z.union([z.string(), z.array(z.string()).max(50)]).optional() }), input => inspectRuntime(context, { ...input, refresh: true }));

@@ -1,7 +1,7 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import { sourceRoot, projectCommandPaths, readTransaction, restoreTransaction } from "./activity.js";
+import { sourceRoot, readTransaction, restoreTransaction } from "./activity.js";
 import { readCreatorFileState as read, creatorContentHash as hash } from "./files/creatorFileState.js";
 import { requestOperator } from "./operator.js";
 import { inspectRuntime } from "./runtime-evidence.js";
@@ -89,8 +89,9 @@ export function addExtraTools(context: ToolContext, add: Add) {
       const inventoried = (project.pluginAssets ?? []).some((asset: any) => asset.pluginId === pluginId && asset.ownership === "project_source");
       const registered = created && (plan.sourceOnly ? inventoried : (project.capabilityCatalog?.pluginIds ?? []).includes(pluginId)) && project.capabilityCatalog?.generatedFileFresh === true;
       const instances = (project.plugins ?? []).filter((item: any) => item.pluginId === pluginId && item.enabled !== false);
-      const applicationIds = new Set(JSON.parse((await read(context.root, (await projectCommandPaths(context.root)).model)).content ?? "{}").applicationPlugins?.map((item: any) => item.id) ?? []);
-      const composed = instances.length > 0 && (plan.contract.renderingCategory !== "application" || instances.every((item: any) => applicationIds.has(item.id)));
+      // Persisted entries may be shorthand { pluginId }; their inspection IDs
+      // are derived by the Host and must not be read back as persisted IDs.
+      const composed = instances.length > 0 && (plan.contract.renderingCategory !== "application" || instances.every((item: any) => item.target?.type === "application"));
       const staticPassed = context.activity.validationRevision === context.activity.revision && context.activity.revision > 0;
       const behavior = context.behavior?.get(pluginId);
       const behaviorPassed = behavior?.status === "passed" && behavior.revision === context.activity.revision && behavior.interactionHash === hash(JSON.stringify(plan.contract.interactions ?? []));

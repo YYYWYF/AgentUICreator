@@ -4,10 +4,12 @@ import { once } from "node:events";
 import { mkdir, mkdtemp, writeFile, rm, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { createModel, hostEnvironment } from "../src/agent/config.js";
 import { CREATOR_HOST_ENV_FILE, readCreatorHostConfigValue } from "../src/creatorRuntimeConfig.js";
 import { logicalProjectPath } from "../src/agent/project-read.js";
+import { CreatorAgentRuntime } from "../src/agent/runner.js";
 
 it("requires the Creator model configuration namespace", () => {
   expect(() => createModel({ MODEL_BASE_URL: "http://127.0.0.1:1/v1", MODEL_API_KEY: "unused" }, "config")).toThrow("CREATOR_MODEL_CONFIGURATION_MISSING");
@@ -103,4 +105,55 @@ it.each([
 
 it.each(["0", "NaN", "Infinity", "9999999999"])("rejects an unsupported model deadline before starting a request: %s", timeout => {
   expect(() => createModel({ CREATOR_MODEL_BASE_URL: "http://127.0.0.1:1/v1", CREATOR_MODEL_API_KEY: "fixture", CREATOR_MODEL_TIMEOUT_SECONDS: timeout }, "invalid-timeout")).toThrow("CREATOR_MODEL_CONFIGURATION_INVALID: CREATOR_MODEL_TIMEOUT_SECONDS");
+});
+
+it.each([false, true])("falls back after a streamed schema grammar rejection and still validates the complete authorization (named event: %s)", async namedEvent => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "creator schema 中文 "));
+  const requests: any[] = [];
+  const logs: any[] = [];
+  let responseIndex = 0;
+  let rejection = '[400] Grammar error: Unimplemented keys: ["uniqueItems"]';
+  let classification: any = { permission: "domain_write", removalTarget: { status: "not_requested", description: "", pluginIds: [] } };
+  const server = createServer(async (request, response) => {
+    let text = ""; for await (const chunk of request) text += chunk;
+    requests.push(JSON.parse(text));
+    response.writeHead(200, { "Content-Type": "text/event-stream" });
+    if (responseIndex++ === 0) {
+      response.end(`${namedEvent ? "event: error\n" : ""}data: ${JSON.stringify({ error: { message: rejection } })}\n\n`);
+    } else {
+      response.end('data: '+JSON.stringify({ id: "classification", object: "chat.completion.chunk", created: 1, model: "fixture", choices: [{ index: 0, delta: { role: "assistant", content: JSON.stringify(classification) }, finish_reason: "stop" }] })+'\n\ndata: [DONE]\n\n');
+    }
+  });
+  const tokens = vi.spyOn(BaseChatModel.prototype, "getNumTokens").mockResolvedValue(1);
+  server.listen(0, "127.0.0.1"); await once(server, "listening");
+  try {
+    const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), fileURLToPath(new URL("../contracts/creator", import.meta.url)));
+    Object.assign(runtime.environment, { CREATOR_MODEL_BASE_URL: `http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}/v1`, CREATOR_MODEL_API_KEY: "local-fixture", CREATOR_MODEL_NAME: "fixture", CREATOR_MODEL_MAX_RETRIES: "0" });
+    const directory = { status: "available", plugins: [{ pluginId: "composer", name: "Composer", instances: [] }] };
+    const classify = () => (runtime as any).classify([{ role: "user", content: "把输入框高度调大" }], "streamed-schema", new AbortController().signal, directory,
+      async (event: string, data: object) => { logs.push({ event, ...data }); });
+    expect(await classify()).toEqual({ readOnly: false, removalTarget: classification.removalTarget });
+    expect(requests).toHaveLength(2);
+    expect(requests[0].response_format.json_schema.schema.properties.removalTarget.properties.pluginIds.uniqueItems).toBe(true);
+    expect(requests[1].response_format).toEqual({ type: "json_object" });
+    expect(requests[1].messages).toEqual(requests[0].messages);
+    const requiredContract = requests[1].messages.find((message: any) => message.role === "system").content;
+    expect(requiredContract).toContain('"required":["permission","removalTarget"]');
+    expect(requiredContract).toContain('"required":["status","description","pluginIds"]');
+    expect(logs).toContainEqual(expect.objectContaining({ event: "request_route_schema_fallback" }));
+    requests.length = 0; responseIndex = 0; logs.length = 0;
+    classification = { permission: "domain_write" };
+    await expect(classify()).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
+    expect(logs).toContainEqual(expect.objectContaining({ event: "request_route_invalid", stage: "envelope", keys: ["permission"], permission: "domain_write", removalStatus: "undefined" }));
+    for (const pluginIds of [["composer", "composer"], ["unknown-plugin"]]) {
+      requests.length = 0; responseIndex = 0;
+      classification = { permission: "domain_write", removalTarget: { status: "resolved", description: "Composer", pluginIds } };
+      await expect(classify()).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
+      expect(requests).toHaveLength(2);
+    }
+    requests.length = 0; responseIndex = 0;
+    rejection = "[401] Unauthorized";
+    await expect(classify()).rejects.toThrow("Unauthorized");
+    expect(requests).toHaveLength(1);
+  } finally { tokens.mockRestore(); server.closeAllConnections(); server.close(); await rm(root, { recursive: true, force: true }); }
 });

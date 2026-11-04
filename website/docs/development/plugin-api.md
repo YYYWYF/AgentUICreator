@@ -343,6 +343,24 @@ export function setupTicketEvents({ events, services }: UIPluginSetupContext) {
 
 业务事件是实时通知，不重放历史，也不是组件之间任意发布消息的总线。需要恢复的状态放入共享状态或业务服务；不要用业务事件代替运行生命周期。`events.subscribe<T>()` 的泛型只提供类型检查；运行时校验来自项目配置中注册的事件 Schema。
 
+单个组件的实时投影可以使用本地状态，不必为了订阅创建 Service。例如，已注册并声明的 `app.ticket.selected` 可以在组件中按业务 ID 合并：
+
+```tsx
+import { useEffect, useState } from 'react';
+import { usePluginEvents } from '@za38.03/agent-ui-plugins';
+
+export function SelectedTickets() {
+  const events = usePluginEvents();
+  const [tickets, setTickets] = useState<Record<string, { ticketId: string }>>({});
+  useEffect(() => events.subscribe<{ ticketId: string }>('app.ticket.selected', event => {
+    setTickets(previous => ({ ...previous, [event.payload.ticketId]: event.payload }));
+  }), [events]);
+  return <ul>{Object.values(tickets).map(ticket => <li key={ticket.ticketId}>{ticket.ticketId}</li>)}</ul>;
+}
+```
+
+Schema 模块属于项目代码；沿用已有位置，缺少时按实际生成目录新建并接入 `Agent.appEventSchemas`。`agent-contract/agent-events.ts` 是可选组织方式，目录不存在不代表能力缺失。保留用户明确给定的业务通知协议；业务任务的实时通知与标准 Activity、Tool、Run 进度不同，不能互相冒充，也不能据此承诺历史恢复。
+
 ## 消息与工具结果展示
 
 通过 `dataMessageUIs` 注册具名消息展示。以下示例复用官方图表组件，先在新插件的 `index.tsx` 中定义展示项：
@@ -428,29 +446,44 @@ export function ComposerActions() {
 
 组件优先使用工程已有的 UI 库和公开样式属性，主题颜色沿用项目的 CSS 变量。官方文案通过 `@za38.03/agent-ui-plugins` 的 `useAgentUILocale()` 读取，项目通过 `Agent` 的 `locales` 属性覆盖需要修改的键。
 
-本页工单操作示例使用自己的业务文案。按需创建 `services/ticket-messages.ts`，读取同一个语言上下文：
+官方命名空间和键由当前安装版本定义，`Agent.locales` 只能覆盖已有键。新增业务文案集中放到项目已有的共享消息模块；没有时可创建 `application/i18n/messages.ts`。按领域命名并保持双语字段一致，不在每个插件里创建国际化 Hook、语言条件或另一套语言状态：
 
 ```ts
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 
-const messages = {
-  'zh-CN': {
+const zhCN = {
+  ticketActions: {
     send: '分析工单',
     prompt: '请分析当前工单并给出处理建议。',
     failed: '请求失败，请稍后重试。',
   },
-  'en-US': {
+};
+const enUS: typeof zhCN = {
+  ticketActions: {
     send: 'Analyze ticket',
     prompt: 'Analyze the current ticket and suggest next steps.',
     failed: 'The request failed. Please try again.',
   },
 };
-export function useTicketActionsMessages() {
-  return messages[useAgentUILocaleCode()];
+const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US': enUS };
+export function getProjectMessages(locale: AgentUILocaleCode) {
+  return messages[locale];
 }
 ```
 
-业务文案由项目维护，不增加独立语言状态。两种语言保持字段一致；协议名、服务名、插件 ID 和消息名保持原值。主题变量与检查方式见[样式与文案开发](./styling-and-localization)。
+组件读取统一语言上下文，再消费领域文案；纯展示函数通过参数接收文案：
+
+```tsx
+import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { getProjectMessages } from '../../application/i18n/messages';
+
+export function TicketActionLabel() {
+  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  return <span>{labels.send}</span>;
+}
+```
+
+业务文案由项目维护，不扩展或改写 npm 字典，不增加独立语言状态。复用已有领域时保留原有键；协议名、服务名、插件 ID 和消息名保持原值。主题变量与检查方式见[样式与文案开发](./styling-and-localization)。
 
 ## 前端工具与宿主页面联动
 

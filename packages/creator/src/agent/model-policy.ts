@@ -1,5 +1,16 @@
 import { ToolMessage } from "@langchain/core/messages";
 
+/** Recognize explicit schema rejection, including errors inside a successful SSE response. */
+export function isJsonSchemaUnsupported(error: unknown): boolean {
+  const failure = error as { status?: unknown; statusCode?: unknown; message?: unknown } | null;
+  const message = String(failure?.message ?? "");
+  const status = Number(failure?.status ?? failure?.statusCode ?? 0);
+  return ([400, 422].includes(status) &&
+    /response_format|json_schema|structured.{0,12}output/iu.test(message) &&
+    /unsupported|not supported|not support|invalid.{0,30}(?:format|schema)|does not support/iu.test(message)) ||
+    /^(?:Streaming response failed:\s*)?\[(?:400|422)\] Grammar error: Unimplemented keys:\s*\[[^\r\n]+\]\s*$/u.test(message);
+}
+
 export function retryKind(error: unknown): "short" | "fresh" | undefined {
   let current: any = error;
   const seen = new Set<unknown>();
