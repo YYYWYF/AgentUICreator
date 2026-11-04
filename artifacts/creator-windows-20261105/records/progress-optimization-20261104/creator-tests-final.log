@@ -1,0 +1,64 @@
+
+ RUN  v4.1.8 <WORKSPACE>/packages/creator
+
+ ❯ tests/local-recording.test.ts (16 tests | 1 failed) 1019ms
+     × rejects symlink files and directories outside the selected project 35ms
+ ❯ tests/service-implementation-tools.test.ts (14 tests | 1 failed) 7705ms
+   × keeps public contract paths and declarations on the contract channel 747ms
+
+ Test Files  2 failed | 48 passed (50)
+      Tests  2 failed | 515 passed | 1 skipped (518)
+   Start at  23:56:31
+   Duration  22.59s (transform 16.90s, setup 0ms, import 77.13s, tests 105.75s, environment 22.40s)
+
+undefined
+<WORKSPACE>\packages\creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "vitest" not found
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/local-recording.test.ts > current-project local recordings > rejects symlink files and directories outside the selected project
+Error: EPERM: operation not permitted, symlink '<USER_PROFILE>\AppData\Local\Temp\local-recording-JyCwYB\.agent-ui\mocks\external.jsonl' -> '<USER_PROFILE>\AppData\Local\Temp\local-recording-ePF6l1\.agent-ui\mocks\link.jsonl'
+ ❯ tests/local-recording.test.ts:76:5
+     74|     const root = await project(); const other = await project();
+     75|     await writeFile(path.join(other, ".agent-ui/mocks/external.jsonl")…
+     76|     await symlink(path.join(other, ".agent-ui/mocks/external.jsonl"), …
+       |     ^
+     77|     const store = new LocalMockRecordingStore();
+     78|     expect((await store.list(root))[0]?.status).toBe("invalid");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/service-implementation-tools.test.ts > keeps public contract paths and declarations on the contract channel
+AssertionError: promise resolved "{ status: 'ready', …(6) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "affectedFiles": [
++     "src/应用/plugins/conversation-data-source/definition.ts",
++     "src/应用/services/conversations/http-data-source.ts",
++   ],
++   "affectedPlugins": [
++     "conversation-data-source",
++   ],
++   "implementationPath": "services/conversations/http-data-source.ts",
++   "planId": "7d91d49cb6dfe68593c5ae5a8af2e26a8cc5d23ed04b0d1b2773996598bba981",
++   "status": "ready",
++   "unresolvedImports": [],
++   "verificationRequired": true,
+  }
+
+ ❯ tests/service-implementation-tools.test.ts:91:143
+     89|   await expect(prepareServiceImplementation(context, proposal)).reject…
+     90|   state.topology.services = [];
+     91|   await expect(prepareServiceImplementation(context, { ...proposal, ed…
+       |                                                                                                                                               ^
+     92|   expect(state.prompts).toHaveLength(0);
+     93| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

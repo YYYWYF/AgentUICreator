@@ -1,0 +1,194 @@
+.job-progress-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 12px 12px 8px;
+  background: var(--background, #ffffff);
+  color: var(--foreground, #111111);
+  border-left: 1px solid var(--border, #e5e7eb);
+  overflow: hidden;
+}
+
+.job-progress-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.job-progress-panel__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-progress-panel__badge {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.6;
+  background: var(--muted, #f3f4f6);
+  color: var(--foreground, #111111);
+  opacity: 0.85;
+}
+
+.job-progress-panel__empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--foreground, #111111);
+  opacity: 0.6;
+  word-break: break-word;
+}
+
+.job-progress-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0 2px 0 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.job-progress-panel__item {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--background, #ffffff);
+}
+
+.job-progress-panel__item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.job-progress-panel__item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.job-progress-panel__status {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--muted, #f3f4f6);
+}
+
+.job-progress-panel__status[data-phase="completed"] {
+  color: #15803d;
+}
+
+.job-progress-panel__status[data-phase="failed"] {
+  color: var(--destructive, #b42318);
+}
+
+.job-progress-panel__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.7;
+  min-width: 0;
+}
+
+.job-progress-panel__track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--muted, #f3f4f6);
+  overflow: hidden;
+}
+
+.job-progress-panel__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary, #2563eb);
+  transition: width 160ms ease-out;
+}
+
+.job-progress-panel__bar[data-phase="completed"] {
+  background: #15803d;
+}
+
+.job-progress-panel__bar[data-phase="failed"] {
+  background: var(--destructive, #b42318);
+}
+
+.job-progress-panel__error {
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.job-progress-panel__error-summary {
+  cursor: pointer;
+  color: var(--destructive, #b42318);
+  word-break: break-word;
+}
+
+.job-progress-panel__error-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--muted, #f3f4f6);
+}
+
+.job-progress-panel__error-row {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.job-progress-panel__error-row dt {
+  flex: 0 0 auto;
+  opacity: 0.65;
+}
+
+.job-progress-panel__error-row dd {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.job-progress-panel__error-row code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}

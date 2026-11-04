@@ -1,0 +1,1 @@
+{"status":"passed","policy":{"readOnly":false,"removalTarget":{"description":"No Plugin removal, hiding, disabling, or replacement is requested; the user asks to increase the input box height.","pluginIds":[],"status":"not_requested"}},"requests":[{"responseFormat":"json_schema","maxTokens":16384,"httpStatus":200}],"seconds":3.578}

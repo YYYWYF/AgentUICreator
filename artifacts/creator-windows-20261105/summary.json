@@ -1,0 +1,121 @@
+{
+  "capturedAt": "2026-11-04T16:45:44.168Z",
+  "platform": "win32",
+  "baselineCommit": "14162e2bf31f4f02c7fe7a782180e3f69f32192a",
+  "cases": [
+    {
+      "id": "case08-progress",
+      "path": "records/case08-progress-final-guidance-2026-11-04T15-58-45-609Z",
+      "status": "QA_TIMEOUT",
+      "seconds": 1200.51,
+      "tools": 79,
+      "changedFiles": 9,
+      "firstCreationCompletedSeconds": 790.974,
+      "compactions": 12,
+      "summarySeconds": 374.1318904000001,
+      "originalBrowserStatus": "failed",
+      "originalBrowserChecks": [
+        {
+          "name": "custom event renders right-side progress panel",
+          "status": "passed"
+        },
+        {
+          "name": "same job updates without duplicating other jobs",
+          "status": "passed"
+        },
+        {
+          "name": "failed job exposes its error",
+          "status": "failed"
+        }
+      ],
+      "nativeOutcome": null
+    },
+    {
+      "id": "case07-sales",
+      "path": "records/case07-sales-final-guidance-2026-11-04T15-58-45-468Z",
+      "status": "QA_TIMEOUT",
+      "seconds": 1200.573,
+      "tools": 128,
+      "changedFiles": 8,
+      "firstCreationCompletedSeconds": 502.386,
+      "compactions": 12,
+      "summarySeconds": 293.14640870000034,
+      "originalBrowserStatus": "failed",
+      "originalBrowserChecks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "failed"
+        }
+      ],
+      "nativeOutcome": null
+    },
+    {
+      "id": "case08-progress-262k",
+      "path": "records/case08-progress-final-guidance-262k-2026-11-04T16-08-00-292Z",
+      "status": "success",
+      "seconds": 533.754,
+      "tools": 43,
+      "changedFiles": 9,
+      "firstCreationCompletedSeconds": 314.253,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "originalBrowserStatus": "failed",
+      "originalBrowserChecks": [
+        {
+          "name": "custom event renders right-side progress panel",
+          "status": "passed"
+        },
+        {
+          "name": "same job updates without duplicating other jobs",
+          "status": "passed"
+        },
+        {
+          "name": "failed job exposes its error",
+          "status": "failed"
+        }
+      ],
+      "nativeOutcome": null
+    },
+    {
+      "id": "case07-sales-262k",
+      "path": "records/case07-sales-final-guidance-262k-2026-11-04T16-12-19-313Z",
+      "status": "blocked",
+      "seconds": 1076.49,
+      "tools": 67,
+      "changedFiles": 9,
+      "firstCreationCompletedSeconds": 275.843,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "originalBrowserStatus": "passed",
+      "originalBrowserChecks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ],
+      "nativeOutcome": {
+        "toolName": "mutate_app_ui_model",
+        "status": "needs_target_clarification"
+      }
+    }
+  ],
+  "progressCorrectedReplay": "records/progress-optimization-20261104/case08-progress-262k-replay/result.json",
+  "modelMetadata": "records/progress-optimization-20261104/model-metadata.json",
+  "notes": [
+    "Final live model runs predate the late application-entry delivery-audit fix. Its regression tests and final build are separately recorded.",
+    "The progress replay corrects only native details/summary selection; generated source hashes are unchanged.",
+    "Raw provider reasoning and credentials are excluded/redacted; original native outcomes are never backfilled."
+  ]
+}

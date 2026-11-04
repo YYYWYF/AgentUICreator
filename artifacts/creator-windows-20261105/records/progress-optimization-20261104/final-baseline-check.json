@@ -1,0 +1,26 @@
+[
+  {
+    "id": "case08-progress",
+    "sourceCreator": false,
+    "model": "deepseek-v4.1-flash",
+    "context": "65536",
+    "output": "16384",
+    "mismatches": [],
+    "baseline": {
+      "files": 128,
+      "differences": []
+    }
+  },
+  {
+    "id": "case07-sales",
+    "sourceCreator": false,
+    "model": "deepseek-v4.1-flash",
+    "context": "65536",
+    "output": "16384",
+    "mismatches": [],
+    "baseline": {
+      "files": 128,
+      "differences": []
+    }
+  }
+]

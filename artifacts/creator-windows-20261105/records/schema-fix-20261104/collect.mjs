@@ -1,0 +1,19 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const base=path.dirname(fileURLToPath(import.meta.url));
+const read=async file=>JSON.parse(await readFile(file,'utf8'));
+const scenarios=[];
+for(const id of ['case07-sales','case08-progress']){
+ const latest=await read(path.join(base,'../latest-'+id+'.json'));
+ const result=latest.result,env=await read(path.join(latest.out,'environment.json'));
+ const requests=await read(path.join(latest.out,'model-http-requests.json'));
+ const error=result.runErrors?.findLast(item=>item.metadata)?.metadata;
+ const groups={};
+ for(const item of requests){const group=groups[item.purpose]??={calls:0,maximumOutputTokens:0,lengthFinishes:0,missingUsage:0};group.calls++;group.maximumOutputTokens=Math.max(group.maximumOutputTokens,item.usage?.completion_tokens??0);if(item.finishReason==='length')group.lengthFinishes++;if(!item.usage)group.missingUsage++;}
+ scenarios.push({caseId:id,folder:latest.out,outputBudget:env.output,contextBudget:env.context,status:result.status,seconds:result.seconds,toolCalls:result.toolCalls,qaApprovals:result.qaApprovals?.length??0,changedPaths:result.changedPaths,verification:error?.receipt?.verification,compression:error?.contextCompression,toolErrors:error?.creatorRunOutcome?.toolErrors,httpFailures:requests.filter(item=>item.status&&item.status!==200).length,streamErrors:requests.filter(item=>item.streamError).map(item=>item.streamError),modelRequests:groups,originalInteraction:result.interaction?{status:result.interaction.status,error:result.interaction.error,protocolEventsSent:result.interaction.protocolEventsSent?.length}:undefined,cleanup:await read(path.join(latest.out,'cleanup.json'))});
+}
+const replay=await read(path.join(base,'sales-connected-replay/result.json'));
+const summary={generated:new Date().toISOString(),platform:'win32',node:'22.23.4',model:'deepseek-v4.1-flash',change:'Recognize explicit streamed schema grammar rejection and use the existing JSON-object fallback, keeping complete local permission, identity and uniqueness validation. Previous append-only log fix retained.',configuration:{outputTokens:16384,contextTokens:65536,keepTokens:12000,requestTimeoutSeconds:120},validation:{focusedTests:153,creatorTests:{passed:511,failed:2,skipped:1,total:514},knownFailures:['Service public declaration guard uses a case-sensitive native-path comparison','Windows file-symlink test lacks OS permission'],typecheck:'passed',build:'passed',routeProbe:await read(path.join(base,'route-probe.json'))},scenarios,replay:{scope:replay.scope,source:replay.source,connection:replay.connection,staticChecks:replay.staticChecks,sourceUnchanged:replay.sourceUnchanged,browserErrors:replay.browserErrors,controlledAgentRuns:replay.controlledAgentRuns,interaction:{status:replay.interaction.status,checks:replay.interaction.checks,protocolEventsSent:replay.interaction.protocolEventsSent.length},cleanup:await read(path.join(base,'sales-connected-replay/cleanup.json'))},interpretation:'Schema/log failures did not recur in these two long runs. Neither Creator run completed naturally within the QA observation window. Sales output is functionally verified independently on unchanged source; the initial replay used the default preview Mock and did not test the controlled business events. Corrected replay explicitly selected the controlled endpoint. Progress produced no implementation. No stable causal performance claim is made for increasing the output budget.'};
+await writeFile(path.join(base,'report.json'),JSON.stringify(summary,null,2));
+console.log(JSON.stringify({report:path.join(base,'report.json'),scenarios:scenarios.map(item=>({caseId:item.caseId,status:item.status,toolCalls:item.toolCalls,changedFiles:item.changedPaths.length,compression:item.compression,modelRequests:item.modelRequests})),replay:summary.replay.interaction}));

@@ -1,0 +1,265 @@
+{
+  "caseId": "case07-sales",
+  "status": "QA_TIMEOUT",
+  "seconds": 1200.573,
+  "finish": {
+    "runtime": "typescript",
+    "completion": "needs_user_input",
+    "toolProtocol": {
+      "modelCalls": 12,
+      "toolCalls": 27
+    },
+    "contextCompression": {
+      "summaryModelCalls": 2,
+      "compactions": 2,
+      "summarySeconds": 53.2088442,
+      "offloadedArtifacts": 3
+    }
+  },
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_RUN_STOPPED",
+      "message": "CREATOR_RUN_STOPPED",
+      "metadata": {
+        "receipt": {
+          "files": [
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/manifest.json",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/manifest.json\n+++ b/src/agent-ui/plugins/sales-report-message/manifest.json\n@@ -1,1 +1,18 @@\n-\n+{\n+  \"id\": \"sales-report-message\",\n+  \"name\": \"Sales Report Message\",\n+  \"description\": \"Renders the app.sales.report custom event payload JSON string as a sales table inside conversation messages, sortable by revenue with per-month order counts on demand.\",\n+  \"version\": \"0.0.1\",\n+  \"data\": {\n+    \"messageUI\": true\n+  },\n+  \"authoring\": {\n+    \"intents\": [\n+      \"render the app.sales.report payload as a sales table in chat\",\n+      \"按收入排序查看销售报表\",\n+      \"在聊天消息里显示销售报表并查看月订单数\"\n+    ],\n+    \"visualRole\": \"sales report table rendered as the body of an app.sales.report custom event message\"\n+  }\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/schema.ts",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/schema.ts\n+++ b/src/agent-ui/plugins/sales-report-message/schema.ts\n@@ -1,1 +1,94 @@\n-\n+import { z } from \"zod\";\n+\n+/** 后端 Agent 发送的自定义事件名，必须与 data message UI 的 name 完全一致。 */\n+export const SALES_REPORT_EVENT = \"app.sales.report\";\n+\n+const salesReportRowSchema = z.object({\n+  month: z.string().min(1),\n+  revenue: z.number(),\n+  order_count: z.number(),\n+});\n+\n+const salesReportPayloadSchema = z.object({\n+  title: z.string().min(1).optional(),\n+  rows: z.array(salesReportRowSchema).min(1),\n+});\n+\n+export type SalesReportRow = z.infer<typeof salesReportRowSchema>;\n+\n+export type SalesReport = {\n+  title?: string;\n+  rows: SalesReportRow[];\n+};\n+\n+export type SalesReportParseResult =\n+  | { success: true; report: SalesReport }\n+  | { success: false; reason: \"invalid_json\" | \"invalid_shape\" };\n+\n+export type RevenueSortDirection = \"asc\" | \"desc\";\n+\n+/**\n+ * 事件 value 可能是 { format, payload } 信封、payload 字符串本身，或已解析的对象，\n+ * 这里统一取出真正承载报表 JSON 的那一层。\n+ */\n+function resolvePayloadSource(data: unknown): unknown {\n+  if (typeof data === \"string\") {\n+    return data;\n+  }\n+\n+  if (data && typeof data === \"object\") {\n+    const record = data as Record<string, unknown>;\n+    const payload = record.payload;\n+    if (typeof payload === \"string\") {\n+      return payload;\n+    }\n+    if (payload && typeof payload === \"object\") {\n+      return payload;\n+    }\n+  }\n+\n+  return data;\n+}\n+\n+export function parseSalesReport(data: unknown): SalesReportParseResult {\n+  const source = resolvePayloadSource(data);\n+\n+  let decoded: unknown = source;\n+  if (typeof source === \"string\") {\n+    try {\n+      decoded = JSON.parse(source) as unknown;\n+    } catch {\n+      return { success: false, reason: \"invalid_json\" };\n+    }\n+  }\n+\n+  const parsed = salesReportPayloadSchema.safeParse(decoded);\n+  if (!parsed.success) {\n+    return { success: false, reason: \"invalid_shape\" };\n+  }\n+\n+  return {\n+    success: true,\n+    report: {\n+      title: parsed.data.title,\n+      rows: parsed.data.rows,\n+    },\n+  };\n+}\n+\n+/** 按收入排序，收入相同时按月份稳定排序。 */\n+export function sortRowsByRevenue(\n+  rows: readonly SalesReportRow[],\n+  direction: RevenueSortDirection,\n+): SalesReportRow[] {\n+  const factor = direction === \"asc\" ? 1 : -1;\n+\n+  return [...rows].sort((left, right) => {\n+    const difference = (left.revenue - right.revenue) * factor;\n+    if (difference !== 0) {\n+      return difference;\n+    }\n+    return left.month.localeCompare(right.month);\n+  });\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/index.tsx",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/index.tsx\n+++ b/src/agent-ui/plugins/sales-report-message/index.tsx\n@@ -1,1 +1,128 @@\n-\n+import { Fragment, useState } from \"react\";\n+import {\n+  defineDataMessageUI,\n+  useAgentUILocaleCode,\n+  type DataMessageUIRenderProps,\n+} from \"@za38.03/agent-ui-plugins\";\n+import { getSalesReportMessages } from \"./i18n\";\n+import {\n+  SALES_REPORT_EVENT,\n+  parseSalesReport,\n+  sortRowsByRevenue,\n+  type RevenueSortDirection,\n+} from \"./schema\";\n+import \"./styles.css\";\n+\n+function formatAmount(value: number, localeCode: string): string {\n+  try {\n+    return new Intl.NumberFormat(localeCode).format(value);\n+  } catch {\n+    return String(value);\n+  }\n+}\n+\n+export function SalesReportMessage({ data }: DataMessageUIRenderProps<unknown>) {\n+  const localeCode = useAgentUILocaleCode();\n+  const labels = getSalesReportMessages(localeCode);\n+  const [direction, setDirection] = useState<RevenueSortDirection>(\"desc\");\n+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);\n+\n+  const parsed = parseSalesReport(data);\n+\n+  if (!parsed.success) {\n+    return (\n+      <p className=\"sales-report__error\" role=\"alert\">\n+        {labels.invalid}\n+      </p>\n+    );\n+  }\n+\n+  const { report } = parsed;\n+  const rows = sortRowsByRevenue(report.rows, direction);\n+  const nextDirection: RevenueSortDirection = direction === \"asc\" ? \"desc\" : \"asc\";\n+\n+  return (\n+    <div className=\"sales-report\" role=\"group\" aria-label={report.title ?? labels.heading}>\n+      <h3 className=\"sales-report__title\">{report.title ?? labels.heading}</h3>\n+      <div className=\"sales-report__scroll\">\n+        <table className=\"sales-report__table\">\n+          <thead>\n+            <tr>\n+              <th scope=\"col\" className=\"sales-report__head\">\n+                {labels.month}\n+              </th>\n+              <th\n+                scope=\"col\"\n+                className=\"sales-report__head sales-report__head--numeric\"\n+                aria-sort={direction === \"asc\" ? \"ascending\" : \"descending\"}\n+              >\n+                <button\n+                  type=\"button\"\n+                  className=\"sales-report__sort\"\n+                  onClick={() => setDirection(nextDirection)}\n+                  aria-label={\n+                    nextDirection === \"asc\" ? labels.sortAscending : labels.sortDescending\n+                  }\n+                >\n+                  <span>{labels.revenue}</span>\n+                  <span className=\"sales-report__sort-icon\" aria-hidden=\"true\">\n+                    {direction === \"asc\" ? \"↑\" : \"↓\"}\n+                  </span>\n+                </button>\n+              </th>\n+            </tr>\n+          </thead>\n+          <tbody>\n+            {rows.map((row) => {\n+              const expanded = expandedMonth === row.month;\n+              const detailId = `sales-report-${row.month.replace(/[^a-zA-Z0-9_-]/g, \"-\")}-orders`;\n+\n+              return (\n+                <Fragment key={row.month}>\n+                  <tr\n+                    className=\"sales-report__row\"\n+                    data-expanded={expanded ? \"true\" : undefined}\n+                    onClick={() => setExpandedMonth(expanded ? null : row.month)}\n+                  >\n+                    <td className=\"sales-report__cell\">\n+                      <button\n+                        type=\"button\"\n+                        className=\"sales-report__row-toggle\"\n+                        aria-expanded={expanded}\n+                        aria-controls={detailId}\n+                        aria-label={expanded ? labels.collapse(row.month) : labels.expand(row.month)}\n+                        onClick={(event) => {\n+                          event.stopPropagation();\n+                          setExpandedMonth(expanded ? null : row.month);\n+                        }}\n+                      >\n+                        {row.month}\n+                      </button>\n+                    </td>\n+                    <td className=\"sales-report__cell sales-report__cell--numeric\">\n+                      {formatAmount(row.revenue, localeCode)}\n+                    </td>\n+                  </tr>\n+                  {expanded ? (\n+                    <tr className=\"sales-report__detail\" id={detailId}>\n+                      <td className=\"sales-report__cell\" colSpan={2}>\n+                        {labels.orders(row.order_count)}\n+                      </td>\n+                    </tr>\n+                  ) : null}\n+                </Fragment>\n+              );\n+            })}\n+          </tbody>\n+        </table>\n+      </div>\n+    </div>\n+  );\n+}\n+\n+/** 注册到会话消息：name 必须与后端 CUSTOM 事件名一致。 */\n+export const salesReportMessageUI = defineDataMessageUI<unknown>({\n+  name: SALES_REPORT_EVENT,\n+  render: SalesReportMessage,\n+});\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/definition.ts",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/definition.ts\n+++ b/src/agent-ui/plugins/sales-report-message/definition.ts\n@@ -1,1 +1,15 @@\n-\n+import type { UIPluginDefinition, UIPluginManifest } from \"@za38.03/agent-ui-plugins\";\n+import manifestJson from \"./manifest.json\";\n+import { salesReportMessageUI } from \"./index\";\n+\n+const definition: UIPluginDefinition = {\n+  manifest: manifestJson as UIPluginManifest,\n+  provides: [],\n+  inject: [],\n+  optionalInject: [\"agent-ui.locale\"],\n+  dataMessageUIs: [salesReportMessageUI],\n+  Component: () => null,\n+};\n+\n+export default definition;\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/styles.css",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/styles.css\n+++ b/src/agent-ui/plugins/sales-report-message/styles.css\n@@ -1,1 +1,128 @@\n-\n+.sales-report {\n+  box-sizing: border-box;\n+  width: 100%;\n+  min-width: 0;\n+  display: flex;\n+  flex-direction: column;\n+  gap: 8px;\n+  color: var(--foreground);\n+  font-size: 13px;\n+  line-height: 1.5;\n+}\n+\n+.sales-report__title {\n+  margin: 0;\n+  font-size: 14px;\n+  font-weight: 600;\n+  word-break: break-word;\n+}\n+\n+.sales-report__scroll {\n+  width: 100%;\n+  min-width: 0;\n+  overflow-x: auto;\n+}\n+\n+.sales-report__table {\n+  width: 100%;\n+  border-collapse: collapse;\n+  font-variant-numeric: tabular-nums;\n+}\n+\n+.sales-report__head {\n+  padding: 6px 8px;\n+  text-align: left;\n+  font-weight: 600;\n+  color: var(--muted-foreground);\n+  border-bottom: 1px solid var(--border);\n+  white-space: nowrap;\n+}\n+\n+.sales-report__head--numeric,\n+.sales-report__cell--numeric {\n+  text-align: right;\n+}\n+\n+.sales-report__sort {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 4px;\n+  padding: 2px 4px;\n+  margin: -2px -4px;\n+  border: none;\n+  border-radius: 4px;\n+  background: none;\n+  color: inherit;\n+  font: inherit;\n+  cursor: pointer;\n+}\n+\n+.sales-report__sort:hover {\n+  background: var(--accent);\n+}\n+\n+.sales-report__sort-icon {\n+  font-size: 11px;\n+}\n+\n+.sales-report__row {\n+  cursor: pointer;\n+}\n+\n+.sales-report__row:hover {\n+  background: var(--muted);\n+}\n+\n+.sales-report__row[data-expanded=\"true\"] {\n+  background: var(--muted);\n+}\n+\n+.sales-report__cell {\n+  padding: 6px 8px;\n+  border-bottom: 1px solid var(--border);\n+  vertical-align: top;\n+}\n+\n+.sales-report__row-toggle {\n+  padding: 0;\n+  border: none;\n+  background: none;\n+  color: inherit;\n+  font: inherit;\n+  text-align: left;\n+  text-decoration: underline dotted;\n+  text-underline-offset: 3px;\n+  cursor: pointer;\n+}\n+\n+.sales-report__detail .sales-report__cell {\n+  padding-top: 2px;\n+  color: var(--muted-foreground);\n+  background: var(--muted);\n+}\n+\n+.sales-report__sort:focus-visible,\n+.sales-report__row-toggle:focus-visible,\n+.sales-report__row:focus-visible {\n+  outline: 2px solid var(--ring);\n+  outline-offset: 2px;\n+}\n+\n+.sales-report__error {\n+  margin: 0;\n+  color: var(--destructive, #dc2626);\n+  font-size: 13px;\n+  line-height: 1.5;\n+}\n+\n+@media (max-width: 480px) {\n+  .sales-report {\n+    font-size: 12px;\n+  }\n+\n+  .sales-report__head,\n+  .sales-report__cell {\n+    padding: 4px 6px;\n+  }\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/i18n.ts",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/i18n.ts\n+++ b/src/agent-ui/plugins/sales-report-message/i18n.ts\n@@ -1,1 +1,44 @@\n-\n+import type { AgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n+\n+export type SalesReportMessages = {\n+  heading: string;\n+  invalid: string;\n+  month: string;\n+  revenue: string;\n+  orders: (count: number) => string;\n+  sortAscending: string;\n+  sortDescending: string;\n+  expand: (month: string) => string;\n+  collapse: (month: string) => string;\n+};\n+\n+/** 统一领域文案：en-US 与 zh-CN 必须保持同构。 */\n+const messages: Record<AgentUILocaleCode, SalesReportMessages> = {\n+  \"zh-CN\": {\n+    heading: \"月度销售\",\n+    invalid: \"报表数据格式不正确，暂时无法展示这张销售报表。\",\n+    month: \"月份\",\n+    revenue: \"收入\",\n+    orders: (count: number) => `订单数：${count}`,\n+    sortAscending: \"按收入升序排列\",\n+    sortDescending: \"按收入降序排列\",\n+    expand: (month: string) => `查看 ${month} 的订单数量`,\n+    collapse: (month: string) => `收起 ${month} 的订单数量`,\n+  },\n+  \"en-US\": {\n+    heading: \"Monthly sales\",\n+    invalid: \"The sales report data is not in a supported format.\",\n+    month: \"Month\",\n+    revenue: \"Revenue\",\n+    orders: (count: number) => `Orders: ${count}`,\n+    sortAscending: \"Sort by revenue, ascending\",\n+    sortDescending: \"Sort by revenue, descending\",\n+    expand: (month: string) => `Show order count for ${month}`,\n+    collapse: (month: string) => `Hide order count for ${month}`,\n+  },\n+};\n+\n+export function getSalesReportMessages(localeCode: AgentUILocaleCode): SalesReportMessages {\n+  return messages[localeCode] ?? messages[\"zh-CN\"];\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/registry.generated.ts",
+              "status": "modified",
+              "diff": "--- a/src/agent-ui/plugins/registry.generated.ts\n+++ b/src/agent-ui/plugins/registry.generated.ts\n@@ -1,1070 +1,688 @@\n-/**\n- * Generated by scripts/generate-plugin-registry.ts from plugins/* capabilities.\n- * Do not edit this file by hand.\n- */\n-import { createPluginCapabilityCatalog } from \"@za38.03/agent-ui-runtime/ui\";\n-\n-export const capabilityCatalogRevision = \"03f888fce2d7783381854d8fa83978107fd642ae60dcbaa150c148f5a1ac9769\";\n-\n-export const pluginCapabilityCatalog = createPluginCapabilityCatalog([\n-  {\n-    manifest: {\n-      \"id\": \"add-attachment-action\",\n-      \"name\": \"Conversation Add Attachment Action\",\n-      \"description\": \"Adds Agent UI's attachment picker to the conversation composer.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-composer-leading-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"add attachments to the conversation composer\"\n-        ],\n-        \"visualRole\": \"conversation composer attachment action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"composer\",\n-          \"slot\": \"leadingActions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./add-attachment-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"agent-identity\",\n-      \"name\": \"Agent Identity\",\n-      \"description\": \"Displays configurable Agent name, logo and optional description in a normal Layout Slot.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"agent-identity\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"rename Agent\",\n-          \"change Agent name\",\n-          \"change Agent logo\",\n-          \"change Agent brand information\",\n-          \"把我的 Agent 改名为智能研发助手\",\n-          \"把 Agent 的 Logo 换成公司的标志\"\n-        ],\n-        \"visualRole\": \"Agent identity in a normal Layout Slot; edit plugins/agent-identity/config.ts for branding\"\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./agent-identity/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"composer\",\n-      \"name\": \"Conversation Composer\",\n-      \"description\": \"Renders the canonical Agent UI conversation composer with composable action Slots.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-composer\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show the primary conversation composer\",\n-          \"compose conversation input actions\"\n-        ],\n-        \"visualRole\": \"conversation composer\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"conversation-surface\",\n-          \"slot\": \"composer\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"triggers\": {\n-            \"description\": \"Optional conversation input triggers.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-trigger\"\n-              ]\n-            }\n-          },\n-          \"beforeInput\": {\n-            \"description\": \"Content displayed between attachments and the composer input.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-before-input\"\n-              ]\n-            }\n-          },\n-          \"leadingActions\": {\n-            \"description\": \"Inline actions displayed on the leading side of the composer.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-leading-action\",\n-                \"conversation-composer-trailing-action\"\n-              ]\n-            }\n-          },\n-          \"trailingActions\": {\n-            \"description\": \"Inline actions displayed before the composer submit action.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-trailing-action\",\n-                \"conversation-composer-leading-action\"\n-              ]\n-            }\n-          },\n-          \"submitAction\": {\n-            \"description\": \"The primary send or stop action for the composer.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-submit-action\"\n-              ]\n-            }\n-          },\n-          \"input\": {\n-            \"description\": \"Optional text input presentation; falls back to the canonical textarea.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-input\"\n-              ]\n-            }\n-          }\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./composer/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"context-retrieval-message\",\n-      \"name\": \"Context Retrieval Message\",\n-      \"description\": \"Renders context retrieval results carried by AG-UI CUSTOM events.\",\n-      \"version\": \"0.0.1\",\n-      \"authoring\": {\n-        \"intents\": [\n-          \"render context retrieval results inside assistant messages\"\n-        ]\n-      },\n-      \"data\": {\n-        \"messageUI\": true\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./context-retrieval-message/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-data-source\",\n-      \"name\": \"Conversation Data Source\",\n-      \"description\": \"Provides conversation history data through an application-owned API.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"headless\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"provide persistent conversation history data to conversation capabilities\"\n-        ]\n-      }\n-    },\n-    provides: [\"agent-ui.conversation-data-source\"],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-data-source/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-new\",\n-      \"name\": \"New Conversation\",\n-      \"description\": \"Starts a new conversation independently of history management.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-create\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"start a new conversation\"\n-        ],\n-        \"visualRole\": \"conversation header action\"\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-new/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-quote\",\n-      \"name\": \"Conversation Quote\",\n-      \"description\": \"Quote assistant passages with an optional composer preview and selection toolbar. Sent quotes remain conversation history.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-quote\",\n-        \"conversation-composer-before-input\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"quote part of an assistant response\",\n-          \"reply to a specific passage\",\n-          \"引用回答中的一段内容\",\n-          \"加上引用功能\"\n-        ],\n-        \"visualRole\": \"conversation quote creation\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"composer\",\n-          \"slot\": \"beforeInput\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-quote/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-service\",\n-      \"name\": \"Conversation Service\",\n-      \"description\": \"Provides shared application conversation state and history navigation independently from presentation plugins.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"headless\",\n-        \"conversation-service\",\n-        \"plugin-service-provider\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"provide shared conversation management state and history navigation\"\n-        ]\n-      }\n-    },\n-    provides: [\"agent-ui.conversations\"],\n-    inject: [\"agent-ui.conversation-data-source\"],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-service/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-suggestions\",\n-      \"name\": \"Conversation Suggestions\",\n-      \"description\": \"Renders starter prompts through the Conversation public surface.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-suggestions\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show starter prompts and suggested conversation actions\"\n-        ],\n-        \"visualRole\": \"conversation empty-state suggestions\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"conversation-surface\",\n-          \"slot\": \"emptySuggestions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-suggestions/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-surface\",\n-      \"name\": \"Conversation Surface\",\n-      \"description\": \"组合 Live 与只读 History 会话的空状态、消息时间线与输入区。\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-surface\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show the primary live and historical conversation experience\"\n-        ],\n-        \"visualRole\": \"primary conversation surface\",\n-        \"recommendedSize\": {\n-          \"width\": \"minmax(0, 1fr)\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"emptyWelcome\": {\n-            \"description\": \"Welcome content displayed when the conversation is empty.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true\n-          },\n-          \"emptySuggestions\": {\n-            \"description\": \"Suggested prompts or actions displayed when the conversation is empty.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-suggestions\"\n-              ]\n-            }\n-          },\n-          \"headerActions\": {\n-            \"description\": \"Top-right controls displayed on the Conversation surface.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"theme-control\",\n-                \"locale-control\"\n-              ]\n-            }\n-          },\n-          \"composer\": {\n-            \"description\": \"Primary conversation composer.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer\"\n-              ]\n-            }\n-          },\n-          \"reasoningGroup\": {\n-            \"description\": \"Renderer for one assistant reasoning group.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-reasoning-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolGroup\": {\n-            \"description\": \"Renderer for one assistant tool group.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-group-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolFallback\": {\n-            \"description\": \"Renderer for an unnamed tool UI fallback.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-fallback-renderer\"\n-              ]\n-            }\n-          },\n-          \"taskGroup\": {\n-            \"description\": \"Renderer for one or more tool calls containing nested agent tasks.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-task-group-renderer\"\n-              ]\n-            }\n-          },\n-          \"assistantResponseFooter\": {\n-            \"description\": \"Renderer displayed once beneath the final assistant message of a complete response.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-assistant-response-footer-renderer\"\n-              ]\n-            }\n-          },\n-          \"userEditComposer\": {\n-            \"description\": \"Renderer for the active user message edit composer.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-user-edit-composer-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolTimeline\": {\n-            \"description\": \"One tool execution timeline per assistant message.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-timeline-renderer\"\n-              ]\n-            }\n-          },\n-          \"thinkingIndicator\": {\n-            \"description\": \"Message-scoped thinking placeholder.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-thinking-indicator-renderer\"\n-              ]\n-            }\n-          },\n-          \"transientMessages\": {\n-            \"description\": \"Display-only temporary user and assistant messages, isolated from Agent history and context.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-transient-messages-renderer\"\n-              ]\n-            }\n-          }\n-        }\n-      },\n-      \"data\": {\n-        \"messages\": true\n-      }\n-    },\n-    provides: [],\n-    inject: [\"agent-ui.conversations\"],\n-    optionalInject: [\"agent-ui.theme\",\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-surface/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-thread-list\",\n-      \"name\": \"Conversation Thread List\",\n-      \"sidebar\": {\n-        \"icon\": \"messages-square\",\n-        \"labels\": {\n-          \"en-US\": \"History\",\n-          \"zh-CN\": \"历史会话\"\n-        }\n-      },\n-      \"description\": \"Uses the public Conversation thread list with AgentUICreator policy and data binding.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-history\",\n-        \"conversation-selection\",\n-        \"plugin-service-consumer\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"add conversation management\",\n-          \"browse conversation history\",\n-          \"select an existing conversation\"\n-        ],\n-        \"visualRole\": \"conversation navigation\",\n-        \"defaultPlacement\": {\n-          \"type\": \"relative\",\n-          \"relation\": \"before\",\n-          \"anchorPluginId\": \"conversation-surface\"\n-        },\n-        \"recommendedSize\": {\n-          \"width\": \"280px\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"headerActions\": {\n-            \"description\": \"Optional conversation navigation actions displayed above search and history.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-create\"\n-              ]\n-            }\n-          }\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [\"agent-ui.conversations\"],\n-    optionalInject: [\"agent-ui.theme\",\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-thread-list/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"copy-action\",\n-      \"name\": \"Conversation Copy Action\",\n-      \"description\": \"Copies text from the complete assistant response.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-assistant-response-action\",\n-        \"conversation-message-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"copy assistant response content\"\n-        ],\n-        \"visualRole\": \"assistant response copy action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"response-footer\",\n-          \"slot\": \"actions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./copy-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"export-markdown-action\",\n-      \"name\": \"Conversation Export Markdown Action\",\n-      \"description\": \"Renders More with a Markdown export item for the complete assistant response.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-assistant-response-action\",\n-        \"conversation-message-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"export an assistant response as Markdown\"\n-        ],\n-        \"visualRole\": \"assistant response Markdown export action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"response-footer\",\n-          \"slot\": \"actions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./export-markdown-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"help-dismiss-action\",\n-      \"name\": \"Help Dismiss Action\",\n-      \"description\": \"Header action for the quick help card that dismisses the help body; the card title expands it again.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"help-dismiss-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"dismiss the quick help card body\",\n-          \"添加“知道了”按钮收起帮助内容\",\n-          \"collapse help content from the card header\"\n-        ],\n-        \"visualRole\": \"quick help card header action button\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"quick-help-card\",\n-          \"slot\": \"headerActions\"\n-        },\n-        \"recommendedSize\": {\n-          \"height\": \"28px\"",
+              "truncated": true
+            },
+            {
+              "path": "src/agent-ui/plugins/sales-report-message/application.json",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/sales-report-message/application.json\n+++ b/src/agent-ui/plugins/sales-report-message/application.json\n@@ -1,1 +1,5 @@\n-\n+{\n+  \"schemaVersion\": 1,\n+  \"pluginId\": \"sales-report-message\"\n+}\n+",
+              "truncated": false
+            }
+          ],
+          "validations": [
+            {
+              "command": "pnpm run typecheck",
+              "status": "passed",
+              "exitCode": 0,
+              "output": "\n> ordinary-preview-host@ typecheck <USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-Wbs12c\\host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+              "truncated": false,
+              "revision": 6
+            },
+            {
+              "command": "verify_localized_defaults_delta",
+              "status": "passed",
+              "exitCode": 0,
+              "output": "{\"coverage\":\"package-declared locale-backed default props\",\"issues\":[]}",
+              "truncated": false,
+              "revision": 6
+            },
+            {
+              "command": "verify_creator_delta",
+              "status": "passed",
+              "exitCode": 0,
+              "output": "{\"status\":\"passed\",\"revision\":6,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck <USER_PROFILE>\\\\AppData\\\\Local\\\\Temp\\\\creator-connection-host-Wbs12c\\\\host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":6},{\"command\":\"verify_localized_defaults_delta\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"{\\\"coverage\\\":\\\"package-declared locale-backed default props\\\",\\\"issues\\\":[]}\",\"truncated\":false,\"revision\":6}],\"targetRemaining\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+              "truncated": false,
+              "revision": 6
+            }
+          ],
+          "diagnosticLog": {
+            "format": "jsonl",
+            "path": ".agent-ui/creator/logs/2026-11-04T15-59-16.655Z_bbf57061cd23372fa9780c477b99b91124edd97bbd21459d4276369fba181e9d.jsonl"
+          },
+          "transaction": {
+            "runId": "d5426fc0-dc60-4a96-96dd-ee6abdd0bace",
+            "undoable": true,
+            "reapplyable": true,
+            "changedPaths": [
+              "src/agent-ui/plugins/sales-report-message/manifest.json",
+              "src/agent-ui/plugins/sales-report-message/schema.ts",
+              "src/agent-ui/plugins/sales-report-message/index.tsx",
+              "src/agent-ui/plugins/sales-report-message/definition.ts",
+              "src/agent-ui/plugins/sales-report-message/styles.css",
+              "src/agent-ui/plugins/sales-report-message/i18n.ts",
+              "src/agent-ui/plugins/registry.generated.ts",
+              "src/agent-ui/plugins/sales-report-message/application.json"
+            ],
+            "conflicts": []
+          },
+          "verification": {
+            "status": "changed-unverified",
+            "projectRevision": 8,
+            "validationRevision": 6,
+            "auditAttempts": 0,
+            "checks": [],
+            "verificationMode": "static_only",
+            "runtimeStatus": "not-run"
+          }
+        },
+        "contextCompression": {
+          "summaryModelCalls": 12,
+          "compactions": 12,
+          "summarySeconds": 293.14640870000034,
+          "offloadedArtifacts": 4
+        },
+        "creatorRunOutcome": {
+          "status": "stopped",
+          "changeStatus": "committed",
+          "changedPaths": [
+            "src/agent-ui/plugins/sales-report-message/manifest.json",
+            "src/agent-ui/plugins/sales-report-message/schema.ts",
+            "src/agent-ui/plugins/sales-report-message/index.tsx",
+            "src/agent-ui/plugins/sales-report-message/definition.ts",
+            "src/agent-ui/plugins/sales-report-message/styles.css",
+            "src/agent-ui/plugins/sales-report-message/i18n.ts",
+            "src/agent-ui/plugins/registry.generated.ts",
+            "src/agent-ui/plugins/sales-report-message/application.json"
+          ],
+          "toolErrors": [
+            {
+              "toolName": "validate_creator_changes",
+              "status": "error",
+              "reason": "OPERATOR_OPERATION_FAILED"
+            },
+            {
+              "toolName": "grep",
+              "status": "error",
+              "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+            },
+            {
+              "toolName": "validate_creator_changes",
+              "status": "error",
+              "reason": "OPERATOR_OPERATION_FAILED"
+            }
+          ],
+          "lastToolName": "validate_creator_changes"
+        }
+      }
+    }
+  ],
+  "toolCalls": 128,
+  "changedPaths": [
+    "src/agent-ui/plugins/registry.generated.ts",
+    "src/agent-ui/plugins/sales-report-message/application.json",
+    "src/agent-ui/plugins/sales-report-message/definition.ts",
+    "src/agent-ui/plugins/sales-report-message/i18n.ts",
+    "src/agent-ui/plugins/sales-report-message/index.tsx",
+    "src/agent-ui/plugins/sales-report-message/manifest.json",
+    "src/agent-ui/plugins/sales-report-message/schema.ts",
+    "src/agent-ui/plugins/sales-report-message/styles.css"
+  ],
+  "qaApprovals": [
+    {
+      "kind": "simulated isolated QA user selection",
+      "seconds": 195.582,
+      "question": {
+        "id": "plugin-development-decision",
+        "question": "是否按此方案开发？",
+        "description": "目标: 为 AG-UI CUSTOM 事件 app.sales.report 注册数据消息渲染器：解析 value.payload 中的 JSON 字符串（标题 + 月份/收入/订单数行），在聊天消息里以表格展示，收入列可按升/降序切换排序，点击某个月份行展示该月订单数量；payload 非法时给出可读的错误提示，其余既有消息渲染行为不变。\n\n目标插件与位置: sales-report-message\n\n需要新增的能力: app.sales.report CUSTOM 事件消息渲染器; 收入列排序交互; 行点击查看 order_count\n\n作为 data message UI 注册到会话消息内（applicationPlugins 组合，消息名 app.sales.report）",
+        "options": [
+          {
+            "id": "start",
+            "label": "开始开发"
+          },
+          {
+            "id": "adjust",
+            "label": "调整需求"
+          },
+          {
+            "id": "defer",
+            "label": "暂不处理"
+          }
+        ],
+        "selectionMode": "single",
+        "minSelections": 1,
+        "maxSelections": 1
+      },
+      "proposal": {
+        "targetPluginId": "sales-report-message",
+        "desiredOutcome": "为 AG-UI CUSTOM 事件 app.sales.report 注册数据消息渲染器：解析 value.payload 中的 JSON 字符串（标题 + 月份/收入/订单数行），在聊天消息里以表格展示，收入列可按升/降序切换排序，点击某个月份行展示该月订单数量；payload 非法时给出可读的错误提示，其余既有消息渲染行为不变。",
+        "workKind": "create-plugin",
+        "missingCapabilities": [
+          "app.sales.report CUSTOM 事件消息渲染器",
+          "收入列排序交互",
+          "行点击查看 order_count"
+        ],
+        "deliveryContract": {
+          "capability": "把 app.sales.report 事件 payload 的 JSON 字符串渲染为会话内销售报表表格，支持按收入排序与行点击查看订单数",
+          "renderingCategory": "semantic-slot",
+          "placement": "作为 data message UI 注册到会话消息内（applicationPlugins 组合，消息名 app.sales.report）",
+          "lifecycle": "插件实例在 applicationPlugins 中启用时生效，停用即清理注册",
+          "dependencies": [
+            "@za38.03/agent-ui-plugins",
+            "@za38.03/agent-ui-plugins/contracts",
+            "zod"
+          ],
+          "reusedComponents": [],
+          "verificationMethod": "runtime",
+          "interactions": [
+            "点击收入列切换升序/降序",
+            "点击某一月份行显示该月订单数量"
+          ]
+        }
+      },
+      "zeroNewPluginFilesBeforeApproval": true
+    }
+  ],
+  "browserErrors": [],
+  "interaction": {
+    "status": "failed",
+    "checks": [
+      {
+        "name": "JSON string parses into a table",
+        "status": "failed",
+        "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table')\n"
+      }
+    ],
+    "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table')\n",
+    "protocolEventsSent": [
+      {
+        "at": "2026-11-04T16:19:17.505Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.sales.report",
+          "value": {
+            "format": "json",
+            "payload": "{\"title\":\"月度销售\",\"rows\":[{\"month\":\"2026-09\",\"revenue\":120000,\"order_count\":320},{\"month\":\"2026-10\",\"revenue\":156000,\"order_count\":410}]}"
+          }
+        }
+      }
+    ]
+  }
+}

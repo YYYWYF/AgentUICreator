@@ -1,0 +1,15 @@
+Port 5173 is in use, trying another one...
+21:43:32 [vite] (client) page reload src/main.tsx
+{"staticChecks":[{"script":"typecheck","status":"passed","exitCode":0},{"script":"build","status":"passed","exitCode":0}],"interaction":"passed","checks":[{"name":"JSON string parses into a table","status":"passed"},{"name":"revenue sort changes displayed order","status":"passed"},{"name":"row selection exposes order count","status":"passed"},{"name":"bad JSON and empty rows leave conversation usable","status":"passed"}],"controlledAgentRuns":3,"sourceUnchanged":true,"browserErrors":[]}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+[Error: EBUSY: resource busy or locked, rmdir '<USER_PROFILE>\AppData\Local\Temp\creator-connection-host-624F5y\host'] {
+  errno: -4082,
+  code: 'EBUSY',
+  syscall: 'rmdir',
+  path: '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-624F5y\\host'
+}
+
+Node.js v22.23.4

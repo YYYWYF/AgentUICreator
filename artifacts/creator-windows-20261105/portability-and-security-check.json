@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-11-04T16:52:37.340Z",
+  "sourceCommit": "85517048",
+  "recordFiles": 2161,
+  "recordBytes": 30975882,
+  "hashMismatches": [],
+  "credentialFindings": [],
+  "portableSetup": "passed",
+  "publicDocumentationExamples": "3 snippets compile",
+  "portableReplayPathCheck": {
+    "status": "passed",
+    "caseId": "case08-progress",
+    "archivedSourceFiles": 133
+  },
+  "credentialsExcluded": true
+}

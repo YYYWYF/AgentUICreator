@@ -1,0 +1,56 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 260.456,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 在聊天消息里把 AG-UI CUSTOM 事件 app.sales.report（value.format=\"json\"，value.payload 为 JSON 字符串，含 title 与 rows[{month,revenue,order_count}]）渲染为表格：解析 payload 后显示标题与月度销售表格，表格可按收入排序，点击某一行可查看该月的订单数量。\n\n目标插件与位置: sales-report-message\n\n需要新增的能力: 现有项目仅注册了 CONTEXT_CONTENT 数据消息展示，没有针对 app.sales.report 的消息渲染能力; 没有把 payload JSON 字符串解析为 title/rows 并展示为可排序表格的展示组件; 没有行内查看单月 order_count 的交互展示\n\n注册到会话消息数据展示插槽，通过 AppUIModel applicationPlugins 启用后，在 app.sales.report 数据消息所在位置内联渲染",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "sales-report-message",
+      "desiredOutcome": "在聊天消息里把 AG-UI CUSTOM 事件 app.sales.report（value.format=\"json\"，value.payload 为 JSON 字符串，含 title 与 rows[{month,revenue,order_count}]）渲染为表格：解析 payload 后显示标题与月度销售表格，表格可按收入排序，点击某一行可查看该月的订单数量。",
+      "workKind": "create-plugin",
+      "missingCapabilities": [
+        "现有项目仅注册了 CONTEXT_CONTENT 数据消息展示，没有针对 app.sales.report 的消息渲染能力",
+        "没有把 payload JSON 字符串解析为 title/rows 并展示为可排序表格的展示组件",
+        "没有行内查看单月 order_count 的交互展示"
+      ],
+      "deliveryContract": {
+        "capability": "headless 数据消息插件：为 app.sales.report 注册 defineDataMessageUI，解析 value.payload 的 JSON 字符串并渲染带标题的月度销售表格，支持按 revenue 排序与点击行查看该月 order_count",
+        "renderingCategory": "semantic-slot",
+        "placement": "注册到会话消息数据展示插槽，通过 AppUIModel applicationPlugins 启用后，在 app.sales.report 数据消息所在位置内联渲染",
+        "lifecycle": "随数据消息到达即时渲染；无服务依赖，不做额外请求或全局状态",
+        "dependencies": [
+          "@za38.03/agent-ui-plugins 的 defineDataMessageUI 与 useAgentUILocaleCode",
+          "项目已安装的 zod 用于校验并转换 payload",
+          "应用侧 appEventSchemas 注册同名事件 schema"
+        ],
+        "interactions": [
+          "点击收入(revenue)表头在升序/降序之间切换表格顺序",
+          "点击某一行展开/显示该月 order_count（例如行内详情或展开区域）",
+          "payload 缺失、非法 JSON 或字段不合法时显示可读的错误提示而不是崩溃"
+        ],
+        "verificationMethod": "runtime"
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

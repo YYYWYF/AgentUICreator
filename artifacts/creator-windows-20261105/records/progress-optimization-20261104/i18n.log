@@ -1,0 +1,36 @@
+
+> agent-ui-creator-workspace@0.0.1 check:i18n <WORKSPACE>
+> node scripts/audit-ui-copy.mjs
+
+{
+  "parity": [
+    {
+      "owner": "creator",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 986
+    },
+    {
+      "owner": "presentation",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 452
+    },
+    {
+      "owner": "generated",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 452
+    }
+  ],
+  "copyCandidates": 219,
+  "duplicateValues": 19,
+  "unusedCandidates": 300,
+  "failures": []
+}

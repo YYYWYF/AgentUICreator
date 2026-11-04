@@ -1,0 +1,76 @@
+[
+  {
+    "started": "2026-11-04T11:18:10.390Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "routing",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 5169,
+      "completion_tokens": 470,
+      "total_tokens": 5639,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 422
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00105735,
+        "allowance": 0.00063441,
+        "tokens": {
+          "input": 5169,
+          "output": 470,
+          "reasoning": 422,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 8.426
+  },
+  {
+    "started": "2026-11-04T11:18:20.402Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 26390,
+      "completion_tokens": 504,
+      "total_tokens": 26894,
+      "prompt_cache_hit_tokens": 26112,
+      "prompt_cache_miss_tokens": 278,
+      "prompt_tokens_details": {
+        "cached_tokens": 26112
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 383
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00042244,
+        "allowance": 0.00025346,
+        "tokens": {
+          "input": 278,
+          "output": 504,
+          "reasoning": 383,
+          "cache_read": 26112,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.179
+  }
+]

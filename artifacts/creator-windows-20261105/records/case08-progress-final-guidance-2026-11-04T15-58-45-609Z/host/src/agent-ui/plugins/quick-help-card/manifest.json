@@ -1,0 +1,50 @@
+{
+  "id": "quick-help-card",
+  "name": "Quick Help Card",
+  "description": "Collapsible usage-help card at the top of the chat area with headerActions and body semantic slots.",
+  "version": "0.0.1",
+  "capabilities": [
+    "quick-help-card"
+  ],
+  "authoring": {
+    "intents": [
+      "show a quick help card at the chat top",
+      "显示使用帮助卡片",
+      "在聊天区域顶部显示帮助卡片",
+      "expand or collapse usage help"
+    ],
+    "visualRole": "chat area collapsible help card",
+    "recommendedSize": {
+      "height": "44px"
+    },
+    "defaultPlacement": {
+      "type": "relative",
+      "relation": "above",
+      "anchorPluginId": "conversation-surface"
+    }
+  },
+  "slots": {
+    "children": {
+      "headerActions": {
+        "description": "Optional actions displayed in the help card header.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "help-dismiss-action"
+          ]
+        }
+      },
+      "body": {
+        "description": "Help content displayed when the card is expanded.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "quick-help-content"
+          ]
+        }
+      }
+    }
+  }
+}

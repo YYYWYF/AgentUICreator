@@ -1,0 +1,64 @@
+
+ RUN  v4.1.8 <WORKSPACE>/packages/creator
+
+ ❯ tests/service-implementation-tools.test.ts (14 tests | 1 failed) 4735ms
+   × keeps public contract paths and declarations on the contract channel 618ms
+ ❯ tests/local-recording.test.ts (16 tests | 1 failed) 675ms
+     × rejects symlink files and directories outside the selected project 29ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/local-recording.test.ts > current-project local recordings > rejects symlink files and directories outside the selected project
+Error: EPERM: operation not permitted, symlink '<USER_PROFILE>\AppData\Local\Temp\local-recording-DMtK4X\.agent-ui\mocks\external.jsonl' -> '<USER_PROFILE>\AppData\Local\Temp\local-recording-wGBmt8\.agent-ui\mocks\link.jsonl'
+ ❯ tests/local-recording.test.ts:76:5
+     74|     const root = await project(); const other = await project();
+     75|     await writeFile(path.join(other, ".agent-ui/mocks/external.jsonl")…
+     76|     await symlink(path.join(other, ".agent-ui/mocks/external.jsonl"), …
+       |     ^
+     77|     const store = new LocalMockRecordingStore();
+     78|     expect((await store.list(root))[0]?.status).toBe("invalid");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/service-implementation-tools.test.ts > keeps public contract paths and declarations on the contract channel
+AssertionError: promise resolved "{ status: 'ready', …(6) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "affectedFiles": [
++     "src/应用/plugins/conversation-data-source/definition.ts",
++     "src/应用/services/conversations/http-data-source.ts",
++   ],
++   "affectedPlugins": [
++     "conversation-data-source",
++   ],
++   "implementationPath": "services/conversations/http-data-source.ts",
++   "planId": "bbef643afd6385f1a9577fd24b29f18569aa7f2d7b3a69ca92e21993ee4447b9",
++   "status": "ready",
++   "unresolvedImports": [],
++   "verificationRequired": true,
+  }
+
+ ❯ tests/service-implementation-tools.test.ts:91:143
+     89|   await expect(prepareServiceImplementation(context, proposal)).reject…
+     90|   state.topology.services = [];
+     91|   await expect(prepareServiceImplementation(context, { ...proposal, ed…
+       |                                                                                                                                               ^
+     92|   expect(state.prompts).toHaveLength(0);
+     93| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 48 passed (50)
+      Tests  2 failed | 511 passed | 1 skipped (514)
+   Start at  21:13:39
+   Duration  144.67s (transform 3.81s, setup 0ms, import 34.51s, tests 60.65s, environment 13.11s)
+
+undefined
+<WORKSPACE>\packages\creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "vitest" not found

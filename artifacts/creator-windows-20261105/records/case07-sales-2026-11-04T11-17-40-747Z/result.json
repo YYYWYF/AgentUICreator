@@ -1,0 +1,11 @@
+{
+  "caseId": "case07-sales",
+  "status": "QA_ABORTED_AFTER_CREATOR_PROCESS_CRASH",
+  "outputBudget": 16384,
+  "nativeTerminalEvent": false,
+  "creatorError": "EPERM replacing Creator run log; worker exited, observer reported network error.",
+  "toolCalls": 1,
+  "changedPaths": [],
+  "interaction": "not-run",
+  "cleanup": "Creator worker stopped through normal workspace clear API; temporary project retained."
+}

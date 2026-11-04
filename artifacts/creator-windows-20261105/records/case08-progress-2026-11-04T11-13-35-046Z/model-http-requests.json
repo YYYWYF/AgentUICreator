@@ -1,0 +1,1871 @@
+[
+  {
+    "started": "2026-11-04T11:14:03.864Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "routing",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 5177,
+      "completion_tokens": 170,
+      "total_tokens": 5347,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 107
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00087855,
+        "allowance": 0.00052713,
+        "tokens": {
+          "input": 5177,
+          "output": 170,
+          "reasoning": 107,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 5.148
+  },
+  {
+    "started": "2026-11-04T11:14:11.228Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 26419,
+      "completion_tokens": 397,
+      "total_tokens": 26816,
+      "prompt_tokens_details": {
+        "cached_tokens": 26368
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 285
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00032495,
+        "allowance": 0.00019497,
+        "tokens": {
+          "input": 51,
+          "output": 397,
+          "reasoning": 285,
+          "cache_read": 26368,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 6.029
+  },
+  {
+    "started": "2026-11-04T11:14:24.838Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 28778,
+      "completion_tokens": 443,
+      "total_tokens": 29221,
+      "prompt_tokens_details": {
+        "cached_tokens": 26752
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 322
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00064996,
+        "allowance": 0.00038997,
+        "tokens": {
+          "input": 2026,
+          "output": 443,
+          "reasoning": 322,
+          "cache_read": 26752,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 6.757
+  },
+  {
+    "started": "2026-11-04T11:14:40.630Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 39665,
+      "completion_tokens": 713,
+      "total_tokens": 40378,
+      "prompt_tokens_details": {
+        "cached_tokens": 28544
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 636
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00218158,
+        "allowance": 0.00130895,
+        "tokens": {
+          "input": 11121,
+          "output": 713,
+          "reasoning": 636,
+          "cache_read": 28544,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 13.043
+  },
+  {
+    "started": "2026-11-04T11:14:53.835Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 40601,
+      "completion_tokens": 221,
+      "total_tokens": 40822,
+      "prompt_tokens_details": {
+        "cached_tokens": 38656
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 110
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00054032,
+        "allowance": 0.00032419,
+        "tokens": {
+          "input": 1945,
+          "output": 221,
+          "reasoning": 110,
+          "cache_read": 38656,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 4.548
+  },
+  {
+    "started": "2026-11-04T11:14:58.705Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 40898,
+      "completion_tokens": 225,
+      "total_tokens": 41123,
+      "prompt_tokens_details": {
+        "cached_tokens": 39552
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 112
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00045556,
+        "allowance": 0.00027333,
+        "tokens": {
+          "input": 1346,
+          "output": 225,
+          "reasoning": 112,
+          "cache_read": 39552,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 4.155
+  },
+  {
+    "started": "2026-11-04T11:15:03.153Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41463,
+      "completion_tokens": 229,
+      "total_tokens": 41692,
+      "prompt_tokens_details": {
+        "cached_tokens": 39808
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 115
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00050507,
+        "allowance": 0.00030304,
+        "tokens": {
+          "input": 1655,
+          "output": 229,
+          "reasoning": 115,
+          "cache_read": 39808,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 4.567
+  },
+  {
+    "started": "2026-11-04T11:15:07.911Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1244,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 42226,
+      "completion_tokens": 276,
+      "total_tokens": 42502,
+      "prompt_tokens_details": {
+        "cached_tokens": 40448
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 107
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00055364,
+        "allowance": 0.00033219,
+        "tokens": {
+          "input": 1778,
+          "output": 276,
+          "reasoning": 107,
+          "cache_read": 40448,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 5.303
+  },
+  {
+    "started": "2026-11-04T11:15:13.469Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 12214,
+      "completion_tokens": 5874,
+      "total_tokens": 18088,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4539
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0053565,
+        "allowance": 0.0032139,
+        "tokens": {
+          "input": 12214,
+          "output": 5874,
+          "reasoning": 4539,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 60.788
+  },
+  {
+    "started": "2026-11-04T11:16:14.297Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 32444,
+      "completion_tokens": 463,
+      "total_tokens": 32907,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 242
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0051444,
+        "allowance": 0.00308664,
+        "tokens": {
+          "input": 32444,
+          "output": 463,
+          "reasoning": 242,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 11.152
+  },
+  {
+    "started": "2026-11-04T11:16:25.540Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1052,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 37539,
+      "completion_tokens": 200,
+      "total_tokens": 37739,
+      "prompt_tokens_details": {
+        "cached_tokens": 21120
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 105
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00264621,
+        "allowance": 0.00158773,
+        "tokens": {
+          "input": 16419,
+          "output": 200,
+          "reasoning": 105,
+          "cache_read": 21120,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "error": "AbortError",
+    "seconds": 6.587
+  },
+  {
+    "started": "2026-11-04T11:16:32.242Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1052,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 439,
+        "toolCalls": 1
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 38807,
+      "completion_tokens": 314,
+      "total_tokens": 39121,
+      "prompt_tokens_details": {
+        "cached_tokens": 2944
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 214
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00557668,
+        "allowance": 0.00334601,
+        "tokens": {
+          "input": 35863,
+          "output": 314,
+          "reasoning": 214,
+          "cache_read": 2944,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 3.962
+  },
+  {
+    "started": "2026-11-04T11:16:36.304Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1052,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 439,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 913,
+        "toolCalls": 1
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 39821,
+      "completion_tokens": 700,
+      "total_tokens": 40521,
+      "prompt_tokens_details": {
+        "cached_tokens": 35968
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 476
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00110585,
+        "allowance": 0.00066351,
+        "tokens": {
+          "input": 3853,
+          "output": 700,
+          "reasoning": 476,
+          "cache_read": 35968,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 8.716
+  },
+  {
+    "started": "2026-11-04T11:16:45.104Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1052,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 439,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 913,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 42904,
+      "completion_tokens": 563,
+      "total_tokens": 43467,
+      "prompt_tokens_details": {
+        "cached_tokens": 38272
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 336
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00114742,
+        "allowance": 0.00068845,
+        "tokens": {
+          "input": 4632,
+          "output": 563,
+          "reasoning": 336,
+          "cache_read": 38272,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 6.07
+  },
+  {
+    "started": "2026-11-04T11:16:51.351Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1352,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2777,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 468,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 503,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 493,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 521,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1052,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 439,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 913,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41668,
+      "completion_tokens": 935,
+      "total_tokens": 42603,
+      "prompt_tokens_details": {
+        "cached_tokens": 30976
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 712
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00225773,
+        "allowance": 0.00135464,
+        "tokens": {
+          "input": 10692,
+          "output": 935,
+          "reasoning": 712,
+          "cache_read": 30976,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 12.542
+  },
+  {
+    "started": "2026-11-04T11:17:14.889Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 16761,
+      "completion_tokens": 5359,
+      "total_tokens": 22120,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3177
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00572955,
+        "allowance": 0.00343773,
+        "tokens": {
+          "input": 16761,
+          "output": 5359,
+          "reasoning": 3177,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 57.784
+  },
+  {
+    "started": "2026-11-04T11:18:12.710Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3066,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 31556,
+      "completion_tokens": 1553,
+      "total_tokens": 33109,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1334
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0056652,
+        "allowance": 0.00339912,
+        "tokens": {
+          "input": 31556,
+          "output": 1553,
+          "reasoning": 1334,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 19.946
+  },
+  {
+    "started": "2026-11-04T11:18:32.834Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3066,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 43028,
+      "completion_tokens": 298,
+      "total_tokens": 43326,
+      "prompt_tokens_details": {
+        "cached_tokens": 24832
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 77
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0029827,
+        "allowance": 0.00178962,
+        "tokens": {
+          "input": 18196,
+          "output": 298,
+          "reasoning": 77,
+          "cache_read": 24832,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 7.822
+  },
+  {
+    "started": "2026-11-04T11:18:40.754Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3066,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 296,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 39982,
+      "completion_tokens": 1270,
+      "total_tokens": 41252,
+      "prompt_tokens_details": {
+        "cached_tokens": 29952
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1036
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00235636,
+        "allowance": 0.00141381,
+        "tokens": {
+          "input": 10030,
+          "output": 1270,
+          "reasoning": 1036,
+          "cache_read": 29952,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 14.846
+  },
+  {
+    "started": "2026-11-04T11:18:55.762Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 25,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3066,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 296,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4366,
+        "toolCalls": 3
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41531,
+      "completion_tokens": 395,
+      "total_tokens": 41926,
+      "prompt_tokens_details": {
+        "cached_tokens": 38400
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 344
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00082185,
+        "allowance": 0.00049311,
+        "tokens": {
+          "input": 3131,
+          "output": 395,
+          "reasoning": 344,
+          "cache_read": 38400,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 5.677
+  },
+  {
+    "started": "2026-11-04T11:19:01.509Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2170,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1342,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3066,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 296,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4366,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1515,
+        "toolCalls": 1
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 44409,
+      "completion_tokens": 436,
+      "total_tokens": 44845,
+      "prompt_tokens_details": {
+        "cached_tokens": 3072
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 284
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00647137,
+        "allowance": 0.00388282,
+        "tokens": {
+          "input": 41337,
+          "output": 436,
+          "reasoning": 284,
+          "cache_read": 3072,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 14.233
+  },
+  {
+    "started": "2026-11-04T11:19:17.814Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 12027,
+      "completion_tokens": 7549,
+      "total_tokens": 19576,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4606
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00633345,
+        "allowance": 0.00380007,
+        "tokens": {
+          "input": 12027,
+          "output": 7549,
+          "reasoning": 4606,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 40.955
+  },
+  {
+    "started": "2026-11-04T11:19:58.871Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 296,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4366,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1515,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1292,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 38081,
+      "completion_tokens": 267,
+      "total_tokens": 38348,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 48
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00587235,
+        "allowance": 0.00352341,
+        "tokens": {
+          "input": 38081,
+          "output": 267,
+          "reasoning": 48,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 10.506
+  },
+  {
+    "started": "2026-11-04T11:20:09.488Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 5400,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 296,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4366,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1515,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1292,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 150,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 39640,
+      "completion_tokens": 807,
+      "total_tokens": 40447,
+      "prompt_tokens_details": {
+        "cached_tokens": 36608
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 644
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00104882,
+        "allowance": 0.00062929,
+        "tokens": {
+          "input": 3032,
+          "output": 807,
+          "reasoning": 644,
+          "cache_read": 36608,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 12.368
+  },
+  {
+    "started": "2026-11-04T11:20:31.730Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 11049,
+      "completion_tokens": 5483,
+      "total_tokens": 16532,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2094
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00494715,
+        "allowance": 0.00296829,
+        "tokens": {
+          "input": 11049,
+          "output": 5483,
+          "reasoning": 2094,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "error": "AbortError",
+    "seconds": 48.372
+  },
+  {
+    "started": "2026-11-04T11:21:20.142Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1292,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 150,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2789,
+        "toolCalls": 2
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 35316,
+      "completion_tokens": 1226,
+      "total_tokens": 36542,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 934
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.006033,
+        "allowance": 0.0036198,
+        "tokens": {
+          "input": 35316,
+          "output": 1226,
+          "reasoning": 934,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "error": "AbortError",
+    "seconds": 21.04
+  },
+  {
+    "started": "2026-11-04T11:21:59.931Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 14127,
+      "completion_tokens": 6186,
+      "total_tokens": 20313,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2466
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00583065,
+        "allowance": 0.00349839,
+        "tokens": {
+          "input": 14127,
+          "output": 6186,
+          "reasoning": 2466,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 65.863
+  },
+  {
+    "started": "2026-11-04T11:23:05.838Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3926,
+        "toolCalls": 3
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 35650,
+      "completion_tokens": 1305,
+      "total_tokens": 36955,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1090
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0061305,
+        "allowance": 0.0036783,
+        "tokens": {
+          "input": 35650,
+          "output": 1305,
+          "reasoning": 1090,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 22.141
+  },
+  {
+    "started": "2026-11-04T11:23:28.171Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3926,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4556,
+        "toolCalls": 3
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41951,
+      "completion_tokens": 336,
+      "total_tokens": 42287,
+      "prompt_tokens_details": {
+        "cached_tokens": 34176
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 53
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00147038,
+        "allowance": 0.00088223,
+        "tokens": {
+          "input": 7775,
+          "output": 336,
+          "reasoning": 53,
+          "cache_read": 34176,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 4.913
+  },
+  {
+    "started": "2026-11-04T11:23:33.278Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3926,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 4556,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 250,
+        "toolCalls": 3
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 44420,
+      "completion_tokens": 1218,
+      "total_tokens": 45638,
+      "prompt_tokens_details": {
+        "cached_tokens": 40576
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 877
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00142913,
+        "allowance": 0.00085748,
+        "tokens": {
+          "input": 3844,
+          "output": 1218,
+          "reasoning": 877,
+          "cache_read": 40576,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 12.153
+  },
+  {
+    "started": "2026-11-04T11:24:04.121Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 0,
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 21774,
+      "completion_tokens": 7707,
+      "total_tokens": 29481,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3463
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0078903,
+        "allowance": 0.00473418,
+        "tokens": {
+          "input": 21774,
+          "output": 7707,
+          "reasoning": 3463,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 43.813
+  },
+  {
+    "started": "2026-11-04T11:24:47.981Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3653,
+        "toolCalls": 4
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 33895,
+      "completion_tokens": 1013,
+      "total_tokens": 34908,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 766
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00569205,
+        "allowance": 0.00341523,
+        "tokens": {
+          "input": 33895,
+          "output": 1013,
+          "reasoning": 766,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 18.31
+  },
+  {
+    "started": "2026-11-04T11:25:06.580Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3653,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3374,
+        "toolCalls": 4
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41429,
+      "completion_tokens": 118,
+      "total_tokens": 41547,
+      "prompt_tokens_details": {
+        "cached_tokens": 25216
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 42
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0025784,
+        "allowance": 0.00154704,
+        "tokens": {
+          "input": 16213,
+          "output": 118,
+          "reasoning": 42,
+          "cache_read": 25216,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 5.332
+  },
+  {
+    "started": "2026-11-04T11:25:12.011Z",
+    "model": "deepseek-v4.1-flash",
+    "toolCount": 40,
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3653,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3374,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 162,
+        "toolCalls": 1
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "tool_calls",
+    "usage": {
+      "prompt_tokens": 41582,
+      "completion_tokens": 592,
+      "total_tokens": 42174,
+      "prompt_tokens_details": {
+        "cached_tokens": 39808
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 155
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00074072,
+        "allowance": 0.00044443,
+        "tokens": {
+          "input": 1774,
+          "output": 592,
+          "reasoning": 155,
+          "cache_read": 39808,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "error": "AbortError",
+    "seconds": 7.359
+  }
+]

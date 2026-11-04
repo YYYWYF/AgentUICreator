@@ -1,0 +1,16 @@
+{
+  "caseId": "case08-progress",
+  "status": "RUN_ERROR",
+  "seconds": 7.434,
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_RUN_FAILED",
+      "message": "Streaming response failed: [400] Grammar error: Unimplemented keys: [\"uniqueItems\"]"
+    }
+  ],
+  "toolCalls": 0,
+  "changedPaths": [],
+  "qaApprovals": [],
+  "browserErrors": []
+}

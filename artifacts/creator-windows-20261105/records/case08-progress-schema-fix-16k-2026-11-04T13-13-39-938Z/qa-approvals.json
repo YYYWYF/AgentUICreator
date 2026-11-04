@@ -1,0 +1,45 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 628.638,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 新增“任务进度”面板插件：订阅名为 app.job.progress 的 Application Event（payload: job_id/title/status/completed/total/error），按 job_id 合并更新，多任务分别展示标题、状态、完成进度、完成态，失败时展开显示 error.code 与 error.message；并在聊天区域右侧以固定 Row+Panel 组成展示。\n\n目标插件与位置: job-progress-panel\n\n聊天区域（conversation-surface 所在布局槽 l11）右侧的固定宽度 Panel，Row 内主内容在前、面板在后",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "job-progress-panel",
+      "desiredOutcome": "新增“任务进度”面板插件：订阅名为 app.job.progress 的 Application Event（payload: job_id/title/status/completed/total/error），按 job_id 合并更新，多任务分别展示标题、状态、完成进度、完成态，失败时展开显示 error.code 与 error.message；并在聊天区域右侧以固定 Row+Panel 组成展示。",
+      "workKind": "create-plugin",
+      "deliveryContract": {
+        "capability": "右侧任务进度面板：消费 app.job.progress 事件，按 job_id upsert 多个任务条目，展示标题/状态/进度，失败可展开错误详情",
+        "renderingCategory": "panel",
+        "placement": "聊天区域（conversation-surface 所在布局槽 l11）右侧的固定宽度 Panel，Row 内主内容在前、面板在后",
+        "lifecycle": "组件顶层调用 usePluginEvents()，在 useEffect 中订阅并在卸载时取消；订阅的事件名在 manifest data.events 中声明",
+        "dependencies": [
+          "@za38.03/agent-ui-plugins 的 usePluginEvents",
+          "zod 事件 payload schema，通过 Agent 的 appEventSchemas 注册"
+        ],
+        "verificationMethod": "runtime"
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

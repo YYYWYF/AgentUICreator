@@ -1,0 +1,25 @@
+{
+  "id": "test-notice",
+  "name": "Test Notice",
+  "description": "Displays a static bilingual notice at the top of the chat area using React native elements and theme tokens.",
+  "version": "0.0.1",
+  "capabilities": [
+    "test-notice"
+  ],
+  "authoring": {
+    "intents": [
+      "show a test notice at the chat top",
+      "显示测试提示",
+      "在聊天区域顶部显示提示"
+    ],
+    "visualRole": "chat area top notice",
+    "recommendedSize": {
+      "height": "40px"
+    },
+    "defaultPlacement": {
+      "type": "relative",
+      "relation": "above",
+      "anchorPluginId": "conversation-surface"
+    }
+  }
+}

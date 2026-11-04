@@ -1,0 +1,16 @@
+{
+  "caseId": "case08-progress",
+  "status": "RUN_ERROR",
+  "seconds": 42.401,
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_REQUEST_ROUTE_INVALID",
+      "message": "CREATOR_REQUEST_ROUTE_INVALID"
+    }
+  ],
+  "toolCalls": 0,
+  "changedPaths": [],
+  "qaApprovals": [],
+  "browserErrors": []
+}

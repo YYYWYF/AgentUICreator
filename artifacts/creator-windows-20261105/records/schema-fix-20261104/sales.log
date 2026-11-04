@@ -1,0 +1,151 @@
+[live Creator] typescript runtime ready pid=13164 port=54378
+Port 5173 is in use, trying another one...
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+21:14:05 [vite] (client) page reload src/main.tsx
+{"caseId":"case07-sales","out":"<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case07-sales-schema-fix-16k-2026-11-04T13-13-40-195Z","started":"2026-11-04T13:14:11.840Z"}
+{"seconds":23.558,"toolNumber":1,"tool":"inspect_ui_project"}
+{"seconds":23.791,"toolNumber":2,"tool":"ls"}
+{"seconds":23.799,"toolNumber":3,"tool":"read_file"}
+{"seconds":27.908,"toolNumber":4,"tool":"ls"}
+{"seconds":27.966,"toolNumber":5,"tool":"ls"}
+{"seconds":32.293,"toolNumber":6,"tool":"read_file"}
+{"seconds":32.356,"toolNumber":7,"tool":"read_file"}
+{"seconds":32.37,"toolNumber":8,"tool":"ls"}
+{"seconds":38.513,"toolNumber":9,"tool":"inspect_ui_edit_context"}
+{"seconds":50.312,"toolNumber":10,"tool":"read_file"}
+{"seconds":50.341,"toolNumber":11,"tool":"read_file"}
+{"seconds":82.097,"toolNumber":12,"tool":"read_creator_documentation"}
+{"seconds":86.628,"toolNumber":13,"tool":"read_creator_documentation"}
+{"seconds":86.675,"toolNumber":14,"tool":"read_creator_documentation"}
+{"seconds":90.311,"toolNumber":15,"tool":"read_creator_documentation"}
+{"seconds":90.364,"toolNumber":16,"tool":"read_creator_documentation"}
+{"seconds":96.075,"toolNumber":17,"tool":"read_file"}
+{"seconds":96.117,"toolNumber":18,"tool":"grep"}
+{"seconds":96.227,"toolNumber":19,"tool":"ls"}
+{"seconds":100.639,"toolNumber":20,"tool":"read_file"}
+{"seconds":100.713,"toolNumber":21,"tool":"read_file"}
+{"seconds":100.736,"toolNumber":22,"tool":"read_file"}
+{"seconds":107.13,"toolNumber":23,"tool":"ls"}
+{"seconds":107.194,"toolNumber":24,"tool":"read_file"}
+{"seconds":107.222,"toolNumber":25,"tool":"grep"}
+{"seconds":114.232,"toolNumber":26,"tool":"ls"}
+{"seconds":114.262,"toolNumber":27,"tool":"read_file"}
+{"seconds":154.767,"toolNumber":28,"tool":"prepare_ui_plugin_development"}
+{"seconds":161.641,"toolNumber":29,"tool":"prepare_ui_plugin_development"}
+{"seconds":182.798,"toolNumber":30,"tool":"enable_creator_tools"}
+{"seconds":195.473,"toolNumber":31,"tool":"read_file"}
+{"seconds":195.512,"toolNumber":32,"tool":"grep"}
+{"seconds":201.865,"toolNumber":33,"tool":"ls"}
+{"seconds":201.907,"toolNumber":34,"tool":"read_file"}
+{"seconds":207.815,"toolNumber":35,"tool":"grep"}
+{"seconds":207.86,"toolNumber":36,"tool":"grep"}
+{"seconds":215.438,"toolNumber":37,"tool":"inspect_ui_plugin"}
+{"seconds":226.661,"toolNumber":38,"tool":"inspect_ui_edit_context"}
+{"seconds":278.406,"toolNumber":39,"tool":"read_file"}
+{"seconds":278.464,"toolNumber":40,"tool":"read_file"}
+{"seconds":278.503,"toolNumber":41,"tool":"read_file"}
+{"seconds":278.514,"toolNumber":42,"tool":"read_creator_documentation"}
+{"seconds":284.383,"toolNumber":43,"tool":"inspect_ui_plugin"}
+{"seconds":294.299,"toolNumber":44,"tool":"read_creator_documentation"}
+{"seconds":300.272,"toolNumber":45,"tool":"inspect_ui_plugin"}
+{"seconds":311.693,"toolNumber":46,"tool":"read_creator_documentation"}
+{"seconds":311.721,"toolNumber":47,"tool":"read_creator_documentation"}
+{"seconds":349.661,"toolNumber":48,"tool":"read_creator_documentation"}
+{"seconds":349.729,"toolNumber":49,"tool":"read_creator_documentation"}
+{"seconds":349.767,"toolNumber":50,"tool":"read_file"}
+{"seconds":354.878,"toolNumber":51,"tool":"ls"}
+{"seconds":354.932,"toolNumber":52,"tool":"ls"}
+{"seconds":365.458,"toolNumber":53,"tool":"read_file"}
+{"seconds":365.52,"toolNumber":54,"tool":"read_file"}
+{"seconds":372.745,"toolNumber":55,"tool":"read_file"}
+{"seconds":372.807,"toolNumber":56,"tool":"read_file"}
+{"seconds":372.857,"toolNumber":57,"tool":"ls"}
+{"seconds":406.931,"toolNumber":58,"tool":"read_file"}
+{"seconds":407.005,"toolNumber":59,"tool":"read_file"}
+{"seconds":407.094,"toolNumber":60,"tool":"read_file"}
+{"seconds":407.106,"toolNumber":61,"tool":"read_file"}
+{"seconds":452.793,"toolNumber":62,"tool":"read_file"}
+{"seconds":452.873,"toolNumber":63,"tool":"read_file"}
+{"seconds":452.892,"toolNumber":64,"tool":"ls"}
+{"seconds":493.228,"toolNumber":65,"tool":"create_ui_plugin"}
+{"seconds":534.311,"toolNumber":66,"tool":"grep"}
+{"seconds":534.489,"toolNumber":67,"tool":"read_file"}
+{"seconds":540.361,"toolNumber":68,"tool":"read_file"}
+{"seconds":540.421,"toolNumber":69,"tool":"glob"}
+{"seconds":546.579,"toolNumber":70,"tool":"inspect_agent_ui_sources"}
+{"seconds":548.531,"toolNumber":71,"tool":"read_file"}
+{"seconds":555.323,"toolNumber":72,"tool":"inspect_ui_project"}
+{"seconds":560.456,"toolNumber":73,"tool":"read_creator_context"}
+{"seconds":635.042,"toolNumber":74,"tool":"read_file"}
+{"seconds":635.172,"toolNumber":75,"tool":"read_file"}
+{"seconds":635.254,"toolNumber":76,"tool":"read_file"}
+{"seconds":635.268,"toolNumber":77,"tool":"read_file"}
+{"seconds":639.733,"toolNumber":78,"tool":"grep"}
+{"seconds":639.952,"toolNumber":79,"tool":"grep"}
+{"seconds":640.006,"toolNumber":80,"tool":"ls"}
+{"seconds":640.012,"toolNumber":81,"tool":"ls"}
+{"seconds":644.1,"toolNumber":82,"tool":"read_file"}
+{"seconds":644.198,"toolNumber":83,"tool":"grep"}
+{"seconds":644.253,"toolNumber":84,"tool":"grep"}
+{"seconds":648.562,"toolNumber":85,"tool":"ls"}
+{"seconds":648.745,"toolNumber":86,"tool":"ls"}
+{"seconds":654.349,"toolNumber":87,"tool":"read_file"}
+{"seconds":654.442,"toolNumber":88,"tool":"grep"}
+{"seconds":661.952,"toolNumber":89,"tool":"read_file"}
+{"seconds":662.064,"toolNumber":90,"tool":"read_creator_documentation"}
+{"seconds":666.075,"toolNumber":91,"tool":"ls"}
+{"seconds":666.223,"toolNumber":92,"tool":"glob"}
+{"seconds":671.999,"toolNumber":93,"tool":"read_creator_documentation"}
+{"seconds":685.39,"toolNumber":94,"tool":"inspect_agent_ui_sources"}
+{"seconds":686.938,"toolNumber":95,"tool":"read_file"}
+{"seconds":694.872,"toolNumber":96,"tool":"grep"}
+{"seconds":695.991,"toolNumber":97,"tool":"inspect_ui_plugin_delivery"}
+{"seconds":733.498,"toolNumber":98,"tool":"enable_creator_tools"}
+{"seconds":740.66,"toolNumber":99,"tool":"read_file"}
+{"seconds":745.258,"toolNumber":100,"tool":"enable_creator_tools"}
+{"seconds":751.053,"toolNumber":101,"tool":"read_creator_documentation"}
+{"seconds":758.509,"toolNumber":102,"tool":"inspect_ui_project"}
+{"seconds":793.587,"toolNumber":103,"tool":"read_creator_documentation"}
+{"seconds":800.366,"toolNumber":104,"tool":"read_creator_documentation"}
+{"seconds":805.224,"toolNumber":105,"tool":"read_creator_context"}
+{"seconds":812.786,"toolNumber":106,"tool":"read_creator_documentation"}
+{"seconds":878.56,"toolNumber":107,"tool":"inspect_ui_plugin"}
+{"seconds":888.038,"toolNumber":108,"tool":"inspect_ui_plugin_delivery"}
+{"seconds":909.578,"toolNumber":109,"tool":"grep"}
+{"seconds":909.728,"toolNumber":110,"tool":"read_file"}
+{"seconds":966.563,"toolNumber":111,"tool":"read_file"}
+{"seconds":973.307,"toolNumber":112,"tool":"ls"}
+{"seconds":973.429,"toolNumber":113,"tool":"grep"}
+{"seconds":980.51,"toolNumber":114,"tool":"inspect_agent_ui_sources"}
+{"seconds":982.494,"toolNumber":115,"tool":"read_file"}
+{"seconds":982.586,"toolNumber":116,"tool":"read_file"}
+{"seconds":989.687,"toolNumber":117,"tool":"grep"}
+{"seconds":989.902,"toolNumber":118,"tool":"grep"}
+{"seconds":1000.971,"toolNumber":119,"tool":"validate_creator_changes"}
+21:30:55 [vite] (client) hmr update /src/agent-ui/application/project-config.tsx, /src/agent-ui/styles.css
+21:30:56 [vite] (client) hmr invalidate /src/agent-ui/application/project-config.tsx Could not Fast Refresh ("agentUIProject" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+21:30:56 [vite] (client) hmr update /src/agent-ui/application/Agent.tsx, /src/agent-ui/styles.css
+{"seconds":1028.426,"toolNumber":120,"tool":"read_file"}
+{"seconds":1028.577,"toolNumber":121,"tool":"read_file"}
+{"seconds":1072.117,"toolNumber":122,"tool":"read_creator_documentation"}
+{"seconds":1072.295,"toolNumber":123,"tool":"grep"}
+{"seconds":1076.932,"toolNumber":124,"tool":"read_creator_documentation"}
+{"seconds":1077.111,"toolNumber":125,"tool":"read_creator_documentation"}
+{"seconds":1094.444,"toolNumber":126,"tool":"inspect_ui_project"}
+{"seconds":1133.91,"toolNumber":127,"tool":"mutate_app_ui_model"}
+{"seconds":1143.059,"toolNumber":128,"tool":"read_file"}
+{"seconds":1143.227,"toolNumber":129,"tool":"read_file"}
+{"seconds":1148.625,"toolNumber":130,"tool":"mutate_ui_plugin_source"}
+{"seconds":1152.714,"toolNumber":131,"tool":"mutate_app_ui_model"}
+21:33:32 [vite] (client) page reload src/agent-ui/composition-revision.generated.json
+21:33:32 [vite] (client) page reload src/agent-ui/app-ui.json
+21:33:32 [vite] (client) hmr update /src/agent-ui/application/project-config.tsx, /src/agent-ui/styles.css
+21:33:32 [vite] (client) hmr invalidate /src/agent-ui/application/project-config.tsx Could not Fast Refresh ("agentUIProject" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+21:33:32 [vite] (client) hmr update /src/agent-ui/application/Agent.tsx, /src/agent-ui/styles.css
+{"seconds":1166.572,"toolNumber":132,"tool":"inspect_ui_plugin"}
+{"seconds":1175.992,"toolNumber":133,"tool":"read_file"}
+[live Creator] Error: CREATOR_RUN_STOPPED
+    at handle (file:///<WORKSPACE>/packages/creator/dist/agent/server.js:140:38)
+{"caseId":"case07-sales","status":"QA_TIMEOUT","seconds":1200.641,"toolCalls":133,"changedFiles":8,"interaction":"failed"}

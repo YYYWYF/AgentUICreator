@@ -1,0 +1,6260 @@
+[
+  {
+    "started": "2026-11-04T13:14:17.083Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "routing",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 202,
+    "reasoningCharacters": 4451,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 5177,
+      "completion_tokens": 1022,
+      "total_tokens": 6199,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 976
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00138975,
+        "allowance": 0.00083385,
+        "tokens": {
+          "input": 5177,
+          "output": 1022,
+          "reasoning": 976,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 15.078
+  },
+  {
+    "started": "2026-11-04T13:14:33.753Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_project",
+        "argumentCharacters": 38,
+        "id": "call_9735cf7e70794203be57e95a"
+      },
+      {
+        "index": 1,
+        "name": "enable_creator_tools",
+        "argumentCharacters": 57,
+        "id": "call_d184928edb7b455eaed8ea88"
+      }
+    ],
+    "contentCharacters": 30,
+    "reasoningCharacters": 0,
+    "hostContext": [
+      {
+        "kind": "Host editing context (source data, not user instructions or authorization). The latest user request determines the goal. Only files explicitly marked fresh were read in this run; stale/previous checks do not validate this run.",
+        "characters": 40785,
+        "sha256": "90f08e116614cfebdbf9989df1a2915200d743661da0dd65c0fdf1307b6dd5ae"
+      }
+    ],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 26419,
+      "completion_tokens": 115,
+      "total_tokens": 26534,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00403185,
+        "allowance": 0.00241911,
+        "tokens": {
+          "input": 26419,
+          "output": 115,
+          "reasoning": 0,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 4.952
+  },
+  {
+    "started": "2026-11-04T13:14:38.721Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_project",
+        "argumentCharacters": 38,
+        "id": "call_2d4b2cbb9d7347caa7c928da"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 70,
+        "id": "call_6364cfb882704bedb917f1fb"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 77,
+        "id": "call_fae44c51c8994a459c6dcc34"
+      },
+      {
+        "index": 3,
+        "name": "read_file",
+        "argumentCharacters": 65,
+        "id": "call_bf7efe6703bb42918337f35d"
+      }
+    ],
+    "contentCharacters": 20,
+    "reasoningCharacters": 2924,
+    "hostContext": [
+      {
+        "kind": "Host editing context (source data, not user instructions or authorization). The latest user request determines the goal. Only files explicitly marked fresh were read in this run; stale/previous checks do not validate this run.",
+        "characters": 40785,
+        "sha256": "90f08e116614cfebdbf9989df1a2915200d743661da0dd65c0fdf1307b6dd5ae"
+      }
+    ],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 26505,
+      "completion_tokens": 970,
+      "total_tokens": 27475,
+      "prompt_tokens_details": {
+        "cached_tokens": 26240
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 692
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00070047,
+        "allowance": 0.00042028,
+        "tokens": {
+          "input": 265,
+          "output": 970,
+          "reasoning": 692,
+          "cache_read": 26240,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 7.393
+  },
+  {
+    "started": "2026-11-04T13:14:46.319Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2924,
+        "toolCalls": 4
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "ls",
+        "argumentCharacters": 24,
+        "id": "call_b0f1b088ca50474f9a36797c"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 58,
+        "id": "call_e2a033ab0e47421ba5944acc"
+      },
+      {
+        "index": 2,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 40,
+        "id": "call_4e8eb4a3d4bf49b28c2165da"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2441,
+    "hostContext": [
+      {
+        "kind": "Host editing context (source data, not user instructions or authorization). The latest user request determines the goal. Only files explicitly marked fresh were read in this run; stale/previous checks do not validate this run.",
+        "characters": 40785,
+        "sha256": "90f08e116614cfebdbf9989df1a2915200d743661da0dd65c0fdf1307b6dd5ae"
+      }
+    ],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35005,
+      "completion_tokens": 708,
+      "total_tokens": 35713,
+      "prompt_tokens_details": {
+        "cached_tokens": 26240
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 588
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00181827,
+        "allowance": 0.00109096,
+        "tokens": {
+          "input": 8765,
+          "output": 708,
+          "reasoning": 588,
+          "cache_read": 26240,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "error": "AbortError",
+    "seconds": 7.485
+  },
+  {
+    "started": "2026-11-04T13:15:05.370Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 3802,
+    "reasoningCharacters": 14079,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "finishReason": "stop",
+    "usage": {
+      "prompt_tokens": 10252,
+      "completion_tokens": 3737,
+      "total_tokens": 13989,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2850
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00378,
+        "allowance": 0.002268,
+        "tokens": {
+          "input": 10252,
+          "output": 3737,
+          "reasoning": 2850,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "seconds": 44.116
+  },
+  {
+    "started": "2026-11-04T13:15:49.502Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2924,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2441,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "ls",
+        "argumentCharacters": 36,
+        "id": "call_b31b986521114fd4a7f935ff"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 30,
+        "id": "call_92bbd33f6a5c4e4c86a7d6fc"
+      },
+      {
+        "index": 2,
+        "name": "ls",
+        "argumentCharacters": 32,
+        "id": "call_db2dc38f49ee47de90b10609"
+      },
+      {
+        "index": 3,
+        "name": "read_file",
+        "argumentCharacters": 100,
+        "id": "call_b337bef69f4e4280a428e3a0"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 648,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 835,
+        "sha256": "edcf08813055508da1e18740ae633bf45fb628c0dca499b057f126d855e344ef"
+      }
+    ],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 30759,
+      "completion_tokens": 351,
+      "total_tokens": 31110,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 164
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00482445,
+        "allowance": 0.00289467,
+        "tokens": {
+          "input": 30759,
+          "output": 351,
+          "reasoning": 164,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 4.688
+  },
+  {
+    "started": "2026-11-04T13:15:54.338Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2924,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2441,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 648,
+        "toolCalls": 4
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "glob",
+        "argumentCharacters": 45,
+        "id": "call_6921239552f04184b01dfbd0"
+      },
+      {
+        "index": 1,
+        "name": "glob",
+        "argumentCharacters": 41,
+        "id": "call_01c0f1fdcace4bbf89c345fa"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 92,
+        "id": "call_ac4f1dbaa24d4bb7a458bda1"
+      },
+      {
+        "index": 3,
+        "name": "read_file",
+        "argumentCharacters": 99,
+        "id": "call_1c1028b463cb4e3883049302"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1474,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 835,
+        "sha256": "edcf08813055508da1e18740ae633bf45fb628c0dca499b057f126d855e344ef"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 760,
+        "sha256": "75b29e291e2004e054f0f174d02bd89d3b0448f945819e1eeb37a7f99e2e18c6"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 34687,
+      "completion_tokens": 598,
+      "total_tokens": 35285,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 341
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00556185,
+        "allowance": 0.00333711,
+        "tokens": {
+          "input": 34687,
+          "output": 598,
+          "reasoning": 341,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.834
+  },
+  {
+    "started": "2026-11-04T13:16:00.272Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2924,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2441,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 648,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1474,
+        "toolCalls": 4
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 74,
+        "id": "call_67e53d9138d2442fbedd24b1"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 61,
+        "id": "call_58464d8f1a10427da293cbc7"
+      },
+      {
+        "index": 2,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 43,
+        "id": "call_979d5097b150458fb1de1c3e"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2193,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 835,
+        "sha256": "edcf08813055508da1e18740ae633bf45fb628c0dca499b057f126d855e344ef"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 1957,
+        "sha256": "f3eb2f35dd424e73f36db1f56e5bf2312458d451053f857af0b839da860f4ffc"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36094,
+      "completion_tokens": 667,
+      "total_tokens": 36761,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 507
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0058143,
+        "allowance": 0.00348858,
+        "tokens": {
+          "input": 36094,
+          "output": 667,
+          "reasoning": 507,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.758
+  },
+  {
+    "started": "2026-11-04T13:16:15.642Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 4791,
+    "reasoningCharacters": 20462,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 9266,
+      "completion_tokens": 5771,
+      "total_tokens": 15037,
+      "prompt_tokens_details": {
+        "cached_tokens": 128
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4535
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00483368,
+        "allowance": 0.00290021,
+        "tokens": {
+          "input": 9138,
+          "output": 5771,
+          "reasoning": 4535,
+          "cache_read": 128,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 36.551
+  },
+  {
+    "started": "2026-11-04T13:16:52.214Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 25,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "mutate_app_ui_model",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2441,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 648,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1474,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2193,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "enable_creator_tools",
+        "argumentCharacters": 68,
+        "id": "call_e857c4ba2df4428aa0eac9ed"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2070,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2804,
+        "sha256": "b590335190527ade2fd30beccf9dcc0475ef216f24377ab9e2a2b1ecb58fab6c"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 29868,
+      "completion_tokens": 515,
+      "total_tokens": 30383,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 458
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0047892,
+        "allowance": 0.00287352,
+        "tokens": {
+          "input": 29868,
+          "output": 515,
+          "reasoning": 458,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.124
+  },
+  {
+    "started": "2026-11-04T13:16:57.385Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2441,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 648,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1474,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2193,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2070,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 70,
+        "id": "call_5be74708e01446e3b92949a4"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 574,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2804,
+        "sha256": "b590335190527ade2fd30beccf9dcc0475ef216f24377ab9e2a2b1ecb58fab6c"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36288,
+      "completion_tokens": 213,
+      "total_tokens": 36501,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 131
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.005571,
+        "allowance": 0.0033426,
+        "tokens": {
+          "input": 36288,
+          "output": 213,
+          "reasoning": 131,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 4.972
+  },
+  {
+    "started": "2026-11-04T13:17:02.467Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 6513,
+    "reasoningCharacters": 19167,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 6972,
+      "completion_tokens": 5733,
+      "total_tokens": 12705,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 4078
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0044856,
+        "allowance": 0.00269136,
+        "tokens": {
+          "input": 6972,
+          "output": 5733,
+          "reasoning": 4078,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 29.41
+  },
+  {
+    "started": "2026-11-04T13:17:31.898Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2193,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2070,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 574,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 108,
+        "id": "call_f4f885e36a6347cfa218a27a"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1369,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2804,
+        "sha256": "b590335190527ade2fd30beccf9dcc0475ef216f24377ab9e2a2b1ecb58fab6c"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 33089,
+      "completion_tokens": 381,
+      "total_tokens": 33470,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 282
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00519195,
+        "allowance": 0.00311517,
+        "tokens": {
+          "input": 33089,
+          "output": 381,
+          "reasoning": 282,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.488
+  },
+  {
+    "started": "2026-11-04T13:17:38.484Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2193,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2070,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 574,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1369,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 105,
+        "id": "call_ebf3a1b40bea4e23b21d1cd6"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 343,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2804,
+        "sha256": "b590335190527ade2fd30beccf9dcc0475ef216f24377ab9e2a2b1ecb58fab6c"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36089,
+      "completion_tokens": 188,
+      "total_tokens": 36277,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 72
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00552615,
+        "allowance": 0.00331569,
+        "tokens": {
+          "input": 36089,
+          "output": 188,
+          "reasoning": 72,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 3.514
+  },
+  {
+    "started": "2026-11-04T13:17:42.041Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2193,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2070,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 574,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1369,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 343,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "list_ui_plugins",
+        "argumentCharacters": 2,
+        "id": "call_ce125c21286a4c9b86e7be03"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 83,
+        "id": "call_fcd893011a7e4ca1bdef702f"
+      },
+      {
+        "index": 2,
+        "name": "ls",
+        "argumentCharacters": 42,
+        "id": "call_02e085bf61a54185a2b5cf56"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 3320,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2804,
+        "sha256": "b590335190527ade2fd30beccf9dcc0475ef216f24377ab9e2a2b1ecb58fab6c"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/manifest.json",
+        "hash": "7370a93b34c21c838365134558d2a22ad1f2fa43c002f364a8b3fe556907ae04",
+        "start": 1,
+        "end": 15,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37071,
+      "completion_tokens": 902,
+      "total_tokens": 37973,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 769
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00610185,
+        "allowance": 0.00366111,
+        "tokens": {
+          "input": 37071,
+          "output": 902,
+          "reasoning": 769,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 14.711
+  },
+  {
+    "started": "2026-11-04T13:18:05.721Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 8476,
+    "reasoningCharacters": 16406,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 6106,
+      "completion_tokens": 5564,
+      "total_tokens": 11670,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3336
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0042543,
+        "allowance": 0.00255258,
+        "tokens": {
+          "input": 6106,
+          "output": 5564,
+          "reasoning": 3336,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 58.85
+  },
+  {
+    "started": "2026-11-04T13:19:04.589Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 574,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1369,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 343,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3320,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_project",
+        "argumentCharacters": 38,
+        "id": "call_7729bfb134d24d1c9e399090"
+      },
+      {
+        "index": 1,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 100,
+        "id": "call_26ab7f586333405ca82e7526"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2627,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1057,
+        "sha256": "ce5ef00be4d9a938b217f5b149190b02501158f02c6ed09b282f995b831177e3"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3804,
+        "sha256": "13fe2a5369528b83e2a24fb76ff252927f54b194b6869e44aac736fffcff3c76"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35434,
+      "completion_tokens": 796,
+      "total_tokens": 36230,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 656
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0057927,
+        "allowance": 0.00347562,
+        "tokens": {
+          "input": 35434,
+          "output": 796,
+          "reasoning": 656,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 9.232
+  },
+  {
+    "started": "2026-11-04T13:19:25.637Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 9950,
+    "reasoningCharacters": 5828,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 8058,
+      "completion_tokens": 3835,
+      "total_tokens": 11893,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1188
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0035097,
+        "allowance": 0.00210582,
+        "tokens": {
+          "input": 8058,
+          "output": 3835,
+          "reasoning": 1188,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 19.407
+  },
+  {
+    "started": "2026-11-04T13:19:45.061Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 343,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3320,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2627,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 70,
+        "id": "call_108b85625de54828a20e9cd0"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 15,
+        "id": "call_9669d696194740fb9b06e7a6"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 82,
+        "id": "call_35a5d66399ff491a9115a801"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 6666,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1239,
+        "sha256": "5658d2c92dc651fc32cecf8bc10625b455b15ba244e9c49ab0ad27cbb46b3707"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3804,
+        "sha256": "13fe2a5369528b83e2a24fb76ff252927f54b194b6869e44aac736fffcff3c76"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/context-retrieval-message/definition.ts",
+        "hash": "40c1c00790e2aea87c8831abf2fc03de57666dcbb907138560f36e2d5dba90b0",
+        "start": 1,
+        "end": 7,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35124,
+      "completion_tokens": 1796,
+      "total_tokens": 36920,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1613
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0063462,
+        "allowance": 0.00380772,
+        "tokens": {
+          "input": 35124,
+          "output": 1796,
+          "reasoning": 1613,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 17.448
+  },
+  {
+    "started": "2026-11-04T13:20:02.618Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 10902,
+    "reasoningCharacters": 14379,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 5728,
+      "completion_tokens": 6128,
+      "total_tokens": 11856,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3121
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.004536,
+        "allowance": 0.0027216,
+        "tokens": {
+          "input": 5728,
+          "output": 6128,
+          "reasoning": 3121,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 50.371
+  },
+  {
+    "started": "2026-11-04T13:20:53.007Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2627,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6666,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 85,
+        "id": "call_4cda3bfa371e4cd6a54df3a3"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 86,
+        "id": "call_4ce775d3ac6d41a6b1f80765"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 52,
+        "id": "call_0855039d10f1453399969c82"
+      },
+      {
+        "index": 3,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 128,
+        "id": "call_b875e469df844708921dfff2"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1107,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1239,
+        "sha256": "5658d2c92dc651fc32cecf8bc10625b455b15ba244e9c49ab0ad27cbb46b3707"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3788,
+        "sha256": "8405b2ebbb7bca677b357aa0b5513cae11c30faa2a8c75c87c709f208fec2317"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/runtime-config.generated.ts",
+        "hash": "5c3fa2e40b6fa395ece974c35d08c7a0e31794e443b5053355e137e852eaed8b",
+        "start": 1,
+        "end": 3,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36801,
+      "completion_tokens": 599,
+      "total_tokens": 37400,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 286
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00587955,
+        "allowance": 0.00352773,
+        "tokens": {
+          "input": 36801,
+          "output": 599,
+          "reasoning": 286,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 10.583
+  },
+  {
+    "started": "2026-11-04T13:21:12.952Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2627,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6666,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 123,
+        "id": "call_c38c894cf2544abbbe4d4f5c"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 39,
+        "id": "call_da212e85daae43e38e2e59cd"
+      },
+      {
+        "index": 2,
+        "name": "grep",
+        "argumentCharacters": 67,
+        "id": "call_ac7f7832fec54d4ca2b270f8"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1290,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 40074,
+      "completion_tokens": 528,
+      "total_tokens": 40602,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 323
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0063279,
+        "allowance": 0.00379674,
+        "tokens": {
+          "input": 40074,
+          "output": 528,
+          "reasoning": 323,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 18.081
+  },
+  {
+    "started": "2026-11-04T13:21:40.159Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 10262,
+    "reasoningCharacters": 13976,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 7898,
+      "completion_tokens": 5866,
+      "total_tokens": 13764,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3004
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0047043,
+        "allowance": 0.00282258,
+        "tokens": {
+          "input": 7898,
+          "output": 5866,
+          "reasoning": 3004,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 37.802
+  },
+  {
+    "started": "2026-11-04T13:22:17.981Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6666,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1290,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "ls",
+        "argumentCharacters": 24,
+        "id": "call_f041e40e6a374673b20cea3e"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 54,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37206,
+      "completion_tokens": 57,
+      "total_tokens": 37263,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 15
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0056151,
+        "allowance": 0.00336906,
+        "tokens": {
+          "input": 37206,
+          "output": 57,
+          "reasoning": 15,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.463
+  },
+  {
+    "started": "2026-11-04T13:22:24.487Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6666,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1290,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 54,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 122,
+        "id": "call_23c7926be26d4447acce40b2"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1183,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37355,
+      "completion_tokens": 418,
+      "total_tokens": 37773,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 289
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00585405,
+        "allowance": 0.00351243,
+        "tokens": {
+          "input": 37355,
+          "output": 418,
+          "reasoning": 289,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.976
+  },
+  {
+    "started": "2026-11-04T13:22:30.513Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6666,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1290,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 54,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 121,
+        "id": "call_1c619b0cd94a4411b3fa2ad6"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 920,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37983,
+      "completion_tokens": 324,
+      "total_tokens": 38307,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 211
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00589185,
+        "allowance": 0.00353511,
+        "tokens": {
+          "input": 37983,
+          "output": 324,
+          "reasoning": 211,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.128
+  },
+  {
+    "started": "2026-11-04T13:22:35.730Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 10781,
+    "reasoningCharacters": 12201,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 6489,
+      "completion_tokens": 5641,
+      "total_tokens": 12130,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2610
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00435795,
+        "allowance": 0.00261477,
+        "tokens": {
+          "input": 6489,
+          "output": 5641,
+          "reasoning": 2610,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "error": "AbortError",
+    "seconds": 31.405
+  },
+  {
+    "started": "2026-11-04T13:23:07.152Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1290,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 54,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 920,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 105,
+        "id": "call_7a8bb52244d343afa52a1102"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 268,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36330,
+      "completion_tokens": 182,
+      "total_tokens": 36512,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 66
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0055587,
+        "allowance": 0.00333522,
+        "tokens": {
+          "input": 36330,
+          "output": 182,
+          "reasoning": 66,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.199
+  },
+  {
+    "started": "2026-11-04T13:23:12.398Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1107,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1290,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 54,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 920,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 268,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 68,
+        "id": "call_cd86026587614d0ea27be5f7"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 82,
+        "id": "call_a3f1e7bba84d4c4597ff61b7"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 77,
+        "id": "call_585e20213b0042ed91828479"
+      },
+      {
+        "index": 3,
+        "name": "grep",
+        "argumentCharacters": 78,
+        "id": "call_9d08bfd8159c45fa8455697b"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 6082,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 4760,
+        "sha256": "56ccd54db117d3bd55c806f62b9ab3e830be8cc10c75c681bde1a771c35fd766"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37306,
+      "completion_tokens": 1715,
+      "total_tokens": 39021,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1427
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0066249,
+        "allowance": 0.00397494,
+        "tokens": {
+          "input": 37306,
+          "output": 1715,
+          "reasoning": 1427,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 14.848
+  },
+  {
+    "started": "2026-11-04T13:23:27.552Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 11112,
+    "reasoningCharacters": 14253,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 8090,
+      "completion_tokens": 6215,
+      "total_tokens": 14305,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3143
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0049425,
+        "allowance": 0.0029655,
+        "tokens": {
+          "input": 8090,
+          "output": 6215,
+          "reasoning": 3143,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 55.792
+  },
+  {
+    "started": "2026-11-04T13:24:23.364Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 920,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 268,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6082,
+        "toolCalls": 4
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "prepare_ui_plugin_development",
+        "argumentCharacters": 754,
+        "id": "call_339f484e20c145aa9a92a71f"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 656,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1436,
+        "sha256": "df51f694914ab3e31ab28c0ee8d12b9668928b6b30ef8da0f2bb4fdc86c06f0e"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3142,
+        "sha256": "e2a10b0fedc1ab387bf784b20ae354089a412df07b393f5b29b82d6fa333999a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35397,
+      "completion_tokens": 510,
+      "total_tokens": 35907,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 160
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00561555,
+        "allowance": 0.00336933,
+        "tokens": {
+          "input": 35397,
+          "output": 510,
+          "reasoning": 160,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.953
+  },
+  {
+    "started": "2026-11-04T13:24:51.045Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 920,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 268,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6082,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 656,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 85,
+        "id": "call_5c22933dbe99439d8b433567"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 85,
+        "id": "call_7a81284529fe452a95a90af2"
+      },
+      {
+        "index": 2,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 143,
+        "id": "call_5169ba41a6484d7ca06a0886"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1164,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3142,
+        "sha256": "e2a10b0fedc1ab387bf784b20ae354089a412df07b393f5b29b82d6fa333999a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35953,
+      "completion_tokens": 530,
+      "total_tokens": 36483,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 289
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00571095,
+        "allowance": 0.00342657,
+        "tokens": {
+          "input": 35953,
+          "output": 530,
+          "reasoning": 289,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 8.158
+  },
+  {
+    "started": "2026-11-04T13:25:09.110Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1183,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 920,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 268,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6082,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 656,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1164,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 174,
+        "id": "call_2d579325cca84eb990139629"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 74,
+        "id": "call_d84672c273324c94b5fcbb0e"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1057,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3142,
+        "sha256": "e2a10b0fedc1ab387bf784b20ae354089a412df07b393f5b29b82d6fa333999a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 38825,
+      "completion_tokens": 460,
+      "total_tokens": 39285,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 269
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00609975,
+        "allowance": 0.00365985,
+        "tokens": {
+          "input": 38825,
+          "output": 460,
+          "reasoning": 269,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.614
+  },
+  {
+    "started": "2026-11-04T13:25:25.821Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 11030,
+    "reasoningCharacters": 6351,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 7427,
+      "completion_tokens": 4321,
+      "total_tokens": 11748,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1319
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00370665,
+        "allowance": 0.00222399,
+        "tokens": {
+          "input": 7427,
+          "output": 4321,
+          "reasoning": 1319,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 26.946
+  },
+  {
+    "started": "2026-11-04T13:25:52.787Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 6082,
+        "toolCalls": 4
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 656,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1164,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1057,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 141,
+        "id": "call_2e34dc39f24747968b798406"
+      },
+      {
+        "index": 1,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 153,
+        "id": "call_9c93bb302e9e4647bd46f2a4"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1276,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3186,
+        "sha256": "bbf1cc6a84394aed9b39b2f5672e69d719cb9d368752d4596f3c46974a981ef9"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36314,
+      "completion_tokens": 499,
+      "total_tokens": 36813,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 293
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0057465,
+        "allowance": 0.0034479,
+        "tokens": {
+          "input": 36314,
+          "output": 499,
+          "reasoning": 293,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 9.323
+  },
+  {
+    "started": "2026-11-04T13:26:19.419Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 0,
+    "reasoningCharacters": 0,
+    "hostContext": [],
+    "hostSourceState": [],
+    "error": "TypeError",
+    "code": "ECONNRESET",
+    "seconds": 3.004
+  },
+  {
+    "started": "2026-11-04T13:26:22.733Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 11476,
+    "reasoningCharacters": 3679,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 6147,
+      "completion_tokens": 3872,
+      "total_tokens": 10019,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 762
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00324525,
+        "allowance": 0.00194715,
+        "tokens": {
+          "input": 6147,
+          "output": 3872,
+          "reasoning": 762,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "error": "AbortError",
+    "seconds": 21.505
+  },
+  {
+    "started": "2026-11-04T13:26:44.261Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1164,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1057,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1276,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 82,
+        "id": "call_d454cba33fdd43429c237379"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 52,
+        "id": "call_dd061d78d76041aba8ea14ab"
+      },
+      {
+        "index": 2,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 139,
+        "id": "call_a12d5061e6f34aa3aae2956c"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 3646,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3186,
+        "sha256": "bbf1cc6a84394aed9b39b2f5672e69d719cb9d368752d4596f3c46974a981ef9"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "package.json",
+        "hash": "fbb5c32ebf841b804be47a30df589d8f2b8c6fe3e8edf2916114a0f892cef4ae",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 36227,
+      "completion_tokens": 1142,
+      "total_tokens": 37369,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 899
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00611925,
+        "allowance": 0.00367155,
+        "tokens": {
+          "input": 36227,
+          "output": 1142,
+          "reasoning": 899,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 11.754
+  },
+  {
+    "started": "2026-11-04T13:27:05.248Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1164,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1057,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1276,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3646,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 163,
+        "id": "call_eb1c5210d2e14e42b38970a6"
+      },
+      {
+        "index": 1,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 85,
+        "id": "call_0110097e84c6492aacb03f76"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1872,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3688,
+        "sha256": "b08ff2b60dbb3f1c85a67ba89de92ea5ec889c44cb3f317bfb1246ecb35869e8"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 39138,
+      "completion_tokens": 691,
+      "total_tokens": 39829,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 486
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0062853,
+        "allowance": 0.00377118,
+        "tokens": {
+          "input": 39138,
+          "output": 691,
+          "reasoning": 486,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 17.994
+  },
+  {
+    "started": "2026-11-04T13:27:32.641Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 13046,
+    "reasoningCharacters": 16914,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 11644,
+      "completion_tokens": 7235,
+      "total_tokens": 18879,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3608
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0060876,
+        "allowance": 0.00365256,
+        "tokens": {
+          "input": 11644,
+          "output": 7235,
+          "reasoning": 3608,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 34.584
+  },
+  {
+    "started": "2026-11-04T13:28:07.244Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3646,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1872,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 81,
+        "id": "call_a32c35dd968241ce95b242ce"
+      },
+      {
+        "index": 1,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 105,
+        "id": "call_1509648b6cda46748ca0571a"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2130,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3688,
+        "sha256": "b08ff2b60dbb3f1c85a67ba89de92ea5ec889c44cb3f317bfb1246ecb35869e8"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 38401,
+      "completion_tokens": 706,
+      "total_tokens": 39107,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 517
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00618375,
+        "allowance": 0.00371025,
+        "tokens": {
+          "input": 38401,
+          "output": 706,
+          "reasoning": 517,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 9.613
+  },
+  {
+    "started": "2026-11-04T13:28:16.920Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 3646,
+        "toolCalls": 3
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1872,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2130,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 138,
+        "id": "call_d091ad5016fe4ccfb400c62a"
+      },
+      {
+        "index": 1,
+        "name": "read_creator_documentation",
+        "argumentCharacters": 92,
+        "id": "call_8a2d7e6c5c2d46869af154ad"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1179,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 40136,
+      "completion_tokens": 455,
+      "total_tokens": 40591,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 262
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0062934,
+        "allowance": 0.00377604,
+        "tokens": {
+          "input": 40136,
+          "output": 455,
+          "reasoning": 262,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.51
+  },
+  {
+    "started": "2026-11-04T13:28:31.715Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 13927,
+    "reasoningCharacters": 14597,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 6180,
+      "completion_tokens": 7009,
+      "total_tokens": 13189,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3120
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0051324,
+        "allowance": 0.00307944,
+        "tokens": {
+          "input": 6180,
+          "output": 7009,
+          "reasoning": 3120,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "error": "AbortError",
+    "seconds": 33.011
+  },
+  {
+    "started": "2026-11-04T13:29:04.755Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 14314,
+    "reasoningCharacters": 11458,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 16806,
+      "completion_tokens": 6499,
+      "total_tokens": 23305,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2467
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0064203,
+        "allowance": 0.00385218,
+        "tokens": {
+          "input": 16806,
+          "output": 6499,
+          "reasoning": 2467,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 42.163
+  },
+  {
+    "started": "2026-11-04T13:29:46.937Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_project",
+        "argumentCharacters": 38,
+        "id": "call_71d3f457249c46c1be025603"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 77,
+        "id": "call_f1f8d4fddda5403186f04b12"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 683,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 28361,
+      "completion_tokens": 270,
+      "total_tokens": 28631,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 143
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00441615,
+        "allowance": 0.00264969,
+        "tokens": {
+          "input": 28361,
+          "output": 270,
+          "reasoning": 143,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 9.006
+  },
+  {
+    "started": "2026-11-04T13:29:56.136Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 683,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_file",
+        "argumentCharacters": 102,
+        "id": "call_473a5a0c2b9c4e6eac49252c"
+      },
+      {
+        "index": 1,
+        "name": "read_file",
+        "argumentCharacters": 70,
+        "id": "call_8612e65148bd4d0d8ef15cc8"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2214,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 31462,
+      "completion_tokens": 638,
+      "total_tokens": 32100,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 483
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0051021,
+        "allowance": 0.00306126,
+        "tokens": {
+          "input": 31462,
+          "output": 638,
+          "reasoning": 483,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 5.969
+  },
+  {
+    "started": "2026-11-04T13:30:02.184Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 683,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2214,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_context",
+        "argumentCharacters": 137,
+        "id": "call_7e02a2417e88401ebab41423"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 343,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 35411,
+      "completion_tokens": 197,
+      "total_tokens": 35608,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 68
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00542985,
+        "allowance": 0.00325791,
+        "tokens": {
+          "input": 35411,
+          "output": 197,
+          "reasoning": 68,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 7.026
+  },
+  {
+    "started": "2026-11-04T13:30:09.274Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 683,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2214,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 343,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_context",
+        "argumentCharacters": 140,
+        "id": "call_b2e69fb2336d4fe6b321b086"
+      },
+      {
+        "index": 1,
+        "name": "ls",
+        "argumentCharacters": 24,
+        "id": "call_4b7f5597222e4a158afd96a1"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 1623,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37658,
+      "completion_tokens": 561,
+      "total_tokens": 38219,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 400
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0059853,
+        "allowance": 0.00359118,
+        "tokens": {
+          "input": 37658,
+          "output": 561,
+          "reasoning": 400,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 6.341
+  },
+  {
+    "started": "2026-11-04T13:30:15.695Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 14322,
+    "reasoningCharacters": 3779,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 7602,
+      "completion_tokens": 4830,
+      "total_tokens": 12432,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 796
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0040383,
+        "allowance": 0.00242298,
+        "tokens": {
+          "input": 7602,
+          "output": 4830,
+          "reasoning": 796,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 35.653
+  },
+  {
+    "started": "2026-11-04T13:30:51.369Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2214,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 343,
+        "toolCalls": 1
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1623,
+        "toolCalls": 2
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "read_creator_context",
+        "argumentCharacters": 141,
+        "id": "call_0bdc1fb6bf704da1b8cca450"
+      },
+      {
+        "index": 1,
+        "name": "inspect_ui_plugin",
+        "argumentCharacters": 150,
+        "id": "call_32e5584398a64d4c85d7999f"
+      },
+      {
+        "index": 2,
+        "name": "ls",
+        "argumentCharacters": 32,
+        "id": "call_45c28c7294bc44cd9a8c1896"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 2443,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37099,
+      "completion_tokens": 890,
+      "total_tokens": 37989,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 624
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00609885,
+        "allowance": 0.00365931,
+        "tokens": {
+          "input": 37099,
+          "output": 890,
+          "reasoning": 624,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 10.737
+  },
+  {
+    "started": "2026-11-04T13:31:11.589Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 0,
+    "reasoningCharacters": 0,
+    "hostContext": [],
+    "hostSourceState": [],
+    "error": "TypeError",
+    "code": "ECONNRESET",
+    "seconds": 3.004
+  },
+  {
+    "started": "2026-11-04T13:31:14.914Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 15753,
+    "reasoningCharacters": 12955,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 10241,
+      "completion_tokens": 7207,
+      "total_tokens": 17448,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2817
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00586035,
+        "allowance": 0.00351621,
+        "tokens": {
+          "input": 10241,
+          "output": 7207,
+          "reasoning": 2817,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 33.983
+  },
+  {
+    "started": "2026-11-04T13:31:48.936Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 1623,
+        "toolCalls": 2
+      },
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 2443,
+        "toolCalls": 3
+      }
+    ],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "ls",
+        "argumentCharacters": 39,
+        "id": "call_4b7b581e6cf545f5a19dc778"
+      },
+      {
+        "index": 1,
+        "name": "grep",
+        "argumentCharacters": 69,
+        "id": "call_c101c1908ed541e0b0302fc5"
+      },
+      {
+        "index": 2,
+        "name": "read_file",
+        "argumentCharacters": 82,
+        "id": "call_c43df5a8de9c4e17bda0ef30"
+      },
+      {
+        "index": 3,
+        "name": "read_file",
+        "argumentCharacters": 68,
+        "id": "call_8dc610b58aaf4b01b66bd36b"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 24751,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 3918,
+        "sha256": "7199039c7399d5898e40245e202d95e49d3edd2a4b8d3d965d98f83e1c04686a"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/project-config.tsx",
+        "hash": "812c39cc3c73462e2e85ec0b4c2ac847fe5a62ebf7e2f826ae4a11bc27ad98f3",
+        "start": 1,
+        "end": 25,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "hash": "eaf24f292fc9b22afd302552de9ae8ea85d8b45d69af6cab563d75f771d437e7",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      }
+    ],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 37390,
+      "completion_tokens": 6274,
+      "total_tokens": 43664,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 6023
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0093729,
+        "allowance": 0.00562374,
+        "tokens": {
+          "input": 37390,
+          "output": 6274,
+          "reasoning": 6023,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 39.235
+  },
+  {
+    "started": "2026-11-04T13:32:28.412Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 16865,
+    "reasoningCharacters": 18622,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 7142,
+      "completion_tokens": 8735,
+      "total_tokens": 15877,
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_write_tokens": 0
+      },
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 4065,
+        "rejected_prediction_tokens": 0
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0063123,
+        "allowance": 0.00378738,
+        "tokens": {
+          "input": 7142,
+          "output": 8735,
+          "reasoning": 4065,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 50.387
+  },
+  {
+    "started": "2026-11-04T13:33:18.832Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "summary",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 16049,
+    "reasoningCharacters": 15116,
+    "hostContext": [],
+    "hostSourceState": [],
+    "status": 200,
+    "returnedModel": "deepseek-v4.1-flash",
+    "usage": {
+      "prompt_tokens": 11517,
+      "completion_tokens": 7679,
+      "total_tokens": 19196,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3221
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00633495,
+        "allowance": 0.00380097,
+        "tokens": {
+          "input": 11517,
+          "output": 7679,
+          "reasoning": 3221,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 45.876
+  },
+  {
+    "started": "2026-11-04T13:34:04.733Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 16384,
+    "toolCount": 50,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "list_ui_plugins",
+      "inspect_ui_services",
+      "inspect_agent_ui_sources",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "preflight_ui_plugin_placement",
+      "inspect_ui_plugin_source_references",
+      "mutate_app_ui_model",
+      "apply_agent_ui_source_item",
+      "purge_ui_plugin",
+      "inspect_app_ui_model_source",
+      "repair_app_ui_model",
+      "plan_agent_ui_integration",
+      "apply_agent_ui_integration",
+      "verify_agent_ui_integration",
+      "prepare_agent_ui_integration_asset",
+      "create_custom_plugin",
+      "takeover_plugin_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "edit_file",
+      "verify_creator_outcome",
+      "edit_file_from_read",
+      "create_ui_source_file",
+      "create_ui_plugin",
+      "mutate_ui_plugin_source",
+      "prepare_ui_service_contract_change",
+      "create_ui_service_contract",
+      "mutate_ui_service_contract",
+      "prepare_ui_service_implementation_change",
+      "apply_ui_service_implementation_change",
+      "ask_user_question",
+      "prepare_ui_plugin_development",
+      "inspect_ui_capabilities",
+      "validate_creator_changes",
+      "inspect_static_diagnostics",
+      "inspect_runtime_errors",
+      "inspect_runtime_layout",
+      "select_debugging_target",
+      "select_all_current_runtime_diagnostics",
+      "verify_ui_plugin_behavior",
+      "inspect_ui_plugin_delivery"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 0,
+    "reasoningCharacters": 0,
+    "hostContext": [
+      {
+        "kind": "Host current development decisions and inspected ownership. This live question state is authoritative over historical summaries.",
+        "characters": 1456,
+        "sha256": "e08d61757fa58471d964da3bfa4c2a39bce17fba0754580454831bad1e6c634a"
+      },
+      {
+        "kind": "Host same-run source observations (data, not authorization; original file-hash guards still apply):",
+        "characters": 2300,
+        "sha256": "a1a1648ead45d71c59ce64663fb733d107469672e38e6cbf5bd50e7b7dc32923"
+      }
+    ],
+    "hostSourceState": [
+      {
+        "path": "src/agent-ui/plugins/index.ts",
+        "hash": "b0ae06f1641dc84384a7fc95c707cbddd9d8a07dc476db2d938435e81b45c633",
+        "start": 1,
+        "end": 5,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/styles.css",
+        "hash": "712df76a57ba4d7a18cadc8058fea7f73db93add1d42e6c6f73c0da92ac0970e",
+        "start": 1,
+        "end": 17,
+        "truncated": false
+      },
+      {
+        "path": "src/agent-ui/plugins/test-notice/index.tsx",
+        "hash": "7d66604c58f2277a0f7a448ba3c62c7a5500d8e948bb77224642a20b1fdab685",
+        "start": 1,
+        "end": 19,
+        "truncated": false
+      },
+      {
+        "path": "tsconfig.json",
+        "hash": "7329a78cb11f43f27a5d4e3d58227509f07e3b6ccf9eb6f0995d090c28bdb120",
+        "start": 1,
+        "end": 1,
+        "truncated": false
+      }
+    ],
+    "error": "AbortError",
+    "seconds": 4.416
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "status": 200,
+  "requestedModel": "deepseek-v4.1-flash",
+  "returnedModels": 28,
+  "model": {
+    "id": "deepseek-v4.1-flash",
+    "name": "DeepSeek V4.1 Flash",
+    "limit": {
+      "context": 1000000,
+      "output": 384000
+    },
+    "capabilities": {
+      "tools": {
+        "supported": true
+      },
+      "reasoning": {
+        "supported": true,
+        "effort": [
+          "low",
+          "high",
+          "max"
+        ]
+      },
+      "structured_output": true,
+      "temperature": true,
+      "top_p": true,
+      "top_k": true,
+      "system_updates": true,
+      "effort_updates": false
+    }
+  }
+}

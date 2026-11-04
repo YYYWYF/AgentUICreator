@@ -1,0 +1,22 @@
+{
+  "id": "sales-report-message",
+  "name": "Sales report message",
+  "description": "Renders app.sales.report CUSTOM events as an inline monthly sales table inside the conversation.",
+  "version": "0.0.1",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messageUI": true,
+    "events": [
+      "app.sales.report"
+    ]
+  },
+  "authoring": {
+    "intents": [
+      "show a monthly sales report table in the conversation",
+      "在聊天消息里显示月度销售报表表格"
+    ],
+    "visualRole": "inline sales report data message inside the conversation"
+  }
+}

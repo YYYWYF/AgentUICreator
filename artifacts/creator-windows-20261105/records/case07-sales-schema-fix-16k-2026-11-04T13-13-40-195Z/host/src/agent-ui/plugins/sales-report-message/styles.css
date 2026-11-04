@@ -1,0 +1,151 @@
+.sales-report {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sales-report__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sales-report__table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.sales-report__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-report__table th,
+.sales-report__table td {
+  padding: 6px 8px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.sales-report__table tbody tr:last-child th,
+.sales-report__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sales-report__head-cell {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.sales-report__head-cell--revenue {
+  text-align: right;
+}
+
+.sales-report__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sales-report__sort:hover {
+  background: var(--muted);
+}
+
+.sales-report__sort:focus-visible {
+  outline: 2px solid var(--ring, var(--border));
+  outline-offset: 2px;
+}
+
+.sales-report__row {
+  cursor: pointer;
+}
+
+.sales-report__row:hover {
+  background: var(--muted);
+}
+
+.sales-report__row:focus-visible {
+  outline: 2px solid var(--ring, var(--border));
+  outline-offset: -2px;
+}
+
+.sales-report__row[data-selected="true"] {
+  background: var(--muted);
+}
+
+.sales-report__month {
+  font-weight: 500;
+  text-align: left;
+}
+
+.sales-report__row[data-selected="true"] .sales-report__month {
+  font-weight: 600;
+}
+
+.sales-report__revenue {
+  text-align: right;
+}
+
+.sales-report__detail {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.sales-report__detail[data-empty="true"] {
+  padding-left: 0;
+  background: transparent;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.sales-report__empty {
+  padding: 8px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.sales-report--invalid {
+  border-style: dashed;
+}
+
+.sales-report__invalid-text {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .sales-report {
+    padding: 10px;
+  }
+
+  .sales-report__table th,
+  .sales-report__table td {
+    padding: 6px;
+  }
+}

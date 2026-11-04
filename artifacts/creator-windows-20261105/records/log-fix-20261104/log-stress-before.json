@@ -1,0 +1,11 @@
+{
+  "platform": "win32",
+  "node": "v22.23.4",
+  "targetWrites": 150,
+  "status": "failed",
+  "code": "EPERM",
+  "message": "EPERM: operation not permitted, rename '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-log-stress-hmVgH4\\.agent-ui\\creator\\logs\\.2026-11-04T11-18-32.428Z_eba367faefd7489004ea95bd419aedd2bf294bd8596ea3f8c28b1a461aa97036.jsonl.creator-29824-e5241101-69b1-4001-954d-f726917f6ffb.tmp' -> '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-log-stress-hmVgH4\\.agent-ui\\creator\\logs\\2026-11-04T11-18-32.428Z_eba367faefd7489004ea95bd419aedd2bf294bd8596ea3f8c28b1a461aa97036.jsonl'",
+  "writes": 105,
+  "reads": 522,
+  "seconds": 0.828
+}

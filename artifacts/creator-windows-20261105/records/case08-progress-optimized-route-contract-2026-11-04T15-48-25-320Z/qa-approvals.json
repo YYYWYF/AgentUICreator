@@ -1,0 +1,62 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 254.598,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 新增项目自有插件 job-progress-panel：订阅应用事件 app.job.progress，以 job_id 为键维护任务列表（同 ID 覆盖更新、不同 ID 独立成行），显示标题、状态、completed/total 进度条；状态为完成时显示完成态，失败时提供可展开的错误 code/message 详情。面板以固定宽度可拖拽面板放在聊天区域右侧，中英文文案齐备，窄屏自适应。\n\n目标插件与位置: job-progress-panel\n\n需要新增的能力: 位于聊天区右侧的常驻任务进度面板; 消费 app.job.progress 业务应用事件的按 job_id 键控状态投影; 失败任务可展开的错误详情展示\n\n聊天区域右侧固定宽度 320px 可拖拽面板，窄屏下纵向堆叠",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "job-progress-panel",
+      "workKind": "create-plugin",
+      "desiredOutcome": "新增项目自有插件 job-progress-panel：订阅应用事件 app.job.progress，以 job_id 为键维护任务列表（同 ID 覆盖更新、不同 ID 独立成行），显示标题、状态、completed/total 进度条；状态为完成时显示完成态，失败时提供可展开的错误 code/message 详情。面板以固定宽度可拖拽面板放在聊天区域右侧，中英文文案齐备，窄屏自适应。",
+      "missingCapabilities": [
+        "位于聊天区右侧的常驻任务进度面板",
+        "消费 app.job.progress 业务应用事件的按 job_id 键控状态投影",
+        "失败任务可展开的错误详情展示"
+      ],
+      "deliveryContract": {
+        "capability": "按 job_id 键控渲染 app.job.progress 任务进度列表，含完成态与可展开错误详情",
+        "renderingCategory": "panel",
+        "placement": "聊天区域右侧固定宽度 320px 可拖拽面板，窄屏下纵向堆叠",
+        "lifecycle": "仅前端内存投影：组件挂载时订阅应用事件并在卸载时退订；无历史与重放",
+        "dependencies": [
+          "react",
+          "zod",
+          "@za38.03/agent-ui-plugins",
+          "@za38.03/agent-ui-runtime/ui"
+        ],
+        "reusedComponents": [
+          "usePluginEvents",
+          "useAgentUILocaleCode",
+          "scoped plugin styles.css"
+        ],
+        "verificationMethod": "runtime",
+        "interactions": [
+          "同一 job_id 的多次事件更新同一行",
+          "不同 job_id 各自成行",
+          "失败任务点击展开错误 code/message"
+        ]
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

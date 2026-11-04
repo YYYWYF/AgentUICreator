@@ -1,0 +1,9 @@
+{
+  "reason": "Stop normally before adding registry synchronization navigation; diagnostic attempt, not final acceptance",
+  "at": "2026-11-04T15:53:51.812Z",
+  "status": 202,
+  "result": {
+    "status": "stopping",
+    "runId": "a611ddfb-3bf5-4b8f-b22a-d84316c2adb3"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "creatorOrigin": "http://127.0.0.1:5174/",
+  "hostOrigin": "http://127.0.0.1:5176/",
+  "hostRoot": "<USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-Wbs12c\\host",
+  "agentEndpoint": "http://127.0.0.1:51535/agent",
+  "previewAgentSource": "connected"
+}

@@ -1,0 +1,126 @@
+{
+  "scope": "Independent replay of unchanged model-generated source. No new model call or source repair. Creator preview explicitly connected to the controlled AG-UI test endpoint through the existing connection API.",
+  "source": "<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case08-progress-final-guidance-262k-2026-11-04T16-08-00-292Z",
+  "connection": {
+    "activeSource": "connected",
+    "enabled": true,
+    "connectionMode": "direct",
+    "endpoint": "http://127.0.0.1:56177/agent",
+    "configured": true,
+    "running": false
+  },
+  "staticChecks": [
+    {
+      "script": "typecheck",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "script": "build",
+      "status": "passed",
+      "exitCode": 0
+    }
+  ],
+  "browserErrors": [],
+  "interaction": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "custom event renders right-side progress panel",
+        "status": "passed"
+      },
+      {
+        "name": "same job updates without duplicating other jobs",
+        "status": "passed"
+      },
+      {
+        "name": "failed job exposes its error",
+        "status": "passed"
+      },
+      {
+        "name": "invalid progress does not crash UI",
+        "status": "passed"
+      }
+    ],
+    "protocolEventsSent": [
+      {
+        "at": "2026-11-04T16:21:56.410Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.job.progress",
+          "value": {
+            "job_id": "J-001",
+            "title": "生成销售报告",
+            "status": "running",
+            "completed": 3,
+            "total": 10,
+            "error": null
+          }
+        }
+      },
+      {
+        "at": "2026-11-04T16:21:56.806Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.job.progress",
+          "value": {
+            "job_id": "J-002",
+            "title": "同步客户资料",
+            "status": "running",
+            "completed": 1,
+            "total": 5,
+            "error": null
+          }
+        }
+      },
+      {
+        "at": "2026-11-04T16:21:56.806Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.job.progress",
+          "value": {
+            "job_id": "J-001",
+            "title": "生成销售报告",
+            "status": "completed",
+            "completed": 10,
+            "total": 10,
+            "error": null
+          }
+        }
+      },
+      {
+        "at": "2026-11-04T16:21:57.174Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.job.progress",
+          "value": {
+            "job_id": "J-002",
+            "title": "同步客户资料",
+            "status": "failed",
+            "completed": 1,
+            "total": 5,
+            "error": {
+              "code": "DATA_SOURCE_UNAVAILABLE",
+              "message": "销售数据暂时无法读取"
+            }
+          }
+        }
+      },
+      {
+        "at": "2026-11-04T16:21:57.636Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.job.progress",
+          "value": {
+            "job_id": null,
+            "completed": "invalid",
+            "total": 0
+          }
+        }
+      }
+    ]
+  },
+  "controlledAgentRuns": 1,
+  "sourceDifferences": [],
+  "sourceUnchanged": true
+}

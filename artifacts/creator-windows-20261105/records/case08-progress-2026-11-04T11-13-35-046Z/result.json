@@ -1,0 +1,16 @@
+{
+  "caseId": "case08-progress",
+  "status": "RUN_ERROR",
+  "seconds": 681.652,
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "EPERM",
+      "message": "EPERM: operation not permitted, rename '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-UCypoO\\host\\.agent-ui\\creator\\logs\\.2026-11-04T11-13-58.165Z_a6df43022a084876893bb364a6d7fcad9b6cf9f0ec49780641b30082ee2a4913.jsonl.creator-28468-2e7058a7-7c59-4fad-84ed-18e8228c66d9.tmp' -> '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-UCypoO\\host\\.agent-ui\\creator\\logs\\2026-11-04T11-13-58.165Z_a6df43022a084876893bb364a6d7fcad9b6cf9f0ec49780641b30082ee2a4913.jsonl'"
+    }
+  ],
+  "toolCalls": 56,
+  "changedPaths": [],
+  "qaApprovals": [],
+  "browserErrors": []
+}

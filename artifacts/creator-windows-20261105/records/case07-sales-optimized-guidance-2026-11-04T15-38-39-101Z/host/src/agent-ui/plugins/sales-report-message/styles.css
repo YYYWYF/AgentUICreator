@@ -1,0 +1,96 @@
+.sales-report-message {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sales-report-message__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sales-report-message__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-report-message__table th,
+.sales-report-message__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border, rgba(127, 127, 127, 0.25));
+  text-align: left;
+  font-weight: 400;
+}
+
+.sales-report-message__table thead th {
+  color: var(--muted, #6b7280);
+  font-size: 12px;
+}
+
+.sales-report-message__table thead th:nth-child(2),
+.sales-report-message__revenue {
+  text-align: right;
+}
+
+.sales-report-message__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sales-report-message__sort:hover,
+.sales-report-message__sort:focus-visible {
+  color: var(--foreground, currentColor);
+  text-decoration: underline;
+}
+
+.sales-report-message__row {
+  cursor: pointer;
+}
+
+.sales-report-message__row:hover,
+.sales-report-message__row:focus-visible {
+  background: var(--accent, rgba(127, 127, 127, 0.08));
+}
+
+.sales-report-message__row:focus-visible {
+  outline: 2px solid var(--ring, rgba(59, 130, 246, 0.6));
+  outline-offset: -2px;
+}
+
+.sales-report-message__row[data-expanded="true"] th {
+  font-weight: 600;
+}
+
+.sales-report-message__detail td {
+  color: var(--muted, #6b7280);
+  background: var(--accent, rgba(127, 127, 127, 0.06));
+}
+
+.sales-report-message__detail-label {
+  margin-right: 6px;
+}
+
+.sales-report-message__detail-value {
+  color: var(--foreground, inherit);
+  font-weight: 600;
+}
+
+.sales-report-message__empty,
+.sales-report-message--notice {
+  margin: 0;
+  color: var(--muted, #6b7280);
+}

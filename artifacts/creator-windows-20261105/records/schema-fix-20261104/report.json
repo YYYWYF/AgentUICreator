@@ -1,0 +1,254 @@
+{
+  "generated": "2026-11-04T13:48:35.248Z",
+  "platform": "win32",
+  "node": "22.23.4",
+  "model": "deepseek-v4.1-flash",
+  "change": "Recognize explicit streamed schema grammar rejection and use the existing JSON-object fallback, keeping complete local permission, identity and uniqueness validation. Previous append-only log fix retained.",
+  "configuration": {
+    "outputTokens": 16384,
+    "contextTokens": 65536,
+    "keepTokens": 12000,
+    "requestTimeoutSeconds": 120
+  },
+  "validation": {
+    "focusedTests": 153,
+    "creatorTests": {
+      "passed": 511,
+      "failed": 2,
+      "skipped": 1,
+      "total": 514
+    },
+    "knownFailures": [
+      "Service public declaration guard uses a case-sensitive native-path comparison",
+      "Windows file-symlink test lacks OS permission"
+    ],
+    "typecheck": "passed",
+    "build": "passed",
+    "routeProbe": {
+      "status": "passed",
+      "policy": {
+        "readOnly": false,
+        "removalTarget": {
+          "description": "No Plugin removal, hiding, disabling, or replacement is requested; the user asks to increase the input box height.",
+          "pluginIds": [],
+          "status": "not_requested"
+        }
+      },
+      "requests": [
+        {
+          "responseFormat": "json_schema",
+          "maxTokens": 16384,
+          "httpStatus": 200
+        }
+      ],
+      "seconds": 3.578
+    }
+  },
+  "scenarios": [
+    {
+      "caseId": "case07-sales",
+      "folder": "<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case07-sales-schema-fix-16k-2026-11-04T13-13-40-195Z",
+      "outputBudget": "16384",
+      "contextBudget": "65536",
+      "status": "QA_TIMEOUT",
+      "seconds": 1200.641,
+      "toolCalls": 133,
+      "qaApprovals": 1,
+      "changedPaths": [
+        "src/agent-ui/app-ui.json",
+        "src/agent-ui/composition-revision.generated.json",
+        "src/agent-ui/plugins/registry.generated.ts",
+        "src/agent-ui/plugins/sales-report-message/definition.ts",
+        "src/agent-ui/plugins/sales-report-message/index.tsx",
+        "src/agent-ui/plugins/sales-report-message/manifest.json",
+        "src/agent-ui/plugins/sales-report-message/schema.ts",
+        "src/agent-ui/plugins/sales-report-message/styles.css"
+      ],
+      "verification": {
+        "status": "changed-unverified",
+        "projectRevision": 4,
+        "validationRevision": 2,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      },
+      "compression": {
+        "summaryModelCalls": 16,
+        "compactions": 14,
+        "summarySeconds": 515.3971186999999,
+        "offloadedArtifacts": 9
+      },
+      "toolErrors": [
+        {
+          "toolName": "read_file",
+          "status": "error",
+          "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        },
+        {
+          "toolName": "ls",
+          "status": "error",
+          "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        },
+        {
+          "toolName": "mutate_app_ui_model",
+          "status": "error",
+          "reason": "PLUGIN_REGISTRY_GENERATION_FAILED"
+        }
+      ],
+      "httpFailures": 0,
+      "streamErrors": [],
+      "modelRequests": {
+        "routing": {
+          "calls": 1,
+          "maximumOutputTokens": 185,
+          "lengthFinishes": 0,
+          "missingUsage": 0
+        },
+        "agent": {
+          "calls": 67,
+          "maximumOutputTokens": 8046,
+          "lengthFinishes": 0,
+          "missingUsage": 0
+        },
+        "summary": {
+          "calls": 16,
+          "maximumOutputTokens": 6886,
+          "lengthFinishes": 0,
+          "missingUsage": 2
+        }
+      },
+      "originalInteraction": {
+        "status": "failed",
+        "error": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\nCall Log:\n- Timeout 12000ms exceeded while waiting on the predicate",
+        "protocolEventsSent": 0
+      },
+      "cleanup": {
+        "closed": true,
+        "at": "2026-11-04T13:34:25.930Z"
+      }
+    },
+    {
+      "caseId": "case08-progress",
+      "folder": "<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case08-progress-schema-fix-16k-2026-11-04T13-13-39-938Z",
+      "outputBudget": "16384",
+      "contextBudget": "65536",
+      "status": "QA_TIMEOUT",
+      "seconds": 1200.493,
+      "toolCalls": 77,
+      "qaApprovals": 1,
+      "changedPaths": [],
+      "verification": {
+        "status": "no-project-change",
+        "projectRevision": 0,
+        "validationRevision": null,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      },
+      "compression": {
+        "summaryModelCalls": 20,
+        "compactions": 18,
+        "summarySeconds": 694.9503500999998,
+        "offloadedArtifacts": 6
+      },
+      "toolErrors": [
+        {
+          "toolName": "ls",
+          "status": "error",
+          "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        },
+        {
+          "toolName": "ls",
+          "status": "error",
+          "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        }
+      ],
+      "httpFailures": 0,
+      "streamErrors": [],
+      "modelRequests": {
+        "routing": {
+          "calls": 1,
+          "maximumOutputTokens": 1022,
+          "lengthFinishes": 0,
+          "missingUsage": 0
+        },
+        "agent": {
+          "calls": 35,
+          "maximumOutputTokens": 6274,
+          "lengthFinishes": 0,
+          "missingUsage": 1
+        },
+        "summary": {
+          "calls": 20,
+          "maximumOutputTokens": 8735,
+          "lengthFinishes": 0,
+          "missingUsage": 2
+        }
+      },
+      "cleanup": {
+        "closed": true,
+        "at": "2026-11-04T13:34:10.837Z"
+      }
+    }
+  ],
+  "replay": {
+    "scope": "Independent replay of unchanged model-generated source. No new model call or source repair. Creator preview explicitly connected to the controlled AG-UI test endpoint through the existing connection API.",
+    "source": "<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case07-sales-schema-fix-16k-2026-11-04T13-13-40-195Z",
+    "connection": {
+      "activeSource": "connected",
+      "enabled": true,
+      "connectionMode": "direct",
+      "endpoint": "http://127.0.0.1:60434/agent",
+      "configured": true,
+      "running": false
+    },
+    "staticChecks": [
+      {
+        "script": "typecheck",
+        "status": "passed",
+        "exitCode": 0
+      },
+      {
+        "script": "build",
+        "status": "passed",
+        "exitCode": 0
+      }
+    ],
+    "sourceUnchanged": true,
+    "browserErrors": [],
+    "controlledAgentRuns": 3,
+    "interaction": {
+      "status": "passed",
+      "checks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ],
+      "protocolEventsSent": 3
+    },
+    "cleanup": {
+      "complete": false,
+      "servicesClosedBeforeDirectoryRemoval": true,
+      "code": "EBUSY",
+      "syscall": "rmdir",
+      "path": "<USER_PROFILE>/AppData/Local/Temp/creator-connection-host-624F5y/host",
+      "note": "Functional replay, source-identity check, typecheck and build passed. Fixture close reached its final temporary-directory removal after closing browser, Vite and Agent services, then Windows returned EBUSY. The temporary directory is retained; no forced process-tree termination or recursive cleanup was attempted."
+    }
+  },
+  "interpretation": "Schema/log failures did not recur in these two long runs. Neither Creator run completed naturally within the QA observation window. Sales output is functionally verified independently on unchanged source; the initial replay used the default preview Mock and did not test the controlled business events. Corrected replay explicitly selected the controlled endpoint. Progress produced no implementation. No stable causal performance claim is made for increasing the output budget."
+}

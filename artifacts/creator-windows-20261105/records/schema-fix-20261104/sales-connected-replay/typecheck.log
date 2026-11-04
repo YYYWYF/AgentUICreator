@@ -1,0 +1,4 @@
+
+> ordinary-preview-host@ typecheck <USER_PROFILE>\AppData\Local\Temp\creator-connection-host-624F5y\host
+> node node_modules/typescript/bin/tsc --noEmit
+

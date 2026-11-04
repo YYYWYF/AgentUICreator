@@ -1,0 +1,4 @@
+# Evidence hashes describe exact published bytes on every checkout platform.
+records/** -text -whitespace
+record-manifest.json -text
+scripts/* text eol=lf

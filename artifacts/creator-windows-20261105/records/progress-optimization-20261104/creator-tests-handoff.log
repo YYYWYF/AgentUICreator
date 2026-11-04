@@ -1,0 +1,79 @@
+
+ RUN  v4.1.8 <WORKSPACE>/packages/creator
+
+ ❯ tests/local-recording.test.ts (16 tests | 1 failed) 1036ms
+     × rejects symlink files and directories outside the selected project 26ms
+ ❯ tests/service-implementation-tools.test.ts (14 tests | 1 failed) 8301ms
+   × keeps public contract paths and declarations on the contract channel 801ms
+ ❯ tests/plugin-applications.test.ts (5 tests | 1 failed) 10971ms
+   × prepares multiple applications against fresh shared Host bindings 5107ms
+
+ Test Files  3 failed | 48 passed (51)
+      Tests  3 failed | 518 passed | 1 skipped (522)
+   Start at  00:36:04
+   Duration  24.82s (transform 20.65s, setup 0ms, import 82.56s, tests 116.60s, environment 24.26s)
+
+undefined
+<WORKSPACE>\packages\creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "vitest" not found
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/local-recording.test.ts > current-project local recordings > rejects symlink files and directories outside the selected project
+Error: EPERM: operation not permitted, symlink '<USER_PROFILE>\AppData\Local\Temp\local-recording-J28Vhc\.agent-ui\mocks\external.jsonl' -> '<USER_PROFILE>\AppData\Local\Temp\local-recording-p5CKH7\.agent-ui\mocks\link.jsonl'
+ ❯ tests/local-recording.test.ts:76:5
+     74|     const root = await project(); const other = await project();
+     75|     await writeFile(path.join(other, ".agent-ui/mocks/external.jsonl")…
+     76|     await symlink(path.join(other, ".agent-ui/mocks/external.jsonl"), …
+       |     ^
+     77|     const store = new LocalMockRecordingStore();
+     78|     expect((await store.list(root))[0]?.status).toBe("invalid");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/plugin-applications.test.ts > prepares multiple applications against fresh shared Host bindings
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/plugin-applications.test.ts:50:1
+     48| });
+     49|
+     50| it("prepares multiple applications against fresh shared Host bindings"…
+       | ^
+     51|   const f = await fixture();
+     52|   await prepareCompositionApplications(f.context, { operations: [inser…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/service-implementation-tools.test.ts > keeps public contract paths and declarations on the contract channel
+AssertionError: promise resolved "{ status: 'ready', …(6) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "affectedFiles": [
++     "src/应用/plugins/conversation-data-source/definition.ts",
++     "src/应用/services/conversations/http-data-source.ts",
++   ],
++   "affectedPlugins": [
++     "conversation-data-source",
++   ],
++   "implementationPath": "services/conversations/http-data-source.ts",
++   "planId": "e9ae88a0622a3c5035cb12a886ab6bda2a3a40720606dcdc9ba7b6be7b629d71",
++   "status": "ready",
++   "unresolvedImports": [],
++   "verificationRequired": true,
+  }
+
+ ❯ tests/service-implementation-tools.test.ts:91:143
+     89|   await expect(prepareServiceImplementation(context, proposal)).reject…
+     90|   state.topology.services = [];
+     91|   await expect(prepareServiceImplementation(context, { ...proposal, ed…
+       |                                                                                                                                               ^
+     92|   expect(state.prompts).toHaveLength(0);
+     93| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+

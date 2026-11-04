@@ -1,0 +1,334 @@
+{
+  "out": "<WORKSPACE>\\.agent-ui\\creator\\windows-tests\\case08-progress-final-guidance-262k-2026-11-04T16-08-00-292Z",
+  "status": "finished",
+  "result": {
+    "caseId": "case08-progress",
+    "status": "success",
+    "seconds": 533.754,
+    "finish": {
+      "runtime": "typescript",
+      "agentMode": "domain-write",
+      "completion": "success",
+      "executionPolicy": "domain-write",
+      "receipt": {
+        "files": [
+          {
+            "path": "src/agent-ui/plugins/job-progress-panel/manifest.json",
+            "status": "created",
+            "diff": "--- a/src/agent-ui/plugins/job-progress-panel/manifest.json\n+++ b/src/agent-ui/plugins/job-progress-panel/manifest.json\n@@ -1,1 +1,27 @@\n-\n+{\n+  \"id\": \"job-progress-panel\",\n+  \"name\": \"Job Progress Panel\",\n+  \"description\": \"聊天区右侧的任务进度面板：按 job_id 合并 app.job.progress 业务事件，分别展示多个任务的进度、完成状态与可展开的失败原因。\",\n+  \"version\": \"0.0.1\",\n+  \"capabilities\": [\n+    \"job-progress-panel\"\n+  ],\n+  \"data\": {\n+    \"events\": [\n+      \"app.job.progress\"\n+    ]\n+  },\n+  \"authoring\": {\n+    \"intents\": [\n+      \"show job progress panel on the right of the chat area\",\n+      \"显示任务进度面板\",\n+      \"在聊天区域右侧显示任务进度\",\n+      \"查看多个后台任务的进度与失败原因\"\n+    ],\n+    \"visualRole\": \"chat area right side job progress panel\",\n+    \"recommendedSize\": {\n+      \"width\": \"320px\"\n+    }\n+  }\n+}\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/job-progress-panel/definition.ts",
+            "status": "created",
+            "diff": "--- a/src/agent-ui/plugins/job-progress-panel/definition.ts\n+++ b/src/agent-ui/plugins/job-progress-panel/definition.ts\n@@ -1,1 +1,14 @@\n-\n+import type { UIPluginDefinition, UIPluginManifest } from \"@za38.03/agent-ui-plugins\";\n+import manifestJson from \"./manifest.json\";\n+import { JobProgressPanelPlugin } from \"./index\";\n+\n+const definition: UIPluginDefinition = {\n+  manifest: manifestJson as UIPluginManifest,\n+  provides: [],\n+  inject: [],\n+  optionalInject: [\"agent-ui.locale\"],\n+  Component: JobProgressPanelPlugin,\n+};\n+\n+export default definition;\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/job-progress-panel/index.tsx",
+            "status": "created",
+            "diff": "--- a/src/agent-ui/plugins/job-progress-panel/index.tsx\n+++ b/src/agent-ui/plugins/job-progress-panel/index.tsx\n@@ -1,1 +1,261 @@\n-\n+import { useAgentUILocaleCode, usePluginEvents } from \"@za38.03/agent-ui-plugins\";\n+import { useEffect, useMemo, useState } from \"react\";\n+import \"./styles.css\";\n+\n+type JobError = { code?: string; message?: string } | null;\n+\n+/** Business payload carried by the live `app.job.progress` application event. */\n+type JobProgressEventPayload = {\n+  job_id?: string;\n+  title?: string;\n+  status?: string;\n+  completed?: number;\n+  total?: number;\n+  error?: JobError;\n+};\n+\n+type JobProgress = {\n+  jobId: string;\n+  title: string;\n+  status: string;\n+  completed: number;\n+  total: number;\n+  error: JobError;\n+};\n+\n+type StatusKind = \"pending\" | \"running\" | \"completed\" | \"failed\" | \"cancelled\";\n+\n+type Messages = {\n+  title: string;\n+  summary: (active: number, all: number) => string;\n+  emptyTitle: string;\n+  emptyHint: string;\n+  steps: (completed: number, total: number) => string;\n+  unbounded: string;\n+  status: Record<StatusKind, string>;\n+  errorToggle: string;\n+  errorCode: string;\n+  errorMessage: string;\n+};\n+\n+const messages: Record<string, Messages> = {\n+  \"zh-CN\": {\n+    title: \"任务进度\",\n+    summary: (active, all) => (active > 0 ? `${active} 个进行中 / 共 ${all} 个` : `共 ${all} 个任务`),\n+    emptyTitle: \"暂无任务\",\n+    emptyHint: \"Agent 汇报任务进度后，这里会按任务实时更新。\",\n+    steps: (completed, total) => `${completed} / ${total} 步`,\n+    unbounded: \"进度暂未提供\",\n+    status: {\n+      pending: \"等待中\",\n+      running: \"进行中\",\n+      completed: \"已完成\",\n+      failed: \"失败\",\n+      cancelled: \"已取消\",\n+    },\n+    errorToggle: \"查看错误原因\",\n+    errorCode: \"错误码\",\n+    errorMessage: \"错误原因\",\n+  },\n+  \"en-US\": {\n+    title: \"Job progress\",\n+    summary: (active, all) => (active > 0 ? `${active} running of ${all}` : `${all} jobs`),\n+    emptyTitle: \"No jobs yet\",\n+    emptyHint: \"Jobs appear here and update in place once the Agent reports progress.\",\n+    steps: (completed, total) => `${completed} / ${total} steps`,\n+    unbounded: \"Progress unavailable\",\n+    status: {\n+      pending: \"Pending\",\n+      running: \"Running\",\n+      completed: \"Completed\",\n+      failed: \"Failed\",\n+      cancelled: \"Cancelled\",\n+    },\n+    errorToggle: \"Show error details\",\n+    errorCode: \"Code\",\n+    errorMessage: \"Reason\",\n+  },\n+};\n+\n+const STATUS_ALIASES: Record<string, StatusKind> = {\n+  pending: \"pending\",\n+  queued: \"pending\",\n+  waiting: \"pending\",\n+  created: \"pending\",\n+  scheduled: \"pending\",\n+  running: \"running\",\n+  in_progress: \"running\",\n+  processing: \"running\",\n+  started: \"running\",\n+  active: \"running\",\n+  completed: \"completed\",\n+  complete: \"completed\",\n+  succeeded: \"completed\",\n+  success: \"completed\",\n+  done: \"completed\",\n+  finished: \"completed\",\n+  failed: \"failed\",\n+  failure: \"failed\",\n+  error: \"failed\",\n+  errored: \"failed\",\n+  cancelled: \"cancelled\",\n+  canceled: \"cancelled\",\n+  aborted: \"cancelled\",\n+};\n+\n+function normalizeStatus(status: string | undefined): StatusKind {\n+  if (!status) return \"running\";\n+  return STATUS_ALIASES[status.trim().toLowerCase()] ?? \"running\";\n+}\n+\n+function normalizeNumber(value: number | undefined, fallback: number): number {\n+  if (typeof value !== \"number\" || !Number.isFinite(value)) return fallback;\n+  return Math.max(0, value);\n+}\n+\n+function normalizeError(error: JobError | undefined): JobError {\n+  if (!error) return null;\n+  const code = typeof error.code === \"string\" && error.code.trim() ? error.code.trim() : undefined;\n+  const message = typeof error.message === \"string\" && error.message.trim() ? error.message.trim() : undefined;\n+  if (!code && !message) return null;\n+  return { ...(code ? { code } : {}), ...(message ? { message } : {}) };\n+}\n+\n+function progressPercent(job: JobProgress): number {\n+  if (job.total > 0) {\n+    return Math.min(100, Math.max(0, Math.round((job.completed / job.total) * 100)));\n+  }\n+  return normalizeStatus(job.status) === \"completed\" ? 100 : 0;\n+}\n+\n+export function JobProgressPanelPlugin() {\n+  const events = usePluginEvents();\n+  const localeCode = useAgentUILocaleCode();\n+  const text = messages[localeCode] ?? messages[\"zh-CN\"]!;\n+  const [jobs, setJobs] = useState<JobProgress[]>([]);\n+\n+  useEffect(\n+    () =>\n+      events.subscribe<JobProgressEventPayload>(\"app.job.progress\", (event) => {\n+        const payload = event?.payload;\n+        const jobId = typeof payload?.job_id === \"string\" ? payload.job_id.trim() : \"\";\n+        if (!jobId) return;\n+        const hasErrorKey = Object.prototype.hasOwnProperty.call(payload, \"error\");\n+\n+        setJobs((previous) => {\n+          const index = previous.findIndex((job) => job.jobId === jobId);\n+          const base: JobProgress =\n+            index >= 0\n+              ? previous[index]!\n+              : { jobId, title: jobId, status: \"running\", completed: 0, total: 0, error: null };\n+\n+          const title =\n+            typeof payload.title === \"string\" && payload.title.trim() ? payload.title.trim() : base.title;\n+          const status =\n+            typeof payload.status === \"string\" && payload.status.trim() ? payload.status.trim() : base.status;\n+\n+          const next: JobProgress = {\n+            ...base,\n+            title,\n+            status,\n+            completed: normalizeNumber(payload.completed, base.completed),\n+            total: normalizeNumber(payload.total, base.total),\n+            error: hasErrorKey ? normalizeError(payload.error) : base.error,\n+          };\n+\n+          if (index < 0) return [...previous, next];\n+          const copy = previous.slice();\n+          copy[index] = next;\n+          return copy;\n+        });\n+      }),\n+    [events],\n+  );\n+\n+  const activeCount = useMemo(\n+    () => jobs.filter((job) => normalizeStatus(job.status) === \"running\").length,\n+    [jobs],\n+  );\n+\n+  return (\n+    <aside className=\"job-progress-panel\" aria-label={text.title}>\n+      <header className=\"job-progress-panel__header\">\n+        <h2 className=\"job-progress-panel__title\">{text.title}</h2>\n+        {jobs.length > 0 ? (\n+          <span className=\"job-progress-panel__summary\" aria-live=\"polite\">\n+            {text.summary(activeCount, jobs.length)}\n+          </span>\n+        ) : null}\n+      </header>\n+      {jobs.length === 0 ? (\n+        <div className=\"job-progress-panel__empty\">\n+          <p className=\"job-progress-panel__empty-title\">{text.emptyTitle}</p>\n+          <p className=\"job-progress-panel__empty-hint\">{text.emptyHint}</p>\n+        </div>\n+      ) : (\n+        <ul className=\"job-progress-panel__list\">\n+          {jobs.map((job) => (\n+            <JobProgressItem key={job.jobId} job={job} text={text} />\n+          ))}\n+        </ul>\n+      )}\n+    </aside>\n+  );\n+}\n+\n+function JobProgressItem({ job, text }: { job: JobProgress; text: Messages }) {\n+  const kind = normalizeStatus(job.status);\n+  const percent = progressPercent(job);\n+  const indeterminate = kind === \"running\" && job.total <= 0;\n+  const errorCode = job.error?.code;\n+  const errorMessage = job.error?.message;\n+  const hasError = Boolean(errorCode || errorMessage);\n+\n+  return (\n+    <li className=\"job-progress-panel__item\" data-status={kind}>\n+      <div className=\"job-progress-panel__item-head\">\n+        <span className=\"job-progress-panel__job-title\" title={job.title}>\n+          {job.title}\n+        </span>\n+        <span className=\"job-progress-panel__badge\">{text.status[kind]}</span>\n+      </div>\n+      <div\n+        className={`job-progress-panel__bar${indeterminate ? \" job-progress-panel__bar--indeterminate\" : \"\"}`}\n+        role=\"progressbar\"\n+        aria-label={job.title}\n+        aria-valuemin={0}\n+        aria-valuemax={100}\n+        aria-valuenow={indeterminate ? undefined : percent}\n+      >\n+        <span\n+          className=\"job-progress-panel__bar-fill\"\n+          style={{ width: indeterminate ? \"35%\" : `${percent}%` }}\n+        />\n+      </div>\n+      <div className=\"job-progress-panel__meta\">\n+        <span>{job.total > 0 ? text.steps(job.completed, job.total) : text.unbounded}</span>\n+        <span>{indeterminate ? text.status.running : `${percent}%`}</span>\n+      </div>\n+      {hasError ? (\n+        <details className=\"job-progress-panel__error\">\n+          <summary className=\"job-progress-panel__error-summary\">{text.errorToggle}</summary>\n+          <dl className=\"job-progress-panel__error-body\">\n+            {errorCode ? (\n+              <>\n+                <dt>{text.errorCode}</dt>\n+                <dd>{errorCode}</dd>\n+              </>\n+            ) : null}\n+            {errorMessage ? (\n+              <>\n+                <dt>{text.errorMessage}</dt>\n+                <dd>{errorMessage}</dd>\n+              </>\n+            ) : null}\n+          </dl>\n+        </details>\n+      ) : null}\n+    </li>\n+  );\n+}\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/job-progress-panel/styles.css",
+            "status": "created",
+            "diff": "--- a/src/agent-ui/plugins/job-progress-panel/styles.css\n+++ b/src/agent-ui/plugins/job-progress-panel/styles.css\n@@ -1,1 +1,264 @@\n-\n+.job-progress-panel {\n+  --job-progress-success: var(--success, #0f7b4f);\n+  --job-progress-danger: var(--destructive, #b42318);\n+  --job-progress-running: var(--primary, #3757d5);\n+  box-sizing: border-box;\n+  display: flex;\n+  flex-direction: column;\n+  width: 100%;\n+  height: 100%;\n+  min-width: 0;\n+  min-height: 0;\n+  background: var(--background);\n+  color: var(--foreground);\n+  border-left: 1px solid var(--border);\n+}\n+\n+.job-progress-panel__header {\n+  display: flex;\n+  align-items: baseline;\n+  justify-content: space-between;\n+  gap: 8px;\n+  flex: 0 0 auto;\n+  min-width: 0;\n+  padding: 12px 16px;\n+  border-bottom: 1px solid var(--border);\n+}\n+\n+.job-progress-panel__title {\n+  margin: 0;\n+  font-size: 13px;\n+  font-weight: 600;\n+  line-height: 1.4;\n+  overflow-wrap: anywhere;\n+}\n+\n+.job-progress-panel__summary {\n+  flex: 0 0 auto;\n+  font-size: 12px;\n+  color: color-mix(in srgb, var(--foreground) 62%, transparent);\n+  white-space: nowrap;\n+}\n+\n+.job-progress-panel__empty {\n+  flex: 1 1 auto;\n+  min-height: 0;\n+  padding: 20px 16px;\n+  overflow-y: auto;\n+}\n+\n+.job-progress-panel__empty-title {\n+  margin: 0 0 4px;\n+  font-size: 13px;\n+  font-weight: 500;\n+}\n+\n+.job-progress-panel__empty-hint {\n+  margin: 0;\n+  font-size: 12px;\n+  line-height: 1.5;\n+  color: color-mix(in srgb, var(--foreground) 62%, transparent);\n+  overflow-wrap: anywhere;\n+}\n+\n+.job-progress-panel__list {\n+  box-sizing: border-box;\n+  display: flex;\n+  flex-direction: column;\n+  gap: 8px;\n+  flex: 1 1 auto;\n+  min-height: 0;\n+  margin: 0;\n+  padding: 10px;\n+  overflow-y: auto;\n+  list-style: none;\n+}\n+\n+.job-progress-panel__item {\n+  box-sizing: border-box;\n+  display: flex;\n+  flex-direction: column;\n+  gap: 6px;\n+  min-width: 0;\n+  padding: 10px 12px;\n+  border: 1px solid var(--border);\n+  border-radius: 10px;\n+  background: var(--card);\n+  color: var(--foreground);\n+}\n+\n+.job-progress-panel__item-head {\n+  display: flex;\n+  align-items: flex-start;\n+  justify-content: space-between;\n+  gap: 8px;\n+  min-width: 0;\n+}\n+\n+.job-progress-panel__job-title {\n+  min-width: 0;\n+  font-size: 13px;\n+  font-weight: 600;\n+  line-height: 1.4;\n+  overflow-wrap: anywhere;\n+}\n+\n+.job-progress-panel__badge {\n+  flex: 0 0 auto;\n+  padding: 1px 8px;\n+  border-radius: 999px;\n+  background: var(--muted);\n+  font-size: 11px;\n+  line-height: 1.6;\n+  white-space: nowrap;\n+}\n+\n+.job-progress-panel__item[data-status=\"running\"] .job-progress-panel__badge {\n+  background: color-mix(in srgb, var(--job-progress-running) 16%, transparent);\n+  color: var(--job-progress-running);\n+}\n+\n+.job-progress-panel__item[data-status=\"completed\"] .job-progress-panel__badge {\n+  background: color-mix(in srgb, var(--job-progress-success) 16%, transparent);\n+  color: var(--job-progress-success);\n+}\n+\n+.job-progress-panel__item[data-status=\"failed\"] .job-progress-panel__badge {\n+  background: color-mix(in srgb, var(--job-progress-danger) 16%, transparent);\n+  color: var(--job-progress-danger);\n+}\n+\n+.job-progress-panel__item[data-status=\"cancelled\"] .job-progress-panel__badge {\n+  color: color-mix(in srgb, var(--foreground) 62%, transparent);\n+}\n+\n+.job-progress-panel__bar {\n+  position: relative;\n+  box-sizing: border-box;\n+  width: 100%;\n+  height: 6px;\n+  min-width: 0;\n+  overflow: hidden;\n+  border-radius: 999px;\n+  background: var(--muted);\n+}\n+\n+.job-progress-panel__bar-fill {\n+  display: block;\n+  height: 100%;\n+  border-radius: 999px;\n+  background: var(--job-progress-running);\n+  transition: width 240ms ease;\n+}\n+\n+.job-progress-panel__item[data-status=\"completed\"] .job-progress-panel__bar-fill {\n+  background: var(--job-progress-success);\n+}\n+\n+.job-progress-panel__item[data-status=\"failed\"] .job-progress-panel__bar-fill {\n+  background: var(--job-progress-danger);\n+}\n+\n+.job-progress-panel__item[data-status=\"cancelled\"] .job-progress-panel__bar-fill {\n+  background: color-mix(in srgb, var(--foreground) 35%, transparent);\n+}\n+\n+.job-progress-panel__bar--indeterminate .job-progress-panel__bar-fill {\n+  animation: job-progress-panel-pulse 1.4s ease-in-out infinite;\n+}\n+\n+@keyframes job-progress-panel-pulse {\n+  0%,\n+  100% {\n+    opacity: 0.45;\n+  }\n+  50% {\n+    opacity: 1;\n+  }\n+}\n+\n+@media (prefers-reduced-motion: reduce) {\n+  .job-progress-panel__bar-fill {\n+    transition: none;\n+  }\n+\n+  .job-progress-panel__bar--indeterminate .job-progress-panel__bar-fill {\n+    animation: none;\n+  }\n+}\n+\n+.job-progress-panel__meta {\n+  display: flex;\n+  align-items: baseline;\n+  justify-content: space-between;\n+  gap: 8px;\n+  font-size: 12px;\n+  color: color-mix(in srgb, var(--foreground) 62%, transparent);\n+}\n+\n+.job-progress-panel__meta > span {\n+  min-width: 0;\n+  overflow-wrap: anywhere;\n+}\n+\n+.job-progress-panel__error {\n+  margin-top: 2px;\n+  padding-top: 6px;\n+  border-top: 1px dashed var(--border);\n+}\n+\n+.job-progress-panel__error-summary {\n+  display: flex;\n+  align-items: center;\n+  gap: 4px;\n+  font-size: 12px;\n+  line-height: 1.5;\n+  color: var(--job-progress-danger);\n+  cursor: pointer;\n+  list-style: none;\n+}\n+\n+.job-progress-panel__error-summary::-webkit-details-marker {\n+  display: none;\n+}\n+\n+.job-progress-panel__error-summary::before {\n+  content: \"▸\";\n+  flex: 0 0 auto;\n+  font-size: 10px;\n+}\n+\n+.job-progress-panel__error[open] .job-progress-panel__error-summary::before {\n+  content: \"▾\";\n+}\n+\n+.job-progress-panel__error-summary:hover {\n+  text-decoration: underline;\n+}\n+\n+.job-progress-panel__error-summary:focus-visible {\n+  outline: 2px solid var(--ring, var(--border));\n+  outline-offset: 2px;\n+  border-radius: 4px;\n+}\n+\n+.job-progress-panel__error-body {\n+  display: grid;\n+  grid-template-columns: auto minmax(0, 1fr);\n+  gap: 4px 8px;\n+  margin: 6px 0 0;\n+  font-size: 12px;\n+  line-height: 1.5;\n+}\n+\n+.job-progress-panel__error-body dt {\n+  font-weight: 500;\n+  color: color-mix(in srgb, var(--foreground) 62%, transparent);\n+}\n+\n+.job-progress-panel__error-body dd {\n+  margin: 0;\n+  min-width: 0;\n+  overflow-wrap: anywhere;\n+}\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/application/agent-events.ts",
+            "status": "created",
+            "diff": "--- a/src/agent-ui/application/agent-events.ts\n+++ b/src/agent-ui/application/agent-events.ts\n@@ -1,1 +1,31 @@\n-\n+import { z } from \"zod\";\n+\n+/**\n+ * Project-owned business application events.\n+ *\n+ * Registered through `<Agent appEventSchemas={agentEventSchemas} />` and declared per\n+ * consumer Plugin in its manifest `data.events`. These are live notifications only:\n+ * they do not replay conversation history.\n+ */\n+const jobErrorSchema = z\n+  .object({\n+    code: z.string().optional(),\n+    message: z.string().optional(),\n+  })\n+  .loose();\n+\n+export const jobProgressEventSchema = z\n+  .object({\n+    job_id: z.string().min(1),\n+    title: z.string().optional(),\n+    status: z.string().optional(),\n+    completed: z.number().optional(),\n+    total: z.number().optional(),\n+    error: jobErrorSchema.nullish(),\n+  })\n+  .loose();\n+\n+export const agentEventSchemas = {\n+  \"app.job.progress\": jobProgressEventSchema,\n+};\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/application/Agent.tsx",
+            "status": "modified",
+            "diff": "--- a/src/agent-ui/application/Agent.tsx\n+++ b/src/agent-ui/application/Agent.tsx\n@@ -1,19 +1,21 @@\n-import { AgentApplication, type AgentProps } from \"@za38.03/agent-ui-runtime/ui\";\n-import { agentUIProject } from \"./project-config\";\n-export type { AgentProps } from \"@za38.03/agent-ui-runtime/ui\";\n-\n-export function Agent(props: AgentProps = {}) {\n-  const { locales, ...rest } = props;\n-  return (\n-    <AgentApplication\n-      project={agentUIProject}\n-      {...rest}\n-      locales={{\n-        \"zh-CN\": { composer: { placeholder: \"请输入你的问题\" } },\n-        \"en-US\": { composer: { placeholder: \"Enter your question\" } },\n-        ...locales,\n-      }}\n-    />\n-  );\n-}\n-\n+import { AgentApplication, type AgentProps } from \"@za38.03/agent-ui-runtime/ui\";\n+import { agentEventSchemas } from \"./agent-events\";\n+import { agentUIProject } from \"./project-config\";\n+export type { AgentProps } from \"@za38.03/agent-ui-runtime/ui\";\n+\n+export function Agent(props: AgentProps = {}) {\n+  const { locales, appEventSchemas, ...rest } = props;\n+  return (\n+    <AgentApplication\n+      project={agentUIProject}\n+      {...rest}\n+      appEventSchemas={{ ...agentEventSchemas, ...appEventSchemas }}\n+      locales={{\n+        \"zh-CN\": { composer: { placeholder: \"请输入你的问题\" } },\n+        \"en-US\": { composer: { placeholder: \"Enter your question\" } },\n+        ...locales,\n+      }}\n+    />\n+  );\n+}\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/plugins/registry.generated.ts",
+            "status": "modified",
+            "diff": "--- a/src/agent-ui/plugins/registry.generated.ts\n+++ b/src/agent-ui/plugins/registry.generated.ts\n@@ -1,1070 +1,713 @@\n-/**\n- * Generated by scripts/generate-plugin-registry.ts from plugins/* capabilities.\n- * Do not edit this file by hand.\n- */\n-import { createPluginCapabilityCatalog } from \"@za38.03/agent-ui-runtime/ui\";\n-\n-export const capabilityCatalogRevision = \"03f888fce2d7783381854d8fa83978107fd642ae60dcbaa150c148f5a1ac9769\";\n-\n-export const pluginCapabilityCatalog = createPluginCapabilityCatalog([\n-  {\n-    manifest: {\n-      \"id\": \"add-attachment-action\",\n-      \"name\": \"Conversation Add Attachment Action\",\n-      \"description\": \"Adds Agent UI's attachment picker to the conversation composer.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-composer-leading-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"add attachments to the conversation composer\"\n-        ],\n-        \"visualRole\": \"conversation composer attachment action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"composer\",\n-          \"slot\": \"leadingActions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./add-attachment-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"agent-identity\",\n-      \"name\": \"Agent Identity\",\n-      \"description\": \"Displays configurable Agent name, logo and optional description in a normal Layout Slot.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"agent-identity\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"rename Agent\",\n-          \"change Agent name\",\n-          \"change Agent logo\",\n-          \"change Agent brand information\",\n-          \"把我的 Agent 改名为智能研发助手\",\n-          \"把 Agent 的 Logo 换成公司的标志\"\n-        ],\n-        \"visualRole\": \"Agent identity in a normal Layout Slot; edit plugins/agent-identity/config.ts for branding\"\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./agent-identity/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"composer\",\n-      \"name\": \"Conversation Composer\",\n-      \"description\": \"Renders the canonical Agent UI conversation composer with composable action Slots.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-composer\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show the primary conversation composer\",\n-          \"compose conversation input actions\"\n-        ],\n-        \"visualRole\": \"conversation composer\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"conversation-surface\",\n-          \"slot\": \"composer\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"triggers\": {\n-            \"description\": \"Optional conversation input triggers.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-trigger\"\n-              ]\n-            }\n-          },\n-          \"beforeInput\": {\n-            \"description\": \"Content displayed between attachments and the composer input.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-before-input\"\n-              ]\n-            }\n-          },\n-          \"leadingActions\": {\n-            \"description\": \"Inline actions displayed on the leading side of the composer.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-leading-action\",\n-                \"conversation-composer-trailing-action\"\n-              ]\n-            }\n-          },\n-          \"trailingActions\": {\n-            \"description\": \"Inline actions displayed before the composer submit action.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-trailing-action\",\n-                \"conversation-composer-leading-action\"\n-              ]\n-            }\n-          },\n-          \"submitAction\": {\n-            \"description\": \"The primary send or stop action for the composer.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-submit-action\"\n-              ]\n-            }\n-          },\n-          \"input\": {\n-            \"description\": \"Optional text input presentation; falls back to the canonical textarea.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer-input\"\n-              ]\n-            }\n-          }\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./composer/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"context-retrieval-message\",\n-      \"name\": \"Context Retrieval Message\",\n-      \"description\": \"Renders context retrieval results carried by AG-UI CUSTOM events.\",\n-      \"version\": \"0.0.1\",\n-      \"authoring\": {\n-        \"intents\": [\n-          \"render context retrieval results inside assistant messages\"\n-        ]\n-      },\n-      \"data\": {\n-        \"messageUI\": true\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./context-retrieval-message/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-data-source\",\n-      \"name\": \"Conversation Data Source\",\n-      \"description\": \"Provides conversation history data through an application-owned API.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"headless\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"provide persistent conversation history data to conversation capabilities\"\n-        ]\n-      }\n-    },\n-    provides: [\"agent-ui.conversation-data-source\"],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-data-source/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-new\",\n-      \"name\": \"New Conversation\",\n-      \"description\": \"Starts a new conversation independently of history management.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-create\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"start a new conversation\"\n-        ],\n-        \"visualRole\": \"conversation header action\"\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-new/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-quote\",\n-      \"name\": \"Conversation Quote\",\n-      \"description\": \"Quote assistant passages with an optional composer preview and selection toolbar. Sent quotes remain conversation history.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-quote\",\n-        \"conversation-composer-before-input\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"quote part of an assistant response\",\n-          \"reply to a specific passage\",\n-          \"引用回答中的一段内容\",\n-          \"加上引用功能\"\n-        ],\n-        \"visualRole\": \"conversation quote creation\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"composer\",\n-          \"slot\": \"beforeInput\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-quote/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-service\",\n-      \"name\": \"Conversation Service\",\n-      \"description\": \"Provides shared application conversation state and history navigation independently from presentation plugins.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"headless\",\n-        \"conversation-service\",\n-        \"plugin-service-provider\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"provide shared conversation management state and history navigation\"\n-        ]\n-      }\n-    },\n-    provides: [\"agent-ui.conversations\"],\n-    inject: [\"agent-ui.conversation-data-source\"],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-service/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-suggestions\",\n-      \"name\": \"Conversation Suggestions\",\n-      \"description\": \"Renders starter prompts through the Conversation public surface.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-suggestions\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show starter prompts and suggested conversation actions\"\n-        ],\n-        \"visualRole\": \"conversation empty-state suggestions\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"conversation-surface\",\n-          \"slot\": \"emptySuggestions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./conversation-suggestions/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-surface\",\n-      \"name\": \"Conversation Surface\",\n-      \"description\": \"组合 Live 与只读 History 会话的空状态、消息时间线与输入区。\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-surface\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"show the primary live and historical conversation experience\"\n-        ],\n-        \"visualRole\": \"primary conversation surface\",\n-        \"recommendedSize\": {\n-          \"width\": \"minmax(0, 1fr)\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"emptyWelcome\": {\n-            \"description\": \"Welcome content displayed when the conversation is empty.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true\n-          },\n-          \"emptySuggestions\": {\n-            \"description\": \"Suggested prompts or actions displayed when the conversation is empty.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-suggestions\"\n-              ]\n-            }\n-          },\n-          \"headerActions\": {\n-            \"description\": \"Top-right controls displayed on the Conversation surface.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"theme-control\",\n-                \"locale-control\"\n-              ]\n-            }\n-          },\n-          \"composer\": {\n-            \"description\": \"Primary conversation composer.\",\n-            \"cardinality\": \"one\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-composer\"\n-              ]\n-            }\n-          },\n-          \"reasoningGroup\": {\n-            \"description\": \"Renderer for one assistant reasoning group.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-reasoning-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolGroup\": {\n-            \"description\": \"Renderer for one assistant tool group.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-group-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolFallback\": {\n-            \"description\": \"Renderer for an unnamed tool UI fallback.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-fallback-renderer\"\n-              ]\n-            }\n-          },\n-          \"taskGroup\": {\n-            \"description\": \"Renderer for one or more tool calls containing nested agent tasks.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-task-group-renderer\"\n-              ]\n-            }\n-          },\n-          \"assistantResponseFooter\": {\n-            \"description\": \"Renderer displayed once beneath the final assistant message of a complete response.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-assistant-response-footer-renderer\"\n-              ]\n-            }\n-          },\n-          \"userEditComposer\": {\n-            \"description\": \"Renderer for the active user message edit composer.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-user-edit-composer-renderer\"\n-              ]\n-            }\n-          },\n-          \"toolTimeline\": {\n-            \"description\": \"One tool execution timeline per assistant message.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-tool-timeline-renderer\"\n-              ]\n-            }\n-          },\n-          \"thinkingIndicator\": {\n-            \"description\": \"Message-scoped thinking placeholder.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-thinking-indicator-renderer\"\n-              ]\n-            }\n-          },\n-          \"transientMessages\": {\n-            \"description\": \"Display-only temporary user and assistant messages, isolated from Agent history and context.\",\n-            \"cardinality\": \"one\",\n-            \"mode\": \"renderer\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-transient-messages-renderer\"\n-              ]\n-            }\n-          }\n-        }\n-      },\n-      \"data\": {\n-        \"messages\": true\n-      }\n-    },\n-    provides: [],\n-    inject: [\"agent-ui.conversations\"],\n-    optionalInject: [\"agent-ui.theme\",\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-surface/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"conversation-thread-list\",\n-      \"name\": \"Conversation Thread List\",\n-      \"sidebar\": {\n-        \"icon\": \"messages-square\",\n-        \"labels\": {\n-          \"en-US\": \"History\",\n-          \"zh-CN\": \"历史会话\"\n-        }\n-      },\n-      \"description\": \"Uses the public Conversation thread list with AgentUICreator policy and data binding.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-history\",\n-        \"conversation-selection\",\n-        \"plugin-service-consumer\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"add conversation management\",\n-          \"browse conversation history\",\n-          \"select an existing conversation\"\n-        ],\n-        \"visualRole\": \"conversation navigation\",\n-        \"defaultPlacement\": {\n-          \"type\": \"relative\",\n-          \"relation\": \"before\",\n-          \"anchorPluginId\": \"conversation-surface\"\n-        },\n-        \"recommendedSize\": {\n-          \"width\": \"280px\"\n-        }\n-      },\n-      \"slots\": {\n-        \"children\": {\n-          \"headerActions\": {\n-            \"description\": \"Optional conversation navigation actions displayed above search and history.\",\n-            \"cardinality\": \"many\",\n-            \"optional\": true,\n-            \"accepts\": {\n-              \"anyOfCapabilities\": [\n-                \"conversation-create\"\n-              ]\n-            }\n-          }\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [\"agent-ui.conversations\"],\n-    optionalInject: [\"agent-ui.theme\",\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./conversation-thread-list/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"copy-action\",\n-      \"name\": \"Conversation Copy Action\",\n-      \"description\": \"Copies text from the complete assistant response.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-assistant-response-action\",\n-        \"conversation-message-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"copy assistant response content\"\n-        ],\n-        \"visualRole\": \"assistant response copy action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"response-footer\",\n-          \"slot\": \"actions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [],\n-    loadDefinition: () =>\n-      import(\"./copy-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"export-markdown-action\",\n-      \"name\": \"Conversation Export Markdown Action\",\n-      \"description\": \"Renders More with a Markdown export item for the complete assistant response.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"conversation-assistant-response-action\",\n-        \"conversation-message-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"export an assistant response as Markdown\"\n-        ],\n-        \"visualRole\": \"assistant response Markdown export action\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"response-footer\",\n-          \"slot\": \"actions\"\n-        }\n-      }\n-    },\n-    provides: [],\n-    inject: [],\n-    optionalInject: [\"agent-ui.locale\"],\n-    loadDefinition: () =>\n-      import(\"./export-markdown-action/definition\").then(\n-        ({ default: definition }) => definition,\n-      ),\n-  },\n-  {\n-    manifest: {\n-      \"id\": \"help-dismiss-action\",\n-      \"name\": \"Help Dismiss Action\",\n-      \"description\": \"Header action for the quick help card that dismisses the help body; the card title expands it again.\",\n-      \"version\": \"0.0.1\",\n-      \"capabilities\": [\n-        \"help-dismiss-action\"\n-      ],\n-      \"authoring\": {\n-        \"intents\": [\n-          \"dismiss the quick help card body\",\n-          \"添加“知道了”按钮收起帮助内容\",\n-          \"collapse help content from the card header\"\n-        ],\n-        \"visualRole\": \"quick help card header action button\",\n-        \"defaultPlacement\": {\n-          \"type\": \"plugin_slot\",\n-          \"parentPluginId\": \"quick-help-card\",\n-          \"slot\": \"headerActions\"\n-        },\n-        \"recommendedSize\": {\n-          \"height\": \"28px\"",
+            "truncated": true
+          },
+          {
+            "path": "src/agent-ui/app-ui.json",
+            "status": "modified",
+            "diff": "--- a/src/agent-ui/app-ui.json\n+++ b/src/agent-ui/app-ui.json\n@@ -1,201 +1,214 @@\n-{\n-  \"applicationPlugins\": [\n-    {\n-      \"pluginId\": \"conversation-data-source\"\n-    },\n-    {\n-      \"pluginId\": \"conversation-service\"\n-    },\n-    {\n-      \"pluginId\": \"theme-provider\"\n-    },\n-    {\n-      \"pluginId\": \"locale-provider\"\n-    },\n-    {\n-      \"pluginId\": \"context-retrieval-message\"\n-    }\n-  ],\n-  \"root\": {\n-    \"type\": \"row\",\n-    \"children\": [\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"theme-switch\"\n-                },\n-                {\n-                  \"pluginId\": \"agent-identity\"\n-                }\n-              ]\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-thread-list\",\n-                  \"slots\": {\n-                    \"headerActions\": [\n-                      {\n-                        \"pluginId\": \"conversation-new\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"52px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      },\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p23\",\n-                    \"pluginId\": \"test-notice\"\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p24\",\n-                    \"pluginId\": \"quick-help-card\",\n-                    \"slots\": {\n-                      \"body\": [\n-                        {\n-                          \"id\": \"p25\",\n-                          \"pluginId\": \"quick-help-content\"\n-                        }\n-                      ],\n-                      \"headerActions\": [\n-                        {\n-                          \"pluginId\": \"help-dismiss-action\"\n-                        }\n-                      ]\n-                    }\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-surface\",\n-                  \"slots\": {\n-                    \"emptySuggestions\": [\n-                      {\n-                        \"pluginId\": \"conversation-suggestions\"\n-                      }\n-                    ],\n-                    \"composer\": [\n-                      {\n-                        \"pluginId\": \"composer\",\n-                        \"slots\": {\n-                          \"leadingActions\": [\n-                            {\n-                              \"pluginId\": \"add-attachment-action\"\n-                            }\n-                          ],\n-                          \"submitAction\": [\n-                            {\n-                              \"pluginId\": \"submit-action\"\n-                            }\n-                          ],\n-                          \"beforeInput\": [\n-                            {\n-                              \"pluginId\": \"conversation-quote\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"reasoningGroup\": [\n-                      {\n-                        \"pluginId\": \"reasoning\"\n-                      }\n-                    ],\n-                    \"toolGroup\": [\n-                      {\n-                        \"pluginId\": \"tool-group\"\n-                      }\n-                    ],\n-                    \"toolFallback\": [\n-                      {\n-                        \"pluginId\": \"tool-result\"\n-                      }\n-                    ],\n-                    \"assistantResponseFooter\": [\n-                      {\n-                        \"pluginId\": \"response-footer\",\n-                        \"slots\": {\n-                          \"actions\": [\n-                            {\n-                              \"pluginId\": \"copy-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"reload-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"export-markdown-action\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"transientMessages\": [\n-                      {\n-                        \"pluginId\": \"transient-assistant-messages\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"40px\",\n-            \"44px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      }\n-    ],\n-    \"gap\": 0,\n-    \"sizes\": [\n-      \"300px\",\n-      \"minmax(0, 1fr)\"\n-    ],\n-    \"responsive\": {\n-      \"type\": \"drawer\",\n-      \"primaryIndex\": 1,\n-      \"drawerIndex\": 0,\n-      \"minPrimaryWidth\": 320\n-    }\n-  }\n-}\n-\n+{\n+  \"applicationPlugins\": [\n+    {\n+      \"pluginId\": \"conversation-data-source\"\n+    },\n+    {\n+      \"pluginId\": \"conversation-service\"\n+    },\n+    {\n+      \"pluginId\": \"theme-provider\"\n+    },\n+    {\n+      \"pluginId\": \"locale-provider\"\n+    },\n+    {\n+      \"pluginId\": \"context-retrieval-message\"\n+    }\n+  ],\n+  \"root\": {\n+    \"type\": \"row\",\n+    \"children\": [\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"theme-switch\"\n+                },\n+                {\n+                  \"pluginId\": \"agent-identity\"\n+                }\n+              ]\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-thread-list\",\n+                  \"slots\": {\n+                    \"headerActions\": [\n+                      {\n+                        \"pluginId\": \"conversation-new\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"52px\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      },\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p23\",\n+                    \"pluginId\": \"test-notice\"\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p24\",\n+                    \"pluginId\": \"quick-help-card\",\n+                    \"slots\": {\n+                      \"body\": [\n+                        {\n+                          \"id\": \"p25\",\n+                          \"pluginId\": \"quick-help-content\"\n+                        }\n+                      ],\n+                      \"headerActions\": [\n+                        {\n+                          \"pluginId\": \"help-dismiss-action\"\n+                        }\n+                      ]\n+                    }\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-surface\",\n+                  \"slots\": {\n+                    \"emptySuggestions\": [\n+                      {\n+                        \"pluginId\": \"conversation-suggestions\"\n+                      }\n+                    ],\n+                    \"composer\": [\n+                      {\n+                        \"pluginId\": \"composer\",\n+                        \"slots\": {\n+                          \"leadingActions\": [\n+                            {\n+                              \"pluginId\": \"add-attachment-action\"\n+                            }\n+                          ],\n+                          \"submitAction\": [\n+                            {\n+                              \"pluginId\": \"submit-action\"\n+                            }\n+                          ],\n+                          \"beforeInput\": [\n+                            {\n+                              \"pluginId\": \"conversation-quote\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"reasoningGroup\": [\n+                      {\n+                        \"pluginId\": \"reasoning\"\n+                      }\n+                    ],\n+                    \"toolGroup\": [\n+                      {\n+                        \"pluginId\": \"tool-group\"\n+                      }\n+                    ],\n+                    \"toolFallback\": [\n+                      {\n+                        \"pluginId\": \"tool-result\"\n+                      }\n+                    ],\n+                    \"assistantResponseFooter\": [\n+                      {\n+                        \"pluginId\": \"response-footer\",\n+                        \"slots\": {\n+                          \"actions\": [\n+                            {\n+                              \"pluginId\": \"copy-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"reload-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"export-markdown-action\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"transientMessages\": [\n+                      {\n+                        \"pluginId\": \"transient-assistant-messages\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"40px\",\n+            \"44px\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      },\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"slot\",\n+          \"plugins\": [\n+            {\n+              \"id\": \"p27\",\n+              \"pluginId\": \"job-progress-panel\"\n+            }\n+          ]\n+        }\n+      }\n+    ],\n+    \"gap\": 0,\n+    \"sizes\": [\n+      \"300px\",\n+      \"minmax(0, 1fr)\",\n+      \"320px\"\n+    ],\n+    \"responsive\": {\n+      \"type\": \"drawer\",\n+      \"primaryIndex\": 1,\n+      \"drawerIndex\": 0,\n+      \"minPrimaryWidth\": 320\n+    }\n+  }\n+}\n+",
+            "truncated": false
+          },
+          {
+            "path": "src/agent-ui/composition-revision.generated.json",
+            "status": "modified",
+            "diff": "--- a/src/agent-ui/composition-revision.generated.json\n+++ b/src/agent-ui/composition-revision.generated.json\n@@ -1,6 +1,6 @@\n-{\n-  \"transactionId\": \"9431d3ea-27ce-4010-94f8-745974157a0b\",\n-  \"appUIModelHash\": \"ec814f21d2857a86f24a3cd35ae3cbc8d079f4b634bd7553dc7738d8ba4c5d7c\",\n-  \"capabilityCatalogRevision\": \"3bbbd419427a7561d1226c45e8cf4d4e56a93cb4a1fb0f71368d4a872f289db5\"\n-}\n-\n+{\n+  \"transactionId\": \"cb4646aa-d4e8-4e7d-be78-2abfc9bf26f2\",\n+  \"appUIModelHash\": \"686b2e5e9984b984e20922ce09a3d0bb2f0df4c18da810f7589b8dd7d225b9a1\",\n+  \"capabilityCatalogRevision\": \"cea3f428b038bc68a1f89ff155886963974977659dd48ea5f9da3c4f1d0b5e56\"\n+}\n+",
+            "truncated": false
+          }
+        ],
+        "validations": [
+          {
+            "command": "pnpm run typecheck",
+            "status": "passed",
+            "exitCode": 0,
+            "output": "\n> ordinary-preview-host@ typecheck <USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-QSR1py\\host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+            "truncated": false,
+            "revision": 5
+          },
+          {
+            "command": "verify_localized_defaults_delta",
+            "status": "passed",
+            "exitCode": 0,
+            "output": "{\"coverage\":\"package-declared locale-backed default props\",\"issues\":[]}",
+            "truncated": false,
+            "revision": 5
+          },
+          {
+            "command": "verify_creator_delta",
+            "status": "passed",
+            "exitCode": 0,
+            "output": "{\"status\":\"passed\",\"revision\":5,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck <USER_PROFILE>\\\\AppData\\\\Local\\\\Temp\\\\creator-connection-host-QSR1py\\\\host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":5},{\"command\":\"verify_localized_defaults_delta\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"{\\\"coverage\\\":\\\"package-declared locale-backed default props\\\",\\\"issues\\\":[]}\",\"truncated\":false,\"revision\":5}],\"targetRemaining\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+            "truncated": false,
+            "revision": 5
+          }
+        ],
+        "diagnosticLog": {
+          "format": "jsonl",
+          "path": ".agent-ui/creator/logs/2026-11-04T16-08-27.613Z_80de4952eae04ed9a181cd952529888d28024cd252bf71fd667684be79f15c7b.jsonl"
+        },
+        "transaction": {
+          "runId": "5b9b5cf4-69a1-41fa-be76-66bd0c851635",
+          "undoable": true,
+          "reapplyable": true,
+          "changedPaths": [
+            "src/agent-ui/plugins/job-progress-panel/manifest.json",
+            "src/agent-ui/plugins/job-progress-panel/definition.ts",
+            "src/agent-ui/plugins/job-progress-panel/index.tsx",
+            "src/agent-ui/plugins/job-progress-panel/styles.css",
+            "src/agent-ui/application/agent-events.ts",
+            "src/agent-ui/application/Agent.tsx",
+            "src/agent-ui/plugins/registry.generated.ts",
+            "src/agent-ui/app-ui.json",
+            "src/agent-ui/composition-revision.generated.json"
+          ],
+          "conflicts": []
+        },
+        "verification": {
+          "status": "changed-and-verified",
+          "projectRevision": 5,
+          "validationRevision": 5,
+          "auditAttempts": 0,
+          "checks": [],
+          "verificationMode": "static_and_runtime",
+          "runtimeStatus": "passed"
+        },
+        "pluginDeliveries": [
+          {
+            "pluginId": "job-progress-panel",
+            "projectRevision": 5,
+            "deliveryScope": "full",
+            "registrationScope": "runtime-catalog",
+            "decision": {
+              "type": "create-plugin"
+            },
+            "authorization": {
+              "status": "authorized"
+            },
+            "contract": {
+              "capability": "聊天区右侧的任务进度面板，实时展示多个后台任务的进度、完成与失败状态",
+              "renderingCategory": "panel",
+              "placement": "根布局 Row 的第三列，位于会话主区域右侧，宽度约 320px",
+              "lifecycle": "插件随组合常驻；组件内用 usePluginEvents() 订阅并在 useEffect 中返回取消函数；状态为该面板本地投影，不写入 AppUIModel 或共享状态",
+              "dependencies": [
+                "zod 用于 app.job.progress 事件 Schema",
+                "项目事件 Schema 模块接入 Agent.appEventSchemas",
+                "插件 manifest data.events 声明 app.job.progress"
+              ],
+              "verificationMethod": "runtime"
+            },
+            "delivery": {
+              "status": "completed",
+              "lastSuccessfulStage": "verified",
+              "stages": {
+                "created": true,
+                "registered": true,
+                "composed": true,
+                "verified": true
+              },
+              "blockers": [],
+              "instanceIds": [
+                "p27"
+              ]
+            },
+            "verification": {
+              "static": "pass",
+              "runtime": "pass",
+              "interaction": "not-run"
+            }
+          }
+        ]
+      },
+      "toolProtocol": {
+        "modelCalls": 25,
+        "toolCalls": 43
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "verificationMode": "static_and_runtime"
+    },
+    "runErrors": [],
+    "toolCalls": 43,
+    "changedPaths": [
+      "src/agent-ui/app-ui.json",
+      "src/agent-ui/application/Agent.tsx",
+      "src/agent-ui/composition-revision.generated.json",
+      "src/agent-ui/plugins/registry.generated.ts",
+      "src/agent-ui/application/agent-events.ts",
+      "src/agent-ui/plugins/job-progress-panel/definition.ts",
+      "src/agent-ui/plugins/job-progress-panel/index.tsx",
+      "src/agent-ui/plugins/job-progress-panel/manifest.json",
+      "src/agent-ui/plugins/job-progress-panel/styles.css"
+    ],
+    "qaApprovals": [
+      {
+        "kind": "simulated isolated QA user selection",
+        "seconds": 125.163,
+        "question": {
+          "id": "plugin-development-decision",
+          "question": "是否按此方案开发？",
+          "description": "目标: 在聊天区右侧新增“任务进度”面板插件：订阅业务事件 app.job.progress，按 job_id 合并更新同一条进度（多个任务分别显示），显示标题、状态、completed/total 进度条与百分比；完成时显示完成状态；失败时可展开查看 error.code 与 error.message；支持中英文文案与空状态提示。\n\n目标插件与位置: job-progress-panel\n\n需要新增的能力: 右侧任务进度看板（可容纳多个并行任务）; 订阅 app.job.progress 业务事件并按 job_id 去重合并; 失败原因可展开的错误详情\n\n根布局 Row 的第三列，位于会话主区域右侧，宽度约 320px",
+          "options": [
+            {
+              "id": "start",
+              "label": "开始开发"
+            },
+            {
+              "id": "adjust",
+              "label": "调整需求"
+            },
+            {
+              "id": "defer",
+              "label": "暂不处理"
+            }
+          ],
+          "selectionMode": "single",
+          "minSelections": 1,
+          "maxSelections": 1
+        },
+        "proposal": {
+          "targetPluginId": "job-progress-panel",
+          "workKind": "create-plugin",
+          "desiredOutcome": "在聊天区右侧新增“任务进度”面板插件：订阅业务事件 app.job.progress，按 job_id 合并更新同一条进度（多个任务分别显示），显示标题、状态、completed/total 进度条与百分比；完成时显示完成状态；失败时可展开查看 error.code 与 error.message；支持中英文文案与空状态提示。",
+          "missingCapabilities": [
+            "右侧任务进度看板（可容纳多个并行任务）",
+            "订阅 app.job.progress 业务事件并按 job_id 去重合并",
+            "失败原因可展开的错误详情"
+          ],
+          "deliveryContract": {
+            "capability": "聊天区右侧的任务进度面板，实时展示多个后台任务的进度、完成与失败状态",
+            "renderingCategory": "panel",
+            "placement": "根布局 Row 的第三列，位于会话主区域右侧，宽度约 320px",
+            "lifecycle": "插件随组合常驻；组件内用 usePluginEvents() 订阅并在 useEffect 中返回取消函数；状态为该面板本地投影，不写入 AppUIModel 或共享状态",
+            "dependencies": [
+              "zod 用于 app.job.progress 事件 Schema",
+              "项目事件 Schema 模块接入 Agent.appEventSchemas",
+              "插件 manifest data.events 声明 app.job.progress"
+            ],
+            "verificationMethod": "runtime"
+          }
+        },
+        "zeroNewPluginFilesBeforeApproval": true
+      }
+    ],
+    "browserErrors": [],
+    "interaction": {
+      "status": "failed",
+      "checks": [
+        {
+          "name": "custom event renders right-side progress panel",
+          "status": "passed"
+        },
+        {
+          "name": "same job updates without duplicating other jobs",
+          "status": "passed"
+        },
+        {
+          "name": "failed job exposes its error",
+          "status": "failed",
+          "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().getByRole('button', { name: /错误|详情|展开|Error|Details/i }).last()\u001b[22m\n"
+        }
+      ],
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().getByRole('button', { name: /错误|详情|展开|Error|Details/i }).last()\u001b[22m\n",
+      "protocolEventsSent": [
+        {
+          "at": "2026-11-04T16:17:21.661Z",
+          "event": {
+            "type": "CUSTOM",
+            "name": "app.job.progress",
+            "value": {
+              "job_id": "J-001",
+              "title": "生成销售报告",
+              "status": "running",
+              "completed": 3,
+              "total": 10,
+              "error": null
+            }
+          }
+        },
+        {
+          "at": "2026-11-04T16:17:22.056Z",
+          "event": {
+            "type": "CUSTOM",
+            "name": "app.job.progress",
+            "value": {
+              "job_id": "J-002",
+              "title": "同步客户资料",
+              "status": "running",
+              "completed": 1,
+              "total": 5,
+              "error": null
+            }
+          }
+        },
+        {
+          "at": "2026-11-04T16:17:22.056Z",
+          "event": {
+            "type": "CUSTOM",
+            "name": "app.job.progress",
+            "value": {
+              "job_id": "J-001",
+              "title": "生成销售报告",
+              "status": "completed",
+              "completed": 10,
+              "total": 10,
+              "error": null
+            }
+          }
+        },
+        {
+          "at": "2026-11-04T16:17:22.433Z",
+          "event": {
+            "type": "CUSTOM",
+            "name": "app.job.progress",
+            "value": {
+              "job_id": "J-002",
+              "title": "同步客户资料",
+              "status": "failed",
+              "completed": 1,
+              "total": 5,
+              "error": {
+                "code": "DATA_SOURCE_UNAVAILABLE",
+                "message": "销售数据暂时无法读取"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

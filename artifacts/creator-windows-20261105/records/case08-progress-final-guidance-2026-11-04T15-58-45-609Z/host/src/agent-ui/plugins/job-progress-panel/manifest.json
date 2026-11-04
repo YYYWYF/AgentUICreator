@@ -1,0 +1,33 @@
+{
+  "id": "job-progress-panel",
+  "name": "Job Progress Panel",
+  "description": "Subscribes to live app.job.progress business events and shows task progress rows merged by job_id at the right side of the chat area.",
+  "version": "0.0.1",
+  "capabilities": [
+    "job-progress-panel"
+  ],
+  "layout": {
+    "width": "narrow"
+  },
+  "data": {
+    "events": [
+      "app.job.progress"
+    ]
+  },
+  "authoring": {
+    "intents": [
+      "show task progress at the right of the chat area",
+      "显示任务进度面板",
+      "在聊天区域右侧显示任务进度"
+    ],
+    "visualRole": "chat area right task progress panel",
+    "recommendedSize": {
+      "width": "320px"
+    },
+    "defaultPlacement": {
+      "type": "relative",
+      "relation": "after",
+      "anchorPluginId": "conversation-surface"
+    }
+  }
+}

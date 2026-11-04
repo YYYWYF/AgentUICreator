@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "model": "deepseek-v4.1-flash",
+  "seconds": 4.814,
+  "firstToolCall": "acceptance_probe",
+  "reasoningCharacters": 96,
+  "answer": "7",
+  "firstUsage": {
+    "input_tokens": 315,
+    "output_tokens": 46,
+    "total_tokens": 361,
+    "input_token_details": {
+      "cache_read": 0
+    },
+    "output_token_details": {
+      "reasoning": 21
+    }
+  },
+  "finalUsage": {
+    "input_tokens": 373,
+    "output_tokens": 3,
+    "total_tokens": 376,
+    "input_token_details": {
+      "cache_read": 0
+    },
+    "output_token_details": {
+      "reasoning": 0
+    }
+  }
+}
