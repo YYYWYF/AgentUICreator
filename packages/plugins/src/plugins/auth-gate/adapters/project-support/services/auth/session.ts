@@ -1,13 +1,20 @@
-import type { UIApplicationGateService } from "@za38.03/agent-ui-plugins/contracts";
-export const AUTH_SESSION_SERVICE = "auth.session";
-export const AUTH_GATE_SERVICE = "auth.gate";
-export interface AuthUser { userId: string; userName: string; avatar?: string; }
-export interface AuthCredentials { account: string; password: string; }
+import type { UIApplicationGateService } from '@za38.03/agent-ui-plugins/contracts';
+export const AUTH_SESSION_SERVICE = 'auth.session';
+export const AUTH_GATE_SERVICE = 'auth.gate';
+export interface AuthUser {
+  userId: string;
+  userName: string;
+  avatar?: string;
+}
+export interface AuthCredentials {
+  account: string;
+  password: string;
+}
 export interface AuthSessionSnapshot {
-  status: "checking" | "anonymous" | "authenticated";
+  status: 'checking' | 'anonymous' | 'authenticated';
   user: AuthUser | null;
   busy: boolean;
-  error: "sign-in-failed" | "sign-out-failed" | null;
+  error: 'sign-in-failed' | 'sign-out-failed' | null;
 }
 export interface AuthAdapter {
   restore(): Promise<AuthUser | null>;
@@ -25,6 +32,9 @@ export interface AuthSessionService {
   gate: UIApplicationGateService;
   dispose(): void;
 }
-declare module "@za38.03/agent-ui-plugins/contracts" {
-  interface UIPluginServiceMap { "auth.session": AuthSessionService; "auth.gate": UIApplicationGateService; }
+declare module '@za38.03/agent-ui-plugins/contracts' {
+  interface UIPluginServiceMap {
+    'auth.session': AuthSessionService;
+    'auth.gate': UIApplicationGateService;
+  }
 }

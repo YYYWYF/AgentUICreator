@@ -1,22 +1,15 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../../../locale.js";
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from '../../../../../../locale.js';
 
-import { useAuiState, type TaskState } from "@assistant-ui/react";
-import { ChevronDownIcon } from "lucide-react";
-import { type FC, useMemo, useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../ui/popover";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
-import {
-  AgentStatus as AgentStatusBase,
-  type AgentState,
-} from "./agent-status";
-import { mono } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { TaskStateIcon } from "./task-card";
+import { useAuiState, type TaskState } from '@assistant-ui/react';
+import { ChevronDownIcon } from 'lucide-react';
+import { type FC, useMemo, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
+import { AgentStatus as AgentStatusBase, type AgentState } from './agent-status';
+import { mono } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js';
+import { TaskStateIcon } from './task-card';
 import {
   formatElapsed,
   TASK_PAGE_SIZE,
@@ -24,7 +17,7 @@ import {
   taskMeta,
   taskStateOf,
   useTaskElapsed,
-} from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js";
+} from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js';
 
 export type TaskSummary = {
   readonly total: number;
@@ -43,19 +36,16 @@ const summarize = (tasks: readonly TaskState[]): TaskSummary => {
   let runningLabel: string | undefined;
   for (const task of tasks) {
     const state = taskStateOf(task.status, task.isError);
-    if (state === "working") {
+    if (state === 'working') {
       running += 1;
       runningLabel ??= taskLabel(task.toolName, task.args);
       const taskStartedAt = task.timing?.startedAt;
-      if (
-        taskStartedAt !== undefined &&
-        (startedAt === undefined || taskStartedAt < startedAt)
-      ) {
+      if (taskStartedAt !== undefined && (startedAt === undefined || taskStartedAt < startedAt)) {
         startedAt = taskStartedAt;
       }
-    } else if (state === "waiting") {
+    } else if (state === 'waiting') {
       waiting += 1;
-    } else if (state === "failed") {
+    } else if (state === 'failed') {
       failed += 1;
     }
   }
@@ -74,13 +64,10 @@ export const useTaskSummary = (): TaskSummary => {
   return useMemo(() => summarize(tasks), [tasks]);
 };
 
-const plural = (count: number, noun: string) =>
-  `${count} ${count === 1 ? noun : `${noun}s`}`;
-
 export const summaryState = (summary: TaskSummary): AgentState => {
-  if (summary.running > 0) return "working";
-  if (summary.waiting > 0) return "waiting";
-  return summary.failed > 0 ? "failed" : "done";
+  if (summary.running > 0) return 'working';
+  if (summary.waiting > 0) return 'waiting';
+  return summary.failed > 0 ? 'failed' : 'done';
 };
 
 export const summaryLabel = (summary: TaskSummary, messages = DEFAULT_AGENT_UI_MESSAGES.tasks) => {
@@ -88,13 +75,21 @@ export const summaryLabel = (summary: TaskSummary, messages = DEFAULT_AGENT_UI_M
     return summary.runningLabel;
   }
   if (summary.running > 0) {
-    return formatPresentationMessage(summary.total === 1 ? messages.runningOne : messages.running, { running: summary.running, total: summary.total });
+    return formatPresentationMessage(summary.total === 1 ? messages.runningOne : messages.running, {
+      running: summary.running,
+      total: summary.total,
+    });
   }
   if (summary.waiting > 0) {
-    return formatPresentationMessage(summary.waiting === 1 ? messages.waitingOne : messages.waiting, { count: summary.waiting });
+    return formatPresentationMessage(summary.waiting === 1 ? messages.waitingOne : messages.waiting, {
+      count: summary.waiting,
+    });
   }
   if (summary.failed > 0) {
-    return formatPresentationMessage(summary.total === 1 ? messages.failedOne : messages.failed, { total: summary.total, failed: summary.failed });
+    return formatPresentationMessage(summary.total === 1 ? messages.failedOne : messages.failed, {
+      total: summary.total,
+      failed: summary.failed,
+    });
   }
   return formatPresentationMessage(summary.total === 1 ? messages.doneOne : messages.done, { count: summary.total });
 };
@@ -103,9 +98,7 @@ export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
   const localeMessages = useAgentUILocale();
   const summary = useTaskSummary();
   const elapsedMs = useTaskElapsed(
-    summary.startedAt === undefined
-      ? undefined
-      : { startedAt: summary.startedAt },
+    summary.startedAt === undefined ? undefined : { startedAt: summary.startedAt },
     summary.running > 0,
   );
   if (summary.running === 0 && summary.waiting === 0) return null;
@@ -121,40 +114,44 @@ export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
 };
 
 const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
-  const messages = useAgentUILocale("tasks");
+  const messages = useAgentUILocale('tasks');
   const state = taskStateOf(task.status, task.isError);
   const meta = taskMeta(task.args);
   const elapsedMs = useTaskElapsed(
     task.timing,
-    task.status.type === "running" || task.status.type === "requires-action",
+    task.status.type === 'running' || task.status.type === 'requires-action',
   );
 
   return (
-    <li data-agent-ui-owned=""
-      data-slot="aui_task-tray-item"
+    <li
+      data-agent-ui-owned=''
+      data-slot='aui_task-tray-item'
       data-state={state}
-      className="flex items-center gap-2.5 rounded-lg py-2 pe-2.5 text-[13px]"
+      className='flex items-center gap-2.5 rounded-lg py-2 pe-2.5 text-[13px]'
       style={{ paddingInlineStart: `${0.625 + task.depth * 0.75}rem` }}
     >
       <TaskStateIcon state={state} />
-      <span data-agent-ui-owned="" className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
-      <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate">
+      <span data-agent-ui-owned='' className='sr-only'>
+        {
+          {
+            working: messages.working,
+            waiting: messages.waitingState,
+            failed: messages.failedState,
+            done: messages.doneState,
+            cancelled: messages.cancelledState,
+          }[state]
+        }
+      </span>
+      <span data-agent-ui-owned='' className='min-w-0 flex-1 truncate'>
         {taskLabel(task.toolName, task.args)}
       </span>
       {meta !== undefined && (
-        <span data-agent-ui-owned=""
-          className={cn(
-            mono,
-            "text-muted-foreground max-w-24 shrink-0 truncate",
-          )}
-        >
+        <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground max-w-24 shrink-0 truncate')}>
           {meta}
         </span>
       )}
       {elapsedMs !== undefined && (
-        <span data-agent-ui-owned=""
-          className={cn(mono, "text-muted-foreground shrink-0 tabular-nums")}
-        >
+        <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground shrink-0 tabular-nums')}>
           {formatElapsed(elapsedMs)}
         </span>
       )}
@@ -167,16 +164,13 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
   const tasks = useAuiState((s) => s.thread.tasks);
   const summary = useMemo(() => summarize(tasks), [tasks]);
   const elapsedMs = useTaskElapsed(
-    summary.startedAt === undefined
-      ? undefined
-      : { startedAt: summary.startedAt },
+    summary.startedAt === undefined ? undefined : { startedAt: summary.startedAt },
     summary.running > 0,
   );
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(TASK_PAGE_SIZE);
   const firstTask = tasks[0];
-  const listKey =
-    firstTask === undefined ? "" : `${firstTask.messageId}:${firstTask.id}`;
+  const listKey = firstTask === undefined ? '' : `${firstTask.messageId}:${firstTask.id}`;
   const [seenListKey, setSeenListKey] = useState(listKey);
   if (seenListKey !== listKey) {
     setSeenListKey(listKey);
@@ -196,45 +190,44 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
     >
       <PopoverTrigger
         className={cn(
-          "focus-visible:ring-ring/50 cursor-pointer appearance-none rounded-full border-0 bg-transparent p-0 text-start focus-visible:ring-[3px] focus-visible:outline-none",
+          'focus-visible:ring-ring/50 cursor-pointer appearance-none rounded-full border-0 bg-transparent p-0 text-start focus-visible:ring-[3px] focus-visible:outline-none',
           className,
         )}
       >
         <AgentStatusBase
           state={summaryState(summary)}
           label={summaryLabel(summary, localeMessages.tasks)}
-          elapsed={
-            elapsedMs === undefined ? undefined : formatElapsed(elapsedMs)
-          }
+          elapsed={elapsedMs === undefined ? undefined : formatElapsed(elapsedMs)}
           trailing={
             <ChevronDownIcon
               className={cn(
-                "size-3 transition-transform duration-200 motion-reduce:transition-none",
-                open && "rotate-180",
+                'size-3 transition-transform duration-200 motion-reduce:transition-none',
+                open && 'rotate-180',
               )}
             />
           }
         />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-1">
-        <ul data-agent-ui-owned=""
-          data-slot="aui_task-tray"
+      <PopoverContent align='end' className='w-80 p-1'>
+        <ul
+          data-agent-ui-owned=''
+          data-slot='aui_task-tray'
           aria-label={localeMessages.tasks.title}
-          className="flex max-h-80 flex-col overflow-y-auto"
+          className='flex max-h-80 flex-col overflow-y-auto'
         >
           {tasks.slice(0, visible).map((task, index) => (
             <TaskTrayItem key={`${index}:${task.id}`} task={task} />
           ))}
           {hidden > 0 && (
-            <li data-agent-ui-owned="" className="flex">
-              <button data-agent-ui-owned=""
-                type="button"
-                data-slot="aui_task-tray-more"
+            <li data-agent-ui-owned='' className='flex'>
+              <button
+                data-agent-ui-owned=''
+                type='button'
+                data-slot='aui_task-tray-more'
                 onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
-                className="text-muted-foreground hover:text-foreground px-2.5 py-2 text-xs transition-colors"
+                className='text-muted-foreground hover:text-foreground px-2.5 py-2 text-xs transition-colors'
               >
-
-                {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}
+                {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)} {localeMessages.common.more}
               </button>
             </li>
           )}

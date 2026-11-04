@@ -1,40 +1,39 @@
-"use client";
+'use client';
 
+import { createContext, Fragment, useContext, useState, type ComponentProps, type ComponentType, type FC } from 'react';
 import {
-  useAgentUILocale,
-  type ConversationThreadListItemLabels,
-  type ConversationThreadListItemProps,
-  useAgentUISidebarNavigation,
   ConversationIf,
   ConversationThreadListItem,
   ConversationThreadListItemByIndex,
   ConversationThreadListRoot,
   ConversationThreadListSearch,
   Skeleton,
+  useAgentUILocale,
+  useAgentUISidebarNavigation,
   useConversationState,
   useConversationThreadListGroups,
-} from "../../../../public.js";
-import { createContext, Fragment, useContext, useState, type FC, type ComponentProps, type ComponentType } from "react";
+  type ConversationThreadListItemLabels,
+  type ConversationThreadListItemProps,
+} from '../../../../public.js';
 
-const ThreadListOptionsContext = /* @__PURE__ */ createContext<{ itemProps?: ConversationThreadListItemProps | undefined; components?: {ThreadListItem?: ComponentType} | undefined }>({});
+const ThreadListOptionsContext = /* @__PURE__ */ createContext<{
+  itemProps?: ConversationThreadListItemProps | undefined;
+  components?: { ThreadListItem?: ComponentType } | undefined;
+}>({});
 const ThreadListLabelsContext = /* @__PURE__ */ createContext<ConversationThreadListItemLabels | undefined>(undefined);
 
 function PolicyThreadListItem() {
   const onNavigate = useAgentUISidebarNavigation();
   const labels = useContext(ThreadListLabelsContext);
-  if (labels === undefined) throw new Error("Thread List labels are missing.");
-  const {itemProps} = useContext(ThreadListOptionsContext);
-  const disabledByConversation = useConversationState(
-    (s) => s.threadListItem.custom?.agentUiDisabled === true,
-  );
+  if (labels === undefined) {
+    throw new Error('Thread List labels are missing.');
+  }
+  const { itemProps } = useContext(ThreadListOptionsContext);
+  const disabledByConversation = useConversationState((s) => s.threadListItem.custom?.agentUiDisabled === true);
   const disabled = disabledByConversation;
 
   return (
-    <div
-      className="contents"
-      aria-disabled={disabled || undefined}
-      inert={disabled || undefined}
-    >
+    <div className='contents' aria-disabled={disabled || undefined} inert={disabled || undefined}>
       <ConversationThreadListItem
         onNavigate={onNavigate}
         actions={{ rename: true, archive: true, unarchive: true, delete: true }}
@@ -46,40 +45,32 @@ function PolicyThreadListItem() {
 }
 
 const PolicyThreadListSkeleton: FC = () => {
-  const messages = useAgentUILocale("threadList");
+  const messages = useAgentUILocale('threadList');
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className='flex flex-col gap-0.5'>
       {Array.from({ length: 5 }, (_, index) => (
         <div
           key={index}
-          role="status"
+          role='status'
           aria-label={messages.loading}
-          data-slot="aui_thread-list-skeleton-wrapper"
-          className="flex h-8 items-center px-2.5"
+          data-slot='aui_thread-list-skeleton-wrapper'
+          className='flex h-8 items-center px-2.5'
         >
-          <Skeleton
-            data-slot="aui_thread-list-skeleton"
-            className="h-3.5 w-full"
-          />
+          <Skeleton data-slot='aui_thread-list-skeleton' className='h-3.5 w-full' />
         </div>
       ))}
     </div>
   );
 };
 
-const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
-  searchQuery = "",
-}) => {
-  const messages = useAgentUILocale("threadList");
-  const {components} = useContext(ThreadListOptionsContext);
+const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({ searchQuery = '' }) => {
+  const messages = useAgentUILocale('threadList');
+  const { components } = useContext(ThreadListOptionsContext);
   const { threadIds, filteredIndices, groups } = useConversationThreadListGroups(searchQuery);
 
   if (filteredIndices.length === 0) {
     return (
-      <div
-        data-slot="aui_thread-list-empty"
-        className="text-muted-foreground px-2.5 py-4 text-sm"
-      >
+      <div data-slot='aui_thread-list-empty' className='text-muted-foreground px-2.5 py-4 text-sm'>
         {messages.empty}
       </div>
     );
@@ -98,8 +89,8 @@ const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
   return groups.map((group) => (
     <Fragment key={group.id}>
       <div
-        data-slot="aui_thread-list-group-label"
-        className="text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium"
+        data-slot='aui_thread-list-group-label'
+        className='text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium'
       >
         {group.label}
       </div>
@@ -114,14 +105,9 @@ const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
   ));
 };
 
-const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
-  searchQuery = "",
-}) => {
+const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({ searchQuery = '' }) => {
   return (
-    <div
-      data-slot="aui_thread-list-items"
-      className="flex flex-col gap-0.5"
-    >
+    <div data-slot='aui_thread-list-items' className='flex flex-col gap-0.5'>
       <ConversationIf condition={(s) => s.threads.isLoading}>
         <PolicyThreadListSkeleton />
       </ConversationIf>
@@ -133,23 +119,34 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
 };
 
 function ArchivedThreadList({ searchQuery }: { searchQuery: string }) {
-  const labels = useAgentUILocale("threadList");
+  const labels = useAgentUILocale('threadList');
   const { components } = useContext(ThreadListOptionsContext);
-  const ids = useConversationState(s => s.threads.archivedThreadIds);
-  const items = useConversationState(s => s.threads.threadItems);
-  const titles = new Map(items.map(item => [item.id, typeof item.title === "string" ? item.title : labels.newChat]));
+  const ids = useConversationState((s) => s.threads.archivedThreadIds);
+  const items = useConversationState((s) => s.threads.threadItems);
+  const titles = new Map(items.map((item) => [item.id, typeof item.title === 'string' ? item.title : labels.newChat]));
   const query = searchQuery.trim().toLowerCase();
-  const indices = ids.map((id, index) => ({ id, index }))
+  const indices = ids
+    .map((id, index) => ({ id, index }))
     .filter(({ id }) => !query || (titles.get(id) ?? labels.newChat).toLowerCase().includes(query));
-  if (!indices.length) return null;
-  return <details data-slot="agent-ui-archived-threads">
-    <summary className="cursor-pointer px-2.5 py-2 text-sm">{labels.archived}</summary>
-    {indices.map(({ id, index }) => <ConversationThreadListItemByIndex key={id} index={index} archived
-      components={{ ThreadListItem: components?.ThreadListItem ?? PolicyThreadListItem }} />)}
-  </details>;
+  if (!indices.length) {
+    return null;
+  }
+  return (
+    <details data-slot='agent-ui-archived-threads'>
+      <summary className='cursor-pointer px-2.5 py-2 text-sm'>{labels.archived}</summary>
+      {indices.map(({ id, index }) => (
+        <ConversationThreadListItemByIndex
+          key={id}
+          index={index}
+          archived
+          components={{ ThreadListItem: components?.ThreadListItem ?? PolicyThreadListItem }}
+        />
+      ))}
+    </details>
+  );
 }
 
-export interface PolicyThreadListProps extends Omit<ComponentProps<typeof ConversationThreadListRoot>, "children"> {
+export interface PolicyThreadListProps extends Omit<ComponentProps<typeof ConversationThreadListRoot>, 'children'> {
   labels: ConversationThreadListItemLabels;
   /** Disabling search also removes its query from list filtering. */
   showSearch?: boolean;
@@ -159,20 +156,43 @@ export interface PolicyThreadListProps extends Omit<ComponentProps<typeof Conver
   itemProps?: ConversationThreadListItemProps;
   components?: { ThreadListItem?: ComponentType };
 }
-export function PolicyThreadList({ labels, showSearch = true, showArchived = true, searchProps, itemProps, components, ...elementProps }: PolicyThreadListProps) {
-  const messages = useAgentUILocale("threadList");
-  const [search, setSearch] = useState("");
-  const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0 || (showArchived && s.threads.archivedThreadIds.length > 0));
+export function PolicyThreadList({
+  labels,
+  showSearch = true,
+  showArchived = true,
+  searchProps,
+  itemProps,
+  components,
+  ...elementProps
+}: PolicyThreadListProps) {
+  const messages = useAgentUILocale('threadList');
+  const [search, setSearch] = useState('');
+  const hasThreads = useConversationState(
+    (s) => s.threads.threadIds.length > 0 || (showArchived && s.threads.archivedThreadIds.length > 0),
+  );
 
   return (
-    <ThreadListOptionsContext.Provider value={{itemProps,components}}><ThreadListLabelsContext.Provider value={labels}>
-      <ConversationThreadListRoot {...elementProps}>
-        {showSearch && hasThreads && (
-          <ConversationThreadListSearch placeholder={messages.search} aria-label={messages.search} {...searchProps} value={searchProps?.value ?? search} onValueChange={value => { setSearch(value); searchProps?.onValueChange?.(value); }} />
-        )}
-        <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ""} />
-        {showArchived && <ArchivedThreadList searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ""} />}
-      </ConversationThreadListRoot>
-    </ThreadListLabelsContext.Provider></ThreadListOptionsContext.Provider>
+    <ThreadListOptionsContext.Provider value={{ itemProps, components }}>
+      <ThreadListLabelsContext.Provider value={labels}>
+        <ConversationThreadListRoot {...elementProps}>
+          {showSearch && hasThreads && (
+            <ConversationThreadListSearch
+              placeholder={messages.search}
+              aria-label={messages.search}
+              {...searchProps}
+              value={searchProps?.value ?? search}
+              onValueChange={(value) => {
+                setSearch(value);
+                searchProps?.onValueChange?.(value);
+              }}
+            />
+          )}
+          <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} />
+          {showArchived && (
+            <ArchivedThreadList searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} />
+          )}
+        </ConversationThreadListRoot>
+      </ThreadListLabelsContext.Provider>
+    </ThreadListOptionsContext.Provider>
   );
 }

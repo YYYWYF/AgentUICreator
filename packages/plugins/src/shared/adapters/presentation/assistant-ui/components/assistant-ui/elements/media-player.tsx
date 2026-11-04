@@ -1,37 +1,30 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from "../../../../../../locale.js";
+import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
 
+import { useEffect, useRef, useState, type ComponentProps, type RefObject } from 'react';
+import { PauseIcon, PlayIcon } from 'lucide-react';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
 import {
-  useEffect,
-  useRef,
-  useState,
-  type ComponentProps,
-  type RefObject,
-} from "react";
-import { PauseIcon, PlayIcon } from "lucide-react";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
-import { field, inkButton, mono, paper } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
+  field,
+  inkButton,
+  mono,
+  paper,
+} from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js';
 
-export interface AudioPlayerProps extends Omit<
-  ComponentProps<"div">,
-  "children"
-> {
+export interface AudioPlayerProps extends Omit<ComponentProps<'div'>, 'children'> {
   src: string;
   title?: string | undefined;
   artwork?: string | undefined;
   durationMs?: number | undefined;
 }
 
-export interface VideoPlayerProps extends Omit<
-  ComponentProps<"div">,
-  "children"
-> {
+export interface VideoPlayerProps extends Omit<ComponentProps<'div'>, 'children'> {
   src: string;
   controlsList?: string | undefined;
   poster?: string | undefined;
   title?: string | undefined;
-  ratio?: "16:9" | "4:3" | "1:1" | "9:16" | "auto" | undefined;
+  ratio?: '16:9' | '4:3' | '1:1' | '9:16' | 'auto' | undefined;
   durationMs?: number | undefined;
 }
 
@@ -39,14 +32,10 @@ function formatDuration(seconds: number): string {
   const wholeSeconds = Math.max(0, Math.floor(seconds));
   const minutes = Math.floor(wholeSeconds / 60);
   const remainingSeconds = wholeSeconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
-function useMediaDuration(
-  mediaRef: RefObject<HTMLMediaElement | null>,
-  src: string,
-  durationMs?: number | undefined,
-) {
+function useMediaDuration(mediaRef: RefObject<HTMLMediaElement | null>, src: string, durationMs?: number | undefined) {
   const [metadata, setMetadata] = useState<{ src: string; duration?: number }>({
     src,
   });
@@ -60,15 +49,10 @@ function useMediaDuration(
     }
   }, [mediaRef, src]);
   const fallbackDuration =
-    durationMs !== undefined && Number.isFinite(durationMs)
-      ? Math.max(0, durationMs / 1000)
-      : undefined;
+    durationMs !== undefined && Number.isFinite(durationMs) ? Math.max(0, durationMs / 1000) : undefined;
 
   return {
-    duration:
-      metadata.src === src
-        ? (metadata.duration ?? fallbackDuration)
-        : fallbackDuration,
+    duration: metadata.src === src ? (metadata.duration ?? fallbackDuration) : fallbackDuration,
     setDurationFromMetadata: (duration: number) => {
       if (Number.isFinite(duration) && duration >= 0) {
         setMetadata({ src, duration });
@@ -77,15 +61,8 @@ function useMediaDuration(
   };
 }
 
-export function AudioPlayer({
-  src,
-  title,
-  artwork,
-  durationMs,
-  className,
-  ...props
-}: AudioPlayerProps) {
-  const messages = useAgentUILocale("media");
+export function AudioPlayer({ src, title, artwork, durationMs, className, ...props }: AudioPlayerProps) {
+  const messages = useAgentUILocale('media');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playback, setPlayback] = useState({
     src,
@@ -93,27 +70,17 @@ export function AudioPlayer({
     playing: false,
     hasError: false,
   });
-  const { duration, setDurationFromMetadata } = useMediaDuration(
-    audioRef,
-    src,
-    durationMs,
-  );
-  const playbackState =
-    playback.src === src
-      ? playback
-      : { src, currentTime: 0, playing: false, hasError: false };
+  const { duration, setDurationFromMetadata } = useMediaDuration(audioRef, src, durationMs);
+  const playbackState = playback.src === src ? playback : { src, currentTime: 0, playing: false, hasError: false };
   const { currentTime, playing, hasError } = playbackState;
-  const update = (patch: Partial<Omit<typeof playback, "src">>) =>
+  const update = (patch: Partial<Omit<typeof playback, 'src'>>) =>
     setPlayback((current) => ({
-      ...(current.src === src
-        ? current
-        : { src, currentTime: 0, playing: false, hasError: false }),
+      ...(current.src === src ? current : { src, currentTime: 0, playing: false, hasError: false }),
       ...patch,
     }));
   const displayTitle = title ?? messages.audio;
   const playbackLabel = title ?? messages.audio;
-  const durationLabel =
-    duration === undefined ? "--:--" : formatDuration(duration);
+  const durationLabel = duration === undefined ? '--:--' : formatDuration(duration);
 
   useEffect(() => {
     if (audioRef.current?.error) {
@@ -133,58 +100,49 @@ export function AudioPlayer({
 
     void audio.play().then(
       () => update({ playing: true }),
-      () =>
-        update(
-          audio.error ? { hasError: true, playing: false } : { playing: false },
-        ),
+      () => update(audio.error ? { hasError: true, playing: false } : { playing: false }),
     );
   };
 
   return (
-    <div data-agent-ui-owned=""
-      data-slot="audio-player"
-      className={cn(
-        paper,
-        "flex w-full max-w-md items-center gap-3 rounded-2xl p-3",
-        className,
-      )}
+    <div
+      data-agent-ui-owned=''
+      data-slot='audio-player'
+      className={cn(paper, 'flex w-full max-w-md items-center gap-3 rounded-2xl p-3', className)}
       {...props}
     >
       {artwork ? (
-        <img data-agent-ui-owned=""
-          src={artwork}
-          alt=""
-          className="size-10 shrink-0 rounded-lg object-cover"
-        />
+        <img data-agent-ui-owned='' src={artwork} alt='' className='size-10 shrink-0 rounded-lg object-cover' />
       ) : null}
-      <button data-agent-ui-owned=""
-        type="button"
+      <button
+        data-agent-ui-owned=''
+        type='button'
         aria-label={formatPresentationMessage(playing ? messages.pause : messages.play, { title: playbackLabel })}
         disabled={hasError}
         onClick={togglePlayback}
         className={cn(
           inkButton,
-          "flex size-9 shrink-0 items-center justify-center rounded-full disabled:cursor-default disabled:opacity-40",
+          'flex size-9 shrink-0 items-center justify-center rounded-full disabled:cursor-default disabled:opacity-40',
         )}
       >
-        {playing ? (
-          <PauseIcon aria-hidden className="size-4" />
-        ) : (
-          <PlayIcon aria-hidden className="ml-0.5 size-4" />
-        )}
+        {playing ? <PauseIcon aria-hidden className='size-4' /> : <PlayIcon aria-hidden className='ml-0.5 size-4' />}
       </button>
-      <div data-agent-ui-owned="" className="flex min-w-0 grow basis-16 flex-col gap-1.5">
-        <span data-agent-ui-owned="" className="truncate text-[13.5px] font-medium">
+      <div data-agent-ui-owned='' className='flex min-w-0 grow basis-16 flex-col gap-1.5'>
+        <span data-agent-ui-owned='' className='truncate text-[13.5px] font-medium'>
           {displayTitle}
         </span>
-        <input data-agent-ui-owned=""
-          type="range"
+        <input
+          data-agent-ui-owned=''
+          type='range'
           min={0}
           max={duration ?? 0}
           step={0.1}
           value={Math.min(currentTime, duration ?? 0)}
           aria-label={messages.seek}
-          aria-valuetext={formatPresentationMessage(messages.position, { current: formatDuration(currentTime), duration: durationLabel })}
+          aria-valuetext={formatPresentationMessage(messages.position, {
+            current: formatDuration(currentTime),
+            duration: durationLabel,
+          })}
           disabled={hasError}
           onChange={(event) => {
             const nextTime = Number(event.currentTarget.value);
@@ -193,29 +151,27 @@ export function AudioPlayer({
             if (audioRef.current) audioRef.current.currentTime = resolvedTime;
             update({ currentTime: resolvedTime });
           }}
-          className="accent-foreground w-full cursor-pointer disabled:cursor-default"
+          className='accent-foreground w-full cursor-pointer disabled:cursor-default'
         />
       </div>
-      <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground tabular-nums")}>
+      <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground tabular-nums')}>
         {formatDuration(currentTime)}&nbsp;/ {durationLabel}
       </span>
       <audio
         ref={audioRef}
         src={src}
-        preload="metadata"
-        className="hidden"
+        preload='metadata'
+        className='hidden'
         onLoadedMetadata={(event) => {
           setDurationFromMetadata(event.currentTarget.duration);
         }}
-        onTimeUpdate={(event) =>
-          update({ currentTime: event.currentTarget.currentTime })
-        }
+        onTimeUpdate={(event) => update({ currentTime: event.currentTarget.currentTime })}
         onPlay={() => update({ playing: true })}
         onPause={() => update({ playing: false })}
         onError={() => update({ hasError: true, playing: false })}
       />
       {hasError ? (
-        <span data-agent-ui-owned="" role="alert" className="text-muted-foreground text-xs">
+        <span data-agent-ui-owned='' role='alert' className='text-muted-foreground text-xs'>
           {messages.audioError}
         </span>
       ) : null}
@@ -228,36 +184,33 @@ export function VideoPlayer({
   controlsList,
   poster,
   title,
-  ratio = "16:9",
+  ratio = '16:9',
   durationMs,
   className,
   ...props
 }: VideoPlayerProps) {
-  const messages = useAgentUILocale("media");
+  const messages = useAgentUILocale('media');
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { duration, setDurationFromMetadata } = useMediaDuration(
-    videoRef,
-    src,
-    durationMs,
-  );
+  const { duration, setDurationFromMetadata } = useMediaDuration(videoRef, src, durationMs);
   const ratioClassName =
-    ratio === "1:1"
-      ? "aspect-square"
-      : ratio === "4:3"
-        ? "aspect-[4/3]"
-        : ratio === "16:9"
-          ? "aspect-video"
-          : ratio === "9:16"
-            ? "aspect-[9/16]"
+    ratio === '1:1'
+      ? 'aspect-square'
+      : ratio === '4:3'
+        ? 'aspect-[4/3]'
+        : ratio === '16:9'
+          ? 'aspect-video'
+          : ratio === '9:16'
+            ? 'aspect-[9/16]'
             : undefined;
 
   return (
-    <div data-agent-ui-owned=""
-      data-slot="video-player"
-      className={cn("flex w-full max-w-xl flex-col gap-2", className)}
+    <div
+      data-agent-ui-owned=''
+      data-slot='video-player'
+      className={cn('flex w-full max-w-xl flex-col gap-2', className)}
       {...props}
     >
-      <div data-agent-ui-owned="" className={cn(field, "overflow-hidden rounded-xl", ratioClassName)}>
+      <div data-agent-ui-owned='' className={cn(field, 'overflow-hidden rounded-xl', ratioClassName)}>
         <video
           ref={videoRef}
           src={src}
@@ -265,31 +218,23 @@ export function VideoPlayer({
           controls
           controlsList={controlsList}
           playsInline
-          preload="metadata"
+          preload='metadata'
           aria-label={title ?? messages.video}
-          className={cn(
-            "block max-w-full",
-            ratio !== "auto" && "h-full w-full object-contain",
-          )}
+          className={cn('block max-w-full', ratio !== 'auto' && 'h-full w-full object-contain')}
           onLoadedMetadata={(event) => {
             setDurationFromMetadata(event.currentTarget.duration);
           }}
         />
       </div>
       {(title || duration !== undefined) && (
-        <div data-agent-ui-owned="" className="flex min-w-0 items-center gap-2 px-1">
+        <div data-agent-ui-owned='' className='flex min-w-0 items-center gap-2 px-1'>
           {title ? (
-            <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
+            <span data-agent-ui-owned='' className='min-w-0 flex-1 truncate text-[13.5px] font-medium'>
               {title}
             </span>
           ) : null}
           {duration !== undefined ? (
-            <span data-agent-ui-owned=""
-              className={cn(
-                mono,
-                "text-muted-foreground shrink-0 tabular-nums",
-              )}
-            >
+            <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground shrink-0 tabular-nums')}>
               {formatDuration(duration)}
             </span>
           ) : null}

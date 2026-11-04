@@ -29,7 +29,7 @@ export async function admitAppUIModelCandidate(
   const model: AppUIModel = parseAppUIModel(candidate);
   const facts = projectFacts ?? await collectPluginProjectFacts(projectRoot, config, paths);
   const runtimeModel = validateAppUIModelCandidateStructure(model, facts);
-  const generation = generatePluginRegistryFromFacts(model, facts, { validateComposition: false });
+  const generation = await generatePluginRegistryFromFacts(model, facts, { validateComposition: false });
   if (generation.errors.length > 0) {
     throw new CandidateAdmissionError(
       "PLUGIN_REGISTRY_GENERATION_FAILED",

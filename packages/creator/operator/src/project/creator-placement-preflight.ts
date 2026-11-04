@@ -35,7 +35,7 @@ export async function preflightCreatorPluginPlacement(
   }
   const model = parseAppUIModelJson(modelSource);
   const facts = await collectPluginProjectFacts(projectRoot, operatorConfigForPaths(paths), paths);
-  const generation = generatePluginRegistryFromFacts(model, facts);
+  const generation = await generatePluginRegistryFromFacts(model, facts);
   const capabilityCatalogRevision = generation.capabilityCatalog.revision;
   if (capabilityCatalogRevision !== input.capabilityCatalogRevision) {
     return { eligible: false, appUIModelHash, capabilityCatalogRevision, diagnostic: {

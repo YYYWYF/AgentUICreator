@@ -1,15 +1,17 @@
-import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";
-import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
-import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins/contracts";
-import { ContextRetrievalMessagePlugin } from "./index";
-import manifestJson from "./manifest.json";
+import { defineDataMessageUI } from '@za38.03/agent-ui-plugins';
+import { type UIPluginDefinition, parseUIPluginManifest } from '@za38.03/agent-ui-plugins/contracts';
+
+import { ContextRetrievalMessagePlugin } from './index';
+import manifestJson from './manifest.json';
 
 export const contextRetrievalMessagePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  dataMessageUIs: [defineDataMessageUI<unknown>({
-    name: "CONTEXT_CONTENT",
-    render: ContextRetrievalMessagePlugin,
-  })],
+  dataMessageUIs: [
+    defineDataMessageUI<unknown>({
+      name: 'CONTEXT_CONTENT',
+      render: ContextRetrievalMessagePlugin,
+    }),
+  ],
   Component: () => null,
 };
 

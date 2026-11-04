@@ -45,7 +45,7 @@ it.each(["platform", "assistant", "embedded"] as const)(
 
       const model = await readModel();
       const projectFacts = await collectPluginProjectFacts(root, context.config, context.paths);
-      const generation = generatePluginRegistryFromFacts(model, projectFacts);
+      const generation = await generatePluginRegistryFromFacts(model, projectFacts);
       expect(generation.errors).toEqual([]);
       const appUIModelHash = createHash("sha256").update(before).digest("hex");
       const catalog = await buildCreatorActionCatalog({ model, generation, projectFacts, appUIModelHash,

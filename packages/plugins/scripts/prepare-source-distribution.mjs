@@ -134,7 +134,7 @@ for (const delivery of deliveries) {
   const plugin = plugins.find(plugin => plugin.id === id);
   const entries = [];
   const add = async (target, origin, transform = text => text) => {
-    const bytes = Buffer.from(transform(await readFile(path.join(packageRoot, origin), "utf8")));
+    const bytes = Buffer.from(await transform(await readFile(path.join(packageRoot, origin), "utf8")));
     const snapshot = `sources/takeover/${id}/${target}`;
     await mkdir(path.dirname(path.join(packageRoot, "dist", snapshot)), { recursive: true });
     await writeFile(path.join(packageRoot, "dist", snapshot), bytes);

@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../../../locale.js";
+import { useAgentUILocale } from '../../../../../../locale.js';
 
-import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from "react";
+import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from 'react';
 import {
   ComposerPrimitive,
   defaultDirectiveFormatter,
   type DirectiveFormatter,
   type TriggerItem,
-} from "@assistant-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
+} from '@assistant-ui/react';
+import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from 'lucide-react';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
 
-type IconComponent = FC<{ className?: string; "data-slot"?: string }>;
+type IconComponent = FC<{ className?: string; 'data-slot'?: string }>;
 
 type DirectiveBehaviorProps = {
   /** Formatter used to serialize the selected item into composer text. */
@@ -32,7 +32,7 @@ type ActionBehaviorProps = {
 
 type ComposerTriggerPopoverBaseProps = Omit<
   ComponentPropsWithoutRef<typeof ComposerPrimitive.TriggerPopover>,
-  "children"
+  'children'
 > & {
   /**
    * Maps icon keys to components. Items look up via `item.metadata?.icon`
@@ -81,36 +81,38 @@ type CategoriesProps = {
   emptyLabel: string;
 };
 
-const Categories: FC<CategoriesProps> = ({
-  iconMap,
-  fallbackIcon,
-  emptyLabel,
-}) => (
+const Categories: FC<CategoriesProps> = ({ iconMap, fallbackIcon, emptyLabel }) => (
   <ComposerPrimitive.TriggerPopoverCategories>
     {(categories) => (
-      <div data-agent-ui-owned=""
-        data-slot="composer-trigger-popover-categories"
-        className="flex flex-col py-1"
-      >
+      <div data-agent-ui-owned='' data-slot='composer-trigger-popover-categories' className='flex flex-col py-1'>
         {categories.map((cat) => {
           const Icon = resolveIcon(cat.id, iconMap, fallbackIcon);
           return (
-            <ComposerPrimitive.TriggerPopoverCategoryItem data-agent-ui-owned=""
+            <ComposerPrimitive.TriggerPopoverCategoryItem
+              data-agent-ui-owned=''
               key={cat.id}
               categoryId={cat.id}
-              data-slot="composer-trigger-popover-category-item"
-              className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors outline-none"
+              data-slot='composer-trigger-popover-category-item'
+              className='hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors outline-none'
             >
-              <span data-agent-ui-owned="" className="flex items-center gap-2">
-                <Icon data-agent-ui-owned="" data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />
+              <span data-agent-ui-owned='' className='flex items-center gap-2'>
+                <Icon
+                  data-agent-ui-owned=''
+                  data-slot='composer-trigger-popover-icon'
+                  className='text-muted-foreground size-4'
+                />
                 {cat.label}
               </span>
-              <ChevronRightIcon className="text-muted-foreground size-4" />
+              <ChevronRightIcon className='text-muted-foreground size-4' />
             </ComposerPrimitive.TriggerPopoverCategoryItem>
           );
         })}
         {categories.length === 0 && (
-          <div data-agent-ui-owned="" data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
+          <div
+            data-agent-ui-owned=''
+            data-slot='composer-trigger-popover-empty'
+            className='text-muted-foreground px-3 py-2 text-sm'
+          >
             {emptyLabel}
           </div>
         )}
@@ -128,48 +130,44 @@ type ItemsProps = {
   isLoading: boolean;
 };
 
-const Items: FC<ItemsProps> = ({
-  iconMap,
-  fallbackIcon,
-  backLabel,
-  emptyLabel,
-  loadingLabel,
-  isLoading,
-}) => {
-  const messages = useAgentUILocale("triggers");
+const Items: FC<ItemsProps> = ({ iconMap, fallbackIcon, backLabel, emptyLabel, loadingLabel, isLoading }) => {
+  const messages = useAgentUILocale('triggers');
   return (
     <ComposerPrimitive.TriggerPopoverItems aria-label={messages.items}>
       {(items) => (
-        <div data-agent-ui-owned=""
-          data-slot="composer-trigger-popover-items"
-          className="flex flex-col"
-        >
-          <ComposerPrimitive.TriggerPopoverBack data-agent-ui-owned="" data-slot="composer-trigger-popover-back" className="text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors">
-            <ChevronLeftIcon className="size-3.5" />
+        <div data-agent-ui-owned='' data-slot='composer-trigger-popover-items' className='flex flex-col'>
+          <ComposerPrimitive.TriggerPopoverBack
+            data-agent-ui-owned=''
+            data-slot='composer-trigger-popover-back'
+            className='text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors'
+          >
+            <ChevronLeftIcon className='size-3.5' />
             {backLabel}
           </ComposerPrimitive.TriggerPopoverBack>
 
-          <div data-agent-ui-owned="" data-slot="composer-trigger-popover-item-list" className="py-1">
+          <div data-agent-ui-owned='' data-slot='composer-trigger-popover-item-list' className='py-1'>
             {items.map((item, index) => {
-              const iconKey =
-                typeof item.metadata?.icon === "string"
-                  ? item.metadata.icon
-                  : undefined;
+              const iconKey = typeof item.metadata?.icon === 'string' ? item.metadata.icon : undefined;
               const Icon = resolveIcon(iconKey, iconMap, fallbackIcon);
               return (
-                <ComposerPrimitive.TriggerPopoverItem data-agent-ui-owned=""
+                <ComposerPrimitive.TriggerPopoverItem
+                  data-agent-ui-owned=''
                   key={item.id}
-                  data-slot="composer-trigger-popover-item"
+                  data-slot='composer-trigger-popover-item'
                   item={item}
                   index={index}
-                  className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex w-full cursor-pointer flex-col items-start gap-0.5 px-3 py-2 text-start transition-colors outline-none"
+                  className='hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex w-full cursor-pointer flex-col items-start gap-0.5 px-3 py-2 text-start transition-colors outline-none'
                 >
-                  <span data-agent-ui-owned="" className="flex items-center gap-2 text-sm font-medium">
-                    <Icon data-agent-ui-owned="" data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />
+                  <span data-agent-ui-owned='' className='flex items-center gap-2 text-sm font-medium'>
+                    <Icon
+                      data-agent-ui-owned=''
+                      data-slot='composer-trigger-popover-icon'
+                      className='text-primary size-3.5'
+                    />
                     {item.label}
                   </span>
                   {item.description && (
-                    <span data-agent-ui-owned="" className="text-muted-foreground ms-5.5 text-xs leading-tight">
+                    <span data-agent-ui-owned='' className='text-muted-foreground ms-5.5 text-xs leading-tight'>
                       {item.description}
                     </span>
                   )}
@@ -177,7 +175,11 @@ const Items: FC<ItemsProps> = ({
               );
             })}
             {items.length === 0 && (
-              <div data-agent-ui-owned="" data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
+              <div
+                data-agent-ui-owned=''
+                data-slot='composer-trigger-popover-empty'
+                className='text-muted-foreground px-3 py-2 text-sm'
+              >
                 {isLoading ? loadingLabel : emptyLabel}
               </div>
             )}
@@ -212,22 +214,16 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   emptyItemsLabel ??= localeMessages.triggers.noResults;
   loadingLabel ??= localeMessages.triggers.loading;
   const warnedRef = useRef(false);
-  if (
-    process.env.NODE_ENV !== "production" &&
-    !warnedRef.current &&
-    Boolean(directive) === Boolean(action)
-  ) {
+  if (process.env.NODE_ENV !== 'production' && !warnedRef.current && Boolean(directive) === Boolean(action)) {
     warnedRef.current = true;
-    console.warn(
-      "[assistant-ui] ComposerTriggerPopover requires exactly one of `directive` or `action` props.",
-    );
+    console.warn('[assistant-ui] ComposerTriggerPopover requires exactly one of `directive` or `action` props.');
   }
 
   return (
     <ComposerPrimitive.TriggerPopover
-      data-slot="composer-trigger-popover"
+      data-slot='composer-trigger-popover'
       className={cn(
-        "aui-composer-trigger-popover bg-popover text-popover-foreground absolute start-0 bottom-full z-50 mb-2 w-64 overflow-hidden rounded-xl border",
+        'aui-composer-trigger-popover bg-popover text-popover-foreground absolute start-0 bottom-full z-50 mb-2 w-64 overflow-hidden rounded-xl border',
         className,
       )}
       isLoading={isLoading}
@@ -246,11 +242,7 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
         />
       ) : null}
       {children}
-      <Categories
-        iconMap={iconMap}
-        fallbackIcon={fallbackIcon}
-        emptyLabel={emptyCategoriesLabel}
-      />
+      <Categories iconMap={iconMap} fallbackIcon={fallbackIcon} emptyLabel={emptyCategoriesLabel} />
       <Items
         iconMap={iconMap}
         fallbackIcon={fallbackIcon}
@@ -262,8 +254,6 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
     </ComposerPrimitive.TriggerPopover>
   );
 };
-ComposerTriggerPopoverImpl.displayName = "ComposerTriggerPopover";
+ComposerTriggerPopoverImpl.displayName = 'ComposerTriggerPopover';
 
-export const ComposerTriggerPopover = memo(
-  ComposerTriggerPopoverImpl,
-) as FC<ComposerTriggerPopoverProps>;
+export const ComposerTriggerPopover = memo(ComposerTriggerPopoverImpl) as FC<ComposerTriggerPopoverProps>;

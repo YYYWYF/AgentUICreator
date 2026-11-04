@@ -56,7 +56,7 @@ for (const delivery of plugins) {
     for (const [target, origin] of sourceEntries(delivery)) {
       const file=path.join(directory,...target.split("/"));await mkdir(path.dirname(file),{recursive:true});
       const text=await readFile(path.join(root,...origin.split("/")),"utf8");
-      await writeFile(file,target.startsWith("adapters/") ? portableSource(delivery,target,text) : text);
+      await writeFile(file,target.startsWith("adapters/") ? await portableSource(delivery,target,text) : text);
     }
   } else {
     const itemPath = path.join(sourceItemRoot(`plugin/${id}`), "item.json");
@@ -69,14 +69,14 @@ for (const delivery of plugins) {
   }
   for (const file of delivery.projectFiles ?? []) await cp(path.join(root, "src/plugins", id, "adapters/project", file), path.join(generated, "plugins", id, file));
   if (delivery.definitionExports?.length) {
-    for (const file of delivery.presentation) { const target = path.join(generated, "plugins", id, "adapters", file); await mkdir(path.dirname(target), {recursive:true}); await writeFile(target, portableSource(delivery, `adapters/${file}`, await readFile(path.join(root,"src/plugins",delivery.presentationOwner,"adapters/presentation",file),"utf8"))); }
+    for (const file of delivery.presentation) { const target = path.join(generated, "plugins", id, "adapters", file); await mkdir(path.dirname(target), {recursive:true}); await writeFile(target, await portableSource(delivery, `adapters/${file}`, await readFile(path.join(root,"src/plugins",delivery.presentationOwner,"adapters/presentation",file),"utf8"))); }
   }
   const implementationPath = path.join(generated, "plugins", id, "index.tsx");
-  await writeFile(implementationPath, (await readFile(implementationPath, "utf8")).replace('"../../agent-ui/i18n/useAgentUILocale"', '"@za38.03/agent-ui-plugins"'));
+  await writeFile(implementationPath, (await readFile(implementationPath, "utf8")).replace(/(["'])\.\.\/\.\.\/agent-ui\/i18n\/useAgentUILocale\1/u, '$1@za38.03/agent-ui-plugins$1'));
   const definitionPath = path.join(generated, "plugins", id, "definition.ts");
   if (delivery.definitionSource) await cp(path.join(root, "src/plugins", id, delivery.definitionSource), definitionPath);
-  const compatibleSource = (await readFile(definitionPath, "utf8")).replace('import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";', 'const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
-  if (!(compatibleSource.includes('from "../../framework/contracts/ui-plugin"') || compatibleSource.includes('from "@za38.03/agent-ui-plugins/contracts"')) || /\.\.\/\.\.\/(?:agent-ui|runtime|services)\//.test(compatibleSource)) throw new Error(`Official plugin ${id} is not package compatible`);
+  const compatibleSource = (await readFile(definitionPath, "utf8")).replace(/import \{ AGENT_UI_LOCALE_SERVICE \} from (["'])@za38\.03\/agent-ui-runtime\/ui\/services\/agent-ui-locale\1;/u, 'const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
+  if (!/from\s+["'](?:\.\.\/\.\.\/framework\/contracts\/ui-plugin|@za38\.03\/agent-ui-plugins\/contracts)["']/u.test(compatibleSource) || /\.\.\/\.\.\/(?:agent-ui|runtime|services)\//.test(compatibleSource)) throw new Error(`Official plugin ${id} is not package compatible`);
   await writeFile(definitionPath, compatibleSource + `\nexport { ${[component, delivery.railAction].filter(Boolean).join(", ")} } from "./index";\n`);
 }
 await writeFile(path.join(generated, "tsconfig.json"), JSON.stringify({ compilerOptions: {
@@ -114,7 +114,7 @@ for (const { id, symbol, component } of plugins) {
   utilityCandidatesByPlugin.set(id, new Scanner({}).scanFiles(utilityBundle.outputFiles.map(file => ({ content: file.text, extension: "js" }))));
   const delivery = deliveries.find(delivery => delivery.id === id);
   const sourceHash = createHash("sha256").update(Buffer.concat(await Promise.all(sourceEntries(delivery).map(async ([target, origin]) => Buffer.concat([
-    Buffer.from(target + "\0"), Buffer.from(portableSource(delivery, target, await readFile(path.join(root, ...origin.split("/")), "utf8"))),
+    Buffer.from(target + "\0"), Buffer.from(await portableSource(delivery, target, await readFile(path.join(root, ...origin.split("/")), "utf8"))),
   ]))))).digest("hex");
   await writeFile(path.join(root, "dist", id, "build-provenance.json"), JSON.stringify({ referenceSourceItemId: `plugin/${id}`, sourceHash, inputs: Object.keys(output.metafile.inputs) }, null, 2));
 

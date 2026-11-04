@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import type { FC } from "react";
-import { Badge } from "../../ui/badge";
+import type { FC } from 'react';
+import { Badge } from '../../ui/badge';
 
 type IconComponent = FC<{ className?: string }>;
 
 export type DirectiveTextSegment =
-  | { readonly kind: "text"; readonly text: string }
+  | { readonly kind: 'text'; readonly text: string }
   | {
-      readonly kind: "mention";
+      readonly kind: 'mention';
       readonly type: string;
       readonly label: string;
       readonly id: string;
@@ -37,16 +37,16 @@ export function createDirectiveText(
   const Component: FC<{ text: string }> = ({ text }) => {
     const segments = formatter.parse(text);
 
-    if (segments.length === 1 && segments[0]!.kind === "text") {
+    if (segments.length === 1 && segments[0]!.kind === 'text') {
       return <>{text}</>;
     }
 
     return (
       <>
         {segments.map((seg, i) => {
-          if (seg.kind === "text") {
+          if (seg.kind === 'text') {
             return (
-              <span data-agent-ui-owned="" key={i} className="whitespace-pre-wrap">
+              <span data-agent-ui-owned='' key={i} className='whitespace-pre-wrap'>
                 {seg.text}
               </span>
             );
@@ -56,12 +56,12 @@ export function createDirectiveText(
           return (
             <Badge
               key={i}
-              variant="secondary"
-              data-slot="directive-text-chip"
+              variant='secondary'
+              data-slot='directive-text-chip'
               data-directive-type={seg.type}
               data-directive-id={seg.id}
               aria-label={`${seg.type}: ${seg.label}`}
-              className="aui-directive-chip items-baseline px-1.5 py-0.5 text-[13px] leading-none [&_svg]:self-center"
+              className='aui-directive-chip items-baseline px-1.5 py-0.5 text-[13px] leading-none [&_svg]:self-center'
             >
               {Icon && <Icon />}
               {seg.label}
@@ -71,6 +71,6 @@ export function createDirectiveText(
       </>
     );
   };
-  Component.displayName = "DirectiveText";
+  Component.displayName = 'DirectiveText';
   return Component;
 }

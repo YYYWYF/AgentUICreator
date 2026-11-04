@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 import {
   conversationDetailResponseSchema,
@@ -7,8 +7,8 @@ import {
   type ConversationDetail,
   type ConversationDetailResponse,
   type ConversationSummary,
-} from "@za38.03/agent-ui-runtime/ui/services/conversations/contract";
-import type { ConversationDataSource } from "@za38.03/agent-ui-runtime/ui/services/conversations/data-source";
+} from '@za38.03/agent-ui-runtime/ui/services/conversations/contract';
+import type { ConversationDataSource } from '@za38.03/agent-ui-runtime/ui/services/conversations/data-source';
 
 export interface HttpConversationDataSourceOptions {
   endpoint: string;
@@ -25,7 +25,7 @@ const conversationRequests = {
   archiveUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}/archive`,
   unarchiveUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}/unarchive`,
   headers: (): HeadersInit => ({}),
-  credentials: "same-origin" as RequestCredentials,
+  credentials: 'same-origin' as RequestCredentials,
 };
 
 function requestInit(method: string, signal?: AbortSignal): RequestInit {
@@ -38,24 +38,19 @@ function requestInit(method: string, signal?: AbortSignal): RequestInit {
 }
 
 function normalizeEndpoint(endpoint: string): string {
-  const normalized = endpoint.trim().replace(/\/+$/, "");
+  const normalized = endpoint.trim().replace(/\/+$/, '');
   if (normalized.length === 0) {
-    throw new Error("Conversation API endpoint must not be blank.");
+    throw new Error('Conversation API endpoint must not be blank.');
   }
   return normalized;
 }
 
 async function assertResponseOk(response: Response): Promise<void> {
   if (!response.ok) {
-    let detail = "";
+    let detail = '';
     try {
       const body: unknown = await response.json();
-      if (
-        typeof body === "object" &&
-        body !== null &&
-        "error" in body &&
-        typeof body.error === "string"
-      ) {
+      if (typeof body === 'object' && body !== null && 'error' in body && typeof body.error === 'string') {
         detail = `: ${body.error}`;
       }
     } catch {
@@ -77,40 +72,44 @@ const conversationApiEnvelopeSchema = z.object({
 });
 
 const conversationApiListBodySchema = z.object({
-  conversations: z.array(z.object({
-    thread_id: z.string(),
-    title: z.string(),
-    status: z.enum(["regular", "archived"]).optional(),
-    last_message_time: z.string().nullish(),
-  })),
+  conversations: z.array(
+    z.object({
+      thread_id: z.string(),
+      title: z.string(),
+      status: z.enum(['regular', 'archived']).optional(),
+      last_message_time: z.string().nullish(),
+    }),
+  ),
 });
 
 const conversationApiDetailBodySchema = z.object({
   thread_id: z.string().trim().min(1),
   title: z.string().trim().min(1).optional(),
-  max_message_checkpoint: z.object({
-    values: z.unknown().optional(),
-    channel_values: z.unknown().optional(),
-  }).catchall(z.unknown()),
+  max_message_checkpoint: z
+    .object({
+      values: z.unknown().optional(),
+      channel_values: z.unknown().optional(),
+    })
+    .catchall(z.unknown()),
   agentState: z.unknown().optional(),
 });
 
 function readConversationApiBody(value: unknown): unknown {
   const envelope = conversationApiEnvelopeSchema.parse(value);
-  if (envelope.returnCode !== "SUC0000") {
-    const detail = envelope.errorMsg ? `: ${envelope.errorMsg}` : "";
+  if (envelope.returnCode !== 'SUC0000') {
+    const detail = envelope.errorMsg ? `: ${envelope.errorMsg}` : '';
     throw new Error(`Conversation API request failed (${envelope.returnCode})${detail}`);
   }
   return envelope.body;
 }
 
 function normalizeConversationListResponse(value: unknown): ConversationSummary[] {
-  if (typeof value !== "object" || value === null || !("returnCode" in value)) {
+  if (typeof value !== 'object' || value === null || !('returnCode' in value)) {
     return conversationListResponseSchema.parse(value).conversations;
   }
   const body = conversationApiListBodySchema.parse(readConversationApiBody(value));
   return conversationListResponseSchema.parse({
-    conversations: body.conversations.map(item => {
+    conversations: body.conversations.map((item) => {
       const updatedAt = item.last_message_time?.trim();
       return {
         id: item.thread_id,
@@ -124,7 +123,7 @@ function normalizeConversationListResponse(value: unknown): ConversationSummary[
 
 function normalizeConversationDetailResponse(value: unknown): ConversationDetailResponse {
   // Existing Mock providers and generated projects may still return the direct DTO.
-  if (typeof value !== "object" || value === null || !("returnCode" in value)) {
+  if (typeof value !== 'object' || value === null || !('returnCode' in value)) {
     return conversationDetailResponseSchema.parse(value);
   }
   const body = conversationApiDetailBodySchema.parse(readConversationApiBody(value));
@@ -143,19 +142,15 @@ function normalizeConversationDetailResponse(value: unknown): ConversationDetail
   };
 }
 
-function toConversationDetail(
-  response: ConversationDetailResponse,
-): ConversationDetail {
+function toConversationDetail(response: ConversationDetailResponse): ConversationDetail {
   return {
     id: response.id,
     title: response.title,
     history: {
-      format: "langchain",
+      format: 'langchain',
       messages: response.state.values.messages ?? [],
     },
-    ...(response.agentState === undefined
-      ? {}
-      : { agentState: response.agentState }),
+    ...(response.agentState === undefined ? {} : { agentState: response.agentState }),
   };
 }
 
@@ -167,45 +162,50 @@ export function createHttpConversationDataSource({
 
   return {
     async rename(id, title, options) {
-      const init = requestInit("PATCH", options?.signal);
+      const init = requestInit('PATCH', options?.signal);
       const headers = new Headers(init.headers);
-      headers.set("Content-Type", "application/json");
+      headers.set('Content-Type', 'application/json');
       const response = await fetchImplementation(conversationRequests.renameUrl(baseEndpoint, id), {
-        ...init, headers, body: JSON.stringify({ title }),
+        ...init,
+        headers,
+        body: JSON.stringify({ title }),
       });
       await assertResponseOk(response);
     },
     async archive(id, options) {
-      const response = await fetchImplementation(conversationRequests.archiveUrl(baseEndpoint, id), requestInit("POST", options?.signal));
+      const response = await fetchImplementation(
+        conversationRequests.archiveUrl(baseEndpoint, id),
+        requestInit('POST', options?.signal),
+      );
       await assertResponseOk(response);
     },
     async unarchive(id, options) {
-      const response = await fetchImplementation(conversationRequests.unarchiveUrl(baseEndpoint, id), requestInit("POST", options?.signal));
+      const response = await fetchImplementation(
+        conversationRequests.unarchiveUrl(baseEndpoint, id),
+        requestInit('POST', options?.signal),
+      );
       await assertResponseOk(response);
     },
     async delete(id, options) {
       const response = await fetchImplementation(
         conversationRequests.deleteUrl(baseEndpoint, id),
-        requestInit("DELETE", options?.signal),
+        requestInit('DELETE', options?.signal),
       );
       await assertResponseOk(response);
     },
     async list(options) {
-      const response = await fetchImplementation(conversationRequests.listUrl(baseEndpoint), requestInit("GET", options?.signal));
-      return normalizeConversationListResponse(
-        await readResponseJson(response),
+      const response = await fetchImplementation(
+        conversationRequests.listUrl(baseEndpoint),
+        requestInit('GET', options?.signal),
       );
+      return normalizeConversationListResponse(await readResponseJson(response));
     },
     async get(threadId, options) {
       const response = await fetchImplementation(
         conversationRequests.detailUrl(baseEndpoint, threadId),
-        requestInit("GET", options?.signal),
+        requestInit('GET', options?.signal),
       );
-      return toConversationDetail(
-        normalizeConversationDetailResponse(
-          await readResponseJson(response),
-        ),
-      );
+      return toConversationDetail(normalizeConversationDetailResponse(await readResponseJson(response)));
     },
   };
 }

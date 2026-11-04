@@ -1,35 +1,25 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+import * as React from 'react';
+import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 
-import { cn } from "../../../../vendor-generated/assistant-ui/lib/utils.js";
-import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
+import { cn } from '../../../../vendor-generated/assistant-ui/lib/utils.js';
+import { useAgentUIPortalContainer } from '../../../../style-boundary/AgentUIRoot';
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
-  return <PopoverPrimitive.Root data-agent-ui-owned="" data-slot="popover" {...props} />;
+  return <PopoverPrimitive.Root data-agent-ui-owned='' data-slot='popover' {...props} />;
 }
 
 function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-agent-ui-owned="" data-slot="popover-trigger" {...props} />;
+  return <PopoverPrimitive.Trigger data-agent-ui-owned='' data-slot='popover-trigger' {...props} />;
 }
 
 const PopoverContent = React.forwardRef<
   HTMLDivElement,
   PopoverPrimitive.Popup.Props &
-    Pick<
-      PopoverPrimitive.Positioner.Props,
-      "align" | "alignOffset" | "side" | "sideOffset"
-    >
+    Pick<PopoverPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'>
 >(function PopoverContent(
-  {
-    className,
-    align = "center",
-    alignOffset = 0,
-    side = "bottom",
-    sideOffset = 4,
-    ...props
-  },
+  { className, align = 'center', alignOffset = 0, side = 'bottom', sideOffset = 4, ...props },
   ref,
 ) {
   const portalContainer = useAgentUIPortalContainer();
@@ -41,13 +31,14 @@ const PopoverContent = React.forwardRef<
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
-        className="isolate z-50"
+        className='isolate z-50'
       >
-        <PopoverPrimitive.Popup data-agent-ui-owned=""
+        <PopoverPrimitive.Popup
+          data-agent-ui-owned=''
           ref={ref}
-          data-slot="popover-content"
+          data-slot='popover-content'
           className={cn(
-            "bg-popover text-popover-foreground ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-[var(--radius-surface,var(--radius-lg))] p-3 text-sm ring-1 outline-hidden duration-100",
+            'bg-popover text-popover-foreground ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-[var(--radius-surface,var(--radius-lg))] p-3 text-sm ring-1 outline-hidden duration-100',
             className,
           )}
           {...props}
@@ -57,11 +48,12 @@ const PopoverContent = React.forwardRef<
   );
 });
 
-function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
+function PopoverHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div data-agent-ui-owned=""
-      data-slot="popover-header"
-      className={cn("flex flex-col gap-0.5 text-sm", className)}
+    <div
+      data-agent-ui-owned=''
+      data-slot='popover-header'
+      className={cn('flex flex-col gap-0.5 text-sm', className)}
       {...props}
     />
   );
@@ -69,32 +61,24 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   return (
-    <PopoverPrimitive.Title data-agent-ui-owned=""
-      data-slot="popover-title"
-      className={cn("font-medium", className)}
+    <PopoverPrimitive.Title
+      data-agent-ui-owned=''
+      data-slot='popover-title'
+      className={cn('font-medium', className)}
       {...props}
     />
   );
 }
 
-function PopoverDescription({
-  className,
-  ...props
-}: PopoverPrimitive.Description.Props) {
+function PopoverDescription({ className, ...props }: PopoverPrimitive.Description.Props) {
   return (
-    <PopoverPrimitive.Description data-agent-ui-owned=""
-      data-slot="popover-description"
-      className={cn("text-muted-foreground", className)}
+    <PopoverPrimitive.Description
+      data-agent-ui-owned=''
+      data-slot='popover-description'
+      className={cn('text-muted-foreground', className)}
       {...props}
     />
   );
 }
 
-export {
-  Popover,
-  PopoverContent,
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-};
+export { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger };

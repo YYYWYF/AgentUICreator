@@ -60,7 +60,7 @@ for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
   for (const file of plugin.takeover.files) {
     const published = await readFile(sourcePath(path.join(packageRoot,"dist"),file.path));
     let source = await readFile(sourcePath(packageRoot,file.origin),"utf8");
-    source = portableSource(deliveries.find(delivery => delivery.id === plugin.id), file.target, source);
+    source = await portableSource(deliveries.find(delivery => delivery.id === plugin.id), file.target, source);
     if (!published.equals(Buffer.from(source)) || createHash("sha256").update(published).digest("hex") !== file.sha256) throw new Error(`Stale takeover source: ${plugin.id}/${file.target}`);
   }
   for (const file of plugin.takeover.runtimeFiles) if (createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot,"dist"),file.path))).digest("hex") !== file.sha256) throw new Error(`Stale takeover runtime: ${file.path}`);

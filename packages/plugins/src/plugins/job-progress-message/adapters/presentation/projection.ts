@@ -1,7 +1,4 @@
-import type {
-  ConversationJobOutcome,
-  JobProgressStage,
-} from "../../../../public.js";
+import type { ConversationJobOutcome, JobProgressStage } from '../../../../public.js';
 
 export interface JobProgressRuntimeState {
   readonly stageIndex: number;
@@ -20,25 +17,24 @@ export interface RunCiJobResultView {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
-export function projectJobProgressState(
-  state: unknown,
-  toolCallId: string,
-): JobProgressRuntimeState | null {
-  if (!isRecord(state) || !isRecord(state.jobs)) return null;
+export function projectJobProgressState(state: unknown, toolCallId: string): JobProgressRuntimeState | null {
+  if (!isRecord(state) || !isRecord(state.jobs)) {
+    return null;
+  }
 
   const job = state.jobs[toolCallId];
   if (
     !isRecord(job) ||
     !isFiniteNumber(job.stageIndex) ||
     !isFiniteNumber(job.stageProgress) ||
-    typeof job.eta !== "string"
+    typeof job.eta !== 'string'
   ) {
     return null;
   }
@@ -51,21 +47,25 @@ export function projectJobProgressState(
 }
 
 export function projectRunCiJobArgs(args: unknown): RunCiJobArgs | null {
-  if (!isRecord(args)) return null;
-  const target = args.target;
-  if (typeof target !== "string" || target.trim() === "") {
+  if (!isRecord(args)) {
     return null;
   }
-  if (!Array.isArray(args.stages)) return null;
+  const target = args.target;
+  if (typeof target !== 'string' || target.trim() === '') {
+    return null;
+  }
+  if (!Array.isArray(args.stages)) {
+    return null;
+  }
 
   const stages: JobProgressStage[] = [];
   for (const stage of args.stages) {
     if (
       !isRecord(stage) ||
-      typeof stage.name !== "string" ||
-      stage.name.trim() === "" ||
+      typeof stage.name !== 'string' ||
+      stage.name.trim() === '' ||
       !isFiniteNumber(stage.weight) ||
-      (stage.description !== undefined && typeof stage.description !== "string")
+      (stage.description !== undefined && typeof stage.description !== 'string')
     ) {
       return null;
     }
@@ -79,15 +79,10 @@ export function projectRunCiJobArgs(args: unknown): RunCiJobArgs | null {
   return { target, stages };
 }
 
-const terminalOutcomes = new Set<ConversationJobOutcome["status"]>([
-  "success",
-  "partial",
-  "failed",
-  "cancelled",
-]);
+const terminalOutcomes = new Set<ConversationJobOutcome['status']>(['success', 'partial', 'failed', 'cancelled']);
 
 function parseResultRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     try {
       const parsed: unknown = JSON.parse(value);
       return isRecord(parsed) ? parsed : null;
@@ -101,32 +96,30 @@ function parseResultRecord(value: unknown): Record<string, unknown> | null {
 /** Reads terminal job facts only from the explicit Tool Result payload. */
 export function projectRunCiJobResult(value: unknown): RunCiJobResultView {
   const result = parseResultRecord(value);
-  if (result === null) return { outcome: null };
+  if (result === null) {
+    return { outcome: null };
+  }
 
   const nestedOutcome = isRecord(result.outcome) ? result.outcome : undefined;
   const explicitStatus = nestedOutcome?.status ?? result.status;
-  let status: ConversationJobOutcome["status"] | undefined;
-  if (
-    typeof explicitStatus === "string" &&
-    terminalOutcomes.has(explicitStatus as ConversationJobOutcome["status"])
-  ) {
-    status = explicitStatus as ConversationJobOutcome["status"];
+  let status: ConversationJobOutcome['status'] | undefined;
+  if (typeof explicitStatus === 'string' && terminalOutcomes.has(explicitStatus as ConversationJobOutcome['status'])) {
+    status = explicitStatus as ConversationJobOutcome['status'];
   } else if (result.success === true) {
-    status = "success";
+    status = 'success';
   } else if (result.success === false) {
-    status = "failed";
+    status = 'failed';
   }
 
   const summaryValue = nestedOutcome?.summary ?? result.summary;
-  const outcome = status === undefined
-    ? null
-    : {
-        status,
-        ...(typeof summaryValue === "string" ? { summary: summaryValue } : {}),
-      };
-  const elapsedMs = isFiniteNumber(result.elapsedMs) && result.elapsedMs >= 0
-    ? result.elapsedMs
-    : undefined;
+  const outcome =
+    status === undefined
+      ? null
+      : {
+          status,
+          ...(typeof summaryValue === 'string' ? { summary: summaryValue } : {}),
+        };
+  const elapsedMs = isFiniteNumber(result.elapsedMs) && result.elapsedMs >= 0 ? result.elapsedMs : undefined;
 
   return {
     outcome,

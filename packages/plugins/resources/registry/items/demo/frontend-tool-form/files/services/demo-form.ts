@@ -1,11 +1,14 @@
-import type {} from "@za38.03/agent-ui-plugins/contracts";
-import type { ReactHookFormCapability } from "../integrations/react-hook-form";
+import type {} from '@za38.03/agent-ui-plugins/contracts';
+import type { ReactHookFormCapability } from '../integrations/react-hook-form';
 
-export const DEMO_FORM_SERVICE = "demo.form" as const;
-export const DEMO_FORM_FIELDS = ["firstName", "lastName", "email", "projectIdea"] as const;
-export type DemoFormField = typeof DEMO_FORM_FIELDS[number];
+export const DEMO_FORM_SERVICE = 'demo.form' as const;
+export const DEMO_FORM_FIELDS = ['firstName', 'lastName', 'email', 'projectIdea'] as const;
+export type DemoFormField = (typeof DEMO_FORM_FIELDS)[number];
 export type DemoFormValues = Record<DemoFormField, string>;
-export interface DemoFormSnapshot { values: DemoFormValues; submitCount: number }
+export interface DemoFormSnapshot {
+  values: DemoFormValues;
+  submitCount: number;
+}
 export type DemoFormSubmitResult = { success: true; values: DemoFormValues } | { success: false; message: string };
 export interface DemoFormController {
   setField(name: DemoFormField, value: string): void;
@@ -19,6 +22,8 @@ export interface DemoFormService extends ReactHookFormCapability<DemoFormField> 
   getSnapshot(): DemoFormSnapshot;
   subscribe(listener: () => void): () => void;
 }
-declare module "@za38.03/agent-ui-plugins/contracts" {
-  interface UIPluginServiceMap { [DEMO_FORM_SERVICE]: DemoFormService }
+declare module '@za38.03/agent-ui-plugins/contracts' {
+  interface UIPluginServiceMap {
+    [DEMO_FORM_SERVICE]: DemoFormService;
+  }
 }

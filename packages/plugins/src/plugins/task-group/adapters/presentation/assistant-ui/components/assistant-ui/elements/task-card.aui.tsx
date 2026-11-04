@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from "../../../../../../locale.js";
+import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import {
   MessagePrimitive,
@@ -13,19 +13,19 @@ import {
   type ToolCallMessagePartComponent,
   type ToolCallMessagePartProps,
   type ToolCallMessagePartStatus,
-} from "@assistant-ui/react";
-import { type FC, useState } from "react";
-import { MarkdownText } from "./markdown-text";
+} from '@assistant-ui/react';
+import { type FC, useState } from 'react';
+import { MarkdownText } from './markdown-text';
 import {
   formatUnknownValue,
   offersInterruptAction,
   ToolFallback,
   ToolFallbackApproval,
   ToolFallbackError,
-} from "./tool-fallback.aui";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
-import { mono } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { TaskCard as TaskCardBase } from "./task-card";
+} from './tool-fallback.aui';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
+import { mono } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js';
+import { TaskCard as TaskCardBase } from './task-card';
 import {
   formatElapsed,
   TASK_PAGE_SIZE,
@@ -33,28 +33,24 @@ import {
   taskMeta,
   taskStateOf,
   useTaskElapsed,
-} from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js";
+} from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js';
 
-export type { TaskCardState } from "./task-card";
-export { TASK_PAGE_SIZE } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js";
+export type { TaskCardState } from './task-card';
+export { TASK_PAGE_SIZE } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/task.js';
 
 export type TaskPart = ToolCallMessagePart & {
   readonly status: ToolCallMessagePartStatus;
-} & Partial<
-    Pick<ToolCallMessagePartProps, "addResult" | "resume" | "respondToApproval">
-  >;
+} & Partial<Pick<ToolCallMessagePartProps, 'addResult' | 'resume' | 'respondToApproval'>>;
 
-export const isTaskPart = (part: {
-  readonly type: string;
-  readonly messages?: unknown;
-}) => part.type === "tool-call" && part.messages !== undefined;
+export const isTaskPart = (part: { readonly type: string; readonly messages?: unknown }) =>
+  part.type === 'tool-call' && part.messages !== undefined;
 
 const KEY_SEPARATOR = String.fromCharCode(31);
 
 const ROLE_LABELS = {
-  user: "instruction",
-  assistant: "agent",
-  system: "system",
+  user: 'instruction',
+  assistant: 'agent',
+  system: 'system',
 } as const;
 
 const NestedToolCall: ToolCallMessagePartComponent = (part) =>
@@ -64,54 +60,45 @@ const NestedMessage: FC = () => {
   const role = useAuiState((s) => s.message.role);
 
   return (
-    <MessagePrimitive.Root data-agent-ui-owned=""
-      data-slot="aui_task-transcript-message"
+    <MessagePrimitive.Root
+      data-agent-ui-owned=''
+      data-slot='aui_task-transcript-message'
       data-role={role}
-      className="flex flex-col gap-1 text-xs leading-relaxed"
+      className='flex flex-col gap-1 text-xs leading-relaxed'
     >
-      <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground")}>
+      <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground')}>
         {ROLE_LABELS[role]}
       </span>
-      <MessagePrimitive.Parts
-        components={{ Text: MarkdownText, tools: { Fallback: NestedToolCall } }}
-      />
+      <MessagePrimitive.Parts components={{ Text: MarkdownText, tools: { Fallback: NestedToolCall } }} />
     </MessagePrimitive.Root>
   );
 };
 
-const TaskTranscript: FC<{ messages: readonly ThreadMessage[] }> = ({
-  messages,
-}) => (
+const TaskTranscript: FC<{ messages: readonly ThreadMessage[] }> = ({ messages }) => (
   <ReadonlyThreadProvider messages={messages}>
-    <ThreadPrimitive.Messages>
-      {() => <NestedMessage />}
-    </ThreadPrimitive.Messages>
+    <ThreadPrimitive.Messages>{() => <NestedMessage />}</ThreadPrimitive.Messages>
   </ReadonlyThreadProvider>
 );
 
 const TaskResult: FC<{ result: unknown }> = ({ result }) =>
-  typeof result === "string" ? (
-    <p data-agent-ui-owned="" className="m-0 whitespace-pre-wrap">{result}</p>
+  typeof result === 'string' ? (
+    <p data-agent-ui-owned='' className='m-0 whitespace-pre-wrap'>
+      {result}
+    </p>
   ) : (
-    <pre data-agent-ui-owned="" className="m-0 overflow-x-auto whitespace-pre-wrap">
+    <pre data-agent-ui-owned='' className='m-0 overflow-x-auto whitespace-pre-wrap'>
       {formatUnknownValue(result, 2)}
     </pre>
   );
 
-export const TaskCard: FC<{ part: TaskPart; className?: string }> = ({
-  part,
-  className,
-}) => {
+export const TaskCard: FC<{ part: TaskPart; className?: string }> = ({ part, className }) => {
   const elapsedMs = useTaskElapsed(
     part.timing,
-    part.status.type === "running" || part.status.type === "requires-action",
+    part.status.type === 'running' || part.status.type === 'requires-action',
   );
   const canAnswer = useAuiState((s) => s.thread.capabilities.answerToolCall);
   const messages = part.messages ?? [];
-  const showError =
-    part.status.type === "incomplete" &&
-    part.status.error !== undefined &&
-    part.status.error !== null;
+  const showError = part.status.type === 'incomplete' && part.status.error !== undefined && part.status.error !== null;
   const result =
     showError || part.result !== undefined ? (
       <>
@@ -120,11 +107,9 @@ export const TaskCard: FC<{ part: TaskPart; className?: string }> = ({
       </>
     ) : undefined;
   const approvalPending =
-    part.approval == null ||
-    (part.approval.approved === undefined &&
-      part.approval.resolution === undefined);
+    part.approval == null || (part.approval.approved === undefined && part.approval.resolution === undefined);
   const actions =
-    part.status.type === "requires-action" &&
+    part.status.type === 'requires-action' &&
     approvalPending &&
     offersInterruptAction(part.status, part.approval, part.interrupt) &&
     (canAnswer || part.approval?.prompt) ? (
@@ -158,7 +143,7 @@ export const TaskCard: FC<{ part: TaskPart; className?: string }> = ({
 const TaskLane: FC<{ index: number }> = ({ index }) => {
   const aui = useAui();
   const part = useAuiState((s) => s.message.parts[index]);
-  if (part?.type !== "tool-call") return null;
+  if (part?.type !== 'tool-call') return null;
   const client = aui.message.part({ toolCallId: part.toolCallId });
   return (
     <TaskCard
@@ -184,17 +169,14 @@ export const TaskGroup: FC<{
     indices
       .map((index) => {
         const part = s.message.parts[index];
-        return part?.type === "tool-call" ? part.toolCallId : String(index);
+        return part?.type === 'tool-call' ? part.toolCallId : String(index);
       })
       .join(KEY_SEPARATOR),
   ).split(KEY_SEPARATOR);
   const failed = useAuiState((s) =>
     indices.reduce((count, index) => {
       const part = s.message.parts[index];
-      return part?.type === "tool-call" &&
-        taskStateOf(part.status, part.isError) === "failed"
-        ? count + 1
-        : count;
+      return part?.type === 'tool-call' && taskStateOf(part.status, part.isError) === 'failed' ? count + 1 : count;
     }, 0),
   );
   if (indices.length === 1) return <TaskLane index={indices[0]!} />;
@@ -204,33 +186,32 @@ export const TaskGroup: FC<{
   const summary = [
     formatPresentationMessage(localeMessages.tasks.groupCount, { count: indices.length }),
     counts.running > 0 && formatPresentationMessage(localeMessages.tasks.groupRunning, { count: counts.running }),
-    counts.requiresAction > 0 && formatPresentationMessage(localeMessages.tasks.groupWaiting, { count: counts.requiresAction }),
+    counts.requiresAction > 0 &&
+      formatPresentationMessage(localeMessages.tasks.groupWaiting, { count: counts.requiresAction }),
     failed > 0 && formatPresentationMessage(localeMessages.tasks.groupFailed, { count: failed }),
-  ].filter((entry): entry is string => typeof entry === "string");
+  ].filter((entry): entry is string => typeof entry === 'string');
 
   return (
-    <div data-agent-ui-owned=""
-      data-slot="aui_task-group"
-      className={cn("flex w-full max-w-sm flex-col gap-2", className)}
+    <div
+      data-agent-ui-owned=''
+      data-slot='aui_task-group'
+      className={cn('flex w-full max-w-sm flex-col gap-2', className)}
     >
-      <div data-agent-ui-owned=""
-        data-slot="aui_task-group-summary"
-        className="text-muted-foreground px-1 text-xs"
-      >
-        {summary.join(" · ")}
+      <div data-agent-ui-owned='' data-slot='aui_task-group-summary' className='text-muted-foreground px-1 text-xs'>
+        {summary.join(' · ')}
       </div>
       {shown.map((index, position) => (
         <TaskLane key={laneKeys[position] ?? index} index={index} />
       ))}
       {hidden > 0 && (
-        <button data-agent-ui-owned=""
-          type="button"
-          data-slot="aui_task-group-more"
+        <button
+          data-agent-ui-owned=''
+          type='button'
+          data-slot='aui_task-group-more'
           onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
-          className="text-muted-foreground hover:text-foreground w-fit px-1 text-xs transition-colors"
+          className='text-muted-foreground hover:text-foreground w-fit px-1 text-xs transition-colors'
         >
-
-          {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}
+          {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)} {localeMessages.common.more}
         </button>
       )}
     </div>

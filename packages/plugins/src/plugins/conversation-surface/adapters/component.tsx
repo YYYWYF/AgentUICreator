@@ -1,3 +1,5 @@
-import "./styles.css";
-import { CanonicalConversationSurfacePlugin, type ConversationSurfacePluginProps } from "@za38.03/agent-ui-plugins";
-export function ConversationSurfacePlugin(props: ConversationSurfacePluginProps) { return <CanonicalConversationSurfacePlugin {...props} />; }
+import { CanonicalConversationSurfacePlugin, type ConversationSurfacePluginProps } from '@za38.03/agent-ui-plugins';
+import './styles.css';
+export function ConversationSurfacePlugin(props: ConversationSurfacePluginProps) {
+  return <CanonicalConversationSurfacePlugin {...props} />;
+}

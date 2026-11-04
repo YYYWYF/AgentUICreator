@@ -1,0 +1,5 @@
+
+> @za38.03/agent-ui-plugins@0.0.1 typecheck /Users/yifei/Coding/AgentUICreator/packages/plugins
+> node ../../scripts/run-plugin-source-views-check.mjs typecheck
+
+Prepared 1020 TypeScript authoring module bridges.

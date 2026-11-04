@@ -53,6 +53,14 @@ async function checkFreshness(root: string, fresh: boolean, warningCode?: string
 }
 
 describe("registry line endings across verification, inspection and generation", () => {
+  it("keeps the earlier Bootstrap registry entry without a formatting migration", async () => {
+    const { projectRoot, paths } = await fixture();
+    const original = 'export {\r\n  capabilityCatalogRevision,\r\n  pluginCapabilityCatalog,\r\n} from "./registry.generated";\r\n';
+    await writeFile(paths.pluginRegistryEntryPath, original);
+    await checkFreshness(projectRoot, true);
+    expect(await writeGeneratedPluginRegistry(projectRoot, { initializeApplications: false })).toMatchObject({ changed: false });
+    expect(await readFile(paths.pluginRegistryEntryPath, "utf8")).toBe(original);
+  });
   it("preserves a current authoring-ref to persistent-runtime identity correspondence", async () => {
     const { projectRoot, paths } = await fixture();
     const source = JSON.stringify({ root: { type: "slot", plugins: [{ pluginId: "foo", enabled: true }] } });

@@ -1,14 +1,27 @@
-export interface UIApplicationGateSnapshot { status: "checking" | "ready" | "blocked" | "error"; message?: string; }
-export interface UIApplicationGateService {getSnapshot():UIApplicationGateSnapshot;subscribe(listener:()=>void):()=>void;}
-export const AUTH_SESSION_SERVICE = "auth.session";
-export const AUTH_GATE_SERVICE = "auth.gate";
-export interface AuthUser { userId: string; userName: string; avatar?: string; }
-export interface AuthCredentials { account: string; password: string; }
+export interface UIApplicationGateSnapshot {
+  status: 'checking' | 'ready' | 'blocked' | 'error';
+  message?: string;
+}
+export interface UIApplicationGateService {
+  getSnapshot(): UIApplicationGateSnapshot;
+  subscribe(listener: () => void): () => void;
+}
+export const AUTH_SESSION_SERVICE = 'auth.session';
+export const AUTH_GATE_SERVICE = 'auth.gate';
+export interface AuthUser {
+  userId: string;
+  userName: string;
+  avatar?: string;
+}
+export interface AuthCredentials {
+  account: string;
+  password: string;
+}
 export interface AuthSessionSnapshot {
-  status: "checking" | "anonymous" | "authenticated";
+  status: 'checking' | 'anonymous' | 'authenticated';
   user: AuthUser | null;
   busy: boolean;
-  error: "sign-in-failed" | "sign-out-failed" | null;
+  error: 'sign-in-failed' | 'sign-out-failed' | null;
 }
 export interface AuthAdapter {
   restore(): Promise<AuthUser | null>;

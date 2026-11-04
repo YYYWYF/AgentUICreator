@@ -1,21 +1,29 @@
-import { AgentUIDialog as Dialog } from "@za38.03/agent-ui-plugins";
-import { usePluginService, usePluginServiceSnapshot } from "@za38.03/agent-ui-runtime/ui/runtime/plugins/index";
-import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from "../../services/demo-dialog";
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
-import "./styles.css";
-const closed: DemoDialogSnapshot = { open: false, title: "", message: "" };
+import { AgentUIDialog as Dialog, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { usePluginService, usePluginServiceSnapshot } from '@za38.03/agent-ui-runtime/ui/runtime/plugins/index';
+import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from '../../services/demo-dialog';
+import './styles.css';
+const closed: DemoDialogSnapshot = { open: false, title: '', message: '' };
 export function FrontendToolDialogDemoPlugin() {
   const dialog = usePluginService<DemoDialogService>(DEMO_DIALOG_SERVICE);
   const snapshot = usePluginServiceSnapshot(dialog, closed);
-  const locale = useAgentUILocale("frontendTools");
-  return <Dialog.Root open={snapshot.open} onOpenChange={(open: boolean) => { if (!open) dialog?.close(); }}>
-    <Dialog.Portal>
-      <Dialog.Backdrop className="frontend-tool-dialog-backdrop" />
-      <Dialog.Popup data-slot="frontend-tool-dialog-content" className="frontend-tool-dialog-popup">
-        <Dialog.Title>{snapshot.title}</Dialog.Title>
-        <Dialog.Description>{snapshot.message}</Dialog.Description>
-        <Dialog.Close data-slot="frontend-tool-dialog-close">{locale.close}</Dialog.Close>
-      </Dialog.Popup>
-    </Dialog.Portal>
-  </Dialog.Root>;
+  const locale = useAgentUILocale('frontendTools');
+  return (
+    <Dialog.Root
+      open={snapshot.open}
+      onOpenChange={(open: boolean) => {
+        if (!open) {
+          dialog?.close();
+        }
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Backdrop className='frontend-tool-dialog-backdrop' />
+        <Dialog.Popup data-slot='frontend-tool-dialog-content' className='frontend-tool-dialog-popup'>
+          <Dialog.Title>{snapshot.title}</Dialog.Title>
+          <Dialog.Description>{snapshot.message}</Dialog.Description>
+          <Dialog.Close data-slot='frontend-tool-dialog-close'>{locale.close}</Dialog.Close>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
 }

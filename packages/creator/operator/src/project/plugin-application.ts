@@ -1,3 +1,4 @@
+import { formatProjectCode } from "./generated-code-format.mjs";
 import { createHash } from "node:crypto";
 import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
@@ -85,8 +86,7 @@ export async function ensurePluginApplication(root: string, id: string, context?
   const hostImport = conversationImport + (conversationActionsBinding ? 'import { useConversationActions } from "../../services/hooks/useConversationActions";\n' : "") + (hostBindings.includes("theme") ? 'import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui";\n' : "") + (hostBindings.includes("run") ? 'import { useAgentRun } from "@za38.03/agent-ui-runtime";\n' : "");
   const hostBody = (conversationBinding ? '  const { snapshot, serviceAvailable } = useConversations();\n' : "") + (conversationActionsBinding ? '  const { refresh } = useConversationActions();\n' : "") + (hostBindings.includes("theme") ? '  const theme = useAgentUITheme();\n' : "") + (hostBindings.includes("run") ? '  const run = useAgentRun();\n' : "");
   const hostProps = (conversationBinding ? (hostBindings.includes("conversation-list") ? " snapshot={snapshot} serviceAvailable={serviceAvailable} onRefresh={refresh}" : " activeConversationId={snapshot.activeConversationId}") : "") + (hostBindings.includes("theme") ? " theme={theme}" : "") + (hostBindings.includes("run") ? " runStatus={run.status}" : "");
-  const railSource = railAction ? `\nexport function ${railAction}(props: ComponentProps<typeof RailImplementation>) {\n  const { serviceAvailable } = useConversations();\n  return <RailImplementation enabled={serviceAvailable} {...props} />;\n}\n` : "";
-  const registrationImport = registration?.kind === "data" ? 'import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";\n' : "";
+  const railSource = railAction ? `\nexport const ${railAction} = (props: ComponentProps<typeof RailImplementation>) => {\n  const { serviceAvailable } = useConversations();\n  return <RailImplementation enabled={serviceAvailable} {...props} />;\n}\n` : "";
   const registrationSource = registration?.kind === "tool"
     ? `toolkit: { ${JSON.stringify(registration.name)}: { type: "backend", display: "standalone", render: ${component} } }, Component: () => null`
     : registration?.kind === "data"
@@ -97,9 +97,12 @@ export async function ensurePluginApplication(root: string, id: string, context?
   const files = new Map([
     [applicationMarker, JSON.stringify({ schemaVersion: 1, pluginId: id }, null, 2) + "\n"],
     ["manifest.json", installedManifest],
-    ["index.tsx", `import { ${component} as ${alias}${railAction ? `, ${railAction} as RailImplementation` : ""} } from "${entry}";\nimport type { ComponentProps } from "react";\n${runtimeImport}${hostImport}${scopeKind ? 'import { usePluginRenderScope } from "@za38.03/agent-ui-plugins";\n' : ""}\nexport function ${component}(props: ComponentProps<typeof ${alias}>) {\n${runtimeBody}${hostBody}${scopeKind ? `  const scope = usePluginRenderScope<Partial<ComponentProps<typeof ${alias}>>>();\n  if (scope?.kind !== ${JSON.stringify(scopeKind)}) return null;\n  return <${alias} {...scope.value} {...props} />;` : `  return <${alias}${runtimeContext ? " state={state} abortRun={abortRun}" : ""}${hostProps} {...props} />;`}\n}\n${railSource}`],
-    ["definition.ts", `import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";\nimport implementation from "${entry}";\n${registrationImport}import { ${[component, railAction].filter(Boolean).join(", ")} } from "./index";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: ${JSON.stringify(official.services.provides)}, inject: ${JSON.stringify(official.services.inject)}, optionalInject: ${JSON.stringify(official.services.optionalInject)}, ${registrationSource} };\nexport default definition;\n`],
+    ["index.tsx", `import { ${component} as ${alias}${railAction ? `, ${railAction} as RailImplementation` : ""} } from "${entry}";\nimport type { ComponentProps } from "react";\n${runtimeImport}${hostImport}${scopeKind ? 'import { usePluginRenderScope } from "@za38.03/agent-ui-plugins";\n' : ""}\nexport const ${component} = (props: ComponentProps<typeof ${alias}>) => {\n${runtimeBody}${hostBody}${scopeKind ? `  const scope = usePluginRenderScope<Partial<ComponentProps<typeof ${alias}>>>();\n  if (scope?.kind !== ${JSON.stringify(scopeKind)}) { return null; }\n  return <${alias} {...scope.value} {...props} />;` : `  return <${alias}${runtimeContext ? " state={state} abortRun={abortRun}" : ""}${hostProps} {...props} />;`}\n}\n${railSource}`],
+    ["definition.ts", `import { ${registration?.kind === "data" ? "defineDataMessageUI, " : ""}type UIPluginDefinition } from "@za38.03/agent-ui-plugins";\nimport implementation from "${entry}";\nimport { ${[component, railAction].filter(Boolean).join(", ")} } from "./index";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: ${JSON.stringify(official.services.provides)}, inject: ${JSON.stringify(official.services.inject)}, optionalInject: ${JSON.stringify(official.services.optionalInject)}, ${registrationSource} };\nexport default definition;\n`],
   ]);
+  for (const [file, content] of files) {
+    if (/\.tsx?$/.test(file)) files.set(file, await formatProjectCode(content));
+  }
   const sharedEdits: {target:string;content:Buffer}[]=[];
   if (official.application.hostApplication) {
     const templates = installedApplication?.files;

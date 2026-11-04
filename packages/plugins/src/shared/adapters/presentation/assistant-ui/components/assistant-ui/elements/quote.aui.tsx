@@ -1,50 +1,42 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale } from '../../../../../../locale.js';
 
-import { memo, type ComponentProps, type FC } from "react";
-import type { QuoteMessagePartComponent } from "@assistant-ui/react";
-import {
-  ComposerPrimitive,
-} from "@assistant-ui/react";
-import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";
-import { QuoteIcon, XIcon } from "lucide-react";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
+import { memo, type ComponentProps, type FC } from 'react';
+import type { QuoteMessagePartComponent } from '@assistant-ui/react';
+import { ComposerPrimitive } from '@assistant-ui/react';
+import { SelectionToolbarPrimitive } from '../../../../../quote-selection-adapter.js';
+import { QuoteIcon, XIcon } from 'lucide-react';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
 
-function QuoteBlockRoot({ className, ...props }: ComponentProps<"div">) {
+function QuoteBlockRoot({ className, ...props }: ComponentProps<'div'>) {
   return (
-    <div data-agent-ui-owned=""
-      data-slot="quote-block"
-      className={cn("mb-2 flex items-start gap-1.5", className)}
+    <div
+      data-agent-ui-owned=''
+      data-slot='quote-block'
+      className={cn('mb-2 flex items-start gap-1.5', className)}
       {...props}
     />
   );
 }
 
-function QuoteBlockIcon({
-  className,
-  ...props
-}: ComponentProps<typeof QuoteIcon>) {
+function QuoteBlockIcon({ className, ...props }: ComponentProps<typeof QuoteIcon>) {
   return (
-    <QuoteIcon data-agent-ui-owned=""
-      data-slot="quote-block-icon"
-      className={cn(
-        "text-muted-foreground/60 mt-0.5 size-3 shrink-0",
-        className,
-      )}
+    <QuoteIcon
+      data-agent-ui-owned=''
+      data-slot='quote-block-icon'
+      className={cn('text-muted-foreground/60 mt-0.5 size-3 shrink-0', className)}
       {...props}
     />
   );
 }
 
-function QuoteBlockText({ className, ...props }: ComponentProps<"p">) {
+function QuoteBlockText({ className, ...props }: ComponentProps<'p'>) {
   return (
-    <p data-agent-ui-owned=""
-      data-slot="quote-block-text"
-      className={cn(
-        "text-muted-foreground/80 line-clamp-2 min-w-0 text-sm italic",
-        className,
-      )}
+    <p
+      data-agent-ui-owned=''
+      data-slot='quote-block-text'
+      className={cn('text-muted-foreground/80 line-clamp-2 min-w-0 text-sm italic', className)}
       {...props}
     />
   );
@@ -71,30 +63,23 @@ const QuoteBlockImpl: QuoteMessagePartComponent = ({ text }) => {
   );
 };
 
-const QuoteBlock = memo(
-  QuoteBlockImpl,
-) as unknown as QuoteMessagePartComponent & {
+const QuoteBlock = memo(QuoteBlockImpl) as unknown as QuoteMessagePartComponent & {
   Root: typeof QuoteBlockRoot;
   Icon: typeof QuoteBlockIcon;
   Text: typeof QuoteBlockText;
 };
 
-QuoteBlock.displayName = "QuoteBlock";
+QuoteBlock.displayName = 'QuoteBlock';
 QuoteBlock.Root = QuoteBlockRoot;
 QuoteBlock.Icon = QuoteBlockIcon;
 QuoteBlock.Text = QuoteBlockText;
 
-function SelectionToolbarRoot({
-  className,
-  ...props
-}: ComponentProps<typeof SelectionToolbarPrimitive.Root>) {
+function SelectionToolbarRoot({ className, ...props }: ComponentProps<typeof SelectionToolbarPrimitive.Root>) {
   return (
-    <SelectionToolbarPrimitive.Root data-agent-ui-owned=""
-      data-slot="selection-toolbar"
-      className={cn(
-        "bg-popover flex items-center gap-1 rounded-lg border px-1 py-1",
-        className,
-      )}
+    <SelectionToolbarPrimitive.Root
+      data-agent-ui-owned=''
+      data-slot='selection-toolbar'
+      className={cn('bg-popover flex items-center gap-1 rounded-lg border px-1 py-1', className)}
       {...props}
     />
   );
@@ -107,17 +92,18 @@ function SelectionToolbarQuote({
 }: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {
   const localeMessages = useAgentUILocale();
   return (
-    <SelectionToolbarPrimitive.Quote data-agent-ui-owned=""
-      data-slot="selection-toolbar-quote"
+    <SelectionToolbarPrimitive.Quote
+      data-agent-ui-owned=''
+      data-slot='selection-toolbar-quote'
       className={cn(
-        "text-popover-foreground hover:bg-accent flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors",
+        'text-popover-foreground hover:bg-accent flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors',
         className,
       )}
       {...props}
     >
       {children ?? (
         <>
-          <QuoteIcon className="size-3.5" />
+          <QuoteIcon className='size-3.5' />
 
           {localeMessages.quote.quote}
         </>
@@ -139,10 +125,7 @@ function SelectionToolbarQuote({
  * </ThreadPrimitive.Root>
  * ```
  */
-const SelectionToolbarImpl: FC<ComponentProps<typeof SelectionToolbarRoot>> = ({
-  className,
-  ...props
-}) => {
+const SelectionToolbarImpl: FC<ComponentProps<typeof SelectionToolbarRoot>> = ({ className, ...props }) => {
   return (
     <SelectionToolbarRoot className={className} {...props}>
       <SelectionToolbarQuote />
@@ -150,60 +133,43 @@ const SelectionToolbarImpl: FC<ComponentProps<typeof SelectionToolbarRoot>> = ({
   );
 };
 
-const SelectionToolbar = memo(
-  SelectionToolbarImpl,
-) as unknown as typeof SelectionToolbarImpl & {
+const SelectionToolbar = memo(SelectionToolbarImpl) as unknown as typeof SelectionToolbarImpl & {
   Root: typeof SelectionToolbarRoot;
   Quote: typeof SelectionToolbarQuote;
 };
 
-SelectionToolbar.displayName = "SelectionToolbar";
+SelectionToolbar.displayName = 'SelectionToolbar';
 SelectionToolbar.Root = SelectionToolbarRoot;
 SelectionToolbar.Quote = SelectionToolbarQuote;
 
-function ComposerQuotePreviewRoot({
-  className,
-  ...props
-}: ComponentProps<typeof ComposerPrimitive.Quote>) {
+function ComposerQuotePreviewRoot({ className, ...props }: ComponentProps<typeof ComposerPrimitive.Quote>) {
   return (
-    <ComposerPrimitive.Quote data-agent-ui-owned=""
-      data-slot="composer-quote"
-      className={cn(
-        "bg-muted/60 mx-3 mt-2 flex items-start gap-2 rounded-lg px-3 py-2",
-        className,
-      )}
+    <ComposerPrimitive.Quote
+      data-agent-ui-owned=''
+      data-slot='composer-quote'
+      className={cn('bg-muted/60 mx-3 mt-2 flex items-start gap-2 rounded-lg px-3 py-2', className)}
       {...props}
     />
   );
 }
 
-function ComposerQuotePreviewIcon({
-  className,
-  ...props
-}: ComponentProps<typeof QuoteIcon>) {
+function ComposerQuotePreviewIcon({ className, ...props }: ComponentProps<typeof QuoteIcon>) {
   return (
-    <QuoteIcon data-agent-ui-owned=""
-      data-slot="composer-quote-icon"
-      className={cn(
-        "text-muted-foreground/70 mt-0.5 size-3.5 shrink-0",
-        className,
-      )}
+    <QuoteIcon
+      data-agent-ui-owned=''
+      data-slot='composer-quote-icon'
+      className={cn('text-muted-foreground/70 mt-0.5 size-3.5 shrink-0', className)}
       {...props}
     />
   );
 }
 
-function ComposerQuotePreviewText({
-  className,
-  ...props
-}: ComponentProps<typeof ComposerPrimitive.QuoteText>) {
+function ComposerQuotePreviewText({ className, ...props }: ComponentProps<typeof ComposerPrimitive.QuoteText>) {
   return (
-    <ComposerPrimitive.QuoteText data-agent-ui-owned=""
-      data-slot="composer-quote-text"
-      className={cn(
-        "text-muted-foreground line-clamp-2 min-w-0 flex-1 text-sm",
-        className,
-      )}
+    <ComposerPrimitive.QuoteText
+      data-agent-ui-owned=''
+      data-slot='composer-quote-text'
+      className={cn('text-muted-foreground line-clamp-2 min-w-0 flex-1 text-sm', className)}
       {...props}
     />
   );
@@ -216,22 +182,24 @@ function ComposerQuotePreviewDismiss({
 }: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {
   const localeMessages = useAgentUILocale();
   const defaultClassName =
-    "shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground";
+    'shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground';
 
   return (
-    <ComposerPrimitive.QuoteDismiss data-agent-ui-owned=""
-      data-slot="composer-quote-dismiss"
+    <ComposerPrimitive.QuoteDismiss
+      data-agent-ui-owned=''
+      data-slot='composer-quote-dismiss'
       asChild
       className={children ? className : undefined}
       {...props}
     >
       {children ?? (
-        <button data-agent-ui-owned=""
-          type="button"
+        <button
+          data-agent-ui-owned=''
+          type='button'
           aria-label={localeMessages.quote.dismiss}
           className={cn(defaultClassName, className)}
         >
-          <XIcon className="size-3.5" />
+          <XIcon className='size-3.5' />
         </button>
       )}
     </ComposerPrimitive.QuoteDismiss>
@@ -252,9 +220,7 @@ function ComposerQuotePreviewDismiss({
  * </ComposerPrimitive.Root>
  * ```
  */
-const ComposerQuotePreviewImpl: FC<
-  ComponentProps<typeof ComposerQuotePreviewRoot>
-> = ({ className, ...props }) => {
+const ComposerQuotePreviewImpl: FC<ComponentProps<typeof ComposerQuotePreviewRoot>> = ({ className, ...props }) => {
   return (
     <ComposerQuotePreviewRoot className={className} {...props}>
       <ComposerQuotePreviewIcon />
@@ -264,16 +230,14 @@ const ComposerQuotePreviewImpl: FC<
   );
 };
 
-const ComposerQuotePreview = memo(
-  ComposerQuotePreviewImpl,
-) as unknown as typeof ComposerQuotePreviewImpl & {
+const ComposerQuotePreview = memo(ComposerQuotePreviewImpl) as unknown as typeof ComposerQuotePreviewImpl & {
   Root: typeof ComposerQuotePreviewRoot;
   Icon: typeof ComposerQuotePreviewIcon;
   Text: typeof ComposerQuotePreviewText;
   Dismiss: typeof ComposerQuotePreviewDismiss;
 };
 
-ComposerQuotePreview.displayName = "ComposerQuotePreview";
+ComposerQuotePreview.displayName = 'ComposerQuotePreview';
 ComposerQuotePreview.Root = ComposerQuotePreviewRoot;
 ComposerQuotePreview.Icon = ComposerQuotePreviewIcon;
 ComposerQuotePreview.Text = ComposerQuotePreviewText;

@@ -52,11 +52,13 @@
     "docs:package": "node scripts/creator-documentation.mjs --generate",
     "docs:check": "node scripts/creator-documentation.mjs --check",
     "test:documentation": "node --test scripts/creator-documentation.test.mjs",
-    "docs:install": "pnpm --dir website install --frozen-lockfile"
+    "docs:install": "pnpm --dir website install --frozen-lockfile",
+    "check:project-code": "node scripts/project-code-quality.mjs"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3",
-    "get-tsconfig": "4.14.0"
+    "get-tsconfig": "4.14.0",
+    "prettier": "3.6.2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

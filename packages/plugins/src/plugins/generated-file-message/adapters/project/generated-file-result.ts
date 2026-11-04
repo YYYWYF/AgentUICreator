@@ -6,16 +6,29 @@ export interface GeneratedFileResult {
 }
 
 export function projectGeneratedFileResult(result: unknown): GeneratedFileResult | null {
-  if (typeof result !== "object" || result === null || Array.isArray(result)) return null;
+  if (typeof result !== 'object' || result === null || Array.isArray(result)) {
+    return null;
+  }
   const value = result as Record<string, unknown>;
   const { filename, mimeType, url } = value;
-  if (typeof filename !== "string" || !filename.trim() ||
-      typeof mimeType !== "string" || !mimeType.trim() ||
-      typeof url !== "string" || !url.trim()) return null;
-  if (!/^https?:\/\//i.test(url)) return null;
+  if (
+    typeof filename !== 'string' ||
+    !filename.trim() ||
+    typeof mimeType !== 'string' ||
+    !mimeType.trim() ||
+    typeof url !== 'string' ||
+    !url.trim()
+  ) {
+    return null;
+  }
+  if (!/^https?:\/\//i.test(url)) {
+    return null;
+  }
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
   } catch {
     return null;
   }

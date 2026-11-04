@@ -1,13 +1,17 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from "../../../../../../locale.js";
+import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
 
-import { useCallback, useState, type ComponentProps } from "react";
-import { CheckIcon, Loader2Icon } from "lucide-react";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
-import { inkButton, mono, paper } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { clamp } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/range.js";
-import { useReceiptFocus } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/receipt-focus.js";
+import { useCallback, useState, type ComponentProps } from 'react';
+import { CheckIcon, Loader2Icon } from 'lucide-react';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
+import {
+  inkButton,
+  mono,
+  paper,
+} from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js';
+import { clamp } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/range.js';
+import { useReceiptFocus } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/receipt-focus.js';
 
 export interface OptionListOption {
   id: string;
@@ -16,13 +20,10 @@ export interface OptionListOption {
   disabled?: boolean | undefined;
 }
 
-export interface OptionListProps extends Omit<
-  ComponentProps<"div">,
-  "children" | "defaultValue" | "onChange"
-> {
+export interface OptionListProps extends Omit<ComponentProps<'div'>, 'children' | 'defaultValue' | 'onChange'> {
   options: readonly OptionListOption[];
   /** One option answers the question, or several do. */
-  selectionMode?: "single" | "multiple" | undefined;
+  selectionMode?: 'single' | 'multiple' | undefined;
   /**
    * Options the list starts selected: checked in a multiple selection, and
    * marked as the current answer in a single one.
@@ -47,16 +48,16 @@ export interface OptionListProps extends Omit<
 }
 
 const row =
-  "flex w-full items-start gap-2.5 rounded-xl px-2 py-2 text-start transition-colors outline-none focus-visible:ring-1 focus-visible:ring-foreground/20";
+  'flex w-full items-start gap-2.5 rounded-xl px-2 py-2 text-start transition-colors outline-none focus-visible:ring-1 focus-visible:ring-foreground/20';
 
 function OptionText({ option }: { option: OptionListOption }) {
   return (
-    <span data-agent-ui-owned="" className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <span data-agent-ui-owned="" className="text-[13.5px] leading-5 break-words">
+    <span data-agent-ui-owned='' className='flex min-w-0 flex-1 flex-col gap-0.5'>
+      <span data-agent-ui-owned='' className='text-[13.5px] leading-5 break-words'>
         {option.label}
       </span>
       {option.description ? (
-        <span data-agent-ui-owned="" className="text-muted-foreground text-xs leading-4 break-words">
+        <span data-agent-ui-owned='' className='text-muted-foreground text-xs leading-4 break-words'>
           {option.description}
         </span>
       ) : null}
@@ -66,7 +67,7 @@ function OptionText({ option }: { option: OptionListOption }) {
 
 export function OptionList({
   options,
-  selectionMode = "single",
+  selectionMode = 'single',
   defaultValue,
   minSelections = 1,
   maxSelections,
@@ -76,8 +77,8 @@ export function OptionList({
   className,
   ...props
 }: OptionListProps) {
-  const messages = useAgentUILocale("questionOptions");
-  const multiple = selectionMode === "multiple";
+  const messages = useAgentUILocale('questionOptions');
+  const multiple = selectionMode === 'multiple';
   const [selected, setSelected] = useState<readonly string[]>(() =>
     (defaultValue ?? []).filter((id) => options.some((o) => o.id === id)),
   );
@@ -89,30 +90,24 @@ export function OptionList({
     (node: HTMLDivElement | null) => {
       receiptRef.current = node;
       const { ref } = props;
-      if (typeof ref === "function") return ref(node);
-      if (ref && typeof ref === "object")
-        (ref as { current: HTMLDivElement | null }).current = node;
+      if (typeof ref === 'function') return ref(node);
+      if (ref && typeof ref === 'object') (ref as { current: HTMLDivElement | null }).current = node;
       return undefined;
     },
     [props.ref, receiptRef],
   );
 
-  const root = cn(
-    paper,
-    "flex w-full max-w-sm flex-col gap-1 rounded-2xl p-2",
-    className,
-  );
+  const root = cn(paper, 'flex w-full max-w-sm flex-col gap-1 rounded-2xl p-2', className);
 
   const confirmedChoice = choice ?? confirmed;
 
   if (confirmedChoice !== undefined) {
-    const chosen = options.filter((option) =>
-      confirmedChoice.includes(option.id),
-    );
+    const chosen = options.filter((option) => confirmedChoice.includes(option.id));
     return (
-      <div data-agent-ui-owned=""
-        data-slot="option-list"
-        data-state="receipt"
+      <div
+        data-agent-ui-owned=''
+        data-slot='option-list'
+        data-state='receipt'
         className={root}
         {...props}
         {...focusHandlers}
@@ -120,18 +115,17 @@ export function OptionList({
         tabIndex={-1}
       >
         {chosen.length === 0 ? (
-          <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground px-2 py-2")}>
+          <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground px-2 py-2')}>
             {messages.noneSelected}
           </span>
         ) : (
           chosen.map((option) => (
-            <div data-agent-ui-owned="" key={option.id} className={cn(row, "text-foreground/70")}>
-              <span data-agent-ui-owned="" className="flex h-5 w-3.5 shrink-0 items-center justify-center">
-                <CheckIcon
-                  aria-hidden
-                  className="text-muted-foreground size-3.5"
-                />
-                <span data-agent-ui-owned="" className="sr-only">{messages.selected}</span>
+            <div data-agent-ui-owned='' key={option.id} className={cn(row, 'text-foreground/70')}>
+              <span data-agent-ui-owned='' className='flex h-5 w-3.5 shrink-0 items-center justify-center'>
+                <CheckIcon aria-hidden className='text-muted-foreground size-3.5' />
+                <span data-agent-ui-owned='' className='sr-only'>
+                  {messages.selected}
+                </span>
               </span>
               <OptionText option={option} />
             </div>
@@ -143,17 +137,9 @@ export function OptionList({
 
   if (!onConfirm) {
     return (
-      <div data-agent-ui-owned=""
-        data-slot="option-list"
-        className={root}
-        {...props}
-        {...focusHandlers}
-      >
+      <div data-agent-ui-owned='' data-slot='option-list' className={root} {...props} {...focusHandlers}>
         {options.map((option) => (
-          <div data-agent-ui-owned=""
-            key={option.id}
-            className={cn(row, option.disabled && "text-muted-foreground")}
-          >
+          <div data-agent-ui-owned='' key={option.id} className={cn(row, option.disabled && 'text-muted-foreground')}>
             <OptionText option={option} />
           </div>
         ))}
@@ -162,9 +148,7 @@ export function OptionList({
   }
 
   const locked = pending !== null;
-  const max = Math.floor(
-    clamp(maxSelections ?? options.length, 0, options.length),
-  );
+  const max = Math.floor(clamp(maxSelections ?? options.length, 0, options.length));
   const min = Math.floor(clamp(minSelections, 0, max));
   const optionIds = new Set(options.map((option) => option.id));
   const selectedIds = selected.filter((id) => optionIds.has(id));
@@ -179,11 +163,7 @@ export function OptionList({
         setConfirmed(ids);
       } catch (commitError) {
         setPending(null);
-        setError(
-          commitError instanceof Error
-            ? commitError.message
-            : String(commitError),
-        );
+        setError(commitError instanceof Error ? commitError.message : String(commitError));
       }
     })();
   };
@@ -204,28 +184,25 @@ export function OptionList({
   const canConfirm = !locked && count >= min && count <= max;
 
   return (
-    <div data-agent-ui-owned=""
-      role="group"
-      data-slot="option-list"
-      data-state={locked ? "pending" : "open"}
+    <div
+      data-agent-ui-owned=''
+      role='group'
+      data-slot='option-list'
+      data-state={locked ? 'pending' : 'open'}
       aria-busy={locked || undefined}
       className={root}
       {...props}
       {...focusHandlers}
     >
       {options.map((option) => {
-        const isSelected = multiple
-          ? selectedIds.includes(option.id)
-          : (pending ?? selected).includes(option.id);
-        const unavailable =
-          option.disabled === true || (multiple && !isSelected && count >= max);
+        const isSelected = multiple ? selectedIds.includes(option.id) : (pending ?? selected).includes(option.id);
+        const unavailable = option.disabled === true || (multiple && !isSelected && count >= max);
         return (
-          <button data-agent-ui-owned=""
+          <button
+            data-agent-ui-owned=''
             key={option.id}
-            type="button"
-            {...(multiple
-              ? { role: "checkbox", "aria-checked": isSelected }
-              : {})}
+            type='button'
+            {...(multiple ? { role: 'checkbox', 'aria-checked': isSelected } : {})}
             aria-disabled={unavailable || locked || undefined}
             disabled={option.disabled}
             onClick={() => {
@@ -235,37 +212,28 @@ export function OptionList({
             }}
             className={cn(
               row,
-              isSelected
-                ? "bg-foreground/[0.06]"
-                : !unavailable && !locked && "hover:bg-foreground/[0.035]",
-              unavailable ? "text-muted-foreground" : "text-foreground/90",
-              (unavailable || locked) && "cursor-default",
+              isSelected ? 'bg-foreground/[0.06]' : !unavailable && !locked && 'hover:bg-foreground/[0.035]',
+              unavailable ? 'text-muted-foreground' : 'text-foreground/90',
+              (unavailable || locked) && 'cursor-default',
             )}
           >
             {multiple ? (
-              <span data-agent-ui-owned=""
-                aria-hidden
-                className="flex h-5 w-3.5 shrink-0 items-center justify-center"
-              >
-                <span data-agent-ui-owned=""
+              <span data-agent-ui-owned='' aria-hidden className='flex h-5 w-3.5 shrink-0 items-center justify-center'>
+                <span
+                  data-agent-ui-owned=''
                   className={cn(
-                    "flex size-3.5 items-center justify-center rounded-[5px] border transition-colors",
-                    isSelected
-                      ? "border-foreground bg-foreground"
-                      : "border-foreground/15",
+                    'flex size-3.5 items-center justify-center rounded-[5px] border transition-colors',
+                    isSelected ? 'border-foreground bg-foreground' : 'border-foreground/15',
                   )}
                 >
                   {isSelected ? (
-                    <CheckIcon className="fade-in zoom-in-90 animate-in text-background size-2.5 duration-200 motion-reduce:animate-none" />
+                    <CheckIcon className='fade-in zoom-in-90 animate-in text-background size-2.5 duration-200 motion-reduce:animate-none' />
                   ) : null}
                 </span>
               </span>
             ) : pending?.includes(option.id) ? (
-              <span data-agent-ui-owned=""
-                aria-hidden
-                className="flex h-5 w-3.5 shrink-0 items-center justify-center"
-              >
-                <Loader2Icon className="text-muted-foreground size-3.5 animate-spin motion-reduce:animate-none" />
+              <span data-agent-ui-owned='' aria-hidden className='flex h-5 w-3.5 shrink-0 items-center justify-center'>
+                <Loader2Icon className='text-muted-foreground size-3.5 animate-spin motion-reduce:animate-none' />
               </span>
             ) : null}
             <OptionText option={option} />
@@ -273,41 +241,30 @@ export function OptionList({
         );
       })}
       {error ? (
-        <p data-agent-ui-owned=""
-          role="alert"
-          className="px-2 pb-1 text-xs break-words text-red-600 dark:text-red-400"
-        >
+        <p data-agent-ui-owned='' role='alert' className='px-2 pb-1 text-xs break-words text-red-600 dark:text-red-400'>
           {error}
         </p>
       ) : null}
       {multiple ? (
-        <div data-agent-ui-owned="" className="flex items-center justify-between gap-3 px-2 pt-1.5 pb-1">
-          <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground tabular-nums")}>
+        <div data-agent-ui-owned='' className='flex items-center justify-between gap-3 px-2 pt-1.5 pb-1'>
+          <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground tabular-nums')}>
             {formatPresentationMessage(messages.count, { count, max })}
           </span>
-          <button data-agent-ui-owned=""
-            type="button"
+          <button
+            data-agent-ui-owned=''
+            type='button'
             aria-disabled={!canConfirm || undefined}
             onClick={() => {
               if (!canConfirm) return;
-              commit(
-                options
-                  .filter((option) => selectedIds.includes(option.id))
-                  .map((option) => option.id),
-              );
+              commit(options.filter((option) => selectedIds.includes(option.id)).map((option) => option.id));
             }}
             className={cn(
               inkButton,
-              "flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-medium",
-              !canConfirm && "cursor-default opacity-40 hover:opacity-40",
+              'flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-medium',
+              !canConfirm && 'cursor-default opacity-40 hover:opacity-40',
             )}
           >
-            {locked ? (
-              <Loader2Icon
-                aria-hidden
-                className="size-3.5 animate-spin motion-reduce:animate-none"
-              />
-            ) : null}
+            {locked ? <Loader2Icon aria-hidden className='size-3.5 animate-spin motion-reduce:animate-none' /> : null}
             {confirmLabel ?? messages.confirm}
           </button>
         </div>

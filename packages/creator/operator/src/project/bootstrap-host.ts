@@ -96,7 +96,7 @@ export function createAgentUIInitializationHost() {
       const shellName = `${projectConfig.mode[0]!.toUpperCase()}${projectConfig.mode.slice(1)}Shell`;
       await writeFile(paths.generatedRuntimeConfigPath, [
         "/** Fixed shell selected during initialization. Project-owned application code. */",
-        `export { ${shellName} as ProjectShell } from "./shell/${shellName}";`,
+        `export { ${shellName} as ProjectShell } from './shell/${shellName}';`,
         "",
       ].join("\n"), { flag: "wx" });
       return projectRelativePath(projectRoot, paths.generatedRuntimeConfigPath);

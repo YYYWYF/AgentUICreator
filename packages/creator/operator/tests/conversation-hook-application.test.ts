@@ -81,12 +81,12 @@ it.each([undefined, "platform", "assistant", "embedded"] as const)("initializes 
   expect(await readFile(path.join(context.paths.sourceRoot, "services/hooks/useConversationActions.ts"), "utf8")).toContain("useRuntimeConversationActions");
   expect(result.createdPaths).toContain("src/custom-ui/services/hooks/useConversations.ts");
   const source = await readFile(hook, "utf8");
-  expect(source).toContain('from "../conversations"');
+  expect(source).toContain("from '../conversations'");
   await expect(readFile(path.join(context.paths.sourceRoot, "hooks/useConversations.ts"))).rejects.toMatchObject({ code: "ENOENT" });
   const application = await readFile(path.join(context.paths.pluginsRoot, "conversation-thread-list/index.tsx"), "utf8");
-  expect(application).toContain('from "../../services/hooks/useConversations"');
+  expect(application).toContain("from '../../services/hooks/useConversations'");
   expect(application).not.toContain("usePluginService");
-  expect(application).toContain('from "../../services/hooks/useConversationActions"');
+  expect(application).toContain("from '../../services/hooks/useConversationActions'");
   const custom = source + "\n// project customization\n";
   await writeFile(hook, custom);
   await ensurePluginApplication(root, "conversation-surface", context);
@@ -154,9 +154,9 @@ it.each(["auth-account", "auth-gate"])("initializes %s with the shared auth hook
   const hook = path.join(context.paths.sourceRoot, "services/hooks/useAuthSession.ts");
   const contract = path.join(context.paths.sourceRoot, "services/auth/session.ts");
   const application = path.join(context.paths.pluginsRoot, id, "index.tsx");
-  expect(await readFile(hook, "utf8")).toContain('from "../auth/session"');
+  expect(await readFile(hook, "utf8")).toContain("from '../auth/session'");
   const source = await readFile(application, "utf8");
-  expect(source).toContain('from "../../services/hooks/useAuthSession"');
+  expect(source).toContain("from '../../services/hooks/useAuthSession'");
   expect(source).not.toContain("usePluginService");
   const customHook = (await readFile(hook, "utf8")) + "\n// custom auth hook\n";
   const customContract = (await readFile(contract, "utf8")) + "\n// custom auth contract\n";

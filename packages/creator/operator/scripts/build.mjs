@@ -18,7 +18,7 @@ const result = await build({
   bundle: true, platform: "node", format: "esm", target: "node20",
   // TypeScript 7's parser uses its native executable. Resolve it from this
   // tool package, never from the user's Host or production dependencies.
-  external: ["typescript", "typescript/*", "@za38.03/agent-ui-plugins/catalog"],
+  external: ["typescript", "typescript/*", "prettier", "@za38.03/agent-ui-plugins/catalog"],
   alias: {
     "@za38.03/agent-ui-creator/bootstrap": `${root}packages/creator/operator/src/bootstrap/index.ts`,
   },
@@ -35,10 +35,10 @@ const result = await build({
 // Resource assets ship once, inside the Plugins dependency.
 await rm(path.join(packageRoot, "dist/registry"), { recursive: true, force: true });
 await rm(path.join(packageRoot, "dist/fixtures"), { recursive: true, force: true });
-await build({ entryPoints: [path.join(packageRoot, "src/source-catalog/index.ts")], outfile: path.join(packageRoot, "dist/source-catalog/index.js"), bundle: true, platform: "node", format: "esm", target: "node20", external: ["@za38.03/agent-ui-plugins/catalog"] });
+await build({ entryPoints: [path.join(packageRoot, "src/source-catalog/index.ts")], outfile: path.join(packageRoot, "dist/source-catalog/index.js"), bundle: true, platform: "node", format: "esm", target: "node20", external: ["prettier", "@za38.03/agent-ui-plugins/catalog"] });
 await build({ entryPoints: [path.join(packageRoot, "src/bootstrap/index.ts")],
   outfile: path.join(packageRoot, "dist/bootstrap/index.js"), bundle: true,
-  platform: "node", format: "esm", target: "node20", external: ["@za38.03/agent-ui-plugins/catalog"] });
+  platform: "node", format: "esm", target: "node20", external: ["prettier", "@za38.03/agent-ui-plugins/catalog"] });
 
 const inputs = {};
 for (const file of Object.keys(result.metafile.inputs)) {

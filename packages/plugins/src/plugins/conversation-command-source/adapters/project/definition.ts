@@ -1,11 +1,12 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
-import { CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../../services/composer-triggers";
-import { ConversationCommandSourcePlugin } from "./index";
-import { resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
-import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
-import manifestJson from "./manifest.json";
+import { resolveAgentUILocaleMessages } from '@za38.03/agent-ui-plugins';
+import { parseUIPluginManifest, type UIPluginDefinition } from '@za38.03/agent-ui-plugins/contracts';
+import { AGENT_UI_LOCALE_SERVICE } from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';
+import { CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from '../../services/composer-triggers';
+import { ConversationCommandSourcePlugin } from './index';
+import manifestJson from './manifest.json';
 export const conversationCommandSourcePlugin: UIPluginDefinition = {
-  manifest: parseUIPluginManifest(manifestJson), provides: [CONVERSATION_COMMAND_SOURCE],
+  manifest: parseUIPluginManifest(manifestJson),
+  provides: [CONVERSATION_COMMAND_SOURCE],
   setup: ({ services, actions }) => {
     const source = createConversationCommandRegistry();
     services.provide(CONVERSATION_COMMAND_SOURCE, source);
@@ -13,14 +14,22 @@ export const conversationCommandSourcePlugin: UIPluginDefinition = {
     let unregister: (() => void) | undefined;
     const register = () => {
       unregister?.();
-      const code = locale?.getSnapshot().locale ?? "zh-CN";
-      unregister = source.register({ id: "new", label: (locale?.getMessages?.() ?? resolveAgentUILocaleMessages(code)).conversationTriggers.newConversation,
-        mode: "action", execute: () => Promise.resolve(actions.startNewConversation()).then(() => undefined) });
+      const code = locale?.getSnapshot().locale ?? 'zh-CN';
+      unregister = source.register({
+        id: 'new',
+        label: (locale?.getMessages?.() ?? resolveAgentUILocaleMessages(code)).conversationTriggers.newConversation,
+        mode: 'action',
+        execute: () => Promise.resolve(actions.startNewConversation()).then(() => undefined),
+      });
     };
     register();
     const unsubscribe = locale?.subscribe(register);
-    return () => { unsubscribe?.(); unregister?.(); };
+    return () => {
+      unsubscribe?.();
+      unregister?.();
+    };
   },
-  optionalInject: [AGENT_UI_LOCALE_SERVICE], Component: ConversationCommandSourcePlugin,
+  optionalInject: [AGENT_UI_LOCALE_SERVICE],
+  Component: ConversationCommandSourcePlugin,
 };
 export default conversationCommandSourcePlugin;

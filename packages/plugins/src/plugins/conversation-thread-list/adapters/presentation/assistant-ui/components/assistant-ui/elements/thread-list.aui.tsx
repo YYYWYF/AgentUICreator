@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useAgentUILocale } from "../../../../../../locale.js";
+import { useAgentUILocale } from '../../../../../../locale.js';
 
-import { Button } from "../../ui/button";
-import { Input } from "../../ui/input";
-import { Skeleton } from "../../ui/skeleton";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { Skeleton } from '../../ui/skeleton';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
 import {
   AuiIf,
   ThreadListItemMorePrimitive,
@@ -13,7 +13,7 @@ import {
   ThreadListPrimitive,
   useAui,
   useAuiState,
-} from "@assistant-ui/react";
+} from '@assistant-ui/react';
 import {
   ArchiveIcon,
   Loader2Icon,
@@ -23,7 +23,7 @@ import {
   SearchIcon,
   TrashIcon,
   XIcon,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   forwardRef,
   Fragment,
@@ -34,26 +34,24 @@ import {
   useSyncExternalStore,
   type ComponentPropsWithoutRef,
   type FC,
-} from "react";
+} from 'react';
 
 export const ThreadList: FC = () => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const hasThreads = useAuiState((s) => s.threads.threadIds.length > 0);
 
   return (
     <ThreadListRoot>
       <ThreadListNew />
-      {hasThreads && (
-        <ThreadListSearch value={search} onValueChange={setSearch} />
-      )}
-      <ThreadListItems searchQuery={hasThreads ? search : ""} />
+      {hasThreads && <ThreadListSearch value={search} onValueChange={setSearch} />}
+      <ThreadListItems searchQuery={hasThreads ? search : ''} />
     </ThreadListRoot>
   );
 };
 
 export const ThreadListSearch = forwardRef<
   HTMLInputElement,
-  Omit<ComponentPropsWithoutRef<typeof Input>, "value" | "onChange"> & {
+  Omit<ComponentPropsWithoutRef<typeof Input>, 'value' | 'onChange'> & {
     value: string;
     onValueChange: (value: string) => void;
     clearLabel?: string;
@@ -61,66 +59,82 @@ export const ThreadListSearch = forwardRef<
 >(({ className, value, onValueChange, clearLabel, ...props }, ref) => {
   const searchRef = useRef<HTMLInputElement>(null);
   return (
-    <div data-agent-ui-owned="" data-slot="aui_thread-list-search" className="relative px-0.5 py-1">
-      <SearchIcon data-agent-ui-owned=""
-        data-slot="aui_thread-list-search-icon"
-        className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
+    <div data-agent-ui-owned='' data-slot='aui_thread-list-search' className='relative px-0.5 py-1'>
+      <SearchIcon
+        data-agent-ui-owned=''
+        data-slot='aui_thread-list-search-icon'
+        className='text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2'
       />
-      <Input data-agent-ui-owned=""
+      <Input
+        data-agent-ui-owned=''
         ref={(node) => {
           searchRef.current = node;
-          if (typeof ref === "function") ref(node);
+          if (typeof ref === 'function') ref(node);
           else if (ref) ref.current = node;
         }}
-        type={clearLabel ? "text" : "search"}
-        role={clearLabel ? "searchbox" : undefined}
+        type={clearLabel ? 'text' : 'search'}
+        role={clearLabel ? 'searchbox' : undefined}
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
-        aria-label="Search threads"
-        placeholder="Search threads"
-        className={cn("h-8 ps-8 text-sm", clearLabel && "pe-9", className)}
+        aria-label='Search threads'
+        placeholder='Search threads'
+        className={cn('h-8 ps-8 text-sm', clearLabel && 'pe-9', className)}
         {...props}
         onKeyDown={(event) => {
           props.onKeyDown?.(event);
-          if (!event.defaultPrevented && clearLabel && value && event.key === "Escape") {
+          if (!event.defaultPrevented && clearLabel && value && event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();
-            onValueChange("");
+            onValueChange('');
           }
         }}
       />
       {clearLabel && value && (
-        <Button type="button" variant="ghost" size="icon" data-slot="agent-ui-thread-search-clear"
-          aria-label={clearLabel} className="absolute end-1 top-1/2 size-7 -translate-y-1/2"
-          onClick={() => { onValueChange(""); searchRef.current?.focus(); }}>
-          <XIcon className="size-3.5" />
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          data-slot='agent-ui-thread-search-clear'
+          aria-label={clearLabel}
+          className='absolute end-1 top-1/2 size-7 -translate-y-1/2'
+          onClick={() => {
+            onValueChange('');
+            searchRef.current?.focus();
+          }}
+        >
+          <XIcon className='size-3.5' />
         </Button>
       )}
     </div>
   );
 });
 
-ThreadListSearch.displayName = "ThreadListSearch";
+ThreadListSearch.displayName = 'ThreadListSearch';
 
-export const ThreadListRoot: FC<
-  ComponentPropsWithoutRef<typeof ThreadListPrimitive.Root>
-> = ({ className, ...props }) => {
+export const ThreadListRoot: FC<ComponentPropsWithoutRef<typeof ThreadListPrimitive.Root>> = ({
+  className,
+  ...props
+}) => {
   return (
-    <ThreadListPrimitive.Root data-agent-ui-owned=""
-      data-slot="aui_thread-list-root"
-      className={cn("flex flex-col gap-0.5", className)}
+    <ThreadListPrimitive.Root
+      data-agent-ui-owned=''
+      data-slot='aui_thread-list-root'
+      className={cn('flex flex-col gap-0.5', className)}
       {...props}
     />
   );
 };
 
-export const ThreadListItems: FC<
-  ComponentPropsWithoutRef<"div"> & { searchQuery?: string }
-> = ({ className, searchQuery = "", ...props }) => {
+export const ThreadListItems: FC<ComponentPropsWithoutRef<'div'> & { searchQuery?: string }> = ({
+  className,
+  searchQuery = '',
+  ...props
+}) => {
   return (
-    <div data-agent-ui-owned=""
-      data-slot="aui_thread-list-items"
-      className={cn("flex flex-col gap-0.5", className)}
+    <div
+      data-agent-ui-owned=''
+      data-slot='aui_thread-list-items'
+      className={cn('flex flex-col gap-0.5', className)}
       {...props}
     >
       <AuiIf condition={(s) => s.threads.isLoading}>
@@ -133,28 +147,19 @@ export const ThreadListItems: FC<
   );
 };
 
-const dateGroupLabel = (
-  date: Date | undefined,
-  startOfToday: number,
-  startOfYesterday: number,
-): string => {
-  if (!date || date.getTime() >= startOfToday) return "Today";
-  if (date.getTime() >= startOfYesterday) return "Yesterday";
-  return "Earlier";
+const dateGroupLabel = (date: Date | undefined, startOfToday: number, startOfYesterday: number): string => {
+  if (!date || date.getTime() >= startOfToday) return 'Today';
+  if (date.getTime() >= startOfYesterday) return 'Yesterday';
+  return 'Earlier';
 };
 
-const startOfLocalDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+const startOfLocalDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
 const subscribeToNextDay = (onDayChange: () => void) => {
   let timeout: number;
   const scheduleNextDay = () => {
     const now = new Date();
-    const startOfTomorrow = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-    ).getTime();
+    const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
     timeout = window.setTimeout(() => {
       onDayChange();
       scheduleNextDay();
@@ -171,11 +176,7 @@ const getStartOfToday = () => startOfLocalDay(new Date());
 const getServerStartOfToday = () => undefined;
 
 const useStartOfToday = () =>
-  useSyncExternalStore<number | undefined>(
-    subscribeToNextDay,
-    getStartOfToday,
-    getServerStartOfToday,
-  );
+  useSyncExternalStore<number | undefined>(subscribeToNextDay, getStartOfToday, getServerStartOfToday);
 
 export type ThreadListGroup = { id: string; label: string; indices: number[] };
 
@@ -185,8 +186,8 @@ export type ThreadListGroup = { id: string; label: string; indices: number[] };
  * or while the local day start is unknown during server render and hydration,
  * in which case `filteredIndices` keeps the runtime order.
  */
-export const useThreadListGroups = (searchQuery = "") => {
-  const messages = useAgentUILocale("threadList");
+export const useThreadListGroups = (searchQuery = '') => {
+  const messages = useAgentUILocale('threadList');
   const threadIds = useAuiState((s) => s.threads.threadIds);
   const threadItems = useAuiState((s) => s.threads.threadItems);
 
@@ -198,35 +199,21 @@ export const useThreadListGroups = (searchQuery = "") => {
     const dates = threadIds.map((id) => itemsById.get(id)?.lastMessageAt);
     const filteredIndices = threadIds
       .map((id, index) => ({ id, index }))
-      .filter(
-        ({ id }) =>
-          !query ||
-          (itemsById.get(id)?.title || messages.newChat)
-            .toLowerCase()
-            .includes(query),
-      )
+      .filter(({ id }) => !query || (itemsById.get(id)?.title || messages.newChat).toLowerCase().includes(query))
       .map(({ index }) => index);
-    if (
-      startOfToday === undefined ||
-      !filteredIndices.some((index) => dates[index])
-    ) {
+    if (startOfToday === undefined || !filteredIndices.some((index) => dates[index])) {
       return { threadIds, filteredIndices, groups: null };
     }
 
     const yesterday = new Date(startOfToday);
     yesterday.setDate(yesterday.getDate() - 1);
     const startOfYesterday = yesterday.getTime();
-    const time = (index: number) =>
-      dates[index]?.getTime() ?? Number.MAX_SAFE_INTEGER;
+    const time = (index: number) => dates[index]?.getTime() ?? Number.MAX_SAFE_INTEGER;
     const sorted = [...filteredIndices].sort((a, b) => time(b) - time(a));
 
     const result: ThreadListGroup[] = [];
     for (const index of sorted) {
-      const id = dateGroupLabel(
-        dates[index],
-        startOfToday,
-        startOfYesterday,
-      );
+      const id = dateGroupLabel(dates[index], startOfToday, startOfYesterday);
       const lastGroup = result[result.length - 1];
       if (lastGroup?.id === id) {
         lastGroup.indices.push(index);
@@ -235,22 +222,33 @@ export const useThreadListGroups = (searchQuery = "") => {
         result.push({ id, label, indices: [index] });
       }
     }
-    return { threadIds, filteredIndices, groups: result.map(group => ({ ...group, label: ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[group.label] ?? group.label })) };
+    return {
+      threadIds,
+      filteredIndices,
+      groups: result.map((group) => ({
+        ...group,
+        label:
+          (
+            { Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<
+              string,
+              string
+            >
+          )[group.label] ?? group.label,
+      })),
+    };
   }, [threadIds, threadItems, query, startOfToday, messages]);
 };
 
-const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({
-  searchQuery = "",
-}) => {
-  const { threadIds, filteredIndices, groups } =
-    useThreadListGroups(searchQuery);
+const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({ searchQuery = '' }) => {
+  const { threadIds, filteredIndices, groups } = useThreadListGroups(searchQuery);
   const query = searchQuery.trim();
 
   if (query && filteredIndices.length === 0) {
     return (
-      <div data-agent-ui-owned=""
-        data-slot="aui_thread-list-empty"
-        className="text-muted-foreground px-2.5 py-4 text-sm"
+      <div
+        data-agent-ui-owned=''
+        data-slot='aui_thread-list-empty'
+        className='text-muted-foreground px-2.5 py-4 text-sm'
       >
         No threads found
       </div>
@@ -259,28 +257,21 @@ const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({
 
   if (!groups) {
     return filteredIndices.map((index) => (
-      <ThreadListPrimitive.ItemByIndex
-        key={threadIds[index]}
-        index={index}
-        components={{ ThreadListItem }}
-      />
+      <ThreadListPrimitive.ItemByIndex key={threadIds[index]} index={index} components={{ ThreadListItem }} />
     ));
   }
 
   return groups.map((group) => (
     <Fragment key={group.id}>
-      <div data-agent-ui-owned=""
-        data-slot="aui_thread-list-group-label"
-        className="text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium"
+      <div
+        data-agent-ui-owned=''
+        data-slot='aui_thread-list-group-label'
+        className='text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium'
       >
         {group.label}
       </div>
       {group.indices.map((index) => (
-        <ThreadListPrimitive.ItemByIndex
-          key={threadIds[index]}
-          index={index}
-          components={{ ThreadListItem }}
-        />
+        <ThreadListPrimitive.ItemByIndex key={threadIds[index]} index={index} components={{ ThreadListItem }} />
       ))}
     </Fragment>
   ));
@@ -292,25 +283,24 @@ export const ThreadListNew = forwardRef<
 >(({ className, labelClassName, children, ...props }, ref) => {
   return (
     <ThreadListPrimitive.New asChild>
-      <Button data-agent-ui-owned=""
+      <Button
+        data-agent-ui-owned=''
         ref={ref}
-        variant="ghost"
-        data-slot="aui_thread-list-new"
+        variant='ghost'
+        data-slot='aui_thread-list-new'
         className={cn(
-          "hover:bg-muted data-active:bg-muted h-8 justify-start gap-2 rounded-md px-2.5 text-sm font-normal",
+          'hover:bg-muted data-active:bg-muted h-8 justify-start gap-2 rounded-md px-2.5 text-sm font-normal',
           className,
         )}
         {...props}
       >
         {children ?? (
           <>
-            <PlusIcon data-agent-ui-owned=""
-              data-slot="aui_thread-list-new-icon"
-              className="size-4 shrink-0"
-            />
-            <span data-agent-ui-owned=""
-              data-slot="aui_thread-list-new-label"
-              className={cn("whitespace-nowrap", labelClassName)}
+            <PlusIcon data-agent-ui-owned='' data-slot='aui_thread-list-new-icon' className='size-4 shrink-0' />
+            <span
+              data-agent-ui-owned=''
+              data-slot='aui_thread-list-new-label'
+              className={cn('whitespace-nowrap', labelClassName)}
             >
               New Thread
             </span>
@@ -321,26 +311,20 @@ export const ThreadListNew = forwardRef<
   );
 });
 
-ThreadListNew.displayName = "ThreadListNew";
+ThreadListNew.displayName = 'ThreadListNew';
 
 const ThreadListSkeleton: FC = () => {
   return (
-    <div data-agent-ui-owned=""
-      role="status"
-      aria-label="Loading threads"
-      className="flex flex-col gap-0.5"
-    >
+    <div data-agent-ui-owned='' role='status' aria-label='Loading threads' className='flex flex-col gap-0.5'>
       {Array.from({ length: 5 }, (_, i) => (
-        <div data-agent-ui-owned=""
+        <div
+          data-agent-ui-owned=''
           key={i}
-          aria-hidden="true"
-          data-slot="aui_thread-list-skeleton-wrapper"
-          className="flex h-8 items-center px-2.5"
+          aria-hidden='true'
+          data-slot='aui_thread-list-skeleton-wrapper'
+          className='flex h-8 items-center px-2.5'
         >
-          <Skeleton data-agent-ui-owned=""
-            data-slot="aui_thread-list-skeleton"
-            className="h-3.5 w-full"
-          />
+          <Skeleton data-agent-ui-owned='' data-slot='aui_thread-list-skeleton' className='h-3.5 w-full' />
         </div>
       ))}
     </div>
@@ -360,9 +344,10 @@ export const ThreadListItem: FC = () => {
   }, [isRenaming]);
 
   return (
-    <ThreadListItemPrimitive.Root data-agent-ui-owned=""
-      data-slot="aui_thread-list-item"
-      className="group hover:bg-muted focus-visible:bg-muted data-active:bg-muted has-focus-visible:bg-muted has-data-[state=open]:bg-muted relative flex h-8 items-center rounded-md transition-colors focus-visible:outline-none"
+    <ThreadListItemPrimitive.Root
+      data-agent-ui-owned=''
+      data-slot='aui_thread-list-item'
+      className='group hover:bg-muted focus-visible:bg-muted data-active:bg-muted has-focus-visible:bg-muted has-data-[state=open]:bg-muted relative flex h-8 items-center rounded-md transition-colors focus-visible:outline-none'
     >
       {isRenaming ? (
         <ThreadListItemRename
@@ -372,25 +357,28 @@ export const ThreadListItem: FC = () => {
           }}
         />
       ) : (
-        <ThreadListItemPrimitive.Trigger data-agent-ui-owned=""
+        <ThreadListItemPrimitive.Trigger
+          data-agent-ui-owned=''
           ref={triggerRef}
-          data-slot="aui_thread-list-item-trigger"
-          className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
+          data-slot='aui_thread-list-item-trigger'
+          className='focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1'
         >
           {isRunning && (
-            <Loader2Icon data-agent-ui-owned=""
+            <Loader2Icon
+              data-agent-ui-owned=''
               aria-hidden
-              data-slot="aui_thread-list-item-running"
-              className="text-muted-foreground me-1.5 size-3.5 shrink-0 animate-spin"
+              data-slot='aui_thread-list-item-running'
+              className='text-muted-foreground me-1.5 size-3.5 shrink-0 animate-spin'
             />
           )}
-          <span data-agent-ui-owned=""
-            data-slot="aui_thread-list-item-title"
-            className="min-w-0 flex-1 truncate"
-          >
-            <ThreadListItemPrimitive.Title fallback="New Chat" />
+          <span data-agent-ui-owned='' data-slot='aui_thread-list-item-title' className='min-w-0 flex-1 truncate'>
+            <ThreadListItemPrimitive.Title fallback='New Chat' />
           </span>
-          {isRunning && <span data-agent-ui-owned="" className="sr-only">Running</span>}
+          {isRunning && (
+            <span data-agent-ui-owned='' className='sr-only'>
+              Running
+            </span>
+          )}
         </ThreadListItemPrimitive.Trigger>
       )}
       <ThreadListItemMore onRename={() => setIsRenaming(true)} />
@@ -402,7 +390,7 @@ const ThreadListItemRename: FC<{
   onDone: (restoreFocus: boolean) => void;
 }> = ({ onDone }) => {
   const aui = useAui();
-  const title = useAuiState((s) => s.threadListItem.title) ?? "";
+  const title = useAuiState((s) => s.threadListItem.title) ?? '';
   const [value, setValue] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
   const settledRef = useRef(false);
@@ -440,22 +428,22 @@ const ThreadListItemRename: FC<{
   };
 
   return (
-    <Input data-agent-ui-owned=""
+    <Input
+      data-agent-ui-owned=''
       ref={inputRef}
       autoFocus
-      data-slot="aui_thread-list-item-rename"
-      aria-label="Rename thread"
+      data-slot='aui_thread-list-item-rename'
+      aria-label='Rename thread'
       value={value}
-      className="h-7 min-w-0 flex-1 ps-2.5 pe-9 text-sm"
+      className='h-7 min-w-0 flex-1 ps-2.5 pe-9 text-sm'
       onChange={(event) => setValue(event.target.value)}
       onBlur={() => commit(false)}
       onKeyDown={(event) => {
-        if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)
-          return;
-        if (event.key === "Enter") {
+        if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        if (event.key === 'Enter') {
           event.preventDefault();
           commit(true);
-        } else if (event.key === "Escape") {
+        } else if (event.key === 'Escape') {
           event.preventDefault();
           cancel();
         }
@@ -468,46 +456,53 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
   return (
     <ThreadListItemMorePrimitive.Root sharedFocusGroup>
       <ThreadListItemMorePrimitive.Trigger asChild>
-        <Button data-agent-ui-owned=""
-          variant="ghost"
-          size="icon"
-          data-slot="aui_thread-list-item-more"
-          className="data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-has-focus-visible:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100"
+        <Button
+          data-agent-ui-owned=''
+          variant='ghost'
+          size='icon'
+          data-slot='aui_thread-list-item-more'
+          className='data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-has-focus-visible:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100'
         >
-          <MoreHorizontalIcon className="size-3.5" />
-          <span data-agent-ui-owned="" className="sr-only">More options</span>
+          <MoreHorizontalIcon className='size-3.5' />
+          <span data-agent-ui-owned='' className='sr-only'>
+            More options
+          </span>
         </Button>
       </ThreadListItemMorePrimitive.Trigger>
-      <ThreadListItemMorePrimitive.Content data-agent-ui-owned=""
-        side="right"
-        align="start"
+      <ThreadListItemMorePrimitive.Content
+        data-agent-ui-owned=''
+        side='right'
+        align='start'
         sideOffset={6}
-        data-slot="aui_thread-list-item-more-content"
-        className="bg-popover text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-xl border p-1.5"
+        data-slot='aui_thread-list-item-more-content'
+        className='bg-popover text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-xl border p-1.5'
       >
-        <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
-          data-slot="aui_thread-list-item-more-item"
-          className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
+        <ThreadListItemMorePrimitive.Item
+          data-agent-ui-owned=''
+          data-slot='aui_thread-list-item-more-item'
+          className='hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none'
           onSelect={onRename}
         >
-          <PencilIcon className="size-4" />
+          <PencilIcon className='size-4' />
           Rename
         </ThreadListItemMorePrimitive.Item>
         <ThreadListItemPrimitive.Archive asChild>
-          <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
-            data-slot="aui_thread-list-item-more-item"
-            className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
+          <ThreadListItemMorePrimitive.Item
+            data-agent-ui-owned=''
+            data-slot='aui_thread-list-item-more-item'
+            className='hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none'
           >
-            <ArchiveIcon className="size-4" />
+            <ArchiveIcon className='size-4' />
             Archive
           </ThreadListItemMorePrimitive.Item>
         </ThreadListItemPrimitive.Archive>
         <ThreadListItemPrimitive.Delete asChild>
-          <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
-            data-slot="aui_thread-list-item-more-item"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
+          <ThreadListItemMorePrimitive.Item
+            data-agent-ui-owned=''
+            data-slot='aui_thread-list-item-more-item'
+            className='text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none'
           >
-            <TrashIcon className="size-4" />
+            <TrashIcon className='size-4' />
             Delete
           </ThreadListItemMorePrimitive.Item>
         </ThreadListItemPrimitive.Delete>

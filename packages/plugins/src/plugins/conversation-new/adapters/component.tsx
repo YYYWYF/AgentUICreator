@@ -1,3 +1,5 @@
-import "./styles.css";
-import { CanonicalConversationNew, type ConversationNewPluginProps } from "@za38.03/agent-ui-plugins";
-export function ConversationNewPlugin(props: ConversationNewPluginProps) { return <CanonicalConversationNew {...props} />; }
+import { CanonicalConversationNew, type ConversationNewPluginProps } from '@za38.03/agent-ui-plugins';
+import './styles.css';
+export function ConversationNewPlugin(props: ConversationNewPluginProps) {
+  return <CanonicalConversationNew {...props} />;
+}

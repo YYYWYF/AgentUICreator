@@ -1,9 +1,10 @@
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
-import { ConversationQuotePlugin } from "./index";
-const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";
-import manifestJson from "./manifest.json";
+import { parseUIPluginManifest, type UIPluginDefinition } from '../../framework/contracts/ui-plugin';
+import { ConversationQuotePlugin } from './index';
+import manifestJson from './manifest.json';
+const AGENT_UI_LOCALE_SERVICE = 'agent-ui.locale';
 export const conversationQuotePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
-  optionalInject: [AGENT_UI_LOCALE_SERVICE], Component: ConversationQuotePlugin,
+  optionalInject: [AGENT_UI_LOCALE_SERVICE],
+  Component: ConversationQuotePlugin,
 };
 export default conversationQuotePlugin;

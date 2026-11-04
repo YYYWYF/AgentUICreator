@@ -1,1 +1,1 @@
-export { ConversationIntegration } from "../../../integrations/a2ui";
+export { ConversationIntegration } from '../../../integrations/a2ui';

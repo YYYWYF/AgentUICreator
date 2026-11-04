@@ -1,0 +1,16 @@
+
+> @za38.03/agent-ui-creator@0.0.1 test:operator /Users/yifei/Coding/AgentUICreator/packages/creator
+> node ../../scripts/run-plugin-source-views-check.mjs operator-test "--" "tests/generated-code-format.test.ts" "tests/migrated/plugin-registry-generator.test.ts" "tests/migrated/registry-line-endings.test.ts" "tests/plugin-source-takeover.test.ts" "tests/bootstrap/agent-props-initialization.test.ts" "tests/header-control-enablement.test.ts" "tests/conversation-hook-application.test.ts"
+
+Prepared 1020 TypeScript authoring module bridges.
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator/operator
+
+context canceled
+context canceled
+context canceled
+
+ Test Files  7 passed (7)
+      Tests  56 passed (56)
+   Start at  17:22:53
+   Duration  90.95s (transform 1.96s, setup 82ms, import 5.17s, tests 161.33s, environment 2.88s)

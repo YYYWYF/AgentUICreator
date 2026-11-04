@@ -1,11 +1,9 @@
-import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins/contracts";
-import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins/contracts";
-import { ThemeProviderPlugin } from "./index";
-import manifestJson from "./manifest.json";
-import { AGENT_UI_THEME_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
-import {
-  createAgentUIThemeService,
-} from "./theme-service";
+import { type UIPluginDefinition, parseUIPluginManifest } from '@za38.03/agent-ui-plugins/contracts';
+
+import { AGENT_UI_THEME_SERVICE } from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
+import { ThemeProviderPlugin } from './index';
+import manifestJson from './manifest.json';
+import { createAgentUIThemeService } from './theme-service';
 
 export const themeProviderPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),

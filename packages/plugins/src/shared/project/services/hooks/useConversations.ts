@@ -1,9 +1,5 @@
-import { usePluginService, usePluginServiceSnapshot } from "@za38.03/agent-ui-plugins";
-import {
-  AGENT_UI_CONVERSATION_SERVICE,
-  EMPTY_CONVERSATION_SNAPSHOT,
-  type ConversationService,
-} from "../conversations";
+import { usePluginService, usePluginServiceSnapshot } from '@za38.03/agent-ui-plugins';
+import { AGENT_UI_CONVERSATION_SERVICE, EMPTY_CONVERSATION_SNAPSHOT, type ConversationService } from '../conversations';
 
 /** Passive observation needs only the shared service context, not an assistant Runtime. */
 export function useConversations() {

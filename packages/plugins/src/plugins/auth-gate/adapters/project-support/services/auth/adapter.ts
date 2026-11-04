@@ -1,4 +1,4 @@
-import type { AuthAdapter } from "./session";
+import type { AuthAdapter } from './session';
 /** Host-owned seam. Replace this factory with the application's existing auth
  * client. Keep credentials, cookies and tokens in that client, outside UI state.
  * Throw during restore for unrecoverable initialization; return null for expiry.
@@ -7,8 +7,12 @@ import type { AuthAdapter } from "./session";
  */
 export function createHostAuthAdapter(): AuthAdapter {
   return {
-    restore: async () => { throw new Error("AUTH_ADAPTER_NOT_CONFIGURED"); },
-    signIn: async () => { throw new Error("AUTH_ADAPTER_NOT_CONFIGURED"); },
+    restore: async () => {
+      throw new Error('AUTH_ADAPTER_NOT_CONFIGURED');
+    },
+    signIn: async () => {
+      throw new Error('AUTH_ADAPTER_NOT_CONFIGURED');
+    },
     signOut: async () => {},
   };
 }

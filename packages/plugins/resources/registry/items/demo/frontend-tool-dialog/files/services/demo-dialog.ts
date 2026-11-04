@@ -1,13 +1,22 @@
-import type {} from "@za38.03/agent-ui-plugins/contracts";
-export const DEMO_DIALOG_SERVICE = "demo.dialog" as const;
-export interface DemoDialogInput { title: string; message: string }
-export interface DemoDialogSnapshot { open: boolean; title: string; message: string }
+import type {} from '@za38.03/agent-ui-plugins/contracts';
+export const DEMO_DIALOG_SERVICE = 'demo.dialog' as const;
+export interface DemoDialogInput {
+  title: string;
+  message: string;
+}
+export interface DemoDialogSnapshot {
+  open: boolean;
+  title: string;
+  message: string;
+}
 export interface DemoDialogService {
   open(input: DemoDialogInput): void;
   close(): void;
   getSnapshot(): DemoDialogSnapshot;
   subscribe(listener: () => void): () => void;
 }
-declare module "@za38.03/agent-ui-plugins/contracts" {
-  interface UIPluginServiceMap { [DEMO_DIALOG_SERVICE]: DemoDialogService }
+declare module '@za38.03/agent-ui-plugins/contracts' {
+  interface UIPluginServiceMap {
+    [DEMO_DIALOG_SERVICE]: DemoDialogService;
+  }
 }

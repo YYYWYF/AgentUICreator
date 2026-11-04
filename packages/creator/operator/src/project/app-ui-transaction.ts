@@ -776,7 +776,7 @@ async function resolveCreatorActionExecution(
   workspacePolicy: AgentUIWorkspacePolicy,
 ): Promise<CreatorActionExecutionResolution> {
   const projectFacts = await collectPluginProjectFacts(projectRoot, config, paths);
-  const generation = generatePluginRegistryFromFacts(model, projectFacts);
+  const generation = await generatePluginRegistryFromFacts(model, projectFacts);
   const catalog = await buildCreatorActionCatalog({
     model,
     generation,

@@ -1,12 +1,16 @@
-"use client";
+'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale } from '../../../../../../locale.js';
 
-import type { ComponentProps } from "react";
-import { SearchIcon } from "lucide-react";
-import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
-import { field, mono, ShimmerLabel } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { take } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/range.js";
+import type { ComponentProps } from 'react';
+import { SearchIcon } from 'lucide-react';
+import { cn } from '../../../../../vendor-generated/assistant-ui/lib/utils.js';
+import {
+  field,
+  mono,
+  ShimmerLabel,
+} from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js';
+import { take } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/range.js';
 
 export interface WebSearchResult {
   title: string;
@@ -16,11 +20,13 @@ export interface WebSearchResult {
 }
 
 function webSearchHref(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
+  if (typeof value !== 'string') return undefined;
   try {
     const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
-  } catch { return undefined; }
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function WebSearch({
@@ -32,10 +38,7 @@ export function WebSearch({
   cycle,
   className,
   ...props
-}: Omit<
-  ComponentProps<"div">,
-  "children" | "query" | "results" | "visibleResults" | "searching" | "cycle"
-> & {
+}: Omit<ComponentProps<'div'>, 'children' | 'query' | 'results' | 'visibleResults' | 'searching' | 'cycle'> & {
   query: string;
   results: readonly WebSearchResult[];
   visibleResults: number;
@@ -45,53 +48,74 @@ export function WebSearch({
 }) {
   const localeMessages = useAgentUILocale();
   return (
-    <div data-agent-ui-owned=""
-      data-slot="web-search"
-      className={cn("flex w-full max-w-sm flex-col gap-2.5", className)}
-
+    <div
+      data-agent-ui-owned=''
+      data-slot='web-search'
+      className={cn('flex w-full max-w-sm flex-col gap-2.5', className)}
       {...props}
     >
-      <span data-agent-ui-owned=""
+      <span
+        data-agent-ui-owned=''
         className={cn(
           field,
-          "text-foreground/70 inline-flex w-fit items-center gap-1.5 rounded-full px-3.5 py-2 text-xs",
+          'text-foreground/70 inline-flex w-fit items-center gap-1.5 rounded-full px-3.5 py-2 text-xs',
         )}
       >
-        <SearchIcon className="text-muted-foreground size-3" />
+        <SearchIcon className='text-muted-foreground size-3' />
         {query}
       </span>
-      <div data-agent-ui-owned="" className="text-muted-foreground text-xs">
+      <div data-agent-ui-owned='' className='text-muted-foreground text-xs'>
         {searching ? (
-          <ShimmerLabel data-agent-ui-owned="" className="relative inline-block leading-none">
+          <ShimmerLabel data-agent-ui-owned='' className='relative inline-block leading-none'>
             {labels?.searching ?? localeMessages.search.searching}
           </ShimmerLabel>
         ) : (
-          <span data-agent-ui-owned="" className="fade-in animate-in duration-300">
-            {labels?.complete.replace("{count}", String(results.length)) ?? localeMessages.search.readSources}
+          <span data-agent-ui-owned='' className='fade-in animate-in duration-300'>
+            {labels?.complete.replace('{count}', String(results.length)) ?? localeMessages.search.readSources}
           </span>
         )}
       </div>
-      <div data-agent-ui-owned="" className={cn("flex flex-col", searching && "min-h-[5.75rem]")}>
+      <div data-agent-ui-owned='' className={cn('flex flex-col', searching && 'min-h-[5.75rem]')}>
         {take(results, visibleResults).map((result, index) => {
           const href = webSearchHref(result.url);
           return (
-          <div data-agent-ui-owned=""
-            key={`${cycle}-${index}`}
-            className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both hover:bg-foreground/[0.03] -mx-2.5 flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-300"
-          >
-            <span data-agent-ui-owned="" className="bg-foreground/[0.06] text-muted-foreground flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-medium">
-              {result.domain.charAt(0).toUpperCase()}
-            </span>
-            <div data-agent-ui-owned="" className="min-w-0 flex-1">
-              {href ? <a data-agent-ui-owned="" href={href} target="_blank" rel="noopener noreferrer" className="text-foreground/90 focus-visible:ring-ring/50 block truncate rounded-sm text-[13.5px] outline-none hover:underline focus-visible:ring-1">
-                <span data-agent-ui-owned="">{result.title}</span>
-              </a> : <span data-agent-ui-owned="" className="text-foreground/90 block truncate text-[13.5px]">{result.title}</span>}
-              {typeof result.snippet === "string" && result.snippet ? <p data-agent-ui-owned="" className="text-muted-foreground mt-1 text-xs">{result.snippet}</p> : null}
+            <div
+              data-agent-ui-owned=''
+              key={`${cycle}-${index}`}
+              className='fade-in slide-in-from-bottom-1 animate-in fill-mode-both hover:bg-foreground/[0.03] -mx-2.5 flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-300'
+            >
+              <span
+                data-agent-ui-owned=''
+                className='bg-foreground/[0.06] text-muted-foreground flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-medium'
+              >
+                {result.domain.charAt(0).toUpperCase()}
+              </span>
+              <div data-agent-ui-owned='' className='min-w-0 flex-1'>
+                {href ? (
+                  <a
+                    data-agent-ui-owned=''
+                    href={href}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-foreground/90 focus-visible:ring-ring/50 block truncate rounded-sm text-[13.5px] outline-none hover:underline focus-visible:ring-1'
+                  >
+                    <span data-agent-ui-owned=''>{result.title}</span>
+                  </a>
+                ) : (
+                  <span data-agent-ui-owned='' className='text-foreground/90 block truncate text-[13.5px]'>
+                    {result.title}
+                  </span>
+                )}
+                {typeof result.snippet === 'string' && result.snippet ? (
+                  <p data-agent-ui-owned='' className='text-muted-foreground mt-1 text-xs'>
+                    {result.snippet}
+                  </p>
+                ) : null}
+              </div>
+              <span data-agent-ui-owned='' className={cn(mono, 'text-muted-foreground shrink-0')}>
+                {result.domain}
+              </span>
             </div>
-            <span data-agent-ui-owned="" className={cn(mono, "text-muted-foreground shrink-0")}>
-              {result.domain}
-            </span>
-          </div>
           );
         })}
       </div>

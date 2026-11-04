@@ -463,7 +463,7 @@ async function validateCandidateBindingInMemory(
       projectWorkspaceTopology(afterModel, input.workspacePolicy);
     }
 
-    const nextGeneration = generatePluginRegistryFromFacts(
+    const nextGeneration = await generatePluginRegistryFromFacts(
       afterModel,
       input.projectFacts,
     );

@@ -5,6 +5,7 @@ import path from "node:path";
 import ts from "typescript-ui-audit";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { formatProjectCode } from "../../creator/operator/src/project/generated-code-format.mjs";
 const localizationRecipes = JSON.parse(await readFile(new URL("./product-localization-recipes.json", import.meta.url), "utf8"));
 
 export function applyProductLocalization(source, localPath) {
@@ -314,6 +315,45 @@ export function applyPluginPresentationBridge(installed, filename) {
   return `export * from "../../../../../../plugins/${delivery.presentationOwner}/adapters/presentation/${delivery.implementationModule}.js";\n`;
 }
 
+// Product adaptations remove the browser-global/sidebar behavior and replace
+// upstream English helpers. Remove only those obsolete, reviewed declarations;
+// the clean vendor and its provenance remain byte-for-byte unchanged.
+export function cleanProductAdapter(source, filename) {
+  const obsolete = filename === "components/ui/sidebar.tsx"
+    ? ["SIDEBAR_COOKIE_NAME", "SIDEBAR_COOKIE_MAX_AGE", "SIDEBAR_KEYBOARD_SHORTCUT"]
+    : filename === "components/assistant-ui/elements/agent-status.aui.tsx"
+      ? ["plural"]
+      : filename === "components/assistant-ui/elements/file.tsx" ? ["getFileLabel"] : [];
+  const ast = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const counts = new Map();
+  const visit = node => {
+    if (ts.isIdentifier(node)) counts.set(node.text, (counts.get(node.text) ?? 0) + 1);
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  const edits = [];
+  for (const statement of ast.statements) {
+    const name = ts.isFunctionDeclaration(statement) ? statement.name?.text
+      : ts.isVariableStatement(statement) && statement.declarationList.declarations.length === 1
+        ? statement.declarationList.declarations[0].name.getText(ast) : undefined;
+    if (obsolete.includes(name)) {
+      if (counts.get(name) !== 1) throw new Error(`Product cleanup anchor changed: ${filename}: ${name}`);
+      edits.push({ start: statement.getStart(ast), end: statement.end, text: "" });
+      obsolete.splice(obsolete.indexOf(name), 1);
+    }
+    if (!ts.isImportDeclaration(statement) || !statement.moduleSpecifier.text.endsWith("/locale.js")) continue;
+    const bindings = statement.importClause?.namedBindings;
+    if (!bindings || !ts.isNamedImports(bindings)) continue;
+    const used = bindings.elements.filter(binding => counts.get(binding.name.text) > 1);
+    if (used.length === bindings.elements.length) continue;
+    edits.push({ start: statement.getStart(ast), end: statement.end,
+      text: used.length ? `import { ${used.map(binding => binding.getText(ast)).join(", ")} } from ${statement.moduleSpecifier.getText(ast)};` : "" });
+  }
+  if (obsolete.length) throw new Error(`Product cleanup anchor missing: ${filename}: ${obsolete.join(", ")}`);
+  for (const edit of edits.sort((a, b) => b.start - a.start)) source = source.slice(0, edit.start) + edit.text + source.slice(edit.end);
+  return source;
+}
+
 export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot) {
   const provenance = JSON.parse(await readFile(path.join(vendorDirectory, "UPSTREAM.json"), "utf8"));
   const sources = new Map(await Promise.all(provenance.files.map(async entry => [entry.localPath, await readFile(path.join(vendorDirectory, entry.localPath), "utf8")])));
@@ -342,6 +382,7 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
     });
     installed = applyProductStyleOwnership(applyProductLocalization(installed, filename));
     installed = applyPluginPresentationBridge(installed, filename);
+    installed = await formatProjectCode(cleanProductAdapter(installed, filename));
     files.push({ localPath: filename, upstreamInstalledSha256: hash(clean), installedSha256: hash(installed), source: installed });
   }
   return { revision: provenance.revision, files };

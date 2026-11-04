@@ -1,21 +1,22 @@
 import { readFile } from "node:fs/promises";
+import { formatProjectCode } from "../../creator/operator/src/project/generated-code-format.mjs";
 export const deliveries = JSON.parse(await readFile(new URL("../src/catalog/plugin-delivery.json", import.meta.url), "utf8"));
-export function portableSource(delivery, target, text) {
+export async function portableSource(delivery, target, text) {
   // Generated applications consume the public contract package and do not own
   // a copied framework directory. Keep extracted source independent of the
   // temporary package-build compatibility views as well.
-  text = text.replaceAll('"../../framework/contracts/ui-plugin"', '"@za38.03/agent-ui-plugins/contracts"');
-  if (target === "index.tsx") text = text.replace(/import\s+(type\s+)?\{([^}]+)\}\s+from\s+"(@za38\.03\/agent-ui-plugins(?:\/lexical)?)";/gu, (statement, typeOnly = "", bindings, importSource) => {
+  text = text.replace(/(["'])\.\.\/\.\.\/framework\/contracts\/ui-plugin\1/gu, '$1@za38.03/agent-ui-plugins/contracts$1');
+  if (target === "index.tsx") text = text.replace(/import\s+(type\s+)?\{([^}]+)\}\s+from\s+(["'])(@za38\.03\/agent-ui-plugins(?:\/lexical)?)\3;/gu, (statement, typeOnly = "", bindings, quote, importSource) => {
     if (importSource !== (delivery.implementationImport ?? "@za38.03/agent-ui-plugins")) return statement;
     const names = bindings.split(",").map(name => name.trim()).filter(Boolean);
     const owned = names.filter(name => delivery.implementationExports.includes(name.replace(/^type\s+/u, "").split(/\s+/u)[0]));
     if (!owned.length) return statement;
     const shared = names.filter(name => !owned.includes(name));
-    const local = `import ${typeOnly}{ ${owned.join(", ")} } from "./adapters/${delivery.implementationModule}";`;
-    return shared.length ? `import ${typeOnly}{ ${shared.join(", ")} } from "${importSource}";\n${local}` : local;
+    const local = `import ${typeOnly}{ ${owned.join(", ")} } from ${quote}./adapters/${delivery.implementationModule}${quote};`;
+    return shared.length ? `import ${typeOnly}{ ${shared.join(", ")} } from ${quote}${importSource}${quote};\n${local}` : local;
   });
-  if (target.startsWith("adapters/")) text = text.replaceAll(`"../../../../${delivery.supportEntry}.js"`, `"@za38.03/agent-ui-plugins/${delivery.supportEntry}"`).replaceAll('"../../../../public.js"', '"@za38.03/agent-ui-plugins"');
-  return text;
+  if (target.startsWith("adapters/")) text = text.replace(/(["'])\.\.\/\.\.\/\.\.\/\.\.\/(public|plugin-support|composer-support)\.js\1/gu, (statement, quote, entry) => entry === "public" ? `${quote}@za38.03/agent-ui-plugins${quote}` : entry === delivery.supportEntry ? `${quote}@za38.03/agent-ui-plugins/${entry}${quote}` : statement);
+  return /\.tsx?$/u.test(target) ? formatProjectCode(text) : text;
 }
 export function sourceEntries(delivery) {
   return [

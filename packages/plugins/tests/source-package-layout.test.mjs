@@ -16,9 +16,9 @@ const sha256 = value => createHash("sha256").update(value).digest("hex");
 it("extracts every official Plugin against the public contract without a copied framework", async () => {
   for (const delivery of deliveries) for (const [target, origin] of sourceEntries(delivery)) {
     const source = await readFile(path.join(root, ...origin.split("/")), "utf8");
-    const portable = portableSource(delivery, target, source);
+    const portable = await portableSource(delivery, target, source);
     expect(portable, `${delivery.id}/${target}`).not.toMatch(/from\s+["']\.\.\/\.\.\/framework\/contracts\/ui-plugin["']/u);
-    if (source.includes('"../../framework/contracts/ui-plugin"')) expect(portable).toContain('"@za38.03/agent-ui-plugins/contracts"');
+    if (/["']\.\.\/\.\.\/framework\/contracts\/ui-plugin["']/u.test(source)) expect(portable).toContain("'@za38.03/agent-ui-plugins/contracts'");
   }
 });
 
@@ -99,8 +99,9 @@ it("typechecks the published portable Composer adapter with its support declarat
     const catalog=JSON.parse(await readFile(path.join(root,"dist/catalog.json"),"utf8"));
     const portableFiles=catalog.plugins.find(plugin=>plugin.id==="composer").takeover.files;
     const portableIndex=await readFile(sourcePath(path.join(root,"dist"),portableFiles.find(file=>file.target==="index.tsx").path),"utf8");
-    expect(portableIndex).toContain('import { useAgentUILocale } from "@za38.03/agent-ui-plugins"');
-    expect(portableIndex.match(/from "\.\/adapters\/composer"/gu)).toHaveLength(2);
+    expect(portableIndex).toContain("useAgentUILocale");
+    expect(portableIndex.match(/from ['"]@za38\.03\/agent-ui-plugins['"]/gu)).toHaveLength(1);
+    expect(portableIndex.match(/from ['"]\.\/adapters\/composer['"]/gu)).toHaveLength(1);
     for(const file of portableFiles.filter(file=>file.target.startsWith("adapters/"))) {
       await copyFile(sourcePath(path.join(root,"dist"),file.path),sourcePath(consumer,file.target));
     }

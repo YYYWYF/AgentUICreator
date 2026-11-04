@@ -59,7 +59,7 @@ it("takes over tool-result with its recognizer and preserves the thin applicatio
   const plan = await planPluginSourceTakeover(root, { pluginId: "tool-result" });
   await takeoverPluginSource(root, { pluginId: "tool-result", planHash: plan.planHash }, pass);
   expect(await readFile(paths.appUIModelPath)).toEqual(model);
-  expect(await readFile(application, "utf8")).toBe(before.replace('"@za38.03/agent-ui-plugins/tool-result"', '"./source/index"'));
+  expect(await readFile(application, "utf8")).toBe(before.replace("@za38.03/agent-ui-plugins/tool-result", "./source/index"));
   const facts = await collectPluginProjectFacts(root, (await resourcePaths(root)).config, paths);
   expect(facts.inventoryIssues).toEqual([]);
   expect(facts.assets.filter(asset => asset.pluginId === "tool-result")).toHaveLength(1);
@@ -84,7 +84,7 @@ it.each(["composer"])("takes over %s with exact IDs/config/model bytes and one l
   const registry = await readFile(context.paths.generatedPluginRegistryPath,"utf8");
   expect(registry).toContain(`./${id}/definition`);
   expect(registry).not.toContain(`@za38.03/agent-ui-plugins/${id}`);
-  expect(await readFile(path.join(context.paths.pluginsRoot,id,"index.tsx"),"utf8")).toContain('from "./adapters/composer"');
+  expect(await readFile(path.join(context.paths.pluginsRoot,id,"index.tsx"),"utf8")).toContain("from './adapters/composer'");
   expect(await readFile(path.join(context.paths.pluginsRoot,id,"adapters/composer.tsx"),"utf8")).toContain("ComposerPrimitive.Root");
   await expect(planPluginSourceTakeover(root,{pluginId:id})).rejects.toMatchObject({code:"PLUGIN_ALREADY_SOURCE_OWNED"});
 });

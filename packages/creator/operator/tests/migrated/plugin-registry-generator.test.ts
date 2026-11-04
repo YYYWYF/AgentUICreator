@@ -114,8 +114,8 @@ describe("generatePluginRegistry", () => {
 
     const result = await generatePluginRegistry(projectRoot, modelFor(["beta", "alpha"]), fixtureConfig);
     expect(result.errors).toEqual([]);
-    expect(result.capabilityCatalog.source).toContain('provides: ["business.history"]');
-    expect(result.capabilityCatalog.source).toContain('inject: ["business.history"]');
+    expect(result.capabilityCatalog.source).toContain("provides: ['business.history']");
+    expect(result.capabilityCatalog.source).toContain("inject: ['business.history']");
     expect(result.activeComposition.resolvedPluginIds).toEqual(["alpha", "beta"]);
   });
 
@@ -148,10 +148,10 @@ describe("generatePluginRegistry", () => {
     expect(first.activeComposition.headlessPluginIds).toEqual(["beta"]);
     expect(first.capabilityCatalog.source).toBe(second.capabilityCatalog.source);
     expect(first.capabilityCatalog.source).toContain(
-      'import("./alpha-dir/definition")',
+      "import('./alpha-dir/definition')",
     );
     expect(first.capabilityCatalog.source).toContain(
-      'import("./beta-dir/definition")',
+      "import('./beta-dir/definition')",
     );
     expect(first.capabilityCatalog.source).not.toContain("catalog-only");
     expect(first.capabilityCatalog.source).not.toContain("unselected");
@@ -165,18 +165,18 @@ describe("generatePluginRegistry", () => {
     const model = modelFor(["alpha", "disabled"]);
     const result = await generatePluginRegistry(root, model, fixtureConfig);
     expect(result.errors).toEqual([]);
-    expect(result.capabilityCatalog.source).toContain('"id": "disabled"');
-    expect(result.capabilityCatalog.source).not.toContain('import("./disabled/definition")');
+    expect(result.capabilityCatalog.source).toContain("id: 'disabled'");
+    expect(result.capabilityCatalog.source).not.toContain("import('./disabled/definition')");
     expect(result.capabilityCatalog.source).toContain("loadDefinition: async function (): Promise<UIPluginDefinition>");
-    expect(result.capabilityCatalog.source).toContain("Component: excludedPluginImplementation, setup: excludedPluginImplementation");
+    expect(result.capabilityCatalog.source).toContain("Component: excludedPluginImplementation,\n        setup: excludedPluginImplementation");
     if (model.root.type !== "slot") throw new Error("fixture root");
     model.root.plugins[1]!.enabled = true;
     const reenabled = await generatePluginRegistry(root, model, fixtureConfig);
-    expect(reenabled.capabilityCatalog.source).toContain('import("./disabled/definition")');
+    expect(reenabled.capabilityCatalog.source).toContain("import('./disabled/definition')");
     expect(reenabled.capabilityCatalog.source).not.toContain("excludedPluginImplementation");
-    expect(result.capabilityCatalog.source).toContain('import("./alpha/definition")');
+    expect(result.capabilityCatalog.source).toContain("import('./alpha/definition')");
     const mixed = await generatePluginRegistry(root, modelFor(["alpha", "alpha"]), fixtureConfig);
-    expect(mixed.capabilityCatalog.source).toContain('import("./alpha/definition")');
+    expect(mixed.capabilityCatalog.source).toContain("import('./alpha/definition')");
   });
 
   it("builds a pure child Slot catalog from selected manifests", async () => {
@@ -326,7 +326,7 @@ describe("generatePluginRegistry", () => {
     );
 
     expect(result.errors).toEqual([]);
-    expect(result.capabilityCatalog.source).not.toContain('import("./inactive/definition")');
+    expect(result.capabilityCatalog.source).not.toContain("import('./inactive/definition')");
   });
 
   it("scopes declaration issues to selected Plugins", async () => {

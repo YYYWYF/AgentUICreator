@@ -29,7 +29,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  await expect(lstat(path.join(source,'config.ts'))).rejects.toMatchObject({code:'ENOENT'});
  await expect(lstat(path.join(source,'hooks'))).rejects.toMatchObject({code:'ENOENT'});
  for(const hook of ['useConversations','useConversationActions']) {
-  expect(await readFile(path.join(source,'services','hooks',hook+'.ts'),'utf8')).toContain('from "../conversations"');
+  expect(await readFile(path.join(source,'services','hooks',hook+'.ts'),'utf8')).toContain("from '../conversations'");
  }
  for(const service of ['agent-ui-theme','agent-ui-locale']) {
   await expect(lstat(path.join(source,'services',service+'.ts'))).rejects.toMatchObject({code:'ENOENT'});
@@ -67,7 +67,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  expect(await readdir(path.join(source,'application/shell'))).toEqual(expect.arrayContaining([shellName+'.tsx',mode+'-shell.css']));
  expect((await readdir(path.join(source,'application/shell'))).length).toBe(2);
  const binding=await readFile(path.join(source,'application/runtime-config.generated.ts'),'utf8');
- expect(binding).toContain(`export { ${shellName} as ProjectShell } from "./shell/${shellName}";`);
+ expect(binding).toContain(`export { ${shellName} as ProjectShell } from './shell/${shellName}';`);
  expect(await readFile(path.join(source,'application/project-config.tsx'),'utf8')).toContain('Shell: ProjectShell');
  const shell=await readFile(path.join(source,'application/shell',shellName+'.tsx'),'utf8');
  if(mode==='assistant') expect(shell).toContain('hidden={!open}');

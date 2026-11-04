@@ -1,6 +1,6 @@
-import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";
-import implementation from "@za38.03/agent-ui-plugins/ask-user-question";
-import { AskUserQuestionPlugin } from "./index";
+import type { UIPluginDefinition } from '@za38.03/agent-ui-plugins';
+import implementation from '@za38.03/agent-ui-plugins/ask-user-question';
+import { AskUserQuestionPlugin } from './index';
 
 const definition: UIPluginDefinition = {
   manifest: implementation.manifest,

@@ -252,7 +252,7 @@ async function inspectUICompositionData(
   }
   const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
   const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig, paths);
-  const generation = generatePluginRegistryFromFacts(model, projectFacts, { validateComposition: false });
+  const generation = await generatePluginRegistryFromFacts(model, projectFacts, { validateComposition: false });
   try { validateAppUIModelCandidateStructure(model, projectFacts); }
   catch (error) {
     if (!(error as { details?: { workspaceIntegrity?: boolean } }).details?.workspaceIntegrity) {

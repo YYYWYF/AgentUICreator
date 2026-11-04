@@ -1,25 +1,54 @@
-"use client";
+'use client';
 
-import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "../../../../composer-support.js";
+import {
+  type ConversationComposerDropzoneProps,
+  type ConversationComposerInputProps,
+  type ConversationComposerRootProps,
+  AuiIf,
+  ComposerAttachments,
+  ComposerHostConfigContext,
+  ComposerInputHostContext,
+  ComposerPrimitive,
+  QueueItemPrimitive,
+  TooltipIconButton,
+  useAgentUILocale,
+  useAuiEvent,
+  useConversationComposerAwaitingReply,
+  useConversationComposerSendGuard,
+  XIcon,
+} from '../../../../composer-support.js';
 
-import { useContext, useState, type FC, type ReactNode } from "react";
-import { ComposerPrimitive, QueueItemPrimitive, AuiIf, XIcon, ComposerHostConfigContext, ComposerInputHostContext, ComposerAttachments, TooltipIconButton,
-  useConversationComposerAwaitingReply, useConversationComposerSendGuard, useAgentUILocale, useAuiEvent } from "../../../../composer-support.js";
+import { useContext, useState, type FC, type ReactNode } from 'react';
+
+import { ComposerTextareaInput } from './textarea.js';
 
 function ComposerAttachmentError() {
   const messages = useAgentUILocale();
   const [error, setError] = useState<string | null>(null);
-  useAuiEvent("composer.attachmentAddError", event => {
-    if (event.messageId !== undefined) return;
-    setError(event.reason === "not-accepted" ? messages.serviceAdapters.fileTypeRejected
-      : event.message || messages.attachments.uploadFailed);
+  useAuiEvent('composer.attachmentAddError', (event) => {
+    if (event.messageId !== undefined) {
+      return;
+    }
+    setError(
+      event.reason === 'not-accepted'
+        ? messages.serviceAdapters.fileTypeRejected
+        : event.message || messages.attachments.uploadFailed,
+    );
   });
-  useAuiEvent("composer.attachmentAdd", () => setError(null));
-  useAuiEvent("composer.send", () => setError(null));
-  useAuiEvent("threads.selectionChanged", () => setError(null));
-  return error === null ? null : <p data-agent-ui-owned="" data-slot="aui_composer-attachment-error" role="alert" className="text-destructive text-sm">{error}</p>;
+  useAuiEvent('composer.attachmentAdd', () => setError(null));
+  useAuiEvent('composer.send', () => setError(null));
+  useAuiEvent('threads.selectionChanged', () => setError(null));
+  return error === null ? null : (
+    <p
+      data-agent-ui-owned=''
+      data-slot='aui_composer-attachment-error'
+      role='alert'
+      className='text-destructive text-sm'
+    >
+      {error}
+    </p>
+  );
 }
-import { ComposerTextareaInput } from "./textarea.js";
 
 export interface ComposerQueueLabels {
   queued: string;
@@ -28,15 +57,32 @@ export interface ComposerQueueLabels {
 
 export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued }) => (
   <AuiIf condition={(s) => s.thread.capabilities.queue && s.composer.queue.length > 0}>
-    <div data-agent-ui-owned="" data-slot="aui_composer-queue" className="border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2">
-      <span data-agent-ui-owned="" className="text-muted-foreground text-xs">{queued}</span>
+    <div
+      data-agent-ui-owned=''
+      data-slot='aui_composer-queue'
+      className='border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2'
+    >
+      <span data-agent-ui-owned='' className='text-muted-foreground text-xs'>
+        {queued}
+      </span>
       <ComposerPrimitive.Queue>
         {() => (
-          <div data-agent-ui-owned="" data-slot="aui_composer-queue-item" className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm">
-            <div data-agent-ui-owned="" className="min-w-0 flex-1 break-words"><QueueItemPrimitive.Text /></div>
+          <div
+            data-agent-ui-owned=''
+            data-slot='aui_composer-queue-item'
+            className='flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm'
+          >
+            <div data-agent-ui-owned='' className='min-w-0 flex-1 break-words'>
+              <QueueItemPrimitive.Text />
+            </div>
             <QueueItemPrimitive.Remove asChild>
-              <TooltipIconButton tooltip={removeQueued} aria-label={removeQueued} type="button" className="size-6 shrink-0">
-                <XIcon className="size-3.5" />
+              <TooltipIconButton
+                tooltip={removeQueued}
+                aria-label={removeQueued}
+                type='button'
+                className='size-6 shrink-0'
+              >
+                <XIcon className='size-3.5' />
               </TooltipIconButton>
             </QueueItemPrimitive.Remove>
           </div>
@@ -46,10 +92,10 @@ export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued })
   </AuiIf>
 );
 
-export interface CanonicalComposerProps extends Omit<ConversationComposerRootProps, "children"> {
-  rows?: ConversationComposerInputProps["rows"];
-  maxLength?: ConversationComposerInputProps["maxLength"];
-  submitMode?: ConversationComposerInputProps["submitMode"];
+export interface CanonicalComposerProps extends Omit<ConversationComposerRootProps, 'children'> {
+  rows?: ConversationComposerInputProps['rows'];
+  maxLength?: ConversationComposerInputProps['maxLength'];
+  submitMode?: ConversationComposerInputProps['submitMode'];
   inputProps?: ConversationComposerInputProps;
   dropzoneProps?: ConversationComposerDropzoneProps;
   autoFocus?: boolean | undefined;
@@ -65,7 +111,11 @@ export interface CanonicalComposerProps extends Omit<ConversationComposerRootPro
 }
 
 export const CanonicalComposer: FC<CanonicalComposerProps> = ({
-  rows, maxLength, submitMode, inputProps, dropzoneProps,
+  rows,
+  maxLength,
+  submitMode,
+  inputProps,
+  dropzoneProps,
   autoFocus,
   placeholder,
   inputAriaLabel,
@@ -85,7 +135,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
     ...(rows === undefined ? {} : { rows }),
     ...(maxLength === undefined ? {} : { maxLength }),
     ...(resolvedSubmitMode === undefined
-      ? (submitOnEnter === undefined ? {} : { submitOnEnter })
+      ? submitOnEnter === undefined
+        ? {}
+        : { submitOnEnter }
       : { submitMode: resolvedSubmitMode }),
   };
   const inheritedHostConfig = useContext(ComposerHostConfigContext);
@@ -95,60 +147,98 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
 
   return (
     <ComposerPrimitive.Unstable_TriggerPopoverRoot>
-    <ComposerPrimitive.Root {...rootProps} className={["aui-composer-root relative flex w-full flex-col", rootProps.className].filter(Boolean).join(" ")}
-      onSubmit={event => { rootProps?.onSubmit?.(event); if (guardSend()) event.preventDefault(); }}>
-      {triggers}
-      <ComposerPrimitive.AttachmentDropzone asChild {...dropzoneProps}>
-        <div data-agent-ui-owned=""
-          data-slot="aui_composer-shell"
-          className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]"
-        >
-          <ComposerAttachments />
-          <ComposerAttachmentError />
-          {beforeInput === undefined || beforeInput === null ? null : (
-            <div data-agent-ui-owned="" data-slot="aui_composer-before-input">{beforeInput}</div>
-          )}
-          <ComposerQueue {...queueLabels} />
-          <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
-            <div data-agent-ui-owned="" data-slot="aui_composer-input" className="min-w-0"
-              onKeyDownCapture={event => {
-                // Only guard the primary input; sibling Slot controls keep their keyboard behavior.
-                if (awaitingReply && event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  guardSend();
-                }
-              }}>
-              {input ?? <ComposerTextareaInput {...resolvedInputProps} />}
-            </div>
-          </ComposerInputHostContext.Provider>
-          <div data-slot="aui_composer-actions" className="aui-composer-action-wrapper relative flex items-center justify-between">
-            <div data-agent-ui-owned=""
-              data-slot="aui_composer-leading-actions"
-              className="flex items-center gap-1.5"
+      <ComposerPrimitive.Root
+        {...rootProps}
+        className={['aui-composer-root relative flex w-full flex-col', rootProps.className].filter(Boolean).join(' ')}
+        onSubmit={(event) => {
+          rootProps?.onSubmit?.(event);
+          if (guardSend()) {
+            event.preventDefault();
+          }
+        }}
+      >
+        {triggers}
+        <ComposerPrimitive.AttachmentDropzone asChild {...dropzoneProps}>
+          <div
+            data-agent-ui-owned=''
+            data-slot='aui_composer-shell'
+            className='border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]'
+          >
+            <ComposerAttachments />
+            <ComposerAttachmentError />
+            {beforeInput === undefined || beforeInput === null ? null : (
+              <div data-agent-ui-owned='' data-slot='aui_composer-before-input'>
+                {beforeInput}
+              </div>
+            )}
+            <ComposerQueue {...queueLabels} />
+            <ComposerInputHostContext.Provider
+              value={{ variant: 'primary', placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}
             >
-              {leadingActions}
-            </div>
-            <div data-agent-ui-owned=""
-              data-slot="aui_composer-trailing-actions"
-              className="flex items-center gap-1.5"
+              <div
+                data-agent-ui-owned=''
+                data-slot='aui_composer-input'
+                className='min-w-0'
+                onKeyDownCapture={(event) => {
+                  // Only guard the primary input; sibling Slot controls keep their keyboard behavior.
+                  if (
+                    awaitingReply &&
+                    event.key === 'Enter' &&
+                    !event.shiftKey &&
+                    !event.nativeEvent.isComposing &&
+                    event.nativeEvent.keyCode !== 229
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    guardSend();
+                  }
+                }}
+              >
+                {input ?? <ComposerTextareaInput {...resolvedInputProps} />}
+              </div>
+            </ComposerInputHostContext.Provider>
+            <div
+              data-slot='aui_composer-actions'
+              className='aui-composer-action-wrapper relative flex items-center justify-between'
             >
-              {trailingActions}
-              {submitAction}
+              <div
+                data-agent-ui-owned=''
+                data-slot='aui_composer-leading-actions'
+                className='flex items-center gap-1.5'
+              >
+                {leadingActions}
+              </div>
+              <div
+                data-agent-ui-owned=''
+                data-slot='aui_composer-trailing-actions'
+                className='flex items-center gap-1.5'
+              >
+                {trailingActions}
+                {submitAction}
+              </div>
             </div>
           </div>
-        </div>
-      </ComposerPrimitive.AttachmentDropzone>
-    </ComposerPrimitive.Root>
+        </ComposerPrimitive.AttachmentDropzone>
+      </ComposerPrimitive.Root>
     </ComposerPrimitive.Unstable_TriggerPopoverRoot>
   );
 };
 
-
-export type ConversationCanonicalComposerProps = Omit<CanonicalComposerProps, "placeholder" | "inputAriaLabel" | "queueLabels"> & Partial<Pick<CanonicalComposerProps, "placeholder" | "inputAriaLabel" | "queueLabels">>;
+export type ConversationCanonicalComposerProps = Omit<
+  CanonicalComposerProps,
+  'placeholder' | 'inputAriaLabel' | 'queueLabels'
+> &
+  Partial<Pick<CanonicalComposerProps, 'placeholder' | 'inputAriaLabel' | 'queueLabels'>>;
 
 export function ConversationCanonicalComposer(props: ConversationCanonicalComposerProps) {
-  const labels = useAgentUILocale("composer");
-  return <CanonicalComposer {...props} placeholder={props.placeholder ?? labels.placeholder} inputAriaLabel={props.inputAriaLabel ?? labels.input} queueLabels={props.queueLabels ?? labels} />;
+  const labels = useAgentUILocale('composer');
+  return (
+    <CanonicalComposer
+      {...props}
+      placeholder={props.placeholder ?? labels.placeholder}
+      inputAriaLabel={props.inputAriaLabel ?? labels.input}
+      queueLabels={props.queueLabels ?? labels}
+    />
+  );
 }
-export { ComposerTextareaInput as ConversationComposerTextareaInput } from "./textarea.js";
+export { ComposerTextareaInput as ConversationComposerTextareaInput } from './textarea.js';

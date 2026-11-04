@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import type { GenerativeUILibrary } from "@za38.03/agent-ui-plugins/generative-ui";
+import type { GenerativeUILibrary } from '@za38.03/agent-ui-plugins/generative-ui';
+import type { ReactNode } from 'react';
 /** Workspace-only placeholder; this resource is excluded from distribution. */
 export function A2uiConversationIntegration({ children }: { children: ReactNode; components?: GenerativeUILibrary }) {
   return children;

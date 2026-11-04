@@ -9,8 +9,8 @@ it("regenerates all repeated presentation seams and preserves protocol results",
   const bridge = first.files.find(file => file.localPath.endsWith("/tool-fallback.aui.tsx")).source;
   expect(bridge).toContain("plugins/tool-fallback/adapters/presentation/tool-fallback.js");
   const fallback = await readFile(new URL("../src/plugins/tool-fallback/adapters/presentation/tool-fallback.tsx", import.meta.url), "utf8");
-  expect(fallback).toContain('const APPROVED_RESULT = "Approved by user"');
-  expect(fallback).toContain('const DENIED_RESULT = "User denied tool execution"');
+  expect(fallback).toContain("const APPROVED_RESULT = 'Approved by user'");
+  expect(fallback).toContain("const DENIED_RESULT = 'User denied tool execution'");
   expect(fallback).toContain('respondToApproval({ approved, ...typedNote() })');
   expect(fallback).not.toMatch(/\n\s+(Allow|Deny|Confirm|Dismiss)\n/);
   const tasks = first.files.find(file => file.localPath.endsWith("/agent-status.aui.tsx")).source;
