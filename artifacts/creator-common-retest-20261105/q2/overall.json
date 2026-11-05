@@ -1,0 +1,39 @@
+{
+  "phases": [
+    {
+      "prompt": "我想让历史会话用我自己的接口",
+      "seconds": 74.077,
+      "modelCalls": 5,
+      "nativeCumulativeTools": 14,
+      "input": 206717,
+      "output": 4560
+    },
+    {
+      "prompt": "确认：与现有约定一致、无需鉴权、使用固定 URL",
+      "seconds": 74.264,
+      "modelCalls": 6,
+      "nativeCumulativeTools": 21,
+      "input": 305275,
+      "output": 6560
+    },
+    {
+      "prompt": "接口基础地址是 http://127.0.0.1:47835，路径与你列的一致，列表和详情就是现有约定的格式，不需要鉴权。请接上。",
+      "seconds": 95.808,
+      "modelCalls": 11,
+      "nativeCumulativeTools": 13,
+      "input": 388040,
+      "output": 4509
+    }
+  ],
+  "activeModelTaskSeconds": 244.149,
+  "mainModelCalls": 22,
+  "nativeToolCalls": 34,
+  "usage": {
+    "input": 900032,
+    "output": 15629
+  },
+  "behavior": "passed: direct custom API list and detail displayed in Chrome",
+  "fixtureCorrection": "Initial QA detail payload missed required state.values. Corrected QA fixture only, retried successfully; original failure AX retained.",
+  "limitations": "Synthetic backend; list/detail only. Real private service, authentication, rename/delete/archive are not covered by this common request.",
+  "previewControls": "Disabled temporary Mock connection in UI to let the project-owned fixed history endpoint take effect."
+}

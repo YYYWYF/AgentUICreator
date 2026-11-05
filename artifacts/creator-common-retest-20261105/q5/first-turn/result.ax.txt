@@ -1,0 +1,34 @@
+The following is a diff from the previous accessibility tree for Window: "127.0.0.1:5173" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 817
+~								56 按钮 (disabled) Description: 当前项目：host，点击切换项目, Help: 打开或切换项目
++								828 文本 Creator
++								829 container
++									830 text 我已确认改动位置： agent-identity  是项目自有应用入口（ plugins/agent-identity/index.tsx ），它把 props 透传给实现，目前 没有设置任何 
++									831 文本 logo
++									832 text ，所以头像用的是内置默认值。公开 props 里正好有  logo （字符串，通常填图片地址）和  logoProps （给  <img>  的属性）。也就是说，改头像只需要在这一个文件里传参，不用接管 npm 实现。
++								833 container
++									834 text 项目里目前 没有任何图片资源文件 （整个  /src/agent-ui  下没有 png/svg/webp 等，也没有 public/assets 目录），所以缺的是图片本身——这个我无法凭空知道。
++								835 container 工具执行详情
++									836 开合三角标记 工具调用 · 1 次 执行中
++										837 container
++											838 text 工具调用 · 1 次
++										839 文本 执行中
++								840 container Creator 问题
++									841 文本 需要你的选择
++									842 container 你的头像想用哪种方式提供？
++										843 文本 你的头像想用哪种方式提供？
++										844 文本 选择一项
++										845 container
++											846 单选按钮 我给你一个图片地址 http/https 链接或 data URI，我直接写进 logo prop。最快，改一行即可生效。, Value: 0
++											847 text 我给你一个图片地址 http/https 链接或 data URI，我直接写进 logo prop。最快，改一行即可生效。
++										848 container
++											849 单选按钮 我给你 SVG 源码 我新建一个项目内 SVG 资源文件并 import 引用，随构建打包，不依赖外部网络。, Value: 0
++											850 text 我给你 SVG 源码 我新建一个项目内 SVG 资源文件并 import 引用，随构建打包，不依赖外部网络。
++										851 container
++											852 单选按钮 先做一个占位头像 我用项目自有代码渲染一个首字母/字形头像，你之后随时替换成真实图片。, Value: 0
++											853 text 先做一个占位头像 我用项目自有代码渲染一个首字母/字形头像，你之后随时替换成真实图片。
++									854 按钮 (disabled) 确认选择
++									855 按钮 放弃本次任务
+~								771 按钮 (disabled) 清空会话, Help: 请先回答当前问题
+~								772 按钮 (disabled) 发送
+The focused UI element is 14 HTML 内容 127.0.0.1:5173/

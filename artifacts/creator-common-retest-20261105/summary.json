@@ -1,0 +1,132 @@
+{
+  "completedAt": "2026-11-05T16:20:31.003Z",
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "你能做什么",
+      "firstTurnSeconds": 20.859,
+      "activeModelTaskSeconds": 20.859,
+      "modelCalls": 2,
+      "toolCalls": 1,
+      "usage": {
+        "input": 36311,
+        "output": 1131,
+        "cacheRead": 11136
+      },
+      "status": "answered-no-change",
+      "finalCompletion": "success",
+      "verification": {
+        "status": "no-project-change",
+        "projectRevision": 0,
+        "validationRevision": null,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      }
+    },
+    {
+      "id": "q2",
+      "prompt": "我想让历史会话用我自己的接口",
+      "firstTurnSeconds": 74.077,
+      "activeModelTaskSeconds": 244.149,
+      "modelCalls": 22,
+      "toolCalls": 34,
+      "usage": {
+        "input": 900032,
+        "output": 15629
+      },
+      "status": "history-list-and-detail-passed",
+      "finalCompletion": "success",
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 1,
+        "validationRevision": 1,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    {
+      "id": "q3",
+      "prompt": "我想把历史会话移到右侧",
+      "firstTurnSeconds": 97.027,
+      "activeModelTaskSeconds": 97.027,
+      "modelCalls": 7,
+      "toolCalls": 7,
+      "usage": {
+        "input": 571283,
+        "output": 5948,
+        "cacheRead": 374656
+      },
+      "status": "layout-and-real-geometry-passed",
+      "finalCompletion": "success",
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 1,
+        "validationRevision": 1,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    {
+      "id": "q4",
+      "prompt": "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失",
+      "firstTurnSeconds": 146.706,
+      "activeModelTaskSeconds": 146.706,
+      "modelCalls": 10,
+      "toolCalls": 13,
+      "usage": {
+        "input": 760263,
+        "output": 8226,
+        "cacheRead": 601984
+      },
+      "status": "streaming-behavior-passed",
+      "finalCompletion": "success",
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 3,
+        "validationRevision": 3,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    {
+      "id": "q5",
+      "prompt": "我想把agent的头像换成我自己的",
+      "firstTurnSeconds": 49.164,
+      "activeModelTaskSeconds": 157.515,
+      "modelCalls": 13,
+      "toolCalls": 15,
+      "usage": {
+        "input": 468584,
+        "output": 8020
+      },
+      "status": "avatar-visually-passed",
+      "finalCompletion": "success",
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 1,
+        "validationRevision": 1,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    }
+  ],
+  "totals": {
+    "seconds": 666.256,
+    "modelCalls": 54,
+    "toolCalls": 70,
+    "input": 2736473,
+    "output": 38954
+  },
+  "allFiveFinalGoalsPassed": true,
+  "scope": "Only the five common questions; synthetic backend/avatar supplied via UI; original prompts preserved; sequential same conversation/project; no product code edits in this retest turn."
+}

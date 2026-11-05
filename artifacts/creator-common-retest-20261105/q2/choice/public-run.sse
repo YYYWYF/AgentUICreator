@@ -1,0 +1,1654 @@
+data: {"type":"RUN_STARTED","threadId":"f2e82131-451a-430c-bcf6-0837eab80f23","runId":"198ab7a6-8f48-404a-842f-16b37cfe3f9f"}
+
+data: {"type":"CUSTOM","name":"on_interrupt_resumed","value":{"interruptId":"2d780aa57270dea7396981a4afe67cd1"}}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_yncPRMBo0LE5j7gp9NiH2261","toolCallName":"ask_user_question"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_yncPRMBo0LE5j7gp9NiH2261","delta":"{\"steps\":[{\"id\":\"api-shape\",\"question\":\"你的历史接口返回结构属于哪种？（选最后一项也行，直接把响应示例贴给我最快）\",\"options\":[{\"id\":\"matches-convention\",\"label\":\"与现有约定一致\",\"description\":\"列表 { conversations: [{ id, title }] }，详情 { id, title, state }（或 { id, title, state, agentState }）。只需改基础地址和鉴权。\"},{\"id\":\"business-envelope\",\"label\":\"业务包装格式\",\"description\":\"返回 { returnCode: \\\"SUC0000\\\", errorMsg, body }，body 里是 thread_id / max_message_checkpoint。项目目前已支持该格式。\"},{\"id\":\"custom-fields\",\"label\":\"字段名不同，需要映射\",\"description\":\"例如 data.records、sessionId、messageList 等自有字段名，需要我在 HTTP 适配层做字段映射。\"},{\"id\":\"paste-doc\",\"label\":\"我贴接口文档/响应示例\",\"description\":\"你提供真实示例后，我按它精确适配请求路径、请求体和响应映射。\"}],\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1},{\"id\":\"auth\",\"question\":\"这些历史请求怎么鉴权？\",\"options\":[{\"id\":\"same-origin-cookie\",\"label\":\"同源 Cookie\",\"description\":\"沿用当前 credentials: 'same-origin'，登录态由浏览器 Cookie 携带。\"},{\"id\":\"bearer-token\",\"label\":\"Bearer Token\",\"description\":\"从现有登录/存储中取 token，放入 Authorization: Bearer <token>。\"},{\"id\":\"custom-header\",\"label\":\"自定义请求头\",\"description\":\"例如 X-Api-Key、X-Tenant-Id 等，需要我按你的约定写入 headers()。\"},{\"id\":\"none\",\"label\":\"暂不需要鉴权\",\"description\":\"内网或已由网关处理，请求不带鉴权信息。\"}],\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1},{\"id\":\"base-url\",\"question\":\"基础地址（endpoint）怎么确定？\",\"options\":[{\"id\":\"env-override\",\"label\":\"已有环境变量注入\",\"description\":\"沿用现有 conversationDataEndpointOverride 机制，我只改路由与字段适配。\"},{\"id\":\"fixed-url\",\"label\":\"我给你固定 URL\",\"description\":\"在项目里写死或通过一个明确的配置项提供，我会按你给的地址接入。\"},{\"id\":\"same-origin-api\",\"label\":\"同源 /api 前缀\",\"description\":\"走同源代理，例如 /api，由网关转发到你的服务。\"},{\"id\":\"unsure\",\"label\":\"还不确定\",\"description\":\"先按现有机制保留可配置方式，地址稍后再给。\"}],\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1}]}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_yncPRMBo0LE5j7gp9NiH2261"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_yncPRMBo0LE5j7gp9NiH2261","messageId":"0b5823af-3e47-474a-a6f1-3c27c52856ef","content":"{\"ok\":true,\"result\":{\"answers\":{\"api-shape\":[\"matches-convention\"],\"auth\":[\"none\"],\"base-url\":[\"fixed-url\"]}}}","role":"tool"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"明白了"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"："}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"接口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"结构与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"现有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"约定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"、"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"无需"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"鉴"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"权"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"、"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"这样"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"只需要"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"在"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"项目"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"里"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"落"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"一个"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"明确的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"配置"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"点"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"我先"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"确认"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"应用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"入口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"有没有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"已"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"存在的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"配置"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"位"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"8cd45947-dcd9-4ff7-a4ad-341049e3599f"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_BdfKYn5llvTuO8rckNXq7452","toolCallName":"read_file"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_BdfKYn5llvTuO8rckNXq7452","delta":"{\"file_path\":\"/src/agent-ui/application/Agent.tsx\",\"limit\":200,\"offset\":0}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_BdfKYn5llvTuO8rckNXq7452"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_BdfKYn5llvTuO8rckNXq7452","messageId":"f96844f1-f7f9-4198-bee8-b1383e673a19","content":"{\"ok\":true,\"result\":{\"path\":\"/src/agent-ui/application/Agent.tsx\",\"content\":\"1: import { resolveAgentUILocaleMessages } from '@za38.03/agent-ui-plugins';\\n2: import { AgentApplication, type AgentProps } from '@za38.03/agent-ui-runtime/ui';\\n3: import { agentUIProject } from './project-config';\\n4: export type { AgentProps } from '@za38.03/agent-ui-runtime/ui';\\n5: \\n6: export function Agent(props: AgentProps = {}) {\\n7:   const suggestions: AgentProps['suggestions'] = (locale) => {\\n8:     const messages = resolveAgentUILocaleMessages(locale, props.locales?.[locale]).starterSuggestions;\\n9:     return [\\n10:       { title: messages.architectureTitle, label: messages.architectureLabel, prompt: messages.architecturePrompt },\\n11:       { title: messages.debugTitle, label: messages.debugLabel, prompt: messages.debugPrompt },\\n12:       { title: messages.nextTitle, label: messages.nextLabel, prompt: messages.nextPrompt },\\n13:     ];\\n14:   };\\n15:   return <AgentApplication project={agentUIProject} {...props} suggestions={props.suggestions ?? suggestions} />;\\n16: }\\n17: \",\"hash\":\"9bbeb124af37ec443637fcd17e619920dbd4df141d1d880390a78ecc5347326e\",\"totalLines\":17,\"nextOffset\":null}}","role":"tool"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_01_mOET2sx5ItosmGJPYdLz2896","toolCallName":"grep"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_01_mOET2sx5ItosmGJPYdLz2896","delta":"{\"output_mode\":\"files_with_matches\",\"path\":\"/src/agent-ui/application\",\"pattern\":\"endpoint\"}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_01_mOET2sx5ItosmGJPYdLz2896"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_01_mOET2sx5ItosmGJPYdLz2896","messageId":"6073d813-8eaf-4d5c-9d55-e969f56bb221","content":"{\"ok\":true,\"result\":[]}","role":"tool"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"写入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"权限"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"已"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"确认"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"这一步"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"只"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"动"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"项目"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"自有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"代码"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"不"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"涉及"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":" npm"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"实现"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"接管"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"）。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"我先"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"重新"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"读"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"一次"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"要"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"改"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"配置文件"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"4b8da672-8bd6-4e6f-b3e6-bfb0c9a48a7a"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_umPg728nDU9L2Qja7FEe9787","toolCallName":"read_file"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_umPg728nDU9L2Qja7FEe9787","delta":"{\"file_path\":\"/src/agent-ui/services/conversations/endpoint.ts\",\"limit\":40,\"offset\":0}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_umPg728nDU9L2Qja7FEe9787"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_umPg728nDU9L2Qja7FEe9787","messageId":"73bc5108-3e18-4ee8-ab41-6d186396fbc0","content":"{\"ok\":true,\"result\":{\"path\":\"/src/agent-ui/services/conversations/endpoint.ts\",\"content\":\"1: export interface ResolveConversationDataEndpointOptions {\\n2:   configuredEndpoint?: string | undefined;\\n3: }\\n4: \\n5: export function resolveConversationDataEndpoint({\\n6:   configuredEndpoint,\\n7: }: ResolveConversationDataEndpointOptions): string | undefined {\\n8:   const configured = configuredEndpoint?.trim();\\n9:   return configured || undefined;\\n10: }\\n11: \",\"hash\":\"ed0d72f5db085d0dbe74f2fcde6391fc8ae18c23de2ec1e4c1e2165e0ff2a5ec\",\"totalLines\":11,\"nextOffset\":null}}","role":"tool"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"现在"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"把"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"「"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"」"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"这个"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"配置"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"点"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"落到"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"项目"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"自有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"代码"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"里"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"services"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"/con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"/http"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"-data"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"-source"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":".ts"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":" npm"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"其他"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"文件"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"不动"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5","delta":"）。"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"a7203c87-bd5c-4e12-a279-8e2e295de0b5"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_i1WwCSCATWSUpZE9rpJF8206","toolCallName":"edit_file"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_i1WwCSCATWSUpZE9rpJF8206","delta":"{\"file_path\":\"/src/agent-ui/services/conversations/endpoint.ts\",\"old_string\":\"export function resolveConversationDataEndpoint({\\n  configuredEndpoint,\\n}: ResolveConversationDataEndpointOptions): string | undefined {\\n  const configured = configuredEndpoint?.trim();\\n  return configured || undefined;\\n}\",\"new_string\":\"/**\\n * Project-owned fixed base URL of the business conversation history API.\\n *\\n * Fill in your history service base, for example 'https://history.example.com/api'.\\n * List, detail, delete, rename, archive and unarchive paths stay in\\n * `./http-data-source.ts` (`conversationRequests`).\\n * Requests send no business credentials: `credentials` stays 'same-origin', so a\\n * cross-origin history service receives no cookies.\\n *\\n * While this stays empty and no preview override is provided, history falls back to\\n * the empty data source and the conversation list remains empty.\\n */\\nexport const CONVERSATION_HISTORY_ENDPOINT = '';\\n\\nexport function resolveConversationDataEndpoint({\\n  configuredEndpoint,\\n}: ResolveConversationDataEndpointOptions): string | undefined {\\n  // A preview override still wins so a test service can be targeted temporarily.\\n  const configured = configuredEndpoint?.trim() || CONVERSATION_HISTORY_ENDPOINT.trim();\\n  return configured || undefined;\\n}\",\"replace_all\":false}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_i1WwCSCATWSUpZE9rpJF8206"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_i1WwCSCATWSUpZE9rpJF8206","messageId":"89316496-e424-4bd0-bd29-40ca390c5bb5","content":"{\"ok\":true,\"result\":{\"path\":\"src/agent-ui/services/conversations/endpoint.ts\",\"occurrences\":1,\"revision\":1}}","role":"tool"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"配置"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"点"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"已"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"写入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"让它"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"可以从"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"服务"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"入口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"统一"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"引用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"resolve"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"Convers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"ation"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"Data"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"Endpoint"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"保持一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"），"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"然后"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"跑"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"校验"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"136f9c1d-5854-449f-a678-e888e97688d4","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"136f9c1d-5854-449f-a678-e888e97688d4"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_5cEFl6JpDspT4LK0eKkC8414","toolCallName":"edit_file"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_5cEFl6JpDspT4LK0eKkC8414","delta":"{\"file_path\":\"/src/agent-ui/services/conversations.ts\",\"new_string\":\"export {\\n  CONVERSATION_HISTORY_ENDPOINT,\\n  resolveConversationDataEndpoint,\\n  type ResolveConversationDataEndpointOptions,\\n} from './conversations/endpoint';\",\"old_string\":\"export { resolveConversationDataEndpoint, type ResolveConversationDataEndpointOptions } from './conversations/endpoint';\",\"replace_all\":false}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_5cEFl6JpDspT4LK0eKkC8414"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_5cEFl6JpDspT4LK0eKkC8414","messageId":"b356da81-9df3-45ac-a809-cd94ae19972a","content":"{\"ok\":true,\"result\":{\"path\":\"src/agent-ui/services/conversations.ts\",\"occurrences\":1,\"revision\":2}}","role":"tool"}
+
+data: {"type":"TOOL_CALL_START","toolCallId":"call_00_QGUWnnAaIPN1f5QSL2ik4803","toolCallName":"validate_creator_changes"}
+
+data: {"type":"TOOL_CALL_ARGS","toolCallId":"call_00_QGUWnnAaIPN1f5QSL2ik4803","delta":"{\"includeBuild\":false,\"mode\":\"delta\",\"force\":false}"}
+
+data: {"type":"TOOL_CALL_END","toolCallId":"call_00_QGUWnnAaIPN1f5QSL2ik4803"}
+
+data: {"type":"TOOL_CALL_RESULT","toolCallId":"call_00_QGUWnnAaIPN1f5QSL2ik4803","messageId":"5a4b8450-5357-4d43-ae97-63cccb66a130","content":"{\"ok\":true,\"result\":{\"status\":\"passed\",\"revision\":2,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":2}],\"targetRemaining\":[],\"registryFresh\":true,\"pluginStates\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}}","role":"tool"}
+
+data: {"type":"TEXT_MESSAGE_START","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","role":"assistant"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"已"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"把"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"「"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"」"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"这个"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"点"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"落到"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"项目"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"自有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"代码"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"并通过"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"了"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"类型"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"校验"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"；"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"但"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"还"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"差"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"值"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"所以"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"历史"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"目前"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"仍是"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"空的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"##"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"本轮"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"实际"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"改动"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"2"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"个"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"文件"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"均为"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"项目"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"自有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"代码"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"1"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"."}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"src"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"agent"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-ui"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/services"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"end"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"point"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":".ts"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"   "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"新增"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"CON"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"V"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ERS"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ATION"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"_H"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"IST"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ORY"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"_EN"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"DP"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"O"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"INT"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"基础"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"常量"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"当前"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"为空"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"字符串"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"），"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"并"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"让"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"解析"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"逻辑"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"优先"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"使用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"预览"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"环境"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"覆盖"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"、"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"其次"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"使用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"该"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"常量"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"：\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"  "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" -"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"覆盖"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"值"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" →"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"预览"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"环境"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"临时"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"指向"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"测试"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"服务"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"；\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"  "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" -"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"否则"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" →"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"；\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"  "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" -"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"两者"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"都"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"空"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" →"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"仍"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"回"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"落到"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"空"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"数据"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"会话"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"列表"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"为空"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"行为"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"现在"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"不会"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"引入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"新"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"错误"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"2"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"."}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"src"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"agent"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-ui"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/services"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":".ts"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"   "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"把"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"该"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"常量"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"resolve"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"Convers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ation"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"Data"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"Endpoint"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一起"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"从"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"服务"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"入口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"导出"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"保持"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"原有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"引用"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"方式"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"校验"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"结果"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"："}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"pn"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"pm"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" run"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" type"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"check"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" **"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"通过"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"delta"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"模式"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"本次"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"未"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"引入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"任何"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"类型"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"静态"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"问题"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"未"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"做"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"运行时"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后端"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"连通"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"验证"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"——"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"目前"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"没有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"可"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"请求"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"也没"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"测试"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"服务"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"##"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"选定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"方案"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"我需要"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"确认"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"约定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"数据"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"已"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"按"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"「"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"结构与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"现有"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"约定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"、"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"无"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"鉴"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"权"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"」"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"工作"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"请求"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"路径"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"固定"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"为"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"下面"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"这"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"组"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"都在"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"services"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/http"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-data"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-source"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":".ts"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ation"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"Requests"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"里"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"如需"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"改"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"路径"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"我"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"改"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一处"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"即可"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）：\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"操作"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"方法与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"路径"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"相对"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"基础"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" ---"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" ---"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"列表"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"GET"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" {"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"base"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"详情"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"GET"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" {"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"base"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ation"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"注意"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"是"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"单"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"数"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"删除"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"DELETE"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" {"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"base"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"重"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"命名"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"P"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ATCH"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" {"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"base"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"body"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" title"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" }"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"|"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"归档"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" /"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"取消"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"归档"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"POST"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" {"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"base"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"}/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"archive"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"、"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"..."}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"un"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"archive"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" |\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"期望"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"响应"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"："}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"列表"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" conversations"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":":"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" [{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":","}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" title"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" }"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"]"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" }"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"status"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"updated"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"At"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"可选"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"），"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"详情"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"{"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" id"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":","}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" title"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":","}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" state"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" }"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"agent"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"State"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"可选"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）。"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"鉴"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"权"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"保持"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"无"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"凭"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"据"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"："}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"credentials"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"为"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"same"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-or"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"igin"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"跨"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"时"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"不会"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"携带"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" Cookie"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"##"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"需要"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"提供"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的一件事"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"请"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"把你的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"历史"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接口"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"基础"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"**"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"发"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"我"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"例如"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"https"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"://"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"history"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":".example"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":".com"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"/api"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"或"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"同"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `/"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"api"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"），"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"我"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"写入"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"CON"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"V"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ERS"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ATION"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"_H"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"IST"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ORY"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"_EN"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"DP"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"O"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"INT"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"即"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"生效"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"；"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"同时"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"请"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"确认"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"上"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"表"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"路径"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后端"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"不一致"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"我"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"按"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"实际"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"路径"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"调整"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" `"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"con"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"vers"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ation"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"Requests"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"`"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。\n\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"另外"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"两点"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"提醒"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"避免"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"上"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"返"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"工"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"：\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"若"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"是"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"跨"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"绝对"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" URL"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"你的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"服务"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"需"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"允许"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"当前"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"页"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"面的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"来源"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"（"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"C"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"ORS"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"）。\n"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"读取"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"历史"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"与"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"继续"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"对话"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"是"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"两"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"件事"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"："}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"历史"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"接"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"上"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"后"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"继续"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"提问"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"仍"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"由"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" AG"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"-"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"UI"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"的"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" Agent"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":" "}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"地址"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"负责"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"，"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"两者"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"互"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"不影响"}
+
+data: {"type":"TEXT_MESSAGE_CONTENT","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d","delta":"。"}
+
+data: {"type":"TEXT_MESSAGE_END","messageId":"d8bfef41-262d-4364-90e3-aa65e191644d"}
+
+data: {"type":"RUN_FINISHED","threadId":"f2e82131-451a-430c-bcf6-0837eab80f23","runId":"198ab7a6-8f48-404a-842f-16b37cfe3f9f","result":{"runtime":"typescript","agentMode":"domain-write","completion":"success","executionPolicy":"domain-write","receipt":{"files":[{"path":"src/agent-ui/services/conversations/endpoint.ts","status":"modified","diff":"--- a/src/agent-ui/services/conversations/endpoint.ts\n+++ b/src/agent-ui/services/conversations/endpoint.ts\n@@ -1,11 +1,26 @@\n-export interface ResolveConversationDataEndpointOptions {\n-  configuredEndpoint?: string | undefined;\n-}\n-\n-export function resolveConversationDataEndpoint({\n-  configuredEndpoint,\n-}: ResolveConversationDataEndpointOptions): string | undefined {\n-  const configured = configuredEndpoint?.trim();\n-  return configured || undefined;\n-}\n-\n+export interface ResolveConversationDataEndpointOptions {\n+  configuredEndpoint?: string | undefined;\n+}\n+\n+/**\n+ * Project-owned fixed base URL of the business conversation history API.\n+ *\n+ * Fill in your history service base, for example 'https://history.example.com/api'.\n+ * List, detail, delete, rename, archive and unarchive paths stay in\n+ * `./http-data-source.ts` (`conversationRequests`).\n+ * Requests send no business credentials: `credentials` stays 'same-origin', so a\n+ * cross-origin history service receives no cookies.\n+ *\n+ * While this stays empty and no preview override is provided, history falls back to\n+ * the empty data source and the conversation list remains empty.\n+ */\n+export const CONVERSATION_HISTORY_ENDPOINT = '';\n+\n+export function resolveConversationDataEndpoint({\n+  configuredEndpoint,\n+}: ResolveConversationDataEndpointOptions): string | undefined {\n+  // A preview override still wins so a test service can be targeted temporarily.\n+  const configured = configuredEndpoint?.trim() || CONVERSATION_HISTORY_ENDPOINT.trim();\n+  return configured || undefined;\n+}\n+","truncated":false},{"path":"src/agent-ui/services/conversations.ts","status":"modified","diff":"--- a/src/agent-ui/services/conversations.ts\n+++ b/src/agent-ui/services/conversations.ts\n@@ -1,10 +1,14 @@\n-export * from '@za38.03/agent-ui-runtime/ui/services/conversations';\n-export { resolveConversationDataEndpoint, type ResolveConversationDataEndpointOptions } from './conversations/endpoint';\n-export {\n-  createHttpConversationDataSource,\n-  type HttpConversationDataSourceOptions,\n-} from './conversations/http-data-source';\n-\n-export const AGENT_UI_CONVERSATION_SERVICE = 'agent-ui.conversations';\n-export const AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE = 'agent-ui.conversation-data-source';\n-\n+export * from '@za38.03/agent-ui-runtime/ui/services/conversations';\n+export {\n+  CONVERSATION_HISTORY_ENDPOINT,\n+  resolveConversationDataEndpoint,\n+  type ResolveConversationDataEndpointOptions,\n+} from './conversations/endpoint';\n+export {\n+  createHttpConversationDataSource,\n+  type HttpConversationDataSourceOptions,\n+} from './conversations/http-data-source';\n+\n+export const AGENT_UI_CONVERSATION_SERVICE = 'agent-ui.conversations';\n+export const AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE = 'agent-ui.conversation-data-source';\n+","truncated":false}],"validations":[{"command":"pnpm run typecheck","status":"passed","exitCode":0,"output":"\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host\n> node node_modules/typescript/bin/tsc --noEmit\n\n","truncated":false,"revision":2},{"command":"verify_creator_delta","status":"passed","exitCode":0,"output":"{\"status\":\"passed\",\"revision\":2,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":2}],\"targetRemaining\":[],\"registryFresh\":true,\"pluginStates\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}","truncated":false,"revision":2}],"diagnosticLog":{"format":"jsonl","path":".agent-ui/creator/logs/2026-11-05T15-53-41.864Z_3adacb6e8b21a5833b32ce9339096cfe49467b3bacf3bf4d9395909ba817d9ef.jsonl"},"transaction":{"runId":"4a9d8e14-38ed-4a38-8da8-d83299349477","undoable":true,"reapplyable":true,"changedPaths":["src/agent-ui/services/conversations/endpoint.ts","src/agent-ui/services/conversations.ts"],"conflicts":[]},"verification":{"status":"changed-and-verified","projectRevision":2,"validationRevision":2,"auditAttempts":0,"checks":[],"verificationMode":"static_and_runtime","runtimeStatus":"passed"}},"toolProtocol":{"modelCalls":11,"toolCalls":21},"contextCompression":{"summaryModelCalls":0,"compactions":0,"summarySeconds":0,"offloadedArtifacts":0},"verificationMode":"static_and_runtime"}}
+

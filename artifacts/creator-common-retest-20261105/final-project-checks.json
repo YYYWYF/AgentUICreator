@@ -1,0 +1,19 @@
+{
+  "sourceLockPreserved": true,
+  "projectMetadataPreserved": true,
+  "buildExitCode": 0,
+  "buildScope": "Actual Vite library bundling, Agent.tsx entry, write:false; no emitted deployment artifact",
+  "sourceChangesDuringFinalReview": [],
+  "totalChangedPaths": [
+    "app-ui.json",
+    "plugins/agent-identity/index.tsx",
+    "plugins/registry.generated.ts",
+    "services/conversations/endpoint.ts",
+    "services/conversations.ts",
+    "composition-revision.generated.json",
+    "plugins/thinking-indicator/application.json",
+    "plugins/thinking-indicator/definition.ts",
+    "plugins/thinking-indicator/index.tsx",
+    "plugins/thinking-indicator/manifest.json"
+  ]
+}

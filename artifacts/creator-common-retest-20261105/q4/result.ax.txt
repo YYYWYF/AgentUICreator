@@ -1,0 +1,74 @@
+The following is a diff from the previous accessibility tree for Window: "127.0.0.1:5173" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++								742 文本 Creator
++								743 文本 应用入口只是转接层，实际文案与「何时消失」的逻辑在官方实现里（只读）。因此先用组合层把状态呈现换成产品内置的「思考状态占位」——这正是推理渲染器说明中「status-only presentation」的标准做法。现在做一次运行时检查，确认改动没有打断会话区渲染。
++								744 container 工具执行详情
++									745 开合三角标记 工具调用 · 2 次 已完成
++										746 container
++											747 text 工具调用 · 2 次
++										748 文本 已完成
++								749 文本 Creator
++								750 container
++									751 text 已按你的要求切换为「只显示思考状态、不展示推理正文」。本轮 没有改任何源码 ，只调整了组合，因此不需要类型校验（Host 的写入准入已通过）。
++								752 标题 改了什么（AppUIModel，两次原子事务）, Value: 2
++									753 文本 改了什么（AppUIModel，两次原子事务）
++								754 表格
++									755 row
++										756 列标题
++											757 文本 位置
++										758 列标题
++											759 文本 变更
++										760 列标题
++											761 文本 说明
++									762 row
++										763 单元格
++											764 文本 推理正文渲染器（p11，
++											765 文本 reasoningGroup
++											766 文本  槽）
++										767 单元格
++											768 文本 停用
++										769 单元格
++											770 文本 实例、源码、位置全部保留，随时可恢复
++									771 row
++										772 单元格
++											773 文本 思考状态占位（p19，
++											774 文本 thinkingIndicator
++											775 文本  槽）
++										776 单元格
++											777 文本 新增并启用
++										778 单元格
++											779 文本 官方「Conversation Thinking Indicator」
++								780 container
++									781 text 设计依据：推理渲染器的官方说明里明确写着「Disable this semantic contribution for  status-only presentation 」——即「只要状态、不要正文」正是停用它、改用思考占位这一组合。思考占位本身是「message-scoped live status placeholder」，只在助手消息进行中、且没有可见推理/工具活动时出现，运行结束即不再出现，正好对应「思考完成后消失」。
++								782 文本 保留的能力：工具分组、工具结果、回复底栏（复制/重新生成/导出）、引用、附件、输入框、建议问题、历史会话（右栏）全部照旧，均未改动。
++								783 标题 已实际执行的校验, Value: 2
++									784 文本 已实际执行的校验
++								785 内容列表
++									786 container
++										787 AXListMarker • 
++										788 text 组合复查（hash  7b939420… ）： reasoningGroup  中 p11  enabled:false ， thinkingIndicator  中 p19  enabled:true ；Hos​t 提示「禁用实例保留在树中但不渲染」——符合预期。
++									789 container
++										790 AXListMarker • 
++										791 text 运行时检查： currentErrors: [] ，应用  phase: ready ，无本次改动引入的运行时报错。
++									792 container
++										793 AXListMarker • 
++										794 text 实时几何：根 Row 仍为  712px + 280px ，会话区 712×836、右栏 280px 未变，说明 Surface 内部结构没有因停用推理渲染器而塌陷。
++								795 标题 需要你实测确认的一点（我无法代验）, Value: 2
++									796 文本 需要你实测确认的一点（我无法代验）
++								797 container
++									798 text 「思考过程中出现提示、思考结束后提示消失」属于 运行时行为 ，要真正触发需要一次带推理内容的真实推演；本轮预览处于空闲状态，没有可观测的思考过程，因此这一步我不能声称已验证。请你发一条会触发深度思考的问题观察：
++								799 内容列表
++									800 container
++										801 AXListMarker • 
++										802 text 期望：思考阶段只看到一个状态提示， 看不到推理正文 ；答案开始输出/结束后提示消失。
++									803 container
++										804 AXListMarker • 
++										805 text 如果出现「思考阶段什么都没有」，说明该占位对消息状态的判定比预期窄（例如它只在等待首个内容前显示）。告诉我现象，我可以改用项目侧方案：在项目自有的推理渲染器应用入口里按  streaming  状态自行输出「正在思考」、结束后返回空。
++								806 文本 另外两点：
++								807 内容列表
++									808 container
++										809 AXListMarker • 
++										810 文本 提示文案由官方实现提供并跟随界面语言（当前 zh-CN）；我没有改动它。若你要换措辞，需要改成项目自有的状态插件（新建 Plugin）或接管该实现。
++									811 container
++										812 AXListMarker • 
++										813 文本 想恢复「可展开查看推理过程」，把 p11 重新启用即可（同时建议停用占位，二者并存时占位会自动让位给正文）。
+The focused UI element is 14 HTML 内容 127.0.0.1:5173/

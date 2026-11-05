@@ -1,0 +1,87 @@
+The following is a diff from the previous accessibility tree for Window: "127.0.0.1:5173" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 524
+~								150 按钮 Description: 刷新, Help: 重新读取当前项目与面板数据
++									606 按钮 撤销本次修改
++								607 文本 Creator
++								608 文本 源码侧改动已完成并核验。我尝试暴露校验工具，跑一次当前修订的静态校验。
++								609 container 工具执行详情
++									610 开合三角标记 工具调用 · 2 次 已完成
++										611 container
++											612 text 工具调用 · 2 次
++										613 文本 已完成
++								614 文本 Creator
++								615 container
++									616 text 已接上。历史会话现在指向你的接口  http://127.0.0.1:47835 。
++								617 标题 改动（1 个文件，项目自有代码）, Value: 2
++									618 文本 改动（1 个文件，项目自有代码）
++								619 文本 /src/agent-ui/services/conversations/endpoint.ts
++								620 文本 export const CONVERSATION_HISTORY_ENDPOINT = 'http://127.0.0.1:47835';
+
++								621 container
++									622 text 只改了这一行常量（连同注释更新为「这是业务历史服务的固定基址」）。 tests/services/...  之类、npm 实现、生成文件、组合状态均未触碰。
++								623 标题 链路已核对（读代码确认，非推断）, Value: 2
++									624 文本 链路已核对（读代码确认，非推断）
++								625 内容列表
++									626 container
++										627 AXListMarker • 
++										628 text plugins/conversation-data-source/definition.ts  在  setup  里调用  resolveConversationDataEndpoint({ configuredEndpoint: 预览环境覆盖 }) ，拿到地址后  createHttpConversationDataSource({ endpoint })  并把实例  provide  为  agent-ui.conversation-data-source 。
++									629 container
++										630 AXListMarker • 
++										631 text agent-ui.conversation-data-source （p0，应用级，已启用）→ 生产  agent-ui.conversations  服务（ conversation-service  p1）→  conversation-thread-list （p6，左侧栏）通过  useConversations()  订阅快照、 useConversationActions()  触发刷新/重命名/删除/归档。
++									632 container
++										633 AXListMarker • 
++										634 text 路径与你确认的一致：列表  GET /conversations 、详情  GET /conversation/{id} 、重命名  PATCH /conversations/{id} 、删除  DELETE /conversations/{id} 、归档  POST /conversations/{id}/archive 、取消归档  POST /conversations/{id}/unarchive ；无鉴权头， credentials: 'same-origin' 。
++									635 container
++										636 AXListMarker • 
++										637 text 响应格式：直连 DTO 与  returnCode/body  包装两种都支持，所以你说的「现有约定格式」无需改映射。
++									638 container
++										639 AXListMarker • 
++										640 text 之前为空时走  createEmptyConversationDataSource() ，现在有地址即走 HTTP；地址被清空会自动回落空数据源。
++								641 标题 校验结果（实际执行）, Value: 2
++									642 文本 校验结果（实际执行）
++								643 container
++									644 text validate_creator_changes （delta 模式）=  passed ： pnpm run typecheck  退出码 0，本次未引入任何类型/静态问题，无工作区新增警告。
++								645 标题 两个需要你留意的运行时风险（本轮未验证）, Value: 2
++									646 文本 两个需要你留意的运行时风险（本轮未验证）
++								647 内容列表
++									648 container
++										649 AXListMarker 1. 
++										650 text 跨源与混合内容 ： 127.0.0.1:47835  与应用页面不同源。若预览页面是  https:// ，浏览器会以混合内容直接拦掉  http://  请求；若同源或  http:// ，则需要你的服务返回允许该来源的 CORS 头（无鉴权时通常不涉及预检，但  PATCH / DELETE  会触发预检）。这两种失败都会表现为历史列表加载报错而不是空列表，便于区分。
++									651 container
++										652 AXListMarker 2. 
++										653 text 请求实际经由 Agent 后端传输层发出 ：数据源用的是  createAgentBackendTransport({ development })  的  fetch ，而非裸  window.fetch 。我尝试读取该 npm 实现以确认它是否对绝对 URL 做开发代理改写，但该路径属受保护区域，读取被拒绝。因此「绝对地址会直连」这一点我没有实现层证据；如果接上后请求打到了非预期位置，请告诉我，我再从允许的入口核对。
++								654 container
++									655 text 最后说明边界：以上是源码接线 + 静态校验的结论， 我没有验证你的服务真实返回 （也没有发起请求的能力）。请你刷新预览、看左侧「历史会话」是否能列出你的数据；如果报错，把浏览器 Network 里的状态码或错误文案发我，我按现象定位。
++								656 container 修改回执
++									657 container
++										658 text 修改回执 1 个文件  · 2 项验证
++									659 标题 修改操作, Value: 2
++										660 文本 修改操作
++									661 文本 当前可撤销
++									662 文本 撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。
++									663 按钮 撤销本次修改
++									664 标题 完成验证, Value: 2
++										665 文本 完成验证
++									666 container
++										667 text 修改已验证 · Revision  1 · 复核 0 次
++									668 标题 文件修改, Value: 2
++										669 文本 文件修改
++									670 开合三角标记 › 已修改 src/agent-ui/services/conversations/endpoint.ts
++										671 文本 ›
++										672 文本 已修改
++										673 文本 src/agent-ui/services/conversations/endpoint.ts
++									674 标题 验证结果, Value: 2
++										675 文本 验证结果
++									676 开合三角标记 › 通过 pnpm run typecheck
++										677 文本 ›
++										678 文本 通过
++										679 文本 pnpm run typecheck
++									680 开合三角标记 › 通过 verify_creator_delta
++										681 文本 ›
++										682 文本 通过
++										683 文本 verify_creator_delta
+~								161 文本输入区 (settable) 告诉 Creator, Placeholder: 例如：看看当前 UI，或在右侧增加工具详情面板
+~								162 按钮 清空会话, Help: 清空当前对话和草稿，重新开始
+~								163 按钮 (disabled) 发送
+~					96 标签 (selected, settable, boolean) Description: 127.0.0.1:5173 - 内存用量 - 386 MB, Value: on
+The focused UI element is 113 HTML 内容 127.0.0.1:5173/

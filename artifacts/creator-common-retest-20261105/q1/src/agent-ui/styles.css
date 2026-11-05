@@ -1,0 +1,6 @@
+@import "@za38.03/agent-ui-plugins/styles-base.css";
+
+@source ".";
+@source "./plugins";
+
+/* Project overrides: public theme tokens and scoped component styling. */
