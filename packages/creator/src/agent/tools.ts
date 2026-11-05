@@ -40,6 +40,7 @@ export interface ToolContext {
   readOnly: boolean; userMessage: string; threadId: string; signal: AbortSignal;
   groups: Set<string>; authorizedPlugins: Set<string>;
   diagnostics: Map<string, any>; verificationMode: string;
+  behaviorVerificationEnabled?: boolean;
   requestRuntimeObservation?: (request: { requestId: string; currentHash: string; nodeIds?: string[]; instanceIds?: string[] }) => Promise<void>;
   runtimeObservationRefresh?: { key: string; pending: Promise<{ status: string; requestId: string }> };
   recovery?: ToolRecovery;
@@ -80,6 +81,7 @@ export const TOOL_GROUPS: Record<string, string[]> = {
   history: ["inspect_creator_transactions", "inspect_creator_transaction", "inspect_creator_transaction_change", "inspect_creator_baseline", "undo_creator_run", "undo_creator_changes", "reapply_creator_changes"],
 };
 export function visibleTool(name: string, context: ToolContext): boolean {
+  if (name === "verify_ui_plugin_behavior" && !context.behaviorVerificationEnabled) return false;
   return (CORE.has(name) || [...context.groups].some(group => TOOL_GROUPS[group]?.includes(name))) && (!context.readOnly || READ_TOOLS.has(name) || /^(inspect_|list_|plan_|verify_agent_ui_integration)/u.test(name));
 }
 

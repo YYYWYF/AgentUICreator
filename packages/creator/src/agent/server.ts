@@ -49,7 +49,7 @@ const server = createServer((req, res) => { void handle(req, res).catch(error =>
 async function handle(req: IncomingMessage, res: ServerResponse) {
   if (!authenticated(req)) { response(res, 401, { error: "CREATOR_AUTHENTICATION_FAILED" }); return; }
   if (req.method === "GET" && req.url === "/health") {
-    response(res, 200, { status: "ok", runtime: "typescript", projectRoot: root, verificationMode: runtime.verificationMode, phase: `${runtime.mode}-agent`, agentMode: runtime.mode, busy: locked || active.size > 0 || runtime.pending.size > 0 || Boolean(commandToken) }); return;
+    response(res, 200, { status: "ok", runtime: "typescript", projectRoot: root, verificationMode: runtime.verificationMode, behaviorVerificationEnabled: runtime.behaviorVerificationEnabled, phase: `${runtime.mode}-agent`, agentMode: runtime.mode, busy: locked || active.size > 0 || runtime.pending.size > 0 || Boolean(commandToken) }); return;
   }
   const url = new URL(req.url ?? "/", "http://creator.local");
   if (req.method === "GET" && url.pathname === "/creator") {

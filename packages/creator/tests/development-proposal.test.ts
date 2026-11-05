@@ -124,12 +124,23 @@ it("does not prepare in read-only mode and renders the plan in the Host locale",
 
 it("runs interaction verification on an existing Plugin without a development question", async () => {
   const { context } = await fixture();
+  context.behaviorVerificationEnabled = true;
   context.validation!.behavior = vi.fn(async (pluginId: string, interactions: string[]) => ({ status: "passed", revision: 0, pluginId, interactions })) as any;
   await createTools(context);
   const result = await context.hostTools!.get("verify_ui_plugin_behavior")!({ pluginId: "card", interactions: ["toggle"] });
   expect(result.status).toBe("passed"); expect(state.questions).toHaveLength(0);
   expect(context.validation!.behavior).toHaveBeenCalledWith("card", ["toggle"]);
   expect(context.authorizedPlugins.size).toBe(0);
+});
+
+it("does not expose the disabled Playwright tool after enabling Plugin authoring", async () => {
+  const { context } = await fixture();
+  const tools = await createTools(context);
+  context.groups.add("plugin_authoring");
+  expect(visibleTool("verify_ui_plugin_behavior", context)).toBe(false);
+  expect(tools.some(tool => tool.name === "verify_ui_plugin_behavior")).toBe(false);
+  expect(context.hostTools!.has("verify_ui_plugin_behavior")).toBe(false);
+  expect(tools.some(tool => tool.name === "validate_creator_changes")).toBe(true);
 });
 
 it("asks with only a new Plugin identity and purpose, then accepts later verification details without another question", async () => {

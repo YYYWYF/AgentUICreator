@@ -13,10 +13,10 @@ import { regexSearch, matchesGlob } from "../src/agent/search.js";
 import { CreatorAgentRuntime } from "../src/agent/runner.js";
 import { requestOperator } from "../src/agent/operator.js";
 
-const mock = vi.hoisted(() => ({ model: undefined as any, summaryModel: undefined as any }));
-vi.mock("../src/agent/config.js", () => ({ hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write", CREATOR_VERIFICATION_MODE: "static_only" }), createModel: (_environment: unknown, thread: string) => thread.includes(":summary:") && mock.summaryModel ? mock.summaryModel : mock.model }));
+const mock = vi.hoisted(() => ({ model: undefined as any, summaryModel: undefined as any, environment: {} as Record<string, string> }));
+vi.mock("../src/agent/config.js", () => ({ hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write", CREATOR_VERIFICATION_MODE: "static_only", ...mock.environment }), createModel: (_environment: unknown, thread: string) => thread.includes(":summary:") && mock.summaryModel ? mock.summaryModel : mock.model }));
 const roots: string[] = [];
-afterEach(async () => { mock.summaryModel = undefined; for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
+afterEach(async () => { mock.summaryModel = undefined; mock.environment = {}; for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
 async function project() {
   const root = await mkdtemp(path.join(tmpdir(), "creator TS 中文 ")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui")); await mkdir(path.join(root, "src")); await mkdir(path.join(root, "skills"));
@@ -76,6 +76,17 @@ class ScriptedModel extends BaseChatModel {
 }
 const call = (name: string, args: object, id: string) => new AIMessage({ content: "", tool_calls: [{ name, args, id, type: "tool_call" }] });
 const contracts = fileURLToPath(new URL("../contracts/creator", import.meta.url));
+it.each([[undefined, false], ["0", false], ["1", true]] as const)("resolves the independent Playwright switch %s to %s", (value, enabled) => {
+  if (value !== undefined) mock.environment.CREATOR_BEHAVIOR_VERIFICATION_ENABLED = value;
+  mock.environment.CREATOR_VERIFICATION_MODE = "static_and_runtime";
+  const runtime = new CreatorAgentRuntime("unused", "unused", contracts);
+  expect(runtime.behaviorVerificationEnabled).toBe(enabled);
+  expect(runtime.verificationMode).toBe("static_and_runtime");
+});
+it("rejects an invalid Playwright verification switch at startup", () => {
+  mock.environment.CREATOR_BEHAVIOR_VERIFICATION_ENABLED = "false";
+  expect(() => new CreatorAgentRuntime("unused", "unused", contracts)).toThrow("CREATOR_BEHAVIOR_VERIFICATION_ENABLED_INVALID");
+});
 it("returns a disabled group's tool error and continues after explicit tool expansion", async () => {
   const root = await project();
   const model = mock.model = new ScriptedModel(index => {

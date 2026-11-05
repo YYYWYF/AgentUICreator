@@ -64,7 +64,7 @@ export function addExtraTools(context: ToolContext, add: Add) {
     await context.activity.recordRecovery(input.run_id, "undo", result.changedPaths);
     return { ...result, completion: { status: value.undone ? "already_recovered" : "recovered" } };
   });
-  add("verify_ui_plugin_behavior", "Run project Playwright interactions for an existing Plugin or a newly created Plugin. Verification needs no development approval. Missing, skipped, flaky, stale or failed tests never prove completion.", z.object({ pluginId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u).optional(), interactions: z.array(z.string().min(1).max(1000)).max(100).optional() }), async input => {
+  if (context.behaviorVerificationEnabled) add("verify_ui_plugin_behavior", "Run project Playwright interactions for an existing Plugin or a newly created Plugin. Verification needs no development approval. Missing, skipped, flaky, stale or failed tests never prove completion.", z.object({ pluginId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u).optional(), interactions: z.array(z.string().min(1).max(1000)).max(100).optional() }), async input => {
     const pluginId = input.pluginId ?? context.activePluginId ?? context.editingSelection?.target?.pluginId;
     if (!pluginId) throw new Error("PLUGIN_VERIFICATION_TARGET_REQUIRED");
     const definition = await read(context.root, `${await sourceRoot(context.root)}/plugins/${pluginId}/definition.ts`);
@@ -94,7 +94,7 @@ export function addExtraTools(context: ToolContext, add: Add) {
       const composed = instances.length > 0 && (plan.contract.renderingCategory !== "application" || instances.every((item: any) => item.target?.type === "application"));
       const staticPassed = context.activity.validationRevision === context.activity.revision && context.activity.revision > 0;
       const behavior = context.behavior?.get(pluginId);
-      const behaviorPassed = behavior?.status === "passed" && behavior.revision === context.activity.revision && behavior.interactionHash === hash(JSON.stringify(plan.contract.interactions ?? []));
+      const behaviorPassed = context.behaviorVerificationEnabled === true && behavior?.status === "passed" && behavior.revision === context.activity.revision && behavior.interactionHash === hash(JSON.stringify(plan.contract.interactions ?? []));
       let runtimePassed = false;
       if (context.verificationMode === "static_and_runtime" && !plan.sourceOnly) {
         const runtime = await inspectRuntime(context, { instanceIds: instances.map((item: any) => item.id) });
@@ -108,10 +108,10 @@ export function addExtraTools(context: ToolContext, add: Add) {
       const blockers = [];
       if (!created) blockers.push("PLUGIN_SOURCE_MISSING"); if (!registered) blockers.push("PLUGIN_NOT_REGISTERED"); if (!plan.sourceOnly && !composed) blockers.push("PLUGIN_NOT_COMPOSED"); if (!staticPassed) blockers.push("PLUGIN_STATIC_VERIFICATION_MISSING");
       if (context.verificationMode === "static_and_runtime" && !plan.sourceOnly && !runtimePassed) blockers.push("PLUGIN_RUNTIME_VERIFICATION_MISSING");
-      if (context.verificationMode === "static_and_runtime" && !plan.sourceOnly && (plan.contract.interactions?.length || plan.contract.verificationMethod === "browser-test") && !behaviorPassed) blockers.push("PLUGIN_BEHAVIOR_VERIFICATION_MISSING");
+      if (context.behaviorVerificationEnabled && context.verificationMode === "static_and_runtime" && !plan.sourceOnly && (plan.contract.interactions?.length || plan.contract.verificationMethod === "browser-test") && !behaviorPassed) blockers.push("PLUGIN_BEHAVIOR_VERIFICATION_MISSING");
       deliveries.push({ pluginId, projectRevision: context.activity.revision, deliveryScope: plan.sourceOnly ? "source-only" : "full", registrationScope: plan.sourceOnly ? "authoring-inventory" : "runtime-catalog", decision: { type: plan.workKind }, authorization: { status: plan.status }, contract: plan.contract,
         delivery: { status: blockers.length ? "blocked" : context.verificationMode === "static_only" ? "statically-verified" : "completed", lastSuccessfulStage: !blockers.length ? "verified" : composed ? "composed" : registered ? "registered" : created ? "created" : "planning", stages: { created, registered, composed, verified: !blockers.length && context.verificationMode === "static_and_runtime" }, blockers, instanceIds: instances.map((item: any) => item.id) },
-        verification: { static: staticPassed ? "pass" : "not-passed", runtime: context.verificationMode === "static_only" ? "not-run" : runtimePassed ? "pass" : "not-passed", interaction: behaviorPassed ? "pass" : "not-run" } });
+        verification: { static: staticPassed ? "pass" : "not-passed", runtime: context.verificationMode === "static_only" ? "not-run" : runtimePassed ? "pass" : "not-passed", interaction: behaviorPassed ? "pass" : "not-run", interactionPolicy: context.behaviorVerificationEnabled ? "enabled" : "disabled" } });
     }
     return { deliveries };
   });

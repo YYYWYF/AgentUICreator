@@ -238,6 +238,8 @@ CREATOR_VERIFICATION_MODE=static_only
 
 `static_only` 使用当前修订的类型和结构验证。需要运行诊断时显式设置 `static_and_runtime`；过期或缺失的运行证据不能算作通过。类型检查和构建不能替代浏览器外观、焦点或交互验收。
 
+项目 Playwright 交互验证默认关闭，独立于上述静态/Runtime 模式。需要时设置 `CREATOR_BEHAVIOR_VERIFICATION_ENABLED=1` 并重启 Creator，`0` 为关闭。关闭后不提供交互测试工具，也不因缺少交互测试阻塞交付；回执记录未执行，不标记浏览器验证通过。启用前需由目标项目提供 `@playwright/test` 和 Playwright 配置；Creator 不自动安装测试设施。
+
 Vite Host 按项目惰性启动 Node Agent，通过认证的本地 HTTP 接口转发 AG-UI、运行诊断和控制请求，并在关闭时清理受管进程。模型配置或启动失败会明确报错。
 
 源码开发可设置 `CREATOR_HOT_RELOAD=1`，监听 Agent、契约及 Skills；进行中的运行和暂停的问题保持原检查点，待空闲后重启。npm 安装产物使用已经构建的 Node Agent。

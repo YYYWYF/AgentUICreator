@@ -32,7 +32,9 @@ Creator 是通用 Coding Agent。交付机制读取实际工程、记录目标�
 
 inspect_runtime_layout 返回当前 DOM 几何和新鲜度。authoring ref、Runtime instance ID 和 DOM nodeId 不混用。相关 observation 缺失、过期或尺寸不符不能算通过，类型或文本断言也不证明真实外观。
 
-verify_ui_plugin_behavior 只运行目标项目已安装的 Playwright executable 和现有配置，不自动安装测试设施、不接受模型提供的 PASS。测试标题为 `[delivery:<pluginId>] <interaction>`；没有交互列表的 browser-test 合同使用 runtime 测试。
+项目 Playwright 交互验证默认关闭。Host 可通过 `CREATOR_BEHAVIOR_VERIFICATION_ENABLED=1` 显式启用，`0` 为关闭；修改后重新启动 Creator。这个开关独立于 `CREATOR_VERIFICATION_MODE`，不关闭静态、类型、构建检查或已启用的 Runtime 观察。关闭时不向模型提供 `verify_ui_plugin_behavior`，交付检查也不要求该测试；回执保留 `interaction: not-run` 和 `interactionPolicy: disabled`，不声称浏览器行为通过。
+
+启用后，verify_ui_plugin_behavior 只运行目标项目已安装的 Playwright executable 和现有配置，不自动安装测试设施、不接受模型提供的 PASS。测试标题为 `[delivery:<pluginId>] <interaction>`；没有交互列表的 browser-test 合同使用 runtime 测试。
 
 退出码、完整报告、全部必需测试、revision 与交互清单 都需匹配。跳过、失败、flaky retry、截断和缺失配置不能成功。缺少验证能力时准确报告，不能回到无关调查或伪称已交付。
 

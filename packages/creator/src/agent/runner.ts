@@ -61,10 +61,14 @@ export class CreatorAgentRuntime {
   readonly environment: Record<string, string | undefined>;
   readonly mode: string;
   readonly verificationMode: string;
+  readonly behaviorVerificationEnabled: boolean;
   constructor(readonly root: string, readonly skills: string, readonly contracts: string, configRoot?: string) {
     this.environment = hostEnvironment(configRoot);
     this.mode = this.environment.CREATOR_AGENT_MODE ?? "domain-write";
     this.verificationMode = this.environment.CREATOR_VERIFICATION_MODE ?? "static_only";
+    const behaviorVerification = this.environment.CREATOR_BEHAVIOR_VERIFICATION_ENABLED ?? "0";
+    if (!["0", "1"].includes(behaviorVerification)) throw new Error("CREATOR_BEHAVIOR_VERIFICATION_ENABLED_INVALID");
+    this.behaviorVerificationEnabled = behaviorVerification === "1";
     const retries = Number(this.environment.CREATOR_MODEL_MAX_RETRIES ?? 2);
     if (!Number.isSafeInteger(retries) || retries < 0) throw new Error("CREATOR_MODEL_MAX_RETRIES_INVALID");
     if (!["static_only", "static_and_runtime"].includes(this.verificationMode)) throw new Error("CREATOR_VERIFICATION_MODE_INVALID");
@@ -200,7 +204,7 @@ export class CreatorAgentRuntime {
       await publish({ type: "STEP_STARTED", stepName: "creator.resolve", metadata: { phase: "understanding", status: "running" } });
       context = { root: this.root, skills: this.skills, contracts: this.contracts, activity, readOnly: true,
         userMessage: String(input.messages.filter(item => item.role === "user").at(-1)?.content ?? ""),
-        threadId, signal, messages: presentation, groups: new Set(), authorizedPlugins: new Set(), diagnostics: this.diagnostics, verificationMode: this.verificationMode };
+        threadId, signal, messages: presentation, groups: new Set(), authorizedPlugins: new Set(), diagnostics: this.diagnostics, verificationMode: this.verificationMode, behaviorVerificationEnabled: this.behaviorVerificationEnabled };
       context.requestRuntimeObservation = request => publish({ type: "CUSTOM", name: "creator_runtime_observation_requested", value: { ...request, threadId } });
       if (cancelMarker) context.cancelMarker = cancelMarker;
       const tools = await createTools(context);
