@@ -12,7 +12,8 @@ import { verifyScenario } from './verify-scenario.mts';
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../local-runs');
 const caseId=process.argv[2]??'case07-sales';
-const testCase=JSON.parse(await readFile(path.join(repo,'artifacts/creator-complex-scenarios-20261104/questions.json'),'utf8')).find((entry:any)=>entry.id===caseId);
+const casesFile=process.env.AGENT_UI_QA_CASES_FILE?path.resolve(process.env.AGENT_UI_QA_CASES_FILE):path.join(repo,'artifacts/creator-complex-scenarios-20261104/questions.json');
+const testCase=JSON.parse(await readFile(casesFile,'utf8')).find((entry:any)=>entry.id===caseId);
 if(!testCase)throw Error('Unknown case');
 const label=process.argv[3]??'baseline';
 const pointer=path.join(base,'latest-'+caseId+(process.env.AGENT_UI_QA_POINTER_SUFFIX??'')+'.json');
@@ -27,6 +28,8 @@ const seedSource=process.env.AGENT_UI_QA_SOURCE_RUN
  ?path.resolve(process.env.AGENT_UI_QA_SOURCE_RUN,'host/src/agent-ui')
  :path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui');
 const seedAfterStartup=process.env.AGENT_UI_QA_SEED_AFTER_STARTUP==='1';
+const freshProject=process.env.AGENT_UI_QA_FRESH_PROJECT==='1';
+const singleTurn=process.env.AGENT_UI_QA_SINGLE_TURN==='1';
 const require=createRequire(path.join(repo,'apps/creator-workbench/package.json'));
 const {chromium}=require('@playwright/test');
 const env=hostEnvironment(repo);
@@ -78,7 +81,7 @@ const creatorSource=Object.fromEntries(await Promise.all(['prompts.json','activi
 const guidanceSource=Object.fromEntries(await Promise.all(['packages/creator/skills/ag-ui-frontend/SKILL.md','packages/creator/skills/ui-plugin-development/SKILL.md','packages/creator/skills/ui-plugin-development/references/authoring-contracts.md','website/docs/development/plugin-api.md'].map(async(file)=>[file,digest(await readFile(path.join(repo,file)))])));
 await json(path.join(out,'environment.json'),{created:new Date().toISOString(),caseId,label,creatorSource,guidanceSource,sourceCreator:process.env.AGENT_UI_TEST_SOURCE_CREATOR==='1',frozenPackages:process.env.AGENT_UI_QA_FREEZE_PACKAGES==='1',platform:process.platform,node:process.version,model:env.CREATOR_MODEL_NAME,providerFingerprint:digest(upstream.href),context:env.CREATOR_CONTEXT_MAX_TOKENS,keep:env.CREATOR_CONTEXT_KEEP_TOKENS,output:env.CREATOR_MODEL_MAX_TOKENS,summaryOutput:env.CREATOR_CONTEXT_SUMMARY_MAX_TOKENS??'8192 (implementation default)',timeout:env.CREATOR_MODEL_TIMEOUT_SECONDS,opencodeSessionHeader:env.CREATOR_MODEL_OPENCODE_SESSION_HEADER,prompt:original,packageRoots,scope:'Current checkout. Original scenario or explicitly recorded follow-up and seed source (see qa-input.json); freshly built local packages, not historical frozen distributions. Only new-Plugin start decisions are simulated in the disposable QA project. Takeover and dependency-install questions remain unapproved. 1200-second QA observation window; no cumulative Creator call or graph-step cap. Provider output telemetry records tool names and character counts only, never private reasoning text or tool argument bodies.'});
 await json(pointer,{out,pid:process.pid,status:'starting'});
-await json(path.join(out,'qa-input.json'),{seedSource,seedPhase:seedAfterStartup?'after-ready-running-Creator':'before-workspace-selection',promptFile:promptFile?path.resolve(promptFile):null,scenarioPrompt,prompt:original});
+await json(path.join(out,'qa-input.json'),{casesFile,singleTurn,freshProject,seedSource:freshProject?null:seedSource,seedPhase:freshProject?'fresh-bootstrap':seedAfterStartup?'after-ready-running-Creator':'before-workspace-selection',promptFile:promptFile?path.resolve(promptFile):null,scenarioPrompt,prompt:original});
 
 async function hashes(root:string,dir=path.join(root,'src')):Promise<Record<string,string>>{
  const result:Record<string,string>={};
@@ -90,7 +93,7 @@ const events:any[]=[],browserErrors:string[]=[],qaApprovals:any[]=[];
 let timedOut=false;
 try{
  fixture=await createConnectionHostFixture({liveModel:true,packageRoots,packageSnapshotFile:path.join(out,'package-snapshot.json'),prepareHost:async(root:string)=>{
-  await cp(seedAfterStartup?path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui'):seedSource,path.join(root,'src/agent-ui'),{recursive:true});
+  if(!freshProject)await cp(seedAfterStartup?path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui'):seedSource,path.join(root,'src/agent-ui'),{recursive:true});
  },...(seedAfterStartup?{afterReadyHost:async(root:string)=>cp(seedSource,path.join(root,'src/agent-ui'),{recursive:true})}:{})});
  fixture.enableCors();
  const previewConnection=await fetch(fixture.creatorOrigin.replace(/\/$/,'')+'/__agent-ui/creator/connection',{method:'POST',headers:{'Content-Type':'application/json','X-Agent-UI-Workspace-Id':fixture.workspaceId},body:JSON.stringify({activeSource:'connected',enabled:true,connectionMode:'direct',endpoint:fixture.agentEndpoint})});
@@ -123,7 +126,7 @@ try{
  });
  await page.goto(fixture.creatorOrigin);
  const frame=page.frameLocator('iframe[title="Host Application"]');
- await frame.locator('.quick-help-card').first().waitFor({state:'visible',timeout:60000});
+ await frame.locator(freshProject?'.aui-composer-root':'.quick-help-card').first().waitFor({state:'visible',timeout:60000});
  await page.screenshot({path:path.join(out,'before.png'),fullPage:true});
  started=Date.now();
  await json(pointer,{out,pid:process.pid,status:'running',started:new Date(started).toISOString(),hostRoot:fixture.hostRoot});
@@ -142,7 +145,7 @@ try{
   const phase=events.slice(offset).map(row=>row.event);offset=events.length;
   const question=phase.findLast((event:any)=>event.type==='CUSTOM'&&event.name==='on_interrupt');
   const step=question?.value?.metadata?.steps?.[0];
-  if(step?.id!=='plugin-development-decision'||timedOut)break;
+  if(singleTurn||step?.id!=='plugin-development-decision'||timedOut)break;
   const ids=new Set(phase.filter((event:any)=>event.type==='TOOL_CALL_START'&&event.toolCallName==='prepare_ui_plugin_development').map((event:any)=>event.toolCallId));
   const args=phase.filter((event:any)=>event.type==='TOOL_CALL_ARGS'&&ids.has(event.toolCallId)).map((event:any)=>JSON.parse(event.delta));
   const proposal=args.at(-1);
@@ -159,11 +162,30 @@ try{
  const after=await hashes(fixture.hostRoot),changedPaths=[...new Set([...Object.keys(before),...Object.keys(after)])].filter(file=>before[file]!==after[file]);
  const result:any={caseId,status:timedOut?'QA_TIMEOUT':all.at(-1)?.type==='RUN_ERROR'?'RUN_ERROR':finish?.result?.completion??'UNKNOWN',seconds:(Date.now()-started)/1000,finish:finish?.result,runErrors:all.filter(event=>event.type==='RUN_ERROR'),toolCalls:all.filter(event=>event.type==='TOOL_CALL_START').length,changedPaths,qaApprovals,browserErrors};
  await page.screenshot({path:path.join(out,'after.png'),fullPage:true});
- if(changedPaths.length)result.interaction=await verifyScenario({caseId,testCase,page,frame,fixture,dir:out});
+ if(changedPaths.length&&!singleTurn)result.interaction=await verifyScenario({caseId,testCase,page,frame,fixture,dir:out});
  await cp(path.join(fixture.hostRoot,'src'),path.join(out,'host/src'),{recursive:true});
  await json(path.join(out,'result.json'),result);
  await json(pointer,{out,status:'finished',result});
  console.log(JSON.stringify({caseId,status:result.status,seconds:result.seconds,toolCalls:result.toolCalls,changedFiles:changedPaths.length,interaction:result.interaction?.status}));
+ if(process.env.AGENT_UI_QA_KEEP_OPEN==='1'){
+  // Restore the actual UI's persisted conversation in a new visitor's tab.
+  // Do not overwrite that tab's later edits or fabricate a model response.
+  const conversationKey='agent-ui-creator-conversation:'+fixture.workspaceId;
+  const conversation=await page.evaluate((key:string)=>sessionStorage.getItem(key),conversationKey);
+  if(!conversation)throw Error('Completed UI conversation was not persisted');
+  await json(path.join(out,'ui-conversation.json'),{key:conversationKey,value:JSON.parse(conversation)});
+  const entry=path.resolve(fixture.hostRoot,'../creator/main.tsx');
+  await writeFile(entry,`if(sessionStorage.getItem(${JSON.stringify(conversationKey)})===null)sessionStorage.setItem(${JSON.stringify(conversationKey)},${JSON.stringify(conversation)});\n`+await readFile(entry,'utf8'));
+  const reviewContext=await browser.newContext(),reviewPage=await reviewContext.newPage();
+  await reviewPage.goto(fixture.creatorOrigin);
+  await reviewPage.getByText(original,{exact:true}).first().waitFor({state:'visible',timeout:30000});
+  await reviewPage.screenshot({path:path.join(out,'live-review.png'),fullPage:true});
+  const live={creatorUrl:fixture.creatorOrigin,hostUrl:fixture.hostOrigin,caseId,seconds:result.seconds,out,pid:process.pid,questionRestoredForNewVisitor:true,status:result.status};
+  await json(path.join(base,'live-common-review.json'),live);
+  console.log(JSON.stringify({liveReview:live}));
+  await browser.close();browser=undefined;
+  await new Promise<void>(resolve=>{process.once('SIGINT',()=>resolve());process.once('SIGTERM',()=>resolve());});
+ }
 }catch(error:any){
  const problem={status:'HARNESS_ERROR',name:error.name,message:String(error.message).replaceAll(env.CREATOR_MODEL_API_KEY!,'[REDACTED]'),seconds:started?(Date.now()-started)/1000:null,out};
  await json(path.join(out,'harness-error.json'),problem);

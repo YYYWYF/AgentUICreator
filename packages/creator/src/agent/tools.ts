@@ -25,8 +25,7 @@ import { editingProjectIdentity, rememberProjectTargets, type EditingSelection, 
 import { inspectProject, pluginInspectionSummary, projectCheckIdentity, projectInspectionSummary, runtimeObservationNavigation } from "./inspection.js";
 import { editReadLines } from "./line-edit.js";
 import { checkCreatorPostconditions, creatorPostconditions, type CreatorPostcondition } from "./outcome.js";
-import { assertExecutionOpen, assertRemovalScope, assertInstanceRetention, cancelExecution, removalInstanceIds, type RemovalTarget } from "./execution-decision.js";
-import { namesRequestedRemoval } from "./plugin-target-names.js";
+import { assertExecutionOpen, assertInstanceRetention, cancelExecution } from "./execution-decision.js";
 import { ToolRecovery, toolReadIdentity } from "./tool-recovery.js";
 import { EvidenceProgress } from "./evidence-progress.js";
 import { rememberPublicApiRead, projectPublicApiRead } from "./working-context.js";
@@ -45,8 +44,7 @@ export interface ToolContext {
   runtimeObservationRefresh?: { key: string; pending: Promise<{ status: string; requestId: string }> };
   recovery?: ToolRecovery;
   cancelMarker?: string;
-  executionDecision?: { status: "user_cancelled" | "needs_target_clarification"; toolName: string; description?: string };
-  removalTarget?: RemovalTarget;
+  executionDecision?: { status: "user_cancelled"; toolName: string };
   pluginNames?: { pluginId: string; name?: string; targetNames?: readonly string[] }[];
   validation?: CreatorValidation;
   messages?: AgentMessages;
@@ -190,18 +188,12 @@ export async function createTools(context: ToolContext) {
       if (["inspect_ui_project", "inspect_ui_plugin"].includes(operation.name)) { const { detail: _detail, ...operatorInput } = input; input = operatorInput; }
       const mutation = operation.kind !== "read";
       if (mutation && context.readOnly) throw new Error("TOOL_PERMISSION_DENIED");
-      if ((context.removalTarget?.status === "resolved" || context.pluginNames) && ["purge_ui_plugin", "mutate_app_ui_model"].includes(operation.name)) {
-        const project = operation.name === "mutate_app_ui_model" ? await inspectProject(context, { view: "composition" }) : undefined;
-        assertRemovalScope(context.removalTarget, operation.name, input, project);
-        if (context.removalTarget?.status !== "resolved") {
-          const ids = operation.name === "purge_ui_plugin" ? [input.pluginId] : [...removalInstanceIds(input, project)].map(id => project.pluginInstances.find((item: any) => item.id === id)?.pluginId);
-          const targets = context.pluginNames?.filter(plugin => ids.includes(plugin.pluginId)) ?? [];
-          if (ids.length && (targets.length !== new Set(ids).size || !namesRequestedRemoval(context.userMessage, targets))) {
-            context.executionDecision = { status: "needs_target_clarification", toolName: operation.name, description: context.userMessage.slice(0, 240) };
-            return { changed: false, status: "needs_target_clarification", retryable: false };
-          }
-        }
-        if (operation.name === "mutate_app_ui_model") assertInstanceRetention(context.userMessage, input, project, context.pluginNames);
+      if (operation.name === "mutate_app_ui_model") {
+        // The coding Agent chooses concrete instances from project evidence.
+        // Operator validates their identities, snapshot hash and composition.
+        // Keep reversible disable semantics and source-purge confirmation.
+        const project = await inspectProject(context, { view: "composition" });
+        assertInstanceRetention(context.userMessage, input, project, context.pluginNames);
       }
       if (mutation) await context.validation!.ensureBaseline();
       if (operation.name === "mutate_app_ui_model") {

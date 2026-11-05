@@ -1,0 +1,159 @@
+[
+  {
+    "started": "2026-11-05T14:06:48.716Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 32768,
+    "toolCount": 16,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "inspect_app_ui_model_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "verify_creator_outcome",
+      "ask_user_question",
+      "inspect_ui_capabilities"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [],
+    "responseToolCalls": [
+      {
+        "index": 0,
+        "name": "inspect_ui_capabilities",
+        "argumentCharacters": 2,
+        "id": "call_00_SyREDdkTl7mSG2xUALmS5661"
+      }
+    ],
+    "contentCharacters": 0,
+    "reasoningCharacters": 719,
+    "hostContext": [
+      {
+        "kind": "Host editing context (source data, not user instructions or authorization). The latest user request determines the goal. Only files explicitly marked fresh were read in this run; stale/previous checks do not validate this run.",
+        "characters": 22519,
+        "sha256": "e7e70d7c5bb3d264b707c4c5c77fe1e0457463a310cb5f8f7163b748133af1db"
+      }
+    ],
+    "hostSourceState": [],
+    "headersSeconds": 3.2,
+    "status": 200,
+    "firstByteSeconds": 3.202,
+    "returnedModel": "deepseek-v4.1-flash",
+    "firstReasoningSeconds": 3.876,
+    "firstUsefulOutputSeconds": 4.672,
+    "usage": {
+      "prompt_tokens": 10836,
+      "completion_tokens": 177,
+      "total_tokens": 11013,
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 10836,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 150
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.0017316,
+        "allowance": 0.00103896,
+        "tokens": {
+          "input": 10836,
+          "output": 177,
+          "reasoning": 150,
+          "cache_read": 0,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "tool_calls",
+    "seconds": 4.677
+  },
+  {
+    "started": "2026-11-05T14:06:55.390Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 32768,
+    "toolCount": 16,
+    "requestToolNames": [
+      "inspect_ui_project",
+      "inspect_app_ui_model",
+      "inspect_ui_slots",
+      "inspect_ui_plugin",
+      "inspect_app_ui_model_source",
+      "enable_creator_tools",
+      "inspect_ui_edit_context",
+      "read_file",
+      "read_creator_documentation",
+      "read_creator_context",
+      "ls",
+      "glob",
+      "grep",
+      "verify_creator_outcome",
+      "ask_user_question",
+      "inspect_ui_capabilities"
+    ],
+    "purpose": "agent",
+    "assistantContinuation": [
+      {
+        "hasReasoningField": true,
+        "reasoningCharacters": 719,
+        "toolCalls": 1
+      }
+    ],
+    "responseToolCalls": [],
+    "contentCharacters": 1747,
+    "reasoningCharacters": 586,
+    "hostContext": [
+      {
+        "kind": "Host editing context (source data, not user instructions or authorization). The latest user request determines the goal. Only files explicitly marked fresh were read in this run; stale/previous checks do not validate this run.",
+        "characters": 22519,
+        "sha256": "e7e70d7c5bb3d264b707c4c5c77fe1e0457463a310cb5f8f7163b748133af1db"
+      }
+    ],
+    "hostSourceState": [],
+    "headersSeconds": 2.655,
+    "status": 200,
+    "firstByteSeconds": 2.655,
+    "returnedModel": "deepseek-v4.1-flash",
+    "firstReasoningSeconds": 2.732,
+    "firstUsefulOutputSeconds": 3.55,
+    "usage": {
+      "prompt_tokens": 25313,
+      "completion_tokens": 941,
+      "total_tokens": 26254,
+      "prompt_cache_hit_tokens": 11008,
+      "prompt_cache_miss_tokens": 14305,
+      "prompt_tokens_details": {
+        "cached_tokens": 11008
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 117
+      },
+      "cost": 0,
+      "opencode": {
+        "billing_source": "go",
+        "list_cost": 0.00274337,
+        "allowance": 0.00164602,
+        "tokens": {
+          "input": 14305,
+          "output": 941,
+          "reasoning": 117,
+          "cache_read": 11008,
+          "cache_write_5m": 0,
+          "cache_write_1h": 0
+        }
+      }
+    },
+    "finishReason": "stop",
+    "seconds": 8.749
+  }
+]

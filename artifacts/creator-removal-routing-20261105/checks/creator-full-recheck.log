@@ -1,0 +1,9 @@
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+
+ Test Files  54 passed (54)
+      Tests  564 passed (564)
+   Start at  23:16:01
+   Duration  12.36s (transform 4.23s, setup 0ms, import 18.53s, tests 48.32s, environment 3.32s)
+

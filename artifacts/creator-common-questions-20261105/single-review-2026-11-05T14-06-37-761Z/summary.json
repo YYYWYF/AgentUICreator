@@ -1,0 +1,19 @@
+{
+  "question": "你能做什么",
+  "status": "success",
+  "secondsFromSubmitToComplete": 16.848,
+  "harnessWallSeconds": 57.967,
+  "toolCalls": 1,
+  "modelHttpRequests": 2,
+  "model": "deepseek-v4.1-flash",
+  "outputBudget": 32768,
+  "usage": {
+    "input": 36149,
+    "output": 1118,
+    "missingResponses": 0
+  },
+  "changedPaths": [],
+  "browserErrors": [],
+  "answerFile": "answer.md",
+  "approvalPolicy": "No simulated approval or follow-up; stop at first reply or question. Only one question was submitted."
+}

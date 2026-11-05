@@ -1,0 +1,51 @@
+{
+  "caseId": "common01-capabilities",
+  "status": "success",
+  "seconds": 16.848,
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "executionPolicy": "read-only",
+    "receipt": {
+      "files": [],
+      "validations": [],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-05T14-06-47.513Z_9750d3b0419ec2d0106896974b18aed80cb397e07b9b9e36e389c3d45a3d2928.jsonl"
+      },
+      "transaction": {
+        "runId": "50516a61-503b-43e9-a5ef-3e188fd50c16",
+        "undoable": false,
+        "reapplyable": false,
+        "changedPaths": [],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "no-project-change",
+        "projectRevision": 0,
+        "validationRevision": null,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 2,
+      "toolCalls": 1
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "toolCalls": 1,
+  "changedPaths": [],
+  "qaApprovals": [],
+  "browserErrors": []
+}

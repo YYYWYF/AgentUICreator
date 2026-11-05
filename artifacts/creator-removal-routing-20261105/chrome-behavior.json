@@ -1,0 +1,11 @@
+{
+  "browser": "Google Chrome",
+  "url": "http://127.0.0.1:5173/",
+  "submittedAt": "2026-11-05T15:40:56.953Z",
+  "observedCompletedAt": "2026-11-05T15:42:22.598Z",
+  "during": "正在思考...",
+  "completion": "思考已完成，开始回答。",
+  "thinkingRemoved": true,
+  "reasoningDetailsVisible": false,
+  "method": "Native CUA click and streamed AX observations. Completion timestamp is an upper bound because other evidence processing occurred between observations."
+}

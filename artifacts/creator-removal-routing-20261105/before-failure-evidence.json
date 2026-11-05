@@ -1,0 +1,118 @@
+{
+  "scope": "Read-only analysis of two actual UI attempts. No new model request or product code change.",
+  "attempts": [
+    {
+      "stream": "e583be36-8cc2-4e96-8bb4-74b68bb7a536.sse",
+      "mutation": {
+        "input": {
+          "appUIModelHash": "38b08d9276aad3b16c2f8fef23f199569cf5b570f944dbd8674b4c61ba1e09be",
+          "operations": [
+            {
+              "type": "set_plugin_enabled",
+              "instanceId": "p11",
+              "enabled": false
+            },
+            {
+              "type": "insert_plugin",
+              "plugin": {
+                "pluginId": "thinking-indicator"
+              },
+              "target": {
+                "type": "plugin_slot",
+                "parentInstanceId": "p5",
+                "slot": "thinkingIndicator"
+              },
+              "index": 0
+            }
+          ]
+        },
+        "output": {
+          "ok": true,
+          "result": {
+            "changed": false,
+            "status": "needs_target_clarification",
+            "retryable": false
+          }
+        }
+      },
+      "finalReply": "还无法确定你说的“我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失”对应当前工程中的哪个插件。你指的是哪个功能或界面位置？",
+      "protocol": {
+        "modelCalls": 5,
+        "toolCalls": 6
+      },
+      "noChange": {
+        "toolName": "mutate_app_ui_model",
+        "status": "needs_target_clarification"
+      }
+    },
+    {
+      "stream": "e64a0c72-d64e-4c8f-86a0-602f63e5a785.sse",
+      "mutation": {
+        "input": {
+          "appUIModelHash": "38b08d9276aad3b16c2f8fef23f199569cf5b570f944dbd8674b4c61ba1e09be",
+          "operations": [
+            {
+              "type": "set_plugin_enabled",
+              "instanceId": "p11",
+              "enabled": false
+            },
+            {
+              "type": "insert_plugin",
+              "plugin": {
+                "pluginId": "thinking-indicator"
+              },
+              "target": {
+                "type": "plugin_slot",
+                "parentInstanceId": "p5",
+                "slot": "thinkingIndicator"
+              }
+            }
+          ]
+        },
+        "output": {
+          "ok": true,
+          "result": {
+            "changed": false,
+            "status": "needs_target_clarification",
+            "retryable": false
+          }
+        }
+      },
+      "finalReply": "还无法确定你说的“我说的就是要thinkingIndicator，不要现在那个深度思考”对应当前工程中的哪个插件。你指的是哪个功能或界面位置？",
+      "protocol": {
+        "modelCalls": 2,
+        "toolCalls": 3
+      },
+      "noChange": {
+        "toolName": "mutate_app_ui_model",
+        "status": "needs_target_clarification"
+      }
+    }
+  ],
+  "actualReasoningIdentity": {
+    "pluginId": "reasoning",
+    "name": "Conversation Reasoning Renderer",
+    "targetNames": [
+      "reasoning",
+      "Conversation Reasoning Renderer",
+      "展开 Agent 思考内容"
+    ]
+  },
+  "matcherProbe": [
+    {
+      "request": "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失",
+      "currentMatch": false,
+      "withOnlyChineseAlias": false
+    },
+    {
+      "request": "我说的就是要thinkingIndicator，不要现在那个深度思考",
+      "currentMatch": false,
+      "withOnlyChineseAlias": true
+    },
+    {
+      "request": "停用 reasoning，加入 thinking-indicator",
+      "currentMatch": true,
+      "withOnlyChineseAlias": true
+    }
+  ]
+}

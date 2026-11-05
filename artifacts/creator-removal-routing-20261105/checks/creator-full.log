@@ -1,0 +1,32 @@
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+ ❯ tests/creator-model-config.test.ts (12 tests | 2 failed) 2255ms
+   × falls back after a streamed schema grammar rejection and still validates the complete authorization (named event: false) 8ms
+   × falls back after a streamed schema grammar rejection and still validates the complete authorization (named event: true) 7ms
+
+ Test Files  1 failed | 53 passed (54)
+      Tests  2 failed | 562 passed (564)
+   Start at  23:13:44
+   Duration  11.42s (transform 3.74s, setup 0ms, import 15.70s, tests 43.56s, environment 2.50s)
+
+undefined
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-model-config.test.ts > falls back after a streamed schema grammar rejection and still validates the complete authorization (named event: false)
+ FAIL  tests/creator-model-config.test.ts > falls back after a streamed schema grammar rejection and still validates the complete authorization (named event: true)
+TypeError: log is not a function
+ ❯ CreatorAgentRuntime.classify src/agent/runner.ts:141:17
+    139|         // JSON object mode retains exact local validation and fail-cl…
+    140|         if (schemaSupported && isJsonSchemaUnsupported(error)) {
+    141|           await log?.("request_route_schema_fallback", { attempt, reas…
+       |                 ^
+    142|           schemaSupported = false; attempt--; continue;
+    143|         }
+ ❯ tests/creator-model-config.test.ts:135:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+

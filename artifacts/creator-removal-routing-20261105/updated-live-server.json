@@ -1,0 +1,22 @@
+{
+  "creatorUrl": "http://127.0.0.1:5173/",
+  "hostUrl": "http://127.0.0.1:5174/",
+  "hostRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host",
+  "pid": 28930,
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-common-questions-20261105/single-review-2026-11-05T14-06-37-761Z",
+  "pageErrors": [],
+  "question": "你能做什么",
+  "originalQuestionSeconds": 16.848,
+  "restoredActualUIConversation": true,
+  "verifiedInFreshBrowser": true,
+  "originalServerPid": 19718,
+  "updatedAt": "2026-11-05T15:17:57.206Z",
+  "reusedTarget": true,
+  "reloadRequired": true,
+  "frozenCreatorAssetHashes": {
+    "runner.js": "0c6d8189217bb178284e86a4630efebf043a382212d0ebfdbaa45489bffabfa1",
+    "tools.js": "6bfe678a28c5741ee96d341501e456a7e91525e470cf8f27867568d0341c57c7",
+    "execution-decision.js": "4cef4eecab3334d21cadb2b589a77b62596b36ddc22b69cc30a163708b22297c",
+    "plugin-target-names.js": "0dafb391a9e025767767621ea1e61006153178c2a4e9d08d03e41e48b6404c1e"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "before-app-ui.json": "38b08d9276aad3b16c2f8fef23f199569cf5b570f944dbd8674b4c61ba1e09be",
+  "before-source-hashes.json": "7e009a4f27fe180d4300a06419efaedee55736462879762eefd68b475a4dd058",
+  "before.png": "08a4c33e13b8d42ac0540d46ab62ef7c41cf346d96368ed6b637bee825241ad3",
+  "browser-observation.json": "0a467886bf60846b65ccf0bc7fdaad6545856a007f31ff0c0e9540975d16eba2",
+  "native-metrics.jsonl": "3370763dac7a4e432438afeb6ec5454533593faf2d51ec5c9bcadf29750ffe4b",
+  "preview-preparation.json": "71288820ac5977ac4af203ec7c87a8837a67ba2838f73d557f9e4f02642a5a72",
+  "result-wide.png": "653d14cd845f262b250a28c0995eee7554e7239550ec38d35b685d6530194dc2",
+  "result.png": "da67b494b572312ca3c43a6755f90ae3df34e5b8b9a14fd07f21a68bb119309b",
+  "submission.json": "2f62a7e953d3b7db7313da4b59d7f6e6807f5760f5fe81aaa5101a57842508bf",
+  "summary.json": "0ba89f4d87f698617701694eccd4900d6ab778e920c10038327f2d5fdb393e72"
+}

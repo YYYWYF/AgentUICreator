@@ -4,7 +4,6 @@ export const zhCN = {
     "purge": "彻底删除",
     "cancel": "取消",
     "cancelledReply": "已取消本次操作，后续修改和重试已停止。",
-    "unclearTargetReply": "还无法确定你说的“{0}”对应当前工程中的哪个插件。你指的是哪个功能或界面位置？",
     "takeoverQuestion": "是否将 {0} 的实现源码接管到项目？",
     "approveTakeover": "同意接管",
     "pluginApplicationQuestion": "是否为 {0} 创建下列缺失的项目应用文件，继续使用 npm 实现而不接管源码？",

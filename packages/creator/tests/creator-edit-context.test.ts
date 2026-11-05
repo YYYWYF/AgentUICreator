@@ -16,8 +16,8 @@ import { EditingSessionStore } from "../src/agent/editing-session.js";
 import { inspectProject, projectInspectionSummary } from "../src/agent/inspection.js";
 import { readProjectFile, logicalProjectPath } from "../src/agent/project-read.js";
 import { preparePluginDirectory, projectPluginDirectory } from "../src/agent/plugin-directory.js";
-import { assertRemovalScope, assertInstanceRetention, parseRemovalTarget, cancelExecution, removalInstanceIds } from "../src/agent/execution-decision.js";
-import { namesRequestedPlugins, namesRequestedRemoval } from "../src/agent/plugin-target-names.js";
+import { assertInstanceRetention, cancelExecution, removalInstanceIds } from "../src/agent/execution-decision.js";
+import { namesRequestedPlugins } from "../src/agent/plugin-target-names.js";
 import { localModuleReferences } from "../src/agent/edit-context-sources.js";
 import { isJsonSchemaUnsupported } from "../src/agent/model-policy.js";
 
@@ -410,15 +410,7 @@ class ScriptedModel extends BaseChatModel {
   _llmType() { return "creator-edit-context-regression"; }
   bindTools(tools: any[]) { this.bound.push(tools.map(tool => tool.name)); return this; }
   async _generate(messages: BaseMessage[]) {
-    let message = this.answer(this.calls++, messages);
-    // Existing scripts describe ordinary edits. Supply the classifier's new
-    // structured field only for inventory-aware routing, never execution calls.
-    if (JSON.stringify(messages).includes('"projectPlugins"') || JSON.stringify(messages).includes('\\"projectPlugins\\"')) {
-      try {
-        const value = JSON.parse(String(message.content));
-        if (value.permission && !value.removalTarget) message = new AIMessage(JSON.stringify({ ...value, removalTarget: { status: "not_requested", description: "", pluginIds: [] } }));
-      } catch { /* Native tool calls and prose are not routing JSON. */ }
-    }
+    const message = this.answer(this.calls++, messages);
     return { generations: [{ text: "", message }] };
   }
 }
@@ -526,7 +518,6 @@ it("keeps composition unchanged until permanent source deletion receives its own
   const fixture = directoryFixture(); fixture.appUIModel.layout.children[0]!.nodeRef = "l4";
   fixture.pluginInstances[1]!.target = { type: "layout_slot", slotRef: "l4" };
   state.inspect.mockResolvedValue(fixture);
-  context.removalTarget = { status: "resolved", description: "会话历史", pluginIds: ["history"] };
   context.userMessage = "把会话历史插件连同源码永久删除。";
   const tools = await createTools(context), mutation = tools.find(tool => tool.name === "mutate_app_ui_model")!;
   for (const op of [{ type: "remove_plugin", instanceId: "history-1" }, { type: "set_plugin_enabled", instanceId: "history-1", enabled: false }, { type: "remove_layout_node", nodeRef: "l4" }]) {
@@ -540,7 +531,6 @@ it("keeps composition unchanged until permanent source deletion receives its own
 
 it("rejects structural deletion before Operator mutation and returns an actionable disable alternative", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  context.removalTarget = { status: "resolved", description: "会话历史", pluginIds: ["history"] };
   context.userMessage = "会话历史这个插件不要了。";
   const tools = await createTools(context), mutation = tools.find(tool => tool.name === "mutate_app_ui_model")!;
   const result = JSON.parse(await mutation.invoke({ appUIModelHash: "a".repeat(64), operations: [{ type: "remove_plugin", instanceId: "history-1" }] }));
@@ -563,7 +553,7 @@ it("refreshes first-call Plugin facts in each run rather than replaying old enab
 it("provides Plugin metadata before the first execution model call while keeping permission classification separate", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) { expect(JSON.stringify(messages)).toContain("projectPlugins"); expect(JSON.stringify(messages)).not.toContain("applicationPath"); return new AIMessage('{"permission":"domain_write"}'); }
+    if (index === 0) { expect(JSON.stringify(messages)).not.toContain("projectPlugins"); expect(JSON.stringify(messages)).not.toContain("applicationPath"); return new AIMessage('{"permission":"domain_write"}'); }
     if (index === 1) {
       const input = JSON.stringify(messages);
       expect(input).toContain("pluginDirectory"); expect(input).toContain("翻看之前聊过什么");
@@ -615,7 +605,7 @@ it("keeps general file inspection usable when project Plugin discovery is unavai
 it("ends a cancelled purge without another model call, mutation, or confirmation", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   state.model = new ScriptedModel(index => [
-    new AIMessage(JSON.stringify({ permission: "domain_write", removalTarget: { status: "resolved", description: "聊天历史", pluginIds: ["history"] } })),
+    new AIMessage('{"permission":"domain_write"}'),
     call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "purge"),
     call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations: [{ type: "remove_plugin", instanceId: "history-instance" }] }, "must-not-run"),
   ][index]!);
@@ -646,10 +636,10 @@ it("ends a cancelled purge without another model call, mutation, or confirmation
 });
 
 it.each([
-  { request: "加一个中英文切换按钮。", route: "unresolved", hideAttachment: false },
-  { request: "就是一个能把界面在中文和英文之间切换的按钮，放在聊天区右上角就行。", route: "resolved", hideAttachment: false },
-  { request: "加一个中英文切换按钮，并隐藏附件入口。", route: "resolved", hideAttachment: true },
-])("executes additions despite an irrelevant removal route: $request", async ({ request, route, hideAttachment }) => {
+  { request: "加一个中英文切换按钮。", hideAttachment: false },
+  { request: "就是一个能把界面在中文和英文之间切换的按钮，放在聊天区右上角就行。", hideAttachment: false },
+  { request: "加一个中英文切换按钮，并隐藏附件入口。", hideAttachment: true },
+])("executes additions and requested sibling edits from current project evidence: $request", async ({ request, hideAttachment }) => {
   const context = await project(); passingValidation();
   const fixture = directoryFixture() as any;
   fixture.capabilitySummaries.push({ pluginId: "locale-switch", name: "Locale Switch" }, { pluginId: "add-attachment-action", name: "Attachment" });
@@ -671,7 +661,7 @@ it.each([
     return fixture;
   });
   state.model = new ScriptedModel(index => [
-    new AIMessage(JSON.stringify({ permission: "domain_write", removalTarget: { status: route, description: "中英文切换", pluginIds: route === "resolved" ? ["locale-switch"] : [] } })),
+    new AIMessage('{"permission":"domain_write"}'),
     call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations }, "add-locale"),
     new AIMessage("Added the language control."),
   ][index]!);
@@ -685,31 +675,98 @@ it.each([
   expect(state.model.calls).toBe(3);
 });
 
-it("recognizes a requested 去掉 without treating its negation or an addition as removal", () => {
-  const attachment = [{ pluginId: "add-attachment-action" }];
-  const copy = [{ pluginId: "copy-action" }];
-  expect(namesRequestedRemoval("先把输入框里的添加附件按钮去掉，其他功能保留。", attachment)).toBe(true);
-  expect(namesRequestedRemoval("不要去掉附件按钮，去掉复制按钮。", attachment)).toBe(false);
-  expect(namesRequestedRemoval("不要去掉附件按钮，去掉复制按钮。", copy)).toBe(true);
-  expect(namesRequestedRemoval("增加附件按钮。", attachment)).toBe(false);
+it.each([
+  "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失",
+  "我说的就是要thinkingIndicator，不要现在那个深度思考",
+])("composes inspected thinking controls without requiring literal Plugin names: %s", async request => {
+  const context = await project(); passingValidation();
+  const fixture = directoryFixture() as any;
+  fixture.capabilitySummaries.push({ pluginId: "reasoning", name: "Conversation Reasoning Renderer" },
+    { pluginId: "thinking-indicator", name: "Conversation Thinking Indicator" });
+  fixture.pluginInstances.push({ id: "p11", pluginId: "reasoning", enabled: true,
+    target: { type: "plugin_slot", parentInstanceId: "p5", slot: "reasoningGroup" } });
+  const operations = [{ type: "set_plugin_enabled", instanceId: "p11", enabled: false },
+    { type: "insert_plugin", plugin: { pluginId: "thinking-indicator" }, target: { type: "plugin_slot", parentInstanceId: "p5", slot: "thinkingIndicator" } }];
+  const file = "src/应用/app-ui.json";
+  await writeFile(path.join(context.root, file), JSON.stringify(fixture.pluginInstances));
+  state.inspect.mockImplementation(async (_root, operation, input) => {
+    if (operation === "mutate_app_ui_model") {
+      expect(input).toEqual({ appUIModelHash: "a".repeat(64), operations });
+      fixture.pluginInstances.find((item: any) => item.id === "p11").enabled = false;
+      fixture.pluginInstances.push({ id: "thinking", pluginId: "thinking-indicator", enabled: true });
+      await writeFile(path.join(context.root, file), JSON.stringify(fixture.pluginInstances));
+      return { changed: true, changedPaths: [file] };
+    }
+    expect(operation).toBe("inspect_ui_project"); return fixture;
+  });
+  state.model = new ScriptedModel((index, messages) => {
+    if (index === 0) {
+      expect(JSON.stringify(messages)).not.toContain("projectPlugins");
+      expect(JSON.stringify(messages)).not.toContain("removalTarget");
+      return new AIMessage('{"permission":"domain_write"}');
+    }
+    if (index === 1) return call("inspect_ui_project", { view: "composition" }, "inspect-thinking");
+    if (index === 2) {
+      expect(JSON.stringify(messages)).toContain("p11");
+      return call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations }, "replace-thinking");
+    }
+    return new AIMessage("Updated the inspected composition.");
+  });
+  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
+  await runtime.run({ threadId: "thinking", runId: "thinking-1", messages: [{ role: "user", content: request }] }, context.signal, async event => { events.push(event); });
+  expect(events.filter(event => event.type === "RUN_ERROR")).toEqual([]);
+  expect(events.at(-1).result).toMatchObject({ completion: "success", receipt: { verification: { status: "changed-and-statically-verified" } } });
+  expect(state.inspect.mock.calls.filter(([, operation]) => operation === "mutate_app_ui_model")).toHaveLength(1);
+  expect(JSON.parse(await readFile(path.join(context.root, file), "utf8"))).toContainEqual(expect.objectContaining({ id: "p11", enabled: false }));
+  expect(state.model.calls).toBe(4);
 });
 
-it("permits inspection but blocks an unresolved removal before execution or confirmation", async () => {
-  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => index === 0
-    ? new AIMessage(JSON.stringify({ permission: "domain_write", removalTarget: { status: "unresolved", description: "绘画历史面板", pluginIds: [] } }))
-    : index === 1 ? call("read_file", { file_path: "/" + entry }, "inspect-first")
-    : new AIMessage({ content: "我先移除历史面板。", tool_calls: [{ name: "purge_ui_plugin", args: { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, id: "wrong-target", type: "tool_call" }] }));
+it("lets the Agent ask about genuinely ambiguous project evidence without a Host-generated terminal reply", async () => {
+  const context = await project(); state.inspect.mockResolvedValue(directoryFixture());
+  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
+    : index === 1 ? call("inspect_ui_project", { view: "composition" }, "inspect-unknown")
+    : call("ask_user_question", { steps: [{ id: "feature", question: "你指的是哪个位置？", options: [{ id: "sidebar", label: "侧栏" }, { id: "message", label: "消息区" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "clarify-feature"));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
-  await runtime.run({ threadId: "unknown", runId: "unknown-1", messages: [{ role: "user", content: "不要那个绘画历史面板" }] }, context.signal, async event => { events.push(event); });
-  expect(state.model.calls).toBe(3);
-  expect(events.filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallName)).toEqual(["read_file", "purge_ui_plugin"]);
-  expect(events.some(event => event.name === "on_interrupt")).toBe(false);
-  expect(state.inspect.mock.calls.some(([, name]) => name === "purge_ui_plugin")).toBe(false);
-  expect(events.at(-1).result).toMatchObject({ completion: "success", noChangeOutcome: { status: "needs_target_clarification" }, receipt: { files: [] } });
-  expect(events.filter(event => event.type === "TEXT_MESSAGE_CONTENT").map(event => event.delta).join("")).toContain("绘画历史面板");
-  expect(events.filter(event => event.type === "TEXT_MESSAGE_CONTENT").at(-1)?.delta).toContain("你指的是哪个功能或界面位置");
+  await runtime.run({ threadId: "ambiguous", runId: "ambiguous-1", messages: [{ role: "user", content: "不要那个绘画历史面板" }] }, context.signal, async event => { events.push(event); });
+  expect(events.at(-1).result.completion).toBe("needs_user_input");
+  expect(events.find(event => event.name === "on_interrupt").value.metadata.steps[0].id).toBe("feature");
+  expect(state.inspect.mock.calls.some(([, operation]) => operation === "mutate_app_ui_model")).toBe(false);
   expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
+});
+
+it("keeps source purge behind its concrete confirmation for a natural feature description", async () => {
+  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
+  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
+    : call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "propose-purge"));
+  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
+  await runtime.run({ threadId: "purge-plan", runId: "purge-plan-1", messages: [{ role: "user", content: "把之前聊过的那些记录入口和源码移除" }] }, context.signal, async event => { events.push(event); });
+  const question = events.find(event => event.name === "on_interrupt");
+  expect(question.value.metadata.steps[0]).toMatchObject({ id: "plugin-removal" });
+  expect(question.value.metadata.steps[0].description).toContain('"pluginId":"history"');
+  expect(events.at(-1).result.completion).toBe("needs_user_input");
+  expect(state.inspect.mock.calls.some(([, operation]) => operation === "purge_ui_plugin")).toBe(false);
+  expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
+});
+
+it.each(["APP_UI_MODEL_HASH_MISMATCH", "PLUGIN_INSTANCE_NOT_FOUND"])("preserves authoritative Operator failure %s instead of replacing it with a target question", async code => {
+  const context = await project(); passingValidation();
+  state.inspect.mockImplementation(async (_root, operation) => {
+    if (operation === "mutate_app_ui_model") throw Object.assign(new Error(code), { code });
+    return directoryFixture();
+  });
+  const tools = await createTools(context), mutation = tools.find(item => item.name === "mutate_app_ui_model")!;
+  const result = JSON.parse(await mutation.invoke({ appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "p11", enabled: false }] }));
+  expect(result).toMatchObject({ ok: false, error: { code } });
+  expect(context.executionDecision).toBeUndefined();
+  expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
+});
+
+it("denies direct composition mutation under a read-only request", async () => {
+  const context = await project(); passingValidation(); context.readOnly = true;
+  state.inspect.mockResolvedValue(directoryFixture()); await createTools(context);
+  await expect(context.hostTools!.get("mutate_app_ui_model")!({ appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "history-1", enabled: false }] })).rejects.toThrow("TOOL_PERMISSION_DENIED");
+  expect(state.inspect).not.toHaveBeenCalled();
+  expect(context.validation!.ensureBaseline).not.toHaveBeenCalled();
 });
 
 it("enforces terminal decisions at direct Host tool entry points too", async () => {
@@ -719,91 +776,12 @@ it("enforces terminal decisions at direct Host tool entry points too", async () 
   expect(context.validation!.ensureBaseline).not.toHaveBeenCalled();
 });
 
-it("independently rejects a router substitution using the latest request rather than its inferred description", async () => {
-  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => {
-    if (index === 1) return call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "substituted-target");
-    expect(index).toBe(0);
-    return new AIMessage(JSON.stringify({ permission: "domain_write", removalTarget: { status: "resolved", description: "聊天历史面板", pluginIds: ["history"] } }));
-  });
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
-  await runtime.run({ threadId: "wrong-inference", runId: "wrong-inference-1", messages: [{ role: "user", content: "以前画图的历史面板我不想要了" }] }, context.signal, async event => { events.push(event); });
-  expect(state.model.calls).toBe(2);
-  expect(state.inspect.mock.calls.some(([, name]) => name === "purge_ui_plugin")).toBe(false);
-  expect(events.some(event => event.name === "on_interrupt")).toBe(false);
-  expect(events.at(-1).result.noChangeOutcome.status).toBe("needs_target_clarification");
-});
-
-it("rejects forged removal identities, including a layout containing an unrelated Plugin", () => {
-  const target = parseRemovalTarget({ status: "resolved", description: "聊天历史", pluginIds: ["history"] }, [{ pluginId: "history" }]);
-  expect(() => parseRemovalTarget({ ...target, pluginIds: ["invented"] }, [{ pluginId: "history" }])).toThrow("CREATOR_REQUEST_ROUTE_INVALID");
-  expect(() => assertRemovalScope(target, "purge_ui_plugin", { pluginId: "composer" }, undefined)).toThrow("CREATOR_REMOVAL_TARGET_MISMATCH");
-  const fixture = directoryFixture();
-  expect(() => assertRemovalScope(target, "mutate_app_ui_model", { operations: [{ type: "set_plugin_enabled", instanceId: "input", enabled: false }] }, fixture)).toThrow("CREATOR_REMOVAL_TARGET_MISMATCH");
-  expect(() => assertRemovalScope(target, "mutate_app_ui_model", { operations: [{ type: "remove_layout_node", nodeRef: "root" }] }, { ...fixture, pluginInstances: [{ id: "input", pluginId: "composer", target: { type: "layout_slot", slotRef: "history-slot" } }] })).toThrow("CREATOR_REMOVAL_TARGET_MISMATCH");
-});
-
-it("keeps the grounded visible target when the router also selects unnamed backing services", async () => {
-  const context = await project();
-  const plugins = ["conversation-thread-list", "conversation-data-source", "conversation-service"].map(pluginId => ({ pluginId, instances: [] }));
-  state.model = new ScriptedModel(() => new AIMessage(JSON.stringify({ permission: "domain_write", removalTarget: {
-    status: "resolved", description: "会话历史", pluginIds: plugins.map(item => item.pluginId),
-  } })));
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
-  const policy = await (runtime as any).classify([{ role: "user", content: "会话历史这个插件不要了。" }], "grounded-service", context.signal, { status: "available", plugins });
-  expect(policy).toEqual({ readOnly: false, removalTarget: { status: "resolved", description: "会话历史", pluginIds: ["conversation-thread-list"] } });
-  expect(() => assertRemovalScope(policy.removalTarget, "purge_ui_plugin", { pluginId: "conversation-service" }, undefined)).toThrow("CREATOR_REMOVAL_TARGET_MISMATCH");
-  const unknown = await (runtime as any).classify([{ role: "user", content: "不要那个自动翻译会话内容的浮窗。" }], "unknown-service", context.signal, { status: "available", plugins });
-  expect(unknown.removalTarget).toMatchObject({ status: "unresolved", pluginIds: [] });
-});
-
 it("grounds complete feature names, source preservation and bare references without dropping new qualifiers", () => {
   const plugins = [{ pluginId: "conversation-thread-list", name: "Conversation Thread List" }];
   for (const request of ["改主意了，现在只隐藏聊天历史入口，不删除任何源码。", "还是先停用聊天历史入口吧，只隐藏按钮，所有代码都保留。", "把聊天历史入口隐藏并保留源码", "把conversation-thread-list隐藏"]) expect(namesRequestedPlugins(request, plugins)).toBe(true);
   for (const request of ["以前画图的历史面板我不想要了。", "不要那个绘画历史面板", "不要绘画历史，保留聊天历史", "不要隐藏聊天历史", "删除conversation-thread-list-custom"]) expect(namesRequestedPlugins(request, plugins)).toBe(false);
   expect(namesRequestedPlugins("刚才那个插件我不想要了。", plugins, [{ user: "聊天历史入口对应什么插件？", assistant: "conversation-thread-list" }])).toBe(true);
   expect(namesRequestedPlugins("那个绘画历史面板不要了。", plugins, [{ user: "聊天历史是什么插件？" }])).toBe(false);
-});
-
-it("matches locale descriptions without treating an addition as removal authority", () => {
-  const locale = { pluginId: "locale-switch", name: "Locale Switch" }, attachment = { pluginId: "add-attachment-action" };
-  for (const request of ["加一个中英文切换按钮。", "就是一个能把界面在中文和英文之间切换的按钮，放在聊天区右上角就行。", "加一个中英切换按钮"]) {
-    expect(namesRequestedPlugins(request, [locale])).toBe(true);
-    expect(namesRequestedRemoval(request, [locale])).toBe(false);
-  }
-  expect(namesRequestedRemoval("加一个中英文切换按钮，并隐藏附件入口。", [attachment])).toBe(true);
-  expect(namesRequestedRemoval("加一个中英文切换按钮，并隐藏附件入口。", [locale])).toBe(false);
-  expect(namesRequestedRemoval("隐藏中英文切换按钮", [locale])).toBe(true);
-  expect(namesRequestedRemoval("不要隐藏中英文切换按钮", [locale])).toBe(false);
-  expect(namesRequestedRemoval("Add a language switch and hide attachment", [attachment])).toBe(true);
-  expect(namesRequestedRemoval("Add a language switch and hide attachment", [locale])).toBe(false);
-});
-
-it("does not use a named addition as authority to hide that same Plugin", async () => {
-  const context = await project(); passingValidation();
-  const fixture = directoryFixture() as any;
-  fixture.capabilitySummaries.push({ pluginId: "locale-switch", name: "Locale Switch" });
-  fixture.pluginInstances.push({ id: "locale", pluginId: "locale-switch", enabled: true });
-  context.pluginNames = projectPluginDirectory(fixture).plugins;
-  context.removalTarget = { status: "unresolved", description: "中英文切换", pluginIds: [] };
-  context.userMessage = "加一个中英文切换按钮。";
-  state.inspect.mockResolvedValue(fixture);
-  await createTools(context);
-  const result = await context.hostTools!.get("mutate_app_ui_model")!({ appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "locale", enabled: false }] });
-  expect(result).toMatchObject({ changed: false, status: "needs_target_clarification" });
-  expect(state.inspect.mock.calls.some(([, operation]) => operation === "mutate_app_ui_model")).toBe(false);
-  expect(context.validation!.ensureBaseline).not.toHaveBeenCalled();
-});
-
-it("checks the actual removal at the tool boundary even when routing omitted a removal target", async () => {
-  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
-    : call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "history-1", enabled: false }] }, "wrong-removal"));
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
-  await runtime.run({ threadId: "tool-target", runId: "tool-target-1", messages: [{ role: "user", content: "不要那个绘画历史面板" }] }, context.signal, async event => { events.push(event); });
-  expect(state.model.calls).toBe(2);
-  expect(state.inspect.mock.calls.some(([, name]) => name === "mutate_app_ui_model")).toBe(false);
-  expect(events.at(-1).result).toMatchObject({ completion: "success", noChangeOutcome: { status: "needs_target_clarification" }, receipt: { files: [] } });
 });
 
 it("does not hide cancellation behind an unavailable Plugin directory", async () => {

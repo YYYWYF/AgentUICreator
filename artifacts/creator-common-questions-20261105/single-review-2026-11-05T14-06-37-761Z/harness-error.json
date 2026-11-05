@@ -1,0 +1,7 @@
+{
+  "status": "HARNESS_ERROR",
+  "name": "TimeoutError",
+  "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('你能做什么', { exact: true }).first() to be visible\u001b[22m\n",
+  "seconds": 47.118,
+  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/common01-capabilities-single-review-2026-11-05T14-06-37-761Z-2026-11-05T14-06-38-899Z"
+}

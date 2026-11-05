@@ -1,0 +1,10 @@
+The following is a diff from the previous accessibility tree for Window: "127.0.0.1:5173" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 543, 547-549
++											547 文本 思考已完成，开始回答。
++											548 按钮 复制
++											549 按钮 重试
++											550 弹出式按钮 更多操作
++												551 按钮 (disabled) 发送消息
+~												498 按钮 验证思考占位，请给一个简短答复
+~					466 标签 (selected, settable, boolean) Description: 127.0.0.1:5173 - 内存用量 - 226 MB, Value: on
+The focused UI element is 473 HTML 内容 127.0.0.1:5174/?creator-preview

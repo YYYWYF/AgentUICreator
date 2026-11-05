@@ -40,11 +40,3 @@ export function namesRequestedPlugins(request: string, plugins: readonly { plugi
   const bareReference = /^(?:请|帮我)?(?:这个|那个|刚才(?:这个|那个)?|刚才的|它)(?:插件|功能|按钮)?(?:我)?(?:不想要了|不需要了|不要了|隐藏|停用|关掉)[。！!\s]*$/u.test(request.trim());
   return bareReference && names.every(aliases => history.slice(-2).some(turn => aliases.some(alias => contains(`${turn.user}\n${turn.assistant ?? ""}`.toLowerCase(), alias))));
 }
-
-/** Naming a Plugin for an addition is not authority to remove that Plugin. */
-export function namesRequestedRemoval(request: string, plugins: Parameters<typeof namesRequestedPlugins>[1], history: Parameters<typeof namesRequestedPlugins>[2] = []) {
-  const clauses = request.split(/[，。；;,\n]|并且|然后|接着|同时|顺便|并|\band\s+(?=(?:hide|disable|remove|delete|replace|purge)\b)/iu)
-    .filter(clause => !/(?:不要|不用|无需|不必|不需要|别|不)(?:再)?(?:隐藏|停用|禁用|关掉|关闭|删除|移除|替换|去掉)|\b(?:do not|don't|without)\s+(?:hide|disable|remove|delete|replace|purge)\b/iu.test(clause))
-    .filter(clause => /隐藏|停用|禁用|关掉|关闭|不想要|不需要|不要(?!改|修改|调整|移动)|移除|删除|替换|去掉|\b(?:hide|disable|turn off|remove|delete|replace|purge|don't want|do not want|don't need|do not need)\b/iu.test(clause));
-  return namesRequestedPlugins(clauses.join("。"), plugins, history);
-}

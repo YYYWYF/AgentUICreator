@@ -11,32 +11,6 @@ export function assertExecutionOpen(context: ToolContext) {
   if (context.executionDecision) throw new Error("CREATOR_REQUEST_DECISION_FINAL: " + context.executionDecision.status);
 }
 
-export interface RemovalTarget {
-  status: "not_requested" | "resolved" | "unresolved";
-  description: string;
-  pluginIds: string[];
-}
-
-export const removalTargetSchema = {
-  type: "object", additionalProperties: false,
-  properties: {
-    status: { type: "string", enum: ["not_requested", "resolved", "unresolved"] },
-    description: { type: "string", maxLength: 240 },
-    pluginIds: { type: "array", uniqueItems: true, items: { type: "string" } },
-  }, required: ["status", "description", "pluginIds"],
-};
-
-export function parseRemovalTarget(value: any, plugins: readonly { pluginId: string }[]): RemovalTarget {
-  if (!value || Object.keys(value).sort().join() !== "description,pluginIds,status" ||
-    !["not_requested", "resolved", "unresolved"].includes(value.status) ||
-    typeof value.description !== "string" || value.description.length > 240 ||
-    !Array.isArray(value.pluginIds) || new Set(value.pluginIds).size !== value.pluginIds.length ||
-    value.pluginIds.some((id: unknown) => typeof id !== "string" || !plugins.some(plugin => plugin.pluginId === id)) ||
-    (value.status === "resolved" ? value.pluginIds.length === 0 : value.pluginIds.length !== 0) ||
-    (value.status === "unresolved" && !value.description.trim())) throw Object.assign(new Error("CREATOR_REQUEST_ROUTE_INVALID"), { code: "CREATOR_REQUEST_ROUTE_INVALID" });
-  return value;
-}
-
 export function removalInstanceIds(input: any, project: any) {
   const instances: any[] = project.pluginInstances ?? [];
   const removed = new Set<string>();
@@ -70,28 +44,6 @@ export function removalInstanceIds(input: any, project: any) {
     }
   }
   return removed;
-}
-
-/** Compare exact instance/slot identities, never fuzzy-match a feature in a tool argument. */
-export function assertRemovalScope(target: RemovalTarget | undefined, operation: string, input: any, project: any) {
-  if (target?.status !== "resolved") return;
-  const allowed = new Set(target.pluginIds);
-  if (operation === "purge_ui_plugin") {
-    if (!allowed.has(input.pluginId)) throw new Error("CREATOR_REMOVAL_TARGET_MISMATCH");
-    return;
-  }
-  if (operation !== "mutate_app_ui_model") return;
-  const instances: any[] = project.pluginInstances ?? [];
-  const removed = removalInstanceIds(input, project);
-  for (const id of removed) {
-    let instance = instances.find(item => item.id === id);
-    const visited = new Set<string>();
-    while (instance && !allowed.has(instance.pluginId) && instance.target?.parentInstanceId && !visited.has(instance.id)) {
-      visited.add(instance.id);
-      instance = instances.find(item => item.id === instance.target.parentInstanceId);
-    }
-    if (!instance || !allowed.has(instance.pluginId)) throw new Error("CREATOR_REMOVAL_TARGET_MISMATCH");
-  }
 }
 
 /** Keep a reversible off switch from becoming structural deletion. The

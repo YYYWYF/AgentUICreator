@@ -1,0 +1,22 @@
+[
+  {
+    "id": "common01-capabilities",
+    "prompt": "你能做什么"
+  },
+  {
+    "id": "common02-history-api",
+    "prompt": "我想让历史会话用我自己的接口"
+  },
+  {
+    "id": "common03-history-position",
+    "prompt": "我想把历史会话移到右侧"
+  },
+  {
+    "id": "common04-thinking-indicator",
+    "prompt": "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失"
+  },
+  {
+    "id": "common05-agent-avatar",
+    "prompt": "我想把agent的头像换成我自己的"
+  }
+]

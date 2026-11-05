@@ -1,0 +1,21 @@
+{
+  "questionNumber": 2,
+  "prompt": "我想让历史会话用我自己的接口",
+  "url": "http://127.0.0.1:5173/",
+  "interaction": "Submitted directly in the user visible in-app browser using CUA",
+  "submittedAt": "2026-11-05T14:16:02.857Z",
+  "firstTurnReceiptAt": "2026-11-05T14:17:06.043Z",
+  "secondsToFirstTurnReceipt": 63.186,
+  "status": "awaiting-interface-details",
+  "modelCalls": 6,
+  "toolCalls": 9,
+  "changedPaths": [],
+  "usage": {
+    "input": 262828,
+    "output": 3880
+  },
+  "usageScope": "Main Agent model_result telemetry through the first interrupt only; any unlogged routing/provider usage is not counted. Output includes reasoning.",
+  "scope": "Stop at the first clarification card. No answer or confirmation was submitted by this test; later resumed activity is excluded.",
+  "nextQuestionTested": false,
+  "screenshot": "result.png"
+}

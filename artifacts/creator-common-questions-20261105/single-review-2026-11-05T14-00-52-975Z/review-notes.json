@@ -1,0 +1,17 @@
+{
+  "question": 1,
+  "submitted": "你能做什么",
+  "nextQuestionsRun": false,
+  "notes": [
+    {
+      "kind": "answer_quality",
+      "text": "将本次只读能力询问表述为当前会话没有写权限，暴露 Host 路由细节。"
+    },
+    {
+      "kind": "incorrect_boundary",
+      "text": "将新增自定义 Plugin、布局调整与取得源码所有权混淆；原始回答已完整保留。"
+    }
+  ],
+  "productCodeChanged": false,
+  "fixDeferredForUserReview": true
+}

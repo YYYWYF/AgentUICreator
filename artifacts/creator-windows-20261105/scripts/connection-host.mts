@@ -214,6 +214,6 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       await server.environments.client.warmupRequest(entry);
       await server.environments.client.waitForRequestsIdle();
     }
-    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, refreshHostEntry: () => host.environments.client.moduleGraph.invalidateAll(), agentEndpoint: `http://127.0.0.1:${address.port}/agent`, emitEvents: (events: object[]) => emitEvents(events), runUrls: () => [...runUrls], enableCors: () => { corsEnabled = true; }, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
+    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, creatorRoot, refreshHostEntry: () => host.environments.client.moduleGraph.invalidateAll(), agentEndpoint: `http://127.0.0.1:${address.port}/agent`, emitEvents: (events: object[]) => emitEvents(events), runUrls: () => [...runUrls], enableCors: () => { corsEnabled = true; }, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
   } catch (error) { await close(); throw error; }
 }

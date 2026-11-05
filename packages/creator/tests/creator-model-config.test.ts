@@ -113,7 +113,7 @@ it.each([false, true])("falls back after a streamed schema grammar rejection and
   const logs: any[] = [];
   let responseIndex = 0;
   let rejection = '[400] Grammar error: Unimplemented keys: ["uniqueItems"]';
-  let classification: any = { permission: "domain_write", removalTarget: { status: "not_requested", description: "", pluginIds: [] } };
+  let classification: any = { permission: "domain_write" };
   const server = createServer(async (request, response) => {
     let text = ""; for await (const chunk of request) text += chunk;
     requests.push(JSON.parse(text));
@@ -129,25 +129,25 @@ it.each([false, true])("falls back after a streamed schema grammar rejection and
   try {
     const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), fileURLToPath(new URL("../contracts/creator", import.meta.url)));
     Object.assign(runtime.environment, { CREATOR_MODEL_BASE_URL: `http://127.0.0.1:${(server.address() as import("node:net").AddressInfo).port}/v1`, CREATOR_MODEL_API_KEY: "local-fixture", CREATOR_MODEL_NAME: "fixture", CREATOR_MODEL_MAX_RETRIES: "0" });
-    const directory = { status: "available", plugins: [{ pluginId: "composer", name: "Composer", instances: [] }] };
-    const classify = () => (runtime as any).classify([{ role: "user", content: "把输入框高度调大" }], "streamed-schema", new AbortController().signal, directory,
+    const classify = () => (runtime as any).classify([{ role: "user", content: "把输入框高度调大" }], "streamed-schema", new AbortController().signal,
       async (event: string, data: object) => { logs.push({ event, ...data }); });
-    expect(await classify()).toEqual({ readOnly: false, removalTarget: classification.removalTarget });
+    expect(await classify()).toEqual({ readOnly: false });
     expect(requests).toHaveLength(2);
-    expect(requests[0].response_format.json_schema.schema.properties.removalTarget.properties.pluginIds.uniqueItems).toBe(true);
+    expect(requests[0].response_format.json_schema.schema).toMatchObject({ required: ["permission"], additionalProperties: false });
+    expect(Object.keys(requests[0].response_format.json_schema.schema.properties)).toEqual(["permission"]);
     expect(requests[1].response_format).toEqual({ type: "json_object" });
     expect(requests[1].messages).toEqual(requests[0].messages);
     const requiredContract = requests[1].messages.find((message: any) => message.role === "system").content;
-    expect(requiredContract).toContain('"required":["permission","removalTarget"]');
-    expect(requiredContract).toContain('"required":["status","description","pluginIds"]');
+    expect(requiredContract).toContain('"required":["permission"]');
+    expect(requiredContract).not.toContain('"removalTarget"');
     expect(logs).toContainEqual(expect.objectContaining({ event: "request_route_schema_fallback" }));
     requests.length = 0; responseIndex = 0; logs.length = 0;
-    classification = { permission: "domain_write" };
+    classification = { permission: "domain_write", approve: true };
     await expect(classify()).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
-    expect(logs).toContainEqual(expect.objectContaining({ event: "request_route_invalid", stage: "envelope", keys: ["permission"], permission: "domain_write", removalStatus: "undefined" }));
-    for (const pluginIds of [["composer", "composer"], ["unknown-plugin"]]) {
+    expect(logs).toContainEqual(expect.objectContaining({ event: "request_route_invalid", stage: "envelope", keys: ["permission", "approve"], permission: "domain_write" }));
+    for (const invalid of [{ permission: "all" }, { permission: true }, { permission: "domain_write", removalTarget: {} }]) {
       requests.length = 0; responseIndex = 0;
-      classification = { permission: "domain_write", removalTarget: { status: "resolved", description: "Composer", pluginIds } };
+      classification = invalid;
       await expect(classify()).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
       expect(requests).toHaveLength(2);
     }

@@ -4,7 +4,6 @@ export const enUS = {
     "purge": "Remove permanently",
     "cancel": "Cancel",
     "cancelledReply": "This operation was cancelled. Further changes and retries for this request have stopped.",
-    "unclearTargetReply": "I cannot identify which Plugin in this project corresponds to “{0}”. Which feature or location do you mean?",
     "takeoverQuestion": "Take over the implementation source of {0} into this project?",
     "approveTakeover": "Approve source takeover",
     "pluginApplicationQuestion": "Create the missing project application files listed below for {0}, keeping the npm implementation without taking over source?",
