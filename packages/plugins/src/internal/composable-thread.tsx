@@ -72,6 +72,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ComponentType,
@@ -237,8 +238,10 @@ const ThreadRoot: FC<{
   const quoteRootRef = useRef<HTMLDivElement | null>(null);
   const { Welcome = ThreadWelcome, TransientMessages } = useContext(ThreadComponentsContext);
   const transientMessages = useTransientMessages();
-  const messages = useAuiState(s => s.thread.messages);
-  const messageIds = messages.map(message => message.id);
+  // Anchors need message identity/order, not the growing contents. Keep the
+  // outer viewport/composer from rendering again for every streamed token.
+  const messageIdsKey = useAuiState(s => JSON.stringify(s.thread.messages.map(message => message.id)));
+  const messageIds = useMemo(() => JSON.parse(messageIdsKey) as string[], [messageIdsKey]);
   // A scoped renderer can leave an empty Plugin boundary even when it returns
   // null. Mount only populated anchors so those boundaries cannot double gaps.
   const transientAnchors = new Set(transientMessages.map(message => resolveTransientMessageAnchor(message, messageIds)));

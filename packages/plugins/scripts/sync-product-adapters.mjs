@@ -211,6 +211,14 @@ function webSearchHref(value: unknown): string | undefined {
     ]) installed = replaceExactlyOnce(installed, before, after, localPath);
   }
   if (localPath === "components/assistant-ui/elements/markdown-text.tsx") {
+    installed = replaceExactlyOnce(installed, '  unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,\n', '', localPath);
+    installed = replaceExactlyOnce(installed, 'import remarkGfm from "remark-gfm";', 'import remarkGfm from "remark-gfm";\nimport { createMarkdownParseCache } from "../../../../../../shared/markdown/markdown-parse-cache.js";\nimport { createMarkdownBlockCache, memoizeMarkdownComponents } from "../../../../../../shared/markdown/markdown-block-cache.js";', localPath);
+    installed = replaceExactlyOnce(installed, '  const stableComponents = useShallowStable(components);', '  const remarkPlugins = useMemo(() => [remarkGfm, createMarkdownParseCache({ readOnly: true })], []);\n  const blockCache = useMemo(createMarkdownBlockCache, []);\n  const stableComponents = useShallowStable(components);', localPath);
+    installed = replaceExactlyOnce(installed, '  const stableComponentsByLanguage = useShallowStable(componentsByLanguage);', '  const stableComponentsByLanguage = useShallowStable(componentsByLanguage);\n  const cacheBlocks = !stableComponents && !stableComponentsByLanguage;\n  const rehypePlugins = useMemo(() => cacheBlocks ? [blockCache.rehype] : [], [blockCache, cacheBlocks]);', localPath);
+    installed = replaceExactlyOnce(installed, '    if (!stableComponents) return defaultComponents;', '    blockCache.reset();\n    if (!stableComponents) return cacheBlocks ? { ...defaultComponents, ...blockCache.components } : defaultComponents;', localPath);
+    installed = replaceExactlyOnce(installed, '  }, [stableComponents]);', '  }, [stableComponents, stableComponentsByLanguage, blockCache, cacheBlocks]);', localPath);
+    installed = replaceExactlyOnce(installed, 'remarkPlugins={[remarkGfm]}', 'remarkPlugins={remarkPlugins}', localPath);
+    installed = replaceExactlyOnce(installed, '      className="aui-md"', '      rehypePlugins={rehypePlugins}\n      className="aui-md"', localPath);
     installed = replaceExactlyOnce(installed, '<div className="aui-code-header-root', '<div data-slot="agent-ui-code-header" className="aui-code-header-root', localPath);
     installed = replaceExactlyOnce(installed, '<span className="aui-code-header-language', '<span data-slot="agent-ui-code-language" className="aui-code-header-language', localPath);
   }

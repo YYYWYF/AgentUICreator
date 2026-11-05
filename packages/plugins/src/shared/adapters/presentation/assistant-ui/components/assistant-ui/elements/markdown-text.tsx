@@ -8,10 +8,14 @@ import {
   type CodeHeaderProps,
   MarkdownTextPrimitive,
   type MarkdownTextPrimitiveProps,
-  unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,
   useIsMarkdownCodeBlock,
 } from '@assistant-ui/react-markdown';
 import remarkGfm from 'remark-gfm';
+import { createMarkdownParseCache } from '../../../../../../shared/markdown/markdown-parse-cache.js';
+import {
+  createMarkdownBlockCache,
+  memoizeMarkdownComponents,
+} from '../../../../../../shared/markdown/markdown-block-cache.js';
 import { type FC, memo, useMemo, useRef } from 'react';
 import type { TextMessagePartProps } from '@assistant-ui/react';
 import { CheckIcon, CopyIcon } from 'lucide-react';
@@ -40,19 +44,25 @@ const useShallowStable = <T extends Record<string, unknown> | undefined>(value: 
 };
 
 const MarkdownTextImpl: FC<MarkdownTextProps> = ({ components, componentsByLanguage }) => {
+  const remarkPlugins = useMemo(() => [remarkGfm, createMarkdownParseCache({ readOnly: true })], []);
+  const blockCache = useMemo(createMarkdownBlockCache, []);
   const stableComponents = useShallowStable(components);
   const stableComponentsByLanguage = useShallowStable(componentsByLanguage);
+  const cacheBlocks = !stableComponents && !stableComponentsByLanguage;
+  const rehypePlugins = useMemo(() => (cacheBlocks ? [blockCache.rehype] : []), [blockCache, cacheBlocks]);
   const markdownComponents = useMemo(() => {
-    if (!stableComponents) return defaultComponents;
+    blockCache.reset();
+    if (!stableComponents) return cacheBlocks ? { ...defaultComponents, ...blockCache.components } : defaultComponents;
     return {
       ...defaultComponents,
       ...memoizeMarkdownComponents(stableComponents),
     };
-  }, [stableComponents]);
+  }, [stableComponents, stableComponentsByLanguage, blockCache, cacheBlocks]);
 
   return (
     <MarkdownTextPrimitive
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={remarkPlugins}
+      rehypePlugins={rehypePlugins}
       className='aui-md'
       components={markdownComponents}
       componentsByLanguage={stableComponentsByLanguage}
