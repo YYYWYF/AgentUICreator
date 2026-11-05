@@ -1,5 +1,5 @@
 import { readAgentUISourceLock } from "./source-registry/lock";
-import { isPluginApplication, readApplicationCompositionManifest, installedPackagePluginIds } from "./plugin-application";
+import { applicationMarker, isPluginApplication, readApplicationCompositionManifest, installedPackagePluginIds } from "./plugin-application";
 import { createRequire } from "node:module";
 import { readPluginSourceOwnership } from "./plugin-source-ownership";
 import { officialPackagePlugins, officialPackagePlugin } from "../source-catalog/index.js";
@@ -75,14 +75,21 @@ export async function collectPluginAssets(
       continue;
     }
 
-    const application = await isPluginApplication(directoryPath, entry.name);
     const sourceOwned = ownership.plugins[entry.name];
-    const manifestPath = path.join(directoryPath, application && sourceOwned?.implementationRoot === "source" ? "source/manifest.json" : "manifest.json");
+    const markerPath = path.join(directoryPath, applicationMarker);
+    let application = false;
+    let readingMarker = true;
+    let manifestPath = path.join(directoryPath, "manifest.json");
     let source: string;
     try {
+      application = await isPluginApplication(directoryPath, entry.name);
+      readingMarker = false;
+      manifestPath = path.join(directoryPath, application && sourceOwned?.implementationRoot === "source" ? "source/manifest.json" : "manifest.json");
       source = application && !sourceOwned ? await readApplicationCompositionManifest(projectRoot, entry.name, manifestPath) : await readFile(manifestPath, "utf8");
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      const markerIssue = readingMarker || (error as NodeJS.ErrnoException).code === "PLUGIN_APPLICATION_PLUGIN_NOT_IN_CATALOG";
+      const issuePath = projectPath(projectRoot, markerIssue ? markerPath : manifestPath);
+      if (!markerIssue && (error as NodeJS.ErrnoException).code === "ENOENT") {
         errors.push({
           code: "plugin-manifest-missing",
           path: projectPath(projectRoot, manifestPath),
@@ -91,9 +98,9 @@ export async function collectPluginAssets(
         continue;
       }
       errors.push({
-        code: "plugin-manifest-read",
-          path: projectPath(projectRoot, manifestPath),
-        message: `${projectPath(projectRoot, manifestPath)}: ${issueMessage(error)}`,
+        code: markerIssue ? "plugin-application-read" : "plugin-manifest-read",
+        path: issuePath,
+        message: `${issuePath}: ${issueMessage(error)}`,
       });
       continue;
     }

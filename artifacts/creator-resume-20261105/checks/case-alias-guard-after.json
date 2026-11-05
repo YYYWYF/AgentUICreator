@@ -1,0 +1,7 @@
+{
+  "scope": "Disposable QA source tree only.",
+  "platform": "darwin",
+  "aliasResolves": true,
+  "error": "TOOL_PERMISSION_DENIED",
+  "actualLowercaseFileExistsAfter": true
+}

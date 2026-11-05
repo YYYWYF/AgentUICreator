@@ -1,5 +1,5 @@
 import { useAssistantDataUI } from "@assistant-ui/react";
-import type { ComponentType } from "react";
+import { useCallback, type ComponentType } from "react";
 
 export interface DataMessageUIRenderProps<TData = unknown> {
   data: TData;
@@ -25,12 +25,15 @@ export function DataMessageUIRegistration({
 }: {
   definition: DataMessageUIDefinition<never>;
 }) {
+  const Renderer = definition.render;
+  // assistant-ui treats the registered render function as a component type.
+  // Keep it stable across Host updates so mounted message state survives.
+  const render = useCallback(({ data }: DataMessageUIRenderProps) => (
+    <Renderer data={data as never} />
+  ), [Renderer]);
   useAssistantDataUI({
     name: definition.name,
-    render: ({ data }) => {
-      const Renderer = definition.render;
-      return <Renderer data={data as never} />;
-    },
+    render,
   });
   return null;
 }

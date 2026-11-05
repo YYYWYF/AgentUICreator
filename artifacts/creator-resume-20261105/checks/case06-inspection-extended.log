@@ -1,0 +1,30 @@
+Port 5173 is in use, trying another one...
+8:58:53 AM [vite] (client) page reload src/main.tsx
+{
+  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-extended-2026-11-05T00-58-42-319Z",
+  "caseId": "case06-inspection",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-mac-resume-262k-2026-11-05T00-58-14-601Z",
+  "scope": "Extra browser checks of unchanged model output. Synthetic events travel through the existing HTTP SSE endpoint. Locale buttons are in the QA Host, outside Agent UI implementation.",
+  "checks": [
+    {
+      "name": "inspection error details are literal text",
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>检查项文本</b>', { exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "locale update keeps failure details expanded",
+      "status": "failed",
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT') with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\n"
+    },
+    {
+      "name": "nested malformed inspection fields do not crash the conversation",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "sourceDifferences": [],
+  "sourceUnchanged": true,
+  "status": "failed",
+  "cleanup": true
+}

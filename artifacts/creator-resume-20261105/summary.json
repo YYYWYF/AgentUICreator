@@ -1,0 +1,1946 @@
+{
+  "completed": true,
+  "platform": "darwin",
+  "node": "v24.22.1",
+  "runCounts": {
+    "records": 16,
+    "modelAttemptRuns": 15,
+    "startupFailuresBeforeModel": 1
+  },
+  "rawTelemetryTotals": {
+    "nativeSeconds": 5068.996,
+    "toolCalls": 496,
+    "httpRequests": 350,
+    "inputTokensLowerBound": 29435022,
+    "outputTokensLowerBound": 290792,
+    "missingUsageResponses": 9
+  },
+  "scope": "Real Creator tasks and independent browser replays in disposable Hosts using workspace-linked built packages. No fresh install, real business backend, deployment or real Windows acceptance is inferred.",
+  "tokenAccounting": "Provider-reported cumulative input/output, including repeated and cached input. Reasoning tokens are already part of output. Missing usage makes totals lower bounds. HTTP counts include routing and schema fallback, distinct from observed tool calls.",
+  "records": [
+    {
+      "id": "case01-cards",
+      "kind": "original-task",
+      "record": "records/case01-cards-mac-resume-262k-2026-11-05T00-35-28-153Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 410.149,
+      "toolCalls": 37,
+      "modelHttpRequests": 26,
+      "toolCounts": {
+        "inspect_ui_plugin": 5,
+        "inspect_ui_project": 2,
+        "read_file": 9,
+        "grep": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_layout": 2,
+        "ls": 1,
+        "glob": 1,
+        "prepare_ui_plugin_development": 1,
+        "create_ui_source_file": 5,
+        "mutate_ui_plugin_source": 2,
+        "validate_creator_changes": 2,
+        "mutate_app_ui_model": 2,
+        "inspect_runtime_errors": 1,
+        "verify_ui_plugin_behavior": 1
+      },
+      "modelPurposes": {
+        "agent": 25,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 2979181,
+        "output": 37677,
+        "total": 3016858,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 1
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_source_file",
+        "startSeconds": 245.261,
+        "resultSeconds": 246.554
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 168875,
+        "maxOutput": 8419,
+        "maxReasoning": 8375
+      },
+      "changedSourceFiles": 10,
+      "validationAttempts": [
+        {
+          "seconds": 300.226,
+          "status": "passed",
+          "revision": 8,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 352.814,
+          "status": "passed",
+          "revision": 9,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 1,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "two independently named cards",
+          "status": "passed"
+        },
+        {
+          "name": "first collapse leaves second expanded",
+          "status": "passed"
+        },
+        {
+          "name": "second collapse leaves first expanded",
+          "status": "passed"
+        },
+        {
+          "name": "second title reopens body",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case03-message-actions",
+      "kind": "original-task",
+      "record": "records/case03-message-actions-mac-resume-262k-2026-11-05T00-32-18-522Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 180.239,
+      "toolCalls": 23,
+      "modelHttpRequests": 16,
+      "toolCounts": {
+        "inspect_ui_project": 2,
+        "inspect_ui_plugin": 4,
+        "read_file": 8,
+        "read_creator_documentation": 4,
+        "grep": 1,
+        "ls": 1,
+        "mutate_app_ui_model": 1,
+        "validate_creator_changes": 1,
+        "verify_creator_outcome": 1
+      },
+      "modelPurposes": {
+        "agent": 15,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 1384297,
+        "output": 11235,
+        "total": 1395532,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "mutate_app_ui_model",
+        "startSeconds": 131.775,
+        "resultSeconds": 133.809
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 134571,
+        "maxOutput": 1962,
+        "maxReasoning": 1883
+      },
+      "changedSourceFiles": 7,
+      "validationAttempts": [
+        {
+          "seconds": 156.29,
+          "status": "passed",
+          "revision": 2,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "streaming hides completed-response actions",
+          "status": "passed"
+        },
+        {
+          "name": "completed response exposes actions once",
+          "status": "passed"
+        },
+        {
+          "name": "regenerating hides old completion actions",
+          "status": "passed"
+        },
+        {
+          "name": "stopped response can regenerate",
+          "status": "passed"
+        },
+        {
+          "name": "second completion has no duplicate actions",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case04-help-actions",
+      "kind": "original-task",
+      "record": "records/case04-help-actions-mac-resume-262k-2026-11-05T00-45-41-027Z",
+      "nativeStatus": "blocked",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 532.37,
+      "toolCalls": 43,
+      "modelHttpRequests": 33,
+      "toolCounts": {
+        "inspect_ui_plugin": 4,
+        "read_file": 16,
+        "grep": 5,
+        "ls": 2,
+        "read_creator_documentation": 4,
+        "prepare_ui_plugin_development": 1,
+        "mutate_ui_plugin_source": 1,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 2,
+        "inspect_ui_project": 1,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_layout": 1,
+        "verify_ui_plugin_behavior": 1,
+        "verify_creator_outcome": 1
+      },
+      "modelPurposes": {
+        "agent": 31,
+        "routing": 2,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 1962640,
+        "output": 18815,
+        "total": 1981455,
+        "missingResponses": 1
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "mutate_ui_plugin_source",
+        "startSeconds": 363.898,
+        "resultSeconds": 365.295
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 102161,
+        "maxOutput": 2170,
+        "maxReasoning": 1566
+      },
+      "changedSourceFiles": 10,
+      "validationAttempts": [
+        {
+          "seconds": 385.004,
+          "status": "passed",
+          "revision": 3,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 412.357,
+          "status": "passed",
+          "revision": 4,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 1,
+      "externalBrowserStatus": "failed",
+      "externalChecks": [
+        {
+          "name": "example action fills current composer without sending",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "id": "case05-order",
+      "kind": "original-task",
+      "record": "records/case05-order-mac-resume-262k-2026-11-05T00-55-18-104Z",
+      "nativeStatus": "RUN_ERROR",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 163.901,
+      "toolCalls": 38,
+      "modelHttpRequests": 20,
+      "toolCounts": {
+        "read_file": 17,
+        "ls": 6,
+        "inspect_ui_plugin": 3,
+        "grep": 3,
+        "read_creator_documentation": 6,
+        "prepare_ui_plugin_development": 1,
+        "glob": 1
+      },
+      "modelPurposes": {
+        "agent": 19,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 748840,
+        "output": 12985,
+        "total": 761825,
+        "missingResponses": 1
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 56624,
+        "maxOutput": 4821,
+        "maxReasoning": 4724
+      },
+      "changedSourceFiles": 0,
+      "validationAttempts": [],
+      "unavailableNativeBehaviorChecks": 0
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "original-task",
+      "record": "records/case06-inspection-mac-resume-262k-2026-11-05T00-58-14-601Z",
+      "nativeStatus": "RUN_ERROR",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 9.124,
+      "toolCalls": 0,
+      "modelHttpRequests": 2,
+      "toolCounts": {},
+      "modelPurposes": {
+        "agent": 0,
+        "routing": 2,
+        "summary": 0
+      },
+      "models": [],
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "total": 0,
+        "missingResponses": 2
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 0,
+        "maxOutput": 0,
+        "maxReasoning": 0
+      },
+      "changedSourceFiles": 0,
+      "validationAttempts": [],
+      "unavailableNativeBehaviorChecks": 0
+    },
+    {
+      "id": "case07-sales",
+      "kind": "original-task",
+      "record": "records/case07-sales-mac-application-fix-262k-2026-11-05T00-20-41-890Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 164.784,
+      "toolCalls": 30,
+      "modelHttpRequests": 21,
+      "toolCounts": {
+        "inspect_ui_plugin": 3,
+        "inspect_ui_project": 2,
+        "read_file": 11,
+        "prepare_ui_plugin_development": 1,
+        "ls": 3,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 2,
+        "mutate_app_ui_model": 1,
+        "grep": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1,
+        "verify_ui_plugin_behavior": 1,
+        "verify_creator_outcome": 1
+      },
+      "modelPurposes": {
+        "agent": 20,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 1871582,
+        "output": 15657,
+        "total": 1887239,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 89.635,
+        "resultSeconds": 90.929
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 121065,
+        "maxOutput": 7197,
+        "maxReasoning": 3750
+      },
+      "changedSourceFiles": 7,
+      "validationAttempts": [
+        {
+          "seconds": 98.813,
+          "status": "passed",
+          "revision": 2,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 123.156,
+          "status": "passed",
+          "revision": 3,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 1,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case08-progress",
+      "kind": "original-task",
+      "record": "records/case08-progress-mac-resume-262k-2026-11-05T00-25-10-676Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 313.468,
+      "toolCalls": 42,
+      "modelHttpRequests": 27,
+      "toolCounts": {
+        "inspect_ui_project": 2,
+        "read_file": 15,
+        "ls": 6,
+        "grep": 3,
+        "inspect_ui_plugin": 4,
+        "prepare_ui_plugin_development": 1,
+        "preflight_ui_plugin_placement": 1,
+        "create_ui_plugin": 1,
+        "create_ui_source_file": 1,
+        "edit_file": 1,
+        "validate_creator_changes": 2,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1,
+        "inspect_runtime_layout": 1
+      },
+      "modelPurposes": {
+        "agent": 25,
+        "routing": 2,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 2463798,
+        "output": 26652,
+        "total": 2490450,
+        "missingResponses": 1
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 216.663,
+        "resultSeconds": 218.126
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 156462,
+        "maxOutput": 10108,
+        "maxReasoning": 4891
+      },
+      "changedSourceFiles": 10,
+      "validationAttempts": [
+        {
+          "seconds": 242.468,
+          "status": "passed",
+          "revision": 4,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 273.979,
+          "status": "passed",
+          "revision": 5,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "custom event renders right-side progress panel",
+          "status": "passed"
+        },
+        {
+          "name": "same job updates without duplicating other jobs",
+          "status": "passed"
+        },
+        {
+          "name": "failed job exposes its error",
+          "status": "passed"
+        },
+        {
+          "name": "invalid progress does not crash UI",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case07-sales",
+      "kind": "feedback-repair",
+      "record": "records/case07-sales-mac-data-feedback-2026-11-05T00-43-45-591Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 102.806,
+      "toolCalls": 16,
+      "modelHttpRequests": 17,
+      "toolCounts": {
+        "inspect_ui_plugin": 1,
+        "inspect_ui_edit_context": 1,
+        "read_file": 7,
+        "edit_file": 4,
+        "edit_file_from_read": 2,
+        "validate_creator_changes": 1
+      },
+      "modelPurposes": {
+        "agent": 16,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 662086,
+        "output": 9558,
+        "total": 671644,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "edit_file",
+        "startSeconds": 34.964,
+        "resultSeconds": 37.923
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 49252,
+        "maxOutput": 1682,
+        "maxReasoning": 1597
+      },
+      "changedSourceFiles": 2,
+      "validationAttempts": [
+        {
+          "seconds": 92.094,
+          "status": "passed",
+          "revision": 5,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case04-help-actions",
+      "kind": "feedback-repair",
+      "record": "records/case04-help-actions-mac-layout-feedback-2026-11-05T00-58-43-568Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 169.445,
+      "toolCalls": 10,
+      "modelHttpRequests": 10,
+      "toolCounts": {
+        "inspect_ui_project": 1,
+        "inspect_ui_edit_context": 2,
+        "inspect_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_layout": 2,
+        "read_file": 1,
+        "mutate_app_ui_model": 1,
+        "validate_creator_changes": 1
+      },
+      "modelPurposes": {
+        "agent": 9,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 746513,
+        "output": 5200,
+        "total": 751713,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "mutate_app_ui_model",
+        "startSeconds": 105.02,
+        "resultSeconds": 108.447
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 101925,
+        "maxOutput": 1011,
+        "maxReasoning": 932
+      },
+      "changedSourceFiles": 1,
+      "validationAttempts": [
+        {
+          "seconds": 148.993,
+          "status": "passed",
+          "revision": 1,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "example action fills current composer without sending",
+          "status": "passed"
+        },
+        {
+          "name": "filled example can be sent by user",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case05-order",
+      "kind": "service-retry",
+      "record": "records/case05-order-mac-service-retry-2026-11-05T01-01-54-308Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 587.839,
+      "toolCalls": 54,
+      "modelHttpRequests": 35,
+      "toolCounts": {
+        "inspect_ui_plugin": 2,
+        "inspect_ui_project": 2,
+        "read_file": 18,
+        "read_creator_documentation": 9,
+        "ls": 2,
+        "grep": 2,
+        "prepare_ui_plugin_development": 1,
+        "glob": 2,
+        "create_ui_plugin": 1,
+        "create_ui_source_file": 1,
+        "validate_creator_changes": 4,
+        "edit_file_from_read": 1,
+        "mutate_app_ui_model": 2,
+        "edit_file": 3,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1,
+        "verify_creator_outcome": 1
+      },
+      "modelPurposes": {
+        "agent": 34,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 3880140,
+        "output": 25473,
+        "total": 3905613,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 221.065,
+        "resultSeconds": 222.424
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 157982,
+        "maxOutput": 10523,
+        "maxReasoning": 6678
+      },
+      "changedSourceFiles": 9,
+      "validationAttempts": [
+        {
+          "seconds": 255.291,
+          "status": "failed",
+          "revision": 3,
+          "introducedStaticCodes": [
+            "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED"
+          ],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 312.309,
+          "status": "passed",
+          "revision": 4,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 424.507,
+          "status": "passed",
+          "revision": 6,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 496.438,
+          "status": "passed",
+          "revision": 8,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "order event renders business fields",
+          "status": "passed"
+        },
+        {
+          "name": "long order has working expansion",
+          "status": "passed"
+        },
+        {
+          "name": "malformed order leaves composer usable",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "service-retry",
+      "record": "records/case06-inspection-mac-service-retry-2026-11-05T01-11-58-739Z",
+      "nativeStatus": "RUN_ERROR",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "16384",
+        "timeout": "120"
+      },
+      "seconds": 186.75,
+      "toolCalls": 11,
+      "modelHttpRequests": 8,
+      "toolCounts": {
+        "inspect_ui_project": 1,
+        "inspect_ui_edit_context": 4,
+        "read_file": 3,
+        "prepare_ui_plugin_development": 1,
+        "read_creator_documentation": 1
+      },
+      "modelPurposes": {
+        "agent": 6,
+        "routing": 2,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 466185,
+        "output": 21434,
+        "total": 487619,
+        "missingResponses": 1
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "responseLimits": {
+        "lengthStops": 1,
+        "maxInput": 104700,
+        "maxOutput": 16384,
+        "maxReasoning": 10746
+      },
+      "changedSourceFiles": 0,
+      "validationAttempts": [],
+      "unavailableNativeBehaviorChecks": 0
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "output-budget-comparison",
+      "record": "records/case06-inspection-mac-output-32k-2026-11-05T01-16-53-966Z",
+      "nativeStatus": "RUN_ERROR",
+      "qualifications": [
+        {
+          "file": "qa-stop-request.json",
+          "at": "2026-11-05T01:27:38.161Z",
+          "reason": "Stop diagnostic comparison after confirming custom Plugin npm-marker misclassification and misleading manifest diagnostics. Preserve native receipt and generated source before the engineering repair.",
+          "status": 202,
+          "result": {
+            "status": "stopping",
+            "runId": "fcfc1334-0c08-4155-b20a-7137bb8f07b5"
+          }
+        }
+      ],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "32768",
+        "timeout": "120"
+      },
+      "seconds": 636.267,
+      "toolCalls": 46,
+      "modelHttpRequests": 35,
+      "toolCounts": {
+        "inspect_ui_project": 1,
+        "inspect_ui_edit_context": 2,
+        "read_file": 13,
+        "read_creator_documentation": 14,
+        "ls": 3,
+        "prepare_ui_plugin_development": 1,
+        "grep": 5,
+        "inspect_ui_plugin": 1,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 1,
+        "inspect_agent_ui_sources": 1,
+        "inspect_ui_plugin_source_references": 1,
+        "edit_file": 1
+      },
+      "modelPurposes": {
+        "agent": 34,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 3468561,
+        "output": 30335,
+        "total": 3498896,
+        "missingResponses": 2
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 274.503,
+        "resultSeconds": 277.774
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 160838,
+        "maxOutput": 8480,
+        "maxReasoning": 5841
+      },
+      "changedSourceFiles": 6,
+      "validationAttempts": [
+        {
+          "seconds": 292.648,
+          "status": "OPERATOR_OPERATION_FAILED",
+          "introducedStaticCodes": []
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "failed",
+      "externalChecks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "engineering-repair-original-prompt",
+      "record": "records/case06-inspection-mac-diagnostics-repair-original-2026-11-05T01-38-01-748Z",
+      "nativeStatus": "HARNESS_ERROR",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "32768",
+        "timeout": "120"
+      },
+      "seconds": null,
+      "modelHttpRequests": 0,
+      "toolCounts": {},
+      "modelPurposes": {
+        "agent": 0,
+        "routing": 0,
+        "summary": 0
+      },
+      "models": [],
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "total": 0,
+        "missingResponses": 0
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 0,
+        "maxOutput": 0,
+        "maxReasoning": 0
+      },
+      "validationAttempts": [],
+      "unavailableNativeBehaviorChecks": 0
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "engineering-repair-original-prompt",
+      "record": "records/case06-inspection-mac-running-repair-original-2026-11-05T01-41-44-298Z",
+      "nativeStatus": "RUN_ERROR",
+      "qualifications": [
+        {
+          "file": "qa-invalidation.json",
+          "reason": "QA edited Operator source while this model run was active, triggering the intended source/build integrity guard. Exclude this run from product-failure or performance conclusions. Deletion-tool execution is observed but full repair acceptance was interrupted.",
+          "code": "QA_SOURCE_CHANGED_DURING_RUN",
+          "at": "2026-11-05T01:49:22.753Z"
+        }
+      ],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "32768",
+        "timeout": "120"
+      },
+      "seconds": 389.701,
+      "toolCalls": 51,
+      "modelHttpRequests": 34,
+      "toolCounts": {
+        "inspect_ui_project": 2,
+        "read_file": 15,
+        "inspect_ui_edit_context": 3,
+        "ls": 5,
+        "inspect_ui_plugin": 1,
+        "grep": 5,
+        "read_creator_documentation": 2,
+        "delete_ui_source_file": 1,
+        "glob": 1,
+        "edit_file": 12,
+        "validate_creator_changes": 3,
+        "mutate_app_ui_model": 1
+      },
+      "modelPurposes": {
+        "agent": 32,
+        "routing": 2,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 2898014,
+        "output": 17660,
+        "total": 2915674,
+        "missingResponses": 1
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 82.48,
+        "resultSeconds": 83.825
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 132032,
+        "maxOutput": 3212,
+        "maxReasoning": 2908
+      },
+      "changedSourceFiles": 6,
+      "validationAttempts": [
+        {
+          "seconds": 197.435,
+          "status": "failed",
+          "revision": 7,
+          "introducedStaticCodes": [
+            "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED"
+          ],
+          "introducedTypeErrors": 1
+        },
+        {
+          "seconds": 324.824,
+          "status": "passed",
+          "revision": 11,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 389.626,
+          "status": "CREATOR_OPERATOR_RESTART_REQUIRED",
+          "introducedStaticCodes": []
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "failed",
+      "externalChecks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "engineering-repair-original-prompt",
+      "record": "records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+      "nativeStatus": "success",
+      "qualifications": [
+        {
+          "file": "qa-selector-mismatch.json",
+          "reason": "The external QA used substring matching for 支付接口, matching both the check name and its detail message. Retry with exact check-name text against unchanged model source; retain the original external failure and native success.",
+          "code": "QA_AMBIGUOUS_TEXT_SELECTOR"
+        }
+      ],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "32768",
+        "timeout": "120"
+      },
+      "seconds": 811.982,
+      "toolCalls": 66,
+      "modelHttpRequests": 47,
+      "toolCounts": {
+        "inspect_ui_plugin": 2,
+        "inspect_ui_project": 2,
+        "ls": 7,
+        "read_file": 22,
+        "prepare_ui_plugin_development": 2,
+        "delete_ui_source_file": 1,
+        "inspect_ui_edit_context": 1,
+        "edit_file_from_read": 3,
+        "validate_creator_changes": 6,
+        "grep": 9,
+        "edit_file": 4,
+        "glob": 1,
+        "read_creator_documentation": 1,
+        "enable_creator_tools": 2,
+        "mutate_app_ui_model": 1,
+        "inspect_runtime_errors": 2
+      },
+      "modelPurposes": {
+        "agent": 46,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 4353573,
+        "output": 38248,
+        "total": 4391821,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 79.517,
+        "resultSeconds": 80.914
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 153562,
+        "maxOutput": 9451,
+        "maxReasoning": 6529
+      },
+      "changedSourceFiles": 9,
+      "validationAttempts": [
+        {
+          "seconds": 194.355,
+          "status": "failed",
+          "revision": 4,
+          "introducedStaticCodes": [
+            "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED"
+          ],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 227.303,
+          "status": "passed",
+          "revision": 5,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 317.005,
+          "status": "passed",
+          "revision": 7,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 526.33,
+          "status": "passed",
+          "revision": 9,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 664.031,
+          "status": "passed",
+          "revision": 10,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 752.307,
+          "status": "passed",
+          "revision": 11,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "failed",
+      "externalChecks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "id": "case06-inspection",
+      "kind": "final-clean-original-task",
+      "record": "records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+      "nativeStatus": "success",
+      "qualifications": [],
+      "configuration": {
+        "model": "deepseek-v4.1-flash",
+        "context": "262144",
+        "output": "32768",
+        "timeout": "120"
+      },
+      "seconds": 410.171,
+      "toolCalls": 29,
+      "modelHttpRequests": 19,
+      "toolCounts": {
+        "inspect_ui_plugin": 4,
+        "inspect_ui_project": 2,
+        "read_file": 9,
+        "ls": 4,
+        "grep": 2,
+        "prepare_ui_plugin_development": 1,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 2,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1
+      },
+      "modelPurposes": {
+        "agent": 18,
+        "routing": 1,
+        "summary": 0
+      },
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "usage": {
+        "input": 1549612,
+        "output": 19863,
+        "total": 1569475,
+        "missingResponses": 0
+      },
+      "contextCompression": {
+        "summaryModelCalls": 0,
+        "compactions": 0,
+        "summarySeconds": 0,
+        "offloadedArtifacts": 0
+      },
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 248.745,
+        "resultSeconds": 251.496
+      },
+      "responseLimits": {
+        "lengthStops": 0,
+        "maxInput": 128701,
+        "maxOutput": 10845,
+        "maxReasoning": 4919
+      },
+      "changedSourceFiles": 7,
+      "validationAttempts": [
+        {
+          "seconds": 272.415,
+          "status": "passed",
+          "revision": 2,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        },
+        {
+          "seconds": 326.369,
+          "status": "passed",
+          "revision": 3,
+          "introducedStaticCodes": [],
+          "introducedTypeErrors": 0
+        }
+      ],
+      "unavailableNativeBehaviorChecks": 0,
+      "externalBrowserStatus": "passed",
+      "externalChecks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "browserRecords": [
+    {
+      "record": "records/case01-cards-resume-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "two independently named cards",
+          "status": "passed"
+        },
+        {
+          "name": "first collapse leaves second expanded",
+          "status": "passed"
+        },
+        {
+          "name": "second collapse leaves first expanded",
+          "status": "passed"
+        },
+        {
+          "name": "second title reopens body",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case03-message-actions-resume-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "streaming hides completed-response actions",
+          "status": "passed"
+        },
+        {
+          "name": "completed response exposes actions once",
+          "status": "passed"
+        },
+        {
+          "name": "regenerating hides old completion actions",
+          "status": "passed"
+        },
+        {
+          "name": "stopped response can regenerate",
+          "status": "passed"
+        },
+        {
+          "name": "second completion has no duplicate actions",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case04-help-actions-feedback-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "example action fills current composer without sending",
+          "status": "passed"
+        },
+        {
+          "name": "filled example can be sent by user",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case04-help-actions-resume-current-replay",
+      "status": "failed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "example action fills current composer without sending",
+          "status": "failed",
+          "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().getByRole('button', { name: '查看示例', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"quick-help-example-action\">查看示例</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"aui_thread-viewport\" class=\"relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth\">…</div> from <div data-layout-type=\"slot\" class=\"app-ui-layout-node app-ui-layout-slot\" data-slot-id=\"layout-slot:root.children%5B1%5D.child.children%5B2%5D\" data-layout-node-id=\"layout-node:root.children%5B1%5D.child.children%5B2%5D\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div data-slot=\"aui_thread-viewport\" class=\"relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth\">…</div> from <div data-layout-type=\"slot\" class=\"app-ui-layout-node app-ui-layout-slot\" data-slot-id=\"layout-slot:root.children%5B1%5D.child.children%5B2%5D\" data-layout-node-id=\"layout-node:root.children%5B1%5D.child.children%5B2%5D\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    57 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div data-slot=\"aui_thread-viewport\" class=\"relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth\">…</div> from <div data-layout-type=\"slot\" class=\"app-ui-layout-node app-ui-layout-slot\" data-slot-id=\"layout-slot:root.children%5B1%5D.child.children%5B2%5D\" data-layout-node-id=\"layout-node:root.children%5B1%5D.child.children%5B2%5D\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case05-order-extended-2026-11-05T00-58-13-604Z",
+      "status": "failed",
+      "applicability": "not-applicable-feature-not-created",
+      "checks": [
+        {
+          "name": "order product text is displayed literally",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true }) with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\n"
+        },
+        {
+          "name": "nested malformed order fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case05-order-extended-2026-11-05T01-12-27-399Z",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "order product text is displayed literally",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed order fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case05-order-resume-current-replay",
+      "status": "failed",
+      "applicability": "not-applicable-feature-not-created",
+      "checks": [
+        {
+          "name": "order event renders business fields",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('O-20261104-001')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('O-20261104-001') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('O-20261104-001')\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case05-order-retry-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "order event renders business fields",
+          "status": "passed"
+        },
+        {
+          "name": "long order has working expansion",
+          "status": "passed"
+        },
+        {
+          "name": "malformed order leaves composer usable",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T00-58-42-319Z",
+      "status": "failed",
+      "applicability": "not-applicable-feature-not-created",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "failed",
+          "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>检查项文本</b>', { exact: true })\u001b[22m\n"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT') with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\n"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T01-27-49-983Z",
+      "status": "failed",
+      "applicability": "qa-stopped-for-diagnosis",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "failed",
+          "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>检查项文本</b>', { exact: true })\u001b[22m\n"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT') with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\n"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T02-06-02-192Z",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T02-21-48-351Z",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-final-clean32k-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-fresh-recovery32k-current-replay",
+      "status": "failed",
+      "applicability": "qa-selector-mismatch",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('支付接口')\nExpected: visible\nError: strict mode violation: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('支付接口') resolved to 2 elements:\n    1) <span class=\"inspection-result__name\">支付接口</span> aka getByRole('button', { name: '支付接口 失败 查看失败原因' })\n    2) <dd>支付接口响应超时</dd> aka getByText('支付接口响应超时')\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('支付接口') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('支付接口')\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-fresh-recovery32k-selector-fixed-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-output32k-current-replay",
+      "applicability": "qa-stopped-for-diagnosis"
+    },
+    {
+      "record": "records/case06-inspection-resume-current-replay",
+      "status": "failed",
+      "applicability": "not-applicable-feature-not-created",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-extended-2026-11-05T00-33-20-988Z",
+      "status": "failed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "keyboard toggles row details",
+          "status": "passed"
+        },
+        {
+          "name": "locale changes keep expanded row and sort direction",
+          "status": "failed",
+          "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' })\nExpected: \"true\"\nReceived: \"false\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toHaveAttribute\" locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' }) with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' })\n    14 × locator resolved to <tr tabindex=\"0\" aria-expanded=\"false\" class=\"sales-report__row\">…</tr>\n       - unexpected value \"false\"\n"
+        },
+        {
+          "name": "actual numeric zero remains a valid value",
+          "status": "passed"
+        },
+        {
+          "name": "malformed numeric fields do not become fabricated zero",
+          "status": "failed",
+          "error": "expect(received).not.toBe(expected) // Object.is equality\n\nExpected: not \"0\""
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-extended-2026-11-05T00-37-11-566Z",
+      "status": "failed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "keyboard toggles row details",
+          "status": "passed"
+        },
+        {
+          "name": "locale changes keep expanded row and sort direction",
+          "status": "failed",
+          "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' })\nExpected: \"true\"\nReceived: \"false\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toHaveAttribute\" locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' }) with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('table').first().getByRole('row').filter({ hasText: '2026-09' })\n    14 × locator resolved to <tr tabindex=\"0\" aria-expanded=\"false\" class=\"sales-report__row\">…</tr>\n       - unexpected value \"false\"\n"
+        },
+        {
+          "name": "actual numeric zero remains a valid value",
+          "status": "passed"
+        },
+        {
+          "name": "malformed numeric fields do not become fabricated zero",
+          "status": "failed",
+          "error": "expect(received).not.toBe(expected) // Object.is equality\n\nExpected: not \"0\""
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-extended-2026-11-05T00-43-21-796Z",
+      "status": "failed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "keyboard toggles row details",
+          "status": "passed"
+        },
+        {
+          "name": "locale changes keep expanded row and sort direction",
+          "status": "passed"
+        },
+        {
+          "name": "actual numeric zero remains a valid value",
+          "status": "passed"
+        },
+        {
+          "name": "later messages preserve earlier row interaction state",
+          "status": "passed"
+        },
+        {
+          "name": "malformed numeric fields do not become fabricated zero",
+          "status": "failed",
+          "error": "expect(received).not.toBe(expected) // Object.is equality\n\nExpected: not \"0\""
+        },
+        {
+          "name": "empty report has an honest empty state",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText(/暂无数据|暂无销售数据|No (?:sales )?data|No rows/i).last()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText(/暂无数据|暂无销售数据|No (?:sales )?data|No rows/i).last() with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText(/暂无数据|暂无销售数据|No (?:sales )?data|No rows/i).last()\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-extended-2026-11-05T00-45-54-209Z",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "keyboard toggles row details",
+          "status": "passed"
+        },
+        {
+          "name": "locale changes keep expanded row and sort direction",
+          "status": "passed"
+        },
+        {
+          "name": "actual numeric zero remains a valid value",
+          "status": "passed"
+        },
+        {
+          "name": "later messages preserve earlier row interaction state",
+          "status": "passed"
+        },
+        {
+          "name": "malformed numeric fields do not become fabricated zero",
+          "status": "passed"
+        },
+        {
+          "name": "missing numeric fields stay distinguishable from zero",
+          "status": "passed"
+        },
+        {
+          "name": "empty report has an honest empty state",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-feedback-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case07-sales-resume-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "JSON string parses into a table",
+          "status": "passed"
+        },
+        {
+          "name": "revenue sort changes displayed order",
+          "status": "passed"
+        },
+        {
+          "name": "row selection exposes order count",
+          "status": "passed"
+        },
+        {
+          "name": "bad JSON and empty rows leave conversation usable",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case08-progress-extended-2026-11-05T00-38-18-873Z",
+      "status": "failed",
+      "applicability": "qa-selector-mismatch",
+      "checks": [
+        {
+          "name": "locale changes keep existing progress",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('Task progress', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText('Task progress', { exact: true }) with timeout 5000ms\n  - waiting for getByText('Task progress', { exact: true })\n"
+        },
+        {
+          "name": "duplicate delivery does not duplicate job",
+          "status": "passed"
+        },
+        {
+          "name": "unknown status does not crash UI or corrupt existing job",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case08-progress-extended-2026-11-05T00-39-19-999Z",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "locale changes keep existing progress",
+          "status": "passed"
+        },
+        {
+          "name": "duplicate delivery does not duplicate job",
+          "status": "passed"
+        },
+        {
+          "name": "unknown status does not crash UI or corrupt existing job",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case08-progress-resume-current-replay",
+      "status": "passed",
+      "applicability": "applicable",
+      "checks": [
+        {
+          "name": "custom event renders right-side progress panel",
+          "status": "passed"
+        },
+        {
+          "name": "same job updates without duplicating other jobs",
+          "status": "passed"
+        },
+        {
+          "name": "failed job exposes its error",
+          "status": "passed"
+        },
+        {
+          "name": "invalid progress does not crash UI",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    }
+  ]
+}

@@ -23,7 +23,8 @@ export interface CreatorProjectIssue {
 export type CreatorProjectState =
   | { readonly status: "uninitialized" }
   | { readonly status: "ready"; readonly projectConfig: ResolvedAgentUIProjectConfig; readonly paths: AgentUIProjectPaths; readonly warnings?: CreatorProjectIssue[] }
-  | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
+  | { readonly status: "broken"; readonly issues: CreatorProjectIssue[];
+      readonly repairContext?: { readonly projectConfig: ResolvedAgentUIProjectConfig; readonly paths: AgentUIProjectPaths } };
 
 async function optionalFile(filePath: string): Promise<string | undefined> {
   try {
@@ -128,7 +129,7 @@ async function inspectCreatorProjectCore(
       ...childSlotIssues,
     ];
     if (errors.length > 0) {
-      return { status: "broken", issues: errors.map((issue) => ({
+      return { status: "broken", repairContext: { projectConfig: structure.projectConfig, paths }, issues: errors.map((issue) => ({
         code: issue.code, message: issue.message, severity: "error" as const,
       })) };
     }

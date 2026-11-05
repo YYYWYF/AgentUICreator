@@ -1,0 +1,86 @@
+{
+  "caseId": "case07-sales",
+  "status": "success",
+  "seconds": 164.784,
+  "tools": 30,
+  "changedFiles": 7,
+  "usage": {
+    "input": 1871582,
+    "output": 15657,
+    "total": 1887239,
+    "withoutUsage": 0
+  },
+  "modelRequests": 21,
+  "purposes": {
+    "routing": 1,
+    "agent": 20
+  },
+  "compaction": {
+    "summaryModelCalls": 0,
+    "compactions": 0,
+    "summarySeconds": 0,
+    "offloadedArtifacts": 0
+  },
+  "delivery": [
+    {
+      "pluginId": "sales-report-message",
+      "delivery": {
+        "status": "completed",
+        "lastSuccessfulStage": "verified",
+        "stages": {
+          "created": true,
+          "registered": true,
+          "composed": true,
+          "verified": true
+        },
+        "blockers": [],
+        "instanceIds": [
+          "p5"
+        ]
+      },
+      "verification": {
+        "static": "pass",
+        "runtime": "pass",
+        "interaction": "not-run"
+      },
+      "contract": {
+        "capability": "聊天消息内渲染 app.sales.report 销售报表：按收入排序的表格，点击行展开当月订单数量",
+        "renderingCategory": "application",
+        "placement": "application 级 dataMessageUI 渲染器（消息内联渲染，不进入 Layout Slot）",
+        "lifecycle": "项目自有插件源码，manifest.data.messageUI=true + definition.dataMessageUIs 注册 app.sales.report；随应用加载，无需 Service",
+        "dependencies": [
+          "react",
+          "@za38.03/agent-ui-plugins（UIPluginDefinition / defineDataMessageUI 公共 API）",
+          "可选 agent-ui.locale（useAgentUILocaleCode 读取统一语言）"
+        ],
+        "reusedComponents": [
+          "theme CSS tokens（--card/--border/--foreground/--muted-foreground/--primary）"
+        ],
+        "verificationMethod": "runtime"
+      }
+    }
+  ],
+  "interaction": [
+    {
+      "name": "JSON string parses into a table",
+      "status": "passed"
+    },
+    {
+      "name": "revenue sort changes displayed order",
+      "status": "passed"
+    },
+    {
+      "name": "row selection exposes order count",
+      "status": "passed"
+    },
+    {
+      "name": "bad JSON and empty rows leave conversation usable",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "cleanup": {
+    "closed": true,
+    "at": "2026-11-05T00:23:35.143Z"
+  }
+}

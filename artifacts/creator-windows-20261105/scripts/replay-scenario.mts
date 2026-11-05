@@ -10,7 +10,10 @@ const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const artifactRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const base=path.join(artifactRoot,'local-runs');
 const pointer=process.argv[2]??'case08-progress-262k';
-const latest=JSON.parse(await readFile(new URL('../latest-'+pointer+'.json',import.meta.url),'utf8'));
+const sourceRun=process.env.AGENT_UI_QA_SOURCE_RUN;
+const latest=sourceRun
+ ?{out:path.resolve(sourceRun),result:JSON.parse(await readFile(path.resolve(sourceRun,'result.json'),'utf8'))}
+ :JSON.parse(await readFile(new URL('../latest-'+pointer+'.json',import.meta.url),'utf8'));
 latest.out=path.resolve(artifactRoot,latest.out);
 const caseId=latest.result.caseId;
 const testCase=JSON.parse(await readFile(path.join(repo,'artifacts/creator-complex-scenarios-20261104/questions.json'),'utf8')).find((item:any)=>item.id===caseId);
@@ -48,6 +51,7 @@ try{
  result.controlledAgentRuns=fixture.runCount();
  const afterHashes=await hashes(fixture.hostRoot);result.sourceDifferences=[...new Set([...Object.keys(originalHashes),...Object.keys(afterHashes)])].filter(file=>originalHashes[file]!==afterHashes[file]);result.sourceUnchanged=result.sourceDifferences.length===0;
  await json(path.join(out,'result.json'),result);
+ if(result.staticChecks.some((check:any)=>check.status!=='passed')||result.interaction.status!=='passed'||result.browserErrors.length||!result.sourceUnchanged)process.exitCode=1;
  console.log(JSON.stringify({staticChecks:result.staticChecks,interaction:result.interaction.status,checks:result.interaction.checks,controlledAgentRuns:result.controlledAgentRuns,sourceUnchanged:result.sourceUnchanged,browserErrors:result.browserErrors}));
 }catch(error:any){result.error=error.message;await json(path.join(out,'result.json'),result);console.log(JSON.stringify({error:error.message}));process.exitCode=1;}
 finally{

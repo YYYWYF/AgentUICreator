@@ -1,0 +1,238 @@
+{
+  "caseId": "case06-inspection",
+  "status": "RUN_ERROR",
+  "seconds": 636.267,
+  "finish": {
+    "runtime": "typescript",
+    "completion": "needs_user_input",
+    "toolProtocol": {
+      "modelCalls": 9,
+      "toolCalls": 13
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    }
+  },
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_RUN_STOPPED",
+      "message": "CREATOR_RUN_STOPPED",
+      "metadata": {
+        "receipt": {
+          "files": [
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/manifest.json",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/manifest.json\n+++ b/src/agent-ui/plugins/inspection-result-message/manifest.json\n@@ -1,1 +1,20 @@\n-\n+{\n+  \"id\": \"inspection-result-message\",\n+  \"name\": \"Inspection Result Message\",\n+  \"description\": \"Renders system inspection results carried by the app.inspection.result AG-UI CUSTOM event.\",\n+  \"version\": \"0.0.1\",\n+  \"capabilities\": [\n+    \"headless\"\n+  ],\n+  \"data\": {\n+    \"messageUI\": true\n+  },\n+  \"authoring\": {\n+    \"intents\": [\n+      \"render system inspection results inside assistant messages\",\n+      \"显示系统检查结果\",\n+      \"突出失败的检查项并可展开原因\"\n+    ]\n+  }\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/application.json",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/application.json\n+++ b/src/agent-ui/plugins/inspection-result-message/application.json\n@@ -1,1 +1,5 @@\n-\n+{\n+  \"schemaVersion\": 1,\n+  \"pluginId\": \"inspection-result-message\"\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/schema.ts",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/schema.ts\n+++ b/src/agent-ui/plugins/inspection-result-message/schema.ts\n@@ -1,1 +1,92 @@\n-\n+import { z } from \"zod\";\n+\n+export const INSPECTION_RESULT_EVENT = \"app.inspection.result\";\n+\n+const checkSchema = z.object({\n+  name: z.string().trim().min(1),\n+  status: z.string().trim().min(1),\n+  detail: z.unknown().optional(),\n+});\n+\n+const inspectionResultSchema = z.object({\n+  target: z.string().trim().min(1).optional(),\n+  checks: z.array(checkSchema),\n+});\n+\n+export interface InspectionCheckDetail {\n+  code?: string;\n+  message?: string;\n+  durationMs?: number;\n+  raw: Record<string, unknown>;\n+}\n+\n+export interface InspectionCheckView {\n+  name: string;\n+  status: string;\n+  passed: boolean;\n+  failed: boolean;\n+  detail?: InspectionCheckDetail;\n+}\n+\n+export interface InspectionResultView {\n+  target?: string;\n+  checks: InspectionCheckView[];\n+}\n+\n+export type InspectionParseResult =\n+  | { ok: true; value: InspectionResultView }\n+  | { ok: false };\n+\n+function readString(record: Record<string, unknown>, key: string): string | undefined {\n+  const value = record[key];\n+  return typeof value === \"string\" && value.trim().length > 0 ? value : undefined;\n+}\n+\n+function normalizeDetail(detail: unknown): InspectionCheckDetail | undefined {\n+  if (detail === undefined || detail === null) return undefined;\n+\n+  if (typeof detail === \"string\") {\n+    return detail.trim().length > 0 ? { message: detail, raw: { message: detail } } : undefined;\n+  }\n+\n+  if (typeof detail !== \"object\" || Array.isArray(detail)) {\n+    return { raw: { detail } };\n+  }\n+\n+  const record = detail as Record<string, unknown>;\n+  const duration = record.duration_ms;\n+\n+  return {\n+    code: readString(record, \"code\"),\n+    message: readString(record, \"message\"),\n+    durationMs: typeof duration === \"number\" && Number.isFinite(duration) ? duration : undefined,\n+    raw: record,\n+  };\n+}\n+\n+/**\n+ * Validates the raw CUSTOM event payload carried by `app.inspection.result`.\n+ * Unknown detail fields are preserved so the copied error report stays complete.\n+ */\n+export function parseInspectionResult(data: unknown): InspectionParseResult {\n+  const result = inspectionResultSchema.safeParse(data);\n+  if (!result.success) return { ok: false };\n+\n+  return {\n+    ok: true,\n+    value: {\n+      target: result.data.target,\n+      checks: result.data.checks.map((check) => {\n+        const normalizedStatus = check.status.trim().toLowerCase();\n+        return {\n+          name: check.name,\n+          status: check.status,\n+          passed: normalizedStatus === \"passed\",\n+          failed: normalizedStatus === \"failed\",\n+          detail: normalizeDetail(check.detail),\n+        };\n+      }),\n+    },\n+  };\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/index.tsx",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/index.tsx\n+++ b/src/agent-ui/plugins/inspection-result-message/index.tsx\n@@ -1,1 +1,265 @@\n-\n+import { useCallback, useEffect, useId, useMemo, useState } from \"react\";\n+import { useAgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n+import { parseInspectionResult, type InspectionCheckView } from \"./schema\";\n+import \"./styles.css\";\n+\n+const zhCN = {\n+  heading: \"系统检查结果\",\n+  targetLabel: \"检查对象\",\n+  checkLabel: \"检查项\",\n+  statusLabel: \"状态\",\n+  codeLabel: \"错误码\",\n+  messageLabel: \"错误信息\",\n+  durationLabel: \"耗时\",\n+  expand: \"查看失败原因\",\n+  collapse: \"收起失败原因\",\n+  copy: \"复制错误详情\",\n+  copied: \"已复制\",\n+  copyFailed: \"复制失败，请手动选择文本\",\n+  invalid: \"检查结果数据格式不正确。\",\n+  summary: (passed: number, failed: number) => `通过 ${passed} 项 · 失败 ${failed} 项`,\n+};\n+\n+const enUS: typeof zhCN = {\n+  heading: \"System check results\",\n+  targetLabel: \"Target\",\n+  checkLabel: \"Check\",\n+  statusLabel: \"Status\",\n+  codeLabel: \"Code\",\n+  messageLabel: \"Message\",\n+  durationLabel: \"Duration\",\n+  expand: \"Show failure reason\",\n+  collapse: \"Hide failure reason\",\n+  copy: \"Copy error details\",\n+  copied: \"Copied\",\n+  copyFailed: \"Copy failed, select the text manually\",\n+  invalid: \"Invalid inspection result data.\",\n+  summary: (passed: number, failed: number) => `${passed} passed · ${failed} failed`,\n+};\n+\n+type InspectionLabels = typeof zhCN;\n+\n+type CopyFeedback = { key: string; status: \"copied\" | \"failed\" };\n+\n+function buildErrorDetailText(\n+  target: string | undefined,\n+  check: InspectionCheckView,\n+  labels: InspectionLabels,\n+): string {\n+  const lines = [`${labels.checkLabel}: ${check.name}`];\n+  if (target) lines.push(`${labels.targetLabel}: ${target}`);\n+  lines.push(`${labels.statusLabel}: ${check.status}`);\n+\n+  const detail = check.detail;\n+  if (detail?.code) lines.push(`${labels.codeLabel}: ${detail.code}`);\n+  if (detail?.message) lines.push(`${labels.messageLabel}: ${detail.message}`);\n+  if (typeof detail?.durationMs === \"number\") {\n+    lines.push(`${labels.durationLabel}: ${detail.durationMs} ms`);\n+  }\n+  if (detail) lines.push(\"\", JSON.stringify(detail.raw, null, 2));\n+\n+  return lines.join(\"\\n\");\n+}\n+\n+async function writeClipboard(text: string): Promise<void> {\n+  if (typeof navigator === \"undefined\" || !navigator.clipboard?.writeText) {\n+    throw new Error(\"clipboard-unavailable\");\n+  }\n+  await navigator.clipboard.writeText(text);\n+}\n+\n+function CheckGlyph() {\n+  return (\n+    <svg className=\"inspection-result__glyph\" aria-hidden=\"true\" viewBox=\"0 0 16 16\" width=\"12\" height=\"12\" focusable=\"false\">\n+      <path\n+        d=\"M3.5 8.5l3 3 6-7\"\n+        fill=\"none\"\n+        stroke=\"currentColor\"\n+        strokeWidth=\"1.6\"\n+        strokeLinecap=\"round\"\n+        strokeLinejoin=\"round\"\n+      />\n+    </svg>\n+  );\n+}\n+\n+function ChevronGlyph({ open }: { open: boolean }) {\n+  return (\n+    <svg\n+      className=\"inspection-result__chevron\"\n+      data-open={open ? \"true\" : \"false\"}\n+      aria-hidden=\"true\"\n+      viewBox=\"0 0 16 16\"\n+      width=\"14\"\n+      height=\"14\"\n+      focusable=\"false\"\n+    >\n+      <path\n+        d=\"M4 6l4 4 4-4\"\n+        fill=\"none\"\n+        stroke=\"currentColor\"\n+        strokeWidth=\"1.5\"\n+        strokeLinecap=\"round\"\n+        strokeLinejoin=\"round\"\n+      />\n+    </svg>\n+  );\n+}\n+\n+function CopyGlyph() {\n+  return (\n+    <svg aria-hidden=\"true\" viewBox=\"0 0 16 16\" width=\"12\" height=\"12\" focusable=\"false\">\n+      <path\n+        d=\"M6 3.5h6a1 1 0 0 1 1 1v7.5M3.5 5.5h6a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1z\"\n+        fill=\"none\"\n+        stroke=\"currentColor\"\n+        strokeWidth=\"1.4\"\n+        strokeLinecap=\"round\"\n+        strokeLinejoin=\"round\"\n+      />\n+    </svg>\n+  );\n+}\n+\n+export function InspectionResultMessagePlugin({ data }: { data: unknown }) {\n+  const localeCode = useAgentUILocaleCode();\n+  const labels = localeCode === \"en-US\" ? enUS : zhCN;\n+  const parsed = useMemo(() => parseInspectionResult(data), [data]);\n+  const rawId = useId().replace(/[^a-zA-Z0-9_-]/g, \"\");\n+  const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});\n+  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);\n+\n+  useEffect(() => {\n+    if (!copyFeedback) return;\n+    const timer = window.setTimeout(() => setCopyFeedback(null), 2200);\n+    return () => window.clearTimeout(timer);\n+  }, [copyFeedback]);\n+\n+  const toggleExpanded = useCallback((key: string) => {\n+    setExpandedKeys((previous) => ({ ...previous, [key]: !previous[key] }));\n+  }, []);\n+\n+  const handleCopy = useCallback(async (key: string, text: string) => {\n+    try {\n+      await writeClipboard(text);\n+      setCopyFeedback({ key, status: \"copied\" });\n+    } catch {\n+      setCopyFeedback({ key, status: \"failed\" });\n+    }\n+  }, []);\n+\n+  if (!parsed.ok) {\n+    return (\n+      <section className=\"inspection-result inspection-result--invalid\" role=\"alert\">\n+        {labels.invalid}\n+      </section>\n+    );\n+  }\n+\n+  const { target, checks } = parsed.value;\n+  const failedCount = checks.filter((check) => check.failed).length;\n+  const passedCount = checks.length - failedCount;\n+\n+  return (\n+    <section className=\"inspection-result\" aria-label={labels.heading}>\n+      <header className=\"inspection-result__header\">\n+        <h3 className=\"inspection-result__title\">{labels.heading}</h3>\n+        {target ? (\n+          <span className=\"inspection-result__target\">\n+            {labels.targetLabel}: {target}\n+          </span>\n+        ) : null}\n+        <span className=\"inspection-result__summary\">\n+          <span className=\"inspection-result__count inspection-result__count--passed\">{passedCount}</span>\n+          <span className=\"inspection-result__count-label\">{labels.summary(passedCount, failedCount)}</span>\n+        </span>\n+      </header>\n+\n+      <ul className=\"inspection-result__list\">\n+        {checks.map((check, index) => {\n+          const key = `${index}:${check.name}`;\n+\n+          if (!check.failed) {\n+            return (\n+              <li key={key} className=\"inspection-result__item inspection-result__item--passed\">\n+                <span className=\"inspection-result__glyph-wrap\" aria-hidden=\"true\">\n+                  <CheckGlyph />\n+                </span>\n+                <span className=\"inspection-result__name\">{check.name}</span>\n+                <span className=\"inspection-result__badge inspection-result__badge--passed\">\n+                  {check.passed ? labels.passed : check.status}\n+                </span>\n+              </li>\n+            );\n+          }\n+\n+          const panelId = `inspection-result-panel-${rawId}-${index}`;\n+          const expanded = expandedKeys[key] === true;\n+          const feedback = copyFeedback?.key === key ? copyFeedback.status : null;\n+\n+          return (\n+            <li key={key} className=\"inspection-result__item inspection-result__item--failed\">\n+              <button\n+                type=\"button\"\n+                className=\"inspection-result__toggle\"\n+                aria-expanded={expanded}\n+                aria-controls={panelId}\n+                onClick={() => toggleExpanded(key)}\n+              >\n+                <span className=\"inspection-result__name\">{check.name}</span>\n+                <span className=\"inspection-result__badge inspection-result__badge--failed\">{labels.failed}</span>\n+                <span className=\"inspection-result__hint\">{expanded ? labels.collapse : labels.expand}</span>\n+                <ChevronGlyph open={expanded} />\n+              </button>\n+\n+              <div id={panelId} className=\"inspection-result__panel\" hidden={!expanded}>\n+                {check.detail ? (\n+                  <dl className=\"inspection-result__detail\">\n+                    {check.detail.code ? (\n+                      <>\n+                        <dt>{labels.codeLabel}</dt>\n+                        <dd>{check.detail.code}</dd>\n+                      </>\n+                    ) : null}\n+                    {check.detail.message ? (\n+                      <>\n+                        <dt>{labels.messageLabel}</dt>\n+                        <dd>{check.detail.message}</dd>\n+                      </>\n+                    ) : null}\n+                    {typeof check.detail.durationMs === \"number\" ? (\n+                      <>\n+                        <dt>{labels.durationLabel}</dt>\n+                        <dd>{check.detail.durationMs} ms</dd>\n+                      </>\n+                    ) : null}\n+                  </dl>\n+                ) : null}\n+\n+                <div className=\"inspection-result__actions\">\n+                  <button\n+                    type=\"button\"\n+                    className=\"inspection-result__copy\"\n+                    aria-label={`${labels.copy}: ${check.name}`}\n+                    onClick={() => {\n+                      void handleCopy(key, buildErrorDetailText(target, check, labels));\n+                    }}\n+                  >\n+                    <CopyGlyph />\n+                    <span>{labels.copy}</span>\n+                  </button>\n+                  {feedback ? (\n+                    <span className=\"inspection-result__feedback\" role=\"status\" aria-live=\"polite\">\n+                      {feedback === \"copied\" ? labels.copied : labels.copyFailed}\n+                    </span>\n+                  ) : null}\n+                </div>\n+              </div>\n+            </li>\n+          );\n+        })}\n+      </ul>\n+    </section>\n+  );\n+}\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/definition.ts",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/definition.ts\n+++ b/src/agent-ui/plugins/inspection-result-message/definition.ts\n@@ -1,1 +1,22 @@\n-\n+import type { UIPluginDefinition, UIPluginManifest } from \"@za38.03/agent-ui-plugins\";\n+import { defineDataMessageUI } from \"@za38.03/agent-ui-plugins\";\n+import manifestJson from \"./manifest.json\";\n+import { InspectionResultMessagePlugin } from \"./index\";\n+import { INSPECTION_RESULT_EVENT } from \"./schema\";\n+\n+const definition: UIPluginDefinition = {\n+  manifest: manifestJson as UIPluginManifest,\n+  provides: [],\n+  inject: [],\n+  optionalInject: [\"agent-ui.locale\"],\n+  dataMessageUIs: [\n+    defineDataMessageUI<unknown>({\n+      name: INSPECTION_RESULT_EVENT,\n+      render: InspectionResultMessagePlugin,\n+    }),\n+  ],\n+  Component: () => null,\n+};\n+\n+export default definition;\n+",
+              "truncated": false
+            },
+            {
+              "path": "src/agent-ui/plugins/inspection-result-message/styles.css",
+              "status": "created",
+              "diff": "--- a/src/agent-ui/plugins/inspection-result-message/styles.css\n+++ b/src/agent-ui/plugins/inspection-result-message/styles.css\n@@ -1,1 +1,249 @@\n-\n+.inspection-result {\n+  --inspection-result-failed: #b91c1c;\n+  --inspection-result-failed-surface: color-mix(in oklab, var(--inspection-result-failed) 10%, var(--card));\n+  display: flex;\n+  flex-direction: column;\n+  gap: 10px;\n+  margin-block: 12px;\n+  padding: 14px 16px;\n+  border: 1px solid var(--border);\n+  border-radius: 14px;\n+  background: var(--card);\n+  color: var(--foreground);\n+  font-size: 0.875rem;\n+  line-height: 1.5;\n+  overflow-wrap: anywhere;\n+}\n+\n+:is(.agent-ui-root, .agent-ui-conversation)[data-theme=\"dark\"] .inspection-result {\n+  --inspection-result-failed: #fda4af;\n+  --inspection-result-failed-surface: color-mix(in oklab, var(--inspection-result-failed) 18%, var(--card));\n+}\n+\n+.inspection-result--invalid {\n+  border-style: dashed;\n+  color: var(--inspection-result-failed);\n+}\n+\n+.inspection-result__header {\n+  display: flex;\n+  flex-wrap: wrap;\n+  align-items: center;\n+  gap: 8px 12px;\n+}\n+\n+.inspection-result__title {\n+  margin: 0;\n+  font-size: 0.9375rem;\n+  font-weight: 600;\n+}\n+\n+.inspection-result__target {\n+  color: color-mix(in oklab, var(--foreground) 68%, transparent);\n+  font-size: 0.8125rem;\n+}\n+\n+.inspection-result__summary {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 6px;\n+  margin-inline-start: auto;\n+  font-size: 0.75rem;\n+}\n+\n+.inspection-result__count {\n+  display: inline-flex;\n+  align-items: center;\n+  justify-content: center;\n+  min-width: 20px;\n+  padding: 1px 6px;\n+  border-radius: 999px;\n+  background: var(--muted);\n+  font-weight: 600;\n+  font-variant-numeric: tabular-nums;\n+}\n+\n+.inspection-result__count-label {\n+  color: color-mix(in oklab, var(--foreground) 70%, transparent);\n+}\n+\n+.inspection-result__list {\n+  display: flex;\n+  flex-direction: column;\n+  gap: 6px;\n+  margin: 0;\n+  padding: 0;\n+  list-style: none;\n+}\n+\n+.inspection-result__item {\n+  display: flex;\n+  align-items: center;\n+  gap: 8px;\n+  min-width: 0;\n+}\n+\n+.inspection-result__item--passed {\n+  padding: 2px 8px;\n+}\n+\n+.inspection-result__glyph-wrap {\n+  display: inline-flex;\n+  flex: none;\n+  align-items: center;\n+  justify-content: center;\n+  width: 16px;\n+  height: 16px;\n+  border-radius: 999px;\n+  background: color-mix(in oklab, var(--primary) 14%, var(--card));\n+  color: var(--primary);\n+}\n+\n+.inspection-result__item--passed .inspection-result__name {\n+  color: color-mix(in oklab, var(--foreground) 82%, transparent);\n+}\n+\n+.inspection-result__name {\n+  min-width: 0;\n+  font-weight: 500;\n+}\n+\n+.inspection-result__badge {\n+  flex: none;\n+  padding: 0 8px;\n+  border-radius: 999px;\n+  font-size: 0.6875rem;\n+  font-weight: 600;\n+  line-height: 1.6;\n+}\n+\n+.inspection-result__badge--passed {\n+  background: var(--muted);\n+  color: color-mix(in oklab, var(--foreground) 72%, transparent);\n+}\n+\n+.inspection-result__badge--failed {\n+  background: color-mix(in oklab, var(--inspection-result-failed) 16%, var(--card));\n+  color: var(--inspection-result-failed);\n+}\n+\n+.inspection-result__item--failed {\n+  flex-direction: column;\n+  align-items: stretch;\n+  gap: 0;\n+  border-radius: 10px;\n+  background: var(--inspection-result-failed-surface);\n+}\n+\n+.inspection-result__toggle {\n+  display: flex;\n+  align-items: center;\n+  gap: 8px;\n+  width: 100%;\n+  padding: 8px 10px;\n+  border: 0;\n+  border-radius: 10px;\n+  background: transparent;\n+  color: inherit;\n+  font: inherit;\n+  text-align: start;\n+  cursor: pointer;\n+}\n+\n+.inspection-result__toggle:hover {\n+  background: color-mix(in oklab, var(--inspection-result-failed) 8%, transparent);\n+}\n+\n+.inspection-result__toggle:focus-visible {\n+  outline: 2px solid var(--ring);\n+  outline-offset: 2px;\n+}\n+\n+.inspection-result__toggle .inspection-result__name {\n+  font-weight: 600;\n+}\n+\n+.inspection-result__hint {\n+  margin-inline-start: auto;\n+  color: color-mix(in oklab, var(--foreground) 62%, transparent);\n+  font-size: 0.75rem;\n+}\n+\n+.inspection-result__chevron {\n+  flex: none;\n+  color: color-mix(in oklab, var(--foreground) 62%, transparent);\n+  transition: transform 120ms ease;\n+}\n+\n+.inspection-result__chevron[data-open=\"true\"] {\n+  transform: rotate(180deg);\n+}\n+\n+.inspection-result__panel {\n+  display: flex;\n+  flex-direction: column;\n+  gap: 8px;\n+  padding: 0 10px 10px;\n+}\n+\n+.inspection-result__panel[hidden] {\n+  display: none;\n+}\n+\n+.inspection-result__detail {\n+  display: grid;\n+  grid-template-columns: auto minmax(0, 1fr);\n+  gap: 2px 12px;\n+  margin: 0;\n+  padding: 8px 10px;\n+  border: 1px solid var(--border);\n+  border-radius: 8px;\n+  background: var(--background);\n+  font-size: 0.8125rem;\n+}\n+\n+.inspection-result__detail dt {\n+  color: color-mix(in oklab, var(--foreground) 64%, transparent);\n+}\n+\n+.inspection-result__detail dd {\n+  margin: 0;\n+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n+  overflow-wrap: anywhere;\n+}\n+\n+.inspection-result__actions {\n+  display: flex;\n+  flex-wrap: wrap;\n+  align-items: center;\n+  gap: 8px;\n+}\n+\n+.inspection-result__copy {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 6px;\n+  padding: 4px 10px;\n+  border: 1px solid var(--border);\n+  border-radius: 8px;\n+  background: var(--background);\n+  color: inherit;\n+  font: inherit;\n+  font-size: 0.75rem;\n+  cursor: pointer;\n+}\n+\n+.inspection-result__copy:hover {\n+  background: var(--muted);\n+}\n+\n+.inspection-result__copy:focus-visible {\n+  outline: 2px solid var(--ring);\n+  outline-offset: 2px;\n+}\n+\n+.inspection-result__feedback {\n+  font-size: 0.75rem;\n+  color: color-mix(in oklab, var(--foreground) 70%, transparent);\n+}\n+",
+              "truncated": false
+            }
+          ],
+          "validations": [],
+          "diagnosticLog": {
+            "format": "jsonl",
+            "path": ".agent-ui/creator/logs/2026-11-05T01-17-02.076Z_90404e6be5e60825a4ab049d4d5363d68decfc1cd3fee2dd3cec20a85bb5e1e0.jsonl"
+          },
+          "transaction": {
+            "runId": "9860be07-3987-434c-a502-f2048a1f1bde",
+            "undoable": true,
+            "reapplyable": true,
+            "changedPaths": [
+              "src/agent-ui/plugins/inspection-result-message/manifest.json",
+              "src/agent-ui/plugins/inspection-result-message/application.json",
+              "src/agent-ui/plugins/inspection-result-message/schema.ts",
+              "src/agent-ui/plugins/inspection-result-message/index.tsx",
+              "src/agent-ui/plugins/inspection-result-message/definition.ts",
+              "src/agent-ui/plugins/inspection-result-message/styles.css"
+            ],
+            "conflicts": []
+          },
+          "verification": {
+            "status": "changed-unverified",
+            "projectRevision": 2,
+            "validationRevision": null,
+            "auditAttempts": 0,
+            "checks": [],
+            "verificationMode": "static_only",
+            "runtimeStatus": "not-run"
+          }
+        },
+        "contextCompression": {
+          "summaryModelCalls": 0,
+          "compactions": 0,
+          "summarySeconds": 0,
+          "offloadedArtifacts": 1
+        },
+        "creatorRunOutcome": {
+          "status": "stopped",
+          "changeStatus": "committed",
+          "changedPaths": [
+            "src/agent-ui/plugins/inspection-result-message/manifest.json",
+            "src/agent-ui/plugins/inspection-result-message/application.json",
+            "src/agent-ui/plugins/inspection-result-message/schema.ts",
+            "src/agent-ui/plugins/inspection-result-message/index.tsx",
+            "src/agent-ui/plugins/inspection-result-message/definition.ts",
+            "src/agent-ui/plugins/inspection-result-message/styles.css"
+          ],
+          "toolErrors": [
+            {
+              "toolName": "grep",
+              "status": "error",
+              "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+            },
+            {
+              "toolName": "inspect_ui_plugin_source_references",
+              "status": "error",
+              "reason": "APP_UI_MODEL_WORKSPACE_INTEGRITY"
+            },
+            {
+              "toolName": "grep",
+              "status": "error",
+              "reason": "TOOL_PERMISSION_DENIED"
+            }
+          ],
+          "lastToolName": "edit_file"
+        }
+      }
+    }
+  ],
+  "toolCalls": 46,
+  "changedPaths": [
+    "src/agent-ui/plugins/inspection-result-message/application.json",
+    "src/agent-ui/plugins/inspection-result-message/definition.ts",
+    "src/agent-ui/plugins/inspection-result-message/index.tsx",
+    "src/agent-ui/plugins/inspection-result-message/manifest.json",
+    "src/agent-ui/plugins/inspection-result-message/schema.ts",
+    "src/agent-ui/plugins/inspection-result-message/styles.css"
+  ],
+  "qaApprovals": [
+    {
+      "kind": "simulated isolated QA user selection",
+      "seconds": 121.942,
+      "question": {
+        "id": "plugin-development-decision",
+        "question": "是否按此方案开发？",
+        "description": "目标: 在助手消息中把 CUSTOM 事件 app.inspection.result 渲染成“系统检查结果”卡片：通过项紧凑列出；失败项高亮显示；点击失败项展开原因详情；提供复制错误详情按钮。数据里 target 为被检查对象，checks[].status 为 passed/failed，失败项带 detail{code,message,duration_ms}。\n\n目标插件与位置: inspection-result-message\n\n需要新增的能力: 现有插件只注册 CONTEXT_CONTENT 事件，没有 app.inspection.result 的消息渲染; 需要失败项可展开、可复制错误详情的自定义卡片展示\n\napplication 级 messageUI 注册，渲染在出现该 CUSTOM 事件的助手消息位置",
+        "options": [
+          {
+            "id": "start",
+            "label": "开始开发"
+          },
+          {
+            "id": "adjust",
+            "label": "调整需求"
+          },
+          {
+            "id": "defer",
+            "label": "暂不处理"
+          }
+        ],
+        "selectionMode": "single",
+        "minSelections": 1,
+        "maxSelections": 1
+      },
+      "proposal": {
+        "targetPluginId": "inspection-result-message",
+        "desiredOutcome": "在助手消息中把 CUSTOM 事件 app.inspection.result 渲染成“系统检查结果”卡片：通过项紧凑列出；失败项高亮显示；点击失败项展开原因详情；提供复制错误详情按钮。数据里 target 为被检查对象，checks[].status 为 passed/failed，失败项带 detail{code,message,duration_ms}。",
+        "workKind": "create-plugin",
+        "missingCapabilities": [
+          "现有插件只注册 CONTEXT_CONTENT 事件，没有 app.inspection.result 的消息渲染",
+          "需要失败项可展开、可复制错误详情的自定义卡片展示"
+        ],
+        "deliveryContract": {
+          "capability": "渲染 app.inspection.result CUSTOM 事件为检查结果卡片，含通过项精简列表、失败项高亮、展开原因、复制错误详情",
+          "renderingCategory": "application",
+          "placement": "application 级 messageUI 注册，渲染在出现该 CUSTOM 事件的助手消息位置",
+          "lifecycle": "插件随应用持久启用，无额外 Service 生命周期",
+          "dependencies": [
+            "react",
+            "@za38.03/agent-ui-plugins",
+            "zod（若项目已安装，用于解析校验）"
+          ],
+          "verificationMethod": "runtime",
+          "interactions": [
+            "点击失败检查项展开/收起原因详情",
+            "点击复制按钮把失败项错误详情写入剪贴板并给出反馈"
+          ],
+          "reusedComponents": [
+            "defineDataMessageUI",
+            "useAgentUILocaleCode"
+          ]
+        }
+      },
+      "zeroNewPluginFilesBeforeApproval": true
+    }
+  ],
+  "browserErrors": [],
+  "interaction": {
+    "status": "failed",
+    "checks": [
+      {
+        "name": "inspection event renders check statuses",
+        "status": "failed",
+        "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\n"
+      }
+    ],
+    "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接') with timeout 5000ms\n  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByText('数据库连接')\n",
+    "protocolEventsSent": [
+      {
+        "at": "2026-11-05T01:27:38.585Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.inspection.result",
+          "value": {
+            "target": "订单服务",
+            "checks": [
+              {
+                "name": "数据库连接",
+                "status": "passed"
+              },
+              {
+                "name": "支付接口",
+                "status": "failed",
+                "detail": {
+                  "code": "UPSTREAM_TIMEOUT",
+                  "message": "支付接口响应超时",
+                  "duration_ms": 5000
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

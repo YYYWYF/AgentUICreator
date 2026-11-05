@@ -1,0 +1,3 @@
+Port 5173 is in use, trying another one...
+9:12:08 AM [vite] (client) page reload src/main.tsx
+{"staticChecks":[{"script":"typecheck","status":"passed","exitCode":0},{"script":"build","status":"passed","exitCode":0}],"interaction":"passed","checks":[{"name":"order event renders business fields","status":"passed"},{"name":"long order has working expansion","status":"passed"},{"name":"malformed order leaves composer usable","status":"passed"}],"controlledAgentRuns":3,"sourceUnchanged":true,"browserErrors":[]}

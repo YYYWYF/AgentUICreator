@@ -1,0 +1,6 @@
+{
+  "seedSource": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case07-sales-mac-application-fix-262k-2026-11-05T00-20-41-890Z/host/src/agent-ui",
+  "promptFile": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/sales-feedback.txt",
+  "scenarioPrompt": "我的 Agent 返回的报表内容是放在 payload 里的 JSON 字符串。帮我在聊天消息里显示成表格，可以按收入排序，点击某一行查看这个月的订单数量。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.sales.report\",\n  \"value\": {\n    \"format\": \"json\",\n    \"payload\": \"{\\\"title\\\":\\\"月度销售\\\",\\\"rows\\\":[{\\\"month\\\":\\\"2026-09\\\",\\\"revenue\\\":120000,\\\"order_count\\\":320},{\\\"month\\\":\\\"2026-10\\\",\\\"revenue\\\":156000,\\\"order_count\\\":410}]}\"\n  }\n}",
+  "prompt": "销售报表还有个数据问题：收入传了 \"bad\"、订单数传了 null，页面却显示成了 0。缺失或无效的数据请显示为“—”，不要当成真实的零值，后端真的传 0 时仍然正常显示 0。rows 是空数组时显示“暂无销售数据”。中英文切换时也要有对应文案，收入排序和点击行查看订单数继续可用。\n"
+}

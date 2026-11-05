@@ -36,7 +36,7 @@ export class CreatorValidation {
     }
     const baseline = await this.ensureBaseline();
     for (const [file, before] of this.activity.before) {
-      if (!/\/plugins\/[^/]+\/(?:manifest\.json|definition\.ts)$/u.test(file)) continue;
+      if (!/\/plugins\/[^/]+\/(?:manifest\.json|definition\.ts|application\.json)$/u.test(file)) continue;
       if ((await readCreatorFileState(this.root, file)).hash === before.hash) continue;
       const registry = `${await sourceRoot(this.root)}/plugins/registry.generated.ts`;
       const current = await readCreatorFileState(this.root, registry);

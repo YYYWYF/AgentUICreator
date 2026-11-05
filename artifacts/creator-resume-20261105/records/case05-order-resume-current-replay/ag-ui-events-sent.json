@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-11-05T00:58:37.028Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.order.summary",
+      "value": {
+        "order_no": "O-20261104-001",
+        "status": "paid",
+        "currency": "CNY",
+        "total_amount": 258,
+        "items": [
+          {
+            "name": "键盘",
+            "quantity": 1,
+            "unit_price": 199
+          },
+          {
+            "name": "鼠标垫",
+            "quantity": 1,
+            "unit_price": 59
+          }
+        ]
+      }
+    }
+  }
+]

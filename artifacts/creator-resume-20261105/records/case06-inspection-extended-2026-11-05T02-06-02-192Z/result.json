@@ -1,0 +1,72 @@
+{
+  "caseId": "case06-inspection",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+  "scope": "Extra browser checks of unchanged model output. Synthetic events travel through the existing HTTP SSE endpoint. Locale buttons are in the QA Host, outside Agent UI implementation.",
+  "checks": [
+    {
+      "name": "inspection error details are literal text",
+      "status": "passed"
+    },
+    {
+      "name": "locale update keeps failure details expanded",
+      "status": "passed"
+    },
+    {
+      "name": "nested malformed inspection fields do not crash the conversation",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "events": [
+    {
+      "type": "CUSTOM",
+      "name": "app.inspection.result",
+      "value": {
+        "target": "边界服务",
+        "checks": [
+          {
+            "name": "<b data-qa-injected>检查项文本</b>",
+            "status": "failed",
+            "detail": {
+              "code": "E_TEXT",
+              "message": "<b data-qa-injected>故障信息</b>",
+              "duration_ms": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "CUSTOM",
+      "name": "app.inspection.result",
+      "value": {
+        "target": {
+          "bad": true
+        },
+        "checks": [
+          null,
+          {
+            "name": {
+              "bad": true
+            },
+            "status": "failed",
+            "detail": {
+              "code": {
+                "bad": true
+              },
+              "message": {
+                "bad": true
+              },
+              "duration_ms": []
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceDifferences": [],
+  "sourceUnchanged": true,
+  "status": "passed",
+  "cleanup": true
+}

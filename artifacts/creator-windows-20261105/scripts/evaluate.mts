@@ -20,7 +20,13 @@ const out=path.join(base,caseId+'-'+label+'-'+new Date().toISOString().replace(/
 await mkdir(out,{recursive:true});
 const json=async(file:string,value:any)=>writeFile(file,JSON.stringify(value,null,2));
 const digest=(value:any)=>createHash('sha256').update(value).digest('hex');
-const original=testCase.prompt+(testCase.event?'\n\n'+JSON.stringify(testCase.event,null,2):'')+(testCase.failureExample?'\n\n失败时的 error 示例：\n'+JSON.stringify(testCase.failureExample,null,2):'');
+const scenarioPrompt=testCase.prompt+(testCase.event?'\n\n'+JSON.stringify(testCase.event,null,2):'')+(testCase.failureExample?'\n\n失败时的 error 示例：\n'+JSON.stringify(testCase.failureExample,null,2):'');
+const promptFile=process.env.AGENT_UI_QA_PROMPT_FILE;
+const original=promptFile?await readFile(path.resolve(promptFile),'utf8'):scenarioPrompt;
+const seedSource=process.env.AGENT_UI_QA_SOURCE_RUN
+ ?path.resolve(process.env.AGENT_UI_QA_SOURCE_RUN,'host/src/agent-ui')
+ :path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui');
+const seedAfterStartup=process.env.AGENT_UI_QA_SEED_AFTER_STARTUP==='1';
 const require=createRequire(path.join(repo,'apps/creator-workbench/package.json'));
 const {chromium}=require('@playwright/test');
 const env=hostEnvironment(repo);
@@ -66,8 +72,9 @@ Object.assign(process.env,env,{CREATOR_MODEL_BASE_URL:`http://127.0.0.1:${(relay
 const packageRoots=Object.fromEntries(['core','renderer','runtime','plugins','web-component','creator'].map(name=>['@za38.03/agent-ui-'+name,path.join(repo,'packages',name)]));
 const creatorSource=Object.fromEntries(await Promise.all(['prompts.json','activity.ts','files/creatorFileState.ts','runner.ts','model-policy.ts','context-window.ts','evidence-progress.ts','working-context.ts','tools.ts','source-tools.ts'].map(async(file)=>[file,digest(await readFile(path.join(repo,'packages/creator/src/agent',file)))])));
 const guidanceSource=Object.fromEntries(await Promise.all(['packages/creator/skills/ag-ui-frontend/SKILL.md','packages/creator/skills/ui-plugin-development/SKILL.md','packages/creator/skills/ui-plugin-development/references/authoring-contracts.md','website/docs/development/plugin-api.md'].map(async(file)=>[file,digest(await readFile(path.join(repo,file)))])));
-await json(path.join(out,'environment.json'),{created:new Date().toISOString(),caseId,label,creatorSource,guidanceSource,sourceCreator:process.env.AGENT_UI_TEST_SOURCE_CREATOR==='1',platform:process.platform,node:process.version,model:env.CREATOR_MODEL_NAME,providerFingerprint:digest(upstream.href),context:env.CREATOR_CONTEXT_MAX_TOKENS,keep:env.CREATOR_CONTEXT_KEEP_TOKENS,output:env.CREATOR_MODEL_MAX_TOKENS,summaryOutput:env.CREATOR_CONTEXT_SUMMARY_MAX_TOKENS??'8192 (implementation default)',timeout:env.CREATOR_MODEL_TIMEOUT_SECONDS,opencodeSessionHeader:env.CREATOR_MODEL_OPENCODE_SESSION_HEADER,prompt:original,packageRoots,scope:'Current Windows checkout. Original scenario prompt and retained help-card source; freshly built local packages, not historical macOS frozen distributions. Only new-Plugin start decisions are simulated in the disposable QA project. Takeover and dependency-install questions remain unapproved. 1200-second QA observation window; no cumulative Creator call or graph-step cap. Provider output telemetry records tool names and character counts only, never private reasoning text or tool argument bodies.'});
+await json(path.join(out,'environment.json'),{created:new Date().toISOString(),caseId,label,creatorSource,guidanceSource,sourceCreator:process.env.AGENT_UI_TEST_SOURCE_CREATOR==='1',platform:process.platform,node:process.version,model:env.CREATOR_MODEL_NAME,providerFingerprint:digest(upstream.href),context:env.CREATOR_CONTEXT_MAX_TOKENS,keep:env.CREATOR_CONTEXT_KEEP_TOKENS,output:env.CREATOR_MODEL_MAX_TOKENS,summaryOutput:env.CREATOR_CONTEXT_SUMMARY_MAX_TOKENS??'8192 (implementation default)',timeout:env.CREATOR_MODEL_TIMEOUT_SECONDS,opencodeSessionHeader:env.CREATOR_MODEL_OPENCODE_SESSION_HEADER,prompt:original,packageRoots,scope:'Current checkout. Original scenario or explicitly recorded follow-up and seed source (see qa-input.json); freshly built local packages, not historical frozen distributions. Only new-Plugin start decisions are simulated in the disposable QA project. Takeover and dependency-install questions remain unapproved. 1200-second QA observation window; no cumulative Creator call or graph-step cap. Provider output telemetry records tool names and character counts only, never private reasoning text or tool argument bodies.'});
 await json(pointer,{out,pid:process.pid,status:'starting'});
+await json(path.join(out,'qa-input.json'),{seedSource,seedPhase:seedAfterStartup?'after-ready-running-Creator':'before-workspace-selection',promptFile:promptFile?path.resolve(promptFile):null,scenarioPrompt,prompt:original});
 
 async function hashes(root:string,dir=path.join(root,'src')):Promise<Record<string,string>>{
  const result:Record<string,string>={};
@@ -79,8 +86,8 @@ const events:any[]=[],browserErrors:string[]=[],qaApprovals:any[]=[];
 let timedOut=false;
 try{
  fixture=await createConnectionHostFixture({liveModel:true,packageRoots,prepareHost:async(root:string)=>{
-  await cp(path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui'),path.join(root,'src/agent-ui'),{recursive:true});
- }});
+  await cp(seedAfterStartup?path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui'):seedSource,path.join(root,'src/agent-ui'),{recursive:true});
+ },...(seedAfterStartup?{afterReadyHost:async(root:string)=>cp(seedSource,path.join(root,'src/agent-ui'),{recursive:true})}:{})});
  fixture.enableCors();
  const previewConnection=await fetch(fixture.creatorOrigin.replace(/\/$/,'')+'/__agent-ui/creator/connection',{method:'POST',headers:{'Content-Type':'application/json','X-Agent-UI-Workspace-Id':fixture.workspaceId},body:JSON.stringify({activeSource:'connected',enabled:true,connectionMode:'direct',endpoint:fixture.agentEndpoint})});
  if(!previewConnection.ok)throw Error('Controlled preview connection setup failed: '+previewConnection.status);

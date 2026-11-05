@@ -1,0 +1,9 @@
+
+> @za38.03/agent-ui-plugins@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/plugins
+> node ../../scripts/sync-package-release-metadata.mjs plugins && node scripts/clean-dist.mjs && node scripts/materialize-plugin-sources.mjs && tsc -p tsconfig.build.json && node scripts/build-optional-facades.mjs && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs && node scripts/prepare-source-distribution.mjs && node scripts/build-package-plugins.mjs && node scripts/check-public-boundary.mjs && node ../../scripts/sync-package-release-metadata.mjs plugins
+
+@za38.03/agent-ui-plugins public declaration boundary: OK (96 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+Prepared 59 publishable resources; A2UI and development fixtures excluded.
+Official package service metadata verified against reference definitions.
+@za38.03/agent-ui-plugins public declaration boundary: OK (323 declarations)

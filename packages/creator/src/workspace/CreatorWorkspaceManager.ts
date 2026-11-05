@@ -106,6 +106,11 @@ export class CreatorWorkspaceManager {
       }
       inspection = { status: "broken", issues: [{ code: typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_OPERATOR_RESTART_REQUIRED" ? error.code : "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
+    // Source diagnostics do not prevent a coding Agent from repairing a
+    // structurally validated project. Strict initialization still sees broken.
+    if (inspection.status === "broken" && inspection.repairContext) {
+      inspection = { status: "ready", ...inspection.repairContext, warnings: inspection.issues };
+    }
     if (inspection.status === "ready") {
       const projectState = { status: inspection.status, workspace, project: inspection.projectConfig,
         ...(inspection.warnings === undefined ? {} : { warnings: inspection.warnings }) } as const;

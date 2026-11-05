@@ -18,7 +18,7 @@ import { addExtraTools } from "./extra-tools.js";
 import { prepareCompositionApplications } from "./plugin-applications.js";
 import { RunActivity, sourceRoot, walk, readTransaction, restoreTransaction } from "./activity.js";
 import { operatorContracts, requestOperator } from "./operator.js";
-import { readCreatorFileState as fileState, replaceCreatorFileAtomically, createCreatorFileAtomically, creatorContentHash } from "./files/creatorFileState.js";
+import { readCreatorFileState as fileState, replaceCreatorFileAtomically, createCreatorFileAtomically, removeCreatorFile, CREATOR_MISSING_FILE_HASH, creatorContentHash } from "./files/creatorFileState.js";
 import { logicalProjectPath as logical, resolveReadPath as readPath, readProjectFile } from "./project-read.js";
 import { editContextInput, inspectEditingContext, rememberInspectedPlugin } from "./edit-context.js";
 import { editingProjectIdentity, rememberProjectTargets, type EditingSelection, type EditingTarget } from "./editing-session.js";
@@ -70,7 +70,7 @@ export interface ToolContext {
   noChangeOutcome?: { toolName: string; status: "already_current" | "declined"; identity: string; file?: { path: string; hash: string }; metadataOnly?: boolean; postconditions?: CreatorPostcondition[] };
 }
 const READ_TOOLS = new Set(["verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "enable_creator_tools", "inspect_static_diagnostics", "inspect_runtime_errors", "inspect_runtime_layout", "inspect_creator_transactions", "inspect_creator_transaction"]);
-const CORE = new Set(["prepare_ui_plugin_development", "verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "edit_file", "edit_file_from_read", "create_ui_source_file", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "validate_creator_changes", "enable_creator_tools"]);
+const CORE = new Set(["prepare_ui_plugin_development", "verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "edit_file", "edit_file_from_read", "create_ui_source_file", "delete_ui_source_file", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "validate_creator_changes", "enable_creator_tools"]);
 export const TOOL_GROUPS: Record<string, string[]> = {
   composition: ["inspect_ui_slots", "preflight_ui_plugin_placement", "mutate_app_ui_model", "inspect_app_ui_model_source", "repair_app_ui_model", "purge_ui_plugin"],
   plugin_authoring: ["list_ui_plugins", "inspect_agent_ui_sources", "apply_agent_ui_source_item", "inspect_ui_plugin_source_references", "prepare_ui_plugin_development", "create_ui_plugin", "create_custom_plugin", "takeover_plugin_source", "plan_plugin_source_takeover", "mutate_ui_plugin_source", "verify_ui_plugin_behavior", "inspect_ui_plugin_delivery"],
@@ -88,18 +88,18 @@ async function assertWrite(context: ToolContext, file: string) {
   if (context.readOnly) throw new Error("TOOL_PERMISSION_DENIED: read-only request");
   await context.validation?.ensureBaseline();
   const name = logical(file), source = await sourceRoot(context.root);
-  if (!name.startsWith(source + "/") || name.split("/").some(part => ["upstream", "vendor", "vendors", "framework", "runtime"].includes(part))) throw new Error("TOOL_PERMISSION_DENIED");
+  if (!name.startsWith(source + "/") || name.split("/").some(part => ["upstream", "vendor", "vendors", "framework", "runtime"].includes(part.toLowerCase()))) throw new Error("TOOL_PERMISSION_DENIED");
   context.debugging?.assertPath(name, source);
   const relative = name.slice(source.length + 1);
   if (["app-ui.json", "composition-revision.generated.json", "app-ui/app-ui.json", "app-ui/composition-revision.generated.json", "plugins/registry.generated.ts"].includes(relative.toLowerCase())) throw new Error("TOOL_PERMISSION_DENIED: use Operator mutation");
-  const match = /^plugins\/([^/]+)\//u.exec(relative);
+  const match = /^plugins\/([^/]+)\//u.exec(relative.toLowerCase());
   if (match) {
     const definition = await fileState(context.root, `${source}/plugins/${match[1]}/definition.ts`);
     const manifest = await fileState(context.root, `${source}/plugins/${match[1]}/manifest.json`);
     if (!definition.exists && !manifest.exists && !context.authorizedPlugins.has(match[1]!)) throw new Error("PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED");
     // Official implementation ownership is determined by the Host; local thin
     // applications stay editable, including before any source takeover.
-    if (/\/(?:implementation|source)\//u.test(relative)) {
+    if (/\/(?:implementation|source)\//u.test(relative.toLowerCase())) {
       const inspected = await requestOperator(context.root, "inspect_ui_plugin", { pluginId: match[1] }, context.signal);
       if (inspected.application?.implementationOwnership === "npm") throw new Error("PLUGIN_SOURCE_TAKEOVER_REQUIRED");
     }
@@ -129,7 +129,7 @@ export async function createTools(context: ToolContext) {
       try {
         const readIdentity = toolReadIdentity(name, input);
         if (readIdentity) await context.activity.log("tool_read_request", { toolName: name, input: readIdentity, revision: context.activity.revision });
-        if (/^(?:edit_|create_|mutate_|takeover_|purge_|apply_|undo_|reapply_)/u.test(name)) delete context.noChangeOutcome;
+        if (/^(?:edit_|create_|delete_|mutate_|takeover_|purge_|apply_|undo_|reapply_)/u.test(name)) delete context.noChangeOutcome;
         const result = await admitted(input);
         if (!READ_TOOLS.has(name) && result && (result.changed === false || result.status === "declined")) {
           const identity = await projectCheckIdentity(context.root, context.signal);
@@ -320,11 +320,20 @@ export async function createTools(context: ToolContext) {
     context.activity.revision++; await context.activity.observations.observe(name);
     return { path: name, revision: context.activity.revision };
   });
+  add("delete_ui_source_file", "Delete one freshly read project source file under the same write guards as edits. The deletion is recorded for undo/reapply; generated composition, upstream and runtime files stay protected.", z.object({ path: z.string() }), async input => {
+    const name = await assertWrite(context, input.path);
+    const before = await context.activity.observations.assertFreshForEdit(name);
+    await context.activity.capture(name); context.signal.throwIfAborted();
+    await removeCreatorFile(context.root, name, before);
+    context.activity.recordAfter(name, { exists: false, hash: CREATOR_MISSING_FILE_HASH });
+    context.activity.revision++; await context.activity.observations.observe(name);
+    return { path: name, deleted: true, revision: context.activity.revision };
+  });
   add("create_ui_plugin", "Atomically create one approved project-owned UI Plugin. Supply manifest.json, definition.ts and index.tsx; do not copy npm implementations or change Composition here. validate_creator_changes synchronizes its registry before checks; no project generator script is needed. Creation alone does not mount it.", contracts.schema("CreateUIPluginInput"), input => {
     contracts.validate("CreateUIPluginInput", input);
     return createPlugin(context, input);
   });
-  add("mutate_ui_plugin_source", "Atomically edit/create files inside exactly one existing Plugin. Every edit target needs a fresh read. No deletion, rename, cross-Plugin paths or upstream edits.", contracts.schema("MutateUIPluginSourceInput"), input => {
+  add("mutate_ui_plugin_source", "Atomically edit/create files inside exactly one existing Plugin. Every edit target needs a fresh read. Use delete_ui_source_file for deletion. No rename, cross-Plugin paths or upstream edits.", contracts.schema("MutateUIPluginSourceInput"), input => {
     contracts.validate("MutateUIPluginSourceInput", input);
     return mutatePlugin(context, input, file => assertWrite(context, file));
   });

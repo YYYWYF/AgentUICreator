@@ -1,0 +1,4 @@
+{
+  "reason": "The external QA used substring matching for 支付接口, matching both the check name and its detail message. Retry with exact check-name text against unchanged model source; retain the original external failure and native success.",
+  "code": "QA_AMBIGUOUS_TEXT_SELECTOR"
+}

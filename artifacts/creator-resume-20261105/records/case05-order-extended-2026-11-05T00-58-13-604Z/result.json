@@ -1,0 +1,67 @@
+{
+  "caseId": "case05-order",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case05-order-mac-resume-262k-2026-11-05T00-55-18-104Z",
+  "scope": "Extra browser checks of unchanged model output. Synthetic events travel through the existing HTTP SSE endpoint. Locale buttons are in the QA Host, outside Agent UI implementation.",
+  "checks": [
+    {
+      "name": "order product text is displayed literally",
+      "status": "failed",
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true }) with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\n"
+    },
+    {
+      "name": "nested malformed order fields do not crash the conversation",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "events": [
+    {
+      "type": "CUSTOM",
+      "name": "app.order.summary",
+      "value": {
+        "order_no": "O-TEXT",
+        "status": "paid",
+        "currency": "CNY",
+        "total_amount": 0,
+        "items": [
+          {
+            "name": "<b data-qa-injected>商品文本</b>",
+            "quantity": 1,
+            "unit_price": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "CUSTOM",
+      "name": "app.order.summary",
+      "value": {
+        "order_no": "O-NESTED",
+        "status": {
+          "bad": true
+        },
+        "currency": {
+          "bad": true
+        },
+        "total_amount": null,
+        "items": [
+          null,
+          {
+            "name": {
+              "bad": true
+            },
+            "quantity": [],
+            "unit_price": {
+              "bad": true
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceDifferences": [],
+  "sourceUnchanged": true,
+  "status": "failed",
+  "cleanup": true
+}

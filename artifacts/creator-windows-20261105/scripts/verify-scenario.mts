@@ -47,8 +47,8 @@ export async function verifyScenario({caseId,testCase,page,frame,fixture,dir}:an
   await check('malformed order leaves composer usable',async()=>{await expect(frame.locator('[data-plugin-state="error"]')).toHaveCount(0);await expect(editor).toBeEditable();});
  }else if(caseId==='case06-inspection'){
   await custom(testCase.event,'检查订单服务');
-  await check('inspection event renders check statuses',async()=>{await expect(surface.getByText('数据库连接',{exact:false})).toBeVisible();await expect(surface.getByText('支付接口',{exact:false})).toBeVisible();});
-  await check('failed inspection exposes details',async()=>{await surface.getByText('支付接口',{exact:false}).first().click();await expect(surface.getByText('UPSTREAM_TIMEOUT',{exact:false})).toBeVisible();await expect(surface.getByText('支付接口响应超时',{exact:false})).toBeVisible();});
+  await check('inspection event renders check statuses',async()=>{await expect(surface.getByText('数据库连接',{exact:true})).toBeVisible();await expect(surface.getByText('支付接口',{exact:true})).toBeVisible();});
+  await check('failed inspection exposes details',async()=>{await surface.getByText('支付接口',{exact:true}).click();await expect(surface.getByText('UPSTREAM_TIMEOUT',{exact:false})).toBeVisible();await expect(surface.getByText('支付接口响应超时',{exact:true})).toBeVisible();});
   await check('error details copy to clipboard',async()=>{await surface.getByRole('button',{name:/复制错误|复制详情|复制错误详情|Copy error|Copy details/i}).click();await expect.poll(()=>page.evaluate(()=>navigator.clipboard.readText())).toContain('UPSTREAM_TIMEOUT');});
   const empty=structuredClone(testCase.event);empty.value.checks=[];await custom(empty,'空检查结果');
   const invalid=structuredClone(testCase.event);invalid.value.checks='invalid';await custom(invalid,'格式错误的检查结果');

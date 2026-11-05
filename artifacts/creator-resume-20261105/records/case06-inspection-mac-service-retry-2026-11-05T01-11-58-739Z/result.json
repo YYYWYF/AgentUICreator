@@ -1,0 +1,127 @@
+{
+  "caseId": "case06-inspection",
+  "status": "RUN_ERROR",
+  "seconds": 186.75,
+  "finish": {
+    "runtime": "typescript",
+    "completion": "needs_user_input",
+    "toolProtocol": {
+      "modelCalls": 3,
+      "toolCalls": 6
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    }
+  },
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "CREATOR_RUN_FAILED",
+      "message": "MODEL_OUTPUT_TRUNCATED",
+      "metadata": {
+        "receipt": {
+          "files": [],
+          "validations": [],
+          "diagnosticLog": {
+            "format": "jsonl",
+            "path": ".agent-ui/creator/logs/2026-11-05T01-12-15.825Z_4d845d4e2ccf41979da96ca2855713a1141f5c56581d31e08de31a37b6909626.jsonl"
+          },
+          "transaction": {
+            "runId": "20ca1df6-35a0-4600-8ce8-40e8ce595360",
+            "undoable": false,
+            "reapplyable": false,
+            "changedPaths": [],
+            "conflicts": []
+          },
+          "verification": {
+            "status": "no-project-change",
+            "projectRevision": 0,
+            "validationRevision": null,
+            "auditAttempts": 0,
+            "checks": [],
+            "verificationMode": "static_only",
+            "runtimeStatus": "not-run"
+          }
+        },
+        "contextCompression": {
+          "summaryModelCalls": 0,
+          "compactions": 0,
+          "summarySeconds": 0,
+          "offloadedArtifacts": 0
+        },
+        "creatorRunOutcome": {
+          "status": "failed",
+          "changeStatus": "none",
+          "changedPaths": [],
+          "toolErrors": [],
+          "lastToolName": "inspect_ui_edit_context"
+        }
+      }
+    }
+  ],
+  "toolCalls": 11,
+  "changedPaths": [],
+  "qaApprovals": [
+    {
+      "kind": "simulated isolated QA user selection",
+      "seconds": 65.643,
+      "question": {
+        "id": "plugin-development-decision",
+        "question": "是否按此方案开发？",
+        "description": "目标: 在助手回答中渲染 Agent 通过 AG-UI CUSTOM 事件 app.inspection.result 返回的系统检查结果：通过项紧凑列出（名称+通过标记），失败项高亮显示并可点击展开错误原因（code/message/duration 等字段），失败项提供\"复制错误详情\"按钮（可复制为可读文本，并给出已复制反馈）。缺失或非法的数据要安全降级、不崩溃；未知事件名不渲染。\n\n目标插件与位置: inspection-result-message\n\n需要新增的能力: 现有 context-retrieval-message 只注册 CONTEXT_CONTENT 数据名，不处理 app.inspection.result; 项目中没有检查结果（通过/失败项列表）的语义化呈现组件\n\n以 application 级实例注册（与现有 context-retrieval-message 相同方式），随会话消息时间线在助手消息中呈现，不占用 Layout Slot",
+        "options": [
+          {
+            "id": "start",
+            "label": "开始开发"
+          },
+          {
+            "id": "adjust",
+            "label": "调整需求"
+          },
+          {
+            "id": "defer",
+            "label": "暂不处理"
+          }
+        ],
+        "selectionMode": "single",
+        "minSelections": 1,
+        "maxSelections": 1
+      },
+      "proposal": {
+        "targetPluginId": "inspection-result-message",
+        "workKind": "create-plugin",
+        "desiredOutcome": "在助手回答中渲染 Agent 通过 AG-UI CUSTOM 事件 app.inspection.result 返回的系统检查结果：通过项紧凑列出（名称+通过标记），失败项高亮显示并可点击展开错误原因（code/message/duration 等字段），失败项提供\"复制错误详情\"按钮（可复制为可读文本，并给出已复制反馈）。缺失或非法的数据要安全降级、不崩溃；未知事件名不渲染。",
+        "missingCapabilities": [
+          "现有 context-retrieval-message 只注册 CONTEXT_CONTENT 数据名，不处理 app.inspection.result",
+          "项目中没有检查结果（通过/失败项列表）的语义化呈现组件"
+        ],
+        "deliveryContract": {
+          "capability": "自定义 data message UI：解析 app.inspection.result 的 { target, checks[] } 数据，通过项紧凑展示、失败项高亮并可展开 detail、支持复制错误详情",
+          "renderingCategory": "application",
+          "placement": "以 application 级实例注册（与现有 context-retrieval-message 相同方式），随会话消息时间线在助手消息中呈现，不占用 Layout Slot",
+          "lifecycle": "definition.dataMessageUIs + manifest.data.messageUI=true；对 unknown 原始 data 做校验，通过/失败混合、全通过、全失败、空 checks、缺少 detail 均需安全渲染",
+          "dependencies": [
+            "react",
+            "@za38.03/agent-ui-plugins 的 defineDataMessageUI 与 UIPluginDefinition",
+            "统一 locale：useAgentUILocaleCode 选择 en-US/zh-CN 项目文案",
+            "现有主题 token（不引入新 UI 库）"
+          ],
+          "interactions": [
+            "点击失败项展开/收起错误原因",
+            "复制错误详情到剪贴板并显示已复制状态"
+          ],
+          "reusedComponents": [
+            "Agent UI 现有主题 CSS 变量（--border、--muted、--card、--foreground 等）",
+            "现有插件 manifest/definition 结构约定"
+          ],
+          "verificationMethod": "runtime"
+        }
+      },
+      "zeroNewPluginFilesBeforeApproval": true
+    }
+  ],
+  "browserErrors": []
+}

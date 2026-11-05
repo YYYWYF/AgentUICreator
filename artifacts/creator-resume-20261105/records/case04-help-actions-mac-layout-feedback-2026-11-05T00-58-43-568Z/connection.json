@@ -1,0 +1,7 @@
+{
+  "creatorOrigin": "http://127.0.0.1:5175/",
+  "hostOrigin": "http://127.0.0.1:5177/",
+  "hostRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-C2frtv/host",
+  "agentEndpoint": "http://127.0.0.1:64489/agent",
+  "previewAgentSource": "connected"
+}

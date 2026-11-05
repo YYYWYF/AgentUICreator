@@ -20,7 +20,7 @@ import { createCreatorHostPreviewPlugin } from "../../../packages/creator/src/ho
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void> } = {}) {
+export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void>; afterReadyHost?: (hostRoot: string) => Promise<void> } = {}) {
   // Explicit opt-in for isolated upstream repair experiments. Production builds
   // and the default fixture continue resolving the installed dependency.
   const coreCandidate = process.env.AGENT_UI_TEST_CORE_CANDIDATE;
@@ -166,6 +166,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       await liveWorkspace.selectProject(hostRoot);
       const ready = liveWorkspace.getState();
       if (ready.status !== "ready" || ready.runtime.status !== "ready") throw new Error("Live Creator startup failed: " + JSON.stringify(ready.status === "ready" ? ready.runtime : {status:ready.status,issues:ready.issues}));
+      await options.afterReadyHost?.(hostRoot);
     }
     if (!projectChecks && !options.existingHostRoot) await options.prepareHost?.(hostRoot);
     const frozenCreator = options.packageRoots?.["@za38.03/agent-ui-creator"];

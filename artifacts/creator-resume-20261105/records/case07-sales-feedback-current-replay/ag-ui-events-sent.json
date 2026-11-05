@@ -1,0 +1,35 @@
+[
+  {
+    "at": "2026-11-05T00:46:28.388Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.sales.report",
+      "value": {
+        "format": "json",
+        "payload": "{\"title\":\"月度销售\",\"rows\":[{\"month\":\"2026-09\",\"revenue\":120000,\"order_count\":320},{\"month\":\"2026-10\",\"revenue\":156000,\"order_count\":410}]}"
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:46:28.991Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.sales.report",
+      "value": {
+        "format": "json",
+        "payload": "{not JSON"
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:46:29.487Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.sales.report",
+      "value": {
+        "format": "json",
+        "payload": "{\"title\":\"空报表\",\"rows\":[]}"
+      }
+    }
+  }
+]

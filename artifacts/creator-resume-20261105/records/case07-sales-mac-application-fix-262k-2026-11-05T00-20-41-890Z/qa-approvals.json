@@ -1,0 +1,49 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 35.905,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 新建一个项目自有插件 sales-report-message：注册 dataMessageUI，名称固定为 app.sales.report，用于在聊天消息中渲染 Agent 返回的 CUSTOM 事件。渲染组件读取事件 value（{format:\"json\", payload:\"<JSON 字符串>\"}），解析 payload 得到 {title, rows:[{month, revenue, order_count}]}，展示成表格（月份/收入），支持点击表头按收入升序/降序排序，点击某一行在该行下方展开显示该月的订单数量；payload 解析失败或数据为空时显示降级提示，不抛错。文案走项目共享的 en-US/zh-CN 双语字典（useAgentUILocaleCode），样式使用 theme token 且作用域限定在该插件自身类名内。完成后把它组合进当前项目的 application 级 composition 并验证。\n\n目标插件与位置: sales-report-message\n\napplication 级 dataMessageUI 渲染器（消息内联渲染，不进入 Layout Slot）",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "sales-report-message",
+      "workKind": "create-plugin",
+      "desiredOutcome": "新建一个项目自有插件 sales-report-message：注册 dataMessageUI，名称固定为 app.sales.report，用于在聊天消息中渲染 Agent 返回的 CUSTOM 事件。渲染组件读取事件 value（{format:\"json\", payload:\"<JSON 字符串>\"}），解析 payload 得到 {title, rows:[{month, revenue, order_count}]}，展示成表格（月份/收入），支持点击表头按收入升序/降序排序，点击某一行在该行下方展开显示该月的订单数量；payload 解析失败或数据为空时显示降级提示，不抛错。文案走项目共享的 en-US/zh-CN 双语字典（useAgentUILocaleCode），样式使用 theme token 且作用域限定在该插件自身类名内。完成后把它组合进当前项目的 application 级 composition 并验证。",
+      "deliveryContract": {
+        "capability": "聊天消息内渲染 app.sales.report 销售报表：按收入排序的表格，点击行展开当月订单数量",
+        "renderingCategory": "application",
+        "placement": "application 级 dataMessageUI 渲染器（消息内联渲染，不进入 Layout Slot）",
+        "lifecycle": "项目自有插件源码，manifest.data.messageUI=true + definition.dataMessageUIs 注册 app.sales.report；随应用加载，无需 Service",
+        "dependencies": [
+          "react",
+          "@za38.03/agent-ui-plugins（UIPluginDefinition / defineDataMessageUI 公共 API）",
+          "可选 agent-ui.locale（useAgentUILocaleCode 读取统一语言）"
+        ],
+        "reusedComponents": [
+          "theme CSS tokens（--card/--border/--foreground/--muted-foreground/--primary）"
+        ],
+        "verificationMethod": "runtime"
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

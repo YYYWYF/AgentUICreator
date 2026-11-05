@@ -1,0 +1,22 @@
+[
+  {
+    "name": "case-guard-focused",
+    "status": 0,
+    "seconds": 9.735
+  },
+  {
+    "name": "case-guard-typecheck",
+    "status": 0,
+    "seconds": 1.631
+  },
+  {
+    "name": "case-guard-build",
+    "status": 0,
+    "seconds": 9.031
+  },
+  {
+    "name": "case-guard-full-tests",
+    "status": 0,
+    "seconds": 59.927
+  }
+]

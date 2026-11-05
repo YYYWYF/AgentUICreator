@@ -1,0 +1,16 @@
+{
+  "id": "inspection-result-message",
+  "name": "Inspection Result Message",
+  "description": "Renders system inspection results carried by the app.inspection.result AG-UI CUSTOM event.",
+  "version": "0.0.1",
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render system inspection results inside assistant messages",
+      "显示系统检查结果",
+      "突出失败的检查项并可展开原因"
+    ]
+  }
+}

@@ -1,0 +1,179 @@
+/* Order summary card. All selectors stay scoped to this plugin's own classes. */
+
+.aui-order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.aui-order-summary__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.aui-order-summary__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.aui-order-summary__eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.aui-order-summary__order-no {
+  overflow-wrap: anywhere;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.aui-order-summary__status {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.aui-order-summary__status[data-status="paid"],
+.aui-order-summary__status[data-status="completed"],
+.aui-order-summary__status[data-status="delivered"] {
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+  color: var(--primary);
+}
+
+.aui-order-summary__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.aui-order-summary__items-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.aui-order-summary__item-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.aui-order-summary__item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aui-order-summary__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.aui-order-summary__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.aui-order-summary__item-name {
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.aui-order-summary__item-meta {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.aui-order-summary__item-subtotal {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.aui-order-summary__toggle {
+  align-self: flex-start;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.aui-order-summary__toggle:hover {
+  opacity: 0.8;
+}
+
+.aui-order-summary__toggle:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.aui-order-summary__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.aui-order-summary__total-label {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.aui-order-summary__total-amount {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.aui-order-summary--invalid {
+  border-style: dashed;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.aui-order-summary__invalid-text {
+  margin: 0;
+}

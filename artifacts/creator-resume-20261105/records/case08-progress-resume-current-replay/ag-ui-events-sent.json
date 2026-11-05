@@ -1,0 +1,77 @@
+[
+  {
+    "at": "2026-11-05T00:45:03.840Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.job.progress",
+      "value": {
+        "job_id": "J-001",
+        "title": "生成销售报告",
+        "status": "running",
+        "completed": 3,
+        "total": 10,
+        "error": null
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:45:04.222Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.job.progress",
+      "value": {
+        "job_id": "J-002",
+        "title": "同步客户资料",
+        "status": "running",
+        "completed": 1,
+        "total": 5,
+        "error": null
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:45:04.222Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.job.progress",
+      "value": {
+        "job_id": "J-001",
+        "title": "生成销售报告",
+        "status": "completed",
+        "completed": 10,
+        "total": 10,
+        "error": null
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:45:04.584Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.job.progress",
+      "value": {
+        "job_id": "J-002",
+        "title": "同步客户资料",
+        "status": "failed",
+        "completed": 1,
+        "total": 5,
+        "error": {
+          "code": "DATA_SOURCE_UNAVAILABLE",
+          "message": "销售数据暂时无法读取"
+        }
+      }
+    }
+  },
+  {
+    "at": "2026-11-05T00:45:05.013Z",
+    "event": {
+      "type": "CUSTOM",
+      "name": "app.job.progress",
+      "value": {
+        "job_id": null,
+        "completed": "invalid",
+        "total": 0
+      }
+    }
+  }
+]

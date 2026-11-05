@@ -1,0 +1,11 @@
+{
+  "scope": "Disposable QA source tree only; no repository or user runtime source is mutated.",
+  "platform": "darwin",
+  "aliasResolves": true,
+  "result": {
+    "path": "src/ui/Runtime/probe.ts",
+    "deleted": true,
+    "revision": 1
+  },
+  "actualLowercaseFileExistsAfter": false
+}

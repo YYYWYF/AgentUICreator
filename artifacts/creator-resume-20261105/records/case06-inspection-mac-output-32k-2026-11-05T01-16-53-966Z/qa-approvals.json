@@ -1,0 +1,58 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 121.942,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 在助手消息中把 CUSTOM 事件 app.inspection.result 渲染成“系统检查结果”卡片：通过项紧凑列出；失败项高亮显示；点击失败项展开原因详情；提供复制错误详情按钮。数据里 target 为被检查对象，checks[].status 为 passed/failed，失败项带 detail{code,message,duration_ms}。\n\n目标插件与位置: inspection-result-message\n\n需要新增的能力: 现有插件只注册 CONTEXT_CONTENT 事件，没有 app.inspection.result 的消息渲染; 需要失败项可展开、可复制错误详情的自定义卡片展示\n\napplication 级 messageUI 注册，渲染在出现该 CUSTOM 事件的助手消息位置",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "inspection-result-message",
+      "desiredOutcome": "在助手消息中把 CUSTOM 事件 app.inspection.result 渲染成“系统检查结果”卡片：通过项紧凑列出；失败项高亮显示；点击失败项展开原因详情；提供复制错误详情按钮。数据里 target 为被检查对象，checks[].status 为 passed/failed，失败项带 detail{code,message,duration_ms}。",
+      "workKind": "create-plugin",
+      "missingCapabilities": [
+        "现有插件只注册 CONTEXT_CONTENT 事件，没有 app.inspection.result 的消息渲染",
+        "需要失败项可展开、可复制错误详情的自定义卡片展示"
+      ],
+      "deliveryContract": {
+        "capability": "渲染 app.inspection.result CUSTOM 事件为检查结果卡片，含通过项精简列表、失败项高亮、展开原因、复制错误详情",
+        "renderingCategory": "application",
+        "placement": "application 级 messageUI 注册，渲染在出现该 CUSTOM 事件的助手消息位置",
+        "lifecycle": "插件随应用持久启用，无额外 Service 生命周期",
+        "dependencies": [
+          "react",
+          "@za38.03/agent-ui-plugins",
+          "zod（若项目已安装，用于解析校验）"
+        ],
+        "verificationMethod": "runtime",
+        "interactions": [
+          "点击失败检查项展开/收起原因详情",
+          "点击复制按钮把失败项错误详情写入剪贴板并给出反馈"
+        ],
+        "reusedComponents": [
+          "defineDataMessageUI",
+          "useAgentUILocaleCode"
+        ]
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

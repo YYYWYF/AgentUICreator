@@ -1,0 +1,93 @@
+{
+  "caseId": "case04-help-actions",
+  "status": "success",
+  "seconds": 169.445,
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "executionPolicy": "domain-write",
+    "receipt": {
+      "files": [
+        {
+          "path": "src/agent-ui/app-ui.json",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/app-ui.json\n+++ b/src/agent-ui/app-ui.json\n@@ -1,207 +1,207 @@\n-{\n-  \"applicationPlugins\": [\n-    {\n-      \"pluginId\": \"conversation-data-source\"\n-    },\n-    {\n-      \"pluginId\": \"conversation-service\"\n-    },\n-    {\n-      \"pluginId\": \"theme-provider\"\n-    },\n-    {\n-      \"pluginId\": \"locale-provider\"\n-    },\n-    {\n-      \"pluginId\": \"context-retrieval-message\"\n-    }\n-  ],\n-  \"root\": {\n-    \"type\": \"row\",\n-    \"children\": [\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"theme-switch\"\n-                },\n-                {\n-                  \"pluginId\": \"agent-identity\"\n-                }\n-              ]\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-thread-list\",\n-                  \"slots\": {\n-                    \"headerActions\": [\n-                      {\n-                        \"pluginId\": \"conversation-new\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"52px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      },\n-      {\n-        \"type\": \"panel\",\n-        \"child\": {\n-          \"type\": \"column\",\n-          \"children\": [\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p23\",\n-                    \"pluginId\": \"test-notice\"\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"panel\",\n-              \"child\": {\n-                \"type\": \"slot\",\n-                \"plugins\": [\n-                  {\n-                    \"id\": \"p24\",\n-                    \"pluginId\": \"quick-help-card\",\n-                    \"slots\": {\n-                      \"body\": [\n-                        {\n-                          \"id\": \"p25\",\n-                          \"pluginId\": \"quick-help-content\"\n-                        }\n-                      ],\n-                      \"headerActions\": [\n-                        {\n-                          \"pluginId\": \"help-dismiss-action\"\n-                        }\n-                      ],\n-                      \"footerActions\": [\n-                        {\n-                          \"id\": \"p27\",\n-                          \"pluginId\": \"quick-help-example-action\"\n-                        }\n-                      ]\n-                    }\n-                  }\n-                ]\n-              }\n-            },\n-            {\n-              \"type\": \"slot\",\n-              \"plugins\": [\n-                {\n-                  \"pluginId\": \"conversation-surface\",\n-                  \"slots\": {\n-                    \"emptySuggestions\": [\n-                      {\n-                        \"pluginId\": \"conversation-suggestions\"\n-                      }\n-                    ],\n-                    \"composer\": [\n-                      {\n-                        \"pluginId\": \"composer\",\n-                        \"slots\": {\n-                          \"leadingActions\": [\n-                            {\n-                              \"pluginId\": \"add-attachment-action\"\n-                            }\n-                          ],\n-                          \"submitAction\": [\n-                            {\n-                              \"pluginId\": \"submit-action\"\n-                            }\n-                          ],\n-                          \"beforeInput\": [\n-                            {\n-                              \"pluginId\": \"conversation-quote\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"reasoningGroup\": [\n-                      {\n-                        \"pluginId\": \"reasoning\"\n-                      }\n-                    ],\n-                    \"toolGroup\": [\n-                      {\n-                        \"pluginId\": \"tool-group\"\n-                      }\n-                    ],\n-                    \"toolFallback\": [\n-                      {\n-                        \"pluginId\": \"tool-result\"\n-                      }\n-                    ],\n-                    \"assistantResponseFooter\": [\n-                      {\n-                        \"pluginId\": \"response-footer\",\n-                        \"slots\": {\n-                          \"actions\": [\n-                            {\n-                              \"pluginId\": \"copy-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"reload-action\"\n-                            },\n-                            {\n-                              \"pluginId\": \"export-markdown-action\"\n-                            }\n-                          ]\n-                        }\n-                      }\n-                    ],\n-                    \"transientMessages\": [\n-                      {\n-                        \"pluginId\": \"transient-assistant-messages\"\n-                      }\n-                    ]\n-                  }\n-                }\n-              ]\n-            }\n-          ],\n-          \"gap\": 0,\n-          \"sizes\": [\n-            \"40px\",\n-            \"44px\",\n-            \"minmax(0, 1fr)\"\n-          ]\n-        }\n-      }\n-    ],\n-    \"gap\": 0,\n-    \"sizes\": [\n-      \"300px\",\n-      \"minmax(0, 1fr)\"\n-    ],\n-    \"responsive\": {\n-      \"type\": \"drawer\",\n-      \"primaryIndex\": 1,\n-      \"drawerIndex\": 0,\n-      \"minPrimaryWidth\": 320\n-    }\n-  }\n-}\n-\n+{\n+  \"applicationPlugins\": [\n+    {\n+      \"pluginId\": \"conversation-data-source\"\n+    },\n+    {\n+      \"pluginId\": \"conversation-service\"\n+    },\n+    {\n+      \"pluginId\": \"theme-provider\"\n+    },\n+    {\n+      \"pluginId\": \"locale-provider\"\n+    },\n+    {\n+      \"pluginId\": \"context-retrieval-message\"\n+    }\n+  ],\n+  \"root\": {\n+    \"type\": \"row\",\n+    \"children\": [\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"theme-switch\"\n+                },\n+                {\n+                  \"pluginId\": \"agent-identity\"\n+                }\n+              ]\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-thread-list\",\n+                  \"slots\": {\n+                    \"headerActions\": [\n+                      {\n+                        \"pluginId\": \"conversation-new\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"52px\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      },\n+      {\n+        \"type\": \"panel\",\n+        \"child\": {\n+          \"type\": \"column\",\n+          \"children\": [\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p23\",\n+                    \"pluginId\": \"test-notice\"\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"panel\",\n+              \"child\": {\n+                \"type\": \"slot\",\n+                \"plugins\": [\n+                  {\n+                    \"id\": \"p24\",\n+                    \"pluginId\": \"quick-help-card\",\n+                    \"slots\": {\n+                      \"body\": [\n+                        {\n+                          \"id\": \"p25\",\n+                          \"pluginId\": \"quick-help-content\"\n+                        }\n+                      ],\n+                      \"headerActions\": [\n+                        {\n+                          \"pluginId\": \"help-dismiss-action\"\n+                        }\n+                      ],\n+                      \"footerActions\": [\n+                        {\n+                          \"id\": \"p27\",\n+                          \"pluginId\": \"quick-help-example-action\"\n+                        }\n+                      ]\n+                    }\n+                  }\n+                ]\n+              }\n+            },\n+            {\n+              \"type\": \"slot\",\n+              \"plugins\": [\n+                {\n+                  \"pluginId\": \"conversation-surface\",\n+                  \"slots\": {\n+                    \"emptySuggestions\": [\n+                      {\n+                        \"pluginId\": \"conversation-suggestions\"\n+                      }\n+                    ],\n+                    \"composer\": [\n+                      {\n+                        \"pluginId\": \"composer\",\n+                        \"slots\": {\n+                          \"leadingActions\": [\n+                            {\n+                              \"pluginId\": \"add-attachment-action\"\n+                            }\n+                          ],\n+                          \"submitAction\": [\n+                            {\n+                              \"pluginId\": \"submit-action\"\n+                            }\n+                          ],\n+                          \"beforeInput\": [\n+                            {\n+                              \"pluginId\": \"conversation-quote\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"reasoningGroup\": [\n+                      {\n+                        \"pluginId\": \"reasoning\"\n+                      }\n+                    ],\n+                    \"toolGroup\": [\n+                      {\n+                        \"pluginId\": \"tool-group\"\n+                      }\n+                    ],\n+                    \"toolFallback\": [\n+                      {\n+                        \"pluginId\": \"tool-result\"\n+                      }\n+                    ],\n+                    \"assistantResponseFooter\": [\n+                      {\n+                        \"pluginId\": \"response-footer\",\n+                        \"slots\": {\n+                          \"actions\": [\n+                            {\n+                              \"pluginId\": \"copy-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"reload-action\"\n+                            },\n+                            {\n+                              \"pluginId\": \"export-markdown-action\"\n+                            }\n+                          ]\n+                        }\n+                      }\n+                    ],\n+                    \"transientMessages\": [\n+                      {\n+                        \"pluginId\": \"transient-assistant-messages\"\n+                      }\n+                    ]\n+                  }\n+                }\n+              ]\n+            }\n+          ],\n+          \"gap\": 0,\n+          \"sizes\": [\n+            \"40px\",\n+            \"auto\",\n+            \"minmax(0, 1fr)\"\n+          ]\n+        }\n+      }\n+    ],\n+    \"gap\": 0,\n+    \"sizes\": [\n+      \"300px\",\n+      \"minmax(0, 1fr)\"\n+    ],\n+    \"responsive\": {\n+      \"type\": \"drawer\",\n+      \"primaryIndex\": 1,\n+      \"drawerIndex\": 0,\n+      \"minPrimaryWidth\": 320\n+    }\n+  }\n+}\n+",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "pnpm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-C2frtv/host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+          "truncated": false,
+          "revision": 1
+        },
+        {
+          "command": "verify_creator_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"status\":\"passed\",\"revision\":1,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-C2frtv/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":1}],\"targetRemaining\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+          "truncated": false,
+          "revision": 1
+        }
+      ],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-05T00-59-01.452Z_09664400784f0cd5e1f8ad8eab63e3eb7fd760d44a6b896d9e0b24c23b5878d1.jsonl"
+      },
+      "transaction": {
+        "runId": "e224e631-9b56-4765-80a0-e00ae1333f81",
+        "undoable": true,
+        "reapplyable": true,
+        "changedPaths": [
+          "src/agent-ui/app-ui.json"
+        ],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 1,
+        "validationRevision": 1,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 9,
+      "toolCalls": 10
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "toolCalls": 10,
+  "changedPaths": [
+    "src/agent-ui/app-ui.json"
+  ],
+  "qaApprovals": [],
+  "browserErrors": [],
+  "interaction": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "example action fills current composer without sending",
+        "status": "passed"
+      },
+      {
+        "name": "filled example can be sent by user",
+        "status": "passed"
+      }
+    ],
+    "protocolEventsSent": []
+  }
+}

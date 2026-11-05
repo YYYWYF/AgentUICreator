@@ -1,0 +1,29 @@
+context canceled
+Port 5173 is in use, trying another one...
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+8:58:24 AM [vite] (client) page reload src/main.tsx
+{
+  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case05-order-extended-2026-11-05T00-58-13-604Z",
+  "caseId": "case05-order",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case05-order-mac-resume-262k-2026-11-05T00-55-18-104Z",
+  "scope": "Extra browser checks of unchanged model output. Synthetic events travel through the existing HTTP SSE endpoint. Locale buttons are in the QA Host, outside Agent UI implementation.",
+  "checks": [
+    {
+      "name": "order product text is displayed literally",
+      "status": "failed",
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true }) with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('<b data-qa-injected>商品文本</b>', { exact: true })\n"
+    },
+    {
+      "name": "nested malformed order fields do not crash the conversation",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "sourceDifferences": [],
+  "sourceUnchanged": true,
+  "status": "failed",
+  "cleanup": true
+}

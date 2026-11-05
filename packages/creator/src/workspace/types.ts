@@ -65,7 +65,8 @@ export interface CreatorProjectConfig {
 export type CreatorProjectInspection =
   | { readonly status: "uninitialized" }
   | { readonly status: "ready"; readonly projectConfig: CreatorProjectConfig; readonly paths: { readonly sourceRoot: string }; readonly warnings?: readonly CreatorProjectIssue[] }
-  | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
+  | { readonly status: "broken"; readonly issues: CreatorProjectIssue[];
+      readonly repairContext?: { readonly projectConfig: CreatorProjectConfig; readonly paths: { readonly sourceRoot: string } } };
 
 export type CreatorRuntimeState =
   | { readonly status: "stopped" | "starting" | "ready" }

@@ -1,0 +1,4 @@
+
+> @za38.03/agent-ui-renderer@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/renderer
+> node ../../scripts/clean-package-dist.mjs renderer && node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer
+

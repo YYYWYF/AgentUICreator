@@ -1,0 +1,151 @@
+{
+  "caseId": "case07-sales",
+  "status": "success",
+  "seconds": 102.806,
+  "finish": {
+    "runtime": "typescript",
+    "agentMode": "domain-write",
+    "completion": "success",
+    "executionPolicy": "domain-write",
+    "receipt": {
+      "files": [
+        {
+          "path": "src/agent-ui/plugins/sales-report-message/index.tsx",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/sales-report-message/index.tsx\n+++ b/src/agent-ui/plugins/sales-report-message/index.tsx\n@@ -1,215 +1,239 @@\n-import { Fragment, useMemo, useState } from \"react\";\n-import type { DataMessageUIRenderProps } from \"@za38.03/agent-ui-plugins\";\n-import { useAgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n-import \"./styles.css\";\n-\n-type Messages = {\n-  defaultTitle: string;\n-  month: string;\n-  revenue: string;\n-  orderCount: string;\n-  hint: string;\n-  invalid: string;\n-};\n-\n-const dictionaries: Record<string, Messages> = {\n-  \"zh-CN\": {\n-    defaultTitle: \"销售报表\",\n-    month: \"月份\",\n-    revenue: \"收入\",\n-    orderCount: \"订单数量\",\n-    hint: \"点击收入排序，点击行查看当月订单数量\",\n-    invalid: \"无法解析这份报表数据\",\n-  },\n-  \"en-US\": {\n-    defaultTitle: \"Sales report\",\n-    month: \"Month\",\n-    revenue: \"Revenue\",\n-    orderCount: \"Orders\",\n-    hint: \"Sort by revenue, then select a row to see that month's order count\",\n-    invalid: \"This report payload could not be parsed\",\n-  },\n-};\n-\n-type SalesRow = {\n-  month: string;\n-  revenue: number;\n-  orderCount: number;\n-};\n-\n-type SalesReport = {\n-  title?: string;\n-  rows: SalesRow[];\n-};\n-\n-type SortDirection = \"desc\" | \"asc\";\n-\n-function asRecord(value: unknown): Record<string, unknown> | null {\n-  return typeof value === \"object\" && value !== null && !Array.isArray(value)\n-    ? (value as Record<string, unknown>)\n-    : null;\n-}\n-\n-function parseJsonCandidate(value: unknown): unknown {\n-  if (typeof value !== \"string\") return value;\n-  const trimmed = value.trim();\n-  if (trimmed === \"\") return null;\n-  try {\n-    return JSON.parse(trimmed) as unknown;\n-  } catch {\n-    return null;\n-  }\n-}\n-\n-function toNumber(value: unknown): number | null {\n-  if (typeof value === \"number\") return Number.isFinite(value) ? value : null;\n-  if (typeof value === \"string\") {\n-    const trimmed = value.trim();\n-    if (trimmed === \"\") return null;\n-    const parsed = Number(trimmed);\n-    return Number.isFinite(parsed) ? parsed : null;\n-  }\n-  return null;\n-}\n-\n-function normalizeRows(value: unknown): SalesRow[] {\n-  if (!Array.isArray(value)) return [];\n-  const rows: SalesRow[] = [];\n-  for (const candidate of value) {\n-    const record = asRecord(candidate);\n-    if (!record) continue;\n-    const rawMonth = record.month;\n-    const month = typeof rawMonth === \"string\" ? rawMonth.trim() : \"\";\n-    if (month === \"\") continue;\n-    rows.push({\n-      month,\n-      revenue: toNumber(record.revenue) ?? 0,\n-      orderCount: toNumber(record.order_count ?? record.orderCount) ?? 0,\n-    });\n-  }\n-  return rows;\n-}\n-\n-function parseReport(data: unknown): SalesReport | null {\n-  const envelope = asRecord(data);\n-  const payload = envelope && \"payload\" in envelope ? envelope.payload : data;\n-  const parsed = asRecord(parseJsonCandidate(payload));\n-  if (!parsed) return null;\n-  const rows = normalizeRows(parsed.rows);\n-  if (rows.length === 0) return null;\n-  const rawTitle = parsed.title;\n-  const title = typeof rawTitle === \"string\" && rawTitle.trim() !== \"\" ? rawTitle.trim() : undefined;\n-  return { title, rows };\n-}\n-\n-function formatNumber(value: number, localeCode: string): string {\n-  try {\n-    return new Intl.NumberFormat(localeCode, { maximumFractionDigits: 2 }).format(value);\n-  } catch {\n-    return String(value);\n-  }\n-}\n-\n-export function SalesReportMessagePlugin({ data }: DataMessageUIRenderProps<unknown>) {\n-  const localeCode = useAgentUILocaleCode();\n-  const messages = dictionaries[localeCode] ?? dictionaries[\"zh-CN\"]!;\n-  const report = useMemo(() => parseReport(data), [data]);\n-  const [direction, setDirection] = useState<SortDirection>(\"desc\");\n-  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);\n-\n-  const sortedRows = useMemo(() => {\n-    const rows = report ? [...report.rows] : [];\n-    rows.sort((left, right) =>\n-      direction === \"desc\" ? right.revenue - left.revenue : left.revenue - right.revenue,\n-    );\n-    return rows;\n-  }, [report, direction]);\n-\n-  if (!report) {\n-    return (\n-      <div className=\"sales-report sales-report--invalid\" role=\"status\">\n-        {messages.invalid}\n-      </div>\n-    );\n-  }\n-\n-  const title = report.title ?? messages.defaultTitle;\n-\n-  return (\n-    <section className=\"sales-report\" aria-label={title}>\n-      <header className=\"sales-report__header\">\n-        <h3 className=\"sales-report__title\">{title}</h3>\n-        <p className=\"sales-report__hint\">{messages.hint}</p>\n-      </header>\n-      <div className=\"sales-report__scroll\">\n-        <table className=\"sales-report__table\">\n-          <thead>\n-            <tr>\n-              <th scope=\"col\" className=\"sales-report__cell\">\n-                {messages.month}\n-              </th>\n-              <th\n-                scope=\"col\"\n-                className=\"sales-report__cell sales-report__cell--number\"\n-                aria-sort={direction === \"desc\" ? \"descending\" : \"ascending\"}\n-              >\n-                <button\n-                  type=\"button\"\n-                  className=\"sales-report__sort\"\n-                  onClick={() => setDirection((current) => (current === \"desc\" ? \"asc\" : \"desc\"))}\n-                >\n-                  <span>{messages.revenue}</span>\n-                  <span aria-hidden=\"true\" className=\"sales-report__sort-icon\">\n-                    {direction === \"desc\" ? \"\\u2193\" : \"\\u2191\"}\n-                  </span>\n-                </button>\n-              </th>\n-            </tr>\n-          </thead>\n-          <tbody>\n-            {sortedRows.map((row) => {\n-              const expanded = expandedMonth === row.month;\n-              const toggle = () => setExpandedMonth(expanded ? null : row.month);\n-              return (\n-                <Fragment key={row.month}>\n-                  <tr\n-                    className={\n-                      expanded\n-                        ? \"sales-report__row sales-report__row--expanded\"\n-                        : \"sales-report__row\"\n-                    }\n-                    tabIndex={0}\n-                    aria-expanded={expanded}\n-                    onClick={toggle}\n-                    onKeyDown={(event) => {\n-                      if (event.key === \"Enter\" || event.key === \" \") {\n-                        event.preventDefault();\n-                        toggle();\n-                      }\n-                    }}\n-                  >\n-                    <td className=\"sales-report__cell\">{row.month}</td>\n-                    <td className=\"sales-report__cell sales-report__cell--number\">\n-                      {formatNumber(row.revenue, localeCode)}\n-                    </td>\n-                  </tr>\n-                  {expanded ? (\n-                    <tr className=\"sales-report__detail\">\n-                      <td className=\"sales-report__cell\" colSpan={2}>\n-                        <span className=\"sales-report__detail-label\">{messages.orderCount}</span>\n-                        <span className=\"sales-report__detail-value\">\n-                          {formatNumber(row.orderCount, localeCode)}\n-                        </span>\n-                      </td>\n-                    </tr>\n-                  ) : null}\n-                </Fragment>\n-              );\n-            })}\n-          </tbody>\n-        </table>\n-      </div>\n-    </section>\n-  );\n-}\n-\n+import { Fragment, useMemo, useState } from \"react\";\n+import type { DataMessageUIRenderProps } from \"@za38.03/agent-ui-plugins\";\n+import { useAgentUILocaleCode } from \"@za38.03/agent-ui-plugins\";\n+import \"./styles.css\";\n+\n+type Messages = {\n+  defaultTitle: string;\n+  month: string;\n+  revenue: string;\n+  orderCount: string;\n+  hint: string;\n+  invalid: string;\n+  missingValue: string;\n+  empty: string;\n+};\n+\n+const dictionaries: Record<string, Messages> = {\n+  \"zh-CN\": {\n+    defaultTitle: \"销售报表\",\n+    month: \"月份\",\n+    revenue: \"收入\",\n+    orderCount: \"订单数量\",\n+    hint: \"点击收入排序，点击行查看当月订单数量\",\n+    invalid: \"无法解析这份报表数据\",\n+    missingValue: \"—\",\n+    empty: \"暂无销售数据\",\n+  },\n+  \"en-US\": {\n+    defaultTitle: \"Sales report\",\n+    month: \"Month\",\n+    revenue: \"Revenue\",\n+    orderCount: \"Orders\",\n+    hint: \"Sort by revenue, then select a row to see that month's order count\",\n+    invalid: \"This report payload could not be parsed\",\n+    missingValue: \"—\",\n+    empty: \"No sales data available\",\n+  },\n+};\n+\n+type SalesRow = {\n+  month: string;\n+  revenue: number | null;\n+  orderCount: number | null;\n+};\n+\n+type SalesReport = {\n+  title?: string;\n+  rows: SalesRow[];\n+};\n+\n+type SortDirection = \"desc\" | \"asc\";\n+\n+function asRecord(value: unknown): Record<string, unknown> | null {\n+  return typeof value === \"object\" && value !== null && !Array.isArray(value)\n+    ? (value as Record<string, unknown>)\n+    : null;\n+}\n+\n+function parseJsonCandidate(value: unknown): unknown {\n+  if (typeof value !== \"string\") return value;\n+  const trimmed = value.trim();\n+  if (trimmed === \"\") return null;\n+  try {\n+    return JSON.parse(trimmed) as unknown;\n+  } catch {\n+    return null;\n+  }\n+}\n+\n+function toNumber(value: unknown): number | null {\n+  if (typeof value === \"number\") return Number.isFinite(value) ? value : null;\n+  if (typeof value === \"string\") {\n+    const trimmed = value.trim();\n+    if (trimmed === \"\") return null;\n+    const parsed = Number(trimmed);\n+    return Number.isFinite(parsed) ? parsed : null;\n+  }\n+  return null;\n+}\n+\n+function normalizeRows(value: unknown): SalesRow[] {\n+  if (!Array.isArray(value)) return [];\n+  const rows: SalesRow[] = [];\n+  for (const candidate of value) {\n+    const record = asRecord(candidate);\n+    if (!record) continue;\n+    const rawMonth = record.month;\n+    const month = typeof rawMonth === \"string\" ? rawMonth.trim() : \"\";\n+    if (month === \"\") continue;\n+    rows.push({\n+      month,\n+      revenue: toNumber(record.revenue),\n+      orderCount: toNumber(record.order_count ?? record.orderCount),\n+    });\n+  }\n+  return rows;\n+}\n+\n+function parseReport(data: unknown): SalesReport | null {\n+  const envelope = asRecord(data);\n+  const payload = envelope && \"payload\" in envelope ? envelope.payload : data;\n+  const parsed = asRecord(parseJsonCandidate(payload));\n+  if (!parsed) return null;\n+  if (!Array.isArray(parsed.rows)) return null;\n+  const rows = normalizeRows(parsed.rows);\n+  const rawTitle = parsed.title;\n+  const title = typeof rawTitle === \"string\" && rawTitle.trim() !== \"\" ? rawTitle.trim() : undefined;\n+  return { title, rows };\n+}\n+\n+function formatNumber(value: number, localeCode: string): string {\n+  try {\n+    return new Intl.NumberFormat(localeCode, { maximumFractionDigits: 2 }).format(value);\n+  } catch {\n+    return String(value);\n+  }\n+}\n+\n+function formatMetric(value: number | null, localeCode: string, missingValue: string): string {\n+  return value === null ? missingValue : formatNumber(value, localeCode);\n+}\n+\n+export function SalesReportMessagePlugin({ data }: DataMessageUIRenderProps<unknown>) {\n+  const localeCode = useAgentUILocaleCode();\n+  const messages = dictionaries[localeCode] ?? dictionaries[\"zh-CN\"]!;\n+  const report = useMemo(() => parseReport(data), [data]);\n+  const [direction, setDirection] = useState<SortDirection>(\"desc\");\n+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);\n+\n+  const sortedRows = useMemo(() => {\n+    const rows = report\n+      ? report.rows.map((row, index) => ({ row, index }))\n+      : ([] as { row: SalesRow; index: number }[]);\n+    rows.sort((left, right) => {\n+      const leftRevenue = left.row.revenue;\n+      const rightRevenue = right.row.revenue;\n+      if (leftRevenue === null && rightRevenue === null) return left.index - right.index;\n+      if (leftRevenue === null) return 1;\n+      if (rightRevenue === null) return -1;\n+      return direction === \"desc\" ? rightRevenue - leftRevenue : leftRevenue - rightRevenue;\n+    });\n+    return rows.map((entry) => entry.row);\n+  }, [report, direction]);\n+\n+  if (!report) {\n+    return (\n+      <div className=\"sales-report sales-report--invalid\" role=\"status\">\n+        {messages.invalid}\n+      </div>\n+    );\n+  }\n+\n+  const title = report.title ?? messages.defaultTitle;\n+  const hasRows = sortedRows.length > 0;\n+\n+  return (\n+    <section className=\"sales-report\" aria-label={title}>\n+      <header className=\"sales-report__header\">\n+        <h3 className=\"sales-report__title\">{title}</h3>\n+        {hasRows ? <p className=\"sales-report__hint\">{messages.hint}</p> : null}\n+      </header>\n+      {hasRows ? (\n+        <div className=\"sales-report__scroll\">\n+          <table className=\"sales-report__table\">\n+            <thead>\n+              <tr>\n+                <th scope=\"col\" className=\"sales-report__cell\">\n+                  {messages.month}\n+                </th>\n+                <th\n+                  scope=\"col\"\n+                  className=\"sales-report__cell sales-report__cell--number\"\n+                  aria-sort={direction === \"desc\" ? \"descending\" : \"ascending\"}\n+                >\n+                  <button\n+                    type=\"button\"\n+                    className=\"sales-report__sort\"\n+                    onClick={() => setDirection((current) => (current === \"desc\" ? \"asc\" : \"desc\"))}\n+                  >\n+                    <span>{messages.revenue}</span>\n+                    <span aria-hidden=\"true\" className=\"sales-report__sort-icon\">\n+                      {direction === \"desc\" ? \"\\u2193\" : \"\\u2191\"}\n+                    </span>\n+                  </button>\n+                </th>\n+              </tr>\n+            </thead>\n+            <tbody>\n+              {sortedRows.map((row) => {\n+                const expanded = expandedMonth === row.month;\n+                const toggle = () => setExpandedMonth(expanded ? null : row.month);\n+                return (\n+                  <Fragment key={row.month}>\n+                    <tr\n+                      className={\n+                        expanded\n+                          ? \"sales-report__row sales-report__row--expanded\"\n+                          : \"sales-report__row\"\n+                      }\n+                      tabIndex={0}\n+                      aria-expanded={expanded}\n+                      onClick={toggle}\n+                      onKeyDown={(event) => {\n+                        if (event.key === \"Enter\" || event.key === \" \") {\n+                          event.preventDefault();\n+                          toggle();\n+                        }\n+                      }}\n+                    >\n+                      <td className=\"sales-report__cell\">{row.month}</td>\n+                      <td className=\"sales-report__cell sales-report__cell--number\">\n+                        {formatMetric(row.revenue, localeCode, messages.missingValue)}\n+                      </td>\n+                    </tr>\n+                    {expanded ? (\n+                      <tr className=\"sales-report__detail\">\n+                        <td className=\"sales-report__cell\" colSpan={2}>\n+                          <span className=\"sales-report__detail-label\">{messages.orderCount}</span>\n+                          <span className=\"sales-report__detail-value\">\n+                            {formatMetric(row.orderCount, localeCode, messages.missingValue)}\n+                          </span>\n+                        </td>\n+                      </tr>\n+                    ) : null}\n+                  </Fragment>\n+                );\n+              })}\n+            </tbody>\n+          </table>\n+        </div>\n+      ) : (\n+        <p className=\"sales-report__empty\" role=\"status\">\n+          {messages.empty}\n+        </p>\n+      )}\n+    </section>\n+  );\n+}\n+",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/plugins/sales-report-message/styles.css",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/sales-report-message/styles.css\n+++ b/src/agent-ui/plugins/sales-report-message/styles.css\n@@ -1,151 +1,161 @@\n-.sales-report {\n-  box-sizing: border-box;\n-  width: 100%;\n-  max-width: 520px;\n-  min-width: 0;\n-  overflow: hidden;\n-  border: 1px solid var(--border);\n-  border-radius: 12px;\n-  background: var(--card);\n-  color: var(--foreground);\n-  font-size: 13px;\n-}\n-\n-.sales-report--invalid {\n-  padding: 10px 12px;\n-  border-style: dashed;\n-  background: var(--muted);\n-  color: var(--muted-foreground);\n-  font-size: 13px;\n-  line-height: 1.5;\n-  word-break: break-word;\n-}\n-\n-.sales-report__header {\n-  display: flex;\n-  flex-direction: column;\n-  gap: 2px;\n-  min-width: 0;\n-  padding: 10px 12px;\n-  border-bottom: 1px solid var(--border);\n-}\n-\n-.sales-report__title {\n-  margin: 0;\n-  font-size: 13px;\n-  font-weight: 600;\n-  line-height: 1.4;\n-  overflow-wrap: anywhere;\n-}\n-\n-.sales-report__hint {\n-  margin: 0;\n-  color: var(--muted-foreground);\n-  font-size: 12px;\n-  line-height: 1.4;\n-  overflow-wrap: anywhere;\n-}\n-\n-.sales-report__scroll {\n-  box-sizing: border-box;\n-  width: 100%;\n-  min-width: 0;\n-  overflow-x: auto;\n-}\n-\n-.sales-report__table {\n-  box-sizing: border-box;\n-  width: 100%;\n-  min-width: 0;\n-  border-collapse: collapse;\n-  font-size: 13px;\n-}\n-\n-.sales-report__cell {\n-  padding: 8px 12px;\n-  text-align: left;\n-  vertical-align: middle;\n-  overflow-wrap: anywhere;\n-}\n-\n-.sales-report__cell--number {\n-  text-align: right;\n-  font-variant-numeric: tabular-nums;\n-  white-space: nowrap;\n-}\n-\n-.sales-report__table thead .sales-report__cell {\n-  padding-top: 6px;\n-  padding-bottom: 6px;\n-  border-bottom: 1px solid var(--border);\n-  color: var(--muted-foreground);\n-  font-size: 12px;\n-  font-weight: 600;\n-}\n-\n-.sales-report__sort {\n-  display: inline-flex;\n-  align-items: center;\n-  gap: 4px;\n-  margin: 0;\n-  padding: 0;\n-  border: 0;\n-  background: none;\n-  color: inherit;\n-  font: inherit;\n-  cursor: pointer;\n-}\n-\n-.sales-report__sort:hover {\n-  color: var(--primary);\n-}\n-\n-.sales-report__sort:focus-visible {\n-  outline: 2px solid var(--ring);\n-  outline-offset: 2px;\n-  border-radius: 4px;\n-}\n-\n-.sales-report__sort-icon {\n-  font-size: 11px;\n-  line-height: 1;\n-}\n-\n-.sales-report__row {\n-  cursor: pointer;\n-}\n-\n-.sales-report__row:hover {\n-  background: var(--muted);\n-}\n-\n-.sales-report__row:focus-visible {\n-  outline: 2px solid var(--ring);\n-  outline-offset: -2px;\n-}\n-\n-.sales-report__row--expanded {\n-  background: var(--muted);\n-}\n-\n-.sales-report__detail .sales-report__cell {\n-  display: flex;\n-  align-items: baseline;\n-  gap: 8px;\n-  padding-top: 0;\n-  padding-bottom: 10px;\n-  background: var(--muted);\n-  color: var(--muted-foreground);\n-  font-size: 12px;\n-}\n-\n-.sales-report__detail-label {\n-  font-weight: 600;\n-}\n-\n-.sales-report__detail-value {\n-  color: var(--foreground);\n-  font-size: 13px;\n-  font-variant-numeric: tabular-nums;\n-}\n-\n+.sales-report {\n+  box-sizing: border-box;\n+  width: 100%;\n+  max-width: 520px;\n+  min-width: 0;\n+  overflow: hidden;\n+  border: 1px solid var(--border);\n+  border-radius: 12px;\n+  background: var(--card);\n+  color: var(--foreground);\n+  font-size: 13px;\n+}\n+\n+.sales-report--invalid {\n+  padding: 10px 12px;\n+  border-style: dashed;\n+  background: var(--muted);\n+  color: var(--muted-foreground);\n+  font-size: 13px;\n+  line-height: 1.5;\n+  word-break: break-word;\n+}\n+\n+.sales-report__header {\n+  display: flex;\n+  flex-direction: column;\n+  gap: 2px;\n+  min-width: 0;\n+  padding: 10px 12px;\n+  border-bottom: 1px solid var(--border);\n+}\n+\n+.sales-report__title {\n+  margin: 0;\n+  font-size: 13px;\n+  font-weight: 600;\n+  line-height: 1.4;\n+  overflow-wrap: anywhere;\n+}\n+\n+.sales-report__hint {\n+  margin: 0;\n+  color: var(--muted-foreground);\n+  font-size: 12px;\n+  line-height: 1.4;\n+  overflow-wrap: anywhere;\n+}\n+\n+.sales-report__scroll {\n+  box-sizing: border-box;\n+  width: 100%;\n+  min-width: 0;\n+  overflow-x: auto;\n+}\n+\n+.sales-report__table {\n+  box-sizing: border-box;\n+  width: 100%;\n+  min-width: 0;\n+  border-collapse: collapse;\n+  font-size: 13px;\n+}\n+\n+.sales-report__cell {\n+  padding: 8px 12px;\n+  text-align: left;\n+  vertical-align: middle;\n+  overflow-wrap: anywhere;\n+}\n+\n+.sales-report__cell--number {\n+  text-align: right;\n+  font-variant-numeric: tabular-nums;\n+  white-space: nowrap;\n+}\n+\n+.sales-report__table thead .sales-report__cell {\n+  padding-top: 6px;\n+  padding-bottom: 6px;\n+  border-bottom: 1px solid var(--border);\n+  color: var(--muted-foreground);\n+  font-size: 12px;\n+  font-weight: 600;\n+}\n+\n+.sales-report__sort {\n+  display: inline-flex;\n+  align-items: center;\n+  gap: 4px;\n+  margin: 0;\n+  padding: 0;\n+  border: 0;\n+  background: none;\n+  color: inherit;\n+  font: inherit;\n+  cursor: pointer;\n+}\n+\n+.sales-report__sort:hover {\n+  color: var(--primary);\n+}\n+\n+.sales-report__sort:focus-visible {\n+  outline: 2px solid var(--ring);\n+  outline-offset: 2px;\n+  border-radius: 4px;\n+}\n+\n+.sales-report__sort-icon {\n+  font-size: 11px;\n+  line-height: 1;\n+}\n+\n+.sales-report__row {\n+  cursor: pointer;\n+}\n+\n+.sales-report__row:hover {\n+  background: var(--muted);\n+}\n+\n+.sales-report__row:focus-visible {\n+  outline: 2px solid var(--ring);\n+  outline-offset: -2px;\n+}\n+\n+.sales-report__row--expanded {\n+  background: var(--muted);\n+}\n+\n+.sales-report__detail .sales-report__cell {\n+  display: flex;\n+  align-items: baseline;\n+  gap: 8px;\n+  padding-top: 0;\n+  padding-bottom: 10px;\n+  background: var(--muted);\n+  color: var(--muted-foreground);\n+  font-size: 12px;\n+}\n+\n+.sales-report__detail-label {\n+  font-weight: 600;\n+}\n+\n+.sales-report__detail-value {\n+  color: var(--foreground);\n+  font-size: 13px;\n+  font-variant-numeric: tabular-nums;\n+}\n+\n+.sales-report__empty {\n+  margin: 0;\n+  padding: 16px 12px;\n+  color: var(--muted-foreground);\n+  font-size: 13px;\n+  line-height: 1.5;\n+  text-align: center;\n+  overflow-wrap: anywhere;\n+}\n+",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "pnpm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-pfgccE/host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+          "truncated": false,
+          "revision": 5
+        },
+        {
+          "command": "verify_localized_defaults_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"coverage\":\"package-declared locale-backed default props\",\"issues\":[]}",
+          "truncated": false,
+          "revision": 5
+        },
+        {
+          "command": "verify_creator_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"status\":\"passed\",\"revision\":5,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-pfgccE/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":5},{\"command\":\"verify_localized_defaults_delta\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"{\\\"coverage\\\":\\\"package-declared locale-backed default props\\\",\\\"issues\\\":[]}\",\"truncated\":false,\"revision\":5}],\"targetRemaining\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+          "truncated": false,
+          "revision": 5
+        }
+      ],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-05T00-43-51.861Z_80515c0da6c17082bf5de1ed3ab65ba631c69de1662321a0d6ab9995aefb6a5c.jsonl"
+      },
+      "transaction": {
+        "runId": "8261d336-d8e3-4a40-920e-e1d282a1963a",
+        "undoable": true,
+        "reapplyable": true,
+        "changedPaths": [
+          "src/agent-ui/plugins/sales-report-message/index.tsx",
+          "src/agent-ui/plugins/sales-report-message/styles.css"
+        ],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "changed-and-verified",
+        "projectRevision": 5,
+        "validationRevision": 5,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_and_runtime",
+        "runtimeStatus": "passed"
+      }
+    },
+    "toolProtocol": {
+      "modelCalls": 16,
+      "toolCalls": 16
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "verificationMode": "static_and_runtime"
+  },
+  "runErrors": [],
+  "toolCalls": 16,
+  "changedPaths": [
+    "src/agent-ui/plugins/sales-report-message/index.tsx",
+    "src/agent-ui/plugins/sales-report-message/styles.css"
+  ],
+  "qaApprovals": [],
+  "browserErrors": [],
+  "interaction": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "JSON string parses into a table",
+        "status": "passed"
+      },
+      {
+        "name": "revenue sort changes displayed order",
+        "status": "passed"
+      },
+      {
+        "name": "row selection exposes order count",
+        "status": "passed"
+      },
+      {
+        "name": "bad JSON and empty rows leave conversation usable",
+        "status": "passed"
+      }
+    ],
+    "protocolEventsSent": [
+      {
+        "at": "2026-11-05T00:45:35.124Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.sales.report",
+          "value": {
+            "format": "json",
+            "payload": "{\"title\":\"月度销售\",\"rows\":[{\"month\":\"2026-09\",\"revenue\":120000,\"order_count\":320},{\"month\":\"2026-10\",\"revenue\":156000,\"order_count\":410}]}"
+          }
+        }
+      },
+      {
+        "at": "2026-11-05T00:45:35.837Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.sales.report",
+          "value": {
+            "format": "json",
+            "payload": "{not JSON"
+          }
+        }
+      },
+      {
+        "at": "2026-11-05T00:45:36.386Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.sales.report",
+          "value": {
+            "format": "json",
+            "payload": "{\"title\":\"空报表\",\"rows\":[]}"
+          }
+        }
+      }
+    ]
+  }
+}

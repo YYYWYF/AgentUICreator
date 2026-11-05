@@ -5,7 +5,7 @@ import { sourceRoot } from "./activity.js";
 
 export interface Candidate { path: string; before: CreatorFileState; content: string }
 export function pluginFile(pluginId: string, relative: string, source: string) {
-  if (!/^[a-z0-9][a-z0-9-]{0,99}$/u.test(pluginId) || !relative || /[\\:\x00]/u.test(relative) || relative.startsWith("/") || relative.split("/").some(part => ["..", "upstream", "vendor", "vendors", "node_modules", "runtime", "framework"].includes(part))) throw new Error("PLUGIN_SOURCE_PATH_INVALID");
+  if (!/^[a-z0-9][a-z0-9-]{0,99}$/u.test(pluginId) || !relative || /[\\:\x00]/u.test(relative) || relative.startsWith("/") || relative.split("/").some(part => ["..", "upstream", "vendor", "vendors", "node_modules", "runtime", "framework"].includes(part.toLowerCase()))) throw new Error("PLUGIN_SOURCE_PATH_INVALID");
   return path.posix.join(source, "plugins", pluginId, relative);
 }
 export function applyEdits(content: string, edits: any[]) {

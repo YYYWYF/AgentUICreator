@@ -1,0 +1,14 @@
+
+> @za38.03/agent-ui-plugins@0.0.1 test /Users/yifei/Coding/AgentUICreator/packages/plugins
+> node ../../scripts/run-plugin-source-views-check.mjs test
+
+Prepared 1020 TypeScript authoring module bridges.
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/plugins
+
+
+ Test Files  38 passed (38)
+      Tests  302 passed (302)
+   Start at  08:42:57
+   Duration  26.37s (transform 3.13s, setup 426ms, import 22.66s, tests 19.33s, environment 6.70s)
+

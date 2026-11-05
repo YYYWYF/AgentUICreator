@@ -1,0 +1,27 @@
+{
+  "id": "quick-help-example-action",
+  "name": "Quick Help Example Action",
+  "description": "Help card footer action that fills a usage-example question into the composer draft without sending it.",
+  "version": "0.0.1",
+  "capabilities": [
+    "quick-help-example-action",
+    "quick-help-action"
+  ],
+  "authoring": {
+    "intents": [
+      "fill a usage example question into the composer",
+      "查看示例",
+      "把示例问题填进输入框",
+      "在帮助卡片底部显示查看示例按钮"
+    ],
+    "visualRole": "quick help card footer action button",
+    "recommendedSize": {
+      "height": "28px"
+    },
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "quick-help-card",
+      "slot": "footerActions"
+    }
+  }
+}

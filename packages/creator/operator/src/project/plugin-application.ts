@@ -213,6 +213,8 @@ export async function readApplicationPackageManifest(root: string, id: string): 
   const pkg = JSON.parse(await readFile(path.join(path.dirname(catalogPath), "..", "package.json"), "utf8"));
   if (catalog.schemaVersion !== 1 || pkg.name !== "@za38.03/agent-ui-plugins" || catalog.package?.name !== pkg.name || catalog.package?.version !== pkg.version) throw new Error("PLUGIN_APPLICATION_PACKAGE_MISMATCH");
   const plugin = catalog.plugins.find((plugin: { id: string }) => plugin.id === id);
+  if (!plugin) throw new AgentUISourceError("PLUGIN_APPLICATION_PLUGIN_NOT_IN_CATALOG",
+    `The npm application marker identifies Plugin "${id}", which is absent from the installed @za38.03/agent-ui-plugins catalog. application.json describes installed npm Plugin applications, not custom project implementations.`);
   const official = officialPackagePlugin(id);
   if (id !== "composer" && (plugin?.application?.schemaVersion !== 1 || plugin.application.component !== official?.application.component || plugin.application.scopeKind !== official?.application.scopeKind)) throw new Error("PLUGIN_APPLICATION_PACKAGE_API_UNSUPPORTED");
   if ((plugin?.application?.registration?.kind !== official?.application.registration?.kind || plugin?.application?.registration?.name !== official?.application.registration?.name) || (plugin?.application?.runtimeContext === true) !== official?.application.runtimeContext) throw new Error("PLUGIN_APPLICATION_PACKAGE_API_UNSUPPORTED");

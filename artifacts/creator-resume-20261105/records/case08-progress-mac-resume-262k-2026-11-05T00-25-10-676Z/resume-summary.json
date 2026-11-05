@@ -1,0 +1,63 @@
+{
+  "caseId": "case08-progress",
+  "status": "success",
+  "seconds": 313.468,
+  "tools": 42,
+  "changedFiles": 10,
+  "usage": {
+    "input": 2463798,
+    "output": 26652,
+    "total": 2490450,
+    "withoutUsage": 1
+  },
+  "requests": 27,
+  "compaction": {
+    "summaryModelCalls": 0,
+    "compactions": 0,
+    "summarySeconds": 0,
+    "offloadedArtifacts": 0
+  },
+  "delivery": [
+    {
+      "pluginId": "job-progress-panel",
+      "delivery": {
+        "status": "completed",
+        "lastSuccessfulStage": "verified",
+        "stages": {
+          "created": true,
+          "registered": true,
+          "composed": true,
+          "verified": true
+        },
+        "blockers": [],
+        "instanceIds": [
+          "p27"
+        ]
+      },
+      "verification": {
+        "static": "pass",
+        "runtime": "pass",
+        "interaction": "not-run"
+      }
+    }
+  ],
+  "interaction": [
+    {
+      "name": "custom event renders right-side progress panel",
+      "status": "passed"
+    },
+    {
+      "name": "same job updates without duplicating other jobs",
+      "status": "passed"
+    },
+    {
+      "name": "failed job exposes its error",
+      "status": "passed"
+    },
+    {
+      "name": "invalid progress does not crash UI",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": []
+}

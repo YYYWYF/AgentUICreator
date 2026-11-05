@@ -149,7 +149,7 @@ describe("deterministic Agent UI initializer", () => {
     expect(deliveredModel).toContain('"pluginId": "tool-result"');
     expect(deliveredModel).not.toContain('"pluginId": "tool-fallback"');
     expect(await readFile(path.join(root, sourceRoot, "plugins/tool-result/index.tsx"), "utf8"))
-      .toContain('from "@za38.03/agent-ui-plugins/tool-result"');
+      .toMatch(/from\s+['"]@za38\.03\/agent-ui-plugins\/tool-result['"]/u);
     const state = await inspectCreatorProject(root);
     expect(state.status).toBe("ready");
     const lock = JSON.parse(await readFile(path.join(root, ".agent-ui/source-lock.json"), "utf8")) as { sourceRoot: string };
@@ -160,8 +160,8 @@ describe("deterministic Agent UI initializer", () => {
     // This Host intentionally has no root tsconfig. The catalog must still
     // agree with the installed plugin definitions before Runtime can mount.
     const registry = await readFile(path.join(root, sourceRoot, "plugins/registry.generated.ts"), "utf8");
-    expect(registry).toContain('provides: ["agent-ui.conversation-data-source"]');
-    expect(registry).toContain('inject: ["agent-ui.conversation-data-source"]');
+    expect(registry).toMatch(/provides:\s*\[\s*['"]agent-ui\.conversation-data-source['"]\s*,?\s*\]/u);
+    expect(registry).toMatch(/inject:\s*\[\s*['"]agent-ui\.conversation-data-source['"]\s*,?\s*\]/u);
     if (mode === "assistant" || mode === "embedded") {
       expect(result.installedSourceItems).toContain("plugin/conversation-new");
       expect(result.installedSourceItems).toContain("plugin/conversation-thread-list");
@@ -185,7 +185,7 @@ describe("deterministic Agent UI initializer", () => {
       model.root.children[0].children[0].plugins.push({ id: "project-locale-switch", pluginId: "locale-switch", enabled: true });
       await writeFile(path.join(root, sourceRoot, "app-ui.json"), JSON.stringify(model));
       await writeGeneratedPluginRegistry(root);
-      expect(await readFile(path.join(root, sourceRoot, "plugins/locale-switch/index.tsx"), "utf8")).toContain('from "@za38.03/agent-ui-plugins/locale-switch"');
+      expect(await readFile(path.join(root, sourceRoot, "plugins/locale-switch/index.tsx"), "utf8")).toMatch(/from\s+['"]@za38\.03\/agent-ui-plugins\/locale-switch['"]/u);
       await expect(lstat(path.join(root, sourceRoot, "plugins/auth-account"))).rejects.toMatchObject({ code: "ENOENT" });
       expect((await inspectCreatorProject(root)).status).toBe("ready");
     }

@@ -134,6 +134,21 @@ describe("CreatorWorkspaceManager", () => {
     expect(createRuntimeManager).not.toHaveBeenCalled();
   });
 
+  it("starts repair tooling for validated project structure while retaining source errors", async () => {
+    const runtime = { ensureStarted: vi.fn(async () => undefined), dispose: vi.fn(async () => undefined) };
+    const issues = [{ code: "plugin-application-read", message: "invalid application.json", severity: "error" as const }];
+    const manager = new CreatorWorkspaceManager({
+      ...setupDependencies(),
+      inspectProject: async () => ({ status: "broken", issues,
+        repairContext: { projectConfig: { mode: "assistant", sourceRoot: "src/ui" }, paths: { sourceRoot: "src/ui" } } }),
+      createRuntimeManager: () => runtime as unknown as CreatorProcessManager,
+    });
+    expect(await manager.selectProject(await root())).toMatchObject({ status: "ready", runtime: { status: "ready" }, warnings: issues });
+    expect(manager.ensureCreatorRuntime()).toBe(runtime);
+    expect(runtime.ensureStarted).toHaveBeenCalledOnce();
+    expect(publicWorkspaceState(manager.getState())).toMatchObject({ warnings: issues });
+  });
+
   it("keeps a ready project ready when the Agent fails and recovers on refresh", async () => {
     let available = false;
     const createRuntimeManager = vi.fn(() => ({

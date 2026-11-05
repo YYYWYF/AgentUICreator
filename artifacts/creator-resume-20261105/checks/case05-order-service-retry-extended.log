@@ -1,0 +1,24 @@
+Port 5173 is in use, trying another one...
+9:12:35 AM [vite] (client) page reload src/main.tsx
+{
+  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case05-order-extended-2026-11-05T01-12-27-399Z",
+  "caseId": "case05-order",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case05-order-mac-service-retry-2026-11-05T01-01-54-308Z",
+  "scope": "Extra browser checks of unchanged model output. Synthetic events travel through the existing HTTP SSE endpoint. Locale buttons are in the QA Host, outside Agent UI implementation.",
+  "checks": [
+    {
+      "name": "order product text is displayed literally",
+      "status": "passed"
+    },
+    {
+      "name": "nested malformed order fields do not crash the conversation",
+      "status": "passed"
+    }
+  ],
+  "browserErrors": [],
+  "consoleErrors": [],
+  "sourceDifferences": [],
+  "sourceUnchanged": true,
+  "status": "passed",
+  "cleanup": true
+}

@@ -1,0 +1,19 @@
+{
+  "id": "order-summary-message",
+  "name": "Order Summary Message",
+  "description": "Renders app.order.summary CUSTOM event payloads as an order card inside assistant messages.",
+  "version": "0.0.1",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render order summaries inside assistant messages",
+      "显示订单卡片",
+      "在聊天消息中显示订单号、商品、数量与金额"
+    ]
+  }
+}

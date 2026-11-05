@@ -1,0 +1,4 @@
+
+> @za38.03/agent-ui-core@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/core
+> node ../../scripts/clean-package-dist.mjs core && node ../../scripts/sync-package-release-metadata.mjs core && tsc -p tsconfig.build.json && node ../../scripts/sync-package-release-metadata.mjs core
+
