@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
-const root = path.dirname(fileURLToPath(import.meta.url));
+const root = process.argv[5] ? path.resolve(process.argv[5]) : path.dirname(fileURLToPath(import.meta.url));
 const baseline = JSON.parse(await fs.readFile(path.join(root, 'baseline.json'), 'utf8'));
 const question = process.argv[2];
 if (!/^q[1-5]$/.test(question ?? '')) throw Error('Expected q1 to q5');

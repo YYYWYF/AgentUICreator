@@ -1,0 +1,5 @@
+{
+  "requestedAt": "2026-11-05T16:49:14.741Z",
+  "stoppedByQa": true,
+  "reason": "Visible requested heading and static/runtime checks passed, but repeated source-of-truth investigation continued for over twelve minutes. End this QA request to honor review after one question. This is not a product call limit."
+}

@@ -222,7 +222,7 @@
     "before-reset/src/agent-ui/styles.css": "7dd9a18fa2a54fd08c6989d9387a4156a14fc080cac86f2764593e4f2764b27b",
     "before-reset/src/host.css": "eaf7c3755e47a6b4f4f845953263134d622ef13ae123858299f8983a094c4538",
     "before-reset/src/main.tsx": "596b0580913a19e4f57fc89be4c4cef71eb08f84a3c893a906fb0c52318c2e66",
-    "capture.mjs": "0f0b43410b47a5ca1ea922238c2328684f95929d9f4865056b919291b1b97be6",
+    "capture.mjs": "31e404257273bc8fb149b1c0c6992b1be543392653d254eb4818dd536eefa38e",
     "configuration.json": "5be7fb0b9429abedd3ff42cefb373616cbb4dc5ebe2a8cf4aaffbb822f3aaa5a",
     "final-project-checks.json": "994a2ee29a57728aad6bd2d889c53c3b0551a96c1cea06cc4ade9de0681e61d0",
     "final.ax.txt": "7ce4c5eef041d8e3b56b7bebb04b80599e182b56c43550721034382db39b273c",
@@ -1057,5 +1057,7 @@
     "q5/summary.json": "55b6d93f7a1ca72e1779183e13746a175347dc6c1e8d5ce850859f42eed907b0",
     "standalone-build.log": "c2a6701f5dfa531b162f5852e1264ecbc2273d237d8c7a621f3cdd69fa7e5072",
     "summary.json": "332dbaf9cb060a1da767d8cac1d20a1e08fde4f8410adfbe1841fa7ec8aac15d"
-  }
+  },
+  "maintainedAt": "2026-11-05T16:52:29.908Z",
+  "maintenanceNote": "Added optional evidence-root CLI argument to reuse the collector for the subsequent welcome test; previous default and archived results unchanged."
 }

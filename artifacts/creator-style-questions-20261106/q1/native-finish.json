@@ -1,0 +1,86 @@
+{
+  "type": "RUN_ERROR",
+  "code": "CREATOR_RUN_STOPPED",
+  "message": "CREATOR_RUN_STOPPED",
+  "metadata": {
+    "receipt": {
+      "files": [
+        {
+          "path": "src/agent-ui/application/Agent.tsx",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/application/Agent.tsx\n+++ b/src/agent-ui/application/Agent.tsx\n@@ -1,17 +1,41 @@\n-import { resolveAgentUILocaleMessages } from '@za38.03/agent-ui-plugins';\n-import { AgentApplication, type AgentProps } from '@za38.03/agent-ui-runtime/ui';\n-import { agentUIProject } from './project-config';\n-export type { AgentProps } from '@za38.03/agent-ui-runtime/ui';\n-\n-export function Agent(props: AgentProps = {}) {\n-  const suggestions: AgentProps['suggestions'] = (locale) => {\n-    const messages = resolveAgentUILocaleMessages(locale, props.locales?.[locale]).starterSuggestions;\n-    return [\n-      { title: messages.architectureTitle, label: messages.architectureLabel, prompt: messages.architecturePrompt },\n-      { title: messages.debugTitle, label: messages.debugLabel, prompt: messages.debugPrompt },\n-      { title: messages.nextTitle, label: messages.nextLabel, prompt: messages.nextPrompt },\n-    ];\n-  };\n-  return <AgentApplication project={agentUIProject} {...props} suggestions={props.suggestions ?? suggestions} />;\n-}\n-\n+import { resolveAgentUILocaleMessages } from '@za38.03/agent-ui-plugins';\n+import { AgentApplication, type AgentProps } from '@za38.03/agent-ui-runtime/ui';\n+import { agentUIProject } from './project-config';\n+export type { AgentProps } from '@za38.03/agent-ui-runtime/ui';\n+\n+/** 空会话欢迎语，中英文保持一致。 */\n+const welcomeCopy = {\n+  'zh-CN': '今天心情好吗',\n+  'en-US': 'How are you feeling today?',\n+} as const;\n+\n+export function Agent(props: AgentProps = {}) {\n+  const locales: AgentProps['locales'] = {\n+    ...props.locales,\n+    'zh-CN': {\n+      ...props.locales?.['zh-CN'],\n+      conversation: { ...props.locales?.['zh-CN']?.conversation, welcome: welcomeCopy['zh-CN'] },\n+    },\n+    'en-US': {\n+      ...props.locales?.['en-US'],\n+      conversation: { ...props.locales?.['en-US']?.conversation, welcome: welcomeCopy['en-US'] },\n+    },\n+  };\n+  const suggestions: AgentProps['suggestions'] = (locale) => {\n+    const messages = resolveAgentUILocaleMessages(locale, props.locales?.[locale]).starterSuggestions;\n+    return [\n+      { title: messages.architectureTitle, label: messages.architectureLabel, prompt: messages.architecturePrompt },\n+      { title: messages.debugTitle, label: messages.debugLabel, prompt: messages.debugPrompt },\n+      { title: messages.nextTitle, label: messages.nextLabel, prompt: messages.nextPrompt },\n+    ];\n+  };\n+  return (\n+    <AgentApplication\n+      project={agentUIProject}\n+      {...props}\n+      locales={locales}\n+      suggestions={props.suggestions ?? suggestions}\n+    />\n+  );\n+}\n+",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "pnpm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host\n> node node_modules/typescript/bin/tsc --noEmit\n\n",
+          "truncated": false,
+          "revision": 6
+        },
+        {
+          "command": "verify_localized_defaults_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"coverage\":\"package-declared locale-backed default props\",\"issues\":[]}",
+          "truncated": false,
+          "revision": 6
+        },
+        {
+          "command": "verify_creator_delta",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"status\":\"passed\",\"revision\":6,\"mode\":\"delta\",\"checks\":[{\"command\":\"pnpm run typecheck\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"\\n> ordinary-preview-host@ typecheck /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-mdkmUN/host\\n> node node_modules/typescript/bin/tsc --noEmit\\n\\n\",\"truncated\":false,\"revision\":6},{\"command\":\"verify_localized_defaults_delta\",\"status\":\"passed\",\"exitCode\":0,\"output\":\"{\\\"coverage\\\":\\\"package-declared locale-backed default props\\\",\\\"issues\\\":[]}\",\"truncated\":false,\"revision\":6}],\"targetRemaining\":[],\"registryFresh\":true,\"pluginStates\":[],\"introduced\":{\"staticErrors\":[],\"typeErrors\":[],\"localizedDefaults\":[]},\"workspaceWarnings\":{\"staticErrors\":[],\"typeErrors\":[]}}",
+          "truncated": false,
+          "revision": 6
+        }
+      ],
+      "diagnosticLog": {
+        "format": "jsonl",
+        "path": ".agent-ui/creator/logs/2026-11-05T16-36-45.972Z_9cb515ff5cdbbc5cf8ea35212df6d72c958aa0150f0a1bf4736c80170d7dfcc3.jsonl"
+      },
+      "transaction": {
+        "runId": "2ff49726-c63b-4129-8b93-0b14428dfda6",
+        "undoable": true,
+        "reapplyable": true,
+        "changedPaths": [
+          "src/agent-ui/application/Agent.tsx"
+        ],
+        "conflicts": []
+      },
+      "verification": {
+        "status": "changed-and-statically-verified",
+        "projectRevision": 6,
+        "validationRevision": 6,
+        "auditAttempts": 0,
+        "checks": [],
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run"
+      }
+    },
+    "contextCompression": {
+      "summaryModelCalls": 0,
+      "compactions": 0,
+      "summarySeconds": 0,
+      "offloadedArtifacts": 0
+    },
+    "creatorRunOutcome": {
+      "status": "stopped",
+      "changeStatus": "committed",
+      "changedPaths": [
+        "src/agent-ui/application/Agent.tsx"
+      ],
+      "toolErrors": [
+        {
+          "toolName": "read_file",
+          "status": "error",
+          "reason": "CREATOR_PROJECT_PATH_NOT_FOUND"
+        }
+      ],
+      "lastToolName": "verify_creator_outcome"
+    }
+  }
+}

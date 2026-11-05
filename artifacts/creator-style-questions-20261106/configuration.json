@@ -1,0 +1,18 @@
+{
+  "model": "deepseek-v4.1-flash",
+  "outputBudget": 32768,
+  "contextBudget": 262144,
+  "keepTokens": 12000,
+  "summaryBudget": 8192,
+  "temperature": 0.2,
+  "requestTimeoutSeconds": 120,
+  "opencodeSessionHeader": true,
+  "verificationMode": "static_and_runtime",
+  "nativePlaywrightVerification": false,
+  "browser": "Google Chrome, native CUA",
+  "creatorSourceCommit": "adc747b93ac66b963c931fad987bb400f0ba6872",
+  "scope": "Retained exact already running Creator distribution and frontend package installation. Restored original question-1 default generated template snapshot in disposable Host; same Chrome conversation for questions 1 to 5. Does not establish coverage of other concurrent repository changes.",
+  "creatorBuildSnapshot": "artifacts/creator-removal-routing-20261105/updated-package-snapshot.json",
+  "creatorBuildSnapshotSha256": "720135ed216482020edbb085a77b9f7aa770cdaf35c9a7d21bdaa7a38890f6e6",
+  "actualInstalledFrontendSnapshot": "installed-frontend-snapshot.json"
+}
