@@ -1,0 +1,4 @@
+
+> @za38.03/agent-ui-creator@0.0.1 typecheck /Users/yifei/Coding/AgentUICreator/packages/creator
+> tsc --noEmit && tsc --noEmit -p tsconfig.browser.json
+

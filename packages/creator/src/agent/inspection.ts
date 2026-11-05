@@ -59,25 +59,37 @@ export async function inspectProject(context: ToolContext, input: Record<string,
 }
 
 /** Agent-facing projection only. Operator contracts and full observations stay intact. */
-export function projectInspectionSummary(result: Record<string, any>) {
+export function projectInspectionSummary(result: Record<string, any>): Record<string, any> {
+  const pick = (value: any, keys: string[]) => Object.fromEntries(keys.filter(key => value?.[key] !== undefined).map(key => [key, value[key]]));
   const catalog = result.authoringTargetCatalog;
   const actions = result.creatorActions;
-  return { ...result,
-    ...(catalog ? { authoringTargetCatalog: { ...catalog, candidates: catalog.candidates?.map((item: any) => {
-      if (item.kind !== "plugin_source") return item;
-      const { description: _description, intents: _intents, ...identity } = item;
-      return identity;
-    }) } } : {}),
-    ...(actions ? { creatorActions: { ...actions, candidates: actions.candidates?.map((item: any) => {
-      const { label: _label, description: _description, ...operation } = item;
-      return operation;
-    }) } } : {}),
-    ...(result.capabilitySummaries ? { capabilitySummaries: result.capabilitySummaries.map((item: any) => {
-      const { authoring: _authoring, currentInstances: _instances, ...capability } = item;
-      return capability;
-    }) } : {}),
-    projection: { kind: "navigation_summary", omitted: ["repeated Plugin authoring descriptions/intents", "action labels/descriptions", "duplicate capability instance placement"],
+  return { ...pick(result, ["view", "sourceRoot", "workspaceDiagnostics", "observationCoverage", "hostGuarantees", "appUIModel", "pluginInstances", "pluginSources", "capabilityCatalogRevision", "activeComposition", "layoutConstraints", "runtimeObservation"]),
+    ...(catalog ? { authoringTargetCatalog: { revision: catalog.revision,
+      candidates: catalog.candidates?.map((item: any) => pick(item, ["id", "kind", "name", "pluginId", "relatedPluginIds"])),
+      bindings: catalog.bindings?.map((item: any) => pick(item, ["targetId", "kind", "pluginId", "ownerPath", "definitionPath", "ownerRoot"])),
+    } } : {}),
+    ...(actions ? { creatorActions: { revision: actions.revision,
+      candidates: actions.candidates?.map((item: any) => pick(item, ["actionId", "kind", "status", "target"])),
+    } } : {}),
+    ...(result.capabilitySummaries ? { capabilitySummaries: result.capabilitySummaries.map((item: any) => pick(item, ["pluginId", "name", "capabilities", "selected", "childSlots", "requiresRenderScope"])) } : {}),
+    projection: { kind: "navigation_summary", omitted: ["Plugin descriptions, authoring contracts and service details", "target matching rules", "action effects and execution plans"],
       fullResult: { tool: "inspect_ui_project", input: { ...(result.view === "composition" ? { view: "composition" } : {}), detail: "full" } },
       pluginDetails: "inspect_ui_plugin returns the selected Plugin's full API, composition and ownership" },
   };
+}
+
+/** Keep every prop name discoverable once; inherited DOM detail stays available on demand. */
+export function pluginInspectionSummary(result: Record<string, any>, pluginId: string) {
+  const application = result.application, api = application?.publicApi;
+  if (!api || api.status !== "available") return result;
+  const { props = [], propNames, ...apiFacts } = api;
+  const { customizationProps: _duplicateNames, ...usageGuide } = application.usageGuide ?? {};
+  const ownProps = props.filter((property: any) => property.inherited !== true);
+  return { ...result, application: { ...application,
+    usageGuide: { ...usageGuide, propNamesReference: "application.publicApi.propNames" },
+    publicApi: { ...apiFacts, props: ownProps, propNames,
+      inheritedDetailsOmitted: props.length - ownProps.length,
+      fullResult: { tool: "inspect_ui_plugin", input: { pluginId, detail: "full" } },
+    },
+  } };
 }

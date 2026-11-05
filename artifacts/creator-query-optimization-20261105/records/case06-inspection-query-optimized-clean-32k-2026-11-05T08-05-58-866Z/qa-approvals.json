@@ -1,0 +1,57 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 195.412,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 在助手消息中渲染 Agent 返回的 app.inspection.result CUSTOM 事件：通过项简洁列出（可折叠概览），失败项高亮显示，点击失败项展开错误原因，并可一键复制该失败项的错误详情。\n\n目标插件与位置: inspection-result-message\n\n需要新增的能力: 现有官方目录中没有接收 app.inspection.result 事件并按检查项（通过/失败）分区展示的消息渲染器\n\napplication 级插件实例注册消息渲染器（与 context-retrieval-message 相同方式），不占用 Layout 位",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "inspection-result-message",
+      "desiredOutcome": "在助手消息中渲染 Agent 返回的 app.inspection.result CUSTOM 事件：通过项简洁列出（可折叠概览），失败项高亮显示，点击失败项展开错误原因，并可一键复制该失败项的错误详情。",
+      "workKind": "create-plugin",
+      "missingCapabilities": [
+        "现有官方目录中没有接收 app.inspection.result 事件并按检查项（通过/失败）分区展示的消息渲染器"
+      ],
+      "deliveryContract": {
+        "capability": "把 app.inspection.result 的 value（target + checks[]）校验后渲染为检查结果卡片：通过项轻量列出，失败项高亮并可展开 detail，支持复制错误详情",
+        "renderingCategory": "application",
+        "placement": "application 级插件实例注册消息渲染器（与 context-retrieval-message 相同方式），不占用 Layout 位",
+        "lifecycle": "通过 dataMessageUIs 注册 name=app.inspection.result 的渲染器；插件启用后对会话中每条匹配 CUSTOM 事件生效，无独立运行时状态",
+        "dependencies": [
+          "agent-ui.locale 服务（optionalInject，中文/英文文案）",
+          "项目主题 token 与插件作用域样式文件"
+        ],
+        "interactions": [
+          "点击失败项切换展开/收起错误原因（button + aria-expanded）",
+          "点击复制按钮把该失败项的 code/message/duration 等详情复制为 JSON，并给出已复制反馈",
+          "键盘可聚焦与触发（原生 button 语义）"
+        ],
+        "reusedComponents": [
+          "defineDataMessageUI",
+          "useAgentUILocaleCode"
+        ],
+        "verificationMethod": "runtime"
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

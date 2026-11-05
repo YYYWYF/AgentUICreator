@@ -2253,6 +2253,55 @@
         "responsiveRiskCount": {
           "type": "integer",
           "minimum": 0
+        },
+        "sourceDiagnostics": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/projectIssue"
+          }
+        },
+        "pluginStates": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pluginId",
+              "source",
+              "composition",
+              "runtimeCatalog"
+            ],
+            "properties": {
+              "pluginId": {
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "available",
+                  "invalid",
+                  "missing"
+                ]
+              },
+              "composition": {
+                "enum": [
+                  "selected",
+                  "not_selected"
+                ]
+              },
+              "runtimeCatalog": {
+                "enum": [
+                  "included",
+                  "excluded_not_selected",
+                  "unresolved"
+                ]
+              }
+            }
+          }
+        },
+        "registryFresh": {
+          "type": "boolean"
         }
       }
     },
@@ -3993,6 +4042,9 @@
         },
         "detailsOmitted": {
           "type": "boolean"
+        },
+        "inherited": {
+          "type": "boolean"
         }
       }
     },
@@ -4521,6 +4573,36 @@
               },
               "memberNamesTruncated": {
                 "type": "boolean"
+              },
+              "moduleSuggestions": {
+                "type": "array",
+                "maxItems": 3,
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "moduleSearch": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "checkedModules",
+                  "coverage"
+                ],
+                "properties": {
+                  "checkedModules": {
+                    "type": "array",
+                    "maxItems": 4,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "coverage": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
               }
             },
             "oneOf": [

@@ -64,6 +64,18 @@ it("paginates filtered indexes without omissions and reports unknown IDs or empt
   expect(await readCreatorDocumentation({ action: "read", documentId: "public:development/plugin-api", sectionId: "invented" }, root)).toMatchObject({ status: "not_found" });
 });
 
+it("distinguishes an invented topic from missing documentation and returns a valid retry", async () => {
+  const { root } = await fixture();
+  const result = await readCreatorDocumentation({ query: "renderScopedSlot", source: "public", topic: "plugin manifest" }, root);
+  expect(result).toMatchObject({ status: "invalid_filter", requestedTopic: "plugin manifest", availableTopics: ["开发文档"] });
+  expect(result).not.toHaveProperty("total", 0);
+  if (!("nextRead" in result)) throw new Error("Missing correction navigation");
+  expect(result.nextRead.input).not.toHaveProperty("topic");
+  expect(result.nextRead.input).toMatchObject({ source: "public", query: "renderScopedSlot" });
+  expect(await readCreatorDocumentation(result.nextRead.input, root)).toHaveProperty("entries.0.documentId", "public:development/plugin-api");
+  expect(await readCreatorDocumentation({ query: "not-present-identifier", source: "public", topic: "开发文档" }, root)).toMatchObject({ status: "available", total: 0 });
+});
+
 it("reads exact CRLF/Unicode section pages within bounds and rejects invalid ranges", async () => {
   const { root, text } = await fixture();
   let offset: number | null = 0, content = "";

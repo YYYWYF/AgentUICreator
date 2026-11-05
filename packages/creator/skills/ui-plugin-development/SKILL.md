@@ -44,10 +44,14 @@ stylesheets own presentation. Read a neighboring consumer only for wiring that
 is actually unknown. An npm implementation need not appear in local search.
 
 `inspect_ui_plugin` returns application ownership, public APIs and parent semantic
-composition where declared. sharedModule selects the installed public module;
+composition where declared. Its default API view keeps the complete prop-name
+index and relevant types; `detail: "full"` expands deferred inherited DOM detail.
+sharedModule selects the installed public module;
 use the root module for presentation controls and /contracts for Plugin types.
 Use returned parameterContracts; follow exact parameterQueries only when a required
 signature is missing. `$element` accesses an array/index element, not React props.
+Unresolved exports can return verified `moduleSuggestions` from the same installed
+package; these locate the exact export rather than suggesting equivalent behavior.
 Query concrete exported types for overloaded Hooks, rather than repeatedly
 querying `$return`. Shared-symbol queries return API evidence, not an edit target.
 An unavailable guessed symbol is not a missing capability. Preserve declared
@@ -101,13 +105,19 @@ AppUIModel evidence and normal Host mutation/verification tools. Creation/catalo
 synchronization is not mounting: newly created capabilities must be composed when
 requested, and the final revision validated. Consume checks already performed by
 the Host rather than duplicating them. Respect returned repair limits.
-`validate_creator_changes` synchronizes changed Plugin manifest/definition files
-into `registry.generated.ts` before checking. It is the exposed synchronization
-entry; do not search for an npm script or edit the generated registry. Refresh
-composition after synchronization to discover the new capability before mounting.
+`validate_creator_changes` refreshes Plugin inventory and the generated catalog
+before checking. `pluginStates` distinguishes valid source from AppUIModel
+selection: `excluded_not_selected` is expected until the Plugin is composed.
+Source diagnostics for edited Plugins apply before composition too. Use this
+synchronization entry; do not search for an npm script or edit the generated
+registry. Refresh composition to discover a new capability before mounting.
 
 Keep static, Runtime and browser evidence distinct. Current tests/types or empty
 Runtime errors do not prove popup geometry, keyboard behavior or focus. Validate
 the requested interactions using available authorized browser/test evidence; report
-missing infrastructure or stale evidence precisely. Do not label incomplete work
+missing infrastructure or stale evidence precisely. Project Playwright checks
+are optional and disabled by default. Follow Host tool availability and
+`interactionPolicy`; disabled means not-run and does not block delivery. Do not
+install or restore test infrastructure merely because the Host disabled it.
+Do not label incomplete work
 as already satisfied or reopen unrelated discovery when verification is unavailable.

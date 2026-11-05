@@ -1,0 +1,6 @@
+{
+  "code": "QA_DUPLICATE_ERROR_CODE_SELECTOR",
+  "reason": "Generated UI legitimately shows the same error code in both the collapsed summary and expanded details. The original strict locator matched both. Preserve original result and replay unchanged source with an exact first code match plus the distinct detail message and clipboard assertion.",
+  "additional": "The generated copy button accessible label includes the check name between Copy and error details. Broaden the semantic name match while retaining the real click and clipboard-content assertion. No generated source changed.",
+  "localeCheck": "The locale-preservation QA also matched a code repeated in summary and detail. Replay now asserts the distinct expanded detail message before/after both language switches, which proves expansion is preserved."
+}

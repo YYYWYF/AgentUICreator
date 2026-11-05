@@ -1,11 +1,11 @@
 import { TypeFlags, type Symbol, type Type } from "typescript/unstable/sync";
 
 /** Put the component/domain contract before inherited DOM details, without hiding either. */
+export const isInheritedPublicMember = (member: Symbol) => member.declarations.length > 0 && member.declarations.every(declaration =>
+  /\/(?:@types\/react|typescript\/lib)\//u.test(String(declaration.path).replaceAll("\\", "/")));
 export function prioritizePublicMembers(members: readonly Symbol[]) {
-  const inherited = (member: Symbol) => member.declarations.length > 0 && member.declarations.every(declaration =>
-    /\/(?:@types\/react|typescript\/lib)\//u.test(String(declaration.path).replaceAll("\\", "/")));
   const priority = (member: Symbol) => ["renderSlot", "renderScopedSlot"].includes(member.name) ? 1
-    : ["className", "style"].includes(member.name) ? 0 : inherited(member) ? 2 : 0;
+    : ["className", "style"].includes(member.name) ? 0 : isInheritedPublicMember(member) ? 2 : 0;
   return members.map((member, index) => ({ member, index, priority: priority(member) }))
     .sort((a, b) => a.priority - b.priority || a.index - b.index).map(item => item.member);
 }

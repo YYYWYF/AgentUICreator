@@ -1,0 +1,10 @@
+
+> @za38.03/agent-ui-creator@0.0.1 typecheck:operator /Users/yifei/Coding/AgentUICreator/packages/creator
+> node ../../scripts/run-plugin-source-views-check.mjs operator-typecheck
+
+Prepared 1020 TypeScript authoring module bridges.
+operator/src/project/plugin-application-inspector.ts(87,59): error TS2339: Property 'inherited' does not exist on type '{ name: string; status: string; } | { type: string; typeTruncated: boolean; status?: never; name: string; inherited: boolean; runtimeManaged: boolean; members?: ({ type: string; typeTruncated: boolean; name: string; } | { ...; })[]; memberCount?: number; membersOmitted?: boolean; }'.
+  Property 'inherited' does not exist on type '{ name: string; status: string; }'.
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @za38.03/agent-ui-creator@0.0.1 typecheck:operator: `node ../../scripts/run-plugin-source-views-check.mjs operator-typecheck`
+Exit status 1

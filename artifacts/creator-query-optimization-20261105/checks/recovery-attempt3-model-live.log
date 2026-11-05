@@ -1,0 +1,336 @@
+[live Creator] typescript runtime ready pid=7075 port=61799
+Port 5173 is in use, trying another one...
+9:10:38 PM [vite] (client) page reload src/main.tsx
+{"caseId":"case06-inspection","out":"/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-10-33-979Z","started":"2026-11-05T13:10:39.797Z"}
+{"seconds":11.789,"toolNumber":1,"tool":"inspect_ui_plugin"}
+{"seconds":12.343,"toolNumber":2,"tool":"inspect_ui_project"}
+{"seconds":12.355,"toolNumber":3,"tool":"read_file"}
+{"seconds":16.573,"toolNumber":4,"tool":"ls"}
+{"seconds":16.612,"toolNumber":5,"tool":"ls"}
+{"seconds":16.631,"toolNumber":6,"tool":"ls"}
+{"seconds":19.891,"toolNumber":7,"tool":"read_file"}
+{"seconds":19.942,"toolNumber":8,"tool":"read_file"}
+{"seconds":19.966,"toolNumber":9,"tool":"read_file"}
+{"seconds":19.967,"toolNumber":10,"tool":"read_file"}
+{"seconds":28.381,"toolNumber":11,"tool":"read_file"}
+{"seconds":28.427,"toolNumber":12,"tool":"read_file"}
+{"seconds":28.451,"toolNumber":13,"tool":"read_file"}
+{"seconds":28.46,"toolNumber":14,"tool":"ls"}
+{"seconds":38.466,"toolNumber":15,"tool":"grep"}
+{"seconds":38.482,"toolNumber":16,"tool":"inspect_ui_edit_context"}
+{"seconds":42.25,"toolNumber":17,"tool":"delete_ui_source_file"}
+9:11:23 PM [vite] (client) page reload src/agent-ui/plugins/inspection-result-message/application.json
+{"seconds":46.655,"toolNumber":18,"tool":"inspect_ui_plugin"}
+{"seconds":53.52,"toolNumber":19,"tool":"inspect_ui_plugin"}
+{"seconds":68.924,"toolNumber":20,"tool":"read_file"}
+{"seconds":68.95,"toolNumber":21,"tool":"ls"}
+{"seconds":81.44,"toolNumber":22,"tool":"edit_file"}
+{"seconds":85.809,"toolNumber":23,"tool":"edit_file"}
+{"seconds":89.994,"toolNumber":24,"tool":"edit_file"}
+{"seconds":94.791,"toolNumber":25,"tool":"edit_file"}
+{"seconds":100.705,"toolNumber":26,"tool":"edit_file"}
+9:12:20 PM [vite] (client) hmr update /src/agent-ui/styles.css
+{"seconds":104.426,"toolNumber":27,"tool":"edit_file"}
+9:12:24 PM [vite] (client) hmr update /src/agent-ui/styles.css
+{"seconds":109.012,"toolNumber":28,"tool":"validate_creator_changes"}
+9:12:29 PM [vite] (client) hmr update /src/agent-ui/application/project-config.tsx, /src/agent-ui/styles.css
+9:12:29 PM [vite] (client) hmr invalidate /src/agent-ui/application/project-config.tsx Could not Fast Refresh ("agentUIProject" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+9:12:29 PM [vite] (client) hmr update /src/agent-ui/application/Agent.tsx, /src/agent-ui/styles.css
+{"status":"HARNESS_ERROR","name":"Error","message":"Creator stream interrupted without a native terminal event: TypeError: network error","seconds":111.269,"out":"/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-10-33-979Z"}
+[live Creator] panic: context canceled [recovered, repanicked]
+
+goroutine 6952 [running]:
+[live Creator] sync.(*WaitGroup).Go.func1.1()
+	sync/waitgroup.go:251 +0x48
+panic({0x1061ae520?, 0x1064b09a0?})
+	runtime/panic.go:860 +0x12c
+[live Creator] github.com/microsoft/typescript-go/internal/api.(*callbackFS).FileExists(0x67f2c5f7aac0, {0x67f2cc4a8000, 0xc0})
+	github.com/microsoft/typescript-go/internal/api/callbackfs.go:131
+[live Creator]  +0xf8
+[live Creator] github.com/microsoft/typescript-go/internal/vfs/cachedvfs.(*FS).FileExists(0x67f2c5f74fc0, {0x67f2cc4a8000, 0xc0})
+	github.com/microsoft/typescript-go/internal/vfs/cachedvfs/cachedvfs.go:71 +0x6c
+[live Creator] github.com/microsoft/typescript-go/internal/project.(*snapshotFSBuilder).FileExists(0x67f2c5f35400, {0x67f2cc4a8000, 0xc0}, {0x67f2cc4a8180, 0xc0})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:313 +0xc4
+github.com/microsoft/typescript-go/internal/project.(*sourceFS).FileExists(0x67f2c60b9860, {0x67f2cc4a8000, 0xc0})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:738 +0x70
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFileLookup(0x67f2ced1ebe0, {0x67f2cc4a8000, 0xc0})
+[live Creator] github.com/microsoft/typescript-go/internal/module/resolver.go:1599 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFile(0x67f2cebaea28?, {0x67f2cc4a8000, 0xc0})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1584 +0x58
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryExtension(0x67f2ced1ebe0, {0x1056ba179, 0x5}, {0x67f2cc58d500?, 0x10583d1d8?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1572 +0x5c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryAddingExtensions(0x67f2ced1ebe0, {0x67f2cc58d500, 0xbb}, 0x5, {0x67f2cc58d5bb, 0x3})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1542 +0x4bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromFileNoImplicitExtensions(0x67f2ced1ebe0, 0x5, {0x67f2cc58d500, 0xbe})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1450 +0x2c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadFileNameFromPackageJSONField(0x67f2ced1ebe0,
+[live Creator] 0x5, {0x67f2cc58d500, 0xbe}, {0x67f2ca2b50d0, 0xa})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1737 +0x1c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1ebe0, 0x5, {0x67f2ca211d58, 0x1}, 0x67f2cea86fa0, 0x0, {{0x6?, {0x106173d60?, 0x67f2ce871eb0?}}, 0xf?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:828 +0x1ee4
+[live Creator] github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport-range1(...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:844
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport.(*OrderedMap[...]).Keys.func2(...)
+	github.com/microsoft/typescript-go/internal/collections/ordered_map.go:138
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1ebe0, 0x5, {0x67f2ca211d58,
+[live Creator] 0x1}, 0x67f2cea86fa0, 0x0, {{0xd8?, {0x1062c9e60?, 0x67f2cea86d00?}}, 0x24?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:838 +0x1390
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromExports(0x67f2ced1ebe0, 0x67f2cea86fa0, 0x5, {0x67f2ca211d58, 0x1})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:688 +
+[live Creator] 0x2e4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromSpecificNodeModulesDirectory(0x67f2ced1ebe0, 0x5, {0x67f2ce6399dc, 0x5}, {0x67f2cc05d340, 0xaf})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1139 +0x688
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromImmediateNodeModulesDirectory(0x67f2ced1ebe0, 0x5, {0x67f2ce9830a0?, 0x1c?}
+[live Creator] , 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1038 +0xa8
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker.func1({0x67f2ce9830a0, 0xa2})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1019 +0x8c
+github.com/microsoft/typescript-go/internal/tspath.ForEachAncestorDirectory[...]({0x67f2ce9830a0?
+[live Creator] , 0x10662d2f8?}, 0x67f2cebaf5a0?)
+	github.com/microsoft/typescript-go/internal/tspath/path.go:1068 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker(0x67f2c645e640?, 0x56bac0d?, 0x1?, 0x6?)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:
+[live Creator] 1014 +0x40
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectory(0x67f2ced1ebe0, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:999 +0x1bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLikeWorker(0x67f2ced1ebe0)
+[live Creator] 	github.com/microsoft/typescript-go/internal/module/resolver.go:569 +0x3b4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLike(0x67f2ced1ebe0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:520 +0x94
+github.com/microsoft/typescript-go/internal/module.(*Resolver).ResolveModuleName(0x67f2c60903c0, {0x67f2ce6399dc, 0x5}, {0x67f2ce9830a0
+[live Creator] , 0xdd}, 0x63, {0x10641c1a0, 0x0})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:308 +0x750
+[live Creator] github.com/microsoft/typescript-go/internal/compiler.(*fileLoader).resolveImportsAndModuleAugmentations(0x67f2c60ca008, 0x67f2ce9aca80)
+	github.com/microsoft/typescript-go/internal/compiler/fileloader.go:583 +0x6fc
+github.com/microsoft/typescript-go/internal/compiler.(*parseTask).load(0x67f2ce9aca80, 0x67f2c60ca008)
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:158 +0x628
+github.com/microsoft/typescript-go/internal/compiler.(*filesParser).start.func1()
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:290 +
+[live Creator] 0x308
+[live Creator] github.com/microsoft/typescript-go/internal/core.(*parallelWorkGroup).Queue.func1()
+	github.com/microsoft/typescript-go/internal/core/workgroup.go:40 +0x24
+sync.(*WaitGroup).Go.func1()
+	sync/waitgroup.go:258
+[live Creator]  +0x48
+created by sync.(*WaitGroup).Go in goroutine 4996
+	sync/waitgroup.go:238 +0x70
+[live Creator] panic: context canceled [recovered, repanicked]
+
+goroutine 6951 [running]:
+sync.(*WaitGroup).Go.func1.1()
+	sync/waitgroup.go
+[live Creator] :251 +0x48
+panic({0x1061ae520?, 0x1064b09a0?})
+	runtime/panic.go:860 +0x12c
+github.com/microsoft/typescript-go/internal/api.(*callbackFS).FileExists(0x67f2c5f7aac0, {0x67f2cc52f440, 0xbf})
+	github.com/microsoft/typescript-go/internal/api/callbackfs.go:131 +0xf8
+github.com/microsoft/typescript-go/internal/vfs/cachedvfs.(*FS).FileExists(0x67f2c5f74fc0, {0x67f2cc52f440, 0xbf})
+	github.com/microsoft/typescript-go/internal/vfs/cachedvfs/cachedvfs.go:71 +0x6c
+github.com/microsoft/typescript-go/internal/project.(*snapshotFSBuilder).FileExists(0x67f2c5f35400, {0x67f2cc52f440, 0xbf}, {0x67f2cc52f740, 0xbf})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:313 +0xc4
+github.com/microsoft/typescript-go/internal/project.(*sourceFS).FileExists(0x67f2c60b9860, {0x67f2cc52f440, 0xbf})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:738 +0x70
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFileLookup(0x67f2cee7f540, {0x67f2cc52f440, 0xbf})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1599 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFile(0x67f2cefe8a28?, {0x67f2cc52f440, 0xbf})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1584 +0x58
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryExtension(0x67f2cee7f540, {0x1056ba179, 0x5}, {0x67f2cc27b5c0?, 0x10583d1d8?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1572 +0x5c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryAddingExtensions(0x67f2cee7f540, {0x67f2cc27b5c0, 0xba}, 0x5, {0x67f2cc27b67a, 0x3})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1542 +0x4bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromFileNoImplicitExtensions(0x67f2cee7f540, 0x5, {0x67f2cc27b5c0, 0xbd})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1450 +0x2c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadFileNameFromPackageJSONField(0x67f2cee7f540, 0x5, {0x67f2cc27b5c0, 0xbd}, {0x67f2cb0430e0, 0xa})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1737 +0x1c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2cee7f540, 0x5, {0x67f2ce3bd8d8, 0x1}, 0x67f2ce905ac0, 0x0, {{0x6?, {0x106173d60?, 0x67f2ce91f6b0?}}, 0xf?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:828 +0x1ee4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport-range1
+[live Creator] (...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:844
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport.(*OrderedMap[...]).Keys.func2(...)
+	github.com/microsoft/typescript-go/internal/collections/ordered_map.go:138
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2cee7f540, 0x5, {0x67f2ce3bd8d8, 0x1}, 0x67f2ce905ac0, 0x0, {{0xd8?, {0x1062c9e60?, 0x67f2ce905820?}}, 0x40?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:838 +0x1390
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromExports(0x67f2cee7f540, 0x67f2ce905ac0, 0x5, {0x67f2ce3bd8d8, 0x1})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:688 +0x2e4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromSpecificNodeModulesDirectory(0x67f2cee7f540, 0x5, {0x67f2ce05805c, 0x5}, {0x67f2ca262160, 0xae})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1139 +0x688
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromImmediateNodeModulesDirectory(0x67f2cee7f540, 0x5, {0x67f2ce7eaee0?, 0x1b?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1038 +0xa8
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker.func1({0x67f2ce7eaee0, 0xa1})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1019 +0x8c
+github.com/microsoft/typescript-go/internal/tspath.ForEachAncestorDirectory[...](
+[live Creator] {0x67f2ce7eaee0?, 0x10663fcf8?}, 0x67f2cefe95a0?)
+	github.com/microsoft/typescript-go/internal/tspath/path.go:1068 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker(0x67f2c645e560?, 0x56bac0d?, 0x1?, 0x6?)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1014 +0x40
+[live Creator] github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectory(0x67f2cee7f540, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:999 +0x1bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLikeWorker(
+[live Creator] 0x67f2cee7f540)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:569 +0x3b4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLike(0x67f2cee7f540)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:520 +0x94
+github.com/microsoft/typescript-go/internal/module.(*Resolver).ResolveModuleName(0x67f2c60903c0, {0x67f2ce05805c
+[live Creator] , 0x5}, {0x67f2ce7eaee0, 0xdb}, 0x63, {0x10641c1a0, 0x0})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:308 +0x750
+github.com/microsoft/typescript-go/internal/compiler.(*fileLoader).resolveImportsAndModuleAugmentations(0x67f2c60ca008, 0x67f2ce7b7b00)
+	github.com/microsoft/typescript-go/internal/compiler/fileloader.go:583 +0x6fc
+github.com/microsoft/typescript-go/internal/compiler.(*parseTask).load(0x67f2ce7b7b00, 0x67f2c60ca008)
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:158 +0x628
+github.com/microsoft/typescript-go/internal/compiler.(*filesParser).start.func1()
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:290
+[live Creator]  +0x308
+github.com/microsoft/typescript-go/internal/core.(*parallelWorkGroup).Queue.func1()
+	github.com/microsoft/typescript-go/internal/core/workgroup.go:40 +0x24
+sync.(*WaitGroup).Go.func1()
+	sync/waitgroup.go:258 +0x48
+created by sync.(*WaitGroup).Go in goroutine 4996
+	sync/waitgroup.go:238 +0x70
+[live Creator] panic: context canceled [recovered, repanicked]
+
+goroutine 6950 [running]:
+sync.(*WaitGroup).Go.func1.1()
+	sync/waitgroup.go:251 +0x48
+panic({0x1061ae520?, 0x1064b09a0?})
+	runtime/panic.go:860 +0x12c
+[live Creator] github.com/microsoft/typescript-go/internal/api.(*callbackFS).FileExists(0x67f2c5f7aac0, {0x67f2cc5340c0, 0xbc})
+	github.com/microsoft/typescript-go/internal/api/callbackfs.go:131 +0xf8
+github.com/microsoft/typescript-go/internal/vfs/cachedvfs.(*FS).FileExists(0x67f2c5f74fc0, {0x67f2cc5340c0, 0xbc})
+	github.com/microsoft/typescript-go/internal/vfs/cachedvfs/cachedvfs.go:71 +0x6c
+github.com/microsoft/typescript-go/internal/project.(*snapshotFSBuilder).FileExists(0x67f2c5f35400, {0x67f2cc5340c0, 0xbc}, {0x67f2cc534300, 0xbc})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:313 +0xc4
+github.com/microsoft/typescript-go/internal/project.(*sourceFS).FileExists(0x67f2c60b9860, {0x67f2cc5340c0, 0xbc})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:738 +0x70
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFileLookup(0x67f2ced1e780, {0x67f2cc5340c0, 0xbc})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1599 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFile(0x67f2c6858a28?, {0x67f2cc5340c0, 0xbc})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1584 +0x58
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryExtension(0x67f2ced1e780, {0x1056ba179, 0x5}, {0x67f2cc58c900?, 0x10583d1d8?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1572 +0x5c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryAddingExtensions(0x67f2ced1e780, {0x67f2cc58c900, 0xb7}, 0x5, {0x67f2cc58c9b7, 0x3})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1542 +0x4bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromFileNoImplicitExtensions(0x67f2ced1e780, 0x5, {0x67f2cc58c900, 0xba})
+[live Creator] github.com/microsoft/typescript-go/internal/module/resolver.go:1450 +0x2c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadFileNameFromPackageJSONField(0x67f2ced1e780, 0x5, {0x67f2cc58c900, 0xba}, {0x67f2cb0430e0, 0xa})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1737 +0x1c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1e780, 0x5, {0x67f2ca211cf8, 0x1}, 0x67f2ce857640, 0x0, {{0x6?, {0x106173d60?, 0x67f2ce870140?}}, 0xf?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:828 +0x1ee4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport-range1(...)
+[live Creator] 	github.com/microsoft/typescript-go/internal/module/resolver.go:844
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport.(*OrderedMap[...]).Keys.func2(...)
+	github.com/microsoft/typescript-go/internal/collections/ordered_map.go:138
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1e780, 0x5, {0x67f2ca211cf8, 0x1}, 0x67f2ce857640, 0x0, {{0xd8?, {0x1062c9e60?,
+[live Creator] 0x67f2ce8573a0?}}, 0x26?}, ...
+[live Creator] )
+	github.com/microsoft/typescript-go/internal/module/resolver.go:838 +0x1390
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromExports(0x67f2ced1e780, 0x67f2ce857640, 0x5, {0x67f2ca211cf8, 0x1})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:688 +0x2e4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromSpecificNodeModulesDirectory(0x67f2ced1e780, 0x5, {0x67f2ceb6e08d, 0x5}, {0x67f2cc05d1e0, 0xab})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1139 +0x688
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromImmediateNodeModulesDirectory(0x67f2ced1e780, 0x5, {0x67f2ce913180?, 0x18?}, 0x0)
+[live Creator] github.com/microsoft/typescript-go/internal/module/resolver.go:1038 +0xa8
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker.func1({0x67f2ce913180, 0x9e})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1019 +0x8c
+github.com/microsoft/typescript-go/internal/tspath.ForEachAncestorDirectory[...]({0x67f2ce913180?, 0x10662d2f8?}, 0x67f2c68595a0?)
+	github.com/microsoft/typescript-go/internal/tspath/path.go:1068 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker(0x67f2c682e480?, 0x56bac0d?, 0x1?, 0x6?)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1014 +0x40
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectory(0x67f2ced1e780
+[live Creator] , 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:999 +0x1bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLikeWorker(0x67f2ced1e780)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:569 +0x3b4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLike(0x67f2ced1e780)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:520 +0x94
+github.com/microsoft/typescript-go/internal/module.(*Resolver).ResolveModuleName(0x67f2c60903c0, {0x67f2ceb6e08d, 0x5}, {0x67f2ce913180, 0xd5}, 0x63, {
+[live Creator] 0x10641c1a0, 0x0})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:308 +0x750
+github.com/microsoft/typescript-go/internal/compiler.(*fileLoader).resolveImportsAndModuleAugmentations(0x67f2c60ca008, 0x67f2ce92c000)
+	github.com/microsoft/typescript-go/internal/compiler/fileloader.go:583 +0x6fc
+github.com/microsoft/typescript-go/internal/compiler.(*parseTask).load(0x67f2ce92c000, 0x67f2c60ca008)
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:158 +0x628
+github.com/microsoft/typescript-go/internal/compiler.(*filesParser).start.func1()
+[live Creator] github.com/microsoft/typescript-go/internal/compiler/filesparser.go:290 +0x308
+github.com/microsoft/typescript-go/internal/core.(*parallelWorkGroup).Queue.func1()
+	github.com/microsoft/typescript-go/internal/core/workgroup.go:40 +0x24
+sync.(*WaitGroup).Go.func1()
+	sync/waitgroup.go:258 +0x48
+created by sync.(*WaitGroup).Go in goroutine 4996
+	sync/waitgroup.go:238 +0x70
+[live Creator] panic: context canceled [recovered, repanicked]
+
+goroutine 6973 [running]:
+sync.(*WaitGroup).Go.func1.1(
+[live Creator] )
+	sync/waitgroup.go:251 +0x48
+panic({0x1061ae520?, 0x1064b09a0?})
+	runtime/panic.go:860 +0x12c
+github.com/microsoft/typescript-go/internal/api.(*callbackFS).FileExists(0x67f2c5f7aac0, {0x67f2cc534c00, 0xb7})
+	github.com/microsoft/typescript-go/internal/api/callbackfs.go:131 +0xf8
+github.com/microsoft/typescript-go/internal/vfs/cachedvfs.(*FS).FileExists(0x67f2c5f74fc0, {0x67f2cc534c00, 0xb7})
+	github.com/microsoft/typescript-go/internal/vfs/cachedvfs/cachedvfs.go:71 +0x6c
+github.com/microsoft/typescript-go/internal/project.(*snapshotFSBuilder).FileExists(0x67f2c5f35400, {0x67f2cc534c00, 0xb7}, {0x67f2cc534f00, 0xb7})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:313 +0xc4
+github.com/microsoft/typescript-go/internal/project.(*sourceFS).FileExists(0x67f2c60b9860, {0x67f2cc534c00, 0xb7})
+	github.com/microsoft/typescript-go/internal/project/snapshotfs.go:738 +0x70
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFileLookup(0x67f2ced1f220, {0x67f2cc534c00, 0xb7})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1599 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryFile(0x67f2cec5ca28?, {0x67f2cc534c00, 0xb7})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1584 +0x58
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryExtension(0x67f2ced1f220, {0x1056b90d5, 0x4}, {
+[live Creator] 0x67f2cc488d80?, 0x10583d1d8?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1572 +0x5c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).tryAddingExtensions(0x67f2ced1f220, {0x67f2cc488d80, 0xb3}, 0x5, {0x67f2cc488e33, 0x3})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1537 +0x40c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromFileNoImplicitExtensions(0x67f2ced1f220, 0x5, {0x67f2cc488d80, 0xb6})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1450 +0x2c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadFileNameFromPackageJSONField(0x67f2ced1f220, 0x5, {0x67f2cc488d80, 0xb6}, {0x67f2cd228d50, 0xa})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1737 +0x1c0
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1f220, 0x5, {0x67f2ca211e38, 0x1}, 0x67f2cdfc0a20, 0x0, {{0x6?, {0x106173d60?, 0x67f2cd211b50?}}, 0xf?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:828 +0x1ee4
+[live Creator] 
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport-range1(...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:844
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport.(*OrderedMap[...]).Keys.func2(...)
+	github.com/microsoft/typescript-go/internal/collections/ordered_map.go:138
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromTargetExportOrImport(0x67f2ced1f220, 0x5, {0x67f2ca211e38, 0x1}, 0x67f2cdfc0a20, 0x0, {{0xd8?, {0x1062c9e60?, 0x67f2cdfc0320?}}, 0x80?}, ...)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:838 +0x1390
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromExports(0x67f2ced1f220, 0x67f2cdfc0a20, 0x5, {0x67f2ca211e38, 0x1})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:688 +0x2e4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromSpecificNodeModulesDirectory(0x67f2ced1f220, 0x5, {0x67f2ce8d185c, 0x5}, {0x67f2cc05d4a0, 0xa7})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1139 +0x688
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromImmediateNodeModulesDirectory(0x67f2ced1f220, 0x5, {0x67f2ccf72c30?, 0x14?}, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1038 +0xa8
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker.func1({0x67f2ccf72c30, 0x9a})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1019 +0x8c
+github.com/microsoft/typescript-go/internal/tspath.ForEachAncestorDirectory[...]({0x67f2ccf72c30?, 0x10662d2f8?}, 0x67f2cec5d5a0?)
+	github.com/microsoft/typescript-go/internal/tspath/path.go:1068 +0x4c
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectoryWorker(0x67f2c682e600?, 0x56bac0d?, 0x1?, 0x6?)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:1014 +0x40
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).loadModuleFromNearestNodeModulesDirectory(0x67f2ced1f220, 0x0)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:999 +0x1bc
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLikeWorker(0x67f2ced1f220)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:569 +0x3b4
+github.com/microsoft/typescript-go/internal/module.(*resolutionState).resolveNodeLike(0x67f2ced1f220)
+	github.com/microsoft/typescript-go/internal/module/resolver.go:520 +0x94
+github.com/microsoft/typescript-go/internal/module.(*Resolver).ResolveModuleName(0x67f2c60903c0, {0x67f2ce8d185c, 0x5}, {0x67f2ccf72c30, 0xcd}, 0x63, {0x10641c1a0, 0x0})
+	github.com/microsoft/typescript-go/internal/module/resolver.go:308 +0x750
+github.com/microsoft/typescript-go/internal/compiler.(*fileLoader).resolveImportsAndModuleAugmentations(0x67f2c60ca008, 0x67f2cd04b200)
+	github.com/microsoft/typescript-go/internal/compiler/fileloader.go:583 +0x6fc
+github.com/microsoft/typescript-go/internal/compiler.(*parseTask).load(0x67f2cd04b200, 0x67f2c60ca008)
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:158 +0x628
+github.com/microsoft/typescript-go/internal/compiler.(*filesParser).start.func1()
+	github.com/microsoft/typescript-go/internal/compiler/filesparser.go:290 +0x308
+github.com/microsoft/typescript-go/internal/core.(*parallelWorkGroup).Queue.func1()
+	github.com/microsoft/typescript-go/internal/core/workgroup.go:40 +0x24
+sync.(*WaitGroup).Go.func1()
+	sync/waitgroup.go:258 +0x48
+[live Creator] created by sync.(*WaitGroup).Go in goroutine 4996
+	sync/waitgroup.go:238 +0x70
+[live Creator] AbortError: This operation was aborted
+    at new DOMException (node:internal/per_context/domexception:76:18)
+    at AbortController.abort (node:internal/abort_controller:579:18)
+    at process.<anonymous> (file:///Users/yifei/Coding/AgentUICreator/packages/creator/dist/agent/server.js:367:24)
+    at process.wrapper (node:events:639:12)
+    at process.emit (node:events:514:28)

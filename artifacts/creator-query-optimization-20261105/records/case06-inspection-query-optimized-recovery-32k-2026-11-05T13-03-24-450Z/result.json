@@ -1,0 +1,16 @@
+{
+  "caseId": "case06-inspection",
+  "status": "RUN_ERROR",
+  "seconds": 3.116,
+  "runErrors": [
+    {
+      "type": "RUN_ERROR",
+      "code": "invalid_request_error",
+      "message": "400 Upstream request failed: [invalid_request_error] this feature is not yet supported by atlas (request_id: gw-1b53ccfa30d3-3370a)"
+    }
+  ],
+  "toolCalls": 0,
+  "changedPaths": [],
+  "qaApprovals": [],
+  "browserErrors": []
+}

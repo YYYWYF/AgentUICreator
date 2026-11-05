@@ -523,7 +523,7 @@ async function executeRequest(
       return verifyRuntimeComposition(projectRoot, request.input);
     case "verify_ui_project": {
       const result = await verifyUIProject(projectRoot);
-      return { status: result.status, errors: result.errors, warnings: result.warnings, responsiveRiskCount: result.responsiveRiskCount };
+      return { status: result.status, errors: result.errors, warnings: result.warnings, responsiveRiskCount: result.responsiveRiskCount, sourceDiagnostics: result.sourceDiagnostics, pluginStates: result.pluginStates, registryFresh: result.capabilityCatalog.generatedFileFresh };
     }
     case "plan_plugin_source_takeover": return planPluginSourceTakeover(projectRoot, request.input);
     case "takeover_plugin_source": return takeoverPluginSource(projectRoot, request.input);

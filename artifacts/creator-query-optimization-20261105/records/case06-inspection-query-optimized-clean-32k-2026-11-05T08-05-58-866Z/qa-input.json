@@ -1,0 +1,7 @@
+{
+  "seedSource": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui",
+  "seedPhase": "before-workspace-selection",
+  "promptFile": null,
+  "scenarioPrompt": "Agent 检查完系统后会返回这种数据。我想在这条回答里看到检查结果：通过的项目简单列出来，失败的项目突出显示，点击失败项能展开原因，还能复制错误详情。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.inspection.result\",\n  \"value\": {\n    \"target\": \"订单服务\",\n    \"checks\": [\n      {\n        \"name\": \"数据库连接\",\n        \"status\": \"passed\"\n      },\n      {\n        \"name\": \"支付接口\",\n        \"status\": \"failed\",\n        \"detail\": {\n          \"code\": \"UPSTREAM_TIMEOUT\",\n          \"message\": \"支付接口响应超时\",\n          \"duration_ms\": 5000\n        }\n      }\n    ]\n  }\n}",
+  "prompt": "Agent 检查完系统后会返回这种数据。我想在这条回答里看到检查结果：通过的项目简单列出来，失败的项目突出显示，点击失败项能展开原因，还能复制错误详情。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.inspection.result\",\n  \"value\": {\n    \"target\": \"订单服务\",\n    \"checks\": [\n      {\n        \"name\": \"数据库连接\",\n        \"status\": \"passed\"\n      },\n      {\n        \"name\": \"支付接口\",\n        \"status\": \"failed\",\n        \"detail\": {\n          \"code\": \"UPSTREAM_TIMEOUT\",\n          \"message\": \"支付接口响应超时\",\n          \"duration_ms\": 5000\n        }\n      }\n    ]\n  }\n}"
+}

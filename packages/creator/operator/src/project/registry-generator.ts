@@ -440,6 +440,7 @@ export async function generatePluginRegistryFromFacts(
   }
 
   return {
+    sourceDiagnostics: [...facts.inventoryIssues, ...facts.dataMessageUIIssues, ...facts.declarations.issues, ...[...facts.definitionIssuesByPath.values()].flat()],
     capabilityCatalog: {
       source: await capabilityCatalogSource(
         resolvedAssets,

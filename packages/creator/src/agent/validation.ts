@@ -23,7 +23,7 @@ export class CreatorValidation {
     return this.baseline ??= (async () => {
       const staticResult = await requestOperator(this.root, "verify_ui_project", {}, this.signal());
       const typeCheck = await this.script("typecheck");
-      return { staticErrors: new Set((staticResult.errors ?? []).map((issue: any) => JSON.stringify(issue))), typeErrors: diagnostics(typeCheck.output), typeCheck };
+      return { staticErrors: new Set([...(staticResult.errors ?? []), ...(staticResult.sourceDiagnostics ?? [])].map((issue: any) => JSON.stringify(issue))), typeErrors: diagnostics(typeCheck.output), typeCheck };
     })();
   }
   async validate({ includeBuild = false, mode = "delta", force = false }: { includeBuild?: boolean; mode?: "delta" | "clean"; force?: boolean }) {
@@ -47,10 +47,20 @@ export class CreatorValidation {
       break;
     }
     const staticResult = await requestOperator(this.root, "verify_ui_project", {}, this.signal());
+    const pluginPrefix = `${await sourceRoot(this.root)}/plugins/`;
+    const affectedPlugins = new Set<string>();
+    for (const [file, before] of this.activity.before) {
+      if (!file.startsWith(pluginPrefix)) continue;
+      const relative = file.slice(pluginPrefix.length);
+      if (!relative.includes("/") || (await readCreatorFileState(this.root, file)).hash === before.hash) continue;
+      affectedPlugins.add(relative.split("/")[0]!);
+    }
+    const currentStaticIssues: any[] = [...new Map([...(staticResult.errors ?? []), ...(staticResult.sourceDiagnostics ?? []).filter((issue: any) => affectedPlugins.has(issue.pluginId))]
+      .map((issue: any) => [JSON.stringify(issue), issue])).values()];
     const typeCheck = await this.script("typecheck");
     const currentTypes = diagnostics(typeCheck.output);
     const introducedTypes = [...currentTypes].filter(value => !baseline.typeErrors.has(value));
-    const staticErrors = (staticResult.errors ?? []).filter((issue: any) => !baseline.staticErrors.has(JSON.stringify(issue)));
+    const staticErrors = currentStaticIssues.filter((issue: any) => !baseline.staticErrors.has(JSON.stringify(issue)));
     const unknownTypeFailure = typeCheck.status === "failed" && currentTypes.size === 0;
     const checks: Check[] = [typeCheck];
     const copyChanges = [];
@@ -64,10 +74,11 @@ export class CreatorValidation {
     if (includeBuild) checks.push(await this.script("build"));
     const targetRemaining = this.debugging?.staticRemaining(new Set([...currentTypes].map(staticTargetId))) ?? [];
     const passed = !localizedDefaults.length && !targetRemaining.length && (mode === "clean"
-      ? staticResult.status === "passed" && checks.every(check => check.status === "passed")
+      ? staticResult.status === "passed" && !currentStaticIssues.length && checks.every(check => check.status === "passed")
       : !staticErrors.length && !introducedTypes.length && !unknownTypeFailure && (!includeBuild || checks.at(-1)?.status === "passed"));
     const result = { status: passed ? "passed" : "failed", revision: this.activity.revision, mode, checks,
-      targetRemaining, introduced: { staticErrors, typeErrors: introducedTypes, localizedDefaults }, workspaceWarnings: { staticErrors: (staticResult.errors ?? []).filter((issue: any) => baseline.staticErrors.has(JSON.stringify(issue))), typeErrors: [...currentTypes].filter(value => baseline.typeErrors.has(value)) } };
+      targetRemaining, registryFresh: staticResult.registryFresh, pluginStates: (staticResult.pluginStates ?? []).filter((state: any) => affectedPlugins.has(state.pluginId)),
+      introduced: { staticErrors, typeErrors: introducedTypes, localizedDefaults }, workspaceWarnings: { staticErrors: currentStaticIssues.filter((issue: any) => baseline.staticErrors.has(JSON.stringify(issue))), typeErrors: [...currentTypes].filter(value => baseline.typeErrors.has(value)) } };
     // Keep raw command outcomes honest even when unchanged workspace failures
     // do not block a delta. The separate summary records the delta decision.
     this.activity.validations = [

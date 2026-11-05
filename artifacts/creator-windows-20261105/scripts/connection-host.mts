@@ -17,10 +17,11 @@ import { inspectCreatorProject } from "@za38.03/agent-ui-creator/project/host";
 import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
 import { createCreatorDevServerPlugin } from "../../../packages/creator/src/vitePlugin.js";
 import { createCreatorHostPreviewPlugin } from "../../../packages/creator/src/host-preview/vite.js";
+import { freezePackages } from "./package-snapshot.mjs";
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void>; afterReadyHost?: (hostRoot: string) => Promise<void> } = {}) {
+export async function createConnectionHostFixture(options: { packageSnapshotFile?: string; extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void>; afterReadyHost?: (hostRoot: string) => Promise<void> } = {}) {
   // Explicit opt-in for isolated upstream repair experiments. Production builds
   // and the default fixture continue resolving the installed dependency.
   const coreCandidate = process.env.AGENT_UI_TEST_CORE_CANDIDATE;
@@ -35,6 +36,8 @@ export async function createConnectionHostFixture(options: { extraOptimizeDeps?:
     // Vite string aliases match prefixes; prefer specific public subpaths.
     coreAliases.sort((a, b) => b.find.length - a.find.length);
   }
+  const snapshot = process.env.AGENT_UI_QA_FREEZE_PACKAGES === "1" ? await freezePackages(repository, options.packageSnapshotFile) : undefined;
+  if (snapshot) options = { ...options, packageRoots: snapshot.roots };
   const root = realpathSync(await mkdtemp(path.join(tmpdir(), "creator-connection-host-")));
   const hostRoot = options.existingHostRoot ? realpathSync(options.existingHostRoot) : path.join(root, "host");
   const creatorRoot = path.join(root, "creator");
@@ -94,7 +97,8 @@ export async function createConnectionHostFixture(options: { extraOptimizeDeps?:
     for (const response of pending) response.destroy();
     await Promise.all(servers.map(server => server.close()));
     await new Promise<void>(resolve => { agent.closeAllConnections(); agent.close(() => resolve()); });
-    await rm(root, { recursive: true, force: true });
+    await rm(root, { recursive: true, force: true, maxRetries: 5 });
+    await snapshot?.close();
   };
   const link = async (projectRoot: string, name: string) => {
     const candidates = [
@@ -140,7 +144,7 @@ export async function createConnectionHostFixture(options: { extraOptimizeDeps?:
       await writeFile(path.join(hostRoot, ".npmrc"), "verify-deps-before-run=false\n");
       await writeFile(path.join(hostRoot, "pnpm-workspace.yaml"), "verifyDepsBeforeRun: false\n");
       await writeFile(path.join(hostRoot, "tsconfig.json"), JSON.stringify({compilerOptions:{target:"ES2022",module:"ESNext",moduleResolution:"Bundler",jsx:"react-jsx",strict:true,skipLibCheck:true,noEmit:true,resolveJsonModule:true,esModuleInterop:true,lib:["ES2022","DOM","DOM.Iterable"],types:["node","vite/client"]},include:["src"]}));
-      await writeFile(path.join(hostRoot, "verify-ui.mjs"), 'import {runUIProjectVerificationCli} from '+JSON.stringify(pathToFileURL(path.join(repository, "packages/creator/dist/operator/dist/runtime/operator-runtime.mjs")).href)+'; await runUIProjectVerificationCli(process.cwd());');
+      await writeFile(path.join(hostRoot, "verify-ui.mjs"), 'import {runUIProjectVerificationCli} from '+JSON.stringify(pathToFileURL(path.join(options.packageRoots?.["@za38.03/agent-ui-creator"] ?? path.join(repository, "packages/creator"), "dist/operator/dist/runtime/operator-runtime.mjs")).href)+'; await runUIProjectVerificationCli(process.cwd());');
       await writeFile(path.join(hostRoot, "validate-build.mjs"), `import {build} from "vite"; import react from "@vitejs/plugin-react";
 import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:[react(),tailwind()],logLevel:"error",resolve:{dedupe:["react","react-dom"]},build:{write:false,lib:{entry:"src/agent-ui/application/Agent.tsx",formats:["es"]}}});`);
       await options.prepareHost?.(hostRoot);
@@ -148,6 +152,8 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
     if (options.liveModel) {
       const environment = { ...process.env, CREATOR_VERIFICATION_MODE: "static_and_runtime", CREATOR_HOT_RELOAD: process.env.AGENT_UI_TEST_SOURCE_CREATOR === "1" ? "1" : "0" };
       const initializationHost = createAgentUIInitializationHost();
+      const managerRoot = options.packageRoots?.["@za38.03/agent-ui-creator"];
+      const RuntimeManager = managerRoot ? (await import(pathToFileURL(path.join(managerRoot, "dist/CreatorProcessManager.js")).href)).CreatorProcessManager : CreatorProcessManager;
       liveWorkspace = new CreatorWorkspaceManager({
         ensureOperator: async projectRoot => {
           const frozenRoot = options.packageRoots?.["@za38.03/agent-ui-creator"];
@@ -158,7 +164,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
         inspectProject: options.packageRoots?.["@za38.03/agent-ui-creator"] ? (await import(pathToFileURL(path.join(options.packageRoots["@za38.03/agent-ui-creator"], "dist/operator/dist/runtime/operator-runtime.mjs")).href)).inspectCreatorProject : inspectCreatorProject,
         initializeProject: input => initializeAgentUIProject(input, initializationHost),
         validateProjectSetup: validateAgentUIProjectSetup, suggestSourceRoot: suggestAgentUISourceRoot,
-        createRuntimeManager: projectRoot => new CreatorProcessManager({ projectRoot, configRoot: repository,
+        createRuntimeManager: projectRoot => new RuntimeManager({ projectRoot, configRoot: repository,
           allowExternalEndpoint:false, environment,
           log: message => console.log("[live Creator]", message.replace(/^(.*(?:api.?key|authorization|auth.?token).*)$/gim, "[redacted configuration line]")),
         }),
@@ -173,7 +179,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
     const creatorFactory = frozenCreator ? (await import(pathToFileURL(path.join(frozenCreator, "dist/vitePlugin.js")).href)).createCreatorDevServerPlugin : createCreatorDevServerPlugin;
     const previewFactory = frozenCreator ? (await import(pathToFileURL(path.join(frozenCreator, "dist/host-preview/vite.js")).href)).createCreatorHostPreviewPlugin : createCreatorHostPreviewPlugin;
     const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-creator/ui", "@za38.03/agent-ui-creator/host-preview"] }, plugins: [react(), creatorFactory({ ...(options.liveModel ? { workspaceManager:liveWorkspace,configRoot:repository } : { projectRoot:hostRoot }), runtime: { environment: options.liveModel ? { ...process.env, CREATOR_VERIFICATION_MODE: "static_and_runtime" } : { CREATOR_VERIFICATION_MODE: "static_only" },
-      ...(options.themeCommands ? { allowExternalEndpoint: false } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: options.creatorPort ?? 0, strictPort: options.creatorPort !== undefined, hmr: false, fs: { allow: [root, hostRoot, repository, ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"] } });
+      ...(options.themeCommands ? { allowExternalEndpoint: false } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: options.creatorPort ?? 0, strictPort: options.creatorPort !== undefined, hmr: false, fs: { allow: [root, hostRoot, repository, ...Object.values(options.packageRoots ?? {}), ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
     const host = await createServer({ configFile: false, root: hostRoot,
@@ -182,7 +188,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       // Explicitly bundle icons: noDiscovery otherwise loads thousands of ESM
       // files from the linked Plugin dependency after a Host reload.
       optimizeDeps: { noDiscovery: true, include: [...(options.extraOptimizeDeps ?? []), "react", "react-dom/client", "@za38.03/agent-ui-plugins", "@za38.03/agent-ui-plugins/lexical", ...new Set(pluginDeliveries.map(delivery => `@za38.03/agent-ui-plugins/${delivery.supportEntry}`)), "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@assistant-ui/react-lexical", "lexical", "lucide-react", "zod", "zustand"] },
-      plugins: [react(), tailwindcss(), previewFactory({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: options.hostPort ?? 0, strictPort: options.hostPort !== undefined, fs: { allow: [root, hostRoot, repository, ...(coreCandidate ? [realpathSync(coreCandidate)] : []), ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"], alias: coreAliases } });
+      plugins: [react(), tailwindcss(), previewFactory({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: options.hostPort ?? 0, strictPort: options.hostPort !== undefined, fs: { allow: [root, hostRoot, repository, ...Object.values(options.packageRoots ?? {}), ...(coreCandidate ? [realpathSync(coreCandidate)] : []), ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"], alias: coreAliases } });
     servers.push(host); await host.listen();
     const hostOrigin = host.resolvedUrls!.local[0]!;
     // Real Creator UI and its real iframe/source bridge. Only unrelated Creator

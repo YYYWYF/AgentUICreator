@@ -1,0 +1,20 @@
+[
+  {
+    "started": "2026-11-05T13:03:34.886Z",
+    "model": "deepseek-v4.1-flash",
+    "max_tokens": 32768,
+    "toolCount": 0,
+    "requestToolNames": [],
+    "purpose": "routing",
+    "assistantContinuation": [],
+    "responseToolCalls": [],
+    "contentCharacters": 0,
+    "reasoningCharacters": 0,
+    "hostContext": [],
+    "hostSourceState": [],
+    "headersSeconds": 1.599,
+    "status": 400,
+    "firstByteSeconds": 1.599,
+    "seconds": 1.599
+  }
+]

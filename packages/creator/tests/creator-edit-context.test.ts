@@ -19,6 +19,7 @@ import { preparePluginDirectory, projectPluginDirectory } from "../src/agent/plu
 import { assertRemovalScope, assertInstanceRetention, parseRemovalTarget, cancelExecution, removalInstanceIds } from "../src/agent/execution-decision.js";
 import { namesRequestedPlugins, namesRequestedRemoval } from "../src/agent/plugin-target-names.js";
 import { localModuleReferences } from "../src/agent/edit-context-sources.js";
+import { isJsonSchemaUnsupported } from "../src/agent/model-policy.js";
 
 const state = vi.hoisted(() => ({ model: undefined as any, inspect: vi.fn() }));
 vi.mock("../src/agent/config.js", () => ({ hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write", CREATOR_VERIFICATION_MODE: "static_only" }), createModel: () => state.model }));
@@ -915,6 +916,21 @@ it("does not cache a failed inspection or confuse a full observation with its su
   expect(projectInspectionSummary(raw)).not.toBe(raw);
 });
 
+it("exposes full Plugin API detail on request without forwarding model-only detail to Operator", async () => {
+  const context = await project();
+  const raw = { asset: { pluginId: "composer", definitionPath: "src/应用/plugins/composer/definition.ts" },
+    application: { usageGuide: { customizationProps: ["expanded", "onCopy"] }, publicApi: { status: "available", propNames: ["expanded", "onCopy"], completePropNames: true,
+      props: [{ name: "expanded", type: "boolean", inherited: false }, { name: "onCopy", type: "ClipboardEventHandler", inherited: true }] } } };
+  state.inspect.mockResolvedValue(raw);
+  const tools = await createTools(context), inspect = tools.find(tool => tool.name === "inspect_ui_plugin")!;
+  const summary = JSON.parse(await inspect.invoke({ pluginId: "composer" })).result;
+  expect(summary.application.publicApi.propNames).toEqual(["expanded", "onCopy"]);
+  expect(summary.application.publicApi.props).toHaveLength(1);
+  const full = JSON.parse(await inspect.invoke(summary.application.publicApi.fullResult.input)).result;
+  expect(full).toEqual(raw);
+  expect(state.inspect.mock.calls.every(call => !Object.hasOwn(call[2], "detail"))).toBe(true);
+});
+
 it("reuses only successful checks of unchanged contents within the same run, with an explicit force escape", async () => {
   const context = await project();
   const validation = new CreatorValidation(context.root, context.activity, () => context.signal);
@@ -1042,6 +1058,7 @@ it("uses structured permissions with the latest request separated from bounded h
 
 it.each([
   Object.assign(new Error("response_format json_schema is not supported"), { status: 400 }),
+  Object.assign(new Error("400 Upstream request failed: [invalid_request_error] this feature is not yet supported by atlas (request_id: diagnostic)"), { status: 400 }),
   new Error('Streaming response failed: [400] Grammar error: Unimplemented keys: ["uniqueItems"]'),
 ])("falls back only for an explicitly unsupported schema format and still rejects invalid authorization: %s", async rejection => {
   const context = await project();
@@ -1054,6 +1071,13 @@ it.each([
   invoke.mockReset().mockResolvedValue(new AIMessage('{"permission":"domain_write","approve":true}'));
   await expect((runtime as any).classify([{ role: "user", content: "再改小一点" }], "invalid-schema", context.signal)).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
   expect(invoke).toHaveBeenCalledTimes(3);
+});
+
+it.each([401, 403, 429, 500])("does not treat status %s as a schema capability decision", status => {
+  expect(isJsonSchemaUnsupported(Object.assign(new Error("[invalid_request_error] this feature is not yet supported by gateway"), { status }))).toBe(false);
+});
+it("does not reinterpret an unrelated invalid request as unsupported structured output", () => {
+  expect(isJsonSchemaUnsupported(Object.assign(new Error("[invalid_request_error] unknown model"), { status: 400 }))).toBe(false);
 });
 
 it("honors a current read-only request even after historical edits and ignores unrelated-file exclusions", async () => {

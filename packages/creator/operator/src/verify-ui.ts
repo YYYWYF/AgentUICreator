@@ -32,6 +32,13 @@ import type {
 export type VerificationIssue = ProjectIssue;
 
 export interface UIProjectVerification {
+  sourceDiagnostics: VerificationIssue[];
+  pluginStates: {
+    pluginId: string;
+    source: "available" | "invalid" | "missing";
+    composition: "selected" | "not_selected";
+    runtimeCatalog: "included" | "excluded_not_selected" | "unresolved";
+  }[];
   status: "passed" | "failed";
   model: {
     valid: boolean;
@@ -134,6 +141,8 @@ export async function verifyUIProject(
 ): Promise<UIProjectVerification> {
   const errors: VerificationIssue[] = [];
   const warnings: VerificationIssue[] = [];
+  let sourceDiagnostics: VerificationIssue[] = [];
+  let pluginStates: UIProjectVerification["pluginStates"] = [];
   let model: AppUIModel | undefined;
   const projectConfig = options.projectConfigOverride ?? (await readAgentUIProjectConfig(projectRoot, config.agentUI.metadataRoot)).config;
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig, config);
@@ -164,6 +173,13 @@ export async function verifyUIProject(
   let runtimeModel: AppUIRuntimeModel | undefined;
   if (model !== undefined) {
     const registry = await generatePluginRegistry(projectRoot, model, { config: effectiveConfig, paths });
+    sourceDiagnostics = registry.sourceDiagnostics;
+    pluginStates = [...new Set([...registry.assets.map(asset => asset.pluginId), ...registry.activeComposition.selectedPluginIds])].sort().map(pluginId => ({
+      pluginId,
+      source: !registry.assets.some(asset => asset.pluginId === pluginId) ? "missing" : sourceDiagnostics.some(issue => issue.pluginId === pluginId) ? "invalid" : "available",
+      composition: registry.activeComposition.selectedPluginIds.includes(pluginId) ? "selected" : "not_selected",
+      runtimeCatalog: !registry.activeComposition.selectedPluginIds.includes(pluginId) ? "excluded_not_selected" : registry.capabilityCatalog.pluginIds.includes(pluginId) ? "included" : "unresolved",
+    }));
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets.filter(asset => asset.ownership !== "official_package"))));
     errors.push(...(await verifyPluginStyles(projectRoot, paths.pluginsRoot, registry.assets.filter(asset => asset.ownership !== "official_package"), warnings)));
@@ -252,6 +268,8 @@ export async function verifyUIProject(
   warnings.push(...instances.warnings);
 
   return {
+    sourceDiagnostics,
+    pluginStates,
     status: errors.length === 0 ? "passed" : "failed",
     model: {
       valid: model !== undefined,

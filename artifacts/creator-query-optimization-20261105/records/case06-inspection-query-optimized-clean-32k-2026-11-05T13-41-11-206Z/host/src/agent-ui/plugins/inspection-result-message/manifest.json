@@ -1,0 +1,15 @@
+{
+  "id": "inspection-result-message",
+  "name": "Inspection Result Message",
+  "description": "Renders app.inspection.result CUSTOM events as an inspection result card inside assistant messages.",
+  "version": "0.0.1",
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render system inspection results inside assistant messages",
+      "show passed and failed inspection checks with expandable failure details"
+    ]
+  }
+}

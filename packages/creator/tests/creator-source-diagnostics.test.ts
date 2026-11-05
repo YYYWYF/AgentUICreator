@@ -1,0 +1,34 @@
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, expect, it, vi } from "vitest";
+import { CreatorValidation } from "../src/agent/validation.js";
+import { RunActivity } from "../src/agent/activity.js";
+import { requestOperator } from "../src/agent/operator.js";
+
+vi.mock("../src/agent/operator.js", () => ({ requestOperator: vi.fn() }));
+const roots: string[] = [];
+afterEach(async () => { vi.restoreAllMocks(); vi.mocked(requestOperator).mockReset(); for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
+const problem = { pluginId: "probe", code: "DATA_MESSAGE_UI_NAME_NOT_STATIC", message: "Dynamic name" };
+it.each(["introduced", "baseline", "unrelated"])("keeps %s unselected diagnostics scoped to the edited Plugin", async kind => {
+  const root = await mkdtemp(path.join(tmpdir(), "Creator source 诊断 ")); roots.push(root);
+  await mkdir(path.join(root, ".agent-ui")); await mkdir(path.join(root, "src/应用/plugins/probe"), { recursive: true });
+  await writeFile(path.join(root, "package.json"), "{}");
+  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: "src/应用" }));
+  const file = "src/应用/plugins/probe/index.tsx";
+  await writeFile(path.join(root, file), "export const Component = () => null;");
+  const signal = new AbortController().signal, activity = new RunActivity(root, "source-diagnostics", signal);
+  const validation = new CreatorValidation(root, activity, () => signal);
+  vi.spyOn(validation as any, "script").mockImplementation(async () => ({ command: "typecheck", status: "passed", exitCode: 0, output: "", truncated: false, revision: activity.revision }));
+  vi.mocked(requestOperator).mockResolvedValue({ status: "passed", errors: [], sourceDiagnostics: kind === "baseline" ? [problem] : [] });
+  await validation.ensureBaseline(); await activity.capture(file);
+  await writeFile(path.join(root, file), "export const Component = () => 'changed';"); activity.revision++;
+  const sourceDiagnostic = kind === "unrelated" ? { ...problem, pluginId: "other" } : problem;
+  vi.mocked(requestOperator).mockResolvedValue({ status: "passed", errors: [], sourceDiagnostics: [sourceDiagnostic], pluginStates: [{ pluginId: "probe", source: kind === "unrelated" ? "available" : "invalid", composition: "not_selected", runtimeCatalog: "excluded_not_selected" }] });
+  const result = await validation.validate({});
+  expect(result.status).toBe(kind === "introduced" ? "failed" : "passed");
+  expect(result.introduced.staticErrors).toEqual(kind === "introduced" ? [problem] : []);
+  expect(result.workspaceWarnings.staticErrors).toEqual(kind === "baseline" ? [problem] : []);
+  expect(result.pluginStates).toHaveLength(1);
+  expect(result.pluginStates[0]).toMatchObject({ pluginId: "probe", composition: "not_selected", runtimeCatalog: "excluded_not_selected" });
+});

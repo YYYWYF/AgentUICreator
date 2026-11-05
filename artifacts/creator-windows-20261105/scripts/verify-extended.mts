@@ -22,7 +22,7 @@ const result:any={caseId,source:pointer.out,scope:'Extra browser checks of uncha
 let fixture:any,browser:any,page:any;
 const check=async(name:string,run:()=>Promise<void>)=>{try{await run();result.checks.push({name,status:'passed'});}catch(error:any){result.checks.push({name,status:'failed',error:error.message});}};
 try{
- fixture=await createConnectionHostFixture({projectChecks:true,prepareHost:async(root:string)=>cp(path.join(source,'src/agent-ui'),path.join(root,'src/agent-ui'),{recursive:true})});fixture.enableCors();
+ fixture=await createConnectionHostFixture({projectChecks:true,packageSnapshotFile:path.join(out,'package-snapshot.json'),prepareHost:async(root:string)=>cp(path.join(source,'src/agent-ui'),path.join(root,'src/agent-ui'),{recursive:true})});fixture.enableCors();
  await writeFile(path.join(fixture.hostRoot,'src/main.tsx'),`import {createRoot} from "react-dom/client";import {useState} from "react";import {Agent} from "./agent-ui";import "./host.css";
 function QAHost(){const [locale,setLocale]=useState<"zh-CN"|"en-US">("zh-CN");return <div style={{height:"100dvh"}}><div style={{height:32}}><button data-qa-locale="en-US" onClick={()=>setLocale("en-US")}>QA English</button><button data-qa-locale="zh-CN" onClick={()=>setLocale("zh-CN")}>QA Chinese</button></div><div style={{height:"calc(100% - 32px)"}}><Agent locale={locale} endpoint={${JSON.stringify(fixture.agentEndpoint)}}/></div></div>;}createRoot(document.getElementById("root")!).render(<QAHost/>);`);
  fixture.refreshHostEntry();browser=await chromium.launch({headless:true});page=await browser.newPage({viewport:{width:1680,height:1050}});
@@ -59,7 +59,7 @@ function QAHost(){const [locale,setLocale]=useState<"zh-CN"|"en-US">("zh-CN");re
    await surface.getByText('<b data-qa-injected>检查项文本</b>',{exact:true}).click();await expect(surface.getByText('<b data-qa-injected>故障信息</b>',{exact:true})).toBeVisible();await expect(page.locator('[data-qa-injected]')).toHaveCount(0);
   });
   await check('locale update keeps failure details expanded',async()=>{
-   await expect(surface.getByText('E_TEXT',{exact:false})).toBeVisible();await page.locator('[data-qa-locale="en-US"]').click();await expect(surface.getByText('E_TEXT',{exact:false})).toBeVisible();await page.locator('[data-qa-locale="zh-CN"]').click();
+   const detail=surface.getByText('<b data-qa-injected>故障信息</b>',{exact:true});await expect(detail).toBeVisible();await page.locator('[data-qa-locale="en-US"]').click();await expect(detail).toBeVisible();await page.locator('[data-qa-locale="zh-CN"]').click();await expect(detail).toBeVisible();
   });
   await check('nested malformed inspection fields do not crash the conversation',async()=>{
    const invalid=structuredClone(testCase.event);invalid.value={target:{bad:true},checks:[null,{name:{bad:true},status:'failed',detail:{code:{bad:true},message:{bad:true},duration_ms:[]}}]};

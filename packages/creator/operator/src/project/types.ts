@@ -187,6 +187,7 @@ export interface PluginProjectFacts {
 }
 
 export interface GeneratePluginCatalogResult {
+  sourceDiagnostics: ProjectIssue[];
   capabilityCatalog: {
     source: string;
     revision: string;

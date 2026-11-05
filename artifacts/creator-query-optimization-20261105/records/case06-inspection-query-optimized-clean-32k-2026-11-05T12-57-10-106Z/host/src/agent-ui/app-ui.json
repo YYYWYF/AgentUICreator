@@ -1,0 +1,203 @@
+{
+  "applicationPlugins": [
+    {
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "pluginId": "conversation-service"
+    },
+    {
+      "pluginId": "theme-provider"
+    },
+    {
+      "pluginId": "locale-provider"
+    },
+    {
+      "pluginId": "context-retrieval-message"
+    },
+    {
+      "pluginId": "inspection-result-message"
+    }
+  ],
+  "root": {
+    "type": "row",
+    "children": [
+      {
+        "type": "panel",
+        "child": {
+          "type": "column",
+          "children": [
+            {
+              "type": "slot",
+              "plugins": [
+                {
+                  "pluginId": "theme-switch"
+                },
+                {
+                  "pluginId": "agent-identity"
+                }
+              ]
+            },
+            {
+              "type": "slot",
+              "plugins": [
+                {
+                  "pluginId": "conversation-thread-list",
+                  "slots": {
+                    "headerActions": [
+                      {
+                        "pluginId": "conversation-new"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "gap": 0,
+          "sizes": [
+            "52px",
+            "minmax(0, 1fr)"
+          ]
+        }
+      },
+      {
+        "type": "panel",
+        "child": {
+          "type": "column",
+          "children": [
+            {
+              "type": "panel",
+              "child": {
+                "type": "slot",
+                "plugins": [
+                  {
+                    "id": "p23",
+                    "pluginId": "test-notice"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "panel",
+              "child": {
+                "type": "slot",
+                "plugins": [
+                  {
+                    "id": "p24",
+                    "pluginId": "quick-help-card",
+                    "slots": {
+                      "body": [
+                        {
+                          "id": "p25",
+                          "pluginId": "quick-help-content"
+                        }
+                      ],
+                      "headerActions": [
+                        {
+                          "pluginId": "help-dismiss-action"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "slot",
+              "plugins": [
+                {
+                  "pluginId": "conversation-surface",
+                  "slots": {
+                    "emptySuggestions": [
+                      {
+                        "pluginId": "conversation-suggestions"
+                      }
+                    ],
+                    "composer": [
+                      {
+                        "pluginId": "composer",
+                        "slots": {
+                          "leadingActions": [
+                            {
+                              "pluginId": "add-attachment-action"
+                            }
+                          ],
+                          "submitAction": [
+                            {
+                              "pluginId": "submit-action"
+                            }
+                          ],
+                          "beforeInput": [
+                            {
+                              "pluginId": "conversation-quote"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "reasoningGroup": [
+                      {
+                        "pluginId": "reasoning"
+                      }
+                    ],
+                    "toolGroup": [
+                      {
+                        "pluginId": "tool-group"
+                      }
+                    ],
+                    "toolFallback": [
+                      {
+                        "pluginId": "tool-result"
+                      }
+                    ],
+                    "assistantResponseFooter": [
+                      {
+                        "pluginId": "response-footer",
+                        "slots": {
+                          "actions": [
+                            {
+                              "pluginId": "copy-action"
+                            },
+                            {
+                              "pluginId": "reload-action"
+                            },
+                            {
+                              "pluginId": "export-markdown-action"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "transientMessages": [
+                      {
+                        "pluginId": "transient-assistant-messages"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "gap": 0,
+          "sizes": [
+            "40px",
+            "44px",
+            "minmax(0, 1fr)"
+          ]
+        }
+      }
+    ],
+    "gap": 0,
+    "sizes": [
+      "300px",
+      "minmax(0, 1fr)"
+    ],
+    "responsive": {
+      "type": "drawer",
+      "primaryIndex": 1,
+      "drawerIndex": 0,
+      "minPrimaryWidth": 320
+    }
+  }
+}

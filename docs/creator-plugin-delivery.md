@@ -20,13 +20,15 @@ Creator 是通用 Coding Agent。交付机制读取实际工程、记录目标�
 | --- | --- |
 | planning | 当前任务和交付目标 |
 | created | 匹配的 manifest、definition、index |
-| registered | 生成 Registry 的引用；正式 Source 有对应来源记录 |
+| registered | 源码已进入 authoring inventory；运行 catalog 只包含 AppUIModel 选中的 Plugin |
 | composed | 启用实例与有效父级组合 |
 | verified | 当前 revision 的静态、Runtime 及声明交互证据 |
 | completed | 本次交付义务全部满足 |
 | blocked | 回执列出已保存修改、最后成功阶段与阻碍 |
 
 安装、注册和静态检查不等于已挂载或行为通过。修改后重新核对当前 revision；静态模式只交付静态证据，不声称 Runtime 或浏览器通过。
+
+`validate_creator_changes` 返回本轮改动 Plugin 的 `pluginStates`，区分源码有效性、AppUIModel 选择与运行 catalog 条目。`excluded_not_selected` 表示尚未组合，不应通过修改声明或寻找生成脚本消除。未组合源码的诊断独立返回；本轮引入的目标源码问题仍会使 Creator 校验失败，已有或无关问题保留原有 delta 边界。
 
 ## Runtime 与交互验证
 

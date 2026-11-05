@@ -1,0 +1,10 @@
+Port 5173 is in use, trying another one...
+9:46:22 PM [vite] (client) page reload src/main.tsx
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/host-preview/hostPreviewClient.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/runtime-diagnostics/runtimeDiagnosticReporter.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/visual-observation/VisualObservationReporter.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/host-preview/layoutPresentation.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/host-preview/protocol.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/shared.js" points to missing source files
+Sourcemap for "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-qa-packages-Y2NwfY/creator/dist/workspace/types.js" points to missing source files
+{"staticChecks":[{"script":"typecheck","status":"passed","exitCode":0},{"script":"build","status":"passed","exitCode":0}],"interaction":"passed","checks":[{"name":"inspection event renders check statuses","status":"passed"},{"name":"failed inspection exposes details","status":"passed"},{"name":"error details copy to clipboard","status":"passed"},{"name":"empty and malformed checks do not crash conversation","status":"passed"}],"controlledAgentRuns":3,"sourceUnchanged":true,"browserErrors":[]}

@@ -1,0 +1,54 @@
+[
+  {
+    "kind": "simulated isolated QA user selection",
+    "seconds": 38.912,
+    "question": {
+      "id": "plugin-development-decision",
+      "question": "是否按此方案开发？",
+      "description": "目标: 在助手消息中渲染 AG-UI CUSTOM 事件 app.inspection.result（value 含 target 与 checks[]：name、status、可选 detail.code/message/duration_ms）：通过项紧凑列出，失败项高亮显示并可点击展开失败原因，支持复制错误详情。\n\n目标插件与位置: inspection-result-message\n\n需要新增的能力: 现有消息渲染插件仅注册 CONTEXT_CONTENT 事件名，不处理 app.inspection.result; 现有插件无法按通过/失败分组呈现检查项，也没有失败原因展开与复制详情交互\n\nApplication-headless message renderer (data.messageUI, registered by CUSTOM event name), composed at the application target like context-retrieval-message",
+      "options": [
+        {
+          "id": "start",
+          "label": "开始开发"
+        },
+        {
+          "id": "adjust",
+          "label": "调整需求"
+        },
+        {
+          "id": "defer",
+          "label": "暂不处理"
+        }
+      ],
+      "selectionMode": "single",
+      "minSelections": 1,
+      "maxSelections": 1
+    },
+    "proposal": {
+      "targetPluginId": "inspection-result-message",
+      "workKind": "create-plugin",
+      "desiredOutcome": "在助手消息中渲染 AG-UI CUSTOM 事件 app.inspection.result（value 含 target 与 checks[]：name、status、可选 detail.code/message/duration_ms）：通过项紧凑列出，失败项高亮显示并可点击展开失败原因，支持复制错误详情。",
+      "missingCapabilities": [
+        "现有消息渲染插件仅注册 CONTEXT_CONTENT 事件名，不处理 app.inspection.result",
+        "现有插件无法按通过/失败分组呈现检查项，也没有失败原因展开与复制详情交互"
+      ],
+      "deliveryContract": {
+        "capability": "Renders app.inspection.result CUSTOM events as an inspection result card inside assistant messages",
+        "renderingCategory": "application",
+        "placement": "Application-headless message renderer (data.messageUI, registered by CUSTOM event name), composed at the application target like context-retrieval-message",
+        "lifecycle": "Registers a data message UI for the app.inspection.result event name; renders only when the Agent emits that CUSTOM event, no Runtime or Service changes",
+        "dependencies": [
+          "@za38.03/agent-ui-plugins public defineDataMessageUI",
+          "existing application locale service via useAgentUILocaleCode"
+        ],
+        "interactions": [
+          "failed check expands to show detail code/message/duration",
+          "copy error details button copies failure detail",
+          "keyboard-operable expand control and visible button labels"
+        ],
+        "verificationMethod": "browser-test"
+      }
+    },
+    "zeroNewPluginFilesBeforeApproval": true
+  }
+]

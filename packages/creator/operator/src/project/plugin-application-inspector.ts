@@ -6,7 +6,7 @@ import { API, SignatureKind, TypeFlags, type Type } from "typescript/unstable/sy
 import { assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 import { inspectPluginSharedTypes, publicComponentPresentation } from "./plugin-shared-types";
 import type { PluginAsset } from "./types";
-import { prioritizePublicMembers } from "./public-type-navigation";
+import { isInheritedPublicMember, isScalarPublicType, prioritizePublicMembers } from "./public-type-navigation";
 
 /** Read-only type navigation through this project's resolved dependencies. Never extracts source. */
 export async function inspectPluginApplication(projectRoot: string, asset: Pick<PluginAsset, "pluginId" | "application">, sharedSymbols: readonly string[] = [], sharedModule?: string) {
@@ -66,9 +66,10 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
         const type = checker.getTypeOfSymbol(property);
         if (!type) return { name: property.name, status: "unresolved" };
         const nonNullable = checker.getNonNullableType(type) ?? type;
-        const members = checker.getSignaturesOfType(nonNullable, SignatureKind.Call).length
+        const members = isScalarPublicType(nonNullable) || checker.getSignaturesOfType(nonNullable, SignatureKind.Call).length
           ? [] : checker.getPropertiesOfType(nonNullable);
         return { name: property.name, ...describe(type),
+          inherited: !["className", "style"].includes(property.name) && isInheritedPublicMember(property),
           runtimeManaged: ["renderSlot", "renderScopedSlot"].includes(property.name),
           ...(members.length > 0 && members.length <= 24 ? { members: members.map(member => {
             const type = checker.getTypeOfSymbol(member);
@@ -83,7 +84,7 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
       const boundedProps = publicProps.map(property => {
         const size = JSON.stringify(property).length;
         if (size <= remaining) { remaining -= size; return property; }
-        return { name: property.name, detailsOmitted: true };
+        return { name: property.name, ...("inherited" in property ? { inherited: property.inherited } : {}), detailsOmitted: true };
       });
       return { ...navigation, usageGuide: {
         ...navigation.usageGuide,

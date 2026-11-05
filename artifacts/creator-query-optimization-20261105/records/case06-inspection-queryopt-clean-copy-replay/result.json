@@ -1,0 +1,98 @@
+{
+  "scope": "Independent replay of unchanged model-generated source. No new model call or source repair. Creator preview explicitly connected to the controlled AG-UI test endpoint through the existing connection API.",
+  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+  "connection": {
+    "activeSource": "connected",
+    "enabled": true,
+    "connectionMode": "direct",
+    "endpoint": "http://127.0.0.1:64229/agent",
+    "configured": true,
+    "running": false
+  },
+  "staticChecks": [
+    {
+      "script": "typecheck",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "script": "build",
+      "status": "passed",
+      "exitCode": 0
+    }
+  ],
+  "browserErrors": [],
+  "interaction": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "inspection event renders check statuses",
+        "status": "passed"
+      },
+      {
+        "name": "failed inspection exposes details",
+        "status": "passed"
+      },
+      {
+        "name": "error details copy to clipboard",
+        "status": "passed"
+      },
+      {
+        "name": "empty and malformed checks do not crash conversation",
+        "status": "passed"
+      }
+    ],
+    "protocolEventsSent": [
+      {
+        "at": "2026-11-05T08:49:22.636Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.inspection.result",
+          "value": {
+            "target": "订单服务",
+            "checks": [
+              {
+                "name": "数据库连接",
+                "status": "passed"
+              },
+              {
+                "name": "支付接口",
+                "status": "failed",
+                "detail": {
+                  "code": "UPSTREAM_TIMEOUT",
+                  "message": "支付接口响应超时",
+                  "duration_ms": 5000
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "at": "2026-11-05T08:49:23.236Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.inspection.result",
+          "value": {
+            "target": "订单服务",
+            "checks": []
+          }
+        }
+      },
+      {
+        "at": "2026-11-05T08:49:23.719Z",
+        "event": {
+          "type": "CUSTOM",
+          "name": "app.inspection.result",
+          "value": {
+            "target": "订单服务",
+            "checks": "invalid"
+          }
+        }
+      }
+    ]
+  },
+  "controlledAgentRuns": 3,
+  "sourceDifferences": [],
+  "sourceUnchanged": true
+}

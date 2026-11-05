@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { getAgentUIAvailablePluginIds, getAgentUIPluginInstances, setAgentUIPluginEnabled } from "../src/project/plugin-commands";
 const passedVerification = () => ({ status: "passed" as const,
+  sourceDiagnostics: [], pluginStates: [],
   model: { valid: true, mountedInstanceIds: [], unmountedEnabledInstanceIds: [] },
   capabilityCatalog: { pluginIds: [], generatedFileFresh: true },
   activeComposition: { selectedPluginIds: [], resolvedPluginIds: [], headlessPluginIds: [] },

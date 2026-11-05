@@ -1,0 +1,1446 @@
+{
+  "aggregate": {
+    "recordedSeconds": 3174.826,
+    "toolCalls": 266,
+    "input": 10740903,
+    "output": 138486,
+    "missingUsageResponses": 21
+  },
+  "platform": "darwin",
+  "node": "v24.22.1",
+  "configuration": {
+    "model": "deepseek-v4.1-flash",
+    "output": 32768,
+    "context": 262144,
+    "keep": 12000,
+    "timeout": 120,
+    "behaviorVerificationEnabled": false
+  },
+  "comparisonConditions": "Exact original prompt and Agent UI source hashes are compared per record. Previous baselines predate the Playwright opt-in switch; the user requested it disabled now. Neither selected baseline actually invoked the behavior tool. No causal speedup or cross-platform acceptance follows from a single stochastic run.",
+  "tokenAccounting": "Provider-reported cumulative input/output, including repeated and cached input. Output already includes reasoning. Missing response usage makes totals lower bounds.",
+  "records": [
+    {
+      "profile": "clean",
+      "attempt": 1,
+      "record": "records/case06-inspection-query-optimized-clean-32k-2026-11-05T07-43-52-685Z",
+      "status": "RUN_ERROR",
+      "seconds": 264.118,
+      "toolCalls": 16,
+      "qualification": "Provider connection reset before any mutation; exclude from successful-task performance comparison.",
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "files": 128,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "RUN_ERROR",
+      "changedSourceFiles": 0,
+      "usage": {
+        "input": 294624,
+        "output": 3849,
+        "missingResponses": 3
+      },
+      "modelHttpRequests": 12,
+      "providerTransportErrors": 3,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 0,
+      "httpSeconds": 220.701,
+      "successfulResponseHeaderSeconds": 161.765,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_edit_context": 1,
+        "read_file": 5,
+        "inspect_ui_plugin": 2,
+        "grep": 3,
+        "glob": 1,
+        "ls": 2,
+        "prepare_ui_plugin_development": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [],
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "seconds": 410.171,
+        "tools": 29,
+        "usage": {
+          "input": 1549612,
+          "output": 19863,
+          "total": 1569475,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "create_ui_plugin",
+          "startSeconds": 248.745,
+          "resultSeconds": 251.496
+        }
+      }
+    },
+    {
+      "profile": "clean",
+      "attempt": 2,
+      "record": "records/case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+      "status": "RUN_ERROR",
+      "seconds": 957.436,
+      "toolCalls": 22,
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "files": 128,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "RUN_ERROR",
+      "changedSourceFiles": 9,
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 474.891,
+        "resultSeconds": 476.279
+      },
+      "firstCompositionMutation": {
+        "startSeconds": 835.661,
+        "resultSeconds": 836.498
+      },
+      "usage": {
+        "input": 1194644,
+        "output": 30204,
+        "missingResponses": 9
+      },
+      "modelHttpRequests": 26,
+      "providerTransportErrors": 9,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 0,
+      "httpSeconds": 921.9,
+      "successfulResponseHeaderSeconds": 499.43,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_edit_context": 2,
+        "inspect_ui_project": 2,
+        "read_creator_documentation": 4,
+        "prepare_ui_plugin_development": 1,
+        "glob": 1,
+        "read_file": 2,
+        "create_ui_plugin": 1,
+        "mutate_ui_plugin_source": 2,
+        "validate_creator_changes": 3,
+        "grep": 2,
+        "mutate_app_ui_model": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [
+        {
+          "seconds": 673.929,
+          "status": "failed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__summary[data-tone=\"failed\"]\" at src/agent-ui/plugins/inspection-result-message/styles.css:46. Plugin styles must be scoped under a Plugin-owned root selector."
+              },
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__failed-item\" at src/agent-ui/plugins/inspection-result-message/styles.css:81. Plugin styles must be scoped under a Plugin-owned root selector."
+              },
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__failed-name\" at src/agent-ui/plugins/inspection-result-message/styles.css:114. Plugin styles must be scoped under a Plugin-owned root selector."
+              },
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__code\" at src/agent-ui/plugins/inspection-result-message/styles.css:127. Plugin styles must be scoped under a Plugin-owned root selector."
+              },
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__copy:hover\" at src/agent-ui/plugins/inspection-result-message/styles.css:194. Plugin styles must be scoped under a Plugin-owned root selector."
+              },
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \"[data-theme=\"dark\"] .inspection-result__check\" at src/agent-ui/plugins/inspection-result-message/styles.css:222. Plugin styles must be scoped under a Plugin-owned root selector."
+              }
+            ],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 759.953,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 880.839,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "failed",
+      "qualification": "Native run failed; retain actual saved changes and subsequent browser evidence separately. No successful-run speedup is inferred.",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "seconds": 410.171,
+        "tools": 29,
+        "usage": {
+          "input": 1549612,
+          "output": 19863,
+          "total": 1569475,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "create_ui_plugin",
+          "startSeconds": 248.745,
+          "resultSeconds": 251.496
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 1,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T08-39-15-323Z",
+      "status": "RUN_ERROR",
+      "seconds": 730.884,
+      "toolCalls": 33,
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "RUN_ERROR",
+      "changedSourceFiles": 4,
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 242.628,
+        "resultSeconds": 243.855
+      },
+      "usage": {
+        "input": 830199,
+        "output": 11312,
+        "missingResponses": 4
+      },
+      "modelHttpRequests": 25,
+      "providerTransportErrors": 4,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 0,
+      "httpSeconds": 710.838,
+      "successfulResponseHeaderSeconds": 582.936,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_plugin": 1,
+        "read_file": 12,
+        "ls": 3,
+        "grep": 7,
+        "glob": 1,
+        "delete_ui_source_file": 1,
+        "edit_file_from_read": 2,
+        "edit_file": 4,
+        "validate_creator_changes": 2
+      },
+      "generatedRegistryReadCalls": 1,
+      "validationAttempts": [
+        {
+          "seconds": 431.635,
+          "status": "failed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \":is(.agent-ui-root, .agent-ui-conversation)[data-theme=\"dark\"] .inspection-result\" at src/agent-ui/plugins/inspection-result-message/styles.css:18. Plugin styles must be scoped under a Plugin-owned root selector."
+              }
+            ],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 681.517,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "failed",
+      "qualification": "Native run failed; retain actual saved changes and subsequent browser evidence separately. No successful-run speedup is inferred.",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "clean",
+      "attempt": 3,
+      "record": "records/case06-inspection-query-optimized-clean-32k-2026-11-05T12-57-10-106Z",
+      "status": "success",
+      "seconds": 265.09,
+      "toolCalls": 36,
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "files": 128,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "success",
+      "changedSourceFiles": 7,
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 174.125,
+        "resultSeconds": 175.541
+      },
+      "firstCompositionMutation": {
+        "startSeconds": 194.317,
+        "resultSeconds": 195.081
+      },
+      "usage": {
+        "input": 1834835,
+        "output": 24598,
+        "missingResponses": 0
+      },
+      "modelHttpRequests": 23,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 2,
+      "providerStatusErrors": 0,
+      "httpSeconds": 220.89,
+      "successfulResponseHeaderSeconds": 56.586,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_plugin": 3,
+        "inspect_ui_project": 2,
+        "read_file": 11,
+        "ls": 2,
+        "glob": 2,
+        "grep": 2,
+        "prepare_ui_plugin_development": 1,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 3,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 2,
+        "inspect_runtime_layout": 2,
+        "mutate_ui_plugin_source": 1,
+        "verify_creator_outcome": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [
+        {
+          "seconds": 185.402,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 203.055,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 240.85,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "passed",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "seconds": 410.171,
+        "tools": 29,
+        "usage": {
+          "input": 1549612,
+          "output": 19863,
+          "total": 1569475,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "create_ui_plugin",
+          "startSeconds": 248.745,
+          "resultSeconds": 251.496
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 2,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-03-24-450Z",
+      "status": "RUN_ERROR",
+      "seconds": 3.116,
+      "toolCalls": 0,
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "RUN_ERROR",
+      "changedSourceFiles": 0,
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "missingResponses": 1
+      },
+      "modelHttpRequests": 1,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 1,
+      "httpSeconds": 1.599,
+      "successfulResponseHeaderSeconds": 0,
+      "models": [],
+      "toolCounts": {},
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [],
+      "qualification": "Native run failed; retain actual saved changes and subsequent browser evidence separately. No successful-run speedup is inferred.",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 3,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-10-33-979Z",
+      "status": "HARNESS_ERROR",
+      "seconds": 111.269,
+      "qualification": "QA stream observer disconnected without a native terminal event. Fixture shutdown then cancelled compiler processes; exclude from product-failure and completed-task performance conclusions.",
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "HARNESS_ERROR",
+      "toolCalls": 28,
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 42.25,
+        "resultSeconds": 43.387
+      },
+      "usage": {
+        "input": 953253,
+        "output": 9732,
+        "missingResponses": 0
+      },
+      "modelHttpRequests": 17,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 1,
+      "providerStatusErrors": 0,
+      "httpSeconds": 100.693,
+      "successfulResponseHeaderSeconds": 38.371,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_plugin": 3,
+        "inspect_ui_project": 1,
+        "read_file": 9,
+        "ls": 5,
+        "grep": 1,
+        "inspect_ui_edit_context": 1,
+        "delete_ui_source_file": 1,
+        "edit_file": 6,
+        "validate_creator_changes": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [],
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 4,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-18-27-283Z",
+      "status": "success",
+      "seconds": 327.256,
+      "toolCalls": 57,
+      "qualification": "Native completion and 4 browser checks passed, but workspace package dist files were rebuilt during the run. Exclude from clean performance comparison. Stop request arrived after completion or was not accepted; no successful user cancellation is claimed.",
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "success",
+      "changedSourceFiles": 6,
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 129.762,
+        "resultSeconds": 131.079
+      },
+      "firstCompositionMutation": {
+        "startSeconds": 267.423,
+        "resultSeconds": 268.245
+      },
+      "usage": {
+        "input": 2131145,
+        "output": 20950,
+        "missingResponses": 1
+      },
+      "modelHttpRequests": 36,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 5,
+      "providerStatusErrors": 1,
+      "httpSeconds": 300.474,
+      "successfulResponseHeaderSeconds": 171.287,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_edit_context": 1,
+        "read_file": 19,
+        "ls": 3,
+        "grep": 12,
+        "inspect_ui_plugin": 1,
+        "glob": 1,
+        "read_creator_documentation": 1,
+        "delete_ui_source_file": 1,
+        "edit_file": 9,
+        "validate_creator_changes": 3,
+        "inspect_ui_project": 1,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1,
+        "verify_creator_outcome": 2
+      },
+      "generatedRegistryReadCalls": 5,
+      "validationAttempts": [
+        {
+          "seconds": 208.708,
+          "status": "failed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \":is(.agent-ui-root, .agent-ui-conversation)[data-theme=\"dark\"] .inspection-result\" at src/agent-ui/plugins/inspection-result-message/styles.css:18. Plugin styles must be scoped under a Plugin-owned root selector."
+              }
+            ],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 248.799,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 281.315,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "passed",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 5,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-32-20-162Z",
+      "status": "HARNESS_ERROR",
+      "seconds": null,
+      "qualification": "QA snapshot used noncanonical macOS temporary path; Vite refused its preview client. Model task did not start. Fixed snapshot realpath handling; exclude from product and model conclusions.",
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageVersions": {
+          "@za38.03/agent-ui-core": "0.0.1",
+          "@za38.03/agent-ui-renderer": "0.0.1",
+          "@za38.03/agent-ui-runtime": "0.0.1",
+          "@za38.03/agent-ui-plugins": "0.0.1",
+          "@za38.03/agent-ui-web-component": "0.0.1",
+          "@za38.03/agent-ui-creator": "0.0.1"
+        }
+      },
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "HARNESS_ERROR",
+      "toolCalls": 0,
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "missingResponses": 0
+      },
+      "modelHttpRequests": 0,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 0,
+      "httpSeconds": 0,
+      "successfulResponseHeaderSeconds": 0,
+      "models": [],
+      "toolCounts": {},
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [],
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "recovery",
+      "attempt": 6,
+      "record": "records/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-33-52-040Z",
+      "status": "success",
+      "seconds": 250.044,
+      "toolCalls": 46,
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageVersions": {
+          "@za38.03/agent-ui-core": "0.0.1",
+          "@za38.03/agent-ui-renderer": "0.0.1",
+          "@za38.03/agent-ui-runtime": "0.0.1",
+          "@za38.03/agent-ui-plugins": "0.0.1",
+          "@za38.03/agent-ui-web-component": "0.0.1",
+          "@za38.03/agent-ui-creator": "0.0.1"
+        }
+      },
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "files": 134,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "success",
+      "changedSourceFiles": 6,
+      "firstSuccessfulMutation": {
+        "tool": "delete_ui_source_file",
+        "startSeconds": 44.844,
+        "resultSeconds": 46.107
+      },
+      "firstCompositionMutation": {
+        "startSeconds": 173.972,
+        "resultSeconds": 174.638
+      },
+      "usage": {
+        "input": 1899486,
+        "output": 16158,
+        "missingResponses": 1
+      },
+      "modelHttpRequests": 33,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 5,
+      "providerStatusErrors": 1,
+      "httpSeconds": 223.175,
+      "successfulResponseHeaderSeconds": 84.028,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_plugin": 1,
+        "inspect_ui_project": 1,
+        "ls": 6,
+        "glob": 1,
+        "read_file": 20,
+        "delete_ui_source_file": 1,
+        "inspect_ui_edit_context": 1,
+        "edit_file": 6,
+        "prepare_ui_plugin_development": 1,
+        "validate_creator_changes": 3,
+        "grep": 1,
+        "mutate_app_ui_model": 2,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [
+        {
+          "seconds": 106.983,
+          "status": "failed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [
+              {
+                "code": "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED",
+                "pluginId": "inspection-result-message",
+                "message": "Plugin \"inspection-result-message\" contains global selector \":is(.agent-ui-root, .agent-ui-conversation)[data-theme=\"dark\"] .inspection-result\" at src/agent-ui/plugins/inspection-result-message/styles.css:18. Plugin styles must be scoped under a Plugin-owned root selector."
+              }
+            ],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 155.863,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 184.164,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "passed",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-fresh-recovery-original-2026-11-05T01-52-04-038Z",
+        "seconds": 811.982,
+        "tools": 66,
+        "usage": {
+          "input": 4353573,
+          "output": 38248,
+          "total": 4391821,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "delete_ui_source_file",
+          "startSeconds": 79.517,
+          "resultSeconds": 80.914
+        }
+      }
+    },
+    {
+      "profile": "clean",
+      "attempt": 4,
+      "record": "records/case06-inspection-query-optimized-clean-32k-2026-11-05T13-40-17-837Z",
+      "status": "RUN_ERROR",
+      "seconds": 3.824,
+      "toolCalls": 0,
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageVersions": {
+          "@za38.03/agent-ui-core": "0.0.1",
+          "@za38.03/agent-ui-renderer": "0.0.1",
+          "@za38.03/agent-ui-runtime": "0.0.1",
+          "@za38.03/agent-ui-plugins": "0.0.1",
+          "@za38.03/agent-ui-web-component": "0.0.1",
+          "@za38.03/agent-ui-creator": "0.0.1"
+        }
+      },
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "files": 128,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "RUN_ERROR",
+      "changedSourceFiles": 0,
+      "usage": {
+        "input": 0,
+        "output": 0,
+        "missingResponses": 2
+      },
+      "modelHttpRequests": 2,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 0,
+      "providerStatusErrors": 2,
+      "httpSeconds": 2.292,
+      "successfulResponseHeaderSeconds": 0,
+      "models": [],
+      "toolCounts": {},
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [],
+      "qualification": "Native run failed; retain actual saved changes and subsequent browser evidence separately. No successful-run speedup is inferred.",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "seconds": 410.171,
+        "tools": 29,
+        "usage": {
+          "input": 1549612,
+          "output": 19863,
+          "total": 1569475,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "create_ui_plugin",
+          "startSeconds": 248.745,
+          "resultSeconds": 251.496
+        }
+      }
+    },
+    {
+      "profile": "clean",
+      "attempt": 5,
+      "record": "records/case06-inspection-query-optimized-clean-32k-2026-11-05T13-41-11-206Z",
+      "status": "success",
+      "seconds": 261.789,
+      "toolCalls": 28,
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageVersions": {
+          "@za38.03/agent-ui-core": "0.0.1",
+          "@za38.03/agent-ui-renderer": "0.0.1",
+          "@za38.03/agent-ui-runtime": "0.0.1",
+          "@za38.03/agent-ui-plugins": "0.0.1",
+          "@za38.03/agent-ui-web-component": "0.0.1",
+          "@za38.03/agent-ui-creator": "0.0.1"
+        }
+      },
+      "originalInputProof": {
+        "baseline": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "files": 128,
+        "seedVerification": "compared",
+        "differences": [],
+        "originalPromptIdentical": true,
+        "outputBudgetIdentical": true,
+        "modelIdentical": true
+      },
+      "nativeStatus": "success",
+      "changedSourceFiles": 7,
+      "firstSuccessfulMutation": {
+        "tool": "create_ui_plugin",
+        "startSeconds": 135.436,
+        "resultSeconds": 136.712
+      },
+      "firstCompositionMutation": {
+        "startSeconds": 172.058,
+        "resultSeconds": 172.778
+      },
+      "usage": {
+        "input": 1602717,
+        "output": 21683,
+        "missingResponses": 0
+      },
+      "modelHttpRequests": 18,
+      "providerTransportErrors": 0,
+      "closedAfterCompletedResponse": 1,
+      "providerStatusErrors": 0,
+      "httpSeconds": 225.861,
+      "successfulResponseHeaderSeconds": 128.479,
+      "models": [
+        "deepseek-v4.1-flash"
+      ],
+      "toolCounts": {
+        "inspect_ui_plugin": 3,
+        "inspect_ui_project": 2,
+        "read_file": 9,
+        "prepare_ui_plugin_development": 1,
+        "ls": 3,
+        "grep": 2,
+        "create_ui_plugin": 1,
+        "validate_creator_changes": 2,
+        "mutate_app_ui_model": 1,
+        "enable_creator_tools": 1,
+        "inspect_runtime_errors": 1,
+        "verify_creator_outcome": 1
+      },
+      "generatedRegistryReadCalls": 0,
+      "validationAttempts": [
+        {
+          "seconds": 147.34,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "not_selected",
+              "runtimeCatalog": "excluded_not_selected"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        },
+        {
+          "seconds": 195.129,
+          "status": "passed",
+          "registryFresh": true,
+          "pluginStates": [
+            {
+              "pluginId": "inspection-result-message",
+              "source": "available",
+              "composition": "selected",
+              "runtimeCatalog": "included"
+            }
+          ],
+          "introduced": {
+            "staticErrors": [],
+            "typeErrors": [],
+            "localizedDefaults": []
+          }
+        }
+      ],
+      "externalBrowserStatus": "passed",
+      "baseline": {
+        "record": "../creator-resume-20261105/records/case06-inspection-mac-final-clean-32k-2026-11-05T02-08-13-472Z",
+        "seconds": 410.171,
+        "tools": 29,
+        "usage": {
+          "input": 1549612,
+          "output": 19863,
+          "total": 1569475,
+          "missingResponses": 0
+        },
+        "firstSuccessfulMutation": {
+          "tool": "create_ui_plugin",
+          "startSeconds": 248.745,
+          "resultSeconds": 251.496
+        }
+      }
+    }
+  ],
+  "browserRecords": [
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T12-57-10-498Z",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+      "status": "failed",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "failed",
+          "error": "expect(locator).toBeVisible() failed\n\nLocator: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\nExpected: visible\nError: strict mode violation: locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT') resolved to 2 elements:\n    1) <code class=\"inspection-result__code\">E_TEXT</code> aka getByRole('button', { name: '收起 <b data-qa-injected' })\n    2) <code>E_TEXT</code> aka locator('#inspection-result-detail-check-0').getByText('E_TEXT')\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT') with timeout 5000ms\n  - waiting for locator('[data-ui-plugin=\"conversation-surface\"]').getByText('E_TEXT')\n"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T12-59-30-591Z",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+      "status": "passed",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T13-03-42-014Z",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T12-57-10-106Z",
+      "status": "passed",
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T13-39-52-777Z",
+      "source": "case06-inspection-query-optimized-recovery-32k-2026-11-05T13-33-52-040Z",
+      "status": "passed",
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageDifferencesFromModel": {
+          "@za38.03/agent-ui-plugins": [
+            "dist/catalog.json",
+            "dist/internal/adapters-generated/assistant-ui/UPSTREAM.json",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js.map",
+            "dist/sources/shared/adapters/presentation/assistant-ui/UPSTREAM.json",
+            "dist/sources/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+            "dist/internal/markdown-block-cache.js",
+            "dist/internal/markdown-block-cache.js.map"
+          ]
+        }
+      },
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "record": "records/case06-inspection-extended-2026-11-05T13-46-32-255Z",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T13-41-11-206Z",
+      "status": "passed",
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageDifferencesFromModel": {
+          "@za38.03/agent-ui-plugins": [
+            "dist/catalog.json",
+            "dist/internal/adapters-generated/assistant-ui/UPSTREAM.json",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js.map",
+            "dist/internal/markdown-block-cache.js",
+            "dist/internal/markdown-block-cache.js.map",
+            "dist/sources/shared/adapters/presentation/assistant-ui/UPSTREAM.json",
+            "dist/sources/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/markdown-text.tsx"
+          ]
+        }
+      },
+      "checks": [
+        {
+          "name": "inspection error details are literal text",
+          "status": "passed"
+        },
+        {
+          "name": "locale update keeps failure details expanded",
+          "status": "passed"
+        },
+        {
+          "name": "nested malformed inspection fields do not crash the conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "record": "records/case06-inspection-queryopt-clean-attempt5-frozen-replay",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T13-41-11-206Z",
+      "status": "passed",
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageDifferencesFromModel": {
+          "@za38.03/agent-ui-plugins": [
+            "dist/catalog.json",
+            "dist/internal/adapters-generated/assistant-ui/UPSTREAM.json",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js.map",
+            "dist/internal/markdown-block-cache.js",
+            "dist/internal/markdown-block-cache.js.map",
+            "dist/sources/shared/adapters/presentation/assistant-ui/UPSTREAM.json",
+            "dist/sources/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/markdown-text.tsx"
+          ]
+        }
+      },
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-queryopt-clean-copy-replay",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+      "status": "passed",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-queryopt-clean-replay",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T08-05-58-866Z",
+      "status": "failed",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "failed",
+          "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('[data-ui-plugin=\"conversation-surface\"]').getByRole('button', { name: /复制错误|复制详情|复制错误详情|Copy error|Copy details/i })\u001b[22m\n"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-queryopt-final-replay",
+      "source": "case06-inspection-query-optimized-clean-32k-2026-11-05T12-57-10-106Z",
+      "status": "passed",
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    },
+    {
+      "record": "records/case06-inspection-queryopt-recovery-attempt6-frozen-replay",
+      "source": "case06-inspection-query-optimized-recovery-32k-2026-11-05T13-33-52-040Z",
+      "status": "passed",
+      "packageSnapshot": {
+        "unchanged": true,
+        "cleaned": true,
+        "packageDifferencesFromModel": {
+          "@za38.03/agent-ui-plugins": [
+            "dist/catalog.json",
+            "dist/internal/adapters-generated/assistant-ui/UPSTREAM.json",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js",
+            "dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js.map",
+            "dist/sources/shared/adapters/presentation/assistant-ui/UPSTREAM.json",
+            "dist/sources/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+            "dist/internal/markdown-block-cache.js",
+            "dist/internal/markdown-block-cache.js.map"
+          ]
+        }
+      },
+      "checks": [
+        {
+          "name": "inspection event renders check statuses",
+          "status": "passed"
+        },
+        {
+          "name": "failed inspection exposes details",
+          "status": "passed"
+        },
+        {
+          "name": "error details copy to clipboard",
+          "status": "passed"
+        },
+        {
+          "name": "empty and malformed checks do not crash conversation",
+          "status": "passed"
+        }
+      ],
+      "sourceUnchanged": true,
+      "browserErrors": []
+    }
+  ]
+}

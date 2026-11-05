@@ -90,3 +90,12 @@ export async function preparePluginDirectory(context: ToolContext) {
       nextTool: "inspect_ui_project", coverage: "unknown" };
   }
 }
+
+/** The model gets an owner/name index; full matching and authoring facts stay Host-side. */
+export function pluginDirectoryNavigation(directory: any) {
+  if (!Array.isArray(directory?.plugins)) return directory;
+  return { ...directory, plugins: directory.plugins.map((plugin: any) => Object.fromEntries(
+    ["pluginId", "name", "description", "targetNames", "state", "sourceStatus", "applicationPath", "definitionPath", "instances"]
+      .filter(key => plugin[key] !== undefined).map(key => [key, plugin[key]]))),
+    omittedDetails: "Use inspect_ui_plugin for authoring placement, Service contracts and presentation details of a specific Plugin." };
+}

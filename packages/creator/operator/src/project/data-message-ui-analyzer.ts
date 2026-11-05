@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { SyntaxKind, type Expression, type Node, type SourceFile } from "typescript/unstable/ast";
+import { NodeFlags, SyntaxKind, type Expression, type Node, type SourceFile } from "typescript/unstable/ast";
 import {
   isArrayLiteralExpression,
   isAsExpression,
@@ -51,6 +51,7 @@ function resolveExpression(
   project: Project,
   expression: Expression,
   seen: Set<number>,
+  constantsOnly = false,
 ): Expression | undefined {
   const value = unwrap(expression);
   if (!isIdentifier(value)) return value;
@@ -65,7 +66,8 @@ function resolveExpression(
     const declaration = handle.resolve(project);
     if (declaration !== undefined && isVariableDeclaration(declaration) &&
         declaration.initializer !== undefined) {
-      return resolveExpression(project, declaration.initializer, seen);
+      if (constantsOnly && (declaration.parent.flags & NodeFlags.Const) === 0) return undefined;
+      return resolveExpression(project, declaration.initializer, seen, constantsOnly);
     }
   }
   return undefined;
@@ -150,18 +152,19 @@ function inspectRenderer(
   const nameNode = renderer.arguments[0] === undefined
     ? undefined
     : property(renderer.arguments[0], "name");
-  if (nameNode === undefined || !isStringLiteral(nameNode)) {
+  const resolvedName = nameNode === undefined ? undefined : resolveExpression(project, nameNode, new Set(), true);
+  if (resolvedName === undefined || !isStringLiteral(resolvedName)) {
     issues.push(issueAt(projectRoot, renderer, asset,
       "DATA_MESSAGE_UI_NAME_NOT_STATIC",
-      `Plugin "${asset.pluginId}" Data Message UI name must be a static string literal.`,
+      `Plugin "${asset.pluginId}" Data Message UI name must resolve to a string literal through immutable const declarations; dynamic expressions are not executed.`,
     ));
-  } else if (!isValidDataMessageUIName(nameNode.text)) {
+  } else if (!isValidDataMessageUIName(resolvedName.text)) {
     issues.push(issueAt(projectRoot, renderer, asset,
       "DATA_MESSAGE_UI_INVALID_NAME",
-      `Data Message UI name ${JSON.stringify(nameNode.text)} in plugin "${asset.pluginId}" must be nonempty and trimmed.`,
+      `Data Message UI name ${JSON.stringify(resolvedName.text)} in plugin "${asset.pluginId}" must be nonempty and trimmed.`,
     ));
   } else {
-    names.push(nameNode.text);
+    names.push(resolvedName.text);
   }
 }
 

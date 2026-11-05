@@ -1,0 +1,14 @@
+{
+  "id": "context-retrieval-message",
+  "name": "Context Retrieval Message",
+  "description": "Renders context retrieval results carried by AG-UI CUSTOM events.",
+  "version": "0.0.1",
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render context retrieval results inside assistant messages"
+    ]
+  }
+}

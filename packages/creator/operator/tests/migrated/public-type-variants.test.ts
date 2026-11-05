@@ -15,6 +15,21 @@ it("prioritizes domain declarations on native Windows and Unix paths without hid
   expect(prioritizePublicMembers(members as any).map(member => member.name)).toEqual(["maxLength", "onDismiss", "renderSlot", "onCopy"]);
 });
 
+it("locates a missing export in the exact installed public entry without inventing APIs", async () => {
+  const root = fileURLToPath(new URL("../../../", import.meta.url));
+  const inspected: any = await inspectPluginSharedTypes(root, ["defineDataMessageUI", "NeverAnActualExport"], "@za38.03/agent-ui-plugins/contracts");
+  expect(inspected.symbols[0]).toMatchObject({ status: "unavailable", moduleSuggestions: ["@za38.03/agent-ui-plugins"] });
+  expect(inspected.symbols[1].moduleSuggestions).toEqual([]);
+  const resolved: any = await inspectPluginSharedTypes(root, ["defineDataMessageUI"], inspected.symbols[0].moduleSuggestions[0]);
+  expect(resolved.queryResolution.status).toBe("complete");
+  const contract = JSON.parse(await readFile(fileURLToPath(new URL("../../../contracts/creator/operator.schema.json", import.meta.url)), "utf8"));
+  const ajv = new Ajv2020({ strict: false, validateFormats: false });
+  ajv.addSchema(JSON.parse(await readFile(fileURLToPath(new URL("../../../contracts/creator/app-ui-model-operation.schema.json", import.meta.url)), "utf8")));
+  ajv.addSchema(contract);
+  const validate = ajv.getSchema(`${contract.$id}#/$defs/pluginSharedTypesInspection`)!;
+  expect(validate(inspected), JSON.stringify(validate.errors)).toBe(true);
+}, 30_000);
+
 it("makes composer configuration discoverable and queries the installed Runtime without implementation access", async () => {
   const root = fileURLToPath(new URL("../../../", import.meta.url));
   const composer: any = await inspectPluginSharedTypes(root, ["ConversationComposerPlugin.$parameter0"], "@za38.03/agent-ui-plugins/composer");

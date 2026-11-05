@@ -46,10 +46,12 @@ const relay=createServer(async(req,res)=>{
   const headers=new Headers();
   for(const [key,value]of Object.entries(req.headers))if(value&&!['host','content-length','connection','transfer-encoding'].includes(key))headers.set(key,Array.isArray(value)?value.join(','):value);
   const response=await fetch(new URL(req.url!,upstream.origin),{method:req.method,headers,body,signal:controller.signal});
+  meta.headersSeconds=(Date.now()-Date.parse(meta.started))/1000;
   meta.status=response.status;
   res.writeHead(response.status,{'Content-Type':response.headers.get('content-type')??'text/event-stream'});
   const decoder=new TextDecoder();let pending='';
   for await(const chunk of response.body!){
+   meta.firstByteSeconds??=(Date.now()-Date.parse(meta.started))/1000;
    res.write(chunk);pending+=decoder.decode(chunk,{stream:true});let end;
    while((end=pending.indexOf('\n'))>=0){const line=pending.slice(0,end).trim();pending=pending.slice(end+1);if(line.startsWith('data: ')&&line!=='data: [DONE]')try{
     const value=JSON.parse(line.slice(6));if(value.usage)meta.usage=value.usage;if(value.model)meta.returnedModel=value.model;
@@ -57,6 +59,8 @@ const relay=createServer(async(req,res)=>{
     for(const choice of value.choices??[]){
      if(choice.finish_reason)meta.finishReason=choice.finish_reason;
      const delta=choice.delta??{};
+     if(typeof delta.reasoning_content==='string'&&delta.reasoning_content.length)meta.firstReasoningSeconds??=(Date.now()-Date.parse(meta.started))/1000;
+     if((typeof delta.content==='string'&&delta.content.length)||delta.tool_calls?.some((call:any)=>call.function?.name||call.function?.arguments))meta.firstUsefulOutputSeconds??=(Date.now()-Date.parse(meta.started))/1000;
      if(typeof delta.content==='string')meta.contentCharacters+=delta.content.length;
      if(typeof delta.reasoning_content==='string')meta.reasoningCharacters+=delta.reasoning_content.length;
      for(const call of delta.tool_calls??[]){let info=meta.responseToolCalls.find((item:any)=>item.index===(call.index??0));if(!info){info={index:call.index??0,name:'',argumentCharacters:0};meta.responseToolCalls.push(info);}if(call.id)info.id=call.id;if(call.function?.name)info.name+=call.function.name;if(typeof call.function?.arguments==='string')info.argumentCharacters+=call.function.arguments.length;}
@@ -70,9 +74,9 @@ const relay=createServer(async(req,res)=>{
 await new Promise<void>(resolve=>relay.listen(0,'127.0.0.1',resolve));
 Object.assign(process.env,env,{CREATOR_MODEL_BASE_URL:`http://127.0.0.1:${(relay.address()as any).port}${upstream.pathname.replace(/\/$/,'')}`,CREATOR_HOT_RELOAD:'0'});
 const packageRoots=Object.fromEntries(['core','renderer','runtime','plugins','web-component','creator'].map(name=>['@za38.03/agent-ui-'+name,path.join(repo,'packages',name)]));
-const creatorSource=Object.fromEntries(await Promise.all(['prompts.json','activity.ts','files/creatorFileState.ts','runner.ts','model-policy.ts','context-window.ts','evidence-progress.ts','working-context.ts','tools.ts','source-tools.ts'].map(async(file)=>[file,digest(await readFile(path.join(repo,'packages/creator/src/agent',file)))])));
+const creatorSource=Object.fromEntries(await Promise.all(['prompts.json','activity.ts','files/creatorFileState.ts','runner.ts','model-policy.ts','context-window.ts','evidence-progress.ts','working-context.ts','tools.ts','source-tools.ts','validation.ts','inspection.ts','plugin-directory.ts','documentation.ts','extra-tools.ts'].map(async(file)=>[file,digest(await readFile(path.join(repo,'packages/creator/src/agent',file)))])));
 const guidanceSource=Object.fromEntries(await Promise.all(['packages/creator/skills/ag-ui-frontend/SKILL.md','packages/creator/skills/ui-plugin-development/SKILL.md','packages/creator/skills/ui-plugin-development/references/authoring-contracts.md','website/docs/development/plugin-api.md'].map(async(file)=>[file,digest(await readFile(path.join(repo,file)))])));
-await json(path.join(out,'environment.json'),{created:new Date().toISOString(),caseId,label,creatorSource,guidanceSource,sourceCreator:process.env.AGENT_UI_TEST_SOURCE_CREATOR==='1',platform:process.platform,node:process.version,model:env.CREATOR_MODEL_NAME,providerFingerprint:digest(upstream.href),context:env.CREATOR_CONTEXT_MAX_TOKENS,keep:env.CREATOR_CONTEXT_KEEP_TOKENS,output:env.CREATOR_MODEL_MAX_TOKENS,summaryOutput:env.CREATOR_CONTEXT_SUMMARY_MAX_TOKENS??'8192 (implementation default)',timeout:env.CREATOR_MODEL_TIMEOUT_SECONDS,opencodeSessionHeader:env.CREATOR_MODEL_OPENCODE_SESSION_HEADER,prompt:original,packageRoots,scope:'Current checkout. Original scenario or explicitly recorded follow-up and seed source (see qa-input.json); freshly built local packages, not historical frozen distributions. Only new-Plugin start decisions are simulated in the disposable QA project. Takeover and dependency-install questions remain unapproved. 1200-second QA observation window; no cumulative Creator call or graph-step cap. Provider output telemetry records tool names and character counts only, never private reasoning text or tool argument bodies.'});
+await json(path.join(out,'environment.json'),{created:new Date().toISOString(),caseId,label,creatorSource,guidanceSource,sourceCreator:process.env.AGENT_UI_TEST_SOURCE_CREATOR==='1',frozenPackages:process.env.AGENT_UI_QA_FREEZE_PACKAGES==='1',platform:process.platform,node:process.version,model:env.CREATOR_MODEL_NAME,providerFingerprint:digest(upstream.href),context:env.CREATOR_CONTEXT_MAX_TOKENS,keep:env.CREATOR_CONTEXT_KEEP_TOKENS,output:env.CREATOR_MODEL_MAX_TOKENS,summaryOutput:env.CREATOR_CONTEXT_SUMMARY_MAX_TOKENS??'8192 (implementation default)',timeout:env.CREATOR_MODEL_TIMEOUT_SECONDS,opencodeSessionHeader:env.CREATOR_MODEL_OPENCODE_SESSION_HEADER,prompt:original,packageRoots,scope:'Current checkout. Original scenario or explicitly recorded follow-up and seed source (see qa-input.json); freshly built local packages, not historical frozen distributions. Only new-Plugin start decisions are simulated in the disposable QA project. Takeover and dependency-install questions remain unapproved. 1200-second QA observation window; no cumulative Creator call or graph-step cap. Provider output telemetry records tool names and character counts only, never private reasoning text or tool argument bodies.'});
 await json(pointer,{out,pid:process.pid,status:'starting'});
 await json(path.join(out,'qa-input.json'),{seedSource,seedPhase:seedAfterStartup?'after-ready-running-Creator':'before-workspace-selection',promptFile:promptFile?path.resolve(promptFile):null,scenarioPrompt,prompt:original});
 
@@ -85,7 +89,7 @@ let fixture:any,browser:any,page:any,started=0;
 const events:any[]=[],browserErrors:string[]=[],qaApprovals:any[]=[];
 let timedOut=false;
 try{
- fixture=await createConnectionHostFixture({liveModel:true,packageRoots,prepareHost:async(root:string)=>{
+ fixture=await createConnectionHostFixture({liveModel:true,packageRoots,packageSnapshotFile:path.join(out,'package-snapshot.json'),prepareHost:async(root:string)=>{
   await cp(seedAfterStartup?path.join(repo,'artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui'):seedSource,path.join(root,'src/agent-ui'),{recursive:true});
  },...(seedAfterStartup?{afterReadyHost:async(root:string)=>cp(seedSource,path.join(root,'src/agent-ui'),{recursive:true})}:{})});
  fixture.enableCors();

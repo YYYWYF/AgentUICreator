@@ -1,0 +1,30 @@
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/creator/operator
+
+ ❯ tests/migrated/operator-contract.test.ts (4 tests | 1 failed) 592ms
+     × turns a producer contract failure into a bounded Host error 41ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/migrated/operator-contract.test.ts > Operator canonical wire contract > turns a producer contract failure into a bounded Host error
+Error: ENOENT: no such file or directory, lstat '/Users/yifei/Coding/AgentUICreator/packages/plugins/resources/registry/items/plugin/copy-action/files/plugins/copy-action/index.tsx'
+ ❯ tests/support/generated-project.ts:22:7
+     20|     for (const [target, source] of Object.entries(files)) {
+     21|       await mkdir(path.dirname(path.join(root, target)), { recursive: …
+     22|       await cp(path.join(repositoryRoot, source), path.join(root, targ…
+       |       ^
+     23|       // Registry targets are relative to the configured Agent UI sour…
+     24|       // Keep legacy fixture paths above, and materialize the canonica…
+ ❯ tests/migrated/operator-contract.test.ts:59:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 37 passed (38)
+   Start at  15:30:48
+   Duration  35.48s (transform 1.51s, setup 66ms, import 3.11s, tests 28.81s, environment 2.43s)
+
+undefined
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run --root operator --config vitest.config.ts tests/data-message-ui-analysis.test.ts tests/migrated/public-type-variants.test.ts tests/migrated/plugin-registry-generator.test.ts tests/migrated/registry-line-endings.test.ts tests/migrated/operator-contract.test.ts --maxWorkers=1

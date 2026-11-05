@@ -103,7 +103,7 @@ Plugin needs capability X
 7. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
    Import a Plugin stylesheet once. For ordinary action buttons, use the
    project's inspected public Button facade when one exists.
-8. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
+8. Default-export the definition for source discovery. The generated Runtime catalog contains AppUIModel-selected Plugins; a newly authored but unselected Plugin is intentionally absent. Do not spread a template catalog into the production registry.
 9. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
 10. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
 11. Add exactly one AppUIPluginNode through `mutate_app_ui_model`. When an
@@ -225,12 +225,15 @@ delivery from those facts at the current revision. `static_only` cannot establis
 Runtime or interaction success. Missing placement or verification leaves a blocked
 receipt naming saved changes and the last successful stage.
 
-For declared interactions, the Host tool `verify_ui_plugin_behavior` runs the
+When the Host enables project Playwright verification, `verify_ui_plugin_behavior` runs the
 project's installed Playwright configuration. Test titles must exactly match
 `[delivery:<pluginId>] <interaction>`; use `runtime` when the browser-test method has
 no interaction list. Every required test must pass without skips or flaky retries.
 Reuse existing test infrastructure and respect the writable project boundary;
 if tests/configuration cannot be supplied within that boundary, report the blocker.
+When disabled, the tool is absent and delivery records `interaction: not-run` /
+`interactionPolicy: disabled`; no browser-test blocker or infrastructure repair
+is required. Static checks and the selected Runtime policy remain in effect.
 Do not replace an absent browser test with a model-written PASS claim. Composer
 adapters require send, stop, attachment add/remove/attachment-only send, and draft
 parity for the capabilities already enabled in the target project.

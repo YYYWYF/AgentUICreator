@@ -22,7 +22,7 @@ import { readCreatorFileState as fileState, replaceCreatorFileAtomically, create
 import { logicalProjectPath as logical, resolveReadPath as readPath, readProjectFile } from "./project-read.js";
 import { editContextInput, inspectEditingContext, rememberInspectedPlugin } from "./edit-context.js";
 import { editingProjectIdentity, rememberProjectTargets, type EditingSelection, type EditingTarget } from "./editing-session.js";
-import { inspectProject, projectCheckIdentity, projectInspectionSummary, runtimeObservationNavigation } from "./inspection.js";
+import { inspectProject, pluginInspectionSummary, projectCheckIdentity, projectInspectionSummary, runtimeObservationNavigation } from "./inspection.js";
 import { editReadLines } from "./line-edit.js";
 import { checkCreatorPostconditions, creatorPostconditions, type CreatorPostcondition } from "./outcome.js";
 import { assertExecutionOpen, assertRemovalScope, assertInstanceRetention, cancelExecution, removalInstanceIds, type RemovalTarget } from "./execution-decision.js";
@@ -179,14 +179,15 @@ export async function createTools(context: ToolContext) {
   for (const operation of operations.filter(item => item.agentExposed)) {
     const schema = operation.name === "inspect_ui_project"
       ? z.object({ view: z.literal("composition").optional(), detail: z.enum(["summary", "full"]).optional() })
+      : operation.name === "inspect_ui_plugin" ? { ...inputSchema(operation), properties: { ...inputSchema(operation).properties, detail: { type: "string", enum: ["summary", "full"] } } }
       : operation.name === "takeover_plugin_source" ? z.object({ pluginId: z.string().min(1).max(100) })
       : inputSchema(operation);
     // planHash and cancellation are Host-owned Operator inputs, not prerequisites
     // for the model to reach the real takeover question.
     const acceptsCancellation = JSON.stringify(inputSchema(operation)).includes('"cancelMarker"');
     add(operation.name, descriptions[operation.name] ?? `Use the authoritative target Operator operation ${operation.name}. Use exact returned identities, paths and hashes.`, schema, async input => {
-      const detail = operation.name === "inspect_ui_project" ? input.detail : undefined;
-      if (operation.name === "inspect_ui_project") { const { detail: _detail, ...operatorInput } = input; input = operatorInput; }
+      const detail = ["inspect_ui_project", "inspect_ui_plugin"].includes(operation.name) ? input.detail : undefined;
+      if (["inspect_ui_project", "inspect_ui_plugin"].includes(operation.name)) { const { detail: _detail, ...operatorInput } = input; input = operatorInput; }
       const mutation = operation.kind !== "read";
       if (mutation && context.readOnly) throw new Error("TOOL_PERMISSION_DENIED");
       if ((context.removalTarget?.status === "resolved" || context.pluginNames) && ["purge_ui_plugin", "mutate_app_ui_model"].includes(operation.name)) {
@@ -237,7 +238,9 @@ export async function createTools(context: ToolContext) {
       if (operation.name === "inspect_ui_project") await rememberProjectTargets(context, result);
       if (operation.name === "inspect_ui_project" && context.verificationMode === "static_and_runtime") result = { ...result, runtimeObservation: runtimeObservationNavigation(result) };
       if (["inspect_ui_project", "inspect_app_ui_model", "inspect_app_ui_model_source"].includes(operation.name)) context.groups.add("composition");
-      return operation.name === "inspect_ui_project" && detail !== "full" ? projectInspectionSummary(result) : result;
+      if (operation.name === "inspect_ui_project" && detail !== "full") return projectInspectionSummary(result);
+      if (operation.name === "inspect_ui_plugin" && detail !== "full" && !input.sharedModule && !input.sharedSymbols?.length) return pluginInspectionSummary(result, input.pluginId);
+      return result;
     });
   }
   add("enable_creator_tools", "Expose tool schemas for subsequent calls. Discovery never grants write permission.", z.object({ groups: z.array(z.enum(["composition", "plugin_authoring", "services", "integration", "debugging", "history"])) }), input => { for (const group of input.groups) context.groups.add(group); return { enabledGroups: [...context.groups] }; });

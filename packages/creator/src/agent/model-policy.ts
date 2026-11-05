@@ -5,10 +5,14 @@ export function isJsonSchemaUnsupported(error: unknown): boolean {
   const failure = error as { status?: unknown; statusCode?: unknown; message?: unknown } | null;
   const message = String(failure?.message ?? "");
   const status = Number(failure?.status ?? failure?.statusCode ?? 0);
+  // Called only for the router's schema request. Some compatible gateways name
+  // neither response_format nor JSON Schema in their explicit feature rejection.
+  // The one-time JSON-object fallback still uses the same local route validator.
+  const featureUnsupported = [400, 422].includes(status) && /\[invalid_request_error\]/iu.test(message) && /\bthis feature is not yet supported\b/iu.test(message);
   return ([400, 422].includes(status) &&
     /response_format|json_schema|structured.{0,12}output/iu.test(message) &&
     /unsupported|not supported|not support|invalid.{0,30}(?:format|schema)|does not support/iu.test(message)) ||
-    /^(?:Streaming response failed:\s*)?\[(?:400|422)\] Grammar error: Unimplemented keys:\s*\[[^\r\n]+\]\s*$/u.test(message);
+    /^(?:Streaming response failed:\s*)?\[(?:400|422)\] Grammar error: Unimplemented keys:\s*\[[^\r\n]+\]\s*$/u.test(message) || featureUnsupported;
 }
 
 export function retryKind(error: unknown): "short" | "fresh" | undefined {

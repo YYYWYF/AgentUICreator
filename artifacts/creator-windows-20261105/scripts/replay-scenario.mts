@@ -28,7 +28,7 @@ if(process.argv.includes('--check')){
 const {chromium}=createRequire(path.join(repo,'apps/creator-workbench/package.json'))('@playwright/test');
 let fixture:any,browser:any;const result:any={scope:'Independent replay of unchanged model-generated source. No new model call or source repair. Creator preview explicitly connected to the controlled AG-UI test endpoint through the existing connection API.',source:latest.out};
 try{
- fixture=await createConnectionHostFixture({projectChecks:true,prepareHost:async(root:string)=>{await cp(path.join(latest.out,'host/src/agent-ui'),path.join(root,'src/agent-ui'),{recursive:true});}});
+ fixture=await createConnectionHostFixture({projectChecks:true,packageSnapshotFile:path.join(out,'package-snapshot.json'),prepareHost:async(root:string)=>{await cp(path.join(latest.out,'host/src/agent-ui'),path.join(root,'src/agent-ui'),{recursive:true});}});
  fixture.enableCors();
  await writeFile(path.join(fixture.hostRoot,'src/main.tsx'),'import {createRoot} from "react-dom/client";import {Agent} from "./agent-ui";import "./host.css";createRoot(document.getElementById("root")!).render(<Agent endpoint={'+JSON.stringify(fixture.agentEndpoint)+'}/>);');
  fixture.refreshHostEntry();

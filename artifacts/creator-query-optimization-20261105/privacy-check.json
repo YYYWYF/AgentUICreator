@@ -1,0 +1,5 @@
+{
+  "status": "passed",
+  "files": 1731,
+  "scope": "Exact configured API-key/token matches and private configuration filenames only; not a general secret audit."
+}

@@ -86,7 +86,18 @@ export async function inspectPluginSharedTypes(projectRoot: string, names: reado
     const filePath = resolveSharedDeclaration(packageRoot, declaration);
     const realRelative = path.relative(await realpath(packageRoot), await realpath(filePath));
     if (realRelative === ".." || realRelative.startsWith(`..${path.sep}`) || path.isAbsolute(realRelative)) throw new Error("Declaration symlink escapes installed package");
-    const snapshot = api.updateSnapshot({ openFiles: [filePath] });
+    // Search only real public entry declarations from this exact installation.
+    // Root/contracts/ui cover common API families; other subpaths remain explicit.
+    const declarationFiles = new Map<string, string>([[publicModule, filePath]]);
+    for (const key of [".", "./contracts", "./ui"]) {
+      const types = pkg.exports?.[key]?.types;
+      if (typeof types !== "string") continue;
+      const candidate = resolveSharedDeclaration(packageRoot, types);
+      const relative = path.relative(packageRoot, await realpath(candidate));
+      if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error("Declaration symlink escapes installed package");
+      declarationFiles.set(key === "." ? pkg.name : pkg.name + "/" + key.slice(2), candidate);
+    }
+    const snapshot = api.updateSnapshot({ openFiles: [...declarationFiles.values()] });
     try {
       const project = snapshot.getDefaultProjectForFile(filePath);
       const file = project?.program.getSourceFile(filePath);
@@ -96,6 +107,11 @@ export async function inspectPluginSharedTypes(projectRoot: string, names: reado
       const module = checker.getSymbolAtLocation(file);
       if (!module) throw new Error("Public declaration has no module");
       const exports = checker.getExportsOfModule(module);
+      const exportIndex = [...declarationFiles].flatMap(([name, filePath]) => {
+        const project = snapshot.getDefaultProjectForFile(filePath), file = project?.program.getSourceFile(filePath);
+        const symbol = file && project?.checker.getSymbolAtLocation(file);
+        return symbol && project ? [{ module: name, names: new Set(project.checker.getExportsOfModule(symbol).map(item => item.name)) }] : [];
+      });
       const words = (name: string) => name.replace(/([a-z0-9])([A-Z])/gu, "$1 $2").toLowerCase().split(/[^a-z0-9]+/u).filter(Boolean);
       const suggestions = (name: string) => {
         const requested = new Set(words(name).filter(word => !["agent", "ui"].includes(word)));
@@ -114,7 +130,9 @@ export async function inspectPluginSharedTypes(projectRoot: string, names: reado
         let symbol = exports.find(item => item.name === root);
         if (!symbol) return { name, status: "unavailable", reason: `Not exported by installed module ${publicModule}`,
           exportedNameSuggestions: suggestions(root ?? ""),
-          nextEvidence: "Suggestions are actual exports, not equivalent APIs. Compound members appear on the resolved parent export; other modules are not searched." };
+          moduleSuggestions: exportIndex.filter(entry => entry.module !== publicModule && entry.names.has(root ?? "")).map(entry => entry.module),
+          moduleSearch: { checkedModules: exportIndex.map(entry => entry.module), coverage: "requested module and installed root/contracts/ui declarations; other subpaths are not searched" },
+          nextEvidence: "Name suggestions are actual exports, not equivalent APIs. Module suggestions contain the exact requested root export in this installed version; repeat the query with that sharedModule. Compound members appear on the resolved parent export." };
         if (symbol.flags & SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
         let type = symbol.flags & (SymbolFlags.Interface | SymbolFlags.TypeAlias)
           ? checker.getDeclaredTypeOfSymbol(symbol) : checker.getTypeOfSymbol(symbol);

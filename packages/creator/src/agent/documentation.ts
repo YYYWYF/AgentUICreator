@@ -15,7 +15,7 @@ const pageSize = 8, tocSize = 32;
 const metadata = (document: DocumentEntry) => ({ documentId: document.id, title: document.title, source: document.source,
   topic: document.topic, path: document.path, summary: document.summary, sha256: document.sha256 });
 const nextRead = (documentId: string, sectionId?: string) => ({ tool: "read_creator_documentation", input: {
-  action: "read", documentId, ...(sectionId ? { sectionId } : {}),
+  action: "read" as const, documentId, ...(sectionId ? { sectionId } : {}),
 } });
 
 async function resource(root: string, name: string) {
@@ -67,6 +67,12 @@ export async function readCreatorDocumentation(input: DocumentationInput = {}, d
     return bytes.toString("utf8");
   }
   if ((input.action ?? "index") === "index") {
+    if (input.topic && !documents.some(document => document.topic === input.topic && (!input.source || document.source === input.source))) {
+      const { topic: _topic, ...retry } = input;
+      return { ...base, status: "invalid_filter", reason: "The topic does not exist in the selected source; this is not evidence that the requested documentation is absent.",
+        requestedTopic: input.topic, availableTopics: [...new Set(documents.filter(document => !input.source || document.source === input.source).map(document => document.topic))].sort(),
+        nextRead: { tool: "read_creator_documentation", input: { ...retry, offset: 0 } } };
+    }
     const filtered = documents.filter(document => (!input.source || document.source === input.source) && (!input.topic || document.topic === input.topic));
     if (!input.query?.trim() && !input.source && !input.topic) {
       const topics = new Map<string, { source: string; topic: string; count: number }>();
@@ -142,7 +148,7 @@ export async function readCreatorDocumentation(input: DocumentationInput = {}, d
     ...(children.length ? { childSections: children.slice(0, tocSize).map(entry => ({ sectionId: entry.id, title: entry.title, level: entry.level, nextRead: nextRead(document.id, entry.id) })),
       ...(children.length > tocSize ? { moreSections: { tool: "read_creator_documentation", input: { action: "read", documentId: document.id, offset: sectionIndex + 1 + tocSize } } } : {}) } : {}),
     content: content.slice(offset, end), nextOffset,
-    ...(nextOffset === null ? {} : { nextRead: { tool: "read_creator_documentation", input: { action: "read", documentId: document.id, sectionId: section.id, offset: nextOffset, limit } } }) };
+    ...(nextOffset === null ? {} : { nextRead: { tool: "read_creator_documentation", input: { action: "read" as const, documentId: document.id, sectionId: section.id, offset: nextOffset, limit } } }) };
 }
 
 /** Small navigation hints in an editing bundle; article bodies remain on demand. */
