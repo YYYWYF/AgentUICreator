@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
 import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, sealStaticWebsite, verifyDocumentation, verifyStaticWebsite } from './creator-documentation.mjs';
 import { packageRepository } from './package-repository.mjs';
@@ -119,6 +120,32 @@ test('clean intranet packaging copies static pages without documentation tooling
   assert.match(await readFile(path.join(destination, 'images/example.svg'), 'utf8'), /<svg/u);
 });
 
+function zipEntries(zip) {
+  const entries = new Map();
+  let offset = 0;
+  while (zip.readUInt32LE(offset) === 0x04034b50) {
+    const size = zip.readUInt32LE(offset + 18), nameLength = zip.readUInt16LE(offset + 26), extra = zip.readUInt16LE(offset + 28);
+    const name = zip.subarray(offset + 30, offset + 30 + nameLength).toString('utf8');
+    const start = offset + 30 + nameLength + extra;
+    entries.set(name, inflateRawSync(zip.subarray(start, start + size)));
+    offset = start + size;
+  }
+  return entries;
+}
+
+async function copyIntranetAssets(root) {
+  const creator = path.join(root, 'packages/creator');
+  for (const name of ['src/ui/creator-workbench.css', 'src/ui/components/creator-ui.css', 'src/ui/components/LICENSE.md', 'src/ui/setup/creator-project-setup.css', 'src/agent/prompts.json', 'dist/cli.js']) {
+    const file = path.join(creator, name);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, name.endsWith('.json') ? '{}' : '// prepared asset');
+  }
+  await mkdir(path.join(creator, 'scripts'), { recursive: true });
+  await cp(new URL('../packages/creator/scripts/copy-assets.mjs', import.meta.url), path.join(creator, 'scripts/copy-assets.mjs'));
+  const result = spawnSync(process.execPath, ['scripts/copy-assets.mjs'], { cwd: creator, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+}
+
 test('static-only ZIP preserves Creator identity and repackages without website tooling', async t => {
   const { root } = await handoffFixture(t);
   const identity = await documentationIdentity(root);
@@ -133,16 +160,7 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   await prepareDocumentation(root);
   const output = path.join(root, 'transfer.zip');
   await packageRepository(root, output);
-  const zip = await readFile(output);
-  const entries = new Map();
-  let offset = 0;
-  while (zip.readUInt32LE(offset) === 0x04034b50) {
-    const size = zip.readUInt32LE(offset + 18), nameLength = zip.readUInt16LE(offset + 26), extra = zip.readUInt16LE(offset + 28);
-    const name = zip.subarray(offset + 30, offset + 30 + nameLength).toString('utf8');
-    const start = offset + 30 + nameLength + extra;
-    entries.set(name, inflateRawSync(zip.subarray(start, start + size)));
-    offset = start + size;
-  }
+  const entries = zipEntries(await readFile(output));
   const prefix = path.basename(root);
   assert.equal(entries.get(`${prefix}/website/static/app.js`).toString(), 'console.log("本地文档");');
   assert(entries.has(`${prefix}/website/index.html`));
@@ -159,10 +177,80 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   }
   const transferred = path.join(extracted, prefix);
   await rm(path.join(transferred, 'packages/creator/dist'), { recursive: true });
-  await prepareDocumentation(transferred);
-  await prepareDocumentation(transferred, true);
-  await writeFile(path.join(transferred, 'website/static/app.js'), 'tampered');
-  await assert.rejects(prepareDocumentation(transferred), /mismatch/u);
+  await rm(path.join(transferred, 'website'), { recursive: true });
+  await rm(path.join(transferred, 'scripts'), { recursive: true });
+  await copyIntranetAssets(transferred);
+  await verifyDocumentation(path.join(transferred, 'packages/creator/dist/documentation'), { version: '1.2.3' });
+});
+
+test('source packaging builds a complete static website for repository and standalone ZIPs', async t => {
+  for (const websiteOnly of [false, true]) await t.test(websiteOnly ? 'website only' : 'repository', async t => {
+    const { root } = await handoffFixture(t);
+    if (websiteOnly) {
+      await rm(path.join(root, 'artifacts'), { recursive: true });
+      await rm(path.join(root, 'packages'), { recursive: true });
+    }
+    await writeFile(path.join(root, 'website/package.json'), JSON.stringify({ type: 'module', scripts: { build: 'node build.mjs' } }));
+    await writeFile(path.join(root, 'website/build.mjs'), `
+      import { mkdir, writeFile } from 'node:fs/promises';
+      const files = ${JSON.stringify({
+        'index.html': '<html><script src="/static/app.js"></script><img src="/images/界面.svg"/></html>',
+        'static/app.js': 'fetch("/static/search.json");',
+        'static/search.json': '{"local":true}',
+        'images/界面.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>',
+        'guide/start.md': '# Start\nOffline instructions.',
+        'llms.txt': '## Getting started\n- [Start](/guide/start.md): Offline instructions.',
+        'llms-full.txt': '# Full documentation',
+      })};
+      for (const [name, content] of Object.entries(files)) {
+        const target = new URL('./doc_build/' + name, import.meta.url);
+        await mkdir(new URL('./', target), { recursive: true });
+        await writeFile(target, content);
+      }
+    `);
+    await mkdir(path.join(root, 'website/theme'), { recursive: true });
+    await writeFile(path.join(root, 'website/theme/index.tsx'), '// source only');
+    await writeFile(path.join(root, 'website/pnpm-lock.yaml'), 'compiler dependencies');
+    const output = path.join(root, '文档 transfer.zip');
+    await packageRepository(root, output, { websiteOnly });
+    const entries = zipEntries(await readFile(output));
+    const prefix = websiteOnly ? '' : `${path.basename(root)}/`;
+    const websiteEntries = [...entries.keys()].filter(name => name.startsWith(`${prefix}website/`));
+    const manifest = await verifyStaticWebsite(path.join(root, 'website/doc_build'));
+    assert.deepEqual(websiteEntries.sort(), [...manifest.files.map(file => `${prefix}website/${file.path}`), `${prefix}website/agent-ui-static-site.json`].sort());
+    assert.equal(entries.get(`${prefix}website/static/search.json`).toString(), '{"local":true}');
+    assert.match(entries.get(`${prefix}website/images/界面.svg`).toString(), /<svg/u);
+    assert([...entries.keys()].every(name => !name.includes('\\')));
+    assert([...entries.keys()].every(name => !/website\/(?:package\.json|pnpm-lock\.yaml|build\.mjs|docs\/|theme\/|doc_build\/|node_modules\/)/u.test(name)));
+    assert.equal(entries.has(`${prefix}artifacts/creator-documentation/index.json`), !websiteOnly);
+    if (websiteOnly) {
+      assert.equal(entries.size, websiteEntries.length);
+      await assert.rejects(readFile(path.join(root, 'artifacts/creator-documentation/index.json')), { code: 'ENOENT' });
+    }
+    assert.match(await readFile(path.join(root, 'website/theme/index.tsx'), 'utf8'), /source only/u);
+    assert.match(await readFile(path.join(root, 'website/docs/index.md'), 'utf8'), /Source/u);
+  });
+});
+
+test('intranet ZIP packaging copies plain static files without manifests, Creator handoff or website tooling', async t => {
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), 'website only 中文 ')));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(path.join(root, 'website'));
+  await writeFile(path.join(root, 'website/index.html'), '<html>Static</html>');
+  await mkdir(path.join(root, 'scripts'));
+  const entry = path.join(root, 'scripts/package-repository.mjs');
+  await cp(new URL('./package-repository.mjs', import.meta.url), entry);
+  const output = path.join(root, 'static.zip');
+  let result = spawnSync(process.execPath, [entry, '--website-only', output], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const entries = zipEntries(await readFile(output));
+  assert.equal(entries.get('website/index.html').toString(), '<html>Static</html>');
+  assert([...entries.keys()].every(name => name.startsWith('website/')));
+  await writeFile(path.join(root, 'website/index.html'), '<html>Updated on intranet</html>');
+  result = spawnSync(process.execPath, [entry, output], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const repository = zipEntries(await readFile(output));
+  assert.equal(repository.get(`${path.basename(root)}/website/index.html`).toString(), '<html>Updated on intranet</html>');
 });
 
 test('static website rejects missing assets and tooling instead of transferring an incomplete site', async t => {
@@ -179,7 +267,7 @@ test('static website rejects missing assets and tooling instead of transferring 
   await assert.rejects(sealStaticWebsite(directory, records), /Website tooling/u);
 });
 
-test('packaging fails for missing, tampered or stale handoff rather than skipping documentation', async t => {
+test('explicit external snapshot audit rejects missing, tampered or stale handoff', async t => {
   const { root, source } = await handoffFixture(t);
   await writeFile(path.join(source, 'guide/start.md'), '# Tampered');
   await assert.rejects(prepareDocumentation(root), /handoff is missing, stale or invalid/u);

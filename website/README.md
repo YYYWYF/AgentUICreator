@@ -21,12 +21,6 @@ From the repository root:
 ```sh
 pnpm docs:install
 pnpm docs:dev
-pnpm docs:build
-pnpm --dir website check:docs --built
-pnpm docs:preview
-pnpm docs:package
-pnpm docs:check
-pnpm test:documentation
 ```
 
 `docs:dev` binds to `127.0.0.1`; open `http://127.0.0.1:3000/` (or the port
@@ -54,6 +48,19 @@ external CDN or real Agent endpoint for the documentation to be readable offline
 Interactive examples need descriptive text/code for their Markdown representation.
 SSG-MD is experimental and its generated output must be checked when upgrading.
 
+For a standalone intranet deployment ZIP, run `pnpm docs:zip` from the repository
+root (or `pnpm docs:zip /path/to/website.zip` for a custom destination). It rebuilds
+and verifies the site in the external source checkout, then writes
+`../AgentUIWebsite.zip`. An intranet transfer already contains static files and
+is packaged as-is without loading website scripts or checking a site manifest.
+The archive contains
+only a deployable `website/` directory with HTML, browser assets, local search,
+Markdown, text indexes and `DEPLOY.txt`; no repository source or npm dependencies
+are included, and no Creator offline documentation is generated. Copy the
+contents of `website/` to the static server's site root.
+`pnpm package:repo` continues to package the repository with the same static-only
+`website/` replacement. Both commands leave the working website source intact.
+
 `website/` has its own workspace and lockfile. Root `pnpm install` and product
 builds do not install or invoke Rspress/Rspack. Only documentation
 builders run `docs:install`; the site's existing React resolution is pinned
@@ -67,7 +74,7 @@ and file hashes. It also stages a copy under `packages/creator/dist/documentatio
 To prepare documentation for release packaging:
 
 1. In the documentation build environment, finish documentation and package metadata changes,
-   then run `pnpm docs:install` and `pnpm docs:package`.
+   then run `pnpm docs:install`.
 2. Run `pnpm package:repo` to create `../AgentUICreator.zip` (or pass an output
    path: `pnpm package:repo /path/to/transfer.zip`). It rebuilds and verifies the
    documentation before writing the archive. In the ZIP, `website/` contains
@@ -77,20 +84,20 @@ To prepare documentation for release packaging:
    `artifacts/creator-documentation/` is included for Creator builds and must
    remain with the transferred repository. A Git checkout alone lacks this
    ignored handoff. An extracted transfer can be repackaged without Rspress.
-3. In the package build environment, run the normal root dependency install and `pnpm build:package`.
-   Creator build/prepack validates and copies the handoff into its fresh `dist/`;
-   it never runs a documentation compiler. `pnpm docs:check` verifies both the
-   handoff and the staged package copy. Publish preparation performs the same
-   checks without rebuilding documentation.
-4. Run `pnpm verify:package`; it verifies documentation inside the actual Creator
-   tarball, including file hashes and the package version.
+3. In the intranet package build environment, run the normal root dependency
+   install and `pnpm build:package`. Creator's existing asset-copy step copies
+   `artifacts/creator-documentation/` into its fresh `dist/documentation/`.
+   Install, build, prepack and publish do not load the website compiler, inspect
+   website sources or run website freshness/hash checks.
+4. `pnpm verify:package` exercises the packaged Creator documentation reader
+   along with the public package consumers; it does not use website tooling.
 
-Missing, modified or outdated documentation fails packaging with instructions
-to regenerate in the documentation build environment; it is never silently omitted. Root/website lockfiles
-are excluded from the documentation source digest so mirror-specific resolution
-or lockfile omission during transfer does not invalidate the static content.
-Changing documentation source or any public package manifest requires a new
-documentation snapshot. `artifacts/` survives Creator's `dist/` cleanup.
+The prepared Creator documentation directory must accompany the transfer so it
+can be copied like other package assets. Intranet builds do not regenerate it.
+Use `pnpm docs:package`, `pnpm docs:check` and `pnpm test:documentation` only in
+the external documentation build environment to prepare or audit snapshots.
+Root `pnpm test` does not run those website checks. `artifacts/` survives
+Creator's `dist/` cleanup.
 
 For intranet deployment, copy the ZIP's entire `website/` directory to an existing
 static server's site root and follow `website/DEPLOY.txt`. No Node.js, pnpm or
@@ -99,10 +106,9 @@ HTTP/HTTPS; opening HTML with `file://` is unsupported. Enable `index.html` as
 the directory default and resolve extensionless article URLs to their `.html`
 files. The default base is `/`, so deploy as a dedicated site; subpath deployment
 requires rebuilding externally with the appropriate Rspress `base`.
-`agent-ui-static-site.json` records original website source hashes and all static
-file hashes so Creator packaging still verifies the handoff after website source
-is omitted. Keep it unchanged. To edit website content, return to the external
-source checkout, rebuild and transfer a new ZIP.
+`agent-ui-static-site.json` is external-build audit metadata. Intranet deployment,
+project builds and ZIP repackaging do not require or validate it. To edit website
+content, return to the external source checkout, rebuild and transfer a new ZIP.
 
 The installed Creator package reads neither this repository nor a live website.
 The search/read tool for consuming its snapshot is a separate future task.

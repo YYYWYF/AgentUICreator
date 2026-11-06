@@ -117,13 +117,13 @@
     "docs/images/*.jpg"
   ],
   "scripts": {
-    "build": "node ../../scripts/sync-package-release-metadata.mjs creator && node operator/scripts/build.mjs && node scripts/clean-dist.mjs && node scripts/copy-operator-assets.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator && node ../../scripts/creator-documentation.mjs",
+    "build": "node ../../scripts/sync-package-release-metadata.mjs creator && node operator/scripts/build.mjs && node scripts/clean-dist.mjs && node scripts/copy-operator-assets.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
     "test": "vitest run && node ../../scripts/run-plugin-source-views-check.mjs operator-test",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs creator && node ../../scripts/creator-documentation.mjs",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs creator && node scripts/copy-assets.mjs",
     "test:operator": "node ../../scripts/run-plugin-source-views-check.mjs operator-test",
     "typecheck:operator": "node ../../scripts/run-plugin-source-views-check.mjs operator-typecheck",
-    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs creator --publish && node ../../scripts/creator-documentation.mjs --check"
+    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs creator --publish"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.3",

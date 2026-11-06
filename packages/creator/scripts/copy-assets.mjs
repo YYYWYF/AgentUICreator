@@ -30,3 +30,8 @@ await mkdir(new URL("../dist/agent/", import.meta.url), { recursive: true });
 await copyFile(new URL("../src/agent/prompts.json", import.meta.url), new URL("../dist/agent/prompts.json", import.meta.url));
 const { cp } = await import("node:fs/promises");
 await cp(new URL("../contracts/", import.meta.url), new URL("../dist/contracts/", import.meta.url), { recursive: true });
+
+// Prepared on the external documentation build machine. Intranet builds copy
+// these static assets without reading website sources or running its tooling.
+await rm(new URL("../dist/documentation/", import.meta.url), { recursive: true, force: true });
+await cp(new URL("../../../artifacts/creator-documentation/", import.meta.url), new URL("../dist/documentation/", import.meta.url), { recursive: true });

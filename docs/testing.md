@@ -25,6 +25,8 @@ pnpm typecheck
 
 按修改范围使用对应包的 `test`，或通过 `exec vitest run` 指定一个现有主流程文件。内部 Operator 使用 Creator 的 `test:operator`。本地测试和构建通过，不代表浏览器视觉或真实 Windows 已验收。
 
+website 源码与文档快照检查通过外网环境中的 `pnpm test:documentation` 和 `pnpm test:locale-reference` 显式运行，不接入内网的安装、构建、打包或根 `pnpm test`。内网只部署静态网站；Creator 的离线文档作为已准备的静态资源随包拷贝。
+
 ## 专项验证
 
 - `pnpm verify:package`：实际 tarball、公开入口与独立消费者。

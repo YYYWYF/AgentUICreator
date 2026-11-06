@@ -107,7 +107,7 @@ export async function sealStaticWebsite(directory, sourceRecords) {
 无需安装 Node.js、pnpm、Rspress 或 website 的任何 npm 依赖；搜索使用本地资源。
 Markdown、llms.txt、llms-full.txt 是静态文档资源，请直接返回原文件。
 agent-ui-static-site.json 是交接校验信息，请保留，勿手工修改构建产物。
-Creator 使用的离线文档另存于仓库 artifacts/creator-documentation/，请一起保留。
+仓库交接包另含 artifacts/creator-documentation/，供 Creator 构建时使用，请随仓库保留；单独部署本静态网站无需该目录。
 `);
   const files = [];
   for (const name of await filesUnder(directory)) {
@@ -116,7 +116,7 @@ Creator 使用的离线文档另存于仓库 artifacts/creator-documentation/，
     files.push({ path: name, bytes: bytes.length, sha256: hash(bytes) });
   }
   await writeFile(path.join(directory, staticWebsiteManifest), `${JSON.stringify({ schemaVersion: 1, sourceRecords, files }, null, 2)}\n`);
-  await verifyStaticWebsite(directory);
+  return verifyStaticWebsite(directory);
 }
 
 export async function documentationIdentity(root) {
@@ -172,16 +172,20 @@ export async function verifyDocumentation(directory, expected = {}) {
   return index;
 }
 
-export async function generateDocumentation(root = repositoryRoot) {
-  const destination = path.join(root, 'artifacts/creator-documentation');
-  const identity = await documentationIdentity(root);
+export async function buildStaticWebsite(root = repositoryRoot) {
   const websiteSources = await websiteSourceRecords(root);
   const result = spawnPnpmSync(['build'], { cwd: path.join(root, 'website'), stdio: 'inherit' });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`Documentation build failed (${result.status})`);
-  assert.deepEqual(await documentationIdentity(root), identity, 'Documentation source changed while building; retry');
-  const output = path.join(root, 'website/doc_build');
-  await sealStaticWebsite(output, websiteSources);
+  const directory = path.join(root, 'website/doc_build');
+  return { directory, manifest: await sealStaticWebsite(directory, websiteSources) };
+}
+
+export async function generateDocumentation(root = repositoryRoot) {
+  const destination = path.join(root, 'artifacts/creator-documentation');
+  const identity = await documentationIdentity(root);
+  const website = await buildStaticWebsite(root);
+  const output = website.directory;
   await mkdir(path.dirname(destination), { recursive: true });
   const staging = await mkdtemp(path.join(path.dirname(destination), '.documentation-'));
   try {
@@ -220,6 +224,7 @@ export async function generateDocumentation(root = repositoryRoot) {
   } finally {
     await rm(staging, { recursive: true, force: true });
   }
+  return website;
 }
 
 // Build/prepack consumes an already generated, portable snapshot. Never launches

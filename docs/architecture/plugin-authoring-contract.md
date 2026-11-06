@@ -146,8 +146,8 @@ Direct Base UI Dialog, Popover, Tooltip, or Sheet imports in Plugin source
 produce `PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED`; use the corresponding
 `@za38.03/agent-ui-plugins` facade.
 
-The browser acceptance gate is `pnpm verify:style-isolation` (also available as
-`pnpm test:style-isolation`). CI runs it for Agent UI changes. It checks Host
+The browser acceptance gate is `pnpm verify:style-isolation`, including
+`pnpm test:web-component`. CI runs it for Agent UI changes. It checks Host
 probe stability, ordinary Host reset isolation, themed Tooltip/Popover/Dialog
 Portals, dark variants, and the public Dialog container boundary.
 

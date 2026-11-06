@@ -3,11 +3,10 @@ import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
-import { verifyDocumentation } from "./creator-documentation.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const consumer = await realpath(await mkdtemp(path.join(tmpdir(), "agent-ui independent packages 中文 ")));
 const manifests = {};
@@ -59,7 +58,12 @@ try {
 
   const published = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   assert.equal(published.name, manifest.name);
-  if (name === "creator") await verifyDocumentation(path.join(packageRoot, "dist/documentation"), { version: manifest.version });
+  if (name === "creator") {
+    const { readCreatorDocumentation } = await import(pathToFileURL(path.join(packageRoot, "dist/agent/documentation.js")).href);
+    const documentation = await readCreatorDocumentation({ query: "Agent" }, path.join(packageRoot, "dist/documentation"));
+    assert.equal(documentation.status, "available", "Creator's packaged documentation must be readable without website tooling");
+    assert.equal(documentation.creatorVersion, manifest.version);
+  }
   for (const [dependency, version] of Object.entries(published.dependencies ?? {})) {
     assert(!version.startsWith("workspace:"));
     if (dependency.startsWith("@za38.03/agent-ui-")) {

@@ -47,7 +47,7 @@ export async function checkDependencyPins(root = workspaceRoot) {
     failures.push("package.json: packageManager must pin an exact pnpm version");
   }
   await check(path.join(root, "package.json"));
-  for (const directory of ["packages", "apps", "examples", "scripts", "website"]) await visit(path.join(root, directory));
+  for (const directory of ["packages", "apps", "examples", "scripts"]) await visit(path.join(root, directory));
   if (failures.length) throw new Error(`Dependencies must use exact versions:\n${failures.join("\n")}`);
 }
 

@@ -39,7 +39,6 @@ jobs:
       - run: pnpm install --frozen-lockfile --engine-strict
       - run: pnpm docs:install
       - run: pnpm docs:package
-      - run: pnpm check:dependency-pins
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test

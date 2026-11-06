@@ -3,6 +3,7 @@ import { spawnPnpm } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
 import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
 import { prepareWorkbench } from "./prepare-workbench.mjs";
+import { ensureExampleHost } from "./prepare-example-host.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 const args = process.argv.slice(2);
@@ -16,7 +17,7 @@ const hostPort = port("--host-port", 5180);
 const workbenchPort = port("--workbench-port", 5174);
 ensureWorkspaceDependencies();
 prepareWorkbench();
-await import("./prepare-platform-host.mjs");
+await ensureExampleHost("platform");
 const environment = {
   ...process.env,
   VITE_CREATOR_DOCK_URL: process.env.VITE_CREATOR_DOCK_URL || `http://127.0.0.1:${workbenchPort}/dock.html`,

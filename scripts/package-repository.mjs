@@ -5,17 +5,18 @@ import { deflateRawSync } from "node:zlib";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { generateDocumentation, prepareDocumentation, verifyStaticWebsite } from "./creator-documentation.mjs";
-
-export async function packageRepository(root, output) {
+export async function packageRepository(root, output, { websiteOnly = false } = {}) {
+  root = path.resolve(root);
+  output = path.resolve(output);
   // Build on the external machine; an extracted static handoff needs no compiler.
   let sourceWebsite = false;
   try { sourceWebsite = (await stat(path.join(root, "website/package.json"))).isFile(); }
   catch (error) { if (error.code !== "ENOENT") throw error; }
-  if (sourceWebsite) await generateDocumentation(root);
-  await prepareDocumentation(root);
+  if (sourceWebsite) {
+    const { buildStaticWebsite, generateDocumentation } = await import("./creator-documentation.mjs");
+    await (websiteOnly ? buildStaticWebsite(root) : generateDocumentation(root));
+  }
   const website = path.join(root, sourceWebsite ? "website/doc_build" : "website");
-  const site = await verifyStaticWebsite(website);
   const excluded = new Set([".git", ".github", ".venv", ".vscode", ".pnpm-store", ".pytest_cache", "node_modules", "tests", "doc_build", ".rspress", ".vite"]);
   const files = [];
   async function visit(relative = "") {
@@ -26,10 +27,15 @@ export async function packageRepository(root, output) {
       else if (entry.isFile() && entry.name !== "pnpm-lock.yaml" && !(entry.name.startsWith(".env") && entry.name.endsWith(".local")) && path.resolve(root, logical) !== output) files.push({ logical, absolute: path.join(root, logical) });
     }
   }
-  await visit();
-  for (const name of [...site.files.map(file => file.path), "agent-ui-static-site.json"]) {
-    files.push({ logical: path.posix.join("website", name), absolute: path.join(website, ...name.split("/")) });
+  if (!websiteOnly) await visit();
+  async function visitWebsite(relative = "") {
+    for (const entry of await readdir(path.join(website, relative), { withFileTypes: true })) {
+      const logical = path.posix.join(relative, entry.name);
+      if (entry.isDirectory()) await visitWebsite(logical);
+      else if (entry.isFile() && path.resolve(website, logical) !== output) files.push({ logical: path.posix.join("website", logical), absolute: path.join(website, logical) });
+    }
   }
+  await visitWebsite();
   if (files.length > 65535) throw new Error("Archive exceeds the supported ZIP entry count.");
   const crcTable = Array.from({ length: 256 }, (_, value) => { for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1; return value >>> 0; });
   function crc32(bytes) { let crc = 0xffffffff; for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ (crc >>> 8); return (crc ^ 0xffffffff) >>> 0; }
@@ -43,7 +49,7 @@ export async function packageRepository(root, output) {
       const info = await lstat(absolute);
       if (!info.isFile()) throw new Error(`Archive input changed: ${file}`);
       const data = await readFile(absolute), compressed = deflateRawSync(data, { level: 6 });
-      const name = Buffer.from(path.posix.join(path.basename(root), file), "utf8");
+      const name = Buffer.from(websiteOnly ? file : path.posix.join(path.basename(root), file), "utf8");
       if (name.length > 65535) throw new Error("Archive path is too long.");
       const year = Math.min(2107, Math.max(1980, info.mtime.getFullYear()));
       const date = ((year - 1980) << 9) | ((info.mtime.getMonth() + 1) << 5) | info.mtime.getDate();
@@ -67,11 +73,14 @@ export async function packageRepository(root, output) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   if (process.argv.includes("--help") || process.argv.includes("-h")) {
-    console.log("Usage: node scripts/package-repository.mjs [output.zip]\nBuilds documentation and replaces website/ with deployable static files in the ZIP.");
+    console.log("Usage: node scripts/package-repository.mjs [--website-only] [output.zip]\nBuilds documentation on the external source checkout; intranet copies package website/ as static files without website tooling.\n--website-only creates a standalone website ZIP without repository files.");
   } else {
+    const websiteOnly = process.argv.includes("--website-only");
+    const args = process.argv.slice(2).filter(arg => arg !== "--website-only");
+    if (args.length > 1 || args.some(arg => arg.startsWith("--"))) throw new Error("Expected one optional ZIP output path; use --help for usage.");
     const root = fileURLToPath(new URL("..", import.meta.url));
-    const output = path.resolve(process.argv[2] ?? path.join(path.dirname(root), path.basename(root) + ".zip"));
-    const result = await packageRepository(root, output);
+    const output = path.resolve(args[0] ?? path.join(path.dirname(root), websiteOnly ? "AgentUIWebsite.zip" : path.basename(root) + ".zip"));
+    const result = await packageRepository(root, output, { websiteOnly });
     console.log(`Created ${result.output} (${result.files} files; website/ is static and ready to deploy)`);
   }
 }
