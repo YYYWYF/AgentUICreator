@@ -1,4 +1,0 @@
-{
-  "code": "QA_WRONG_ENGLISH_LABEL",
-  "reason": "The QA expected Task progress, while unchanged source uses Job progress. The next replay corrects only this selector."
-}

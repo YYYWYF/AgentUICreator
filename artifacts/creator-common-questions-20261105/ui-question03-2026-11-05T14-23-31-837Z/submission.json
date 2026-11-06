@@ -1,8 +1,0 @@
-{
-  "questionNumber": 3,
-  "prompt": "我想把历史会话移到右侧",
-  "submittedAt": "2026-11-05T14:25:11.776Z",
-  "url": "http://127.0.0.1:5173/",
-  "method": "CUA Send button in the existing visible browser tab",
-  "stopAfterThisQuestion": true
-}

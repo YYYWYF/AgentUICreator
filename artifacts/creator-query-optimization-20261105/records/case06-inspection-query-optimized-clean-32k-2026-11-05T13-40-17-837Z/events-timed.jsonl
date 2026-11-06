@@ -1,3 +1,0 @@
-{"seconds":0.043,"event":{"type":"RUN_STARTED","threadId":"5084dc9c-1cc6-4edc-ab0d-e38cce0b6cf1","runId":"6c38e953-d7ed-4825-a6f4-3b21627e64b4"}}
-{"seconds":0.049,"event":{"type":"STEP_STARTED","stepName":"creator.resolve","metadata":{"phase":"understanding","status":"running"}}}
-{"seconds":3.672,"event":{"type":"RUN_ERROR","code":"invalid_request_error","message":"400 Upstream request failed: [invalid_request_error] this feature is not yet supported by atlas (request_id: gw-1a55bc30f039-44366)"}}

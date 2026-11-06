@@ -1,7 +1,0 @@
-{
-  "status": "HARNESS_ERROR",
-  "name": "Error",
-  "message": "Creator stream interrupted without a native terminal event: TypeError: network error",
-  "seconds": 111.269,
-  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-10-33-979Z"
-}

@@ -1,6 +1,0 @@
-{
-  "seedSource": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case04-help-actions-mac-resume-262k-2026-11-05T00-45-41-027Z/host/src/agent-ui",
-  "promptFile": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/help-actions-feedback.txt",
-  "scenarioPrompt": "在聊天顶部的帮助卡片底部加一排操作按钮，先放一个“查看示例”。点击后，把“请给我一个使用示例”填进聊天输入框，由我点击发送。以后我还想往这排加其他按钮。",
-  "prompt": "“查看示例”按钮出现了，但被下面的聊天区挡住，普通点击点不到。请把帮助卡片的底部操作区完整显示出来，让卡片按内容撑开，让我能正常点击。点击后只把“请给我一个使用示例”填入输入框，不要自动发送。\n"
-}

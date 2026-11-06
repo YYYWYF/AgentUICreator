@@ -1,9 +1,0 @@
-The following is a diff from the previous accessibility tree for Window: "127.0.0.1:5173" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
-Removed element IDs: 822, 826-828
-+											826 文本 思考已完成，开始回答。
-+											827 按钮 复制
-+											828 按钮 重试
-+											829 弹出式按钮 更多操作
-+												830 按钮 (disabled) 发送消息
-~												55 按钮 验证思考提示
-The focused UI element is 18 HTML 内容 127.0.0.1:5174/?creator-preview

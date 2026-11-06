@@ -1,9 +1,0 @@
-{
-  "scope": "Account-specific billing URLs only. Original local runs remain unchanged; source files, native status and numeric telemetry are unchanged.",
-  "files": [
-    "records/case05-order-mac-resume-262k-2026-11-05T00-55-18-104Z/events-timed.jsonl",
-    "records/case05-order-mac-resume-262k-2026-11-05T00-55-18-104Z/result.json",
-    "records/case06-inspection-mac-resume-262k-2026-11-05T00-58-14-601Z/events-timed.jsonl",
-    "records/case06-inspection-mac-resume-262k-2026-11-05T00-58-14-601Z/result.json"
-  ]
-}

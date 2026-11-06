@@ -1,7 +1,0 @@
-{
-  "complete": false,
-  "code": "EBUSY",
-  "syscall": "rmdir",
-  "message": "EBUSY: resource busy or locked, rmdir '<USER_PROFILE>\\AppData\\Local\\Temp\\creator-connection-host-93keNH\\host'",
-  "at": "2026-11-04T16:21:58.499Z"
-}

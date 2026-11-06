@@ -1,3 +1,0 @@
-label,status,seconds,toolCalls,agentRequests,summaryRequests,input,output,total,firstWriteSeconds,changedFiles,compactions,summarySeconds
-before,TIMEOUT,1200.645,104,42,10,1421767,108012,1529779,,0,9,300.0985774179999
-after,TIMEOUT,1200.412,92,40,9,1356353,95486,1451839,,0,8,268.17342224999976

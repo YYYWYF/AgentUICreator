@@ -1,5 +1,0 @@
-{
-  "closed": true,
-  "temporaryProjectRetained": true,
-  "method": "Normal Creator workspace-clear API stopped the managed worker. Stopped only the verified QA parent process after saving evidence; verified its esbuild and headless browser children exited. No forced process-tree termination or recursive deletion performed."
-}

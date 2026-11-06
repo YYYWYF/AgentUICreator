@@ -1,4 +1,0 @@
-{"status":"HARNESS_ERROR","name":"Error","message":"Live Creator startup failed: {\"status\":\"broken\",\"issues\":[{\"code\":\"plugin-application-read\",\"message\":\"src/agent-ui/plugins/inspection-result-message/application.json: The npm application marker identifies Plugin \\\"inspection-result-message\\\", which is absent from the installed @za38.03/agent-ui-plugins catalog. application.json describes installed npm Plugin applications, not custom project implementations.\",\"severity\":\"error\"}]}","seconds":null,"out":"/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-mac-diagnostics-repair-original-2026-11-05T01-38-01-748Z"}
-undefined
-/Users/yifei/Coding/AgentUICreator/packages/creator:
- ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: tsx /Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/scripts/evaluate.mts case06-inspection mac-diagnostics-repair-original

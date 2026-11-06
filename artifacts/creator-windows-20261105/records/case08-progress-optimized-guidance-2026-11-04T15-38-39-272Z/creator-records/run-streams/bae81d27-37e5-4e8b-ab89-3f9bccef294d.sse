@@ -1,6 +1,0 @@
-data: {"type":"RUN_STARTED","threadId":"25090a84-4c50-4667-9a94-54bc4913cc12","runId":"9d60b5cd-329a-4f1b-9dc1-e61905c43dca"}
-
-data: {"type":"STEP_STARTED","stepName":"creator.resolve","metadata":{"phase":"understanding","status":"running"}}
-
-data: {"type":"RUN_ERROR","code":"CREATOR_REQUEST_ROUTE_INVALID","message":"CREATOR_REQUEST_ROUTE_INVALID"}
-

@@ -1,6 +1,0 @@
-data: {"type":"RUN_STARTED","threadId":"8e941f2d-678d-4198-a4b0-ecefb1a4b220","runId":"8b6fe900-ae65-408b-9e96-581bc32578cf"}
-
-data: {"type":"STEP_STARTED","stepName":"creator.resolve","metadata":{"phase":"understanding","status":"running"}}
-
-data: {"type":"RUN_ERROR","code":"CREATOR_RUN_FAILED","message":"Streaming response failed: [400] Grammar error: Unimplemented keys: [\"uniqueItems\"]"}
-

@@ -1,8 +1,0 @@
-[live Creator] typescript runtime ready pid=49295 port=51411
-Port 5173 is in use, trying another one...
-Port 5174 is in use, trying another one...
-{"case":"ui-defer","started":"2026-11-03T10:31:30.081Z"}
-{"case":"ui-defer","seconds":2.99,"toolNumber":1,"tool":"read_file"}
-{"case":"ui-defer","seconds":3.039,"toolNumber":2,"tool":"prepare_ui_plugin_development"}
-{"case":"ui-defer","seconds":6.211,"toolNumber":3,"tool":"prepare_ui_plugin_development"}
-{"case":"ui-defer","status":"success","seconds":9.829,"firstPreparation":{"toolNumber":2,"seconds":3.039,"tool":"prepare_ui_plugin_development"},"firstMutationAttempt":null,"changedPaths":[],"questions":1}

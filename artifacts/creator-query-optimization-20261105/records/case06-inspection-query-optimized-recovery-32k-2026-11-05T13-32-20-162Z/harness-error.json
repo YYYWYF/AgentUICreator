@@ -1,7 +1,0 @@
-{
-  "status": "HARNESS_ERROR",
-  "name": "TimeoutError",
-  "message": "locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('.quick-help-card').first() to be visible\u001b[22m\n",
-  "seconds": null,
-  "out": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-query-optimized-recovery-32k-2026-11-05T13-32-20-162Z"
-}

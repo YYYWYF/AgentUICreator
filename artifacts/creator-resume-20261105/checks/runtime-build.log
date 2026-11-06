@@ -1,6 +1,0 @@
-
-> @za38.03/agent-ui-runtime@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/runtime
-> node ../../scripts/clean-package-dist.mjs runtime && node ../../scripts/sync-package-release-metadata.mjs runtime && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs && node ../../scripts/sync-package-release-metadata.mjs runtime
-
-@za38.03/agent-ui-runtime public declaration boundary: OK (97 reachable declarations)
-React 19.1.1: published-package isolated install and consumer typecheck OK (reviewed dependency overrides, peer warnings allowed, skipLibCheck: false)

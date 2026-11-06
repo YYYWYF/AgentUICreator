@@ -1,5 +1,0 @@
-
-> @za38.03/agent-ui-creator@0.0.1 typecheck:operator /Users/yifei/Coding/AgentUICreator/packages/creator
-> node ../../scripts/run-plugin-source-views-check.mjs operator-typecheck
-
-Prepared 1020 TypeScript authoring module bridges.

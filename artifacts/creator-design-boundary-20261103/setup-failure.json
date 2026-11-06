@@ -1,5 +1,0 @@
-{
-  "name": "Error",
-  "message": "Build failed with 1 error:\nnode_modules/.pnpm/@base-ui+react@1.8.0_@types+react@19.3.0_react-dom@19.1.1_react@19.1.1/node_modules/@base-ui/react/internals/temporal-adapter-luxon/TemporalAdapterLuxon.mjs:7:31: ERROR: Could not resolve \"luxon\"",
-  "seconds": null
-}

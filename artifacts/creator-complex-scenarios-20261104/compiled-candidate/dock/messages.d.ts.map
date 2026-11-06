@@ -1,1 +1,0 @@
-{"version":3,"file":"messages.d.ts","sourceRoot":"","sources":["../../../../packages/creator/src/dock/messages.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,IAAI,EAAE,MAAM,qBAAqB,CAAC;AAE3C,MAAM,MAAM,mBAAmB,GAAG,OAAO,IAAI,CAAC,WAAW,CAAC;AAC1D,sFAAsF;AACtF,wBAAgB,mBAAmB,CAAC,MAAM,EAAE,MAAM,GAAG,mBAAmB,CAGvE"}

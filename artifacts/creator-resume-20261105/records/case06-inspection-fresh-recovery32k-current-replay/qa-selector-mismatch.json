@@ -1,4 +1,0 @@
-{
-  "code": "QA_AMBIGUOUS_TEXT_SELECTOR",
-  "reason": "Substring matching for 支付接口 matched both the check name and its detail message. The selector-fixed replay uses unchanged source."
-}

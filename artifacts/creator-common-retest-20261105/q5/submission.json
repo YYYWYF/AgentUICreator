@@ -1,8 +1,0 @@
-{
-  "prompt": "头像地址是 http://127.0.0.1:47835/avatar.svg，就替换右上角“智能助手”的头像。",
-  "submittedAt": "2026-11-05T16:13:34.312Z",
-  "browser": "Google Chrome",
-  "model": "deepseek-v4.1-flash",
-  "outputBudget": 32768,
-  "method": "native CUA"
-}

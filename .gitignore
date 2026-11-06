@@ -62,5 +62,6 @@ examples/creator-embedded-host/.agent-ui/*
 examples/creator-embedded-host/.agent-ui/mocks/*
 !examples/creator-embedded-host/.agent-ui/mocks/*.jsonl
 
-# Generated offline documentation handoff; copy with source into the intranet.
-artifacts/creator-documentation/
+# Generated local artifacts. Keep offline documentation locally for source handoff.
+/artifacts/
+/docs/verification/

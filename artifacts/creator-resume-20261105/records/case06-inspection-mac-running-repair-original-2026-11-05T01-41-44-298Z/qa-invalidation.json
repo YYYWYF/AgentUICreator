@@ -1,5 +1,0 @@
-{
-  "reason": "QA edited Operator source while this model run was active, triggering the intended source/build integrity guard. Exclude this run from product-failure or performance conclusions. Deletion-tool execution is observed but full repair acceptance was interrupted.",
-  "code": "QA_SOURCE_CHANGED_DURING_RUN",
-  "at": "2026-11-05T01:49:22.753Z"
-}

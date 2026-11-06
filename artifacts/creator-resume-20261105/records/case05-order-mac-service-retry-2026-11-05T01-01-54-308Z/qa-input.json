@@ -1,6 +1,0 @@
-{
-  "seedSource": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui",
-  "promptFile": null,
-  "scenarioPrompt": "我的 Agent 会返回下面的订单数据。帮我在聊天消息里显示成订单卡片，展示订单号、商品、数量、金额和订单状态，商品多的时候可以展开查看。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.order.summary\",\n  \"value\": {\n    \"order_no\": \"O-20261104-001\",\n    \"status\": \"paid\",\n    \"currency\": \"CNY\",\n    \"total_amount\": 258,\n    \"items\": [\n      {\n        \"name\": \"键盘\",\n        \"quantity\": 1,\n        \"unit_price\": 199\n      },\n      {\n        \"name\": \"鼠标垫\",\n        \"quantity\": 1,\n        \"unit_price\": 59\n      }\n    ]\n  }\n}",
-  "prompt": "我的 Agent 会返回下面的订单数据。帮我在聊天消息里显示成订单卡片，展示订单号、商品、数量、金额和订单状态，商品多的时候可以展开查看。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.order.summary\",\n  \"value\": {\n    \"order_no\": \"O-20261104-001\",\n    \"status\": \"paid\",\n    \"currency\": \"CNY\",\n    \"total_amount\": 258,\n    \"items\": [\n      {\n        \"name\": \"键盘\",\n        \"quantity\": 1,\n        \"unit_price\": 199\n      },\n      {\n        \"name\": \"鼠标垫\",\n        \"quantity\": 1,\n        \"unit_price\": 59\n      }\n    ]\n  }\n}"
-}

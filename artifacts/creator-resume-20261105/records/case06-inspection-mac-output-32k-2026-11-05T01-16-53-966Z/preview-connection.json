@@ -1,8 +1,0 @@
-{
-  "activeSource": "connected",
-  "enabled": true,
-  "connectionMode": "direct",
-  "endpoint": "http://127.0.0.1:52191/agent",
-  "configured": true,
-  "running": false
-}

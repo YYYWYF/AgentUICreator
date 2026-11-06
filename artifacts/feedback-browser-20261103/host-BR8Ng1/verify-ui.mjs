@@ -1,1 +1,0 @@
-import {runUIProjectVerificationCli} from "@za38.03/agent-ui-creator/project/dev"; await runUIProjectVerificationCli(process.cwd());

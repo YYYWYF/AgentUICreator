@@ -1,3 +1,0 @@
-Port 5173 is in use, trying another one...
-10:07:14 AM [vite] (client) page reload src/main.tsx
-{"staticChecks":[{"script":"typecheck","status":"passed","exitCode":0},{"script":"build","status":"passed","exitCode":0}],"interaction":"passed","checks":[{"name":"inspection event renders check statuses","status":"passed"},{"name":"failed inspection exposes details","status":"passed"},{"name":"error details copy to clipboard","status":"passed"},{"name":"empty and malformed checks do not crash conversation","status":"passed"}],"controlledAgentRuns":3,"sourceUnchanged":true,"browserErrors":[]}

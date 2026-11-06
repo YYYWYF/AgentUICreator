@@ -1,6 +1,0 @@
-{
-  "seedSource": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-reasoning-roundtrip-20261104/run1/natural/host/src/agent-ui",
-  "promptFile": null,
-  "scenarioPrompt": "在聊天顶部的帮助卡片底部加一排操作按钮，先放一个“查看示例”。点击后，把“请给我一个使用示例”填进聊天输入框，由我点击发送。以后我还想往这排加其他按钮。",
-  "prompt": "在聊天顶部的帮助卡片底部加一排操作按钮，先放一个“查看示例”。点击后，把“请给我一个使用示例”填进聊天输入框，由我点击发送。以后我还想往这排加其他按钮。"
-}

@@ -1,5 +1,0 @@
-{
-  "code": "QA_DEPENDENCIES_CHANGED_DURING_RUN",
-  "reason": "Live QA logs observed updates to multiple workspace Plugins dist runtime entries while the model run was active. Exclude performance/product conclusions from this run; use an immutable package snapshot for subsequent runs.",
-  "at": "2026-11-05T13:22:55.197Z"
-}

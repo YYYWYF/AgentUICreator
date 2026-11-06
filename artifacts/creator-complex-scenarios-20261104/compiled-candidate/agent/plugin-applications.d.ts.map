@@ -1,1 +1,0 @@
-{"version":3,"file":"plugin-applications.d.ts","sourceRoot":"","sources":["../../../../packages/creator/src/agent/plugin-applications.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AAE9C;mFACmF;AACnF,wBAAsB,8BAA8B,CAAC,OAAO,EAAE,WAAW,EAAE,KAAK,EAAE;IAAE,UAAU,CAAC,EAAE,GAAG,EAAE,CAAA;CAAE,sBAqDvG"}

@@ -1,8 +1,0 @@
-{
-  "complete": false,
-  "servicesClosedBeforeDirectoryRemoval": true,
-  "code": "EBUSY",
-  "syscall": "rmdir",
-  "path": "<USER_PROFILE>/AppData/Local/Temp/creator-connection-host-624F5y/host",
-  "note": "Functional replay, source-identity check, typecheck and build passed. Fixture close reached its final temporary-directory removal after closing browser, Vite and Agent services, then Windows returned EBUSY. The temporary directory is retained; no forced process-tree termination or recursive cleanup was attempted."
-}

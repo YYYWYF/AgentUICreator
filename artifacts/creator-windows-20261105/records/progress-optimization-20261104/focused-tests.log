@@ -1,9 +1,0 @@
-
- RUN  v4.1.8 <WORKSPACE>/packages/creator
-
-
- Test Files  7 passed (7)
-      Tests  208 passed (208)
-   Start at  23:34:16
-   Duration  13.74s (transform 1.97s, setup 0ms, import 14.96s, tests 22.98s, environment 1ms)
-

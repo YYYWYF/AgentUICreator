@@ -1,9 +1,0 @@
-{
-  "at": "2026-11-05T01:27:38.161Z",
-  "reason": "Stop diagnostic comparison after confirming custom Plugin npm-marker misclassification and misleading manifest diagnostics. Preserve native receipt and generated source before the engineering repair.",
-  "status": 202,
-  "result": {
-    "status": "stopping",
-    "runId": "fcfc1334-0c08-4155-b20a-7137bb8f07b5"
-  }
-}

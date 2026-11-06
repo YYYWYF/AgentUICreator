@@ -1,5 +1,0 @@
-{
-  "accessibilityState": "Browser tab: 1, Title: \"127.0.0.1:5173\", URL: \"http://127.0.0.1:5173/\".\nThe following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.\nRemoved element IDs: 577, 579-582, 598, 604, 608\n+\t\t\t\t\t\t611 text ›\n+\t\t\t\t\t\t612 text ›\n+\t\t\t\t\t\t613 text ›\n+\t\t\t\t\t\t614 text ›\n+\t\t\t\t\t\t615 text ›\n+\t\t\t\t\t\t616 text ›\n+\t\t\t\t\t\t617 text ›\n+\t\t\t\t618 text Enter 发送 · Shift+Enter 换行\nThe focused UI element is 0 AXWebArea 127.0.0.1:5173/",
-  "temporaryViewportReset": true,
-  "question4Started": false
-}

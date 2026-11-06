@@ -1,8 +1,0 @@
-{
-  "prompt": "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失",
-  "submittedAt": "2026-11-05T16:04:59.735Z",
-  "browser": "Google Chrome",
-  "model": "deepseek-v4.1-flash",
-  "outputBudget": 32768,
-  "method": "native CUA"
-}

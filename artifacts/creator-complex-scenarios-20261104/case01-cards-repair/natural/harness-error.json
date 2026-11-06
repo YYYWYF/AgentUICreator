@@ -1,5 +1,0 @@
-{
-  "name": "Error",
-  "message": "locator.waitFor: Error: strict mode violation: locator('.quick-help-card') resolved to 2 elements:\n    1) <section data-expanded=\"true\" class=\"quick-help-card\">…</section> aka getByText('使用说明▾知道了你可以提问、上传附件或查看历史记录')\n    2) <section data-expanded=\"true\" class=\"quick-help-card\">…</section> aka getByText('常见问题▾知道了你可以提问、上传附件或查看历史记录')\n\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"Host Application\"]').contentFrame().locator('.quick-help-card') to be visible\u001b[22m\n",
-  "seconds": null
-}

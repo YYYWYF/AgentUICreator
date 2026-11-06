@@ -1,5 +1,0 @@
-{
-  "reason": "Diagnostic run stopped to fix API ancestor chapter overfetch and pin Host preview assets to the immutable Creator snapshot. Restart final validation from pristine source; this is not a completed performance comparison.",
-  "seconds": 526.545,
-  "stoppedAt": "2026-11-04T02:03:48.786Z"
-}

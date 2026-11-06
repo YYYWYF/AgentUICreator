@@ -1,3 +1,0 @@
-{
-  "prompt": "我的 Agent 返回的报表内容是放在 payload 里的 JSON 字符串。帮我在聊天消息里显示成表格，可以按收入排序，点击某一行查看这个月的订单数量。\n\n{\n  \"type\": \"CUSTOM\",\n  \"name\": \"app.sales.report\",\n  \"value\": {\n    \"format\": \"json\",\n    \"payload\": \"{\\\"title\\\":\\\"月度销售\\\",\\\"rows\\\":[{\\\"month\\\":\\\"2026-09\\\",\\\"revenue\\\":120000,\\\"order_count\\\":320},{\\\"month\\\":\\\"2026-10\\\",\\\"revenue\\\":156000,\\\"order_count\\\":410}]}\"\n  }\n}"
-}

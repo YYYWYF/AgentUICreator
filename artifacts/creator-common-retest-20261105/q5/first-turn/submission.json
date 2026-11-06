@@ -1,8 +1,0 @@
-{
-  "prompt": "我想把agent的头像换成我自己的",
-  "submittedAt": "2026-11-05T16:10:05.955Z",
-  "browser": "Google Chrome",
-  "model": "deepseek-v4.1-flash",
-  "outputBudget": 32768,
-  "method": "native CUA"
-}

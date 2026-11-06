@@ -1,8 +1,0 @@
-{
-  "prompt": "我想把历史会话移到右侧",
-  "submittedAt": "2026-11-05T16:02:34.514Z",
-  "browser": "Google Chrome",
-  "model": "deepseek-v4.1-flash",
-  "outputBudget": 32768,
-  "method": "native CUA"
-}

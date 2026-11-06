@@ -1,8 +1,0 @@
-{
-  "questionNumber": 4,
-  "prompt": "我想深度思考的时候不显示内容，显示正在思考就好了，思考完成后消失",
-  "submittedAt": "2026-11-05T14:39:52.029Z",
-  "url": "http://127.0.0.1:5173/",
-  "method": "CUA Send button in existing user browser tab; visible preview prepared before submission",
-  "stopAfterThisQuestion": true
-}

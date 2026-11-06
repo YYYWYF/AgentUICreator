@@ -1,1 +1,0 @@
-{"version":3,"file":"parser.d.ts","sourceRoot":"","sources":["../../../../packages/creator/src/commands/parser.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,oBAAoB,GAAG;IAAE,IAAI,EAAE,MAAM,CAAA;CAAE,GAAG;IAAE,IAAI,EAAE,SAAS,CAAC;IAAC,EAAE,EAAE,MAAM,CAAC;IAAC,IAAI,EAAE,MAAM,EAAE,CAAA;CAAE,CAAC;AACtG,iGAAiG;AACjG,wBAAgB,mBAAmB,CAAC,KAAK,EAAE,MAAM,GAAG,oBAAoB,CAKvE"}

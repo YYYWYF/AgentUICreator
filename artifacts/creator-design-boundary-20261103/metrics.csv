@@ -1,3 +1,0 @@
-variant,status,seconds,agent_model_calls,tool_calls,first_preparation_call,first_mutation_attempt_call,changed_files,input_tokens_known,output_tokens_known,total_tokens_known,http_requests,usage_records,compactions,summary_seconds
-baseline,TIMEOUT,1200.627,43,107,,,0,1508305,122998,1631303,57,56,12,402.1749117510001
-treatment,TIMEOUT,1200.58,43,128,,,0,1480182,142818,1623000,59,58,15,401.6189243299997

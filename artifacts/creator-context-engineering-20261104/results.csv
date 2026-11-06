@@ -1,4 +1,0 @@
-case,status,seconds,tool_calls,agent_requests,summary_requests,agent_summary_tokens,all_reported_tokens,input,output,first_preparation_seconds,first_write_seconds,changed_files,compactions,summary_seconds
-before,TIMEOUT,1200.645,104,42,10,1529779,1535409,1426678,108731,581.918,,0,9,300.0985774179999
-engineering-run1,TIMEOUT,1200.412,92,40,9,1451839,1456934,1361264,95670,903.122,,0,8,268.17342224999976
-final-run2,TIMEOUT,1200.359,97,49,12,1801338,1806553,1694577,111976,617.134,,0,11,309.3580099579995

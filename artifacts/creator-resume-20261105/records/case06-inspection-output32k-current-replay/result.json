@@ -1,5 +1,0 @@
-{
-  "scope": "Independent replay of unchanged model-generated source. No new model call or source repair. Creator preview explicitly connected to the controlled AG-UI test endpoint through the existing connection API.",
-  "source": "/Users/yifei/Coding/AgentUICreator/artifacts/creator-windows-20261105/local-runs/case06-inspection-mac-output-32k-2026-11-05T01-16-53-966Z",
-  "error": "Controlled connection setup failed: 409"
-}
