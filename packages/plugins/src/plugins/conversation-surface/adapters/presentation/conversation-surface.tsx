@@ -1,5 +1,4 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
-import { useAgentUILocale, type ConversationThreadLabels } from '../../../../public.js';
 export interface ConversationSurfaceAdapterProps {
   autoFocus?: boolean;
   className?: string;
@@ -9,7 +8,6 @@ export interface ConversationSurfaceAdapterProps {
     thinkingIndicator?: boolean;
     transientMessages?: boolean;
   };
-  labels?: ConversationThreadLabels;
   welcome?: ReactNode;
   suggestions?: ReactNode;
   composer?: ReactNode;
@@ -22,7 +20,6 @@ export interface ConversationSurfacePluginProps extends Omit<ComponentProps<'div
   rendererSlots?: ConversationSurfaceAdapterProps['rendererSlots'];
   snapshot?: { mode?: string; detailStatus?: string };
   autoFocus?: boolean;
-  labels?: ConversationThreadLabels;
   welcome?: ReactNode;
   suggestions?: ReactNode;
   composer?: ReactNode;
@@ -34,13 +31,11 @@ export function CanonicalConversationSurfacePlugin({
   rendererSlots,
   snapshot,
   autoFocus,
-  labels,
   welcome: welcomeContent,
   suggestions: suggestionContent,
   composer: composerContent,
   ...rootProps
 }: ConversationSurfacePluginProps) {
-  const messages = useAgentUILocale('conversation');
   const welcome = renderSlot('emptyWelcome', welcomeContent);
   const suggestions = renderSlot('emptySuggestions', suggestionContent ?? null);
   const headerActions = renderSlot('headerActions', null);
@@ -89,7 +84,6 @@ export function CanonicalConversationSurfacePlugin({
         <Adapter
           {...(autoFocus === undefined ? {} : { autoFocus })}
           {...(rendererSlots === undefined ? {} : { rendererSlots })}
-          labels={{ ...messages, ...labels }}
           welcome={welcome}
           suggestions={suggestions}
           composer={composer}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
+import { useAgentUILocale } from "../locale.js";
 import { useTransientMessages, type ConversationTransientMessagesRenderScope } from "./conversation-transient-messages.js";
 import { resolveTransientMessageAnchor } from "../conversation-transient-message-service.js";
 import { ComposerHostConfigContext, ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
@@ -150,7 +150,6 @@ const taskAwareGroupBy = (
 
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
-  labels?: { generationStopped: string; editCancel?: string; editUpdate?: string; editInput?: string } | undefined;
   autoFocus?: boolean | undefined;
   /** Product-owned composition seam; null means the host intentionally has no Composer. */
   composer?: ReactNode | null | undefined;
@@ -160,9 +159,6 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
-
-const DEFAULT_THREAD_LABELS = { generationStopped: DEFAULT_AGENT_UI_MESSAGES.conversation.generationStopped, editCancel: DEFAULT_AGENT_UI_MESSAGES.common.cancel, editUpdate: DEFAULT_AGENT_UI_MESSAGES.common.update, editInput: DEFAULT_AGENT_UI_MESSAGES.conversation.editInput };
-const ThreadLabelsContext = createContext(DEFAULT_THREAD_LABELS);
 
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
@@ -203,12 +199,9 @@ const ThreadHistorySkeleton: FC = () => {
 
 export const ComposableThread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
-  labels,
   autoFocus = true,
   composer = null,
 }) => {
-  const localeMessages = useAgentUILocale();
-  const defaultLabels = { generationStopped: localeMessages.conversation.generationStopped, editCancel: localeMessages.common.cancel, editUpdate: localeMessages.common.update, editInput: localeMessages.conversation.editInput };
   const transientMessages = useTransientMessages();
   const isEmpty = useAuiState(isNewChatView) && !(components.TransientMessages && transientMessages.length > 0);
   const threadId = useAuiState(s => s.threads.mainThreadId);
@@ -216,13 +209,11 @@ export const ComposableThread: FC<ThreadProps> = ({
   return (
     <ConversationToolRendererContext.Provider value={components.ToolFallback as ComponentType<import("./tool-renderer-context.js").ConversationDefaultToolProps> | undefined}>
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadLabelsContext.Provider value={{ ...defaultLabels, ...labels }}>
         <ComposerHostConfigContext.Provider value={{ autoFocus }}>
           <TaskDisclosureProvider key={threadId}>
             <ThreadRoot isEmpty={isEmpty} composer={composer} />
           </TaskDisclosureProvider>
         </ComposerHostConfigContext.Provider>
-      </ThreadLabelsContext.Provider>
     </ThreadComponentsContext.Provider>
     </ConversationToolRendererContext.Provider>
   );
@@ -428,7 +419,7 @@ const AssistantMessage: FC = () => {
   } = useContext(ThreadComponentsContext);
   const AssistantResponseFooterComponent = AssistantResponseFooter;
   const isRunning = useAuiState((s) => s.thread.isRunning);
-  const labels = useContext(ThreadLabelsContext);
+  const labels = localeMessages.conversation;
   // Presentation only: response actions and persistence still read real content.
   const showCancelledEmptyFallback = useAuiState((s) =>
     s.message.status?.type === "incomplete" &&
@@ -699,7 +690,7 @@ const UserActionBar: FC = () => {
 };
 
 export const CanonicalUserEditComposer: FC<{ input?: ReactNode }> = ({ input }) => {
-  const labels = useContext(ThreadLabelsContext);
+  const labels = useAgentUILocale("conversation");
   return (
     <MessagePrimitive.Root
       data-slot="aui_edit-composer-wrapper"

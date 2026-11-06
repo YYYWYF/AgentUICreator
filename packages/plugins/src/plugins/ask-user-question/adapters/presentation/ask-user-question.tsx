@@ -1,4 +1,4 @@
-import { useAgentUILocale, type AgentUILocaleMessages } from '../../../../plugin-support.js';
+import { useAgentUILocale } from '../../../../plugin-support.js';
 import {
   ConversationQuestionFlow,
   useConversationCanAnswerToolCall,
@@ -8,18 +8,10 @@ import {
 import { parseHumanQuestionRequest, parseHumanQuestionResult } from './contract.js';
 import { HumanQuestionFlow } from './question-flow.js';
 
-export interface AskUserQuestionProps extends ConversationToolCallProps, UIPluginElementProps {
-  submitText?: string;
-  labels?: Partial<AgentUILocaleMessages['humanQuestion']>;
-}
+export interface AskUserQuestionProps extends ConversationToolCallProps, UIPluginElementProps {}
 
 export function CanonicalAskUserQuestion(props: AskUserQuestionProps) {
-  const defaults = useAgentUILocale('humanQuestion');
-  const labels = {
-    ...defaults,
-    ...props.labels,
-    ...(props.submitText === undefined ? {} : { submit: props.submitText }),
-  };
+  const labels = useAgentUILocale('humanQuestion');
   const wrap = (content: import('react').ReactNode) => (
     <div
       className={props.className}
@@ -57,7 +49,6 @@ export function CanonicalAskUserQuestion(props: AskUserQuestionProps) {
       <ConversationQuestionFlow
         steps={request.steps.map((step) => ({ ...step, selectionMode: step.selectionMode as 'single' | 'multiple' }))}
         choice={result?.answers}
-        labels={labels}
         onComplete={onComplete}
       />
     ),

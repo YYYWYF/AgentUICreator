@@ -8,14 +8,12 @@ import {
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
 export type ResponseExportMarkdownActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  tooltip?: string;
-  menuLabel?: string;
+  presentation?: 'button' | 'menu';
   menuItemProps?: Partial<ComponentProps<typeof ConversationActionMoreMenuItem>>;
 };
 export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownActionProps> = ({
-  menuLabel,
+  presentation = 'button',
   menuItemProps,
-  tooltip,
   ...buttonProps
 }) => {
   const localeMessages = useAgentUILocale();
@@ -36,7 +34,7 @@ export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownAct
       setTimeout(() => URL.revokeObjectURL(url), 40_000);
     }
   };
-  if (menuLabel !== undefined) {
+  if (presentation === 'menu') {
     return (
       <ConversationActionMoreMenuItem
         {...menuItemProps}
@@ -51,7 +49,7 @@ export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownAct
         {menuItemProps?.children ?? (
           <>
             <DownloadIcon className='size-4' />
-            {menuLabel}
+            {localeMessages.conversation.exportMarkdown}
           </>
         )}
       </ConversationActionMoreMenuItem>
@@ -59,7 +57,7 @@ export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownAct
   }
   return (
     <TooltipIconButton
-      tooltip={tooltip ?? localeMessages.conversation.exportMarkdown}
+      tooltip={localeMessages.conversation.exportMarkdown}
       type='button'
       {...buttonProps}
       disabled={disabled || buttonProps?.disabled}

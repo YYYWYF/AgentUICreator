@@ -8,8 +8,6 @@ type Appearance = Pick<
 export function ConversationDictationActionPlugin({
   startButtonProps,
   stopButtonProps,
-  startText,
-  stopText,
   className,
   style,
   disabled,
@@ -18,8 +16,6 @@ export function ConversationDictationActionPlugin({
   Appearance & {
     startButtonProps?: ComponentProps<typeof ConversationComposerDictate>;
     stopButtonProps?: ComponentProps<typeof ConversationComposerStopDictation>;
-    startText?: string;
-    stopText?: string;
     children?: ReactNode;
   }) {
   return (
@@ -30,14 +26,12 @@ export function ConversationDictationActionPlugin({
             className={className}
             style={style}
             disabled={disabled}
-            {...(startText === undefined ? {} : { label: startText })}
             {...startButtonProps}
           />
           <ConversationComposerStopDictation
             className={className}
             style={style}
             disabled={disabled}
-            {...(stopText === undefined ? {} : { label: stopText })}
             {...stopButtonProps}
           />
         </>

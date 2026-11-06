@@ -2,7 +2,6 @@ import {
   type ConversationCanonicalComposerProps,
   ConversationCanonicalComposer,
   ConversationComposerTextareaInput,
-  useAgentUILocale,
 } from '@za38.03/agent-ui-plugins';
 
 import type { UIPluginComponentProps } from '@za38.03/agent-ui-plugins/contracts';
@@ -12,7 +11,6 @@ export function ConversationComposerPlugin({
   renderScopedSlot: _renderScopedSlot,
   ...props
 }: UIPluginComponentProps & ConversationCanonicalComposerProps) {
-  const labels = useAgentUILocale('composer');
   const { submitMode: inputSubmitMode, submitOnEnter, ...nativeInputProps } = props.inputProps ?? {};
   const submitMode = props.submitMode ?? inputSubmitMode;
   const fallbackInput = (
@@ -27,7 +25,6 @@ export function ConversationComposerPlugin({
     <div data-ui-plugin='composer' data-slot='aui_composer-plugin'>
       <ConversationCanonicalComposer
         {...props}
-        queueLabels={props.queueLabels ?? labels}
         triggers={renderSlot('triggers', props.triggers ?? null)}
         input={renderSlot('input', props.input ?? fallbackInput)}
         beforeInput={renderSlot('beforeInput', props.beforeInput ?? null)}

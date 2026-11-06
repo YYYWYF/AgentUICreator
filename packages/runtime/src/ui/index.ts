@@ -4,7 +4,6 @@ export { AgentUICompatibilityRoot } from "./application/AgentUICompatibilityRoot
 export { AgentSurface, AgentEnvironment } from "./application/AgentSurface.js";
 export { ApplicationSessionBoundary, useApplicationSessionConnection, useApplicationSessionEpoch } from "./application/ApplicationSessionBoundary.js";
 export type { AgentObservability } from "./application/observability.js";
-export * from "./presentation-config.js";
 export * from "./runtime/composition/index.js";
 export * from "./runtime/plugins/index.js";
 export * from "./runtime/tools/index.js";

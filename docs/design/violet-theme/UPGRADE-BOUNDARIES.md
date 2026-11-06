@@ -8,7 +8,7 @@ Official Plugin owners live in `packages/plugins/src/plugins/<id>/`, with pristi
 
 | UI surface | Plugin / owner | Preferred seam | Behavior to preserve |
 | --- | --- | --- | --- |
-| Welcome and empty conversation | `conversation-surface`, `conversation-suggestions` | Agent welcome/suggestions, component props and renderers | Prompt selection and send behavior |
+| Welcome and empty conversation | `conversation-surface`, `conversation-suggestions` | locales.conversation / starterSuggestions copy; component composition and renderers | Prompt selection and send behavior |
 | Messages, Markdown and code | `conversation-surface`, shared presentation | Public composition, typography and semantic tokens | Message grouping, branches, editing, attachments and parser output |
 | Composer | `composer` | Direct input/root props, semantic children and project styles | Draft, composition, queue, submit and dropzone behavior |
 | Send, cancel, attachment and dictation actions | `submit-action`, `add-attachment-action`, `dictation-action` | Public button props, labels and tokens | Native actions, state gating and existing adapters |

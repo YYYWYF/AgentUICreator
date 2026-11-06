@@ -45,7 +45,6 @@ title: "会话界面（conversation-surface）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `autoFocus?` | `boolean` | 传给当前会话组件，决定是否自动聚焦输入框 |
-| `labels?` | `ConversationThreadLabels` | 与统一 `conversation` 文案合并，见下文 |
 | `welcome?` | `ReactNode` | 欢迎区内容；`emptyWelcome` 插槽优先 |
 | `suggestions?` | `ReactNode` | 建议内容；`emptySuggestions` 插槽优先 |
 | `composer?` | `ReactNode` | 输入区内容；`composer` 插槽优先 |
@@ -53,7 +52,7 @@ title: "会话界面（conversation-surface）"
 | `rendererSlots?` | `{ toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean }` | 标明当前启用了哪些消息展示插件；继续使用项目生成的配置 |
 | `snapshot?` | `{ mode?: string; detailStatus?: string }` | 宿主页面传入的会话状态，用于给容器添加状态标记 |
 
-`ConversationThreadLabels` 包含必需的 `generationStopped: string`，以及可选的 `editCancel`、`editUpdate`、`editInput` 字符串。`Adapter` 属性包括 `autoFocus`、`className`、`rendererSlots`、`labels`、`welcome`、`suggestions`、`composer`、`renderScopedSlot`；完整类型见 `ConversationSurfaceAdapterProps`。外层 `className`／`style` 用于插件容器，不会自动变为 `Adapter` 组件的属性。
+`Adapter` 保留自动聚焦、样式、渲染器和结构插槽属性；完整类型见 `ConversationSurfaceAdapterProps`。外层样式用于插件容器。
 
 ### 类型查询
 
@@ -67,3 +66,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationSurfacePlu
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+默认欢迎语及编辑、停止等按钮文案只从统一 `locales.conversation` 读取。标题用 `welcome`，说明用 `welcomeDescription`（空字符串隐藏）；在项目 `application/locales.ts` 中修改。`welcome` / `suggestions` 的 ReactNode 属性和语义插槽用于结构替换。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

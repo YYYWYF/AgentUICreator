@@ -119,8 +119,6 @@
   "agent-ui/conversation/ScopedRendererBridge.tsx": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ScopedRendererBridge.tsx",
   "agent-ui/conversation/ConversationAdapter.tsx": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationAdapter.tsx",
   "agent-ui/conversation/index.ts": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/index.ts",
-  "agent-ui/conversation/config/conversation-presentation-config.ts": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/conversation-presentation-config.ts",
-  "agent-ui/conversation/config/ConversationPresentationConfigContext.tsx": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/ConversationPresentationConfigContext.tsx",
   "agent-ui/conversation/config/index.ts": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/index.ts",
   "agent-ui/conversation/config/conversation-runtime-config.ts": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
   "agent-ui/conversation/agents/agent-status-projection.ts": "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/agents/agent-status-projection.ts",

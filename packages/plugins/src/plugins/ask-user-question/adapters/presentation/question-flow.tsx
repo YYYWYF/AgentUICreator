@@ -1,7 +1,6 @@
+import { QuestionOptionList as ConversationOptionList, QuestionFlow as ConversationQuestionFlow } from "../../../../plugin-support.js";
 import { useRef, useState } from 'react';
 import {
-  ConversationOptionList,
-  ConversationQuestionFlow,
   type ConversationQuestionFlowLabels,
 } from '../../../../public.js';
 import type { HumanQuestionStep } from './contract.js';

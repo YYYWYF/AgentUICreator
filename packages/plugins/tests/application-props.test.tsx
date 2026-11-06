@@ -1,3 +1,4 @@
+import { AgentUILocaleProvider as SourceLocaleProvider } from "../src/locale.js";
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -62,22 +63,22 @@ it("retrieval expansion supports both default and controlled state", async () =>
 it("question presentation overrides preserve historical read-only behavior", async () => {
   const addResult = vi.fn();
   const request = { steps: [{ id: "q", question: "Business question", options: [], selectionMode: "text", minSelections: 1, maxSelections: 1 }] };
-  const { host } = await mount(<CanonicalAskUserQuestion toolCallId="q" toolName="ask_user_question" args={request} result={{ answers: { q: ["Recorded answer"] } }} status={{ type: "complete" }} addResult={addResult} className={"project-question"} labels={{ submit: "Confirm business choice" }} />);
+  const { host } = await mount(<CanonicalAskUserQuestion toolCallId="q" toolName="ask_user_question" args={request} result={{ answers: { q: ["Recorded answer"] } }} status={{ type: "complete" }} addResult={addResult} className={"project-question"} />);
   expect(host.querySelector(".project-question")?.textContent).toContain("Recorded answer");
   expect(host.querySelector("textarea")).toBeNull();
   expect(host.querySelector("button")).toBeNull();
   expect(addResult).not.toHaveBeenCalled();
 });
 it("question labels override only the requested presentation copy", async () => {
-  const { host } = await mount(<CanonicalAskUserQuestion toolCallId="invalid" toolName="ask_user_question" args={{}} status={{ type: "complete" }} labels={{ unavailable: "Project-specific unavailable question" }} />);
+  const { host } = await mount(<AgentUILocaleProvider messages={{humanQuestion:{unavailable:"Project-specific unavailable question"}}}><CanonicalAskUserQuestion toolCallId="invalid" toolName="ask_user_question" args={{}} status={{ type: "complete" }} /></AgentUILocaleProvider>);
   expect(host.textContent).toBe("Project-specific unavailable question");
 });
-it("surface adapter labels and fallbacks accept project overrides while semantic slots win", async () => {
+it("surface structural fallbacks preserve adapter behavior", async () => {
   const { host } = await mount(<CanonicalConversationSurfacePlugin
-    Adapter={({ labels, welcome, autoFocus, className }) => <div className={className} data-autofocus={autoFocus}>{labels?.generationStopped}{welcome}</div>}
-    className={"project-surface"} autoFocus={true} labels={{ generationStopped: "Project stop" }} welcome={"Project welcome"} />);
+    Adapter={({ welcome, autoFocus, className }) => <div className={className} data-autofocus={autoFocus}>{welcome}</div>}
+    className={"project-surface"} autoFocus={true} welcome={"Project welcome"} />);
   expect(host.querySelector("[data-autofocus]")?.getAttribute("data-autofocus")).toBe("true");
-  expect(host.textContent).toContain("Project stopProject welcome");
+  expect(host.textContent).toContain("Project welcome");
 });
 it("login button children remain configurable without losing submit semantics", async () => {
   const signIn = vi.fn(async () => {});
@@ -95,7 +96,7 @@ it("portable implementations preserve the same common application props", async 
   const result = await mount(<>
     <SourceSuggestions items={[{ prompt: "Portable business question" }]} sendOnSelect={false} renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback} />
     <SourceRetrieval data={{ source: "rag", content: [] }} title="Portable knowledge" renderContent={() => <p>Portable content</p>} />
-    <SourceQuestion toolCallId="invalid" toolName="ask_user_question" args={{}} status={{ type: "complete" }} labels={{ unavailable: "Portable question label" }} />
+    <SourceLocaleProvider messages={{humanQuestion:{unavailable:"Portable question label"}}}><SourceQuestion toolCallId="invalid" toolName="ask_user_question" args={{}} status={{ type: "complete" }} /></SourceLocaleProvider>
   </>);
   expect(result.host.textContent).toContain("Portable knowledge");
   expect(result.host.textContent).toContain("Portable content");

@@ -12,7 +12,6 @@ import {
   useAgentUISidebarNavigation,
   useConversationState,
   useConversationThreadListGroups,
-  type ConversationThreadListItemLabels,
   type ConversationThreadListItemProps,
 } from '../../../../public.js';
 
@@ -20,14 +19,9 @@ const ThreadListOptionsContext = /* @__PURE__ */ createContext<{
   itemProps?: ConversationThreadListItemProps | undefined;
   components?: { ThreadListItem?: ComponentType } | undefined;
 }>({});
-const ThreadListLabelsContext = /* @__PURE__ */ createContext<ConversationThreadListItemLabels | undefined>(undefined);
 
 function PolicyThreadListItem() {
   const onNavigate = useAgentUISidebarNavigation();
-  const labels = useContext(ThreadListLabelsContext);
-  if (labels === undefined) {
-    throw new Error('Thread List labels are missing.');
-  }
   const { itemProps } = useContext(ThreadListOptionsContext);
   const disabledByConversation = useConversationState((s) => s.threadListItem.custom?.agentUiDisabled === true);
   const disabled = disabledByConversation;
@@ -37,7 +31,6 @@ function PolicyThreadListItem() {
       <ConversationThreadListItem
         onNavigate={onNavigate}
         actions={{ rename: true, archive: true, unarchive: true, delete: true }}
-        labels={labels}
         {...itemProps}
       />
     </div>
@@ -147,7 +140,6 @@ function ArchivedThreadList({ searchQuery }: { searchQuery: string }) {
 }
 
 export interface PolicyThreadListProps extends Omit<ComponentProps<typeof ConversationThreadListRoot>, 'children'> {
-  labels: ConversationThreadListItemLabels;
   /** Disabling search also removes its query from list filtering. */
   showSearch?: boolean;
   /** Include the archive section, with the same search and item customizations. */
@@ -157,7 +149,6 @@ export interface PolicyThreadListProps extends Omit<ComponentProps<typeof Conver
   components?: { ThreadListItem?: ComponentType };
 }
 export function PolicyThreadList({
-  labels,
   showSearch = true,
   showArchived = true,
   searchProps,
@@ -173,7 +164,6 @@ export function PolicyThreadList({
 
   return (
     <ThreadListOptionsContext.Provider value={{ itemProps, components }}>
-      <ThreadListLabelsContext.Provider value={labels}>
         <ConversationThreadListRoot {...elementProps}>
           {showSearch && hasThreads && (
             <ConversationThreadListSearch
@@ -192,7 +182,6 @@ export function PolicyThreadList({
             <ArchivedThreadList searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} />
           )}
         </ConversationThreadListRoot>
-      </ThreadListLabelsContext.Provider>
     </ThreadListOptionsContext.Provider>
   );
 }

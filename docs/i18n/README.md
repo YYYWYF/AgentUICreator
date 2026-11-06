@@ -19,7 +19,14 @@ recording transcripts, sample payloads and backend diagnostic details remain dat
   `defaultLocale` sets the initial uncontrolled value, `onLocaleChange` receives
   UI changes, and `locales` supplies per-locale partial overrides. New projects
   do not copy full dictionaries or generate theme/locale service forwarding files.
-- The project owns custom business messages and welcome content. Official copy
+- Project default welcome content and starter copy live in `application/locales.ts`,
+  bound through `application/project-config.tsx`. Use `conversation.welcome`,
+  optional `conversation.welcomeDescription`, and `starterSuggestions`. Agent no
+  longer accepts welcome/suggestions props. Built-in conversation controls read
+  their domain locale directly, without duplicate labels/text/tooltip overrides.
+  Project/Host overrides merge per namespace and field, with Host values winning.
+  Dynamic Agent content and custom renderer composition remain data/code.
+  The project owns custom business messages. Official copy
   uses its existing domain namespace; project business messages use the unified
   locale code rather than another language state. Keep business dictionaries in
   the project's shared namespaced messages module (for example
@@ -47,8 +54,10 @@ Do not use a translated label to make a domain or protocol decision.
 
 ## Inventory and maintenance
 
-Run `pnpm check:i18n` for recursive key parity, non-empty messages and placeholder
-parity. `pnpm audit:ui-copy` writes an AST-based inventory of current owned
+Run `pnpm check:i18n` for recursive key parity, required non-empty messages and placeholder
+parity. An empty English base value declares optional copy (currently welcomeDescription);
+both locales retain the key, and an empty override hides that optional text. Required
+labels still fall back when supplied an empty value. `pnpm audit:ui-copy` writes an AST-based inventory of current owned
 surfaces, duplicate values and potentially unused keys. The latter findings are
 advisory: whole namespace forwarding and dynamic Plugin data cannot be judged by
 string matching. Code samples, language autonyms, brand names and protocol labels

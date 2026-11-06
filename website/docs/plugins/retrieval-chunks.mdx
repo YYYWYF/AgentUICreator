@@ -49,7 +49,6 @@ title: "文档检索片段（retrieval-chunks）"
 | `chunks?` | `readonly RetrievalChunk[]` | 默认从结果读取片段，运行中可为空 |
 | `searching?` | `boolean` | 默认按工具是否正在运行推导 |
 | `visibleCount?` | `number` | 默认展示全部片段 |
-| `labels?` | `Partial<RetrievalChunksProps['labels']>` | 覆盖 `retrieving`、`complete`、`relevance`、`score`，均为字符串；其余沿用 `searchTools` 文案 |
 | `renderRetrieval?` | `(props: RetrievalChunksProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个检索组件 |
 | `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback` |
 
@@ -105,3 +104,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalRetrievalChunks>;
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+检索状态与评分文案统一在 `locales.searchTools` 修改：`retrieving`、`passages`、`relevance`、`score`。检索内容仍是工具数据。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

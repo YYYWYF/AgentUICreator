@@ -52,7 +52,6 @@ title: "网页搜索结果（web-search）"
 | `searching?` | `boolean` | 默认按工具是否正在运行推导 |
 | `visibleResults?` | `number` | 默认展示全部结果 |
 | `cycle?` | `number` | 默认 `0`，参与结果项的 React key；可用于新一轮展示时重建结果项，不是自动轮播时间 |
-| `labels?` | `Partial<WebSearchProps['labels']>` | 覆盖 `searching`、`complete` 字符串；其余沿用 `searchTools` 文案 |
 | `renderSearch?` | `(props: WebSearchProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个搜索组件 |
 | `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback` |
 
@@ -108,3 +107,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalWebSearch>;
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+搜索状态文案统一在 `locales.searchTools` 修改：`searching`、`sources`。搜索结果标题和摘要仍是工具数据。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

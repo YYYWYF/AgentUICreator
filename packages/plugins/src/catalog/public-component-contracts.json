@@ -17,18 +17,24 @@
     },
     "@za38.03/agent-ui-plugins/composer": {
       "ConversationComposerPlugin": {
-        "localizedDefaults": { "placeholder": "composer.placeholder", "inputAriaLabel": "composer.input", "inputProps.placeholder": "composer.placeholder", "inputProps.aria-label": "composer.input" },
+        "localizedDefaults": {
+          "inputProps.placeholder": "composer.placeholder",
+          "inputProps.aria-label": "composer.input"
+        },
         "presentation": "The editable text field is a textarea by default. data-slot=aui_composer-input is its containing div; data-slot=aui_composer-shell is the outer surface containing input and actions. Container height is distinct from editable field height.",
         "composition": "The public component prop type is ConversationCanonicalComposerProps, exported from @za38.03/agent-ui-plugins. The /composer entry exports the Plugin component. inputProps forwards textarea props including rows, style, className and onChange; preserve existing handlers. Other root props configure the outer form. Root rows and maxLength configure the default textarea; a defined root maxLength wins over inputProps.maxLength. The input prop replaces the default input; inspect an existing replacement before changing it. For a live character count that follows typing, send and programmatic clears, query useConversationComposer from the public root module and observe its text; this hook uses the existing canonical Composer and does not create a Runtime. The default shell is a column: input and aui_composer-actions are separate children; the actions row contains leading/trailing actions, with submitAction in trailing-actions.",
-        "interaction": "A direct placeholder prop overrides composer.placeholder, including Host locale overrides; a fixed string also persists when the locale changes. Generated Agent accepts locales with per-locale overrides, for example zh-CN and en-US entries containing composer.placeholder; preserve existing Host overrides when adding project defaults. The public useAgentUILocale('composer') reads this shared namespace, and useAgentUILocaleCode() reads the same current locale. Custom project business labels may use a small project-owned en-US/zh-CN message dictionary selected by that unified locale code; do not create another language state/Context or add fields to the closed npm AgentUILocaleMessages type. Keep the existing Composer and its native event handlers.",
+        "interaction": "Default input hint, accessible name and queue copy read composer.placeholder, composer.input, composer.queued and composer.removeQueued from the unified locales. Change application/locales.ts; there are no duplicate root placeholder, inputAriaLabel or queueLabels props. Native inputProps and custom input composition remain available for input behavior and structure. Keep the existing Composer and native event handlers.",
         "styles": "inputProps.style.minHeight sizes the textarea, not the shell. Project CSS may target [data-slot=aui_composer-input] textarea. The package's styled outer shell uses :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot=\"aui_composer-shell\"] with border-radius:18px; :hover and :focus-within add border/shadow rules. A bare [data-slot=\"aui_composer-shell\"] override has lower specificity and can lose even when imported later. Use that full scoped selector and corresponding focus state in later project CSS for radius/border overrides, then inspect computed borderRadius/borderColor in the actual Host. Button wrapping belongs to the actions row and leading/trailing action groups; flex-basis on a child of the column shell can instead change input height. Preserve textarea, attachments and submit behavior."
       }
     },
     "@za38.03/agent-ui-plugins/conversation-surface": {
       "ConversationSurfacePlugin": {
         "presentation": "The canonical empty conversation centers its welcome content and composer. A populated conversation pins its viewport footer toward the bottom. Resizing the outer AppUIModel track alone does not change this internal empty-state alignment.",
-        "composition": "Keep the existing canonical Conversation Adapter, renderer slots and Composer. Layout changes inside this surface belong in project application composition or scoped CSS, without replacing the Runtime or adding component props to AppUIModel.",
-        "styles": "The internal content has data-slot=agent-ui-thread-content and flex:1 with a column layout; the composer container has class aui-thread-viewport-footer. To keep the composer at the bottom even in an empty conversation, project CSS can override the content's justify-content and give its footer margin-top:auto. Scope selectors to this conversation surface and verify the actual desktop and narrow Host, including overflow, welcome content and messages."
+        "composition": "Keep the existing canonical Conversation Adapter, renderer slots and Composer. Layout changes inside this surface belong in project application composition or scoped CSS, without replacing the Runtime or adding component props to AppUIModel. Default welcome title/description and thread action labels come only from unified locales. Edit application/locales.ts: conversation.welcome and welcomeDescription (empty hides the description). Agent has no welcome/suggestions props and surface has no labels override. ReactNode welcome/suggestions and semantic Slots replace structure; do not replace them for ordinary copy changes.",
+        "styles": "The internal content has data-slot=agent-ui-thread-content and flex:1 with a column layout; the composer container has class aui-thread-viewport-footer. To keep the composer at the bottom even in an empty conversation, project CSS can override the content's justify-content and give its footer margin-top:auto. Scope selectors to this conversation surface and verify the actual desktop and narrow Host, including overflow, welcome content and messages.",
+        "localizedDefaults": {
+          "welcome": "conversation.welcome"
+        }
       }
     },
     "@za38.03/agent-ui-plugins": {
@@ -62,6 +68,11 @@
         "presentation": "The frame contains .agent-ui-sidebar-provider, a sidebar region and .agent-ui-sidebar-inset for chat content. The sidebar has a sidebar-gap spacer and a sidebar-container containing sidebar-inner. Their widths participate together in layout; changing only the navigation content width does not resize its reserved space.",
         "interaction": "The frame measures its own container width. Below 648px it uses data-sidebar-mode=drawer and a contained Sheet, retaining a 48px navigation rail. Otherwise data-sidebar-mode=inline uses the selected navigation panel. Closing a panel and hiding the entry control are different states.",
         "styles": "The provider sets --sidebar-width inline to 280px in inline mode or 48px in drawer mode, and --sidebar-width-icon to 48px. Sidebar-gap and sidebar-container consume that variable. Project style overrides must be scoped to the intended mode and account for the inline declaration. sidebar-inner holds the rail and navigation panel; sidebar-inset holds the chat. Verify both reserved gap and visible panel geometry."
+      }
+    },
+    "@za38.03/agent-ui-plugins/conversation-suggestions": {
+      "ConversationSuggestionsPlugin": {
+        "presentation": "Default starters read localized title/label/prompt fields from application/locales.ts, bound by project-config.tsx. getConversationStarterSuggestions(locale, resolvedMessages) in project-config.tsx organizes count/order. Runtime passes the merged project/Host locale messages; do not create Agent suggestions arrays or callbacks. items/renderSuggestion remain data/composition extensions for dynamic business suggestions."
       }
     }
   }

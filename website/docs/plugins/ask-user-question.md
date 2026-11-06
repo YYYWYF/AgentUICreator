@@ -80,12 +80,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 组件：`CanonicalAskUserQuestion`；类型：`AskUserQuestionProps`。还接受下方列出的工具调用数据、样式和无障碍属性。
 
-| 属性 | 类型 | 省略时 / 用途 |
-| --- | --- | --- |
-| `submitText?` | `string` | 优先于 `labels.submit`，默认使用 `humanQuestion.submit` |
-| `labels?` | `Partial<AgentUILocaleMessages['humanQuestion']>` | 覆盖问答域的部分文案，未覆盖字段沿用统一语言层 |
-
-`labels` 的可选字段均为 `string`：
+`locales.humanQuestion` 的字段均为 `string`：
 
 | 字段 | 用途 | 默认中文 |
 | --- | --- | --- |
@@ -150,3 +145,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalAskUserQuestion>;
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
 这里的工具或消息参数由会话传入，属于数据接口；需要更换结构时，在项目注册处包装或更换渲染函数。
+
+问答按钮和状态文案统一在 `locales.humanQuestion` 修改，无独立 `submitText` 或 `labels` 参数。问题及选项仍来自工具数据。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

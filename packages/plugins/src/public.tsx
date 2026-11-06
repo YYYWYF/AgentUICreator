@@ -63,7 +63,6 @@ export interface ConversationOptionListProps {
   minSelections?: number;
   maxSelections?: number;
   onConfirm?: (ids: string[]) => void | Promise<void>;
-  confirmLabel?: string;
 }
 export interface ConversationQuestionStep {
   id: string;
@@ -86,13 +85,14 @@ export interface ConversationQuestionFlowProps {
   steps: readonly ConversationQuestionStep[];
   choice?: Readonly<Record<string, readonly string[]>> | undefined;
   onComplete?: ((answers: Record<string, string[]>) => void | Promise<void>) | undefined;
-  labels: ConversationQuestionFlowLabels;
 }
 export function ConversationOptionList(props: ConversationOptionListProps): ReactElement {
-  return <InternalConversationOptionList {...props} />;
+  const messages = useAgentUILocale("humanQuestion");
+  return <InternalConversationOptionList {...props} confirmLabel={messages.submit} />;
 }
 export function ConversationQuestionFlow(props: ConversationQuestionFlowProps): ReactElement | null {
-  return <InternalConversationQuestionFlow {...props} />;
+  const messages = useAgentUILocale("humanQuestion");
+  return <InternalConversationQuestionFlow {...props} labels={messages} />;
 }
 export function useConversationCanAnswerToolCall(): boolean {
   return useInternalConversationCanAnswerToolCall();
@@ -114,19 +114,9 @@ export interface ConversationThreadListItemActions {
   unarchive?: boolean;
   delete?: boolean;
 }
-export interface ConversationThreadListItemLabels {
-  newChat: string;
-  moreOptions: string;
-  running: string;
-  rename: string;
-  archive: string;
-  unarchive?: string;
-  delete: string;
-}
 export interface ConversationThreadListItemProps {
   onNavigate?: (() => void) | undefined;
   actions?: ConversationThreadListItemActions;
-  labels?: ConversationThreadListItemLabels;
 }
 import {
   CanonicalUserEditComposer as InternalCanonicalUserEditComposer,
@@ -354,17 +344,8 @@ export function toConversationMessagePartGroup(group: unknown): ConversationMess
   return { type: source.type, indices: source.indices, status: source.status };
 }
 
-export interface ConversationThreadLabels {
-  generationStopped: string;
-  editCancel?: string;
-  editUpdate?: string;
-  editInput?: string;
-}
-
 export interface ConversationThreadProps {
   components?: ConversationThreadComponents | undefined;
-  /** Product integrations supply presentation copy through their locale layer. */
-  labels?: ConversationThreadLabels | undefined;
   autoFocus?: boolean | undefined;
   composer?: ReactNode | null | undefined;
 }
@@ -380,7 +361,6 @@ export function ConversationThread(props: Readonly<ConversationThreadProps>) {
 /** Slot-composed projects provide their footer explicitly, without default actions. */
 export function ConversationThreadBase({
   components,
-  labels,
   autoFocus,
   composer,
 }: Readonly<ConversationThreadProps>) {
@@ -390,15 +370,14 @@ export function ConversationThreadBase({
         ? {}
         : { components: components as unknown as InternalThreadComponents })}
       {...(autoFocus === undefined ? {} : { autoFocus })}
-      labels={labels}
       composer={composer}
     />
   );
 }
 
-export interface ConversationComposerQueueLabels { queued: string; removeQueued: string; }
-export function ConversationComposerQueue(props: Readonly<ConversationComposerQueueLabels>) {
-  return <InternalConversationComposerQueue {...props} />;
+export function ConversationComposerQueue() {
+  const messages = useAgentUILocale("composer");
+  return <InternalConversationComposerQueue queued={messages.queued} removeQueued={messages.removeQueued} />;
 }
 
 export { ConversationCanonicalComposer, type ConversationCanonicalComposerProps } from "./plugins/composer/adapters/presentation/composer.js";
@@ -1232,10 +1211,10 @@ export type ConversationResponseBranchPickerProps = ComponentProps<"div"> & {
 };
 export const ConversationResponseActionBarRoot: ComponentType<ConversationResponseActionBarProps> = ResponseActionBarRoot;
 export const ConversationResponseBranchPicker: ComponentType<ConversationResponseBranchPickerProps> = ResponseBranchPicker;
-export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string; likeButtonProps?: Partial<ConversationTooltipIconButtonProps>; dislikeButtonProps?: Partial<ConversationTooltipIconButtonProps> }> = CanonicalResponseFeedbackActions;
-export const ConversationCanonicalResponseCopyAction = CanonicalResponseCopyAction;
-export const ConversationCanonicalResponseReloadAction = CanonicalResponseReloadAction;
-export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip"> & { tooltip?: string; menuLabel?: string; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
+export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ likeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip">>; dislikeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip">> }> = CanonicalResponseFeedbackActions;
+export const ConversationCanonicalResponseCopyAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip">> = CanonicalResponseCopyAction;
+export const ConversationCanonicalResponseReloadAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip">> = CanonicalResponseReloadAction;
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip"> & { presentation?: "button" | "menu"; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
 export interface ConversationTurnGroup {
   turnId: string;
   requestMessageId: string | null;
@@ -1270,11 +1249,13 @@ import {
 export function ConversationQuoteBlock(props: { text: string; messageId: string }): ReactElement {
   return <InternalConversationQuoteBlock {...props} />;
 }
-export function ConversationComposerQuotePreview(props: { dismissLabel: string }): ReactElement {
-  return <InternalConversationComposerQuotePreview {...props} />;
+export function ConversationComposerQuotePreview(): ReactElement {
+  const messages = useAgentUILocale("conversationQuote");
+  return <InternalConversationComposerQuotePreview dismissLabel={messages.dismiss} />;
 }
-export function ConversationQuoteSelectionToolbar(props: { quoteLabel: string }): ReactElement | null {
-  return <InternalConversationQuoteSelectionToolbar {...props} />;
+export function ConversationQuoteSelectionToolbar(): ReactElement | null {
+  const messages = useAgentUILocale("conversationQuote");
+  return <InternalConversationQuoteSelectionToolbar quoteLabel={messages.quote} />;
 }
 /** Composition seam for the canonical runtime's thread-bound quote cleanup. */
 export function ConversationQuoteLifecycleProvider(props: { clearPendingQuote: () => void; children: ReactNode }): ReactElement {
@@ -1310,31 +1291,21 @@ export interface ConversationSlashCommandSource {
   getSnapshot(): readonly ConversationSlashCommand[];
   subscribe(listener: () => void): () => void;
 }
-export interface ConversationTriggerLabels {
-  suggestions: string;
-  back: string;
-  empty: string;
-  loading: string;
-  searchFailed: string;
-  retry: string;
-  commandFailed: string;
-  invalidItem: string;
-}
 export interface ConversationMentionTriggerProps {
   source?: ConversationMentionSource | undefined;
-  labels: ConversationTriggerLabels;
   debounceMs?: number | undefined;
 }
 export interface ConversationCommandTriggerProps {
   source?: ConversationSlashCommandSource | undefined;
-  labels: ConversationTriggerLabels;
 }
 import { InternalConversationMentionTrigger, InternalConversationCommandTrigger } from "./internal/conversation-composer-triggers.js";
 export function ConversationComposerMentionTrigger(props: ConversationMentionTriggerProps): ReactElement | null {
-  return <InternalConversationMentionTrigger {...props} />;
+  const messages = useAgentUILocale("conversationTriggers");
+  return <InternalConversationMentionTrigger {...props} labels={messages} />;
 }
 export function ConversationComposerCommandTrigger(props: ConversationCommandTriggerProps): ReactElement | null {
-  return <InternalConversationCommandTrigger {...props} />;
+  const messages = useAgentUILocale("conversationTriggers");
+  return <InternalConversationCommandTrigger {...props} labels={messages} />;
 }
 
 import { WebSearch as InternalWebSearch, RetrievalChunks as InternalRetrievalChunks } from "./internal/search-elements.js";
@@ -1345,10 +1316,10 @@ export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "child
   query: string;
   results: readonly WebSearchResult[];
   searching: boolean;
-  labels: { searching: string; complete: string };
 }
 export function WebSearch(props: WebSearchProps): ReactElement {
-  return <InternalWebSearch {...props} />;
+  const messages = useAgentUILocale("searchTools");
+  return <InternalWebSearch {...props} labels={{ searching: messages.searching, complete: messages.sources }} />;
 }
 export interface RetrievalChunk { id: string; source: string; locator: string; score: number; text: string }
 export interface RetrievalChunksProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "chunks" | "searching" | "labels" | "visibleCount"> {
@@ -1356,10 +1327,10 @@ export interface RetrievalChunksProps extends Omit<React.ComponentProps<"div">, 
   query: string;
   chunks: readonly RetrievalChunk[];
   searching: boolean;
-  labels: { retrieving: string; complete: string; relevance: string; score: string };
 }
 export function RetrievalChunks(props: RetrievalChunksProps): ReactElement {
-  return <InternalRetrievalChunks {...props} />;
+  const messages = useAgentUILocale("searchTools");
+  return <InternalRetrievalChunks {...props} labels={{ retrieving: messages.retrieving, complete: messages.passages, relevance: messages.relevance, score: messages.score }} />;
 }
 
 import { NativeSelect as InternalNativeSelect, NativeSelectOption as InternalNativeSelectOption } from "./internal/primitives/native-select.js";
@@ -1373,8 +1344,9 @@ export function NativeSelectOption(props: React.ComponentProps<"option">) {
 }
 
 /** The existing response Footer owns menu placement and localized menu content. */
-export function ConversationActionMoreMenu(props: { label: string; children: ReactNode }): ReactElement {
-  return <InternalConversationActionMoreMenu {...props} />;
+export function ConversationActionMoreMenu(props: { children: ReactNode }): ReactElement {
+  const messages = useAgentUILocale("conversation");
+  return <InternalConversationActionMoreMenu {...props} label={messages.moreActions} />;
 }
 
 export type ConversationActionMoreMenuItemProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
@@ -1384,7 +1356,7 @@ export function ConversationActionMoreMenuItem(props: ConversationActionMoreMenu
   return <InternalConversationActionMoreMenuItem {...props} />;
 }
 
-export { AgentUILocaleProvider, useAgentUILocale, useAgentUILocaleCode, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
+export { AgentUILocaleProvider, useAgentUILocale, useAgentUILocaleCode, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
 export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides } from "./locale.js";
 
 import { AgentUISidebarFrame as InternalSidebarFrame, useAgentUISidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";

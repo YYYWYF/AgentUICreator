@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 // @vitest-environment jsdom
 import * as React from "react";
 import * as JSXRuntime from "react/jsx-runtime";
@@ -213,7 +214,11 @@ it.each(modes)("$name new and rail retain canonical new-thread behavior and resp
   await el.render(<Rail enabled buttonProps={{"aria-label":"rail new",children:"Rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
 });
 it.each(modes)("$name quote exposes renderers/props and follows locale with Host overrides",async({Quote})=>{
-  const preview=vi.fn((props:ComponentProps<typeof Quote>["previewProps"])=><span>{props?.dismissLabel}</span>);const toolbar=vi.fn((props:ComponentProps<typeof Quote>["toolbarProps"])=><span>{props?.quoteLabel}</span>);
+  function Preview() { const messages=useAgentUILocale("conversationQuote"); return <span>{messages.dismiss}</span>; }
+  function Toolbar() { const messages=useAgentUILocale("conversationQuote"); return <span>{messages.quote}</span>; }
+  const preview=vi.fn(()=><Preview/>), toolbar=vi.fn(()=><Toolbar/>);
   const el=await mount(<Quote renderPreview={preview} renderToolbar={toolbar}/>,"zh-CN");expect(el.host.textContent).toContain("取消引用");expect(el.host.textContent).toContain("引用");
-  await el.render(<Quote renderPreview={preview} renderToolbar={toolbar}/>,"en-US",{conversationQuote:{dismiss:"Host dismiss",quote:"Host quote"}});expect(el.host.textContent).toBe("Host dismissHost quote");await el.render(<Quote renderPreview={preview} renderToolbar={toolbar} previewProps={{dismissLabel:"Local dismiss"}} toolbarProps={{quoteLabel:"Local quote"}}/>);expect(el.host.textContent).toBe("Local dismissLocal quote");
+  await el.render(<Quote renderPreview={preview} renderToolbar={toolbar}/>,"en-US",{conversationQuote:{dismiss:"Host dismiss",quote:"Host quote"}});expect(el.host.textContent).toBe("Host dismissHost quote");
+  expect(preview.mock.calls.every(args=>args.length===0)).toBe(true);
+
 });

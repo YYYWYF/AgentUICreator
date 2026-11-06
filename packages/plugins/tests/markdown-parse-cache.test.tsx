@@ -70,7 +70,7 @@ it("keeps native language renderers and replaces text after a part switch", asyn
   function Host({ text, revision = "" }: { text: string; revision?: string }) {
     const runtime = useLocalRuntime({ async *run() {} });
     const componentsByLanguage = { ts: {
-      CodeHeader: ({ language }: { language: string }) => <span data-test-language>{language}{revision}</span>,
+      CodeHeader: ({ language }: { language?: string | undefined }) => <span data-test-language>{language}{revision}</span>,
       SyntaxHighlighter: ({ code }: { code: string }) => <pre data-test-code>{code}</pre>,
     } };
     return <AssistantRuntimeProvider runtime={runtime}>

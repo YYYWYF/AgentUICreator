@@ -52,7 +52,9 @@ for (const [owner, directory] of dictionaries) {
   const [english, chinese] = await Promise.all(["en-US", "zh-CN"].map(async locale => flatten(await dictionary(`${directory}/${locale}.ts`))));
   const keys = new Set([...Object.keys(english), ...Object.keys(chinese)]);
   for (const key of keys) {
-    if (!english[key] || !chinese[key]) failures.push(`${owner}: missing or empty ${key}`);
+    // An empty English base value explicitly declares optional presentation
+    // copy. Missing keys and empty required translations remain failures.
+    if (typeof english[key] !== "string" || typeof chinese[key] !== "string" || (english[key] !== "" && !chinese[key])) failures.push(`${owner}: missing or empty ${key}`);
     const placeholders = text => [...new Set(text?.match(/\{(?:\d+|[A-Za-z][A-Za-z0-9]*)\}/g) ?? [])].sort().join(",");
     if (placeholders(english[key]) !== placeholders(chinese[key])) failures.push(`${owner}: placeholder mismatch ${key}`);
     // Advisory only: consumers can forward whole message groups through composition props.

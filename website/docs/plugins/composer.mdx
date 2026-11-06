@@ -55,9 +55,6 @@ title: "消息输入（composer）"
 | `submitMode?` | `'enter' \| 'ctrlEnter' \| 'none'` | 优先于 `inputProps.submitMode`；最终未设置时底层默认 `enter` |
 | `autoFocus?` | `boolean` | 使用所在输入区的自动聚焦设置 |
 | `compact?` | `boolean` | 继承表单组件的紧凑模式开关，默认 `false` |
-| `placeholder?` | `string` | 默认使用 `composer.placeholder` |
-| `inputAriaLabel?` | `string` | 默认使用 `composer.input` |
-| `queueLabels?` | `{ queued: string; removeQueued: string }` | 默认使用 `composer` 文案域；覆盖时提供两个字段 |
 | `inputProps?` | `ConversationComposerInputProps` | 默认输入框属性，见下表 |
 | `dropzoneProps?` | `ConversationComposerDropzoneProps` | 附件拖放区属性，类型来自现有 AttachmentDropzone |
 | `triggers?` | `ReactNode` | 提及／命令触发器内容 |
@@ -99,3 +96,5 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
 ```
 
 具体属性和保留插槽的修改示例见[输入框定制](/development/component-customization)。
+
+默认输入提示、无障碍名称和排队文案统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

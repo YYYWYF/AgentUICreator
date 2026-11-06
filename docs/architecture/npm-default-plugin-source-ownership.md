@@ -146,7 +146,7 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 
 初始化只为 AppUIModel 实际引用的插件生成薄应用层，保留必要的服务提供者与消息注册。后续添加插件时按需生成对应入口；已有项目文件不因重新生成 Registry 被删除或覆盖。纯 npm 目录中尚未使用的插件不要求项目预先声明其业务服务。
 
-`conversation-suggestions.items` 接收业务问题及可选标题、说明；省略时沿用会话建议，空数组不显示建议。通用 Runtime 的默认业务建议仍为空。新模板的 `application/Agent.tsx` 通过 `suggestions` 属性提供原有三条银行服务示例，包含标题、副标题与发送内容，文案从 Plugins 统一 locale 的 `starterSuggestions` 命名空间读取。平台式、助理式、嵌入式使用同一应用入口；Host 传入数组或回调替换默认示例，传入 `[]` 隐藏，`locales` 可覆盖示例文案。业务接入后应替换成项目自己的内容，不在 AppUIModel 中保存这些 props。
+`conversation-suggestions.items` 接收动态业务问题及可选标题、说明，仍属于数据与组件组合扩展；省略时沿用会话建议，空数组不显示。通用 Runtime 默认业务建议为空。新模板将默认欢迎语与三条示例文案集中在 `application/locales.ts` 的 `conversation` / `starterSuggestions`，由 `application/project-config.tsx` 绑定。`getConversationStarterSuggestions(locale, resolvedMessages)` 只组织数量与顺序，Runtime 传入合并后的 locale 文案。Agent 不再提供重复的 welcome/suggestions 属性；Host 通过 locales 按字段覆盖。AppUIModel 不保存文案 props。
 
 公开 API 按[逐插件 props 约定](plugin-public-props.md)统一：常用整体样式直接使用 `className`、`style`；检索卡片直接提供 `title`、展开状态与 `renderContent`，问答直接提供 `submitText`、统一文案域覆盖与整体样式。不为所有内部元素增加独立参数。数据解析、答复权限、历史只读与续答生命周期保持在原组件和 Runtime 中。
 

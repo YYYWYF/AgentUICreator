@@ -71,7 +71,7 @@ export const creatorApplicationAuthoringTargets = [
     id: "conversation.starter-suggestions",
     kind: "application_config",
     name: "Conversation starter suggestions",
-    description: "Application-owned starter questions shown in the empty conversation state.",
+    description: "Empty-state starter copy has one owner: locales.starterSuggestions (title, label and prompt fields). In modern projects edit application/locales.ts, which project-config.tsx binds to Runtime. getConversationStarterSuggestions in project-config.tsx controls count/order only; do not add Agent suggestions props or put text in AppUIModel.",
     intents: [
       "change starter questions",
       "edit suggested prompts",
@@ -80,14 +80,15 @@ export const creatorApplicationAuthoringTargets = [
       "修改推荐问题",
       "修改开场问题",
     ],
-    ownerPath: "conversation/config/conversation-runtime-config.ts",
+    ownerPath: "i18n/locale-config.ts",
+    projectOwnerPath: "application/locales.ts",
     relatedPluginIds: ["conversation-suggestions"],
   },
   {
     id: "conversation.welcome",
     kind: "application_config",
     name: "Conversation welcome content",
-    description: "Application-owned welcome title and description for an empty conversation.",
+    description: "Default welcome text has one owner: locales.conversation.welcome and optional welcomeDescription (empty string hides it). In modern projects edit application/locales.ts, bound by project-config.tsx. Keep en-US/zh-CN parity. No Agent welcome prop or separate presentation config; ReactNode welcome/emptyWelcome are structural replacements, unnecessary for a text change.",
     intents: [
       "change welcome text",
       "edit conversation welcome title",
@@ -95,7 +96,8 @@ export const creatorApplicationAuthoringTargets = [
       "修改欢迎语",
       "修改欢迎标题和说明",
     ],
-    ownerPath: "conversation/config/conversation-presentation-config.ts",
+    ownerPath: "i18n/locale-config.ts",
+    projectOwnerPath: "application/locales.ts",
     relatedPluginIds: ["conversation-surface"],
   },
   {

@@ -7,11 +7,8 @@ import {
   useAgentUILocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
-export type CanonicalResponseCopyActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  tooltip?: string;
-};
+export type CanonicalResponseCopyActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
 export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> = ({
-  tooltip,
   children,
   onClick,
   disabled: disabledProp,
@@ -37,7 +34,7 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
     <>
       <TooltipIconButton
         {...buttonProps}
-        tooltip={tooltip ?? localeMessages.common.copy}
+        tooltip={localeMessages.common.copy}
         type='button'
         disabled={disabled || disabledProp}
         {...(copied ? { 'data-copied': 'true' } : {})}

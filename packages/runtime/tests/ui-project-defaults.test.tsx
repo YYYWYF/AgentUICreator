@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
+import { resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
 import { createAgentUIProject, createPluginCapabilityCatalog, resolveAgentUIProjectResources } from "../src/ui/index.js";
 
 const required = {
@@ -10,13 +11,13 @@ describe("npm project defaults", () => {
   it("keeps each project's overrides isolated and leaves example tools unregistered", () => {
     const custom = createAgentUIProject({ ...required, defaultLocale: "en-US", locales: {
       "en-US": { composer: { placeholder: "My business input" } }, "zh-CN": {},
-    }, getConversationStarterSuggestions: () => [{ title: "My business question", prompt: "My business question" }], presentation: { welcome: { title: "My app" } } });
+    }, getConversationStarterSuggestions: () => [{ title: "My business question", prompt: "My business question" }] });
     const defaults = createAgentUIProject(required);
-    expect(custom.getConversationStarterSuggestions("en-US")[0]?.title).toBe("My business question");
-    expect(defaults.getConversationStarterSuggestions("en-US")).toEqual([]);
+    expect(custom.getConversationStarterSuggestions("en-US", resolveAgentUILocaleMessages("en-US").starterSuggestions)[0]?.title).toBe("My business question");
+    expect(defaults.getConversationStarterSuggestions("en-US", resolveAgentUILocaleMessages("en-US").starterSuggestions)).toEqual([]);
     expect(defaults.baseConversationToolkit).toEqual({});
     expect(defaults.appFrontendTools).toEqual([]);
-    expect(defaults.presentation.welcome).toEqual({});
+    expect(defaults).not.toHaveProperty("presentation");
     expect(defaults).not.toHaveProperty("theme");
     expect(defaults.compositionStore).not.toBe(custom.compositionStore);
   });

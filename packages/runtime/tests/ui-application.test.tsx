@@ -19,7 +19,7 @@ it("stages a replacement project composition store through the existing applicat
     Integrations: ({ children }) => <>{children}</>, conversationServices: {},
     getConversationStarterSuggestions: () => [], conversationMessageQueueEnabled: false,
     defaultLocale: "en-US", locales: AGENT_UI_PRESENTATION_LOCALES,
-    shell: {}, presentation: { welcome: {} },
+    shell: {},
   };
   try {
     await act(async () => { root.render(<AgentApplication project={project} />); });

@@ -1,6 +1,7 @@
 'use client';
 import { type ComponentProps, type FC } from 'react';
 import {
+  useAgentUILocale,
   ActionBarPrimitive,
   AuiIf,
   ThumbsDownIcon,
@@ -8,11 +9,11 @@ import {
   TooltipIconButton,
 } from '../../../../plugin-support.js';
 export const CanonicalResponseFeedbackActions: FC<{
-  helpful: string;
-  notHelpful: string;
-  likeButtonProps?: Partial<ComponentProps<typeof TooltipIconButton>>;
-  dislikeButtonProps?: Partial<ComponentProps<typeof TooltipIconButton>>;
-}> = ({ helpful, notHelpful, likeButtonProps, dislikeButtonProps }) => (
+  likeButtonProps?: Partial<Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>>;
+  dislikeButtonProps?: Partial<Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>>;
+}> = ({ likeButtonProps, dislikeButtonProps }) => {
+  const { helpful, notHelpful } = useAgentUILocale("conversationFeedback");
+  return (
   <AuiIf condition={(s) => s.thread.capabilities.feedback}>
     <ActionBarPrimitive.FeedbackPositive asChild>
       <TooltipIconButton
@@ -38,5 +39,6 @@ export const CanonicalResponseFeedbackActions: FC<{
     </ActionBarPrimitive.FeedbackNegative>
   </AuiIf>
 );
+};
 
 export { CanonicalResponseFeedbackActions as ConversationCanonicalResponseFeedbackActions };

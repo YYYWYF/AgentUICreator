@@ -99,8 +99,8 @@ it("typechecks the published portable Composer adapter with its support declarat
     const catalog=JSON.parse(await readFile(path.join(root,"dist/catalog.json"),"utf8"));
     const portableFiles=catalog.plugins.find(plugin=>plugin.id==="composer").takeover.files;
     const portableIndex=await readFile(sourcePath(path.join(root,"dist"),portableFiles.find(file=>file.target==="index.tsx").path),"utf8");
-    expect(portableIndex).toContain("useAgentUILocale");
-    expect(portableIndex.match(/from ['"]@za38\.03\/agent-ui-plugins['"]/gu)).toHaveLength(1);
+    expect(portableIndex).not.toContain("queueLabels");
+    expect(portableIndex).not.toMatch(/from ['"]@za38\.03\/agent-ui-plugins['"]/u);
     expect(portableIndex.match(/from ['"]\.\/adapters\/composer['"]/gu)).toHaveLength(1);
     for(const file of portableFiles.filter(file=>file.target.startsWith("adapters/"))) {
       await copyFile(sourcePath(path.join(root,"dist"),file.path),sourcePath(consumer,file.target));

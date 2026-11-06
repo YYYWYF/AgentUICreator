@@ -8,8 +8,6 @@ type Appearance = Pick<
 export function ConversationSubmitActionPlugin({
   sendButtonProps,
   cancelButtonProps,
-  sendText,
-  cancelText,
   className,
   style,
   disabled,
@@ -18,8 +16,6 @@ export function ConversationSubmitActionPlugin({
   Appearance & {
     sendButtonProps?: ComponentProps<typeof ConversationComposerSend>;
     cancelButtonProps?: ComponentProps<typeof ConversationComposerCancel>;
-    sendText?: string;
-    cancelText?: string;
     children?: ReactNode;
   }) {
   return (
@@ -30,14 +26,12 @@ export function ConversationSubmitActionPlugin({
             className={className}
             style={style}
             disabled={disabled}
-            {...(sendText === undefined ? {} : { label: sendText })}
             {...sendButtonProps}
           />
           <ConversationComposerCancel
             className={className}
             style={style}
             disabled={disabled}
-            {...(cancelText === undefined ? {} : { label: cancelText })}
             {...cancelButtonProps}
           />
         </>

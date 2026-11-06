@@ -3,7 +3,7 @@ import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { AssistantRuntimeProvider, useLocalRuntime } from "@assistant-ui/react";
 import { expect, it } from "vitest";
-import { ConversationCanonicalComposer } from "../dist/index.js";
+import { AgentUILocaleProvider, ConversationCanonicalComposer } from "../dist/index.js";
 import { ConversationComposerLexicalInput } from "../dist/lexical.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -11,7 +11,7 @@ it("published Lexical uses the shared Composer host Context, including custom la
   function Host() {
     const runtime = useLocalRuntime({ async *run() { yield { content: [{ type: "text" as const, text: "done" }] }; } });
     return <AssistantRuntimeProvider runtime={runtime}>
-      <ConversationCanonicalComposer autoFocus={false} placeholder="host-placeholder" inputAriaLabel="host-input" input={<ConversationComposerLexicalInput />} />
+      <AgentUILocaleProvider messages={{composer:{placeholder:"host-placeholder",input:"host-input"}}}><ConversationCanonicalComposer autoFocus={false} input={<ConversationComposerLexicalInput />} /></AgentUILocaleProvider>
     </AssistantRuntimeProvider>;
   }
   const container = document.createElement("div"); document.body.append(container);

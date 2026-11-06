@@ -34,9 +34,11 @@ it("makes composer configuration discoverable and queries the installed Runtime 
   const root = fileURLToPath(new URL("../../../", import.meta.url));
   const composer: any = await inspectPluginSharedTypes(root, ["ConversationComposerPlugin.$parameter0"], "@za38.03/agent-ui-plugins/composer");
   expect(composer.queryResolution.status).toBe("complete");
-  expect(composer.symbols[0].members.map((member: any) => member.name)).toEqual(expect.arrayContaining(["placeholder", "maxLength", "inputProps"]));
+  expect(composer.symbols[0].members.map((member: any) => member.name)).toEqual(expect.arrayContaining(["maxLength", "inputProps"]));
   expect(composer.symbols[0].memberNames).toContain("onCopy");
-  const scalar: any = await inspectPluginSharedTypes(root, ["ConversationCanonicalComposerProps.placeholder"], "@za38.03/agent-ui-plugins");
+  expect(composer.symbols[0].memberNames).not.toContain("placeholder");
+  expect(composer.symbols[0].memberNames).not.toContain("queueLabels");
+  const scalar: any = await inspectPluginSharedTypes(root, ["ConversationCanonicalComposerProps.inputProps.placeholder"], "@za38.03/agent-ui-plugins");
   expect(scalar.symbols[0].members).toEqual([]);
   expect(scalar.symbols[0].union.variants.every((variant: any) => variant.members.length === 0)).toBe(true);
   const runtime: any = await inspectPluginSharedTypes(root, ["AgentProps.locales", "AgentProps.defaultLocale"], "@za38.03/agent-ui-runtime/ui");
@@ -59,9 +61,9 @@ it("returns complete application prop names with relevant types before DOM event
     await writeFile(path.join(root, "index.tsx"), 'import {ConversationComposerPlugin as Impl} from "@za38.03/agent-ui-plugins/composer"; import type {ComponentProps} from "react"; export function ConversationComposerPlugin(props:ComponentProps<typeof Impl>){return <Impl {...props}/>;}');
     const inspected: any = await inspectPluginApplication(root, { pluginId: "composer", application: { entryPath: "index.tsx", implementationOwnership: "npm", implementationImport: "@za38.03/agent-ui-plugins/composer" } } as any);
     expect(inspected.publicApi, JSON.stringify(inspected.publicApi)).toMatchObject({ status: "available", completePropNames: true });
-    expect(inspected.publicApi.props.map((prop: any) => prop.name)).toEqual(expect.arrayContaining(["placeholder", "maxLength", "inputProps"]));
+    expect(inspected.publicApi.props.map((prop: any) => prop.name)).toEqual(expect.arrayContaining(["maxLength", "inputProps"]));
     expect(inspected.publicApi.propNames).toContain("onCopy");
-    expect(inspected.publicApi.localizedDefaults).toMatchObject({ placeholder: "composer.placeholder" });
+    expect(inspected.publicApi.localizedDefaults).toMatchObject({ "inputProps.placeholder": "composer.placeholder" });
     expect(inspected.usageGuide.localizedDefaults).toEqual(inspected.publicApi.localizedDefaults);
     const contract = JSON.parse(await readFile(fileURLToPath(new URL("../../../contracts/creator/operator.schema.json", import.meta.url)), "utf8"));
     const ajv = new Ajv2020({ strict: false, validateFormats: false });

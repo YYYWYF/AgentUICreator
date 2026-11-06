@@ -13,7 +13,6 @@ import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIH
 import { PluginDiagnosticProvider, type RuntimeDiagnostic, type RuntimeCompositionSnapshot as ObservedComposition } from "../runtime/diagnostics/index.js";
 import { publishAgentUIObservation, type AgentObservability } from "./observability.js";
 import type { RuntimeCompositionSnapshot } from "../runtime/composition/index.js";
-import { ConversationPresentationConfigProvider } from "../presentation-config.js";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector.js";
 import { useApplicationSessionConnection } from "./ApplicationSessionBoundary.js";
 import { useOptionalPluginServiceRuntime } from "../runtime/plugins/PluginServiceContext.js";
@@ -89,7 +88,7 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   observability?: AgentObservability | undefined;
 }) {
-  const { locales: AGENT_UI_LOCALES, Shell = InlineSurface, shell: agentUIShellConfig, presentation: conversationPresentationConfig, development } = useAgentUIProject();
+  const { locales: AGENT_UI_LOCALES, Shell = InlineSurface, shell: agentUIShellConfig, development } = useAgentUIProject();
   const environment = useContext(AgentEnvironmentContext);
   const actions = environment!.actions;
   const [surface, setSurface] = useState<HTMLElement | null>(null);
@@ -122,7 +121,6 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
     <AgentUILocaleProvider locale={locale ?? presentationLocale} messages={AGENT_UI_LOCALES[locale ?? presentationLocale]}>
         <AgentUILocaleBridge locale={locale} onLocaleChange={onLocaleChange}>
         <AgentUIThemeBridge theme={theme} onThemeChange={onThemeChange}>
-          <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
             <Shell surfaceRef={observed ? setSurface : undefined} assistantPanelWidth={agentUIShellConfig.assistantPanelWidth}>
               <UIPluginRuntime
                 actions={actions}
@@ -134,7 +132,6 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
                 registry={composition.activeRegistry}
               />
             </Shell>
-          </ConversationPresentationConfigProvider>
         </AgentUIThemeBridge>
         </AgentUILocaleBridge>
     </AgentUILocaleProvider>

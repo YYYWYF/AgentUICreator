@@ -35,9 +35,12 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
   await expect(lstat(path.join(source,'services',service+'.ts'))).rejects.toMatchObject({code:'ENOENT'});
  }
  const agentEntry = await readFile(path.join(source,'application/Agent.tsx'),'utf8');
- expect(agentEntry).toContain('suggestions={props.suggestions ?? suggestions}');
- expect(agentEntry).toContain('resolveAgentUILocaleMessages(locale, props.locales?.[locale]).starterSuggestions');
- expect(agentEntry).toContain('label: messages.architectureLabel');
+ expect(agentEntry).not.toMatch(/suggestions=|welcome=/);
+ const projectConfig = await readFile(path.join(source,'application/project-config.tsx'),'utf8');
+ expect(projectConfig).toContain("import { locales } from './locales'");
+ expect(projectConfig).toContain('getConversationStarterSuggestions: (_locale, messages)');
+ expect(projectConfig).toContain('label: messages.architectureLabel');
+ expect(await readFile(path.join(source,'application/locales.ts'),'utf8')).toContain("'zh-CN': {}");
  async function inspect(directory:string):Promise<void> {
   for(const entry of await readdir(directory,{withFileTypes:true})) {
    const file=path.join(directory,entry.name);
@@ -77,7 +80,9 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  const context=await resourcePaths(root);
  const projectFacts=await collectPluginProjectFacts(root,context.config,context.paths);
  const catalog=await buildCreatorAuthoringTargetCatalog({projectRoot:root,...context,projectFacts});
- expect(catalog.bindings.find(binding=>binding.targetId==='conversation.welcome')?.ownerPath).toBe('src/agent-ui/application/Agent.tsx');
+ expect(catalog.bindings.find(binding=>binding.targetId==='conversation.welcome')?.ownerPath).toBe('src/agent-ui/application/locales.ts');
+ expect(catalog.bindings.find(binding=>binding.targetId==='conversation.starter-suggestions')?.ownerPath).toBe('src/agent-ui/application/locales.ts');
+ expect(catalog.candidates.find(target=>target.id==='conversation.welcome')?.description).toContain('locales.conversation.welcome');
  expect(catalog.bindings.some(binding=>binding.ownerPath?.endsWith('/config.ts'))).toBe(false);
  if(mode==='assistant') expect(catalog.bindings.find(binding=>binding.targetId==='appearance.assistant-shell')?.ownerPath).toBe('src/agent-ui/application/shell/AssistantShell.tsx');
  else expect(catalog.bindings.some(binding=>binding.targetId==='appearance.assistant-shell')).toBe(false);

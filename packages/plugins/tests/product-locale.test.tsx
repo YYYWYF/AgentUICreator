@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AgentUILocaleProvider, useAgentUILocale, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
+import { AgentUILocaleProvider, useAgentUILocale, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
 import { ConversationFile } from "../src/public";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -39,4 +39,19 @@ describe("Product locale composition", () => {
     } finally { AGENT_UI_PRESENTATION_LOCALES["zh-CN"].attachments.remove = previous; }
   });
 
+  it("merges exact fields and allows clearing optional descriptions without clearing required labels", () => {
+    const merged = mergeAgentUILocaleOverrides(
+      { conversation: { welcome: "Project welcome", welcomeDescription: "Project description" }, composer: { placeholder: "Project input" } },
+      { conversation: { welcomeDescription: "" }, composer: { send: "Host send" } },
+    );
+    const messages = resolveAgentUILocaleMessages("en-US", merged);
+    expect(messages.conversation.welcome).toBe("Project welcome");
+    expect(messages.conversation.welcomeDescription).toBe("");
+    expect(messages.composer.placeholder).toBe("Project input");
+    expect(messages.composer.send).toBe("Host send");
+    expect(resolveAgentUILocaleMessages("en-US", { conversation: { welcome: "" } }).conversation.welcome).toBe(AGENT_UI_PRESENTATION_LOCALES["en-US"].conversation.welcome);
+    const warn = vi.fn();
+    expect(resolveAgentUILocaleMessages("zh-CN", undefined, warn).conversation.welcomeDescription).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+  });
 });

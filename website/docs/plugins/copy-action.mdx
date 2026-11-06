@@ -41,11 +41,10 @@ title: "回复复制（copy-action）"
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`ConversationCanonicalResponseCopyAction`。继承提示按钮属性，`tooltip` 可选。
+组件：`ConversationCanonicalResponseCopyAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `tooltip?` | `string` | 默认 `common.copy` |
 | `children?` | `ReactNode` | 默认复制图标，复制成功后短暂切换为成功图标 |
 | `disabled?` | `boolean` | 与回答生成中／没有正文的禁用条件叠加 |
 | `onClick?` | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行复制；`preventDefault()` 可阻止默认动作 |
@@ -61,7 +60,6 @@ title: "回复复制（copy-action）"
 | `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
 | `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
 | `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
-| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
@@ -77,3 +75,5 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseCo
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+默认提示文案只读取 `locales.common.copy`，失败提示读取 `locales.copyAction.failed`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

@@ -35,3 +35,6 @@ export { Image } from "./internal/adapters-generated/assistant-ui/components/ass
 export { File } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file.js";
 export { useAgentUIThemeSnapshot } from "./plugin-api/useAgentUIThemeSnapshot.js";
 export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.js";
+
+/** Internal pure helpers receive already-resolved copy from the question Plugin. */
+export { ConversationOptionList as QuestionOptionList, ConversationQuestionFlow as QuestionFlow } from "./internal/conversation-question-flow.js";

@@ -67,7 +67,7 @@ describe("product Composer pending interrupt policy", () => {
           attachmentAdapter={adapter} unstable_agentFactory={factory}>
           <Capture />
           <ConversationThread autoFocus={false} components={{ TransientMessages: ConversationTransientMessages }} composer={<ConversationCanonicalComposer key={composerMount} autoFocus={false} input={lexical ? <ConversationComposerLexicalInput /> : undefined}
-            beforeInput={<><ConversationComposerQuotePreview dismissLabel="Dismiss quote" />
+            beforeInput={<><ConversationComposerQuotePreview />
               <input data-testid="slot-input" onKeyDown={event => {
                 if (event.key === "Enter" && !event.defaultPrevented) slotEnterCount++;
               }} />

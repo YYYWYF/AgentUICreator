@@ -138,6 +138,7 @@ export const enUS = {
     "loading": "Loading conversation",
     "scrollToBottom": "Scroll to bottom",
     "welcome": "Hello, how can I help you?",
+    "welcomeDescription": "",
     "working": "Assistant is working",
     "moreActions": "More actions",
     "exportMarkdown": "Export as Markdown",

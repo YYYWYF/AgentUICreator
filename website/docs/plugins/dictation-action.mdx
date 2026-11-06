@@ -50,8 +50,6 @@ title: "语音输入（dictation-action）"
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `startText?` | `string` | 开始按钮标签；省略时使用 `composer` 默认文案 |
-| `stopText?` | `string` | 停止按钮标签；省略时使用 `composer` 默认文案 |
 | `className?` | `string` | 两个按钮的样式类 |
 | `style?` | `CSSProperties` | 两个按钮的内联样式 |
 | `disabled?` | `boolean` | 两个按钮的禁用设置 |
@@ -59,7 +57,7 @@ title: "语音输入（dictation-action）"
 | `stopButtonProps?` | `ComponentProps<typeof ConversationComposerStopDictation>` | 停止听写按钮属性 |
 | `children?` | `ReactNode` | 替换默认两个按钮 |
 
-两个子按钮均继承提示按钮属性，另支持 `label?: string`、`ariaLabel?: string`、`tooltip?: string`。提示优先级为 `tooltip` → `label` → 默认文案；无障碍名称为 `ariaLabel` → `label` → 默认文案。它们根据现有听写能力和录音状态切换可见性。
+两个子按钮保留原生样式、事件和 children 属性，根据现有听写能力和录音状态切换可见性。
 
 #### 子按钮属性
 
@@ -70,7 +68,6 @@ title: "语音输入（dictation-action）"
 | `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
 | `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
 | `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
-| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
@@ -86,3 +83,5 @@ type ImplementationProps = ComponentProps<typeof ConversationComposerDictate>;
 ```
 
 表中的成对 `…Props` 是项目组件的组合入口；类型示例对应其中一个公开动作组件，另一个沿用现有导入。
+
+语音按钮提示及无障碍名称统一在 `locales.composer` 修改：`voiceInput`、`startVoice`、`stopDictation`、`stopVoice`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

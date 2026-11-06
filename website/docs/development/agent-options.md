@@ -24,15 +24,26 @@ export function Chat() {
 <Agent user={{ userId: 'u-1', userName: '张三', avatar: '/avatar.png' }} />
 ```
 
-新模板的空会话默认展示三条示例问题，每条包含标题和副标题。通过 `suggestions` 替换；`title` 是标题，`label` 是副标题，`prompt` 是点击后发送的内容。传入 `[]` 可隐藏示例问题。
+新模板的欢迎语、示例问题与按钮文案统一在 `application/locales.ts` 覆盖，不再通过 `Agent welcome` / `suggestions` 属性传入。例如：
 
-```tsx
-<Agent suggestions={[
-  { title: '账户交易查询', label: '查询余额、账单与交易明细', prompt: '如何查询账户余额、账单和交易明细？' },
-]} />
+```ts
+export const locales = {
+  'zh-CN': {
+    conversation: { welcome: '今天心情好吗', welcomeDescription: '' },
+    starterSuggestions: {
+      architectureTitle: '学习游泳', architectureLabel: '从入门开始', architecturePrompt: '初学游泳应该如何开始？',
+    },
+  },
+  'en-US': {
+    conversation: { welcome: 'How are you feeling today?', welcomeDescription: '' },
+    starterSuggestions: {
+      architectureTitle: 'Learn to swim', architectureLabel: 'Start with the basics', architecturePrompt: 'How should a beginner start swimming?',
+    },
+  },
+};
 ```
 
-需要随语言切换时，传入 `(locale) => 提问数组` 回调。默认示例通过统一语言层的 `starterSuggestions` 命名空间读取，支持 `locales` 覆盖。
+`project-config.tsx` 已绑定这个 locale 模块。三条示例分别使用 `architecture*`、`debug*`、`next*` 的 `Title` / `Label` / `Prompt` 字段；含义是标题、副标题和点击后发送的内容。数量、顺序由 `getConversationStarterSuggestions(locale, messages)` 组织，返回 `[]` 隐藏；纯文案修改只改 locales。Host 的 `Agent locales` 仍可按字段覆盖项目默认值，未覆盖字段保留。
 
 附件默认转 Base64，语音默认使用受支持的浏览器识别，评价默认保留当前会话选择。上传、转写、评价和历史服务的 URL、鉴权写在项目实现里，需要接入或修改时交给 Creator。见[附件、语音与评价服务](/development/attachments-dictation-feedback)及[历史服务地址](/development/history-backend#地址与鉴权配置)。临时提示见[临时通知](/plugins/transient-assistant-messages)。
 

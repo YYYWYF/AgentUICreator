@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { useAgentUILocale, useConversationComposer, usePluginActions, usePluginEvents, usePluginService, type UIPluginDefinition } from '@za38.03/agent-ui-plugins';
-import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog, useConversationPresentationConfig, type AgentProps } from '../src/ui/index.js';
+import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog, ConversationWelcomeFallback, type AgentProps } from '../src/ui/index.js';
 import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource } from '../src/ui/services/conversations.js';
 
 const cleanups: (() => void)[] = [];
@@ -25,14 +25,13 @@ function fixture(providerEnabled = true) {
   function View() {
     const labels = useAgentUILocale('composer');
     const composer = useConversationComposer();
-    const welcome = useConversationPresentationConfig().welcome;
     const history = usePluginService<ConversationDataSource>(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
     const events = usePluginEvents(), actions = usePluginActions();
     const [result,setResult] = useState('');
     const [historyTitle,setHistoryTitle] = useState('');
     useEffect(() => events.subscribe<{ticketId:string}>(eventName,event=>{setResult(event.payload.ticketId);}),[events]);
     useEffect(() => { let active = true; void history?.list().then(items=>{if(active)setHistoryTitle(items[0]?.title??'');}); return()=>{active=false;}; },[history]);
-    return <><input placeholder={labels.placeholder} defaultValue="draft"/><h2>{welcome.title}</h2><output>{result}</output><aside>{historyTitle}</aside><span data-attachments={String(composer.attachmentsEnabled)} />
+    return <><input placeholder={labels.placeholder} defaultValue="draft"/><ConversationWelcomeFallback/><output>{result}</output><aside>{historyTitle}</aside><span data-attachments={String(composer.attachmentsEnabled)} />
       <button onClick={()=>{void actions.sendMessage('Analyze ticket');}}>send</button></>;
   }
   const view: UIPluginDefinition = {
@@ -65,15 +64,18 @@ it('accepts live event schemas, localized copy, welcome and history through Agen
   return new Response(frames.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(''),{headers:{'Content-Type':'text/event-stream'}});
  }));
  const f=fixture(), history=source('My history');
- const props:AgentProps={conversationDataSource:history,locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'}}},welcome:{title:'My assistant'}};
+ const props:AgentProps={conversationDataSource:history,locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'},conversation:{welcome:'My assistant',welcomeDescription:'Project introduction'}}}};
  await f.render(props);
  expect(f.container.querySelector('input')?.placeholder).toBe('Business input');
- expect(f.container.querySelector('h2')?.textContent).toBe('My assistant');
+ expect(f.container.querySelector('h1')?.textContent).toBe('My assistant');
+ expect(f.container.querySelector('.aui-thread-welcome-root p')?.textContent).toBe('Project introduction');
  expect(f.container.querySelector('aside')?.textContent).toBe('My history');
  const input=f.container.querySelector('input')!;input.value='Unsent changes';
- await f.render({...props,welcome:{title:'Updated welcome'},locales:{'en-US':{composer:{placeholder:'Updated input'}}}});
+ await f.render({...props,locales:{'en-US':{composer:{placeholder:'Updated input'},conversation:{welcome:'Updated welcome'}}}});
  expect(f.container.querySelector('input')).toBe(input);
  expect(input.value).toBe('Unsent changes');expect(input.placeholder).toBe('Updated input');
+ expect(f.container.querySelector('h1')?.textContent).toBe('Updated welcome');
+ expect(f.container.querySelector('.aui-thread-welcome-root p')).toBeNull();
  expect(f.started).toHaveBeenCalledTimes(1);
  await act(async()=>{f.container.querySelector('button')!.click();});
  await act(async()=>{await vi.waitFor(()=>expect(f.container.querySelector('output')?.textContent).toBe('T-42'));});

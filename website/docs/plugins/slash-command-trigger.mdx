@@ -46,11 +46,10 @@ title: "/ 快捷命令（slash-command-trigger）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `source?` | `ConversationSlashCommandSource` | 从已有命令数据源读取命令列表；缺少时不显示命令候选界面 |
-| `labels?` | `Partial<ConversationTriggerLabels>` | 覆盖 `conversationTriggers` 文案，字段见下文 |
 
 `source` 含 `getSnapshot(): readonly ConversationSlashCommand[]` 和 `subscribe(listener: () => void): () => void`。命令共同字段为 `id: string`、`label: string`，可选 `description: string`、`disabled: boolean`。`mode: 'action'` 需要 `execute(): void | Promise<void>`；`mode: 'directive'` 插入序列化指令引用，没有独立草稿文本属性，不自动发送消息。
 
-`ConversationTriggerLabels` 的字符串字段为 `suggestions`、`back`、`empty`、`loading`、`searchFailed`、`retry`、`commandFailed`、`invalidItem`。`labels` 与统一文案合并。
+文案字段见统一 `conversationTriggers` 命名空间。
 
 ### 类型查询
 
@@ -64,3 +63,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationSlashComma
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

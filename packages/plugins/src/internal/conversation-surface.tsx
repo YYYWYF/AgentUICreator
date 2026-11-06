@@ -5,7 +5,6 @@ import {
   type AgentUITheme,
   ConversationThreadBase as ConversationThread,
   type ConversationThreadComponents,
-  type ConversationThreadLabels,
   TooltipProvider,
 } from "../public.js";
 
@@ -14,7 +13,6 @@ export interface ConversationSurfaceProps {
   children?: ReactNode;
   className?: string;
   components?: ConversationThreadComponents;
-  labels?: ConversationThreadLabels;
   composer?: ReactNode | null;
   theme?: ConversationTheme;
 }
@@ -26,7 +24,6 @@ export function ConversationSurface({
   children,
   className,
   components,
-  labels,
   composer = null,
   theme = "light",
 }: ConversationSurfaceProps) {
@@ -47,7 +44,6 @@ export function ConversationSurface({
         <ConversationThread
           autoFocus={autoFocus}
           components={components}
-          labels={labels}
           composer={composer}
         />
         {children}

@@ -223,8 +223,11 @@ export async function buildCreatorAuthoringTargetCatalog(
     }
     // Local shell owners are opt-in. Legacy source projects keep their existing paths.
     if (declaration.projectOwnerPath && !agentEntry && input.applicationTargets === undefined) continue;
+    const projectOwnerPath = declaration.projectOwnerPath === "application/locales.ts" &&
+      !(await stat(path.join(input.paths.sourceRoot, "application", "locales.ts")).catch(() => undefined))
+      ? "application/Agent.tsx" : declaration.projectOwnerPath;
     const declaredPath = input.applicationTargets === undefined
-      ? resolvedProjectRelativePath(input.projectRoot, path.join(agentEntry ? input.paths.sourceRoot : input.paths.agentUIAdaptersRoot, agentEntry ? (declaration.projectOwnerPath ?? (declaration.id === "theme.brand-palette" ? "styles.css" : "application/Agent.tsx")) : declaration.ownerPath))
+      ? resolvedProjectRelativePath(input.projectRoot, path.join(agentEntry ? input.paths.sourceRoot : input.paths.agentUIAdaptersRoot, agentEntry ? (projectOwnerPath ?? (declaration.id === "theme.brand-palette" ? "styles.css" : "application/Agent.tsx")) : declaration.ownerPath))
       : declaration.ownerPath;
     const ownerPath = projectRelativePath(input.projectRoot, declaredPath, `${declaration.id}.ownerPath`);
     // Existing projects without this opt-in application seam keep their catalog.

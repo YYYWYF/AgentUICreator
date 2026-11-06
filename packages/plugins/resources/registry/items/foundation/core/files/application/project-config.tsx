@@ -9,6 +9,7 @@ import appUIModelSource from '../app-ui.json?raw';
 import { capabilityCatalogRevision, pluginCapabilityCatalog } from '../plugins';
 import '../styles.css';
 import { ProjectShell } from './runtime-config.generated';
+import { locales } from './locales';
 
 const revisions = import.meta.glob<string>('../composition-revision.generated.json', {
   eager: true,
@@ -30,6 +31,12 @@ export const agentUIProject = createAgentUIProject({
   pluginCapabilityCatalog,
   capabilityCatalogRevision,
   Shell: ProjectShell,
+  locales,
+  getConversationStarterSuggestions: (_locale, messages) => [
+    { title: messages.architectureTitle, label: messages.architectureLabel, prompt: messages.architecturePrompt },
+    { title: messages.debugTitle, label: messages.debugLabel, prompt: messages.debugPrompt },
+    { title: messages.nextTitle, label: messages.nextLabel, prompt: messages.nextPrompt },
+  ],
   development: import.meta.env.DEV,
   hot: import.meta.hot,
 });

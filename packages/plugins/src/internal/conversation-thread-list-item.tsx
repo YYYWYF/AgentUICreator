@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
+import { useAgentUILocale } from "../locale.js";
 import { ThreadListItemMorePrimitive, ThreadListItemPrimitive, useAui, useAuiState } from "@assistant-ui/react";
 import { ArchiveIcon, ArchiveRestoreIcon, Loader2Icon, MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -16,45 +16,26 @@ export interface ConversationThreadListItemActions {
   delete?: boolean;
 }
 
-export interface ConversationThreadListItemLabels {
-  newChat: string;
-  moreOptions: string;
-  running: string;
-  rename: string;
-  archive: string;
-  unarchive?: string;
-  delete: string;
-}
-
 export interface ConversationThreadListItemProps {
   /** Omitted: preserve upstream presentation. Supplied: opt in to each action. */
   onNavigate?: (() => void) | undefined;
   actions?: ConversationThreadListItemActions;
-  /** Product integrations supply these through their locale layer. */
-  labels?: ConversationThreadListItemLabels;
 }
 
-const defaultLabels: ConversationThreadListItemLabels = {
-  newChat: DEFAULT_AGENT_UI_MESSAGES.threadList.newChat, moreOptions: DEFAULT_AGENT_UI_MESSAGES.threadList.moreOptions, running: DEFAULT_AGENT_UI_MESSAGES.threadList.running,
-  rename: DEFAULT_AGENT_UI_MESSAGES.threadList.rename, archive: DEFAULT_AGENT_UI_MESSAGES.threadList.archive, delete: DEFAULT_AGENT_UI_MESSAGES.threadList.delete,
-};
-
 export function ConversationThreadListItemComposition(props: ConversationThreadListItemProps) {
-  const messages = useAgentUILocale("threadList");
-  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, unarchive: true, delete: true }} labels={props.labels ?? messages} onNavigate={props.onNavigate} />;
+  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, unarchive: true, delete: true }} onNavigate={props.onNavigate} />;
 }
 
 /** Presentation only: all actions and navigation remain assistant-ui-owned. */
-function ConfiguredThreadListItem({ actions, labels, onNavigate }: {
+function ConfiguredThreadListItem({ actions, onNavigate }: {
   onNavigate?: (() => void) | undefined;
   actions: ConversationThreadListItemActions;
-  labels: ConversationThreadListItemLabels;
 }) {
   const portalContainer = useAgentUIPortalContainer();
   const aui = useAui();
   const isRunning = useAuiState(s => s.threadListItem.isRunning);
   const archived = useAuiState(s => s.threadListItem.status === "archived");
-  const messages = useAgentUILocale("threadList");
+  const labels = useAgentUILocale("threadList");
   const [isRenaming, setIsRenaming] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const restoreFocus = useRef(false);
@@ -123,7 +104,7 @@ function ConfiguredThreadListItem({ actions, labels, onNavigate }: {
             {archived && actions.unarchive && (
               <ThreadListItemPrimitive.Unarchive asChild>
                 <ThreadListItemMorePrimitive.Item data-slot="agent-ui-thread-action-unarchive" className={itemClass}>
-                  <ArchiveRestoreIcon aria-hidden className="size-4" />{labels.unarchive ?? messages.unarchive}
+                  <ArchiveRestoreIcon aria-hidden className="size-4" />{labels.unarchive}
                 </ThreadListItemMorePrimitive.Item>
               </ThreadListItemPrimitive.Unarchive>
             )}

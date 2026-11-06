@@ -73,7 +73,6 @@ title: "会话列表（conversation-thread-list）"
 | --- | --- | --- |
 | `onNavigate?` | `() => void` | 导航回调 |
 | `actions?` | `ConversationThreadListItemActions` | 操作可见性配置：`rename?`、`archive?`、`unarchive?`、`delete?` 均为 `boolean`；不是操作回调 |
-| `labels?` | `ConversationThreadListItemLabels` | 列表项文案：`newChat`、`moreOptions`、`running`、`rename`、`archive`、`delete`，可选 `unarchive` |
 
 `snapshot` 字段均可选：`activeConversationId`、`listStatus`、`detailStatus`、`listError`、`detailError`、`detailErrorConversationId`，类型均为 `string`。这些值继续从项目已有的会话服务和主题设置中读取。
 
@@ -91,3 +90,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationThreadList
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+列表项默认按钮与无障碍文案统一在 `locales.threadList` 修改，`itemProps` 只配置操作和导航。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

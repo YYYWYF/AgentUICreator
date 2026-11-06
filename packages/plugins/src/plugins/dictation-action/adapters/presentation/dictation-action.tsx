@@ -8,20 +8,9 @@ import {
   TooltipIconButton,
   useAgentUILocale,
 } from '../../../../plugin-support.js';
-export type ConversationComposerDictateProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  tooltip?: string;
-  ariaLabel?: string;
-  label?: string;
-};
-export type ConversationComposerStopDictationProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  tooltip?: string;
-  ariaLabel?: string;
-  label?: string;
-};
+export type ConversationComposerDictateProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
+export type ConversationComposerStopDictationProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
 export function ConversationComposerDictate({
-  tooltip,
-  ariaLabel,
-  label,
   children,
   ...props
 }: ConversationComposerDictateProps = {}) {
@@ -30,14 +19,14 @@ export function ConversationComposerDictate({
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation == null}>
       <ComposerActions.Dictate asChild>
         <TooltipIconButton
-          tooltip={tooltip ?? label ?? messages.voiceInput}
+          tooltip={messages.voiceInput}
           side='bottom'
           type='button'
           variant='ghost'
           size='icon'
           data-slot='agent-ui-composer-tool'
           className='aui-composer-dictate text-muted-foreground hover:text-foreground size-7 rounded-full'
-          aria-label={ariaLabel ?? label ?? messages.startVoice}
+          aria-label={messages.startVoice}
           {...props}
         >
           {children ?? <MicIcon data-slot='agent-ui-composer-tool-icon' className='aui-composer-dictate-icon size-4' />}
@@ -47,9 +36,6 @@ export function ConversationComposerDictate({
   );
 }
 export function ConversationComposerStopDictation({
-  tooltip,
-  ariaLabel,
-  label,
   children,
   ...props
 }: ConversationComposerStopDictationProps = {}) {
@@ -58,14 +44,14 @@ export function ConversationComposerStopDictation({
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation != null}>
       <ComposerActions.StopDictation asChild>
         <TooltipIconButton
-          tooltip={tooltip ?? label ?? messages.stopDictation}
+          tooltip={messages.stopDictation}
           side='bottom'
           type='button'
           variant='ghost'
           size='icon'
           data-slot='agent-ui-composer-recording-stop'
           className='aui-composer-stop-dictation text-destructive size-7 rounded-full'
-          aria-label={ariaLabel ?? label ?? messages.stopVoice}
+          aria-label={messages.stopVoice}
           {...props}
         >
           {children ?? (

@@ -1,12 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, type ComponentType, type PropsWithChildren, type ReactNode, type RefCallback } from "react";
-import { type AgentUILocaleCode, type AgentUILocaleOverrides, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { type AgentUILocaleCode, type AgentUILocaleOverrides, type AgentUILocaleMessages, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { ConversationRuntimeProviderProps, ConversationStarterSuggestion } from "@za38.03/agent-ui-runtime";
 import type { RuntimeCompositionStore } from "./runtime/composition/RuntimeCompositionStore.js";
 import type { PluginCapabilityCatalog } from "./runtime/composition/PluginCapabilityCatalog.js";
 import type { AppEventSchemas } from "./runtime/events/AppEventRegistry.js";
 import type { AppFrontendToolDefinition } from "./runtime/tools/AppFrontendToolRegistry.js";
 import type { AppAgentState } from "./agent-contract/agent-state.js";
-import type { ConversationPresentationConfig } from "./presentation-config.js";
 import { subscribeAgentUIObservationReplay } from "./application/observability.js";
 
 /** A project-owned presentation container; hiding it must preserve children. */
@@ -30,13 +29,13 @@ export interface AgentUIProjectOptions {
   baseConversationToolkit: ConversationToolkit;
   Integrations: ComponentType<{ children: ReactNode }>;
   conversationServices: Pick<ConversationRuntimeProviderProps, "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter">;
-  getConversationStarterSuggestions(locale: AgentUILocaleCode): readonly ConversationStarterSuggestion[];
+  /** Organizes suggestion items; all default copy comes from the resolved locale. */
+  getConversationStarterSuggestions(locale: AgentUILocaleCode, messages: AgentUILocaleMessages["starterSuggestions"]): readonly ConversationStarterSuggestion[];
   conversationMessageQueueEnabled: boolean;
   defaultLocale: AgentUILocaleCode;
   locales: Record<AgentUILocaleCode, AgentUILocaleOverrides>;
   Shell?: ComponentType<AgentUIShellProps> | undefined;
   shell: { assistantPanelWidth?: number | undefined };
-  presentation: ConversationPresentationConfig;
   development?: boolean | undefined;
   /** Host values replace only services provided by enabled Plugin instances. */
   serviceOverrides?: Readonly<Record<string, unknown>> | undefined;

@@ -15,6 +15,10 @@
       "target": "application/project-config.tsx"
     },
     {
+      "source": "files/application/locales.ts",
+      "target": "application/locales.ts"
+    },
+    {
       "source": "files/index.ts",
       "target": "index.ts"
     },

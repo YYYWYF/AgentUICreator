@@ -48,11 +48,10 @@ title: "@ 提及搜索（mention-trigger）"
 | --- | --- | --- |
 | `source?` | `ConversationMentionSource` | 从已有提及数据源搜索候选项；缺少时不显示提及候选界面 |
 | `debounceMs?` | `number` | 搜索防抖；省略时沿用底层触发器默认值 |
-| `labels?` | `Partial<ConversationTriggerLabels>` | 覆盖 `conversationTriggers` 的部分文案 |
 
 `source` 含 `cacheKey: string | number`、可选 `subscribe(listener: () => void): () => void`、`search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>`。项目改变身份、权限、语言或可用数据时更新缓存标识并通知。返回项为 `{ id: string; type: string; label: string; description?: string }`。
 
-`ConversationTriggerLabels` 的字符串字段为 `suggestions`、`back`、`empty`、`loading`、`searchFailed`、`retry`、`commandFailed`、`invalidItem`。`labels` 与统一文案合并。
+文案字段见统一 `conversationTriggers` 命名空间。
 
 ### 类型查询
 
@@ -66,3 +65,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationMentionTri
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

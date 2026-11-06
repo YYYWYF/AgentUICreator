@@ -9,6 +9,13 @@ export type AgentUILocaleMessages = { [N in keyof typeof enUS]: { [K in keyof (t
 export type AgentUILocaleOverrides = { [N in keyof AgentUILocaleMessages]?: Partial<AgentUILocaleMessages[N]> };
 export const DEFAULT_AGENT_UI_MESSAGES: AgentUILocaleMessages = enUS;
 export const AGENT_UI_PRESENTATION_LOCALES: Record<AgentUILocaleCode, AgentUILocaleMessages> = { "en-US": enUS, "zh-CN": zhCN };
+/** Merge partial namespaces without discarding unrelated project copy. Later values win. */
+export function mergeAgentUILocaleOverrides(base: AgentUILocaleOverrides = {}, overrides: AgentUILocaleOverrides = {}): AgentUILocaleOverrides {
+  return Object.fromEntries(Object.keys(DEFAULT_AGENT_UI_MESSAGES).map(namespace => {
+    const key = namespace as keyof AgentUILocaleMessages;
+    return [key, { ...base[key], ...overrides[key] }];
+  }));
+}
 const LocaleContext = createContext({ locale: "en-US" as AgentUILocaleCode, messages: DEFAULT_AGENT_UI_MESSAGES });
 
 const warnedKeys = new Set<string>();
@@ -27,8 +34,11 @@ export function resolveAgentUILocaleMessages(locale: AgentUILocaleCode, override
     result[namespace] = {};
     for (const [key, fallback] of Object.entries(defaults)) {
       const translated = group?.[key];
-      if (typeof translated !== "string" || !translated) warn?.(`${namespace}.${key}`);
-      result[namespace]![key] = custom?.[key] || translated || fallback;
+      // Empty base copy declares an optional text field, such as the welcome
+      // description. Required labels still reject empty overrides/translations.
+      const valid = (value: unknown): value is string => typeof value === "string" && (value.length > 0 || fallback === "");
+      if (!valid(translated)) warn?.(`${namespace}.${key}`);
+      result[namespace]![key] = valid(custom?.[key]) ? custom![key]! : valid(translated) ? translated : fallback;
     }
   }
   return result as AgentUILocaleMessages;

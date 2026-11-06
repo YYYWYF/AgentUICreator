@@ -42,18 +42,17 @@ title: "Markdown 回复导出（export-markdown-action）"
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`ConversationCanonicalResponseExportMarkdownAction`。继承提示按钮属性，`tooltip` 可选。
+组件：`ConversationCanonicalResponseExportMarkdownAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `tooltip?` | `string` | 按钮模式默认使用 `conversation.exportMarkdown` |
-| `menuLabel?` | `string` | 有值时使用菜单项模式；独立组件省略时使用按钮模式 |
+| `presentation?` | `"button" \| "menu"` | 选择按钮或菜单项结构；组件默认按钮，插件入口默认菜单 |
 | `menuItemProps?` | `Partial<ConversationActionMoreMenuItemProps>` | 菜单项的 `children`、`disabled`、`onSelect` 和外观等 |
 | `children?` | `ReactNode` | 按钮模式的自定义内容；菜单模式使用 `menuItemProps.children` |
 | `disabled?` | `boolean` | 按钮模式禁用；菜单模式使用 `menuItemProps.disabled` |
 | `onClick?` | `ConversationTooltipIconButtonProps['onClick']` | 按钮模式点击回调，`preventDefault()` 阻止导出 |
 
-当前插件入口默认传入本地化 `menuLabel` 并放在更多操作菜单中。菜单模式使用 `menuItemProps.onSelect?: (event: Event) => void`，同样支持 `preventDefault()`。生成中或无正文时不能导出。
+当前插件入口使用菜单模式并放在更多操作菜单中。菜单模式使用 `menuItemProps.onSelect?: (event: Event) => void`，同样支持 `preventDefault()`。生成中或无正文时不能导出。
 
 #### 按钮属性
 
@@ -64,7 +63,6 @@ title: "Markdown 回复导出（export-markdown-action）"
 | `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
 | `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
 | `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
-| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
@@ -80,3 +78,5 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseEx
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+默认导出文案只读取 `locales.conversation.exportMarkdown`，更多菜单标题读取 `moreActions`。`presentation?: "button" | "menu"` 选择结构，插件入口默认菜单模式。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

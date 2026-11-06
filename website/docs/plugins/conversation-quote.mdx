@@ -45,15 +45,11 @@ title: "消息引用（conversation-quote）"
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `quoteText?` | `string` | 默认 `conversationQuote.quote` |
-| `dismissText?` | `string` | 默认 `conversationQuote.dismiss` |
-| `previewProps?` | `{ dismissLabel?: string }` | 预览组件文案，可覆盖 `dismissText` |
-| `toolbarProps?` | `{ quoteLabel?: string }` | 工具栏文案，可覆盖 `quoteText` |
-| `renderPreview?` | `(props: { dismissLabel: string }) => ReactNode` | 自定义引用预览 |
-| `renderToolbar?` | `(props: { quoteLabel: string }) => ReactNode` | 自定义选择工具栏 |
+| `renderPreview?` | `() => ReactNode` | 自定义引用预览 |
+| `renderToolbar?` | `() => ReactNode` | 自定义选择工具栏 |
 | `children?` | `ReactNode` | 替换默认预览与工具栏 |
 
-没有根级 `className`／`style`，也没有给 `previewProps`／`toolbarProps` 开放任意 DOM 属性。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
+默认组件没有根级 `className`／`style`；结构替换使用渲染回调或 children。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
 
 ### 类型查询
 
@@ -67,3 +63,5 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationQuote>;
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+引用与关闭文案统一在 `locales.conversationQuote.quote` / `dismiss` 修改。`renderPreview` 与 `renderToolbar` 是无参数的结构渲染回调。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

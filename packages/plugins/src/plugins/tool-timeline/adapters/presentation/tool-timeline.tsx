@@ -19,8 +19,6 @@ export interface ConversationToolTimelineProps extends Omit<ComponentProps<'div'
   expanded?: boolean;
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
-  restingLabel?: string;
-  activeLabel?: string;
   visibleSteps?: number;
 }
 export function InternalConversationToolTimeline({
@@ -28,8 +26,6 @@ export function InternalConversationToolTimeline({
   expanded,
   defaultExpanded = false,
   onExpandedChange,
-  restingLabel,
-  activeLabel,
   visibleSteps,
   ...elementProps
 }: ConversationToolTimelineProps) {
@@ -69,7 +65,6 @@ export function InternalConversationToolTimeline({
         visibleSteps={visibleSteps ?? steps.length}
         streaming={projection.streaming}
         restingLabel={
-          restingLabel ??
           formatPresentationMessage(
             projection.stats.length === 1
               ? messages.summaryWithOneFile
@@ -81,7 +76,7 @@ export function InternalConversationToolTimeline({
             { count: steps.length, files: projection.stats.length },
           )
         }
-        activeLabel={activeLabel ?? formatPresentationMessage(messages.active, { count: steps.length })}
+        activeLabel={formatPresentationMessage(messages.active, { count: steps.length })}
         stats={projection.stats}
         open={effectiveOpen}
         onOpenChange={(value) => {

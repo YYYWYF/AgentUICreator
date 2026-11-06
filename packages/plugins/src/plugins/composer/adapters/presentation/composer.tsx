@@ -227,17 +227,16 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
 export type ConversationCanonicalComposerProps = Omit<
   CanonicalComposerProps,
   'placeholder' | 'inputAriaLabel' | 'queueLabels'
-> &
-  Partial<Pick<CanonicalComposerProps, 'placeholder' | 'inputAriaLabel' | 'queueLabels'>>;
+>;
 
 export function ConversationCanonicalComposer(props: ConversationCanonicalComposerProps) {
   const labels = useAgentUILocale('composer');
   return (
     <CanonicalComposer
       {...props}
-      placeholder={props.placeholder ?? labels.placeholder}
-      inputAriaLabel={props.inputAriaLabel ?? labels.input}
-      queueLabels={props.queueLabels ?? labels}
+      placeholder={labels.placeholder}
+      inputAriaLabel={labels.input}
+      queueLabels={labels}
     />
   );
 }

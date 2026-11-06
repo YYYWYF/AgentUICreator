@@ -6,13 +6,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { HttpAgent } from "@ag-ui/client";
-import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand, type ConversationTriggerLabels } from "../src/index.js";
+import { AgentUILocaleProvider, AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand } from "../src/index.js";
 import {ConversationMentionTrigger as NpmMention} from "../dist/mention-trigger/index.js";
 import {ConversationSlashCommandTrigger as NpmCommand} from "../dist/slash-command-trigger/index.js";
 import {ConversationMentionTrigger as SourceMention} from "../dist/sources/takeover/mention-trigger/index";
 import {ConversationSlashCommandTrigger as SourceCommand} from "../dist/sources/takeover/slash-command-trigger/index";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-const labels: ConversationTriggerLabels = { suggestions: "Suggestions", back: "Back", empty: "No matches", loading: "Loading", searchFailed: "Search failed", retry: "Retry", commandFailed: "Command failed", invalidItem: "Invalid item" };
+const labels: import("../src/locale").AgentUILocaleMessages["conversationTriggers"] = { suggestions: "Suggestions", back: "Back", empty: "No matches", loading: "Loading", searchFailed: "Search failed", retry: "Retry", commandFailed: "Command failed", invalidItem: "Invalid item", newConversation: "New conversation" };
 let root: Root | undefined;
 afterEach(async () => { await act(async () => root?.unmount()); root = undefined; document.body.replaceChildren(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function until(predicate: () => boolean) {
@@ -35,10 +35,10 @@ async function mount(source?: ConversationMentionSource, commands: readonly Conv
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const render = () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
-    <AgentUIRoot theme="dark"><Capture /><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer autoFocus={false} triggers={<>
-      {mention && <ConversationComposerMentionTrigger source={source} labels={labels} debounceMs={1} />}
-      {slash && <ConversationComposerCommandTrigger source={commandSource} labels={labels} />}
-    </>} />} /></AgentUIRoot>
+    <AgentUIRoot theme="dark"><Capture /><AgentUILocaleProvider locale="en-US" messages={{conversationTriggers:labels}}><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer autoFocus={false} triggers={<>
+      {mention && <ConversationComposerMentionTrigger source={source} debounceMs={1} />}
+      {slash && <ConversationComposerCommandTrigger source={commandSource} />}
+    </>} />} /></AgentUILocaleProvider></AgentUIRoot>
   </ConversationRuntimeProvider>);
   await act(async () => { render(); });
   await until(() => !runtime.thread.getState().isLoading);

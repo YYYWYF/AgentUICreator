@@ -1,9 +1,8 @@
 import { AgentUIProjectProvider, useAgentUIProject, type AgentUIProjectOptions } from "../project-context.js";
-import { createAgentUILocaleService, type AgentUITheme, type AgentUILocaleOverrides } from "@za38.03/agent-ui-plugins";
+import { createAgentUILocaleService, mergeAgentUILocaleOverrides, resolveAgentUILocaleMessages, type AgentUITheme, type AgentUILocaleOverrides } from "@za38.03/agent-ui-plugins";
 import { AGENT_UI_LOCALE_SERVICE } from "../services/agent-ui-locale.js";
 import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource } from "../services/conversations.js";
 import type { AppEventSchemas } from "../runtime/events/AppEventRegistry.js";
-import type { ConversationWelcomeConfig } from "../presentation-config.js";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types.js";
 import { usePreviewAgentEnvironment } from "./preview-environment.js";
 import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime";
@@ -31,9 +30,6 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   locales?: Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>> | undefined;
   /** Initial language for uncontrolled internal switching. */
   defaultLocale?: AgentUILocaleCode | undefined;
-  welcome?: ConversationWelcomeConfig | undefined;
-  suggestions?: readonly import("@za38.03/agent-ui-runtime").ConversationStarterSuggestion[] |
-    AgentUIProjectOptions["getConversationStarterSuggestions"] | undefined;
   enableMessageQueue?: boolean | undefined;
   assistantPanelWidth?: number | undefined;
   /** Project-owned history implementation; its enabled Plugin remains the service owner. */
@@ -69,13 +65,16 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
 }
 
 function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
-  const { defaultLocale, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
+  const { defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? defaultLocale);
   const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
     setPresentationLocale(nextLocale);
     onLocaleChange?.(nextLocale);
   }, [onLocaleChange]);
-  const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale, getConversationStarterSuggestions]);
+  const suggestions = useMemo(() => {
+    const currentLocale = locale ?? presentationLocale;
+    return getConversationStarterSuggestions(currentLocale, resolveAgentUILocaleMessages(currentLocale, locales[currentLocale]).starterSuggestions);
+  }, [locale, presentationLocale, locales, getConversationStarterSuggestions]);
   const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), [appFrontendTools]);
   const combinedFrontendTools = useMemo(() => combineAgentFrontendToolSources(frontendToolRuntime, frontendTools), [frontendToolRuntime, frontendTools]);
   const composition = useSyncExternalStore(
@@ -199,7 +198,10 @@ function Agent(props: AgentProps = {}) {
 
 /** Package-owned assembly, configured exclusively by the project application layer. */
 export function AgentApplication({ project, ...props }: AgentProps & { project: AgentUIProjectOptions }) {
-  const locales = useMemo(() => ({ ...project.locales, ...props.locales }), [project.locales, props.locales]);
+  const locales = useMemo(() => ({
+    "en-US": mergeAgentUILocaleOverrides(project.locales["en-US"], props.locales?.["en-US"]),
+    "zh-CN": mergeAgentUILocaleOverrides(project.locales["zh-CN"], props.locales?.["zh-CN"]),
+  }), [project.locales, props.locales]);
   const [localeService] = useState(() => createAgentUILocaleService(props.locale ?? props.defaultLocale ?? project.defaultLocale, locales));
   useLayoutEffect(() => localeService.setMessages(locales), [localeService, locales]);
   const GeneratedIntegrations = project.Integrations;
@@ -215,20 +217,16 @@ export function AgentApplication({ project, ...props }: AgentProps & { project: 
     for (const key of ["attachments", "dictation", "feedback", "attachmentAdapter", "dictationAdapter", "feedbackAdapter"] as const) {
       if (props[key] !== undefined) Object.assign(conversationServices, { [key]: props[key] });
     }
-    const suggestions = props.suggestions;
     return { ...project, locales, conversationServices, serviceOverrides, Integrations,
       appEventSchemas: props.appEventSchemas ?? project.appEventSchemas,
       defaultLocale: props.locale ?? props.defaultLocale ?? project.defaultLocale,
-      presentation: props.welcome === undefined ? project.presentation : { welcome: props.welcome },
       shell: props.assistantPanelWidth === undefined ? project.shell : { assistantPanelWidth: props.assistantPanelWidth },
       conversationMessageQueueEnabled: props.enableMessageQueue ?? project.conversationMessageQueueEnabled,
-      getConversationStarterSuggestions: suggestions === undefined ? project.getConversationStarterSuggestions
-        : typeof suggestions === "function" ? suggestions : () => suggestions,
       baseConversationToolkit: props.toolkit ?? project.baseConversationToolkit,
       generatedFrontendToolUIs: props.frontendToolUIs ?? project.generatedFrontendToolUIs,
     };
-  }, [project, locales, serviceOverrides, Integrations, props.appEventSchemas, props.welcome, props.assistantPanelWidth,
-    props.enableMessageQueue, props.suggestions, props.locale, props.defaultLocale, props.conversationDataSource, props.toolkit,
+  }, [project, locales, serviceOverrides, Integrations, props.appEventSchemas, props.assistantPanelWidth,
+    props.enableMessageQueue, props.locale, props.defaultLocale, props.conversationDataSource, props.toolkit,
     props.frontendToolUIs, props.attachments, props.dictation, props.feedback,
     props.attachmentAdapter, props.dictationAdapter, props.feedbackAdapter]);
   return <AgentUIProjectProvider value={resolved}><Agent {...props} /></AgentUIProjectProvider>;

@@ -41,12 +41,10 @@ title: "附件添加（add-attachment-action）"
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`ConversationComposerAddAttachment`；类型：`ConversationComposerAddAttachmentProps`。继承提示按钮属性，`tooltip` 可选。
+组件：`ConversationComposerAddAttachment`；类型：`ConversationComposerAddAttachmentProps`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `label?` | `string` | 默认 `composer.addAttachment`，用于无障碍名称 |
-| `tooltip?` | `string` | 默认使用 `label` |
 | `multiple?` | `boolean` | 文件选择器是否允许多选；省略时使用现有附件组件的默认设置 |
 | `children?` | `ReactNode` | 默认加号图标 |
 
@@ -61,7 +59,6 @@ title: "附件添加（add-attachment-action）"
 | `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
 | `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
 | `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
-| `tooltip?` | `string` | 提示文字；本插件提供本地化默认值，子按钮可按需覆盖 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
@@ -77,3 +74,5 @@ type ImplementationProps = ComponentProps<typeof ConversationComposerAddAttachme
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+默认提示与无障碍文案只读取 `locales.composer.addAttachment`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

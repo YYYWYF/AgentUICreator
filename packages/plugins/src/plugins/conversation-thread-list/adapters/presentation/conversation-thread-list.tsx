@@ -73,7 +73,6 @@ export function CanonicalConversationThreadList({
       {headerActions && <div className='conversation-thread-list-header-actions'>{headerActions}</div>}
       {children ?? (
         <PolicyThreadList
-          labels={labels}
           {...(showSearch === undefined ? {} : { showSearch })}
           {...(showArchived === undefined ? {} : { showArchived })}
           {...(searchProps === undefined ? {} : { searchProps })}

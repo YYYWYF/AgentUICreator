@@ -107,6 +107,8 @@ export { AuiIf, ActionBarPrimitive } from "@assistant-ui/react";
 export { CheckIcon, CopyIcon, RefreshCwIcon, DownloadIcon, ThumbsUpIcon, ThumbsDownIcon } from "lucide-react";
 export const TooltipIconButton: FC<import("./public.js").ConversationTooltipIconButtonProps>;
 export const ConversationActionMoreMenuItem: typeof import("./public.js").ConversationActionMoreMenuItem;
+export const QuestionOptionList: FC<import("./public.js").ConversationOptionListProps & { confirmLabel?: string }>;
+export const QuestionFlow: FC<import("./public.js").ConversationQuestionFlowProps & { labels: import("./public.js").ConversationQuestionFlowLabels }>;
 export function useAssistantResponseRuntime(): import("./public.js").ConversationResponseRuntime;
 export function useConversationCommandDecision(toolCallId: string): import("./public.js").ConversationCommandDecisionBinding | undefined;
 type DisclosureRoot = Omit<CollapsiblePrimitive.Root.Props, "onOpenChange"> & { onOpenChange?: (open: boolean) => void; variant?: "outline" | "ghost" | "muted" | null };

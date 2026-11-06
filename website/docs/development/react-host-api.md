@@ -34,8 +34,6 @@ title: "React 页面参数与方法"
 | `transientMessages` | `ConversationRuntimeProviderProps['transientMessages']` | 可选。在页面内显示临时提示，不写入历史记录，也不发送给 Agent。 |
 | `appEventSchemas` | `AgentProps['appEventSchemas']` | 注册业务事件名和 payload Schema，见[自定义事件](./custom-ag-ui-events)。 |
 | `locales` | `AgentProps['locales']` | 中英文文案覆盖。 |
-| `welcome` | `{ title?: string; description?: string }` | 空会话欢迎内容。 |
-| `suggestions` | 提问数组或 `(locale) => 提问数组` | 空会话推荐问题。新模板默认展示三条带副标题的示例；传入数组或回调替换，传入 `[]` 隐藏。每项包含 `title`（标题）、`label`（副标题）和 `prompt`（发送内容）。 |
 | `assistantPanelWidth` | `number` | 悬浮助理宽度，受视口限制。 |
 | `enableMessageQueue` | `boolean` | 默认 false；启用内存中的后续消息队列。 |
 | `attachments`、`dictation`、`feedback` | 对应 `ConversationRuntimeProviderProps` 字段 | 上传、转写、反馈接口配置；传 false 可关闭对应能力。 |
@@ -61,6 +59,8 @@ type ConversationRunContextGetter = (input: {
 ```
 
 `Message` 是 AG-UI 消息类型。回调读取当前页面的数据并同步返回数组，数组可以为空。它不管理业务状态，也不会订阅或推送状态变化。读取失败会通过 `onError` 报告，当前请求继续发送，不会因这个错误将整个运行标记为失败。配置方法和使用边界见[传入业务上下文](/development/agent-options#传入业务上下文)。
+
+欢迎语、示例问题与默认按钮文案统一使用 `locales`，项目默认值位于 `application/locales.ts`。结构与数量在项目组件和 `project-config.tsx` 中定制，见[Agent 参数与配置](/development/agent-options)。
 
 ## 会话方法
 

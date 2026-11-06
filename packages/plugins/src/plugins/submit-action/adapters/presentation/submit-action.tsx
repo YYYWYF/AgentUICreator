@@ -12,18 +12,9 @@ import {
   useAuiState,
   useConversationComposerSendGuard,
 } from '../../../../plugin-support.js';
-export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  label?: string;
-  queueLabel?: string;
-  tooltip?: string;
-};
-export type ConversationComposerCancelProps = ComponentProps<typeof Button> & {
-  label?: string;
-};
+export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
+export type ConversationComposerCancelProps = ComponentProps<typeof Button>;
 export function ConversationComposerSend({
-  label,
-  queueLabel,
-  tooltip,
   children,
   className,
   disabled,
@@ -32,7 +23,7 @@ export function ConversationComposerSend({
   const messages = useAgentUILocale('composer');
   const guardSend = useConversationComposerSendGuard();
   const isRunning = useAuiState((s) => s.thread.isRunning);
-  const actionLabel = isRunning ? (queueLabel ?? messages.queueSend) : (label ?? messages.send);
+  const actionLabel = isRunning ? messages.queueSend : messages.send;
   return (
     <AuiIf condition={(s) => !s.thread.isRunning || s.thread.capabilities.queue}>
       <ComposerActions.Send
@@ -45,7 +36,7 @@ export function ConversationComposerSend({
         }}
       >
         <TooltipIconButton
-          tooltip={tooltip ?? actionLabel}
+          tooltip={actionLabel}
           side='bottom'
           type='button'
           variant='default'
@@ -61,7 +52,6 @@ export function ConversationComposerSend({
   );
 }
 export function ConversationComposerCancel({
-  label,
   children,
   className,
   ...props
@@ -75,7 +65,7 @@ export function ConversationComposerCancel({
           type='button'
           variant='default'
           size='icon'
-          aria-label={label ?? (running ? messages.stop : messages.cancelSend)}
+          aria-label={running ? messages.stop : messages.cancelSend}
           {...props}
           className={cn('aui-composer-cancel size-7 rounded-full', className)}
         >

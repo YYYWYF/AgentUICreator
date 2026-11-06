@@ -6,9 +6,8 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ConversationThreadComponents, ConversationThreadLabels } from "@za38.03/agent-ui-plugins";
+import type { ConversationThreadComponents } from "@za38.03/agent-ui-plugins";
 import type { UIPluginComponentProps } from "@za38.03/agent-ui-plugins/contracts";
-import { useConversationPresentationConfig } from "../../presentation-config.js";
 import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui/agent-ui/theme/useAgentUITheme";
 import {
   ScopedUserEditComposer,
@@ -36,9 +35,8 @@ function ConversationEmptyState() {
 }
 
 export function ConversationWelcomeFallback() {
-  const { welcome } = useConversationPresentationConfig();
   const messages = useAgentUILocale("conversation");
-  return <ConversationWelcome title={welcome.title ?? messages.welcome} description={welcome.description} />;
+  return <ConversationWelcome title={messages.welcome} description={messages.welcomeDescription || undefined} />;
 }
 
 export function createConversationSemanticThreadComponents(rendererSlots: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean } = {}): ConversationThreadComponents {
@@ -61,13 +59,11 @@ export function ConversationAdapter({
   welcome,
   suggestions,
   composer,
-  labels,
   renderScopedSlot,
   rendererSlots = {},
 }: ConversationEmptyStateProps & {
   autoFocus?: boolean; className?: string;
   rendererSlots?: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean };
-  labels?: ConversationThreadLabels;
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
 } = {}) {
   const theme = useAgentUITheme();
@@ -84,7 +80,6 @@ export function ConversationAdapter({
         components={components}
         theme={theme}
         composer={composer}
-        {...(labels === undefined ? {} : { labels })}
       />
     </ConversationEmptyStateContext.Provider>
   );
