@@ -28,13 +28,6 @@ do {
   }
 } while (changed);
 const published = records.filter(({ item }) => !disabled.has(item.id));
-const release = JSON.parse(await readFile(path.join(source, "release.json"), "utf8"));
-const pluginIds = published.filter(({ item }) => item.id.startsWith("plugin/")).map(({ item }) => item.id.slice(7)).sort();
-if (JSON.stringify(pluginIds) !== JSON.stringify(Object.keys(release.plugins).sort())) throw new Error("Release plugin inventory mismatch");
-for (const id of pluginIds) {
-  const plugin = JSON.parse(await readFile(path.join(packageRoot, "src/plugins", id, "plugin.json"), "utf8"));
-  if (release.plugins[id].version !== plugin.version) throw new Error(`Plugin manifest mismatch: ${id}`);
-}
 await rm(destination, { recursive: true, force: true });
 await mkdir(destination, { recursive: true });
 await writeFile(path.join(destination, "registry.json"), JSON.stringify({ items: published.map(record => record.entry) }, null, 2) + "\n");

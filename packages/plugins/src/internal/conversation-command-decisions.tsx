@@ -14,3 +14,7 @@ export function ConversationCommandDecisionProvider({ decisions, children }: {
 export function useConversationCommandDecision(toolCallId: string) {
   return useContext(CommandDecisionsContext).get(toolCallId);
 }
+
+export function useConversationCommandDecisions() {
+  return useContext(CommandDecisionsContext);
+}

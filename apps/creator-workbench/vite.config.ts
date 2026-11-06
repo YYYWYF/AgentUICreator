@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { developmentReloadPlugin } from "./dev";
 
 import { readCreatorHostConfigValue } from "../../packages/creator/src/creatorRuntimeConfig.js";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
@@ -46,6 +47,7 @@ export default defineConfig({
     ),
   },
   plugins: [
+    developmentReloadPlugin(workspaceRoot, workspaceManager),
     react(),
     tailwindcss(),
     {
@@ -58,7 +60,8 @@ export default defineConfig({
         }
       },
       async configureServer() {
-        await workspaceManager.selectProject(hostProjectRoot);
+        const selectedRoot = process.env.AGENT_UI_DEV_PROJECT_ROOT ?? hostProjectRoot;
+        if (selectedRoot) await workspaceManager.selectProject(selectedRoot);
       },
     },
     createCreatorDevServerPlugin({

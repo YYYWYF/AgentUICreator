@@ -17,6 +17,7 @@ import { createEphemeralConversationThreadBinding } from "../src/threads/ephemer
 
 function createFixture() {
   const listeners = new Set<() => void>();
+  const applicationListeners = new Set<AgentApplicationEventListener>();
   let isRunning = false;
   let messages: unknown[] = [];
   let state: unknown = { count: 1 };
@@ -63,7 +64,10 @@ function createFixture() {
     unstable_submitInterruptResponses: submit,
   } as unknown as AgUiAssistantRuntime;
   const applicationEvents = {
-    subscribe: (_listener: AgentApplicationEventListener) => () => undefined,
+    subscribe: (listener: AgentApplicationEventListener) => {
+      applicationListeners.add(listener);
+      return () => applicationListeners.delete(listener);
+    },
   } as unknown as ConversationApplicationEventSource;
   const bridge = createConversationAgentRuntimeBridge({
     runtime,
@@ -85,6 +89,13 @@ function createFixture() {
     setInterrupts(next: AgUiInterrupt[]) {
       interrupts = next;
       for (const listener of listeners) listener();
+    },
+    setMessages(next: unknown[]) {
+      messages = next;
+      for (const listener of listeners) listener();
+    },
+    emitInterrupt(payload: unknown) {
+      for (const listener of applicationListeners) listener({ name: "on_interrupt", payload, producer: { type: "root" } });
     },
     setState(nextState: unknown) {
       state = nextState;
@@ -214,6 +225,112 @@ describe("ConversationAgentRuntimeBridge", () => {
     await expect(resume).rejects.toMatchObject({
       code: "AGENT_UI_UNSUPPORTED_INTERRUPT_RESPONSE_METADATA",
     });
+    expect(fixture.submit).not.toHaveBeenCalled();
+  });
+});
+
+function reviewPayload(indices: number[]) {
+  return {
+    action_requests: indices.map(index => ({ name: "confirm", args: { index } })),
+    review_configs: [{ action_name: "confirm", allowed_decisions: ["approve", "reject", "edit", "respond"] }],
+  };
+}
+
+function reviewInterrupt(id: string, indices: number[]): AgUiInterrupt {
+  return { id, reason: "langgraph:interrupt", metadata: { langgraph: { raw: reviewPayload(indices) } } };
+}
+
+function toolMessages(indices: number[]) {
+  return [{ id: "assistant-1", role: "assistant", status: { type: "requires-action", reason: "interrupt" },
+    content: indices.map((index, ordinal) => ({ type: "tool-call", toolCallId: `tool-${ordinal}`, toolName: "confirm",
+      args: { index }, argsText: JSON.stringify({ index }) })),
+  }];
+}
+
+describe("LangGraph review interrupt decisions", () => {
+  it.each(["one-interrupt", "multiple-interrupts"])("resumes only after every decision in $0 is present", async batch => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages([0, 1]));
+    fixture.setInterrupts(batch === "one-interrupt"
+      ? [reviewInterrupt("review-1", [0, 1])]
+      : [reviewInterrupt("review-1", [0]), reviewInterrupt("review-2", [1])]);
+    await fixture.bridge.submitCommandDecision("tool-1", "reject");
+    expect(fixture.submit).not.toHaveBeenCalled();
+    expect(fixture.bridge.getCommandDecisionRequest("tool-0")).toBeDefined();
+    expect(fixture.bridge.getCommandDecisionRequest("tool-1")).toBeUndefined();
+    await fixture.bridge.submitCommandDecision("tool-0", "approve");
+    expect(fixture.submit).toHaveBeenCalledTimes(1);
+    expect(fixture.submit).toHaveBeenCalledWith(batch === "one-interrupt" ? [{
+      interruptId: "review-1", status: "resolved", payload: { decisions: [{ type: "approve" }, { type: "reject" }] },
+    }] : [
+      { interruptId: "review-1", status: "resolved", payload: { decisions: [{ type: "approve" }] } },
+      { interruptId: "review-2", status: "resolved", payload: { decisions: [{ type: "reject" }] } },
+    ]);
+    expect(fixture.bridge.getSnapshot().run.status).toBe("idle");
+  });
+
+  it.each([{ indices: [0, 0] }, { indices: [1] }])("does not approve ambiguous or mismatched tool arguments: $indices", async ({ indices }) => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages(indices));
+    fixture.emitInterrupt(JSON.stringify(reviewPayload([0])));
+    fixture.setInterrupts([reviewInterrupt("review-1", [0])]);
+    for (const index of indices.keys()) expect(fixture.bridge.getCommandDecisionRequest(`tool-${index}`)).toBeUndefined();
+    expect(fixture.bridge.getSnapshot().run.status).toBe("awaiting-input");
+    expect(fixture.submit).not.toHaveBeenCalled();
+  });
+
+  it("keeps the approval available after a rejected resume submission", async () => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages([0]));
+    fixture.setInterrupts([reviewInterrupt("review-1", [0])]);
+    fixture.submit.mockRejectedValueOnce(new Error("Resume rejected"));
+    await expect(fixture.bridge.submitCommandDecision("tool-0", "approve")).rejects.toThrow("Resume rejected");
+    expect(fixture.bridge.getCommandDecisionRequest("tool-0")).toBeDefined();
+    await fixture.bridge.submitCommandDecision("tool-0", "reject");
+    expect(fixture.submit).toHaveBeenLastCalledWith([{ interruptId: "review-1", status: "resolved", payload: {
+      decisions: [{ type: "reject" }],
+    } }]);
+    expect(fixture.bridge.getSnapshot().run.status).toBe("idle");
+  });
+
+  it("does not reuse a prior decision after the same interrupt's actions change", async () => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages([0, 1]));
+    fixture.setInterrupts([reviewInterrupt("review-1", [0, 1])]);
+    await fixture.bridge.submitCommandDecision("tool-0", "approve");
+    fixture.setMessages(toolMessages([2, 1]));
+    fixture.setInterrupts([reviewInterrupt("review-1", [2, 1])]);
+    expect(fixture.bridge.getCommandDecisionRequest("tool-0")).toBeDefined();
+    await fixture.bridge.submitCommandDecision("tool-1", "reject");
+    expect(fixture.submit).not.toHaveBeenCalled();
+    await fixture.bridge.submitCommandDecision("tool-0", "reject");
+    expect(fixture.submit).toHaveBeenCalledWith([{ interruptId: "review-1", status: "resolved", payload: {
+      decisions: [{ type: "reject" }, { type: "reject" }],
+    } }]);
+  });
+
+  it("respects the native toolCallId instead of binding a different matching tool", () => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages([0, 1]));
+    fixture.setInterrupts([{ ...reviewInterrupt("review-1", [0]), toolCallId: "tool-1" }]);
+    expect(fixture.bridge.getCommandDecisionRequest("tool-0")).toBeUndefined();
+    expect(fixture.bridge.getCommandDecisionRequest("tool-1")).toBeUndefined();
+    expect(fixture.submit).not.toHaveBeenCalled();
+  });
+
+  it("does not omit unsupported actions from a native resume", () => {
+    const fixture = createFixture();
+    fixture.setMessages(toolMessages([0, 1]));
+    const interrupt = reviewInterrupt("review-1", [0, 1]);
+    interrupt.metadata = { langgraph: { raw: {
+      action_requests: [{ name: "confirm", args: { index: 0 } }, { name: "edit_only", args: { index: 1 } }],
+      review_configs: [
+        { action_name: "confirm", allowed_decisions: ["approve", "reject"] },
+        { action_name: "edit_only", allowed_decisions: ["edit", "respond"] },
+      ],
+    } } };
+    fixture.setInterrupts([interrupt]);
+    expect(fixture.bridge.getCommandDecisionRequest("tool-0")).toBeUndefined();
     expect(fixture.submit).not.toHaveBeenCalled();
   });
 });

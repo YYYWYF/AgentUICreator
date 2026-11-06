@@ -4,7 +4,7 @@
 
 | 用途 | 入口或共用模块 |
 | --- | --- |
-| 日常开发 | `dev-workbench.mjs`、`prepare-workbench.mjs`、`start-creator-workbench.mjs`、`ensure-workspace-dependencies.mjs` |
+| 日常开发 | `dev-workbench.mjs`、`../apps/creator-workbench/dev.ts`、`prepare-workbench.mjs`、`start-creator-workbench.mjs`、`ensure-workspace-dependencies.mjs` |
 | 构建与准备 | `build-workspace.mjs`、`build-public-packages.mjs`、`prepare-host-packages.mjs`、`preparation-state.mjs` |
 | 跨平台进程 | `pnpm-process.mjs`；新增 pnpm 调用复用此模块，避免自行调用 Windows `.cmd` |
 | 测试与类型检查 | `test-workspace-ts.mjs`、`typecheck-workspace.mjs`、`generated-source-test-config.ts`、同名 `.test.*` |
@@ -19,9 +19,11 @@ Creator 发行使用 `packages/creator` 的 `build` 和 `pnpm pack`。Agent、Op
 
 `pnpm package:repo [output.zip]` 打包仓库，ZIP 中的 `website/` 固定为完整静态站点；`pnpm docs:zip [output.zip]` 只构建并打包静态 `website/`，默认输出 `../AgentUIWebsite.zip`，不生成 Creator 离线文档。两者保留工作区源码，部署服务器无需 Node.js 或 npm 依赖。
 
-website 相关 `.mjs` 只用于外网源码环境。内网安装、构建与 npm 打包不调用它们；Creator 的普通资源拷贝步骤直接复制交接包中的 `artifacts/creator-documentation/`。内网 ZIP 二次打包直接收集静态 `website/`，不编译网站、不检查网站清单。`docs:package`、`docs:check`、`test:documentation` 留作外网手动入口，不接入内网主流程。
+website 相关 `.mjs` 只用于外网源码环境。内网安装、启动、构建、打包、验包和发布不校验 documentation；Creator 的普通资源拷贝步骤在 `artifacts/creator-documentation/` 存在时原样复制，缺失时跳过。内网 ZIP 二次打包直接收集静态 `website/`，不编译网站、不检查网站清单。`docs:package`、`test:documentation` 留作外网手动入口，不接入内网主流程。
 
-日常入口是 `pnpm dev`、`pnpm test`、`pnpm typecheck`。`check:*` / `verify:*` 按修改范围使用，无需每次全部执行；依赖精确版本检查已在安装前执行，CI 不再重复调用。上游兼容、真实包消费者和 Windows 路径分别覆盖独立边界，继续保留；文档源码交接校验只在外网显式执行。
+`pnpm dev` 只准备依赖、生成资源、编译并启动服务，不执行额外审计。构建后的依赖版本、发布兼容元数据、Plugin 服务声明和边界检查通过 `pnpm check:build` 手动运行；`pnpm check:dependency-pins`、`pnpm check:release-metadata` 和 `pnpm check:examples` 提供独立入口。依赖精确版本审计不再接入 `preinstall`。发布元数据生成保留在构建/prepack 中，发布审核仍由显式检查和 `prepublishOnly` 执行。`pnpm test`、`pnpm typecheck` 和其他 `check:*` / `verify:*` 按修改范围运行。
+
+根入口 `pnpm dev` 会持续监听上述五个开发包（Core、Renderer、Plugins、Runtime、Creator，含 Operator）的源码、资源及构建配置，合并保存后按依赖顺序重建受影响包并重启开发服务，保留原来选中的工程。运行或等待确认中的 Creator 任务结束/停止后才重启；编译失败后继续监听，修复保存会重试。普通应用文件继续使用 Vite 热更新；不会自动重写已有工程或推进源码 BASE。监听与重启逻辑位于 Workbench 的 TypeScript 模块，不新增 `.mjs` 入口。
 
 `pnpm verify:package` 检查包归属、真实 tarball 的公开入口、消费者类型和生产应用独立构建。`packages/creator/tests/creator-node-process.test.ts` 验证 Node Agent 的认证握手与启动/退出；浏览器功能验收单独记录，不能用这些检查替代。
 

@@ -27,11 +27,7 @@ import {
 } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import { ToolFallback } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import { isTaskPart } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
-import {
-  ToolGroupContent,
-  ToolGroupRoot,
-  ToolGroupTrigger,
-} from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+import { ConversationCanonicalToolGroup } from "../plugins/tool-group/adapters/presentation/tool-group.js";
 import { TooltipIconButton } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 import { Button } from "./adapters-generated/assistant-ui/components/ui/button.js";
 import { Skeleton } from "./adapters-generated/assistant-ui/components/ui/skeleton.js";
@@ -82,7 +78,8 @@ import {
 } from "react";
 
 import { ConversationToolRendererContext } from "./tool-renderer-context.js";
-import { projectToolTimeline } from "./tool-timeline-projection.js";
+import { hasPendingToolAction, projectToolTimeline } from "./tool-timeline-projection.js";
+import { useConversationCommandDecisions } from "./conversation-command-decisions.js";
 
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { TaskDisclosureProvider } from "./task-disclosure-context.js";
@@ -405,6 +402,22 @@ const AssistantResponseFooterHost: FC<{
   );
 };
 
+const ToolGroupHost: FC<PropsWithChildren<{
+  group: ThreadGroupPart;
+  Component: ThreadComponents["ToolGroup"];
+}>> = ({ group, Component, children }) => {
+  const parts = useAuiState(s => s.message.parts);
+  const commandDecisions = useConversationCommandDecisions();
+  const toolGroup = { ...group, type: "group-tool" as const, requiresAction: group.indices.some(index => {
+    const tool = parts[index];
+    return tool?.type === "tool-call" &&
+      (hasPendingToolAction(tool) || commandDecisions.has(tool.toolCallId));
+  }) };
+  return Component
+    ? <Component group={toolGroup}>{children}</Component>
+    : <ConversationCanonicalToolGroup group={toolGroup}>{children}</ConversationCanonicalToolGroup>;
+};
+
 const AssistantMessage: FC = () => {
   const localeMessages = useAgentUILocale();
   const {
@@ -484,18 +497,8 @@ const AssistantMessage: FC = () => {
                       <TaskGroupComponent group={part}>{children}</TaskGroupComponent>
                     ) : children;
                   case "group-tool":
-                    if (ToolGroup) {
-                      return <ToolGroup group={part}>{children}</ToolGroup>;
-                    }
                     return (
-                      <ToolGroupRoot variant="ghost"
-                        data-agent-state={part.status.type === "running" ? "running" : "idle"}>
-                        <ToolGroupTrigger
-                          count={part.indices.length}
-                          active={part.status.type === "running"}
-                        />
-                        <ToolGroupContent>{children}</ToolGroupContent>
-                      </ToolGroupRoot>
+                      <ToolGroupHost group={part} Component={ToolGroup}>{children}</ToolGroupHost>
                     );
                   case "group-reasoning": {
                     if (!part.indices.some(index => parts[index]?.type === "reasoning" && parts[index].text.trim())) return null;

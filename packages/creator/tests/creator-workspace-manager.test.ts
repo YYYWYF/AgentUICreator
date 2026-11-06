@@ -324,6 +324,53 @@ it("keeps detached runs busy for mutations and disposes them when switching proj
   await manager.clear();
 });
 
+it("defers development reload for streams, detached work and commands, then closes admission before disposal", async () => {
+  let busy = true;
+  const dispose = vi.fn(async () => {});
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureOperator: vi.fn(async () => []),
+    inspectProject: async () => ({ status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
+    createRuntimeManager: () => ({ ensureStarted: async () => {}, isBusy: async () => busy, dispose }) as unknown as CreatorProcessManager,
+  });
+  const selected = await manager.selectProject(await root());
+  if (selected.status !== "ready") throw new Error("fixture");
+  expect(await manager.prepareForDevelopmentRestart()).toBe(false);
+  expect(dispose).not.toHaveBeenCalled();
+  busy = false;
+  const untrack = manager.trackRequest(() => {});
+  expect(await manager.prepareForDevelopmentRestart()).toBe(false);
+  untrack();
+  let release!: () => void;
+  const command = manager.runProjectOperation(selected.workspace.id, () => new Promise<void>(resolve => { release = resolve; }), { mutation: true });
+  expect(await manager.prepareForDevelopmentRestart()).toBe(false);
+  await Promise.resolve();
+  release(); await command;
+  expect(await manager.prepareForDevelopmentRestart()).toBe(true);
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(() => manager.trackRequest(() => {})).toThrow("CREATOR_COMMAND_BUSY");
+  await expect(manager.selectProject(selected.workspace.projectRoot)).rejects.toThrow("CREATOR_COMMAND_BUSY");
+  expect(await manager.prepareForDevelopmentRestart()).toBe(true);
+  await manager.clear();
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(manager.getState()).toEqual({ status: "none" });
+});
+
+it("does not restart when a request arrives during the asynchronous worker health check", async () => {
+  let checked!: (busy: boolean) => void;
+  const dispose = vi.fn(async () => {});
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureOperator: vi.fn(async () => []),
+    inspectProject: async () => ({ status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
+    createRuntimeManager: () => ({ ensureStarted: async () => {}, isBusy: () => new Promise<boolean>(resolve => { checked = resolve; }), dispose }) as unknown as CreatorProcessManager,
+  });
+  await manager.selectProject(await root());
+  const preparing = manager.prepareForDevelopmentRestart();
+  await Promise.resolve();
+  const untrack = manager.trackRequest(() => {});
+  checked(false);
+  expect(await preparing).toBe(false);
+  expect(dispose).not.toHaveBeenCalled();
+  untrack(); await manager.clear();
+});
+
 it("reports stale Operator as a tool failure without installing control or starting the Agent", async () => {
   const ensureOperator = vi.fn();
   const createRuntimeManager = vi.fn();

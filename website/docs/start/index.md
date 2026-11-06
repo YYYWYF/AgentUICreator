@@ -4,6 +4,8 @@ description: 为你的产品加入 AI 助理，用自然语言调整界面。从
 sidebar: false
 ---
 
+第一次接触 Agent UI？先看[什么是 Agent UI](/what-is-agent-ui/)，了解插件如何组成一个可运行的助理界面。
+
 <div className="start-intro">
   <p className="start-intro__title">让你的产品拥有<br />自己的 <span>AI 助理。</span></p>
   <p className="start-intro__description">从页面角落的悬浮助手，到完整的对话工作台。选择一个模板接入现有工程，再用自然语言，把它改成你想要的样子。</p>

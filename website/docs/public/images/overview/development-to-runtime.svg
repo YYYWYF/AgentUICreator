@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="700" viewBox="0 0 880 700" role="img" aria-labelledby="title desc">
+  <title id="title">从 Creator 定制到 Agent UI 独立运行</title>
+  <desc id="desc">开发时，开发者向 Creator 描述需求，Creator 修改工程里的布局、插件和外壳，再由工程自己的构建流程部署。运行时，用户打开业务页面，页面内的 Agent UI 包含 Runtime、插件和样式，通过 AG-UI 与一个业务 Agent 服务交流。Creator 只在开发期使用。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#77859a"/></marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 22px; fill: #24324b; }
+      .heading { font-size: 24px; font-weight: 650; }
+      .small { font-size: 19px; fill: #59687f; }
+      .flow { fill: none; stroke: #77859a; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="880" height="700" rx="20" fill="#f5f7fc"/>
+  <rect x="20" y="20" width="840" height="250" rx="16" fill="#f4f0ff" stroke="#ded3f3"/>
+  <text class="heading" x="44" y="60">开发时 · 用自然语言定制界面</text>
+  <rect x="44" y="102" width="180" height="90" rx="12" fill="#ffffff" stroke="#c8b8e7" stroke-width="2"/>
+  <text text-anchor="middle" x="134" y="139">你描述需求</text>
+  <text class="small" text-anchor="middle" x="134" y="170">“调整输入区”</text>
+  <path class="flow" d="M224 147 H292"/>
+  <rect x="292" y="102" width="200" height="90" rx="12" fill="#ffffff" stroke="#c8b8e7" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="392" y="139">Creator</text>
+  <text class="small" text-anchor="middle" x="392" y="170">检查和修改代码</text>
+  <path class="flow" d="M492 147 H560"/>
+  <rect x="560" y="102" width="276" height="90" rx="12" fill="#ffffff" stroke="#c8b8e7" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="698" y="139">你的前端工程</text>
+  <text class="small" text-anchor="middle" x="698" y="170">布局 · 插件 · 外壳 · 样式</text>
+  <text class="small" x="44" y="237">代码保存在你的工程里，也可以直接编辑。</text>
+
+  <path class="flow" d="M698 192 V310 H440 V398"/>
+  <rect x="258" y="291" width="364" height="44" rx="22" fill="#e5edf9"/>
+  <text text-anchor="middle" x="440" y="320">使用工程自己的构建流程部署</text>
+
+  <rect x="20" y="352" width="840" height="326" rx="16" fill="#edf6f2" stroke="#c0dccc"/>
+  <text class="heading" x="44" y="391">运行时 · 用户在产品页面中使用助理</text>
+  <path class="flow" d="M440 352 V427"/>
+  <rect x="44" y="444" width="136" height="142" rx="12" fill="#ffffff" stroke="#a9ccbb" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="112" y="500">用户</text>
+  <text class="small" text-anchor="middle" x="112" y="541">发送 / 查看</text>
+
+  <path class="flow" d="M190 494 H280"/>
+  <path class="flow" d="M280 532 H190"/>
+  <rect x="290" y="427" width="290" height="176" rx="12" fill="#ffffff" stroke="#83b49b" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="435" y="466">Agent UI 前端</text>
+  <text text-anchor="middle" x="435" y="505">Runtime ＋ 已选插件</text>
+  <text class="small" text-anchor="middle" x="435" y="542">展示回复 · 响应操作</text>
+  <text class="small" text-anchor="middle" x="435" y="578">代码和样式随产品交付</text>
+
+  <text class="small" text-anchor="middle" x="634" y="477">AG-UI</text>
+  <path class="flow" d="M590 494 H677"/>
+  <path class="flow" d="M677 532 H590"/>
+  <rect x="688" y="444" width="148" height="142" rx="12" fill="#ffffff" stroke="#a9ccbb" stroke-width="2"/>
+  <text class="heading" text-anchor="middle" x="762" y="484">业务 Agent</text>
+  <text text-anchor="middle" x="762" y="515">服务</text>
+  <text class="small" text-anchor="middle" x="762" y="553">处理并返回结果</text>
+  <text class="small" text-anchor="middle" x="440" y="651">一个应用连接一个业务 Agent 服务；正式运行无需启动 Creator。</text>
+</svg>

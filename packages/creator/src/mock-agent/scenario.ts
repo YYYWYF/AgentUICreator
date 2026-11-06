@@ -4,6 +4,7 @@ import type {
   StateDeltaEvent,
   RunAgentInput,
 } from "@ag-ui/core";
+import { parseMockApprovalReview } from "./approval-review.js";
 
 export type MockScenarioCategory =
   | "basics"
@@ -183,6 +184,8 @@ export type MockScenarioStep =
   | MockSubagentToolStep
   | {
       type: "interrupt";
+      /** CUSTOM is the legacy review command; outcome keeps the native interrupt. */
+      format?: "custom" | "outcome" | undefined;
       toolCallId: string;
       toolName: string;
       args: Record<string, unknown>;
@@ -321,6 +324,12 @@ function validateSteps(
 
     if (step.type === "interrupt") {
       validateToolArgs(scenarioId, step.args, `interrupt tool "${step.toolName}"`);
+      if (step.format === "custom") {
+        const langgraph = step.interrupt.metadata?.langgraph as { raw?: unknown } | undefined;
+        if (parseMockApprovalReview(langgraph?.raw) === undefined) {
+          throw new Error(`Scenario "${scenarioId}" requires a valid legacy approval review.`);
+        }
+      }
     }
   }
 }

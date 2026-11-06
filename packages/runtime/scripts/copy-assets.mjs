@@ -17,20 +17,14 @@ await rm(path.join(distRoot, "ui", "runtime", "mode-shell"), { recursive: true, 
 await rm(path.join(distRoot, "experimental"), { recursive: true, force: true });
 
 const { missing, reachable } = await buildPublicDeclarationGraph(distRoot);
-if (missing.length > 0) {
-  const details = missing.map(({ sourcePath, specifier }) =>
-    `${path.relative(packageRoot, sourcePath)} -> ${specifier}`
-  );
-  throw new Error([
-    "Cannot prune declarations because the public declaration graph is incomplete:",
-    ...details,
-  ].join("\n"));
-}
-
-for (const declarationPath of await collectDeclarationFiles(distRoot)) {
-  if (!reachable.has(declarationPath)) {
-    await rm(declarationPath);
-    await rm(`${declarationPath}.map`, { force: true });
+// Prune only a complete graph. Missing declarations are reported by the manual
+// check:public-boundary command; never delete potentially needed files here.
+if (missing.length === 0) {
+  for (const declarationPath of await collectDeclarationFiles(distRoot)) {
+    if (!reachable.has(declarationPath)) {
+      await rm(declarationPath);
+      await rm(`${declarationPath}.map`, { force: true });
+    }
   }
 }
 

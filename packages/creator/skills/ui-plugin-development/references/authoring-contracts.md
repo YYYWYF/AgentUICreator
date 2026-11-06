@@ -44,9 +44,10 @@ able to ask Creator to add or restore it:
 - A Plugin with `capabilities: ["headless"]` or `manifest.application.gate` is
   not a visual placement target and does not need authoring metadata.
 
-Read the readiness diagnostics returned by `validate_creator_changes` through
-the existing `verify:ui` result. A limited warning is not automatically a
-failure: if the Plugin should be Creator-operable, repair its authoring
+Operator's `verify_ui_project` reports authoring readiness and diagnostics.
+`validate_creator_changes` uses this structural check together with the target
+project's typecheck and optional build. A limited warning is not automatically
+a failure: if the Plugin should be Creator-operable, repair its authoring
 contract; if it is intentionally manual-only, do not invent a placement.
 
 
@@ -63,10 +64,10 @@ Plugin needs capability X
    -> no: is a cross-boundary shared Service actually necessary?
       -> no: keep the behavior private to the Plugin
       -> yes: resolve the natural Owner, exact Consumers and dependency modes
-              -> prepare_ui_service_contract_change
-              -> ready: create_ui_service_contract using returned planId
-                 -> wire Provider and Consumers
-                 -> validate, then Runtime verify only in static_and_runtime mode
+              -> edit the project contract, Provider and Consumers
+                 (optional preflight: prepare_ui_service_contract_change,
+                  then create_ui_service_contract using returned planId)
+              -> validate, then Runtime verify only in static_and_runtime mode
 ```
 
 - `inject` is only for a capability without which the Plugin's core behavior cannot work.
@@ -77,7 +78,7 @@ Plugin needs capability X
   preflight tools check topology, ownership and current hashes without asking
   the user; apply their returned planId, or use ordinary read/edit/create tools.
 - Supporting Service work does not require another new-Plugin question.
-- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, inspect the impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
+- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, inspect the impact, then edit the contract and affected Plugins. Optional structured edits use `prepare_ui_service_contract_change` followed by `mutate_ui_service_contract` with its returned planId.
 - Generic project file tools can edit `/services/**`; use the structured tools when their topology or declaration checks are useful.
 - A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
 

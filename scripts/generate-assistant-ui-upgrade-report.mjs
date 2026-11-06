@@ -345,8 +345,6 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
 
   const markdown = `# assistant-ui Upgrade Impact Report
 
-Earlier upgrade and acceptance evidence is retained in [assistant-ui-upgrade-retained-evidence.md](docs/architecture/assistant-ui-upgrade-retained-evidence.md).
-
 From:
 - packages: ${current.packagesChanged.length === 0 ? "unchanged in report metadata" : current.packagesChanged.join(", ")}
 - upstream revision: ${current.fromRevision}

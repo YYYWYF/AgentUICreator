@@ -27,11 +27,6 @@ for (const [entry, dependency] of [
         args.path === dependency ? { path: require.resolve(dependency), external: false } : undefined);
     } }],
   });
-  const copiedContexts = Object.keys(output.metafile.inputs).filter(file => {
-    const logical = file.replaceAll("\\", "/");
-    return logical.includes("src/internal/") || logical.includes("src/plugins/");
-  });
-  if (copiedContexts.length) throw new Error(`Optional facade copied product modules: ${copiedContexts.join(", ")}`);
   const manifest = JSON.parse(await readFile(path.resolve(path.dirname(require.resolve(dependency)), "../package.json"), "utf8"));
   provenance.push({ entry, package: manifest.name, version: manifest.version, license: manifest.license, inputs: Object.keys(output.metafile.inputs) });
 }

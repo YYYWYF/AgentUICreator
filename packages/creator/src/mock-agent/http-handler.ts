@@ -5,6 +5,7 @@ import { EventType, type AGUIEvent, type Interrupt, type RunAgentInput } from "@
 
 import type { MockScenarioRegistry } from "./scenario-registry.js";
 import { runMockScenario } from "./scenario-runner.js";
+import { matchesMockApprovalReview, parseMockApprovalReview, type MockApprovalReview } from "./approval-review.js";
 import { mockDurableRuns, type MockDurableRunStore } from "./durable-run-store.js";
 
 const MAX_REQUEST_BYTES = 1024 * 1024;
@@ -97,7 +98,9 @@ export function createMockAgentHttpHandler({
   const events: Array<{ threadId: string; runId: string; type: string; timestamp: number }> = [];
   // Server-owned pending state cannot be bypassed by editing client messages or
   // choosing a different scenario on the same thread.
-  const pendingInterrupts = new Map<string, { scenarioId: string | undefined; interrupts: Interrupt[] }>();
+  const pendingInterrupts = new Map<string, { scenarioId: string | undefined } & (
+    { type: "interrupt"; interrupts: Interrupt[] } | { type: "custom"; review: MockApprovalReview }
+  )>();
   const runResolver = resolveRun ?? createScenarioMockRunResolver(registry);
   return async (request, response) => {
     const requestUrl = parseRequestUrl(request);
@@ -162,17 +165,24 @@ export function createMockAgentHttpHandler({
     const pending = pendingInterrupts.get(input.threadId);
     const selectedScenarioId = scenarioId ?? registry.defaultScenarioId;
     const resume = input.resume ?? [];
+    const command = input.forwardedProps?.command;
     let rejection: { code: string; message: string } | undefined;
     if (pending) {
-      if (!resume.length) rejection = { code: "MOCK_INTERRUPT_PENDING", message: "发送新输入前，请先处理或取消所有待处理的中断。" };
-      else if (pending.scenarioId !== selectedScenarioId) rejection = { code: "MOCK_INTERRUPT_CONTEXT_INVALID", message: "恢复运行必须使用产生该中断的场景。" };
+      if (pending.scenarioId !== selectedScenarioId) rejection = { code: "MOCK_INTERRUPT_CONTEXT_INVALID", message: "恢复运行必须使用产生该中断的场景。" };
+      else if (pending.type === "custom") {
+        if (command === undefined) rejection = { code: "MOCK_INTERRUPT_PENDING", message: "发送新输入前，请先处理或取消所有待处理的中断。" };
+        else if (resume.length || !matchesMockApprovalReview(command, pending.review)) {
+          rejection = { code: "MOCK_INTERRUPT_RESUME_INVALID", message: "恢复请求必须且只能处理每个待处理中断一次。" };
+        }
+      }
+      else if (!resume.length || command !== undefined) rejection = { code: "MOCK_INTERRUPT_PENDING", message: "发送新输入前，请先处理或取消所有待处理的中断。" };
       else if (resume.length !== pending.interrupts.length || new Set(resume.map(entry => entry.interruptId)).size !== resume.length ||
         pending.interrupts.some(interrupt => !resume.some(entry => entry.interruptId === interrupt.id))) {
         rejection = { code: "MOCK_INTERRUPT_RESUME_INVALID", message: "恢复请求必须且只能处理每个待处理中断一次。" };
       } else if (pending.interrupts.some(interrupt => interrupt.expiresAt !== undefined && Date.parse(interrupt.expiresAt) <= Date.now())) {
         rejection = { code: "MOCK_INTERRUPT_EXPIRED", message: "待处理中断已过期。" };
       }
-    } else if (resume.length) {
+    } else if (resume.length || command !== undefined) {
       rejection = { code: "MOCK_INTERRUPT_NOT_FOUND", message: "当前会话没有待处理的中断。" };
     }
 
@@ -240,13 +250,20 @@ export function createMockAgentHttpHandler({
       for await (const event of stream) {
         if (controller.signal.aborted || response.destroyed) return;
         const standardEvent = EventSchemas.parse(event) as AGUIEvent;
+        if (standardEvent.type === "CUSTOM" && standardEvent.name === "on_interrupt") {
+          const review = parseMockApprovalReview(standardEvent.value);
+          if (review !== undefined) pendingInterrupts.set(parsedInput.data.threadId, {
+            type: "custom", scenarioId: scenarioId ?? registry.defaultScenarioId, review,
+          });
+        }
         if (standardEvent.type === "RUN_FINISHED") {
           if (standardEvent.outcome?.type === "interrupt") {
             pendingInterrupts.set(parsedInput.data.threadId, {
+              type: "interrupt",
               scenarioId: scenarioId ?? registry.defaultScenarioId,
               interrupts: standardEvent.outcome.interrupts,
             });
-          } else if (input.resume?.length) {
+          } else if (input.resume?.length || command !== undefined) {
             pendingInterrupts.delete(parsedInput.data.threadId);
           }
         }

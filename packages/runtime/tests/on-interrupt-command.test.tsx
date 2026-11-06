@@ -20,13 +20,19 @@ async function until(predicate: () => boolean) {
 
 describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", () => {
   it.each([false, true].flatMap(stop => ["approve", "reject"].flatMap(decision =>
-    ["bridge", "fallback"].map(surface => ({ stop, decision, surface })))))(
-    "forwards $decision through $surface after stop=$stop without native resume", async ({ stop, decision, surface }) => {
+    ["bridge", "fallback", "registered"].flatMap(surface =>
+      ["uppercase-custom", "lowercase-custom", "native", "native-bound", "both"].map(format => ({ stop, decision, surface, format }))))))(
+    "forwards $decision for $format through $surface after stop=$stop", async ({ stop, decision, surface, format }) => {
     let bridge!: ConversationAgentRuntimeBridge;
     let runtime!: AssistantRuntime;
     let renderer!: ReactTestRenderer;
     const inputs: Array<{ runId: string; threadId: string; forwardedProps: Record<string, unknown>; resume?: unknown; messages?: unknown }> = [];
     const binding = createEphemeralConversationThreadBinding();
+    const native = format === "native" || format === "native-bound" || format === "both";
+    const review = {
+      action_requests: [{ name: "confirm_take_leave_policy", args: { user: "杨康", leave_policy: "年假" }, description: "请确认您的请假方案" }],
+      review_configs: [{ action_name: "confirm_take_leave_policy", allowed_decisions: ["approve", "edit", "reject", "respond"] }],
+    };
     function AssistantMessage() {
       return <MessagePrimitive.Root>
         <MessagePrimitive.Parts components={{ tools: { Fallback: ConversationToolFallback } }} />
@@ -35,10 +41,14 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
     function Capture() {
       bridge = useConversationRuntimeBridge().agentRuntime;
       runtime = useAui().threads.__internal_getAssistantRuntime!();
-      return surface === "fallback" ? <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage: () => null }} /> : null;
+      return surface !== "bridge" ? <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage: () => null }} /> : null;
     }
     await act(async () => {
       renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" threadBinding={binding}
+        {...(surface === "registered" ? { toolkit: { confirm_take_leave_policy: {
+          type: "human" as const, display: "standalone" as const,
+          interaction: { type: "interrupt" as const }, render: ConversationToolFallback,
+        } } } : {})}
         unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId,
           fetch: async (_url, init) => {
             const input = JSON.parse(String(init.body)) as typeof inputs[number];
@@ -48,14 +58,20 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
               const emit = (event: Record<string, unknown>) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
               emit({ type: "RUN_STARTED", runId: input.runId, threadId });
               if (inputs.length === 1) {
-                emit({ type: "TOOL_CALL_START", toolCallId: "delete-1", toolCallName: "delete_file" });
-                emit({ type: "TOOL_CALL_ARGS", toolCallId: "delete-1", delta: '{"path":"draft.txt"}' });
+                emit({ type: "TOOL_CALL_START", toolCallId: "delete-1", toolCallName: "confirm_take_leave_policy" });
+                emit({ type: "TOOL_CALL_ARGS", toolCallId: "delete-1", delta: JSON.stringify(review.action_requests[0]!.args) });
                 emit({ type: "TOOL_CALL_END", toolCallId: "delete-1" });
-                emit({ type: "CUSTOM", name: "ON_INTERRUPT", value: {
-                  action_requests: [{ name: "delete_file", args: { path: "draft.txt" }, description: "Delete draft?" }],
-                  review_configs: [{ action_name: "delete_file", allowed_decisions: ["approve", "reject", "edit", "respond"] }],
-                } });
-                emit({ type: "RUN_FINISHED", runId: input.runId, threadId });
+                if (!native || format === "both") emit({ type: "CUSTOM",
+                  name: format === "uppercase-custom" ? "ON_INTERRUPT" : "on_interrupt",
+                  value: format === "uppercase-custom" ? review : JSON.stringify(review),
+                });
+                emit({ type: "RUN_FINISHED", runId: input.runId, threadId,
+                  ...(native ? { outcome: { type: "interrupt", interrupts: [{
+                    id: "leave-approval", reason: "langgraph:interrupt",
+                    ...(format === "native-bound" ? { toolCallId: "delete-1" } : {}),
+                    metadata: { langgraph: { raw: review, ns: null, resumable: null, when: null } },
+                  }] } } : {}),
+                });
                 if (stop) {
                   init.signal?.addEventListener("abort", () => controller.error(new Error("BodyStreamBuffer was aborted")), { once: true });
                   return;
@@ -81,8 +97,9 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       await until(() => !runtime.thread.getState().isRunning);
       await sent;
       expect(bridge.getSnapshot().run.status).toBe("awaiting-input");
-      expect(bridge.getSnapshot().interrupts).toEqual([]);
+      expect(bridge.getSnapshot().interrupts).toHaveLength(native ? 1 : 0);
       expect(bridge.getCommandDecisionRequest("delete-1")?.allowedDecisions).toEqual(["approve", "reject"]);
+      expect(bridge.getCommandDecisionRequest("delete-1")?.description).toBe("请确认您的请假方案");
       await expect(bridge.sendMessage("Another task")).rejects.toThrow("pending interrupts");
       await expect(bridge.submitCommandDecision("delete-1", "edit")).rejects.toThrow("Unsupported command decision");
       expect(inputs).toHaveLength(1);
@@ -91,6 +108,8 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
         if (surface === "bridge") submitted = bridge.submitCommandDecision("delete-1", decision);
         else {
           const buttons = renderer.root.findAll(node => node.type === "button");
+          expect(buttons.filter(node => node.children.includes("Allow"))).toHaveLength(1);
+          expect(buttons.filter(node => node.children.includes("Deny"))).toHaveLength(1);
           expect(buttons.some(node => node.children.includes("edit") || node.children.includes("respond"))).toBe(false);
           const button = buttons.find(node => node.children.includes(decision === "approve" ? "Allow" : "Deny"));
           expect(button, "default fallback must retain the pending command controls").toBeDefined();
@@ -100,8 +119,15 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       });
       await until(() => inputs.length === 2 && bridge.getSnapshot().run.status === "idle");
       await submitted;
-      expect(inputs[1]!.forwardedProps.command).toEqual({ decisions: [{ type: decision }] });
-      expect(inputs[1]!.resume).toBeUndefined();
+      if (native) {
+        expect(inputs[1]!.forwardedProps.command).toBeUndefined();
+        expect(inputs[1]!.resume).toEqual([{ interruptId: "leave-approval", status: "resolved", payload: {
+          decisions: [{ type: decision }],
+        } }]);
+      } else {
+        expect(inputs[1]!.forwardedProps.command).toEqual({ decisions: [{ type: decision }] });
+        expect(inputs[1]!.resume).toBeUndefined();
+      }
       expect(JSON.stringify(inputs[1]!.messages)).not.toMatch(/Approved by user|User denied tool execution/u);
       expect(inputs[1]!.threadId).toBe(inputs[0]!.threadId);
       expect(bridge.getCommandDecisionRequest("delete-1")).toBeUndefined();

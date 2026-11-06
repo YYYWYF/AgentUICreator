@@ -19,13 +19,13 @@ This document defines the additional Creator Authoring Readiness contract.
 
 ## Scope
 
-The existing `UIPluginManifest.authoring` fields are the contract. This phase
-does not add a `creatorReady` flag, a readiness score, or another manifest
-schema. The Host derives readiness from the manifest, capabilities, and child
+The existing `UIPluginManifest.authoring` fields are the contract, without a
+`creatorReady` flag, a readiness score, or another manifest schema.
+The Host derives readiness from the manifest, capabilities, and child
 Slot declarations. It never reads React source to infer placement.
 
 The contract is optional. A Plugin without `authoring` is still a valid Runtime
-Plugin and may be configured manually in `app-ui/app-ui.json`; it simply makes
+Plugin and may be configured manually in the project's `app-ui.json`; it makes
 no promise that Creator can discover or automatically add and restore it.
 
 ## Plugin categories
@@ -81,7 +81,7 @@ above / below   -> recommendedSize.height
 
 Missing required axis sizing makes deterministic Creator Add/Restore
 unavailable. The Analyzer reports this as a non-blocking readiness warning so
-the Plugin can remain limited without making `verify:ui` fail.
+the Plugin can remain limited without making structural validation fail.
 
 For a `plugin_slot` placement, the parent Plugin and child Slot must exist and
 be unique. The Slot's accepted capability must match the child Plugin's
@@ -135,11 +135,14 @@ Theme tokens and dark variants are inherited from `AgentUIRoot`. Isolation cover
 ordinary Host global and reset CSS; Host rules that explicitly target Agent UI
 with `!important` are outside this contract.
 
-Plugins use the `@za38.03/agent-ui-plugins` Agent UI Tooltip, Popover, and Dialog
-facades for overlays. They must not import Base UI Portal primitives directly
-or mount overlays on `document.body`.
+Plugins using Agent UI's Base UI overlays use the
+`@za38.03/agent-ui-plugins` Tooltip, Popover, and Dialog facades. They must not
+import Base UI Portal primitives directly or mount overlays on `document.body`.
+Projects retain their selected UI library; its overlays must preserve the
+owning Agent UI container and theme boundary.
 
-The Host checks CSS during `verify:ui` without changing the authoring manifest.
+The Host checks CSS during Operator's `verify_ui_project` without changing the
+authoring manifest.
 An unsafe selector or CSS import produces the blocking diagnostic
 `PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED`; Creator must repair the CSS source.
 Direct Base UI Dialog, Popover, Tooltip, or Sheet imports in Plugin source
@@ -153,18 +156,23 @@ Portals, dark variants, and the public Dialog container boundary.
 
 ## Validation boundary
 
-`pnpm verify:ui` is the single Host entry point. It reports readiness records
-alongside existing Registry, child Slot, Service, and Composition checks:
+Operator's `verify_ui_project` is the structural validation entry point. Its
+result includes `creatorReadiness.plugins`, errors and warnings alongside
+Registry, child Slot, Service, and Composition checks. Node tooling can call
+`verifyUIProject` from `@za38.03/agent-ui-creator/project/dev`.
 
 ```text
-invalid declared contract -> errors -> verify:ui failed
-limited Creator operation -> warnings -> verify:ui passed
+invalid declared contract -> errors -> structural validation failed
+limited Creator operation -> warnings -> structural validation passed
 ```
 
-`validate_creator_changes` already runs `pnpm verify:ui` and `pnpm typecheck`,
-so no readiness-specific Creator Tool is needed. Readiness is not added to the
-Operator inspection protocol in this phase; the Creator completion loop
-gets the diagnostics through the existing validation result.
+`validate_creator_changes` synchronizes changed Plugin registrations, invokes
+`verify_ui_project`, and runs the target project's `typecheck` through its
+detected package manager. `includeBuild: true` also runs its `build` script.
+Default delta validation distinguishes introduced errors from existing baseline
+diagnostics; clean mode checks all current errors. Structural composition and
+readiness do not prove browser mounting or interaction; Runtime and browser
+acceptance need separate evidence.
 
 When a newly created visual Plugin receives a warning, Creator decides whether
 that Plugin was intended to be Creator-operable. If yes, it repairs the

@@ -4,7 +4,7 @@ import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {syncPackageReleaseMetadata} from './sync-package-release-metadata.mjs';
-test('build/prepack emits the same compatibility history in npm metadata and payload, and rejects stale publication',async()=>{
+test('build/prepack emits compatibility history while explicit checks reject stale release requirements',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'agent-ui release 中文 space-'));
  try{
   const directory=path.join(root,'packages','runtime');await mkdir(directory,{recursive:true});await mkdir(path.join(root,'releases'));
@@ -14,8 +14,14 @@ test('build/prepack emits the same compatibility history in npm metadata and pay
   await syncPackageReleaseMetadata('runtime',root);
   assert.deepEqual(JSON.parse(await readFile(file,'utf8')).agentUI,{schemaVersion:1,compatibility:manifest});
   assert.deepEqual(JSON.parse(await readFile(path.join(directory,'dist','compatibility.json'),'utf8')),manifest);
-  pkg.dependencies['@za38.03/agent-ui-core']='^2.0.0';await writeFile(file,JSON.stringify(pkg));await assert.rejects(syncPackageReleaseMetadata('runtime',root),/Stale release requirements/);
-  pkg.version='1.2.4';await writeFile(file,JSON.stringify(pkg));await assert.rejects(syncPackageReleaseMetadata('runtime',root),/Review compatibility metadata/);
+  await syncPackageReleaseMetadata('runtime',root,{checkOnly:true});
+  pkg.dependencies['@za38.03/agent-ui-core']='^2.0.0';await writeFile(file,JSON.stringify(pkg));
+  await syncPackageReleaseMetadata('runtime',root);
+  await assert.rejects(syncPackageReleaseMetadata('runtime',root,{checkOnly:true}),/Stale release requirements/);
+  await assert.rejects(syncPackageReleaseMetadata('runtime',root,{publishing:true}),/Stale release requirements/);
+  pkg.version='1.2.4';await writeFile(file,JSON.stringify(pkg));
+  await syncPackageReleaseMetadata('runtime',root);
+  await assert.rejects(syncPackageReleaseMetadata('runtime',root,{checkOnly:true}),/Review compatibility metadata/);
   await assert.rejects(syncPackageReleaseMetadata('../outside',root),/Unknown public package/);
  }finally{await rm(root,{recursive:true,force:true});}
 });

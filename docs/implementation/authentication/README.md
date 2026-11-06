@@ -12,7 +12,7 @@ userId、userName、avatar 均可选。Agent、Agent user=null 和空 profile �
 
 auth-gate 是 Application Gate，加入 AppUIModel.applicationPlugins，不放在普通布局或弹窗位置。它提供的服务在 setup 中注册，异步会话恢复使用现有 Adapter，Gate 根据真实状态决定 checking、blocked、ready 或 error。
 
-配置应用现有 auth Adapter，保留已有 services 声明与实现。只有缺失文件按安装 catalog 的受控模板初始化；不覆盖业务认证代码，不因 npm 更新重置连接或身份配置。新增公共 Service 契约使用独立的具体方案授权。
+配置应用现有 auth Adapter，保留已有 services 声明与实现。只有缺失文件按安装 catalog 的受控模板初始化；不覆盖业务认证代码，不因 npm 更新重置连接或身份配置。项目 Service 契约与实现按当前需求直接编辑和验证，不单独弹审批；可选 preflight 工具检查拓扑、公共声明和文件版本。
 
 可选 auth-account 放在用户要求的普通布局 Slot，沿用已有 Sidebar、Header、Footer 和实例。不要为了展示账号擅自重建整个布局。
 

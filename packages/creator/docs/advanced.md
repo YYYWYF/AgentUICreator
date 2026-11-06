@@ -79,19 +79,25 @@ pnpm add -D @za38.03/agent-ui-creator
 卸载 Creator 后普通开发也可以继续运行。其他 Vite 工程保留各自的插件：
 
 ```ts
+import { createRequire } from "node:module";
 import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
+
+const hostRequire = createRequire(import.meta.url);
 
 export default defineConfig(async ({ command }) => {
   const plugins: PluginOption[] = [react()];
   if (command === "serve") {
-    let creatorEntry: string | undefined;
-    try { creatorEntry = import.meta.resolve("@za38.03/agent-ui-creator/dock/vite"); }
-    catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ERR_MODULE_NOT_FOUND") throw error;
+    let creatorInstalled = false;
+    try {
+      hostRequire.resolve("@za38.03/agent-ui-creator/package.json");
+      creatorInstalled = true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "MODULE_NOT_FOUND") throw error;
     }
-    if (creatorEntry) {
-      const { createCreatorDockVitePlugin } = await import(creatorEntry);
+    if (creatorInstalled) {
+      const creatorModule = "@za38.03/agent-ui-creator/dock/vite";
+      const { createCreatorDockVitePlugin } = await import(creatorModule);
       plugins.push(createCreatorDockVitePlugin());
     }
   }
@@ -117,26 +123,39 @@ Creator 入口随已接入的业务开发页面加载，不检测工具在线状
 模型配置默认读取当前工程的 `.agent-ui/creator/.env.local`；也可在脚本末尾添加 `--config-root <工具配置目录>`。
 脚本不依赖 Bash 或内联环境变量，Windows 使用相同命令。
 
-如果使用 Rsbuild，在开发工具宿主的配置中添加：
+Creator 适配器使用 ESM。以下 Creator 加载写法在开发分支使用 `await import()`，兼容 Node.js `22.0.0`；CommonJS 工程可以保留 `module.exports` 和其他依赖的 `require()`，无需修改工程的模块类型。实际 Node 版本还需满足所用构建工具的要求。
+
+如果使用 Rsbuild，合并到开发工具宿主的现有配置中：
 
 ```ts
-import { createCreatorDockRsbuildPlugin } from "@za38.03/agent-ui-creator/dock/rsbuild";
+import { defineConfig, type RsbuildPlugin } from "@rsbuild/core";
 
-// 加入现有 plugins 数组，不需要为 Creator 加入宿主 React 插件。
-createCreatorDockRsbuildPlugin({ creatorUrl: "http://127.0.0.1:47832" });
+export default defineConfig(async ({ command }) => {
+  const plugins: RsbuildPlugin[] = []; // 保留已有的宿主插件。
+  if (command === "dev") {
+    const creatorModule = "@za38.03/agent-ui-creator/dock/rsbuild";
+    const { createCreatorDockRsbuildPlugin } = await import(creatorModule);
+    plugins.push(createCreatorDockRsbuildPlugin({ creatorUrl: "http://127.0.0.1:47832" }));
+  }
+  return { plugins };
+});
 ```
 
-如果使用 Webpack 5，在现有开发配置的 `plugins` 数组中加入：
+如果使用 Webpack 5，合并到现有配置函数中：
 
 ```js
 // webpack.config.cjs / webpack.dev.cjs
-const { createCreatorDockWebpackPlugin } = require("@za38.03/agent-ui-creator/dock/webpack");
-
-// mode 必须为 development。保留已有的 HTML 生成插件和其他配置。
-createCreatorDockWebpackPlugin({ creatorUrl: "http://127.0.0.1:47832" });
+module.exports = async (_env, argv) => {
+  const plugins = []; // 保留已有的 HTML 生成插件和其他配置。
+  if (argv.mode === "development") {
+    const { createCreatorDockWebpackPlugin } = await import("@za38.03/agent-ui-creator/dock/webpack");
+    plugins.push(createCreatorDockWebpackPlugin({ creatorUrl: "http://127.0.0.1:47832" }));
+  }
+  return { mode: argv.mode, plugins };
+};
 ```
 
-ESM 配置使用 `import { createCreatorDockWebpackPlugin } from "@za38.03/agent-ui-creator/dock/webpack"`。
+开发命令设置 `--mode development`，生产构建使用 `--mode production`。ESM 配置沿用 `export default`，在异步配置函数内按相同方式加载。CRACO 需要同时配置 Webpack 插件和独立的开发服务器配置，完整示例见 [Rsbuild / Webpack / CRACO 接入](../dist/documentation/guide/creator-dock-rsbuild-webpack.md)。
 Webpack 适配器在 `processAssets` 的 Report 阶段处理编译产生的 `.html` / `.htm` 资产，
 兼容已有 HtmlWebpackPlugin 或复制到输出的 HTML，不安装第二份 Webpack 或 HTML 插件。
 如果 HTML 由后端或 `devServer.static` 直接提供、不经过 Webpack 输出，则应在那一层
@@ -147,6 +166,8 @@ Webpack 适配器在 `processAssets` 的 Report 阶段处理编译产生的 `.ht
 启动 webpack-dev-server 时，也请使用这份选项，而不是从原始配置重新复制：
 
 ```js
+// 在异步启动函数内，先等待配置函数返回配置对象。
+const config = await require("./webpack.config.cjs")({}, { mode: "development" });
 const compiler = webpack(config);
 const server = new WebpackDevServer(compiler.options.devServer, compiler);
 ```
@@ -188,8 +209,8 @@ packages/creator/
   skills/*                # Creator Skills
 ```
 
-浏览器源码均归 `packages/creator/browser/`。Rsbuild 入口对应其中的 `main.tsx` 与 `dock.tsx`，HTML 对应 `index.html` 与
-`dock.html`。其中的 `dock-client.ts` 需单独输出一个无外部 imports 的 classic/IIFE
+浏览器入口位于 `packages/creator/browser/`：`dock.html` 加载 `dock.tsx`，复用 `src/ui/` 的 Creator 界面。
+替换为公司 Rsbuild 构建时保留这个 HTML 入口；`dock-client.ts` 需单独输出一个无外部 imports 的 classic/IIFE
 `dock-client.js`，供宿主开发页面加载；其内容包含顶部标签和 Preview bridge。界面的 React
 依赖应打入浏览器产物，不要求目标工程安装 Creator 的 React 版本。静态资源引用使用相对
 路径或本站绝对路径。Node 入口目前保留 TypeScript 编译产物的目录结构；如果再改成单文件

@@ -308,6 +308,8 @@ export interface ConversationMessagePartGroup {
   readonly type: "group-reasoning" | "group-tool";
   readonly indices: readonly number[];
   readonly status: { readonly type: string };
+  /** Presentation hint for pending tool actions, including runtime command decisions. */
+  readonly requiresAction?: boolean;
 }
 
 export interface ConversationReasoningGroupRenderScope {
@@ -340,8 +342,9 @@ export function ConversationCanonicalUserEditComposer({ input }: Readonly<{ inpu
 export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
 
 export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
-  const source = group as { type: ConversationMessagePartGroup["type"]; indices: readonly number[]; status: { type: string } };
-  return { type: source.type, indices: source.indices, status: source.status };
+  const source = group as ConversationMessagePartGroup;
+  return { type: source.type, indices: source.indices, status: source.status,
+    ...(source.requiresAction === undefined ? {} : { requiresAction: source.requiresAction }) };
 }
 
 export interface ConversationThreadProps {

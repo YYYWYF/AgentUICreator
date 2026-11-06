@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="690" viewBox="0 0 880 690" role="img" aria-labelledby="title desc">
+  <title id="title">插件就在你的 Agent 界面里</title>
+  <desc id="desc">业务页面中嵌入 Agent UI，外壳内包含左侧会话列表和右侧会话界面。会话界面组合工具记录、图表结果、回复操作栏和输入框，输入框中还有发送按钮。此图为概念示意。</desc>
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 22px; fill: #24324b; }
+      .heading { font-size: 24px; font-weight: 650; }
+      .small { font-size: 19px; fill: #59687f; }
+      .plugin { stroke: #b6a5ea; stroke-width: 2; fill: #f4f0ff; }
+    </style>
+  </defs>
+  <rect width="880" height="690" rx="20" fill="#f5f7fc"/>
+  <text class="heading" x="28" y="43">你的业务页面</text>
+  <text class="small" x="624" y="43">概念示意 · 非实际截图</text>
+  <rect x="24" y="68" width="832" height="556" rx="16" fill="#ffffff" stroke="#cdd5e4" stroke-width="2"/>
+  <text class="heading" x="44" y="106">Agent UI · 工作台形态</text>
+  <text class="small" x="448" y="106">外壳负责容器，插件提供功能</text>
+
+  <rect class="plugin" x="44" y="132" width="190" height="470" rx="12"/>
+  <text class="heading" x="64" y="171">会话列表</text>
+  <rect x="60" y="197" width="158" height="48" rx="8" fill="#e4dafb"/>
+  <text class="small" x="74" y="228">本周销售分析</text>
+  <text class="small" x="74" y="279">产品使用咨询</text>
+  <text class="small" x="74" y="329">上一次对话</text>
+
+  <rect x="250" y="132" width="586" height="470" rx="12" fill="#fbfcff" stroke="#98b6d8" stroke-width="2" stroke-dasharray="7 5"/>
+  <text class="heading" x="270" y="169">会话界面</text>
+  <text class="small" x="410" y="169">组合消息、内容和操作插件</text>
+  <rect x="482" y="187" width="334" height="43" rx="10" fill="#e8eef8"/>
+  <text class="small" x="500" y="215">帮我看看本周的销售情况</text>
+
+  <rect class="plugin" x="270" y="248" width="546" height="56" rx="10"/>
+  <text x="288" y="283">工具记录</text>
+  <text class="small" x="425" y="283">已查询销售数据</text>
+
+  <rect class="plugin" x="270" y="320" width="546" height="112" rx="10"/>
+  <text x="288" y="355">图表结果</text>
+  <text class="small" x="288" y="391">销售额趋势</text>
+  <path d="M490 403 H792" stroke="#d5c9ee" stroke-width="2"/>
+  <rect x="506" y="378" width="40" height="24" rx="3" fill="#c6b4ee"/>
+  <rect x="564" y="363" width="40" height="39" rx="3" fill="#ad92e4"/>
+  <rect x="622" y="371" width="40" height="31" rx="3" fill="#c6b4ee"/>
+  <rect x="680" y="347" width="40" height="55" rx="3" fill="#8d6cd1"/>
+  <rect x="738" y="339" width="40" height="63" rx="3" fill="#7655b9"/>
+
+  <rect class="plugin" x="270" y="448" width="546" height="48" rx="10"/>
+  <text x="288" y="480">回复操作栏</text>
+  <text class="small" x="468" y="480">复制　·　导出　·　重新生成</text>
+
+  <rect class="plugin" x="270" y="512" width="546" height="72" rx="10"/>
+  <text x="288" y="555">输入框</text>
+  <text class="small" x="402" y="555">继续提问…</text>
+  <rect x="700" y="525" width="100" height="46" rx="8" fill="#7655b9"/>
+  <text x="728" y="556" style="fill: #ffffff; font-size: 20px;">发送</text>
+
+  <rect x="30" y="651" width="20" height="20" rx="4" fill="#f4f0ff" stroke="#b6a5ea" stroke-width="2"/>
+  <text class="small" x="62" y="667">紫色区域代表插件；一个插件内部，也可以组合其他插件。</text>
+</svg>

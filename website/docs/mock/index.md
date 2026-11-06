@@ -35,7 +35,7 @@ Mock 服务为 Agent 前端提供预设的 AG-UI 事件流。业务后端还没�
 | --- | --- | --- |
 | 消息和 Markdown 样式 | `simple-chat`、`markdown-showcase` | 长文本、列表、表格和代码块的排版，消息区能否正常滚动 |
 | 思考和工具展示 | `reasoning-tool-success`、`parallel-tools` | 流式更新、展开收起、多个工具的状态与最终结果 |
-| 审批和信息收集 | `approval-resume`、`ask-user-question` | 等待用户时的提示、操作入口以及提交后的继续回复 |
+| 审批和信息收集 | `approval-legacy`、`approval-resume`、`ask-user-question` | 旧版 CUSTOM 与新版 interrupt 审批、问题卡片，以及提交后的继续回复 |
 | 错误和停止按钮 | `tool-error`、`cancel-before-first-output` | 出错前内容是否保留，停止后输入框和按钮是否恢复可用 |
 | 计划和结构化结果 | `agent-plan`、`data-message-chart` | 状态更新、卡片布局和数据展示 |
 

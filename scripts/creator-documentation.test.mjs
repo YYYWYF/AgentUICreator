@@ -6,7 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
-import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, sealStaticWebsite, verifyDocumentation, verifyStaticWebsite } from './creator-documentation.mjs';
+import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, sealStaticWebsite } from './creator-documentation.mjs';
 import { packageRepository } from './package-repository.mjs';
 import { buildAgentDocumentation, documentationSections, portableReferenceLinks, referenceManifest } from './creator-agent-documentation.mjs';
 
@@ -37,25 +37,6 @@ async function fixture(t) {
   await writeFile(path.join(directory, 'index.json'), JSON.stringify(index));
   return { directory, index };
 }
-
-test('offline snapshot is readable outside the repository and rejects mismatched versions/sources', async t => {
-  const { directory } = await fixture(t);
-  await verifyDocumentation(directory, { version: '1.2.3', sourceDigest: 'a'.repeat(64) });
-  assert.match(await readFile(artifactPath(directory, 'guide/start.md'), 'utf8'), /Offline instructions/u);
-  await assert.rejects(verifyDocumentation(directory, { version: '1.2.4' }), /version is stale/u);
-  await assert.rejects(verifyDocumentation(directory, { sourceDigest: 'b'.repeat(64) }), /source is stale/u);
-});
-
-test('rejects tampered, missing and unindexed package resources', async t => {
-  const { directory } = await fixture(t);
-  await writeFile(artifactPath(directory, 'guide/start.md'), 'changed');
-  await assert.rejects(verifyDocumentation(directory), /mismatch/u);
-  await rm(artifactPath(directory, 'guide/start.md'));
-  await assert.rejects(verifyDocumentation(directory), /ENOENT/u);
-  await writeFile(artifactPath(directory, 'guide/start.md'), '# Start\nOffline instructions.');
-  await writeFile(path.join(directory, 'unlisted.md'), '# Old page');
-  await assert.rejects(verifyDocumentation(directory), /Unindexed/u);
-});
 
 test('Windows filesystem paths become portable manifest paths; unsafe identifiers are rejected', () => {
   assert.equal(logicalPath('C:\\工程 空间\\docs', 'C:\\工程 空间\\docs\\guide\\start.md', path.win32), 'guide/start.md');
@@ -105,18 +86,16 @@ test('clean intranet packaging copies static pages without documentation tooling
   const { root, destination } = await handoffFixture(t);
   // No website package.json, node_modules, Rspress or executable exists here.
   await prepareDocumentation(root);
-  await prepareDocumentation(root, true);
   await writeFile(path.join(destination, 'obsolete.md'), '# Obsolete');
   await prepareDocumentation(root);
   await assert.rejects(readFile(path.join(destination, 'obsolete.md')), { code: 'ENOENT' });
   await rm(path.join(root, 'packages/creator/dist'), { recursive: true });
   await prepareDocumentation(root);
-  await verifyDocumentation(destination, { version: '1.2.3' });
+  assert.match(await readFile(path.join(destination, 'guide/start.md'), 'utf8'), /Offline instructions/u);
   // The internal mirror may rebuild locks, or the transfer may omit them.
   await writeFile(path.join(root, 'pnpm-lock.yaml'), 'internal registry resolutions');
   await writeFile(path.join(root, 'website/pnpm-lock.yaml'), 'external tooling resolutions');
   await writeFile(path.join(root, 'website/docs/index.md'), '# Source\r\n');
-  await prepareDocumentation(root, true);
   assert.match(await readFile(path.join(destination, 'images/example.svg'), 'utf8'), /<svg/u);
 });
 
@@ -180,7 +159,7 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   await rm(path.join(transferred, 'website'), { recursive: true });
   await rm(path.join(transferred, 'scripts'), { recursive: true });
   await copyIntranetAssets(transferred);
-  await verifyDocumentation(path.join(transferred, 'packages/creator/dist/documentation'), { version: '1.2.3' });
+  assert.match(await readFile(path.join(transferred, 'packages/creator/dist/documentation/guide/start.md'), 'utf8'), /Offline instructions/u);
 });
 
 test('source packaging builds a complete static website for repository and standalone ZIPs', async t => {
@@ -216,7 +195,7 @@ test('source packaging builds a complete static website for repository and stand
     const entries = zipEntries(await readFile(output));
     const prefix = websiteOnly ? '' : `${path.basename(root)}/`;
     const websiteEntries = [...entries.keys()].filter(name => name.startsWith(`${prefix}website/`));
-    const manifest = await verifyStaticWebsite(path.join(root, 'website/doc_build'));
+    const manifest = JSON.parse(await readFile(path.join(root, 'website/doc_build/agent-ui-static-site.json'), 'utf8'));
     assert.deepEqual(websiteEntries.sort(), [...manifest.files.map(file => `${prefix}website/${file.path}`), `${prefix}website/agent-ui-static-site.json`].sort());
     assert.equal(entries.get(`${prefix}website/static/search.json`).toString(), '{"local":true}');
     assert.match(entries.get(`${prefix}website/images/界面.svg`).toString(), /<svg/u);
@@ -253,35 +232,51 @@ test('intranet ZIP packaging copies plain static files without manifests, Creato
   assert.equal(repository.get(`${path.basename(root)}/website/index.html`).toString(), '<html>Updated on intranet</html>');
 });
 
-test('static website rejects missing assets and tooling instead of transferring an incomplete site', async t => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'static docs '));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const records = [['website/docs/index.md', 'a'.repeat(64)]];
-  await writeFile(path.join(directory, 'index.html'), '<html/>');
-  await writeFile(path.join(directory, 'app.js'), 'local asset');
-  await sealStaticWebsite(directory, records);
-  await rm(path.join(directory, 'app.js'));
-  await assert.rejects(verifyStaticWebsite(directory), /ENOENT/u);
-  await writeFile(path.join(directory, 'app.js'), 'local asset');
-  await writeFile(path.join(directory, 'package.json'), '{}');
-  await assert.rejects(sealStaticWebsite(directory, records), /Website tooling/u);
+test('snapshot preparation and build assets copy unvalidated content and skip missing documentation', async t => {
+  const { root, source, destination } = await handoffFixture(t);
+  await writeFile(path.join(source, 'guide/start.md'), '# Changed without reindexing');
+  await writeFile(path.join(source, 'index.json'), 'not a JSON manifest');
+  for (const copy of [prepareDocumentation, copyIntranetAssets]) {
+    await copy(root);
+    assert.equal(await readFile(path.join(destination, 'index.json'), 'utf8'), 'not a JSON manifest');
+    assert.equal(await readFile(path.join(destination, 'guide/start.md'), 'utf8'), '# Changed without reindexing');
+  }
+  await rm(path.join(source, 'index.json'));
+  for (const copy of [prepareDocumentation, copyIntranetAssets]) {
+    await copy(root);
+    await assert.rejects(readFile(path.join(destination, 'index.json')), { code: 'ENOENT' });
+    assert.equal(await readFile(path.join(destination, 'guide/start.md'), 'utf8'), '# Changed without reindexing');
+  }
+  await rm(source, { recursive: true });
+  for (const copy of [prepareDocumentation, copyIntranetAssets]) {
+    await mkdir(destination, { recursive: true });
+    await writeFile(path.join(destination, 'obsolete.md'), '# Obsolete');
+    await copy(root);
+    await assert.rejects(readFile(path.join(destination, 'obsolete.md')), { code: 'ENOENT' });
+  }
 });
 
-test('explicit external snapshot audit rejects missing, tampered or stale handoff', async t => {
-  const { root, source } = await handoffFixture(t);
-  await writeFile(path.join(source, 'guide/start.md'), '# Tampered');
-  await assert.rejects(prepareDocumentation(root), /handoff is missing, stale or invalid/u);
-  await rm(source, { recursive: true });
-  await assert.rejects(prepareDocumentation(root), /external build machine/u);
-  const other = await handoffFixture(t);
-  await writeFile(path.join(other.root, 'website/docs/index.md'), '# New content');
-  await assert.rejects(prepareDocumentation(other.root), /handoff is missing, stale or invalid/u);
-  const versioned = await handoffFixture(t);
-  await writeFile(path.join(versioned.root, 'packages/plugins/package.json'), JSON.stringify({ name: '@za38.03/agent-ui-plugins', version: '1.2.4' }));
-  await assert.rejects(prepareDocumentation(versioned.root), /handoff is missing, stale or invalid/u);
-  const referenced = await handoffFixture(t);
-  await writeFile(path.join(referenced.root, 'docs/current.md'), '# Changed internal contract');
-  await assert.rejects(prepareDocumentation(referenced.root), /handoff is missing, stale or invalid/u);
+test('snapshot preparation accepts changed sources, package versions and intranet dependency metadata', async t => {
+  const { root, source, destination } = await handoffFixture(t);
+  await writeFile(path.join(root, 'website/docs/index.md'), '# New content\r\n');
+  await writeFile(path.join(root, 'docs/current.md'), '# Changed internal contract');
+  for (const module of ['plugins', 'creator']) {
+    await writeFile(path.join(root, 'packages', module, 'package.json'), JSON.stringify({
+      name: `@za38.03/agent-ui-${module}`, version: '1.2.4',
+      dependencies: { '@za38.03/agent-ui-core': '1.2.4' },
+    }, null, 4));
+  }
+  await prepareDocumentation(root);
+  assert.deepEqual(await readFile(path.join(destination, 'index.json')), await readFile(path.join(source, 'index.json')));
+});
+
+test('snapshot copy does not require website sources, repository scripts or package metadata', async t => {
+  const { root, destination } = await handoffFixture(t);
+  for (const directory of ['website', 'scripts', 'docs', 'packages']) {
+    await rm(path.join(root, directory), { recursive: true });
+  }
+  await prepareDocumentation(root);
+  assert.match(await readFile(path.join(destination, 'guide/start.md'), 'utf8'), /Offline instructions/u);
 });
 
 test('indexes real sections, ignoring code fences, and preserves exact CRLF/Unicode offsets', () => {
@@ -309,11 +304,20 @@ test('reference/index inputs reject missing and unsafe paths instead of publishi
   await assert.rejects(buildAgentDocumentation(root, source), /Invalid documentation path/u);
 });
 
-test('check mode also validates the staged package copy', async t => {
-  const { root, destination } = await handoffFixture(t);
-  await prepareDocumentation(root);
-  await writeFile(path.join(destination, 'llms.txt'), 'tampered');
-  await assert.rejects(prepareDocumentation(root, true), /mismatch/u);
+test('publication with an existing --check invocation succeeds without documentation', async t => {
+  const { root, source } = await handoffFixture(t);
+  for (const name of ['creator-documentation.mjs', 'creator-agent-documentation.mjs', 'pnpm-process.mjs']) {
+    await cp(new URL(name, import.meta.url), path.join(root, 'scripts', name));
+  }
+  const entry = await realpath(path.join(root, 'scripts/creator-documentation.mjs'));
+  await rm(source, { recursive: true });
+  let result = spawnSync(process.execPath, [entry, '--check'], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  await mkdir(source, { recursive: true });
+  await writeFile(path.join(source, 'index.json'), 'not JSON');
+  result = spawnSync(process.execPath, [entry, '--check'], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(await readFile(path.join(root, 'packages/creator/dist/documentation/index.json'), 'utf8'), 'not JSON');
 });
 
 test('root install excludes documentation compilers while the standalone website retains pinned tooling', async () => {

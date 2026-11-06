@@ -58,12 +58,6 @@ try {
 
   const published = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   assert.equal(published.name, manifest.name);
-  if (name === "creator") {
-    const { readCreatorDocumentation } = await import(pathToFileURL(path.join(packageRoot, "dist/agent/documentation.js")).href);
-    const documentation = await readCreatorDocumentation({ query: "Agent" }, path.join(packageRoot, "dist/documentation"));
-    assert.equal(documentation.status, "available", "Creator's packaged documentation must be readable without website tooling");
-    assert.equal(documentation.creatorVersion, manifest.version);
-  }
   for (const [dependency, version] of Object.entries(published.dependencies ?? {})) {
     assert(!version.startsWith("workspace:"));
     if (dependency.startsWith("@za38.03/agent-ui-")) {

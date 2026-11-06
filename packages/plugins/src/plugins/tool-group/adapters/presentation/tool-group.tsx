@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ToolGroupContent as InternalToolGroupContent,
   ToolGroupRoot as InternalToolGroupRoot,
@@ -25,14 +25,24 @@ export function ConversationCanonicalToolGroup({
   contentProps,
   ...rootProps
 }: ConversationCanonicalToolGroupProps) {
+  const requiresAction = group.requiresAction ?? group.status.type === 'requires-action';
+  const [open, setOpen] = useState(defaultExpanded ?? requiresAction);
+  const [previousRequiresAction, setPreviousRequiresAction] = useState(requiresAction);
+  if (requiresAction !== previousRequiresAction) {
+    setPreviousRequiresAction(requiresAction);
+    if (requiresAction) setOpen(true);
+  }
+
   return (
     <InternalToolGroupRoot
       variant='ghost'
       data-agent-state={group.status.type === 'running' ? 'running' : 'idle'}
       {...rootProps}
-      {...(expanded === undefined ? {} : { open: expanded })}
-      {...(defaultExpanded === undefined ? {} : { defaultOpen: defaultExpanded })}
-      {...(onExpandedChange === undefined ? {} : { onOpenChange: onExpandedChange })}
+      open={expanded ?? open}
+      onOpenChange={(value) => {
+        setOpen(value);
+        onExpandedChange?.(value);
+      }}
     >
       <InternalToolGroupTrigger
         count={group.indices.length}

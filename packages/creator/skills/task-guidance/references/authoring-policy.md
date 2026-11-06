@@ -98,7 +98,10 @@ with the exact returned id/stateHash; do not manually reproduce Registry templat
 Customized source conflicts are not authority to overwrite. After source creation
 or synchronization changes the catalog, acquire fresh Composition before composing.
 No direct registry edit is permitted. create_custom_plugin is for new identities.
-Service contracts require their specific Host-authorized tools. Use
+Project Service contracts and implementations are ordinary project edits; they
+do not require separate user confirmation. Optional Service preflight tools
+check topology, public declarations and current hashes; apply their returned
+planId or use ordinary read/edit/create tools. Use
 /skills/ag-ui-frontend/SKILL.md only for actual AG-UI/Frontend Tool/Application Event
 work. Establish real event/tool names, payloads and bindings; never infer a backend
 contract from a UI label or implement backend logic. Host integration/Vue guidance

@@ -6,6 +6,8 @@ title: "工具调用分组（tool-group）"
 
 收起时显示调用数量，例如「2 次工具调用」。展开后可以看到组内每个工具的名称和状态，并继续打开单次调用的详情。
 
+组内出现等待审批或用户操作的工具时，默认自动展开，直接显示待处理内容；仍可手动收起。
+
 日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![展开多个工具调用（tool-group）界面示例](/images/plugins/tool-group.jpg)
@@ -50,7 +52,7 @@ title: "工具调用分组（tool-group）"
 | `group` | `ConversationMessagePartGroup` | 会话运行环境提供的当前工具分组；单独使用展示组件时必需 |
 | `children?` | `ReactNode` | 组内工具内容 |
 | `expanded?` | `boolean` | 受控展开 |
-| `defaultExpanded?` | `boolean` | 默认 `false` |
+| `defaultExpanded?` | `boolean` | 初始展开状态；省略时，含待处理操作的组展开，其余收起。后续进入待处理状态时自动展开；`expanded` 可完全控制展开状态 |
 | `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
 | `buttonProps?` | `Partial<ComponentProps<typeof ToolGroupTrigger>>` | 标题按钮，支持 `count`、`active` 和原生属性；默认从分组推导数量与运行状态 |
 | `contentProps?` | `Omit<ComponentProps<typeof ToolGroupContent>, 'children'>` | 折叠内容面板属性 |

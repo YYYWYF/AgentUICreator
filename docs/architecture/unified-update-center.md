@@ -143,7 +143,7 @@ Operator 只在确认范围内执行：
 
 ## 随包发布流程
 
-每次发行使用 `scripts/prepare-compatibility-release.mjs` 从真实包版本、依赖与经审阅的变更记录生成组合，将结果保存到 `releases/compatibility.json`，保留既有组合 ID 和内容。随后运行正式构建和 pack；各包 build/prepack 执行 `scripts/sync-package-release-metadata.mjs`，阻止缺少当前版本或依赖要求已漂移的清单进入产物。清单不是自动推断的兼容承诺，发布者仍须验证组合。npm 全部目标版本可获取之后客户端才展示该组合。Plugins 源码仍由现有 catalog、快照和哈希验证发布，不从 Creator 内嵌副本读取。
+每次发行使用 `scripts/prepare-compatibility-release.mjs` 从真实包版本、依赖与经审阅的变更记录生成组合，将结果保存到 `releases/compatibility.json`，保留既有组合 ID 和内容。随后运行正式构建和 pack；各包 build/prepack 执行 `scripts/sync-package-release-metadata.mjs` 生成元数据，不作为开发启动的兼容性审核。发布者构建后显式执行 `pnpm check:release-metadata`，拒绝缺少当前版本或依赖要求已漂移的清单；现有 `prepublishOnly` 继续执行发布审核。清单不是自动推断的兼容承诺，发布者仍须验证组合。npm 全部目标版本可获取之后客户端才展示该组合。Plugins 源码仍由现有 catalog、快照和哈希验证发布，不从 Creator 内嵌副本读取。
 
 首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行校验由发布者在本地显式执行，不接入 `prepublishOnly`，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog；其他包的现有发布钩子不变。
 

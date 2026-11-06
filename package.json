@@ -7,7 +7,6 @@
     "node": "^22.0.0 || ^24.22.1"
   },
   "scripts": {
-    "preinstall": "node scripts/check-dependency-pins.mjs",
     "dev": "node scripts/dev-workbench.mjs",
     "build": "node scripts/build-workspace.mjs",
     "check:assistant-ui-upstream": "pnpm --filter @za38.03/agent-ui-plugins check:assistant-ui-upstream",
@@ -29,6 +28,9 @@
     "audit:ui-copy": "node scripts/audit-ui-copy.mjs --output docs/i18n/ui-copy-audit.json",
     "test:web-component": "pnpm --filter @za38.03/agent-ui-web-component build && pnpm --filter @za38.03/agent-ui-web-component test && pnpm --filter @za38.03/agent-ui-web-component test:distribution && pnpm --filter @za38.03/agent-ui-web-component test:installation && pnpm --filter @za38.03/agent-ui-creator-workbench exec tsc --noEmit -p tsconfig.web-component-tests.json && pnpm --filter @za38.03/agent-ui-creator-workbench exec playwright test -c playwright.web-component.config.ts",
     "check:dependency-pins": "node scripts/check-dependency-pins.mjs",
+    "check:build": "node scripts/check-build.mjs",
+    "check:release-metadata": "node scripts/sync-package-release-metadata.mjs --check",
+    "check:examples": "node scripts/check-example-hosts.mjs",
     "verify:dev-startup": "node scripts/verify-dev-startup.mjs",
     "creator:demo": "node scripts/start-creator-workbench.mjs",
     "build:package": "node scripts/build-public-packages.mjs",
@@ -51,7 +53,6 @@
     "docs:locales:check": "node website/scripts/generate-locale-reference.mjs --check",
     "test:locale-reference": "node --test website/scripts/generate-locale-reference.test.mjs",
     "docs:package": "node scripts/creator-documentation.mjs --generate",
-    "docs:check": "node scripts/creator-documentation.mjs --check",
     "test:documentation": "node --test scripts/creator-documentation.test.mjs",
     "docs:install": "pnpm --dir website install --frozen-lockfile",
     "check:project-code": "node scripts/project-code-quality.mjs"

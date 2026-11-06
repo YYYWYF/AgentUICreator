@@ -107,19 +107,3 @@ export async function buildAgentDocumentation(root, directory) {
   await writeFile(path.join(directory, 'creator-index.md'), `${navigation.join('\n')}\n`);
   return index;
 }
-
-export async function verifyAgentDocumentation(directory) {
-  const index = JSON.parse(await readFile(path.join(directory, agentIndexPath), 'utf8'));
-  assert.equal(index.schemaVersion, 1);
-  assert(index.documents?.length, 'Missing Creator document entries');
-  const ids = new Set(), names = new Set();
-  for (const document of index.documents) {
-    assert(!ids.has(document.id) && !names.has(document.path), 'Duplicate Creator document entry');
-    ids.add(document.id); names.add(document.path);
-    assert(['public', 'internal'].includes(document.source) && document.title && document.topic, 'Invalid Creator document entry');
-    const bytes = await readFile(documentationPath(directory, document.path));
-    assert.equal(hash(bytes), document.sha256, `Creator document hash mismatch: ${document.path}`);
-    assert.deepEqual(document.sections, documentationSections(bytes.toString('utf8')), `Creator document sections mismatch: ${document.path}`);
-  }
-  return index;
-}

@@ -34,6 +34,17 @@ title: "内置演示场景"
 
 ## 内置场景目录
 
+### 检查旧版与新版审批
+
+在「提问与审批」分组中分别选择：
+
+- **工具审批 · 旧版 CUSTOM 格式**（`approval-legacy`）：接收 `CUSTOM on_interrupt`，`value` 为 JSON 字符串；点击后通过 `forwardedProps.command.decisions` 提交。
+- **工具审批 · 新版 interrupt 格式**（`approval-resume`）：接收 `RUN_FINISHED.outcome.interrupts`，从 `metadata.langgraph.raw` 读取审批；点击后通过 `resume[].payload.decisions` 提交。
+
+两者先返回 `confirm_take_leave_policy` 工具调用，再等待用户确认请假方案。新建项目默认启用的 `tool-result` 已提供审批区，无需另启用插件。每个场景分别新建会话检查「允许」「拒绝」：允许后返回确认结果并续答；拒绝后返回取消结果并续答。Mock 只模拟流程，不办理真实请假。
+
+完整事件与请求字段见[审批数据接入](/plugins/tool-fallback#显示条件与数据来源)。同时接收两种格式时，应只显示一组按钮，并使用新版中断 ID 恢复。
+
 在「示例与回放」中按场景名称或 ID 选择。提示缺少插件时，先按提示启用，再发送消息。
 
 | 场景 ID | 名称 | 用来测试什么 |
@@ -50,7 +61,8 @@ title: "内置演示场景"
 | `reasoning-tool-success` | Reasoning → Tool → Answer | 模拟一次思考、工具调用、再次思考和最终回复。 |
 | `parallel-tools` | Parallel Tools | 三个工具以确定性的交错顺序并行执行。 |
 | `tool-error` | Run Error During Tool | Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。 |
-| `approval-resume` | AG-UI Tool Approval | Human in the Loop · Allow / Deny → Resume |
+| `approval-legacy` | 工具审批 · 旧版 CUSTOM 格式 | `on_interrupt` 的 JSON 字符串 → 允许 / 拒绝 → `forwardedProps.command.decisions`。 |
+| `approval-resume` | 工具审批 · 新版 interrupt 格式 | `metadata.langgraph.raw` → 允许 / 拒绝 → `resume[].payload.decisions`。 |
 | `agent-state-sync` | AG-UI State → Job Progress | 工具调用关联 CI 作业，随后通过 STATE_DELTA 更新进度卡片。 |
 | `nested-subagent-conversation` | AG-UI Subagent → Task Card | 父工具调用启动 Researcher 子任务，返回 SubAgent 事件，在任务卡片中展示子任务消息。 |
 | `tool-timeline-thinking` | Thinking → Tool Timeline → Answer | 切换 ThinkingIndicator-only、Reasoning-only、Both；展开三次同名工具的摘要及原始详情。 |

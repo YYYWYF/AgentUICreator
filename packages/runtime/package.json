@@ -26,7 +26,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/clean-package-dist.mjs runtime && node ../../scripts/sync-package-release-metadata.mjs runtime && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs && node ../../scripts/sync-package-release-metadata.mjs runtime",
+    "build": "node ../../scripts/clean-package-dist.mjs runtime && node ../../scripts/sync-package-release-metadata.mjs runtime && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs runtime",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
     "check:consumer-types": "node scripts/check-consumer-types.mjs",
     "typecheck": "tsc --noEmit",

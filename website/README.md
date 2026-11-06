@@ -26,9 +26,10 @@ pnpm docs:dev
 `docs:dev` binds to `127.0.0.1`; open `http://127.0.0.1:3000/` (or the port
 printed by Rspress if 3000 is occupied). It remains local to this computer.
 
-`check:docs` checks every article's menu ownership, orphan pages, duplicate entries,
-navigation depth and local links. Add `--built` after building to check generated
-pages, sidebar entries and link anchors as well.
+From the repository root, `pnpm --dir website check:docs` checks every article's
+menu ownership, orphan pages, duplicate entries, navigation depth and local
+links. After building, run `pnpm --dir website check:docs --built` to check
+generated pages, sidebar entries and link anchors as well.
 
 The locale reference in `docs/development/styling-and-localization.md` is generated
 from `packages/plugins/src/locales/{zh-CN,en-US}.ts`. Run `pnpm docs:locales` from
@@ -81,21 +82,25 @@ To prepare documentation for release packaging:
    only the complete static site, including local search, demos and assets;
    its source, package manifests, lockfile and compiler dependencies are omitted.
    The working checkout retains the original website source.
-   `artifacts/creator-documentation/` is included for Creator builds and must
-   remain with the transferred repository. A Git checkout alone lacks this
-   ignored handoff. An extracted transfer can be repackaged without Rspress.
+   `artifacts/creator-documentation/` is included so Creator builds can copy the
+   offline snapshot. Keep it with the transfer when offline reference docs are
+   needed; a Git checkout alone lacks this ignored handoff. An extracted
+   transfer can be repackaged without Rspress.
 3. In the intranet package build environment, run the normal root dependency
    install and `pnpm build:package`. Creator's existing asset-copy step copies
-   `artifacts/creator-documentation/` into its fresh `dist/documentation/`.
+   `artifacts/creator-documentation/` into its fresh `dist/documentation/` when
+   the handoff exists; otherwise it skips the copy.
    Install, build, prepack and publish do not load the website compiler, inspect
    website sources or run website freshness/hash checks.
-4. `pnpm verify:package` exercises the packaged Creator documentation reader
-   along with the public package consumers; it does not use website tooling.
+4. `pnpm verify:package` checks public package ownership, tarballs and consumers.
+   Documentation generation and resource-copy checks run separately through
+   `pnpm test:documentation` in the external documentation build environment.
 
-The prepared Creator documentation directory must accompany the transfer so it
-can be copied like other package assets. Intranet builds do not regenerate it.
-Use `pnpm docs:package`, `pnpm docs:check` and `pnpm test:documentation` only in
-the external documentation build environment to prepare or audit snapshots.
+The prepared Creator documentation directory is optional for product builds;
+intranet builds copy it when present and do not regenerate or audit it.
+Use `pnpm docs:package`, `pnpm --dir website check:docs` and
+`pnpm test:documentation` in the external documentation build environment to
+prepare and check documentation resources.
 Root `pnpm test` does not run those website checks. `artifacts/` survives
 Creator's `dist/` cleanup.
 
@@ -110,8 +115,10 @@ requires rebuilding externally with the appropriate Rspress `base`.
 project builds and ZIP repackaging do not require or validate it. To edit website
 content, return to the external source checkout, rebuild and transfer a new ZIP.
 
-The installed Creator package reads neither this repository nor a live website.
-The search/read tool for consuming its snapshot is a separate future task.
+The installed Creator Agent uses `read_creator_documentation` to browse, search
+and read bounded sections from its packaged public and internal reference
+snapshot. The tool reports unavailable when the snapshot is absent. Target
+project code and installed API declarations remain authoritative for edits.
 Do not hand-edit or commit generated snapshots. Keep screenshots under
 `docs/public/images/`.
 

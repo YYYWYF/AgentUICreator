@@ -35,15 +35,16 @@ Operator's canonical wire contract is
 `packages/creator/contracts/creator/operator.schema.json`. The adjacent
 `operator.operations.json` inventories operation names, read/mutation kinds,
 input/result definitions, and Agent exposure. TypeScript Zod request parsing is a
-Host implementation detail. Python literals/client methods are transport bindings.
+Host implementation detail. TypeScript Agent client methods are transport bindings.
 Neither is independently authoritative.
 
 The response envelope is `{ok: true, result: {...}}`.
-The Host validates results before returning them; Python validates the envelope
-and the result definition selected by its original request operation. A producer
-violation returns `OPERATOR_RESULT_CONTRACT_VIOLATION`; a consumer violation becomes
-`OPERATOR_PROTOCOL_INCOMPATIBLE`. Result schemas have one owner, the canonical JSON
-Schema, rather than a second set of Zod result definitions. The development-only
+The Host validates results before returning them; the TypeScript Agent client
+checks the response and uses Ajv to validate the result definition selected by
+its original request operation. A producer violation returns
+`OPERATOR_RESULT_CONTRACT_VIOLATION`; an invalid result at the Agent client raises
+`CREATOR_OPERATOR_RESULT_CONTRACT_INVALID`. Result schemas have one owner, the
+canonical JSON Schema, rather than a second set of Zod result definitions. The development-only
 Host validator implements the Result keyword subset and fails closed on unsupported
 keywords. It is bundled with the canonical contract and inventory; it adds no
 production dependency to the generated app.
@@ -57,12 +58,14 @@ Plugin asset, and Service consumer fields are bounded and checked.
 
 `pnpm check:operator-contract` checks inventory parity, execution coverage,
 and declared Agent exposure. Shared request/result fixtures under
-`packages/creator/contracts/creator/fixtures/operator/` feed both language suites, with the
-Python Draft 2020-12 validator as the canonical differential oracle. Python tests
-also check actual tool objects and run apply/remove through an isolated real Node
-Host. Build the control package before running these integration tests.
+`packages/creator/contracts/creator/fixtures/operator/` feed the TypeScript
+contract tests. They compare request parsing and Host result validation with
+Ajv's Draft 2020-12 validation of the canonical schemas. Agent tests cover tool
+exposure and the Node Operator transport. Build Creator before running
+integration tests that use its compiled entry.
 
-When changing protocol fields or the response envelope, update the canonical contract and both language bindings in the same change.
+When changing protocol fields or the response envelope, update the canonical
+contract, Host parsing/validation, Agent client and shared fixtures together.
 
 ## Initialization ownership
 
@@ -75,4 +78,10 @@ update APIs. Catalog contracts and resource assets come from the single
 second resource distribution is required. Test history fixtures remain in the
 workspace, while production historical releases must be supplied explicitly.
 
-This `control/` directory is the internal project-control module of the independent `@za38.03/agent-ui-creator` workspace/npm package. Its checks run through Operator (`pnpm --filter @za38.03/agent-ui-creator test:operator` and `typecheck:operator`). Schemas/fixtures have one owner at `packages/creator/contracts`; builds bundle the required resources without an installed dependency on repository files. Splitting packages does not grant permission, source takeover or BASE adoption authority.
+This `operator/` directory is the internal project-control module of
+`@za38.03/agent-ui-creator`. Its checks run through
+`pnpm --filter @za38.03/agent-ui-creator test:operator` and `typecheck:operator`.
+Schemas/fixtures have one owner at `packages/creator/contracts`; builds bundle
+the required resources without an installed dependency on repository files.
+Single-package delivery does not grant permission, source takeover or BASE
+adoption authority.

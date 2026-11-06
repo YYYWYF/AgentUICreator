@@ -54,9 +54,9 @@ Agent 准备执行需要确认的操作时，卡片会列出操作内容和参�
 
 ## 项目接入
 
-操作确认先检查「查看工具调用详情」是否启用：在 **Creator 输入框**输入 `/enable tool-fallback`，点击下图中的 **「查看工具调用详情」**。
+三种新建项目模板默认启用 [`tool-result`](/plugins/tool-result)，已包含操作确认区。后端发送[旧版 CUSTOM `on_interrupt` 或新版标准 interrupt](/plugins/tool-fallback#显示条件与数据来源)，即可在匹配的工具卡片上显示「允许」「拒绝」。若项目已调整过工具展示，检查当前 `toolFallback` 位置是否仍保留审批入口。
 
-![Creator 启用菜单：点击「查看工具调用详情」，插件 ID 为 tool-fallback](/images/plugins/enable/tool-fallback.jpg)
+在 Mock 中选择 `approval-legacy` 或 `approval-resume`，分别检查旧版、新版格式。两种格式共用同一审批区，不是两个需要分别开启的插件。
 
 问题卡片使用正式的 [`ask-user-question`](/plugins/ask-user-question) 插件。通过 `/enable ask-user-question` 添加并启用，再接入业务服务的提问、答案提交和继续处理能力；只启用工具详情不会自动出现问题卡片。
 

@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { formatProjectCode } from "../../creator/operator/src/project/generated-code-format.mjs";
 export const deliveries = JSON.parse(await readFile(new URL("../src/catalog/plugin-delivery.json", import.meta.url), "utf8"));
+export function packageDefinitionSource(source) {
+  return source.replace(/import \{ AGENT_UI_LOCALE_SERVICE \} from (["'])@za38\.03\/agent-ui-runtime\/ui\/services\/agent-ui-locale\1;/u, 'const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
+}
 export async function portableSource(delivery, target, text) {
   // Generated applications consume the public contract package and do not own
   // a copied framework directory. Keep extracted source independent of the

@@ -33,6 +33,8 @@ export class CreatorWorkspaceManager {
   #runtime: CreatorProcessManager | undefined;
   #activeRequests = new Set<() => void>();
   #mutationPending = false;
+  #developmentRestartPending = false;
+  #developmentRestartReady = false;
   #queue: Promise<unknown> = Promise.resolve();
 
   constructor(options: {
@@ -74,15 +76,36 @@ export class CreatorWorkspaceManager {
   }
 
   trackRequest(abort: () => void): () => void {
-    if (this.#mutationPending) throw new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY");
+    if (this.#mutationPending || this.#developmentRestartPending) throw new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY");
     this.#activeRequests.add(abort);
     return () => this.#activeRequests.delete(abort);
   }
 
   #exclusive<T>(operation: () => Promise<T>): Promise<T> {
-    const result = this.#queue.then(operation, operation);
+    const guarded = () => {
+      if (this.#developmentRestartPending) throw new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY");
+      return operation();
+    };
+    const result = this.#queue.then(guarded, guarded);
     this.#queue = result.catch(() => undefined);
     return result;
+  }
+
+  /** Close admission and release an idle worker before workspace dev rebuilds.
+   * Detached runs and paused decisions remain busy until completed or stopped. */
+  prepareForDevelopmentRestart(): Promise<boolean> {
+    if (this.#developmentRestartPending) return Promise.resolve(this.#developmentRestartReady);
+    if (this.#mutationPending || this.hasActiveCreatorRequests()) return Promise.resolve(false);
+    return this.#exclusive(async () => {
+      if (this.#mutationPending || this.hasActiveCreatorRequests()) return false;
+      const busy = await this.#runtime?.isBusy?.();
+      // Health is asynchronous: a new stream may have arrived while it ran.
+      if (busy || this.#mutationPending || this.hasActiveCreatorRequests()) return false;
+      this.#developmentRestartPending = true;
+      await this.#stopCurrent();
+      this.#developmentRestartReady = true;
+      return true;
+    });
   }
 
   async #stopCurrent(): Promise<void> {
@@ -267,10 +290,13 @@ export class CreatorWorkspaceManager {
   }
 
   clear(): Promise<void> {
-    return this.#exclusive(async () => {
+    // Cleanup remains available after development restart closes admission.
+    const result = this.#queue.then(async () => {
       await this.#stopCurrent();
       this.#state = { status: "none" };
     });
+    this.#queue = result.catch(() => undefined);
+    return result;
   }
 
   ensureCreatorRuntime(): CreatorProcessManager {

@@ -105,4 +105,63 @@ describe("public Mock API boundary", () => {
     for await (const event of api.runMockRecording(input, recording, { timingScale: 0 })) replay.push(event);
     expect(replay.map(event => event.type)).toEqual(official.map(event => event.type));
   });
+
+  it.each(["approval-legacy", "approval-resume"].flatMap(scenario =>
+    ["approve", "reject"].map(decision => ({ scenario, decision }))))(
+    "serves $scenario and continues after $decision through its documented transport", async ({ scenario, decision }) => {
+    const handler = api.createMockAgentHttpHandler({ defaultScenarioId: scenario });
+    const server = createServer((request, response) => { void handler(request, response); });
+    await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("Missing address");
+      const url = `http://127.0.0.1:${address.port}/agent?speed=0&scenario=${scenario}`;
+      const send = async (body: RunAgentInput) => {
+        const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        expect(response.status).toBe(200);
+        return (await response.text()).split("\n").filter(line => line.startsWith("data: "))
+          .map(line => EventSchemas.parse(JSON.parse(line.slice(6))));
+      };
+      const initial = await send(input);
+      expect(initial.find(event => event.type === "TOOL_CALL_START")).toMatchObject({ toolCallName: "confirm_take_leave_policy" });
+      const finish = initial.find(event => event.type === "RUN_FINISHED");
+      if (finish?.type !== "RUN_FINISHED") throw new Error("Missing finish");
+      if (scenario === "approval-legacy") {
+        const custom = initial.find(event => event.type === "CUSTOM" && event.name === "on_interrupt");
+        if (custom?.type !== "CUSTOM") throw new Error("Missing legacy approval");
+        expect(typeof custom.value).toBe("string");
+        expect(JSON.parse(custom.value)).toMatchObject({
+          action_requests: [{ name: "confirm_take_leave_policy", args: { user: "杨康", leave_policy: "年假" } }],
+          review_configs: [{ action_name: "confirm_take_leave_policy", allowed_decisions: ["approve", "edit", "reject", "respond"] }],
+        });
+        expect(finish.outcome).toBeUndefined();
+      } else {
+        expect(initial.some(event => event.type === "CUSTOM" && event.name === "on_interrupt")).toBe(false);
+        expect(finish.outcome).toMatchObject({ type: "interrupt", interrupts: [{ id: "approval-resume-1", reason: "langgraph:interrupt",
+          metadata: { langgraph: { raw: { action_requests: [{ name: "confirm_take_leave_policy" }] }, ns: null, resumable: null, when: null } },
+        }] });
+        if (finish.outcome?.type !== "interrupt") throw new Error("Missing native interrupt");
+        expect(finish.outcome.interrupts[0]).not.toHaveProperty("toolCallId");
+        expect(finish.outcome.interrupts[0]).not.toHaveProperty("responseSchema");
+      }
+
+      expect((await send({ ...input, runId: "without-answer" })).at(-1)).toMatchObject({ type: "RUN_ERROR", code: "MOCK_INTERRUPT_PENDING" });
+      const command = { decisions: [{ type: decision }] };
+      const next: RunAgentInput = { ...input, runId: "approved-run", ...(scenario === "approval-legacy"
+        ? { forwardedProps: { command } }
+        : { resume: [{ interruptId: "approval-resume-1", status: "resolved", payload: command }] }) };
+      const invalid: RunAgentInput = { ...input, runId: "old-boolean-answer", ...(scenario === "approval-legacy"
+        ? { forwardedProps: { command: { approved: true } } }
+        : { resume: [{ interruptId: "approval-resume-1", status: "resolved", payload: { approved: true } }] }) };
+      expect((await send(invalid)).at(-1)?.type).toBe("RUN_ERROR");
+      const continued = await send(next);
+      const result = continued.find(event => event.type === "TOOL_CALL_RESULT");
+      if (result?.type !== "TOOL_CALL_RESULT") throw new Error("Missing approved tool result");
+      expect(JSON.parse(result.content as string).confirmed).toBe(decision === "approve");
+      expect(continued.at(-1)).toMatchObject({ type: "RUN_FINISHED", outcome: { type: "success" } });
+      expect((await send({ ...next, runId: "duplicate-answer" })).at(-1)).toMatchObject({ type: "RUN_ERROR", code: "MOCK_INTERRUPT_NOT_FOUND" });
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
+  });
 });

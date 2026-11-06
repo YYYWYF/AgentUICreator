@@ -21,19 +21,24 @@ pnpm add -D @za38.03/agent-ui-creator
 "dev:creator": "agent-ui-creator --port 47832"
 ```
 
-在 `vite.config.ts` 顶部添加：
+在现有 `vite.config.ts` 中合并以下配置，保留工程原有插件和其他选项。以下以已有 React 插件的工程为例：
 
 ```ts
-import { createCreatorDockVitePlugin } from "@za38.03/agent-ui-creator/dock/vite";
+import { defineConfig, type PluginOption } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig(async ({ command }) => {
+  const plugins: PluginOption[] = [react()];
+  if (command === "serve") {
+    const creatorModule = "@za38.03/agent-ui-creator/dock/vite";
+    const { createCreatorDockVitePlugin } = await import(creatorModule);
+    plugins.push(createCreatorDockVitePlugin());
+  }
+  return { plugins };
+});
 ```
 
-然后在已有的 `plugins` 数组中加上 `createCreatorDockVitePlugin()`。例如：
-
-```ts
-plugins: [react(), createCreatorDockVitePlugin()]
-```
-
-保留工程原有的插件。如果业务开发服务已经运行，配置完成后重启一次。
+Creator 使用 ESM，通过异步 `import()` 在开发分支加载；这种加载写法兼容 Node.js `22.0.0`，实际 Node 版本还需满足所用构建工具的要求。生产构建无需加载或安装 Creator。如果业务开发服务已经运行，配置完成后重启一次。
 
 ## 3. 需要时启动
 

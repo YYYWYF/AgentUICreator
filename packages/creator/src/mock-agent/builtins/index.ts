@@ -19,7 +19,7 @@ import { agentStatusScenario } from "./agent-status.js";
 import { dataMessageChartScenario } from "./data-message-chart.js";
 import { contextRetrievalScenario } from "./context-retrieval.js";
 import { agentStateSyncScenario } from "./agent-state-sync.js";
-import { approvalResumeScenario } from "./approval-resume.js";
+import { approvalLegacyScenario, approvalResumeScenario } from "./approval-resume.js";
 import { multiToolScenario } from "./multi-tool.js";
 import { nestedSubagentConversationScenario } from "./nested-subagent-conversation.js";
 import { nestedSubagentErrorScenario } from "./nested-subagent-error.js";
@@ -61,6 +61,7 @@ export {
   contextRetrievalScenario,
   agentStateSyncScenario,
   approvalResumeScenario,
+  approvalLegacyScenario,
   multiToolScenario,
   nestedSubagentConversationScenario,
   nestedSubagentErrorScenario,
@@ -93,6 +94,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
   parallelToolsScenario,
   toolErrorScenario,
   approvalResumeScenario,
+  approvalLegacyScenario,
   agentStateSyncScenario,
   nestedSubagentConversationScenario,
 ];

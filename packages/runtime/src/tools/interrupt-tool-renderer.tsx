@@ -18,13 +18,13 @@ export function createInterruptToolRenderer(Render: ComponentType<ConversationTo
     const submitDecision = canAnswer && snapshot.run.status === "awaiting-input" &&
       (pending !== undefined || decisionRequest !== undefined)
       ? (decisionType: string) => {
+          if (decisionRequest !== undefined) {
+            return agentRuntime.submitCommandDecision(props.toolCallId, decisionType);
+          }
           if (pending !== undefined) {
             return agentRuntime.resumeInterrupts([{
               interruptId: pending.id, status: "resolved", payload: decisionType,
             }]);
-          }
-          if (decisionRequest !== undefined) {
-            return agentRuntime.submitCommandDecision(props.toolCallId, decisionType);
           }
           return Promise.reject(new Error("No pending decision for this tool call"));
         }

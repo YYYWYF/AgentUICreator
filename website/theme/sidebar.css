@@ -242,6 +242,14 @@
   max-height: none;
 }
 
+/* Overview diagrams stay readable in the article and use the existing zoom. */
+:is(.rp-doc, .rspress-doc) .agent-ui-overview-diagram img:not(.medium-zoom-image--opened) {
+  width: 100%;
+  height: auto;
+  max-width: 880px;
+  max-height: none;
+}
+
 .rp-doc .plugin-command-steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

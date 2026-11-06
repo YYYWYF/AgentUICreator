@@ -1,4 +1,5 @@
 import { toolMessageText } from "./tool-message.js";
+import { parseMockApprovalDecisions } from "./approval-review.js";
 import { normalizeTimingScale, waitForDelay } from "./timing.js";
 import {
   EventType,
@@ -502,18 +503,19 @@ async function* runSteps(
         delta: serializeToolArgs(step.args),
       });
       yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
+      if (step.format === "custom") {
+        const langgraph = step.interrupt.metadata?.langgraph as { raw: unknown };
+        yield { type: EventType.CUSTOM, name: "on_interrupt", value: JSON.stringify(langgraph.raw) } as AGUIEvent;
+        yield { type: EventType.RUN_FINISHED, threadId: input.threadId, runId: input.runId } as AGUIEvent;
+        return;
+      }
       yield {
         type: EventType.RUN_FINISHED,
         threadId: input.threadId,
         runId: input.runId,
         outcome: {
           type: "interrupt",
-          interrupts: [{
-            ...structuredClone(step.interrupt),
-            ...(step.interrupt.toolCallId === undefined
-              ? { toolCallId: step.toolCallId }
-              : {}),
-          }],
+          interrupts: [structuredClone(step.interrupt)],
         },
       } as AGUIEvent;
       return;
@@ -564,16 +566,10 @@ type MockScenarioResumeBranch = "approved" | "denied" | "cancelled";
 
 function selectResumeBranch(input: RunAgentInput): MockScenarioResumeBranch {
   const response = input.resume?.[0];
-  if (response?.status !== "resolved") return "cancelled";
-
-  const payload = response.payload;
-  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
-    return "cancelled";
-  }
-  if (!("approved" in payload)) return "cancelled";
-  if (payload.approved === true) return "approved";
-  if (payload.approved === false) return "denied";
-  return "cancelled";
+  if (response !== undefined && response.status !== "resolved") return "cancelled";
+  const decisions = parseMockApprovalDecisions(response?.payload ?? input.forwardedProps?.command);
+  if (decisions?.length !== 1) throw new Error("Invalid Mock approval decisions");
+  return decisions[0]!.type === "approve" ? "approved" : "denied";
 }
 
 function getA2uiAction(input: RunAgentInput): Record<string, unknown> | undefined {
@@ -644,7 +640,7 @@ function selectSteps(
       return [{ type: "message", text: continuation.errorText }];
     }
   }
-  if ((input.resume?.length ?? 0) === 0 || scenario.resumeSteps === undefined) {
+  if (((input.resume?.length ?? 0) === 0 && input.forwardedProps?.command === undefined) || scenario.resumeSteps === undefined) {
     return scenario.steps;
   }
 

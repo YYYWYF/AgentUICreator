@@ -19,7 +19,10 @@ import type { ConversationThreadBinding } from "../threads/types.js";
 import { projectConversationExecutions } from "./conversation-execution-projector.js";
 import {
   matchOnInterruptToolCall,
+  parseLangGraphCommandRequests,
   parseOnInterruptCommandRequests,
+  sameOnInterruptCommandRequest,
+  type LangGraphCommandRequest,
   type OnInterruptCommandRequest,
 } from "./command-decision.js";
 import type { ConversationCommandForwarder } from "./conversation-command-forwarding-agent.js";
@@ -102,6 +105,8 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   private snapshot: AgentRuntimeSnapshot<TState>;
   private pendingOnInterruptRequests: OnInterruptCommandRequest[] = [];
   private readonly commandDecisionRequests = new Map<string, ConversationCommandDecisionRequest>();
+  private readonly structuredCommandRequests = new Map<string, LangGraphCommandRequest>();
+  private readonly structuredCommandDecisions = new Map<string, Map<number, { request: LangGraphCommandRequest; type: string }>>();
   private pendingSend: PendingSend | undefined;
   private actionInFlight = false;
   private projectionSuspended = false;
@@ -126,7 +131,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
       this.options.runtime.threads.subscribe(() => this.sync()),
       this.options.threadBinding.subscribe(() => this.sync()),
       this.options.applicationEvents.subscribe((event) => {
-        if (event.name !== "ON_INTERRUPT") return;
+        if (event.name !== "ON_INTERRUPT" && event.name !== "on_interrupt") return;
         this.pendingOnInterruptRequests = parseOnInterruptCommandRequests(event.payload) ?? [];
         this.commandDecisionRequests.clear();
         this.sync();
@@ -182,6 +187,12 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     if (!decisionRequest.allowedDecisions.includes(decisionType)) {
       throw new Error(`Unsupported command decision "${decisionType}" for tool call "${toolCallId}"`);
     }
+    const structuredRequest = this.structuredCommandRequests.get(toolCallId);
+    if (structuredRequest !== undefined) {
+      return this.submitStructuredCommandDecision(structuredRequest, decisionType);
+    }
+    // A legacy notification must never bypass an authoritative native interrupt.
+    if (this.snapshot.interrupts.length > 0) validateInterruptResponses(this.snapshot, []);
     const commandForwarder = this.options.commandForwarder;
     if (commandForwarder === undefined) throw new Error("Command decision forwarding is unavailable");
 
@@ -205,6 +216,31 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
       this.finishPending(toError(error));
     }
     return settled;
+  }
+
+  private async submitStructuredCommandDecision(request: LangGraphCommandRequest, decisionType: string): Promise<void> {
+    const decisions = this.structuredCommandDecisions.get(request.interruptId) ?? new Map();
+    decisions.set(request.actionIndex, { request, type: decisionType });
+    this.structuredCommandDecisions.set(request.interruptId, decisions);
+    this.sync();
+    const responses: AgentInterruptResponse[] = [];
+    for (const interrupt of this.options.runtime.unstable_getPendingInterrupts()) {
+      const requests = parseLangGraphCommandRequests(interrupt);
+      const selected = this.structuredCommandDecisions.get(interrupt.id);
+      if (requests === undefined || requests.some(item => !selected?.has(item.actionIndex))) return;
+      responses.push({
+        interruptId: interrupt.id,
+        status: "resolved",
+        payload: { decisions: requests.map(item => ({ type: selected!.get(item.actionIndex)!.type })) },
+      });
+    }
+    try {
+      await this.resumeInterrupts(responses);
+    } catch (error) {
+      decisions.delete(request.actionIndex);
+      this.sync();
+      throw error;
+    }
   }
 
   async resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void> {
@@ -338,14 +374,54 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     );
     const pendingToolCallIds = new Set(
       executions
-        .filter(execution => execution.type === "tool" && execution.status === "awaiting-result")
+        .filter(execution => execution.type === "tool" &&
+          (execution.status === "awaiting-result" || execution.status === "interrupted"))
         .map(execution => execution.id),
     );
     for (const toolCallId of this.commandDecisionRequests.keys()) {
       if (!pendingToolCallIds.has(toolCallId)) this.commandDecisionRequests.delete(toolCallId);
     }
 
-    const excluded = new Set(this.commandDecisionRequests.keys());
+    for (const toolCallId of this.structuredCommandRequests.keys()) this.commandDecisionRequests.delete(toolCallId);
+    this.structuredCommandRequests.clear();
+    const interrupts = this.options.runtime.unstable_getPendingInterrupts();
+    const pendingInterruptIds = new Set(interrupts.map(interrupt => interrupt.id));
+    for (const id of this.structuredCommandDecisions.keys()) {
+      if (!pendingInterruptIds.has(id)) this.structuredCommandDecisions.delete(id);
+    }
+    const structuredToolCallIds = new Set<string>();
+    for (const interrupt of interrupts) {
+      const requests = parseLangGraphCommandRequests(interrupt);
+      if (requests === undefined) continue;
+      // Some servers emit both CUSTOM and RUN_FINISHED for the same approval.
+      // The native interrupt owns continuation; discard its legacy duplicate.
+      this.pendingOnInterruptRequests = this.pendingOnInterruptRequests.filter(
+        legacy => !requests.some(request => sameOnInterruptCommandRequest(legacy, request)),
+      );
+      for (const request of requests) {
+        const selected = this.structuredCommandDecisions.get(interrupt.id);
+        const decision = selected?.get(request.actionIndex);
+        if (decision !== undefined && (
+          !sameOnInterruptCommandRequest(decision.request, request) ||
+          decision.request.toolCallId !== request.toolCallId ||
+          decision.request.decisionRequest.description !== request.decisionRequest.description ||
+          JSON.stringify(decision.request.decisionRequest.allowedDecisions) !== JSON.stringify(request.decisionRequest.allowedDecisions)
+        )) selected!.delete(request.actionIndex);
+        const candidates = request.toolCallId === undefined ? executions
+          : executions.filter(execution => execution.id === request.toolCallId);
+        const toolCallId = matchOnInterruptToolCall(request, candidates, structuredToolCallIds);
+        if (toolCallId === undefined) continue;
+        structuredToolCallIds.add(toolCallId);
+        this.structuredCommandRequests.set(toolCallId, request);
+        if (this.structuredCommandDecisions.get(interrupt.id)?.has(request.actionIndex)) {
+          this.commandDecisionRequests.delete(toolCallId);
+        } else {
+          this.commandDecisionRequests.set(toolCallId, request.decisionRequest);
+        }
+      }
+    }
+
+    const excluded = new Set([...this.commandDecisionRequests.keys(), ...structuredToolCallIds]);
     const remaining: OnInterruptCommandRequest[] = [];
     for (const request of this.pendingOnInterruptRequests) {
       const toolCallId = matchOnInterruptToolCall(request, executions, excluded);
@@ -362,6 +438,8 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   private clearCommandDecisionRequests(): void {
     this.pendingOnInterruptRequests = [];
     this.commandDecisionRequests.clear();
+    this.structuredCommandRequests.clear();
+    this.structuredCommandDecisions.clear();
     this.options.commandForwarder?.clearNextCommand();
   }
 }

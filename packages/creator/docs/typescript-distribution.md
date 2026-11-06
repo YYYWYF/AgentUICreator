@@ -32,7 +32,7 @@ pnpm --filter @za38.03/agent-ui-creator typecheck
 
 本地禁止修改的匹配不跨分句读取动词，避免把“不要接管官方源码，不改 Host”拼成整个请求禁止写入。此类请求仍由结构化模型分类决定权限；明确的“只检查、先别改代码”限制继续生效。
 
-打包参考文档由实际 Creator 发行目录下的 `dist/documentation` 提供，源码热重载也读取同一份资源，不在 `src` 维护第二套分发。仓库文档更新后，先生成并校验离线文档 handoff，再构建 Creator；构建会拒绝与当前文档源不一致的 handoff。生成入口是仓库的 `pnpm docs:package`，安装后的 Creator 不依赖仓库或文档站构建工具。
+打包参考文档由实际 Creator 发行目录下的 `dist/documentation` 提供，源码热重载也读取同一份资源，不在 `src` 维护第二套分发。离线文档可在外网通过 `pnpm docs:package` 生成并随源码交接。安装、启动、构建、打包、验包和发布不校验 documentation 的清单、hash、来源或版本；普通资源复制步骤在 `artifacts/creator-documentation/` 存在时原样复制，缺失时跳过。安装后的 Creator 不依赖仓库或文档站构建工具。
 
 按行编辑工具保留相邻行边界与原文件 LF/CRLF 风格；文件 hash 与已读范围检查保持不变。
 

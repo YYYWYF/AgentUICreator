@@ -21,14 +21,22 @@ pnpm test
 pnpm typecheck
 ```
 
-`pnpm test` 准备本地包和示例，再运行工作区保留的测试。准备期间的隔离消费者安装可能需要访问 npm registry；安装或网络失败应与测试断言失败分别报告。测试不会调用真实模型。
+`pnpm test` 准备本地包和示例，再运行工作区保留的测试。测试不会调用真实模型。
+
+`pnpm dev` 只准备依赖、生成构建资源、编译并启动服务。依赖精确版本审计、发布兼容性、Plugin 服务声明、Lexical/公开类型/可选适配器边界和示例工程审计不接入启动或普通包构建；这些检查通过下面的手动命令运行。构建仍会报告编译、缺失输入、文件操作和进程启动错误。
 
 按修改范围使用对应包的 `test`，或通过 `exec vitest run` 指定一个现有主流程文件。内部 Operator 使用 Creator 的 `test:operator`。本地测试和构建通过，不代表浏览器视觉或真实 Windows 已验收。
 
-website 源码与文档快照检查通过外网环境中的 `pnpm test:documentation` 和 `pnpm test:locale-reference` 显式运行，不接入内网的安装、构建、打包或根 `pnpm test`。内网只部署静态网站；Creator 的离线文档作为已准备的静态资源随包拷贝。
+文档生成与资源复制测试通过外网环境中的 `pnpm test:documentation` 显式运行，不接入内网的安装、启动、构建、打包、验包和发布流程。`pnpm test:locale-reference` 单独测试语言参考生成。内网只部署静态网站；Creator 的离线文档存在时作为静态资源原样拷贝，缺失时跳过。
 
 ## 专项验证
 
+- `pnpm check:build`：构建完成后，检查依赖精确版本、Core/Renderer/Plugins/Runtime/Creator 的兼容元数据、Plugins 交付资源与服务声明，以及 Runtime 公开类型边界；不重新构建或安装消费者依赖。
+- `pnpm check:dependency-pins`：单独审计依赖精确版本，不再作为安装前置步骤。
+- `pnpm check:release-metadata`：检查全部六个公开包的兼容元数据，需要先构建对应包。
+- `pnpm check:examples`：检查维护示例的工程状态、模板 Mode 和源码目录；日常启动只初始化缺失工程，不审计已有工程。
+- `pnpm --filter @za38.03/agent-ui-runtime check:consumer-types`：发布包的隔离安装与严格消费者类型检查，需要访问 npm registry 或使用本地缓存。
+- `pnpm check:react-compat`：按支持的 React 版本运行隔离消费者检查。
 - `pnpm verify:package`：实际 tarball、公开入口与独立消费者。
 - `pnpm test:web-component`：Web Component 发行、安装、类型和浏览器嵌入。
 - `pnpm verify:assistant-ui-upgrade`：上游升级契约及宿主隔离。

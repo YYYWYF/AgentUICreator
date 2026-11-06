@@ -1,5 +1,5 @@
 import { sharedStyleScanSources } from "./shared-style-sources.mjs";
-import { deliveries, portableSource, sourceEntries } from "./plugin-source-recipes.mjs";
+import { deliveries, packageDefinitionSource, portableSource, sourceEntries } from "./plugin-source-recipes.mjs";
 import { cp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,10 +29,6 @@ function sourceItemFile(id, relativePath) {
   if (!canonical) throw new Error(`Missing canonical Plugin source mapping: ${view}`);
   return path.join(root, ...canonical.split("/"));
 }
-const verificationScript = fileURLToPath(new URL("../../creator/operator/scripts/source-catalog/verify-package-services.mjs", import.meta.url));
-const verification = spawnPnpmSync(["exec", "node", "--import", "tsx", verificationScript], { cwd: root, stdio: "inherit" });
-if (verification.error) throw verification.error;
-if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
 const packageExports = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).exports;
 const generated = path.join(root, ".generated");
 await rm(generated, { recursive: true, force: true });
@@ -75,8 +71,7 @@ for (const delivery of plugins) {
   await writeFile(implementationPath, (await readFile(implementationPath, "utf8")).replace(/(["'])\.\.\/\.\.\/agent-ui\/i18n\/useAgentUILocale\1/u, '$1@za38.03/agent-ui-plugins$1'));
   const definitionPath = path.join(generated, "plugins", id, "definition.ts");
   if (delivery.definitionSource) await cp(path.join(root, "src/plugins", id, delivery.definitionSource), definitionPath);
-  const compatibleSource = (await readFile(definitionPath, "utf8")).replace(/import \{ AGENT_UI_LOCALE_SERVICE \} from (["'])@za38\.03\/agent-ui-runtime\/ui\/services\/agent-ui-locale\1;/u, 'const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
-  if (!/from\s+["'](?:\.\.\/\.\.\/framework\/contracts\/ui-plugin|@za38\.03\/agent-ui-plugins\/contracts)["']/u.test(compatibleSource) || /\.\.\/\.\.\/(?:agent-ui|runtime|services)\//.test(compatibleSource)) throw new Error(`Official plugin ${id} is not package compatible`);
+  const compatibleSource = packageDefinitionSource(await readFile(definitionPath, "utf8"));
   await writeFile(definitionPath, compatibleSource + `\nexport { ${[component, delivery.railAction].filter(Boolean).join(", ")} } from "./index";\n`);
 }
 await writeFile(path.join(generated, "tsconfig.json"), JSON.stringify({ compilerOptions: {

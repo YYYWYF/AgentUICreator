@@ -1,3 +1,4 @@
+import "./check-build-contracts.mjs";
 import { deliveries, portableSource } from "./plugin-source-recipes.mjs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";

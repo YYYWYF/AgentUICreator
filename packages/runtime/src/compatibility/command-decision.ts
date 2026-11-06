@@ -60,6 +60,39 @@ export function parseOnInterruptCommandRequests(
   return requests;
 }
 
+export interface LangGraphCommandRequest extends OnInterruptCommandRequest {
+  interruptId: string;
+  actionIndex: number;
+  toolCallId?: string;
+}
+
+/** Keep the native interrupt identity while reading LangGraph's review payload. */
+export function parseLangGraphCommandRequests(interrupt: {
+  id: string;
+  metadata?: unknown;
+  toolCallId?: string;
+}): LangGraphCommandRequest[] | undefined {
+  if (!isRecord(interrupt.metadata) || !isRecord(interrupt.metadata.langgraph)) return undefined;
+  const raw = decodePayload(interrupt.metadata.langgraph.raw);
+  const requests = parseOnInterruptCommandRequests(raw);
+  // A resume must answer every action, in its original order. Do not silently
+  // omit malformed actions or actions whose decision UI is unsupported.
+  if (!isRecord(raw) || !Array.isArray(raw.action_requests) || !requests?.length ||
+      requests.length !== raw.action_requests.length) return undefined;
+  if (interrupt.toolCallId !== undefined && requests.length !== 1) return undefined;
+  return requests.map((request, actionIndex) => ({
+    ...request, interruptId: interrupt.id, actionIndex,
+    ...(interrupt.toolCallId === undefined ? {} : { toolCallId: interrupt.toolCallId }),
+  }));
+}
+
+export function sameOnInterruptCommandRequest(
+  left: OnInterruptCommandRequest,
+  right: OnInterruptCommandRequest,
+): boolean {
+  return left.actionName === right.actionName && stableJson(left.args) === stableJson(right.args);
+}
+
 function stableJson(value: unknown): string | undefined {
   if (value === null || typeof value !== "object") {
     try { return JSON.stringify(value); } catch { return undefined; }
@@ -92,7 +125,7 @@ export function matchOnInterruptToolCall(
   const candidates = executions.filter(
     (execution): execution is Extract<AgentExecution, { type: "tool" }> =>
       execution.type === "tool" &&
-      execution.status === "awaiting-result" &&
+      (execution.status === "awaiting-result" || execution.status === "interrupted") &&
       execution.name === request.actionName &&
       !excludedToolCallIds.has(execution.id),
   );

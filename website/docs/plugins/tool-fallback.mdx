@@ -20,9 +20,80 @@ title: "工具调用详情（tool-fallback）"
 
 ## 显示条件与数据来源
 
-**Agent 服务接入：**没有专用 Tool UI 的调用使用本插件。参数、结果使用[通用工具事件](./ag-ui-data#通用工具事件)。本插件须组合到 `conversation-surface` 的 `toolFallback` 位置，与 `tool-result` 二选一。
+没有专用 Tool UI 的调用使用本插件。参数、结果使用[通用工具事件](./ag-ui-data#通用工具事件)。本插件须组合到 `conversation-surface` 的 `toolFallback` 位置，与 `tool-result` 二选一。新建项目默认启用的 `tool-result` 已包含审批区，两种格式都可直接使用。
 
-若要显示审批，需由后端发出与工具关联的中断，下面示例替代本轮的成功 `RUN_FINISHED`；此前先发送同 ID 的 `TOOL_CALL_START/ARGS/END`，工具名可为 `delete_generated_artifacts`：
+审批支持下面两种接入格式，均显示同一套「允许」「拒绝」按钮。界面的「拒绝」表示取消这次业务操作，向后端发送 `reject`；`edit`、`respond` 暂不显示。
+
+| 格式 | 后端返回 | 用户决定的回传位置 | Mock 场景 |
+| --- | --- | --- | --- |
+| 旧版格式 | `CUSTOM`，`name: "on_interrupt"`，`value` 为 JSON 字符串 | `forwardedProps.command.decisions` | `approval-legacy` |
+| 新版格式 | `RUN_FINISHED.outcome.interrupts`，审批内容位于 `metadata.langgraph.raw` | `resume[].payload.decisions` | `approval-resume` |
+
+### 两种格式共用的工具调用
+
+先发送对应的工具调用，随后再发送下方任一种审批结束事件。此时暂不发送 `TOOL_CALL_RESULT`：
+
+```json
+[
+  {
+    "type": "TOOL_CALL_START",
+    "toolCallId": "call-1",
+    "toolCallName": "confirm_take_leave_policy"
+  },
+  {
+    "type": "TOOL_CALL_ARGS",
+    "toolCallId": "call-1",
+    "delta": "{\"user\":\"杨康\",\"leave_policy\":\"年假\"}"
+  },
+  {
+    "type": "TOOL_CALL_END",
+    "toolCallId": "call-1"
+  }
+]
+```
+
+`action_requests[].name`、`args` 必须与等待结果的工具调用匹配。没有 `toolCallId` 的审批按工具名和参数做唯一匹配；存在多个相同调用时不会猜测绑定。
+
+### 旧版格式：CUSTOM on_interrupt
+
+`value` 是序列化后的 JSON 字符串，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
+
+```json
+[
+  {
+    "type": "CUSTOM",
+    "name": "on_interrupt",
+    "value": "{\"action_requests\":[{\"name\":\"confirm_take_leave_policy\",\"args\":{\"user\":\"杨康\",\"leave_policy\":\"年假\"},\"description\":\"请确认您的请假方案\\n\\nTool: confirm_take_leave_policy\\nArgs: {'user': '杨康', 'leave_policy': '年假'}\"}],\"review_configs\":[{\"action_name\":\"confirm_take_leave_policy\",\"allowed_decisions\":[\"approve\",\"edit\",\"reject\",\"respond\"]}]}"
+  },
+  {
+    "type": "RUN_FINISHED",
+    "threadId": "thread-1",
+    "runId": "run-1"
+  }
+]
+```
+
+点击「允许」后，下一次请求在原会话中携带下列字段；点击「拒绝」时将 `type` 改为 `reject`：
+
+```json
+{
+  "forwardedProps": {
+    "command": {
+      "decisions": [
+        {
+          "type": "approve"
+        }
+      ]
+    }
+  }
+}
+```
+
+此格式通过 `forwardedProps.command` 继续，不填写标准 `resume[]`。
+
+### 新版格式：RUN_FINISHED interrupt
+
+后端将同一审批内容放在 `metadata.langgraph.raw`，使用 `reason: "langgraph:interrupt"` 和稳定的中断 ID。下面的结构不要求另行添加 `toolCallId`、`message` 或 `responseSchema`：
 
 ```json
 [
@@ -35,19 +106,36 @@ title: "工具调用详情（tool-fallback）"
       "interrupts": [
         {
           "id": "approval-1",
-          "reason": "tool_call",
-          "toolCallId": "call-1",
-          "message": "允许清理生成文件吗？",
-          "responseSchema": {
-            "type": "object",
-            "properties": {
-              "approved": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "approved"
-            ]
+          "reason": "langgraph:interrupt",
+          "metadata": {
+            "langgraph": {
+              "raw": {
+                "action_requests": [
+                  {
+                    "name": "confirm_take_leave_policy",
+                    "args": {
+                      "user": "杨康",
+                      "leave_policy": "年假"
+                    },
+                    "description": "请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"
+                  }
+                ],
+                "review_configs": [
+                  {
+                    "action_name": "confirm_take_leave_policy",
+                    "allowed_decisions": [
+                      "approve",
+                      "edit",
+                      "reject",
+                      "respond"
+                    ]
+                  }
+                ]
+              },
+              "ns": null,
+              "resumable": null,
+              "when": null
+            }
           }
         }
       ]
@@ -56,7 +144,35 @@ title: "工具调用详情（tool-fallback）"
 ]
 ```
 
-`threadId`、`runId` 使用当前请求值。上面的 `{ approved: boolean }` 是当前支持的布尔审批示例，不是所有中断的通用答案。按钮还依赖 Runtime 可用的恢复能力；后端按 `interruptId` 接收匹配的 `resume` 响应，继续原会话并返回实际工具结果。完整接入见[前端工具与页面操作](/development/frontend-tools)。仅在参数中添加 `approval: true` 不会自动建立审批。
+点击「允许」后，下一次请求携带下列字段；点击「拒绝」时将决定的 `type` 改为 `reject`：
+
+```json
+{
+  "resume": [
+    {
+      "interruptId": "approval-1",
+      "status": "resolved",
+      "payload": {
+        "decisions": [
+          {
+            "type": "approve"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+`interruptId` 必须使用后端返回的中断 ID；一次恢复要覆盖全部待处理中断，每个中断中的决定按原始 `action_requests` 顺序提交。拒绝仍是已作出的决定，使用 `status: "resolved"`，不是 `status: "cancelled"`。
+
+### 共同约定
+
+`threadId`、`runId` 使用当前请求值，事件逐条发送为 SSE，见[共用格式](./ag-ui-data#共用的-sse-格式)。审批提交后，后端继续原会话并返回实际的 `TOOL_CALL_RESULT` 和后续回复。普通聊天消息不代替审批决定。
+
+若同一轮先收到旧版 CUSTOM，再收到新版 interrupt，审批区只显示一次，并由新版 `resume[]` 链路接管恢复。插件启用和审批按钮只负责展示与提交，业务是否执行成功以实际返回结果为准。
+
+在 Mock 的「提问与审批」分组中，分别选择「工具审批 · 旧版 CUSTOM 格式」和「工具审批 · 新版 interrupt 格式」验证。两者使用默认启用的 `tool-result`，不需要另启用一个审批插件。
 
 ## 定制选项
 

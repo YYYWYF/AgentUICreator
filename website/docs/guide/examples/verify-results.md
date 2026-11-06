@@ -35,22 +35,11 @@ Creator 的修改回执用于查看改了什么、哪些代码检查通过。页
 
 ## 审批与继续回复
 
-运行「工具调用等待人工审批」场景。展开工具组，可以看到本次操作的说明和「允许」「拒绝」按钮。
+分别运行「工具审批 · 旧版 CUSTOM 格式」（`approval-legacy`）和「工具审批 · 新版 interrupt 格式」（`approval-resume`）。新建项目默认启用的 `tool-result` 已包含审批区。展开工具组，检查请假方案的说明、参数和「允许」「拒绝」按钮。
 
-![展开工具组后的待审批状态，包含允许和拒绝按钮。](/images/guide/examples/20261106/verify-approval-pending.jpg)
+每个场景分别新建会话检查两种选择：允许后返回方案已确认的结果并继续回复；拒绝后返回取消结果并继续回复。旧版请求使用 `forwardedProps.command.decisions`，新版请求使用带原中断 ID 的 `resume[].payload.decisions`。若服务同时返回两种格式，审批按钮应只出现一组。
 
-本轮分别新建会话检查两种选择：允许后显示「已允许」并继续回复；拒绝后显示「已拒绝」，随后回复操作已取消。
-
-<details>
-<summary>查看允许与拒绝后的实际页面</summary>
-
-![允许后显示工具结果并继续回复。](/images/guide/examples/20261106/verify-approval-allowed.jpg)
-
-![拒绝后继续回复操作已取消。](/images/guide/examples/20261106/verify-approval-denied.jpg)
-
-</details>
-
-这里使用工作台开发服务中的受控 Mock，仅返回演示结果，没有执行真实文件删除。Mock 的启动与连接方式见[检查页面交互](/mock/getting-started)。
+这些是当前两种格式的检查步骤。上方正常回复与工具失败的截图不作为这两个审批场景的浏览器验收。Mock 仅返回演示结果，不办理真实请假；启动与连接方式见[检查页面交互](/mock/getting-started)，完整协议见[审批数据接入](/plugins/tool-fallback#显示条件与数据来源)。
 
 ## 复制、导出与重新生成
 

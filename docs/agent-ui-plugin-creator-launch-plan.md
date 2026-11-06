@@ -45,8 +45,8 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 - Consumer 使用 `usePluginService`；持续观察状态时使用 `usePluginServiceSnapshot` 和稳定的 getSnapshot/subscribe 合同。
 - Provider 停用、替换或移除时清理 Service；硬依赖 Consumer 随服务可用性失效和重新激活，不能持有已卸载 Provider。
 - 同名服务重复提供确定性失败，依赖顺序不取决于 AppUIModel 对象顺序。
-- 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，通过 Host 的具体方案授权工具执行。
-- 契约路径相对于实际 sourceRoot。私有服务实现修改使用独立的具体差异确认，不借通用文件工具绕过 Service 边界。
+- 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的接线。
+- 普通项目 Service 契约与实现修改不单独弹审批。可使用通用文件工具，或选择 preflight 工具检查拓扑、公共声明和文件版本，再以返回的 planId 应用；契约路径相对于实际 sourceRoot。保留只读、路径隔离、修改前新鲜读取和 hash 校验。
 
 可运行的提供、订阅和清理示例见 [插件开发接口](../website/docs/development/plugin-api.md)。
 

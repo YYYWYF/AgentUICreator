@@ -1,4 +1,4 @@
-import { chmod, copyFile, mkdir, rm } from "node:fs/promises";
+import { chmod, copyFile, mkdir, rm, stat } from "node:fs/promises";
 
 await mkdir(new URL("../dist/ui/", import.meta.url), { recursive: true });
 await copyFile(
@@ -31,7 +31,11 @@ await copyFile(new URL("../src/agent/prompts.json", import.meta.url), new URL(".
 const { cp } = await import("node:fs/promises");
 await cp(new URL("../contracts/", import.meta.url), new URL("../dist/contracts/", import.meta.url), { recursive: true });
 
-// Prepared on the external documentation build machine. Intranet builds copy
-// these static assets without reading website sources or running its tooling.
-await rm(new URL("../dist/documentation/", import.meta.url), { recursive: true, force: true });
-await cp(new URL("../../../artifacts/creator-documentation/", import.meta.url), new URL("../dist/documentation/", import.meta.url), { recursive: true });
+const documentationSource = new URL("../../../artifacts/creator-documentation/", import.meta.url);
+const documentationDestination = new URL("../dist/documentation/", import.meta.url);
+const hasDocumentation = await stat(documentationSource).then(() => true, error => {
+  if (error.code === "ENOENT") return false;
+  throw error;
+});
+await rm(documentationDestination, { recursive: true, force: true });
+if (hasDocumentation) await cp(documentationSource, documentationDestination, { recursive: true });
