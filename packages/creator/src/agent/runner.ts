@@ -88,7 +88,10 @@ export class CreatorAgentRuntime {
           !/(?:任何|所有|全部|只读|只看|\bany\b|\ball\b|\bread.only\b|\banalysis only\b)/iu.test(clause))) &&
       /(?:不要|禁止|不允许|不用|无需|不必|不需要|不(?:修改|改动|编辑)|do not|don't)/iu.test(clause)
     )).join("。");
-    if (/(?:不要|禁止|先别|先不|暂不|不允许|不用|无需|不必|不需要).{0,12}(?:改|写|修改|编辑|动(?:代码|文件|工程))|不做(?:任何)?修改|只(?:读|看|查看|告诉我|分析|评估|解释|检查)|\b(?:read.only|do not edit|don't change|analysis only)\b/iu.test(intentText)) return { readOnly: true };
+    // A scoped prohibition must not borrow an edit verb from another clause
+    // (for example, "不要接管官方源码，不改 Host"). Ambiguous requests still
+    // go through the strict model classifier below; this never grants writes.
+    if (/(?:不要|禁止|先别|先不|暂不|不允许|不用|无需|不必|不需要)[^，。；;,.!?！？\r\n]{0,12}(?:改|写|修改|编辑|动(?:代码|文件|工程))|不做(?:任何)?修改|只(?:读|看|查看|告诉我|分析|评估|解释|检查)|\b(?:read.only|do not edit|don't change|analysis only)\b/iu.test(intentText)) return { readOnly: true };
     // Reviewing past edits does not renew their write authorization. This only
     // restricts permission; the Agent still chooses its own inspection tools.
     const inspectionRequest = /^(?:(?:请|帮我|麻烦|先|再|重新|继续)\s*)*(?:检查|核对|复查|审查|分析|评估|解释|看看|看一下)/u.test(intentText.trim());

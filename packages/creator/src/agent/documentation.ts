@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { creatorDistributionRoot } from "../creatorRuntimeDistribution.js";
 
 interface Section { id: string; title: string; level: number; start: number; end: number }
 interface DocumentEntry { id: string; title: string; source: "public" | "internal"; topic: string; path: string; summary: string; sha256: string; sections: Section[] }
@@ -9,7 +9,6 @@ export interface DocumentationInput {
   action?: "index" | "read"; query?: string; topic?: string; source?: "public" | "internal";
   documentId?: string; sectionId?: string; offset?: number; limit?: number;
 }
-const defaultRoot = fileURLToPath(new URL("../documentation/", import.meta.url));
 const hash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 const pageSize = 8, tocSize = 32;
 const metadata = (document: DocumentEntry) => ({ documentId: document.id, title: document.title, source: document.source,
@@ -42,7 +41,7 @@ const matchScore = (text: string, words: string[], weights: Map<string, number>)
 };
 
 /** Packaged reference material only: never creates source observations or authority. */
-export async function readCreatorDocumentation(input: DocumentationInput = {}, directory = defaultRoot) {
+export async function readCreatorDocumentation(input: DocumentationInput = {}, directory = path.join(creatorDistributionRoot(), "dist", "documentation")) {
   const offset = input.offset ?? 0, limit = input.limit ?? 4000;
   if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 2 || limit > 8000) throw new Error("DOCUMENTATION_RANGE_INVALID");
   let root: string, manifest: any, documents: DocumentEntry[];

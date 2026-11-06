@@ -765,7 +765,7 @@ export const enUS = {
     "processing": "Processing…",
     "stopService": "Stop service",
     "startService": "Start service",
-    "aLocalAddressAppearsAfterStartingAnAvailable": "A local address appears after starting. An available port is assigned automatically.",
+    "aLocalAddressAppearsAfterStartingAnAvailable": "Start the service to see its local address.",
     "aGUIAddress": "AG-UI address",
     "copied": "Copied",
     "previewConnectionManagedByCreator": "Select Mock in Connect Agent to try the selected example in the development preview.",

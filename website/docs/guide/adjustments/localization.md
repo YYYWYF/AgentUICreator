@@ -4,30 +4,36 @@ title: "语言与文案定制"
 
 # 语言与文案定制
 
-把要替换的文字和中英文内容直接告诉 Creator。本页记录 2026 年 10 月 27 日的实际测试，没有向它提供代码位置或参数名称。
+本页于 2026 年 11 月 6 日使用当前 Creator 和 `deepseek-v4.1-flash`，在招行 AI 工作台中重新执行。工作台保持左侧聊天、右侧会话列表。
+
+## 启用语言切换
+
+在 Creator 输入 `/enable locale`，选择“切换界面语言”。本轮确认补齐项目应用文件后，让 Creator 将它放在现有主题切换的同一操作区。项目校验通过，页面可以切换中文和英文。
 
 ## 本次怎么说
 
-> 把输入框提示改成“请输入你的业务问题”，英文改成“Ask a business question”。屏幕阅读器读到的输入提示也一起改，输入和发送的用法保持不变。
+> 请修改当前工程 application/locales.ts 中已有的中英文覆盖：composer.placeholder 和 composer.input 两个字段，中文都设为“请输入你的业务问题”，英文都设为“Ask a business question”。该文件的完整位置是 src/agent-ui/application/locales.ts。保留已有小招名称、欢迎语和推荐问题，保留当前语言切换、草稿、输入和发送行为，不改布局。直接完成这两处文案覆盖并校验。
 
-![本轮实际发送的文案需求。](/images/guide/examples/20261027/locale-request.png)
+本轮补充了已确认的项目文案入口和字段；Creator 负责实际修改与校验。只描述目标文字时，也应把中文、英文和需要一起调整的可访问名称说清楚。
 
 ## Creator 实际怎样处理
 
-Creator 自行找到输入框文案和可访问标签的接入位置，修改了四份项目文件，代码检查通过。它说明本次没有实际测试屏幕阅读器播报。
+Creator 在现有项目文案中补充这两个字段的双语覆盖，保留名称、欢迎语和推荐问题。只修改一份文案文件，类型检查和修改校验通过。
 
-![Creator 的实际修改总结和检查回执。](/images/guide/examples/20261027/locale-reply.png)
+![输入文案修改完成后的真实回执。](/images/guide/examples/20261106/locale-reply.jpg)
 
 ## 页面检查结果
 
-实际打开页面后，中文占位提示和输入框的可访问标签都变成了“请输入你的业务问题”。
+中文占位提示与可访问名称均为“请输入你的业务问题”：
 
-![本轮修改后的中文输入提示。](/images/guide/examples/20261027/locale-chinese.png)
+![实际中文输入提示，右侧会话列表保持不变。](/images/guide/examples/20261106/locale-chinese.jpg)
 
-切换英文，两处文字都变成了“Ask a business question”。本轮还输入了一段草稿再切换语言，草稿保留；随后实际发送了一条消息，正常收到示例回复。
+英文两处均为“Ask a business question”：
 
-![本轮修改后的英文输入提示。](/images/guide/examples/20261027/locale-english.png)
+![实际英文输入提示与对应英文欢迎内容。](/images/guide/examples/20261106/locale-english.jpg)
 
-这里核对的是实际页面和可访问标签，**未使用真实屏幕阅读器检查朗读效果**。界面语言也不决定 Agent 的回答语言。
+本轮输入“请保留这段草稿”，依次切换英文、中文、英文，草稿均保留；清空这段测试草稿后，又实际发送了一条问题并收到 Mock 回复。当前会话也在切换中保留，业务工作台自身仍显示中文。
 
-需要自己编写代码时，见[开发文档](/development/styling-and-localization)。
+这里核对了实际页面和可访问标签，没有使用真实屏幕阅读器检查朗读效果。界面语言切换不会改写录制中的演示回复内容。
+
+需要自己编写代码时，见[样式与文案开发](/development/styling-and-localization)。

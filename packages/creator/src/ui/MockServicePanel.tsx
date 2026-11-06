@@ -387,8 +387,8 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
                   data-event-tag={/^(TEXT_MESSAGE_|REASONING_|TOOL_CALL_|RUN_|STATE_|ACTIVITY_|SUBAGENT_|CUSTOM\b)/.test(tag)}>{tag}</Badge>)}
               </div> : null}
               {scenario.resources?.length && ((compatibility?.status === "checked" && requirementsFor(scenario.id).length > 0) || (busy && installation?.scenarioId === scenario.id && installation.status === "installing")) ? <div className="creator-mock-scenario-footer">
-                <div className="creator-mock-resource-actions">
-                  {scenario.resources.includes("ask-user-question") ? <p>{localeMessages.mock.enableQuestionPluginInCreator}</p> : <Button size="sm" variant="outline" type="button"
+                {scenario.resources.includes("ask-user-question") ? <p className="creator-mock-resource-guidance">{localeMessages.mock.enableQuestionPluginInCreator}</p> : <div className="creator-mock-resource-actions">
+                  <Button size="sm" variant="outline" type="button"
                     className="creator-mock-install-icon"
                     aria-label={busy && installation?.scenarioId === scenario.id ? localeMessages.mock.processing : localeMessages.mock.downloadResources}
                     title={busy && installation?.scenarioId === scenario.id ? localeMessages.mock.processing : localeMessages.mock.downloadResources}
@@ -398,8 +398,8 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
                       ? <LoaderCircle className="creator-mock-install-spinner" aria-hidden="true" />
                       : <Download aria-hidden="true" />}
                     <span>{localeMessages.mock.downloadResources}</span>
-                  </Button>}
-                </div>
+                  </Button>
+                </div>}
                 {compatibility?.projectId ? requirementsFor(scenario.id)
                   .filter(requirement => requirement.status === "conflict" || (installation?.resourceId === requirement.id && installation.status === "error"))
                   .map(requirement => <MockResourceDiagnostics key={`${compatibility.projectId}:${requirement.id}:${installation?.status}`} projectId={compatibility.projectId!} resourceId={requirement.id} />) : null}

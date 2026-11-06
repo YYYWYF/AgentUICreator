@@ -30,7 +30,11 @@ description: 在招行客户服务工作台中，通过 Creator 调整助理并�
 
 业务协同使用独立的嵌入式助理：
 
-![业务协同页面中的工单列表与右侧嵌入式助理。](/images/guide/examples/20261106/cmb-embedded-before.jpg)
+![业务协同页面中的工单列表与右侧嵌入式助理。](/images/guide/examples/20261106/cmb-embedded-final.jpg)
+
+平台助理完成样式调整后，也重新打开了服务工单的悬浮面板；它仍使用独立的助理界面：
+
+![服务工单仍保留悬浮球展开的助理面板。](/images/guide/examples/20261106/cmb-tickets-assistant-final.jpg)
 
 </details>
 

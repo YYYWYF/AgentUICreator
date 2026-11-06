@@ -765,7 +765,7 @@ export const zhCN = {
     "processing": "处理中…",
     "stopService": "停止服务",
     "startService": "启动服务",
-    "aLocalAddressAppearsAfterStartingAnAvailable": "启动后会显示本机地址。系统自动分配可用端口。",
+    "aLocalAddressAppearsAfterStartingAnAvailable": "启动服务后会显示本机地址。",
     "aGUIAddress": "AG-UI 地址",
     "copied": "已复制",
     "previewConnectionManagedByCreator": "在「连接 Agent」中选择 Mock，即可在开发预览中体验所选示例。",

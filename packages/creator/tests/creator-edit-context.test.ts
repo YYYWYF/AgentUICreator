@@ -1063,11 +1063,26 @@ it("honors a current read-only request even after historical edits and ignores u
   state.model = { invoke };
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
   expect(await (runtime as any).classify([{ role: "user", content: "把名称改掉" }, { role: "user", content: "现在只分析，先不要改代码" }], "read-only", context.signal)).toEqual({ readOnly: true });
-  for (const content of ["先查一下聊天历史按钮是哪个插件做的，只看别改", "选文件的加号对应哪个插件？只查看，不改。", "先看一下，不要动代码", "输入框旁边上传附件那个按钮用什么插件？先只告诉我。", "这件事先不改了，所有插件保持原样。", "先算了，保留现在所有功能，不做修改。"]) {
+  for (const content of ["先查一下聊天历史按钮是哪个插件做的，只看别改", "选文件的加号对应哪个插件？只查看，不改。", "先看一下，不要动代码", "输入框旁边上传附件那个按钮用什么插件？先只告诉我。", "这件事先不改了，所有插件保持原样。", "先算了，保留现在所有功能，不做修改。", "先检查工具结果。\n不要修改任何文件。"]) {
     expect(await (runtime as any).classify([{ role: "user", content }], "inspect-phrasing", context.signal)).toEqual({ readOnly: true });
   }
   expect(invoke).not.toHaveBeenCalled();
   expect(await (runtime as any).classify([{ role: "user", content: "把名称改成小助手，其他文件不要改" }], "write", context.signal)).toEqual({ readOnly: false });
+});
+
+it.each([",", "，", "。", "\r\n"])("does not turn a source-ownership prohibition into a global write ban across %j", async separator => {
+  const context = await project();
+  const invoke = vi.fn().mockResolvedValue(new AIMessage('{"permission":"domain_write"}'));
+  state.model = { invoke };
+  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
+  const messages = [{ role: "user", content: `请把 query_tickets 的结果改成工单卡片。不要接管官方源码${separator}不改 Host 或其他模板。` }];
+  expect(await (runtime as any).classify(messages, "scoped-prohibition", context.signal)).toEqual({ readOnly: false });
+  expect(invoke).toHaveBeenCalledTimes(1);
+  // Removing a false local veto does not grant authority: the classifier can
+  // still decide that the current request only permits inspection.
+  invoke.mockResolvedValue(new AIMessage('{"permission":"inspect_read_only"}'));
+  expect(await (runtime as any).classify(messages, "scoped-inspection", context.signal)).toEqual({ readOnly: true });
+  expect(invoke).toHaveBeenCalledTimes(2);
 });
 
 it.each(["\n", "\r\n"])("edits a freshly read middle line with native %j boundaries and preserves later lines", async eol => {

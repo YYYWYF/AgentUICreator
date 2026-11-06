@@ -1,10 +1,11 @@
 import { afterEach, expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCreatorDocumentation } from "../src/agent/documentation.js";
+import { configureCreatorDistribution, creatorDistributionRoot } from "../src/creatorRuntimeDistribution.js";
 import { createTools, visibleTool, type ToolContext } from "../src/agent/tools.js";
 import { RunActivity } from "../src/agent/activity.js";
 import { EvidenceProgress } from "../src/agent/evidence-progress.js";
@@ -31,6 +32,25 @@ async function fixture() {
   await writeFile(path.join(root, "index.json"), JSON.stringify(manifest));
   return { root, text, documents, manifest };
 }
+
+it("resolves the packaged documentation from the active distribution in source hot reload as well as builds", async () => {
+  const previous = creatorDistributionRoot();
+  const installation = await mkdtemp(path.join(tmpdir(), "Creator 安装 空格 ")); roots.push(installation);
+  const { root } = await fixture();
+  await mkdir(path.join(installation, "dist"));
+  await rename(root, path.join(installation, "dist", "documentation"));
+  try {
+    configureCreatorDistribution(installation);
+    expect(await readCreatorDocumentation()).toMatchObject({ status: "available", totalDocuments: 13 });
+    configureCreatorDistribution(path.join(installation, "missing"));
+    expect(await readCreatorDocumentation()).toMatchObject({ status: "unavailable" });
+    configureCreatorDistribution(installation);
+    expect(await readCreatorDocumentation({ action: "read", documentId: "public:development/plugin-api", sectionId: "s1005" }))
+      .toHaveProperty("content", expect.stringContaining("SLOT_SENTINEL"));
+  } finally {
+    configureCreatorDistribution(previous);
+  }
+});
 
 it("returns topic counts first and searchable metadata/section links without article bodies", async () => {
   const { root } = await fixture();
