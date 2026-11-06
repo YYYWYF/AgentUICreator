@@ -1,2 +1,2 @@
-/** Generated from the Agent UI project Mode during initialization. Do not edit by hand. */
-export const agentUIRuntimeConfig = { mode: "platform" } as const;
+/** Fixed shell selected during initialization. Project-owned application code. */
+export { PlatformShell as ProjectShell } from './shell/PlatformShell';

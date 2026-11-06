@@ -30,6 +30,10 @@ Creator 会检查当前工程，再修改对应代码。需要补充服务信息
 | 调整布局、宽度、按钮位置或插件组合 | [布局与插件](/guide/adjustments/) |
 | 修改颜色、样式或默认主题 | [主题与样式](/guide/adjustments/themes) |
 | 修改提示、按钮文字和中英文 | [语言与文案](/guide/adjustments/localization) |
+| 搜索员工、添加填入草稿的快捷命令 | [@ 提及与命令菜单](/guide/adjustments/mention-and-commands) |
+| 让助理与业务页面选中同一张工单 | [业务状态与页面联动](/guide/adjustments/state-and-events) |
+| 定制工具返回的工单卡片 | [工具与结果展示](/guide/adjustments/custom-renderers) |
+| 根据 Agent 数据展示筛选表单 | [动态界面](/guide/adjustments/generative-ui) |
 | 增加业务卡片或新的界面功能 | [增加功能](/guide/add-function) |
 | 检查修改是否符合预期 | [检查修改效果](/guide/examples/verify-results#检查清单) |
 

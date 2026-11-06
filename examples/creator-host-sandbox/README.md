@@ -10,6 +10,8 @@ Open http://127.0.0.1:5180/. `pnpm dev:examples` starts all three examples toget
 
 Host-owned UI is in `src/`; `AgentMount.tsx` connects the generated public Agent API to the local `/agent` Mock. The Vite dev server supplies streaming Mock scenarios and conversation history without model credentials. The Agent occupies the viewport; the platform composition places New Conversation above sidebar search.
 
+Configure history in `src/AgentMount.tsx` through `Agent.conversationDataSource`. The development data source uses `/__agent-ui/mock-data`; supply your business data source for production. Its request routes, authentication and response conversion live in `src/agent-ui/services/conversations/http-data-source.ts`.
+
 After generation, the project's own scripts work independently:
 
 ```sh

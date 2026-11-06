@@ -10,6 +10,11 @@
     "label": "插件默认启用情况"
   },
   {
+    "type": "file",
+    "name": "ag-ui-data",
+    "label": "插件显示条件与 AG-UI 数据"
+  },
+  {
     "type": "custom-link",
     "label": "对话与会话管理",
     "collapsible": true,
@@ -65,10 +70,6 @@
         "link": "/plugins/lexical-edit-composer.html"
       },
       {
-        "label": "语音输入（高级）",
-        "link": "/plugins/dictation-action.html"
-      },
-      {
         "label": "@ 提及搜索（高级）",
         "link": "/plugins/mention-trigger.html"
       },
@@ -79,6 +80,10 @@
       {
         "label": "输入标签展示（高级）",
         "link": "/plugins/lexical-composer-input.html"
+      },
+      {
+        "label": "语音输入（开发中）",
+        "link": "/plugins/dictation-action.html"
       }
     ]
   },
@@ -217,12 +222,12 @@
         "link": "/plugins/locale-switch.html"
       },
       {
-        "label": "登录认证（高级）",
-        "link": "/plugins/auth-gate.html"
-      },
-      {
         "label": "账号信息与退出登录（高级）",
         "link": "/plugins/auth-account.html"
+      },
+      {
+        "label": "登录认证（开发中）",
+        "link": "/plugins/auth-gate.html"
       }
     ]
   },

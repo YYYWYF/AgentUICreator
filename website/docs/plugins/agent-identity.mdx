@@ -6,7 +6,7 @@ title: "Agent 名称与头像（agent-identity）"
 
 例如把默认助手名称换成「客服助手」，配上产品头像和说明，方便用户识别正在使用哪个助手。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![显示 Agent 名称与头像（agent-identity）界面示例](/images/plugins/agent-identity.png)
 
@@ -36,11 +36,9 @@ title: "Agent 名称与头像（agent-identity）"
 保留：原有位置和排版。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/agent-identity/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 

@@ -6,7 +6,7 @@ title: "思考内容展示（reasoning）"
 
 Agent 提供思考内容时，对话中会出现「思考」区域，并随返回内容更新。它展示思考文字；只有「正在思考」提示时，并没有这些详情。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![展开 Agent 思考内容（reasoning）界面示例](/images/plugins/reasoning.png)
 
@@ -15,6 +15,39 @@ Agent 提供思考内容时，对话中会出现「思考」区域，并随返�
 在 **Creator 输入框**输入 `/enable reasoning`，点击下图中的 **「展开 Agent 思考内容」**。
 
 ![Creator 启用菜单：点击「展开 Agent 思考内容」，插件 ID 为 reasoning](/images/plugins/enable/reasoning.jpg)
+
+## 显示条件与数据来源
+
+**Agent 服务接入：**发送专用 reasoning 事件，普通 `TEXT_MESSAGE_CONTENT` 中的文字不会自动变成思考区域。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
+
+```json
+[
+  {
+    "type": "REASONING_START",
+    "messageId": "reasoning-1"
+  },
+  {
+    "type": "REASONING_MESSAGE_START",
+    "messageId": "reasoning-text-1",
+    "role": "reasoning"
+  },
+  {
+    "type": "REASONING_MESSAGE_CONTENT",
+    "messageId": "reasoning-text-1",
+    "delta": "正在核对用户提供的资料。"
+  },
+  {
+    "type": "REASONING_MESSAGE_END",
+    "messageId": "reasoning-text-1"
+  },
+  {
+    "type": "REASONING_END",
+    "messageId": "reasoning-1"
+  }
+]
+```
+
+外层 reasoning 和其中的文本各自保持 ID 一致。内容可分多条 `REASONING_MESSAGE_CONTENT` 逐步发送；结束后仍可发送正式回答。插件须启用并组合到会话的思考展示位置；没有思考内容时不会凭空生成文字。
 
 ## 定制选项
 
@@ -33,11 +66,9 @@ Agent 提供思考内容时，对话中会出现「思考」区域，并随返�
 保留：原有思考内容和展开、收起操作。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/reasoning/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 

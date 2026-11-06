@@ -6,7 +6,7 @@ title: "回复重新生成（reload-action）"
 
 点击回复下方的重新生成按钮后，会发起新的生成。项目提供分支切换时，可以比较和切换不同版本的回复。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![重新生成回复（reload-action）界面示例](/images/plugins/reload-action.png)
 
@@ -33,11 +33,9 @@ title: "回复重新生成（reload-action）"
 保留：原有重新生成行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/reload-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -49,7 +47,7 @@ title: "回复重新生成（reload-action）"
 | `disabled?` | `boolean` | 只有当前回答允许重试（`canReload`）且此属性未设为 `true` 时，按钮才可用 |
 | `onClick?` | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行重试；`preventDefault()` 可阻止默认动作 |
 
-#### 按钮属性
+### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 

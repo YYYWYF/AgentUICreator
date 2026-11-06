@@ -4,21 +4,37 @@ title: "会话命令源（conversation-command-source）"
 
 # 会话命令源（conversation-command-source）
 
-提供项目定义的 `/` 快捷命令，由现有命令服务读取命令列表，本身不显示界面。
+管理输入框 `/` 菜单中的命令，例如“新建会话”。你可以让 Creator 增加命令、修改名称，或调整选中后的行为。
 
-## 手动开发
+## 可以调整什么
 
-项目入口为源码目录下的 `plugins/conversation-command-source/index.tsx`。服务如何创建、如何调用、何时清理，继续由项目原有代码负责。
+| 你关心的内容 | 告诉 Creator 什么 |
+| --- | --- |
+| 增加或修改命令 | 命令名称、说明，以及要保留的已有命令。 |
+| 选择后执行操作 | 具体执行什么，例如新建会话或调用已有页面操作。 |
+| 选择后加入草稿 | 加入什么指令，是否由用户确认后发送。 |
+| 中英文显示 | 两种语言下的名称和说明。 |
 
-### 属性
+当前指令类命令会在草稿中插入指令引用，不立即发送。若希望填入指定的纯文本，请明确说明，让 Creator 核对现有能力。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+## 怎么让 Creator 修改
 
-组件：`CanonicalConversationCommandSourcePlugin`；类型：`ConversationCommandSourcePluginProps`。没有独立的界面容器；命令服务由项目已有的插件定义提供。
+在 Creator 输入框描述命令及预期行为，例如：
 
-| 属性 | 类型 | 省略时 / 用途 |
-| --- | --- | --- |
-| `children?` | `ReactNode` | 默认不渲染内容 |
+```text
+在助理的 / 菜单中增加“总结当前会话”，英文名称为
+“Summarize this conversation”。
+选择后把总结指令加入草稿，由用户确认后发送，不自动发送。
+保留已有的“新建会话”命令，以及当前输入和发送方式。
+```
 
-命令列表在项目现有的命令服务中配置；这个组件没有 `commands` 或样式属性。
+需要执行页面操作时，补充该操作的现有入口和可调用方法。涉及业务接口时，同时提供地址、鉴权方式及请求和响应示例。
+
+修改后，输入 `/` 检查命令是否出现、选中后的行为是否符合要求，以及中英文名称是否正确。
+
+## 命令配置
+
+命令通常在生成源码目录的 `plugins/conversation-command-source/definition.ts` 中配置；菜单展示在 `plugins/slash-command-trigger/index.tsx` 中调整。已有工程以实际文件为准。
+
+修改命令无需接管插件实现源码。更多菜单定制见[/ 快捷命令](./slash-command-trigger)，实际 Creator 操作记录见[自定义 @ 候选与 / 命令](/guide/adjustments/mention-and-commands)。
 

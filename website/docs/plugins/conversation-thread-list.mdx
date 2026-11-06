@@ -6,7 +6,7 @@ title: "会话列表（conversation-thread-list）"
 
 点击记录打开对话，可搜索会话并使用已接入的管理操作。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![查找与切换会话（conversation-thread-list）界面示例](/images/plugins/conversation-thread-list.png)
 
@@ -44,11 +44,9 @@ title: "会话列表（conversation-thread-list）"
 保留：搜索、打开会话和现有会话操作。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/conversation-thread-list/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -66,21 +64,38 @@ title: "会话列表（conversation-thread-list）"
 | `snapshot?` | `ConversationThreadListPluginProps['snapshot']` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文 |
 | `serviceAvailable?` | `boolean` | 宿主页面提供的会话服务是否可用，单独使用组件时默认 `false` |
 | `onRefresh?` | `() => void \| Promise<void>` | 列表加载失败后的重试方法 |
-| `theme?` | `AgentUITheme` | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
+| `theme?` | [`AgentUITheme`](./theme-switch#agentuitheme) | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
 | `runStatus?` | `string` | 宿主页面传入的运行状态，用于标记当前会话是否正在运行 |
 
 | `itemProps` 字段 | 类型 | 用途 |
 | --- | --- | --- |
 | `onNavigate?` | `() => void` | 导航回调 |
-| `actions?` | `ConversationThreadListItemActions` | 操作可见性配置：`rename?`、`archive?`、`unarchive?`、`delete?` 均为 `boolean`；不是操作回调 |
+| `actions?` | [`ConversationThreadListItemActions`](#conversationthreadlistitemactions) | 操作可见性配置 |
 
 `snapshot` 字段均可选：`activeConversationId`、`listStatus`、`detailStatus`、`listError`、`detailError`、`detailErrorConversationId`，类型均为 `string`。这些值继续从项目已有的会话服务和主题设置中读取。
 
 另导出的旧组件 `CanonicalConversationThreadListRailAction` 已弃用，推荐使用独立的 `conversation-new`。它仍公开 `enabled?: boolean`（默认 `true`）、`buttonProps?: ComponentProps<typeof ConversationThreadListNew>`、`tooltipProps?: ComponentProps<typeof AgentUITooltip>`、`tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>`。
 
+### 类型说明
+
+#### ConversationThreadListItemActions
+
+控制列表项菜单中显示哪些操作；这些字段是开关，不是操作回调。
+
+```ts
+interface ConversationThreadListItemActions {
+  rename?: boolean; // 重命名
+  archive?: boolean; // 归档
+  unarchive?: boolean; // 取消归档
+  delete?: boolean; // 删除
+}
+```
+
+省略整个 `actions` 时保留默认的全部操作；传入对象后，只有值为 `true` 的操作才显示。
+
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

@@ -6,7 +6,7 @@ title: "开场建议（conversation-suggestions）"
 
 例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置**填入输入框或直接发起提问**。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![使用开场建议（conversation-suggestions）界面示例](/images/plugins/conversation-suggestions.png)
 
@@ -35,11 +35,9 @@ title: "开场建议（conversation-suggestions）"
 保留：现有建议内容。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/conversation-suggestions/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -47,7 +45,7 @@ title: "开场建议（conversation-suggestions）"
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `items?` | `readonly ConversationSuggestionItem[]` | 省略时读取当前会话建议；空数组表示不显示列表项 |
+| `items?` | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem) | 省略时读取当前会话建议；空数组表示不显示列表项 |
 | `sendOnSelect?` | `boolean` | 默认 `true`；`false` 时将建议写入输入框 |
 | `clearComposer?` | `boolean` | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置 |
 | `buttonProps?` | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |
@@ -56,7 +54,7 @@ title: "开场建议（conversation-suggestions）"
 | `renderSuggestion?` | `ConversationCanonicalSuggestionsProps['renderSuggestion']` | 自定义当前会话的建议列表项，仅在未传 `items` 时使用 |
 | `children?` | `ReactNode` | 替换整个默认建议内容 |
 
-`ConversationSuggestionItem` 为 `{ prompt: string; title?: string; label?: string }`。`prompt` 是选择后使用的文本；`title` 默认显示 `prompt`；`label` 是附加说明。`SuggestionActions` 来自公开 `/plugin-support` 入口。
+`SuggestionActions` 来自公开 `/plugin-support` 入口。
 
 ### 设置建议内容
 
@@ -72,9 +70,23 @@ title: "开场建议（conversation-suggestions）"
 
 这里的标题和问题由项目维护；通用包不预置银行业务问题。插件按钮等固定文案仍使用统一语言层。
 
+### 类型说明
+
+#### ConversationSuggestionItem
+
+一条建议的内容。
+
+```ts
+interface ConversationSuggestionItem {
+  prompt: string; // 选择后发送或写入输入框的文本
+  title?: string; // 展示标题，省略时显示 prompt
+  label?: string; // 标题下方的附加说明
+}
+```
+
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

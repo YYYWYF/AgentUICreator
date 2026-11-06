@@ -6,7 +6,7 @@ title: "发送与停止（submit-action）"
 
 输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![发送与停止（submit-action）界面示例](/images/plugins/submit-action.png)
 
@@ -36,11 +36,9 @@ title: "发送与停止（submit-action）"
 保留：原有发送、排队和停止行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/submit-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -57,7 +55,7 @@ title: "发送与停止（submit-action）"
 
 运行中支持排队时，发送按钮读取 `composer.queueSend`。发送和取消是否可用仍由现有 Composer 决定。
 
-#### 子按钮属性
+### 子按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 

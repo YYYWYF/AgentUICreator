@@ -6,7 +6,7 @@ title: "临时通知（transient-assistant-messages）"
 
 提示显示在对话的对应位置，但**不作为用户问题发送给 Agent，也不写入后端聊天历史**。它只保留在当前页面内存中，适合临时通知。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![显示临时通知（transient-assistant-messages）界面示例](/images/plugins/transient-assistant-messages.png)
 
@@ -38,11 +38,9 @@ title: "临时通知（transient-assistant-messages）"
 保留：消息的角色、类型和原有临时消息行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/transient-assistant-messages/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -53,13 +51,31 @@ title: "临时通知（transient-assistant-messages）"
 | `afterMessageId` | `string \| null` | 消息锚点；插件入口省略时为 `null`，单独使用组件时必需 |
 | `classNames?` | `{ text?: string }` | 正文样式类 |
 | `styles?` | `{ text?: CSSProperties }` | 正文内联样式 |
-| `renderMessage?` | `(message: TransientMessage) => ReactNode` | 替换单条消息；自定义渲染自行处理根属性与外观 |
+| `renderMessage?` | [`(message: TransientMessage) => ReactNode`](#transientmessage) | 替换单条消息；自定义渲染自行处理根属性与外观 |
 
 消息从现有临时消息服务读取，不传入另一份消息列表，也不会写入会话历史。
 
+### 类型说明
+
+#### TransientMessage
+
+`renderMessage` 接收的一条临时消息，所有字段均为只读且必需。
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `id` | `string` | 临时消息的唯一标识，由服务生成 |
+| `conversationId` | `string` | 所属会话的标识 |
+| `role` | `'user' \| 'assistant' \| 'system'` | 决定默认展示为用户、助理或系统提示 |
+| `type` | `'normal' \| 'error'` | 普通提示或错误提示 |
+| `text` | `string` | 提示正文 |
+| `afterMessageId` | `string \| null` | 插入时位于哪条会话消息之后；`null` 表示插入时会话没有消息 |
+| `afterMessageIndex` | `number` | 插入时的会话消息索引，从 `0` 开始；没有消息时为 `-1`，用于锚点 ID 变化后的定位 |
+
+这些字段由现有临时消息服务提供，自定义渲染无需自行生成锚点或修改消息对象。
+
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性等复杂类型可在编辑器中查询；通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

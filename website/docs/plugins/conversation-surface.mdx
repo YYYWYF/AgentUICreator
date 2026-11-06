@@ -6,7 +6,7 @@ title: "会话界面（conversation-surface）"
 
 用户可以在同一区域阅读已有对话、查看新回复并继续提问；工具结果、计划等内容会显示在对应的消息中。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![显示完整对话区（conversation-surface）界面示例](/images/plugins/conversation-surface.png)
 
@@ -15,6 +15,10 @@ title: "会话界面（conversation-surface）"
 在 **Creator 输入框**输入 `/enable conversation-surface`，点击下图中的 **「显示完整对话区」**。
 
 ![Creator 启用菜单：点击「显示完整对话区」，插件 ID 为 conversation-surface](/images/plugins/enable/conversation-surface.jpg)
+
+## 显示条件与数据来源
+
+**数据来源：**会话界面由已有 Runtime 的消息、运行状态和子插件组成。普通回答使用[文字 SSE 示例](./ag-ui-data#共用的-sse-格式)，工具、思考和自定义卡片使用[各自事件](./ag-ui-data#按展示内容找事件)。历史消息由会话数据源加载。启用会话界面不会自动启用所有内容插件；无对应渲染器时不会凭事件名称创建新插件。
 
 ## 定制选项
 
@@ -32,11 +36,9 @@ title: "会话界面（conversation-surface）"
 保留：现有消息、欢迎区和输入区的组合。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/conversation-surface/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -52,7 +54,7 @@ title: "会话界面（conversation-surface）"
 | `rendererSlots?` | `{ toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean }` | 标明当前启用了哪些消息展示插件；继续使用项目生成的配置 |
 | `snapshot?` | `{ mode?: string; detailStatus?: string }` | 宿主页面传入的会话状态，用于给容器添加状态标记 |
 
-`Adapter` 保留自动聚焦、样式、渲染器和结构插槽属性；完整类型见 `ConversationSurfaceAdapterProps`。外层样式用于插件容器。
+`Adapter` 属性包括 `autoFocus`、`className`、`rendererSlots`、`welcome`、`suggestions`、`composer`、`renderScopedSlot`；完整类型见[类型查询](#类型查询)。外层 `className`／`style` 用于插件容器，不会自动变为 `Adapter` 组件的属性。
 
 ### 类型查询
 

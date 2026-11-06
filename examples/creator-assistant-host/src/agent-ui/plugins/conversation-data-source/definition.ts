@@ -1,28 +1,30 @@
-import implementation from "@za38.03/agent-ui-plugins/conversation-data-source";
-import { getPreviewAgentEnvironment } from "../../application/preview-environment";
-import { createAgentBackendTransport } from "../../application/agent-backend-transport";
-import type { UIPluginDefinition } from "@za38.03/agent-ui-plugins";
-import { parseUIPluginManifest } from "@za38.03/agent-ui-plugins";
+import type { UIPluginDefinition } from '@za38.03/agent-ui-plugins';
+import implementation from '@za38.03/agent-ui-plugins/conversation-data-source';
+import { createAgentBackendTransport } from '@za38.03/agent-ui-runtime/ui/application/agent-backend-transport';
+import { getPreviewAgentEnvironment } from '@za38.03/agent-ui-runtime/ui/application/preview-environment';
+
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   createEmptyConversationDataSource,
   createHttpConversationDataSource,
   resolveConversationDataEndpoint,
-} from "../../services/conversations";
-import { ConversationDataSourcePlugin } from "./index";
-import { conversationDataEndpoint } from "../../agent-ui/conversation/config/conversation-runtime-config";
-import manifestJson from "./manifest.json";
+} from '../../services/conversations';
+import { ConversationDataSourcePlugin } from './index';
 
 export const conversationDataSourcePlugin: UIPluginDefinition = {
   manifest: implementation.manifest,
   provides: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
-  setup: implementation.bindSetup(({ services }: Parameters<NonNullable<UIPluginDefinition["setup"]>>[0]) => {
+  setup: implementation.bindSetup(({ services }: Parameters<NonNullable<UIPluginDefinition['setup']>>[0]) => {
     const endpoint = resolveConversationDataEndpoint({
-      configuredEndpoint: getPreviewAgentEnvironment()?.conversationDataEndpointOverride ?? conversationDataEndpoint,
+      configuredEndpoint: getPreviewAgentEnvironment(import.meta.env.DEV)?.conversationDataEndpointOverride,
     });
-    const source = endpoint === undefined
-      ? createEmptyConversationDataSource()
-      : createHttpConversationDataSource({ endpoint, fetch: createAgentBackendTransport().fetch });
+    const source =
+      endpoint === undefined
+        ? createEmptyConversationDataSource()
+        : createHttpConversationDataSource({
+            endpoint,
+            fetch: createAgentBackendTransport({ development: import.meta.env.DEV }).fetch,
+          });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   }),
   Component: ConversationDataSourcePlugin,

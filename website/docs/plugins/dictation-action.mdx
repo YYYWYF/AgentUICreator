@@ -1,12 +1,16 @@
 ---
-title: "语音输入（dictation-action）"
+title: "语音输入（开发中）"
 ---
 
-# 语音输入（dictation-action）
+# 语音输入（开发中）
+
+:::warning 开发中
+正在对接行内语音服务，以下仅示例，不代表最终效果。
+:::
 
 点击语音按钮开始听写，再次操作停止。识别出的文字进入输入框，用户确认或修改后再发送。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![语音输入（dictation-action）界面示例](/images/plugins/dictation-action.png)
 
@@ -38,11 +42,9 @@ title: "语音输入（dictation-action）"
 保留：现有语音识别服务和开始、停止行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/dictation-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -59,7 +61,7 @@ title: "语音输入（dictation-action）"
 
 两个子按钮保留原生样式、事件和 children 属性，根据现有听写能力和录音状态切换可见性。
 
-#### 子按钮属性
+### 子按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 

@@ -6,7 +6,7 @@ title: "主题切换（theme-switch）"
 
 选择后，对话区域等受主题控制的界面会同步更新外观，当前会话继续保留。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 | 浅色主题 | 深色主题 |
 | --- | --- |
@@ -38,11 +38,9 @@ title: "主题切换（theme-switch）"
 保留：light、dark、violet 主题值和切换行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/theme-switch/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -50,19 +48,29 @@ title: "主题切换（theme-switch）"
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `theme?` | `AgentUITheme` | 受控主题，优先于服务快照；均未提供时回退 `violet` |
-| `onThemeChange?` | `(theme: AgentUITheme) => void` | 受控变化回调，优先于服务的 `setTheme` |
-| `service?` | `{ getTheme(): AgentUITheme; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }` | 已有主题服务 |
+| `theme?` | [`AgentUITheme`](#agentuitheme) | 受控主题，优先于服务快照；均未提供时回退 `violet` |
+| `onThemeChange?` | [`(theme: AgentUITheme) => void`](#agentuitheme) | 受控变化回调，优先于服务的 `setTheme` |
+| `service?` | [`{ getTheme(): AgentUITheme; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }`](#agentuitheme) | 已有主题服务 |
 | `contextId?` | `string` | 默认 `theme`，选择框 ID 为 `${contextId}-control` |
 | `disabled?` | `boolean` | 选择框禁用设置 |
 | `selectProps?` | `ComponentProps<typeof NativeSelect>` | 原生下拉框属性，`size` 为 `'sm' \| 'default'`；其 `onChange` 先调用，`preventDefault()` 可阻止默认切换 |
 | `children?` | `ReactNode` | 替换默认主题选项 |
 
-`AgentUITheme` 为 `'light' | 'dark' | 'violet'`。没有变化回调且没有可用服务时，组件不显示。
+没有变化回调且没有可用服务时，组件不显示。
+
+### 类型说明
+
+#### AgentUITheme
+
+```ts
+type AgentUITheme = 'light' | 'dark' | 'violet';
+```
+
+分别为浅色、深色和紫色主题；紫色主题使用浅色配色模式。
 
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

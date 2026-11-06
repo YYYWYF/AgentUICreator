@@ -36,6 +36,14 @@ printed by Rspress if 3000 is occupied). It remains local to this computer.
 navigation depth and local links. Add `--built` after building to check generated
 pages, sidebar entries and link anchors as well.
 
+The locale reference in `docs/development/styling-and-localization.md` is generated
+from `packages/plugins/src/locales/{zh-CN,en-US}.ts`. Run `pnpm docs:locales` from
+the repository root after dictionary changes; `pnpm docs:locales:check`, site builds
+and `check:docs` reject stale tables. Maintain only functional grouping in
+`website/scripts/generate-locale-reference.mjs`, never the generated rows.
+Run `pnpm test:locale-reference` for generator validation. These commands use the
+website's existing TypeScript dependency installed by `docs:install`.
+
 `docs:build` generates `website/doc_build/`, including HTML, per-page Markdown,
 `llms.txt` and `llms-full.txt` (Rspress SSG-MD). Deploy the **whole directory** to
 a static server. The default base is `/`; configure Rspress `base` before building

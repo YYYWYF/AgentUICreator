@@ -6,7 +6,7 @@ title: "附件添加（add-attachment-action）"
 
 点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![添加附件（add-attachment-action）界面示例](/images/plugins/add-attachment-action.jpg)
 
@@ -33,11 +33,9 @@ title: "附件添加（add-attachment-action）"
 保留：原有上传和移除附件的行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/add-attachment-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -50,7 +48,7 @@ title: "附件添加（add-attachment-action）"
 
 默认提示方向为 `bottom`，按钮为 `ghost`／`icon`。上传地址和上传方法继续使用项目已有的附件服务配置。
 
-#### 按钮属性
+### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 

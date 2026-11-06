@@ -22,6 +22,8 @@ Keep these maintained examples derived from the canonical templates. Use a separ
 
 Each example's Vite development config provides the local Mock Agent at `/agent` and conversation history at `/__agent-ui/mock-data`. The Mock belongs to Creator development tooling; frontend source imports only the generated Agent entry and production UI packages. The current Host `AgentMount.tsx` explicitly selects `/agent`; replace that Host-owned endpoint to use a real API. No model credentials are needed for these mocks.
 
+All three examples use the current Bootstrap application entry and npm Runtime, with only their selected Shell in `src/agent-ui/application/shell/`. History is supplied explicitly through `Agent.conversationDataSource` in `src/AgentMount.tsx`; the examples create the Mock HTTP data source only during development. To connect a business history API, create a stable data source with the application's base URL and pass it through this prop in production as well. Edit `src/agent-ui/services/conversations/http-data-source.ts` for list/detail/delete/rename/archive/unarchive routes, authentication and response conversion. These routes are project-owned defaults, not a required backend protocol. The old `conversation-runtime-config.ts` address setting is no longer generated.
+
 After initialization, each example supports its own `dev`, `test`, `typecheck` and `build` scripts, for example:
 
 ```sh

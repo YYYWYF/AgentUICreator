@@ -1,12 +1,16 @@
 ---
-title: "登录认证（auth-gate）"
+title: "登录认证（开发中）"
 ---
 
-# 登录认证（auth-gate）
+# 登录认证（开发中）
+
+:::warning 开发中
+正在对接行内一号通。以下仅示例，不代表最终效果。
+:::
 
 检查登录状态时显示等待；未登录时显示账号、密码和登录按钮。认证成功后，应用再显示允许访问的聊天内容。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![登录后进入聊天（auth-gate）界面示例](/images/plugins/auth-gate.png)
 
@@ -40,11 +44,9 @@ title: "登录认证（auth-gate）"
 保留：现有登录接口和认证流程。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/auth-gate/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -59,13 +61,40 @@ title: "登录认证（auth-gate）"
 | `passwordInputProps?` | `ComponentProps<typeof Input>` | 密码输入框原生属性；保留内部输入状态更新 |
 | `submitButtonProps?` | `ComponentProps<typeof Button>` | 登录按钮配置 |
 | `session?` | `{ signIn(input: { account: string; password: string }): Promise<void> }` | 现有登录服务 |
-| `state?` | `AuthSessionSnapshot` | 现有认证状态，单独使用组件时默认检查中，见下文 |
+| `state?` | [`AuthSessionSnapshot`](#authsessionsnapshot) | 现有认证状态，单独使用组件时默认检查中 |
 
-`AuthSessionSnapshot` 包含 `status: 'checking' | 'anonymous' | 'authenticated'`、`user: AuthUser | null`、`busy: boolean`、`error: 'sign-in-failed' | 'sign-out-failed' | null`。`AuthUser` 为 `{ userId: string; userName: string; avatar?: string }`。省略 `state` 时为 `{ status: 'checking', user: null, busy: false, error: null }`，显示检查提示。这些服务类型沿用项目已有 `services/` 声明；不是新增登录状态源。
+省略 `state` 时为 `{ status: 'checking', user: null, busy: false, error: null }`，显示检查提示。这些服务类型沿用项目已有 `services/` 声明；不是新增登录状态源。
+
+### 类型说明
+
+#### AuthSessionSnapshot
+
+认证服务提供的当前状态，所有字段均必需。
+
+```ts
+interface AuthSessionSnapshot {
+  status: 'checking' | 'anonymous' | 'authenticated';
+  user: AuthUser | null;
+  busy: boolean;
+  error: 'sign-in-failed' | 'sign-out-failed' | null;
+}
+```
+
+`status` 分别表示检查中、未登录和已登录；`user` 为当前用户，未登录时为 `null`；`busy` 表示认证操作正在执行；`error` 分别表示登录失败、退出失败或没有错误。用户结构见 [`AuthUser`](#authuser)。
+
+#### AuthUser
+
+```ts
+interface AuthUser {
+  userId: string; // 用户标识
+  userName: string; // 展示名称
+  avatar?: string; // 头像 URL
+}
+```
 
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

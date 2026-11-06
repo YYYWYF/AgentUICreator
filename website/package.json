@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "rspress dev --host 127.0.0.1",
-    "build": "rspress build",
+    "build": "node scripts/generate-locale-reference.mjs --check && rspress build",
     "preview": "rspress preview",
     "typecheck": "tsc --noEmit",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/generate-locale-reference.mjs --check && node scripts/check-docs.mjs"
   },
   "devDependencies": {
     "@rspress/core": "2.0.23",

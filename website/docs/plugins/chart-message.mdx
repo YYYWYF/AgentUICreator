@@ -6,7 +6,7 @@ title: "图表展示（chart-message）"
 
 例如把四个季度的销售额显示为条形图，同时保留项目名称和数值，用户不用只阅读一段数字。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![查看图表（chart-message）界面示例](/images/plugins/chart-message.png)
 
@@ -15,6 +15,34 @@ title: "图表展示（chart-message）"
 在 **Creator 输入框**输入 `/enable chart-message`，点击下图中的 **「查看图表」**。
 
 ![Creator 启用菜单：点击「查看图表」，插件 ID 为 chart-message](/images/plugins/enable/chart-message.jpg)
+
+## 显示条件与数据来源
+
+**Agent 服务接入：**启用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
+
+```json
+[
+  {
+    "type": "CUSTOM",
+    "name": "chart",
+    "value": {
+      "title": "季度销售额",
+      "items": [
+        {
+          "label": "第一季度",
+          "value": 120
+        },
+        {
+          "label": "第二季度",
+          "value": 180
+        }
+      ]
+    }
+  }
+]
+```
+
+`title` 为字符串；`items` 为数组，每项包含字符串 `label` 和有限数值 `value`。字段或类型无效时不渲染图表。注册在 `dataMessageUIs` 的名称是 `chart`，不是插件 ID `chart-message`；不要把这段 JSON 填进普通文字消息。
 
 ## 定制选项
 
@@ -34,11 +62,9 @@ title: "图表展示（chart-message）"
 保留：Agent 返回的名称和数值。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/chart-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -46,19 +72,49 @@ title: "图表展示（chart-message）"
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `data` | `unknown` | 必需；校验为 `ChartMessageData`，无效时不渲染 |
+| `data` | `unknown` | 必需；校验为 [`ChartMessageData`](#chartmessagedata)，无效时不渲染 |
 | `title?` | `ReactNode` | 默认数据中的图表标题 |
-| `classNames?` | `Partial<Record<ChartRegion, string>>` | 图表各部分的样式类 |
-| `styles?` | `Partial<Record<ChartRegion, CSSProperties>>` | 图表各部分的内联样式 |
-| `formatValue?` | `(value: number, item: ChartMessageItem) => ReactNode` | 默认直接显示数值 |
-| `renderItem?` | `(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode` | 替换单条图表内容 |
-| `renderChart?` | `(data: ChartMessageData) => ReactNode` | 替换整个图表，自行处理根外观与标题 |
+| `classNames?` | [`Partial<Record<ChartRegion, string>>`](#chartregion) | 图表各部分的样式类 |
+| `styles?` | [`Partial<Record<ChartRegion, CSSProperties>>`](#chartregion) | 图表各部分的内联样式 |
+| `formatValue?` | [`(value: number, item: ChartMessageItem) => ReactNode`](#chartmessageitem) | 默认直接显示数值 |
+| `renderItem?` | [`(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode`](#chartmessageitem) | 替换单条图表内容，完整数据见 [`ChartMessageData`](#chartmessagedata) |
+| `renderChart?` | [`(data: ChartMessageData) => ReactNode`](#chartmessagedata) | 替换整个图表，自行处理根外观与标题 |
 
-`ChartRegion` 是本表对分区键的简称：`'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value'`，不是额外的 npm 导出类型。`ChartMessageData` 为 `{ title: string; items: readonly ChartMessageItem[] }`，`ChartMessageItem` 为 `{ label: string; value: number }`。
+### 类型说明
+
+#### ChartMessageData
+
+图表的完整数据；`items` 中每项的结构见 [`ChartMessageItem`](#chartmessageitem)。
+
+```ts
+interface ChartMessageData {
+  title: string; // 图表标题
+  items: readonly ChartMessageItem[]; // 图表数据项
+}
+```
+
+#### ChartMessageItem
+
+```ts
+interface ChartMessageItem {
+  label: string; // 数据项名称
+  value: number; // 数据项数值，必须为有限数
+}
+```
+
+#### ChartRegion
+
+本页对样式分区键的简称，不是额外的 npm 导出类型。
+
+```ts
+type ChartRegion = 'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value';
+```
+
+依次对应标题、列表、单项、名称、条形背景、数值条和数值文字。
 
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

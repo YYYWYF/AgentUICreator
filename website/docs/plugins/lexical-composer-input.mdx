@@ -6,7 +6,7 @@ title: "输入标签展示（lexical-composer-input）"
 
 用户仍然可以正常输入文字、移动光标；引用对象和指令各自显示为一个完整标签，删除时按整个标签处理。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![在输入框显示 @ 与 / 标签（lexical-composer-input）界面示例](/images/plugins/lexical-composer-input.png)
 
@@ -38,11 +38,9 @@ title: "输入标签展示（lexical-composer-input）"
 保留：现有 @ 对象和 / 指令标签的编辑行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/lexical-composer-input/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -54,18 +52,56 @@ title: "输入标签展示（lexical-composer-input）"
 | `cancelOnEscape?` | `boolean` | 默认 `true`，Esc 取消编辑策略 |
 | `placeholder?` | `string` | 默认使用所在输入区的提示文字 |
 | `autoFocus?` | `boolean` | 默认使用所在输入区的自动聚焦设置 |
-| `directivePluginProps?` | `{ onDirectiveSelect?: (item: ConversationLexicalTriggerItem) => void }` | 指令选中回调 |
-| `directiveChip?` | `FC<ConversationComposerDirectiveChipProps>` | 默认 `ConversationComposerDirectiveChip`，替换指令标签组件 |
-| `formatter?` | `{ serialize(item: ConversationLexicalTriggerItem): string; parse(text: string): readonly ConversationLexicalSegment[] }` | 默认项目统一指令格式化器 |
+| `directivePluginProps?` | [`{ onDirectiveSelect?: (item: ConversationLexicalTriggerItem) => void }`](#conversationlexicaltriggeritem) | 指令选中回调 |
+| `directiveChip?` | [`FC<ConversationComposerDirectiveChipProps>`](#conversationcomposerdirectivechipprops) | 默认 `ConversationComposerDirectiveChip`，替换指令标签组件 |
+| `formatter?` | [`{ serialize(item: ConversationLexicalTriggerItem): string; parse(text: string): readonly ConversationLexicalSegment[] }`](#conversationlexicaltriggeritem) | 默认项目统一指令格式化器；返回片段见 [`ConversationLexicalSegment`](#conversationlexicalsegment) |
 | `children?` | `ReactNode` | 追加 Lexical 子插件；现有中文输入法保护仍保留 |
-
-`ConversationLexicalTriggerItem` 含 `id`、`type`、`label`，可选 `description` 和只读 JSON `metadata`。`ConversationComposerDirectiveChipProps` 为 `{ directiveId: string; directiveType: string; label: string }`。`ConversationLexicalSegment` 是文本 `{ kind: 'text'; text: string }` 或提及 `{ kind: 'mention'; type: string; label: string; id: string }`。
 
 这个输入组件需要放在项目现有的消息输入区或消息编辑区内，才能读取草稿、提示文字和聚焦设置。它只替换输入界面，继续使用原有会话。
 
+### 类型说明
+
+#### ConversationLexicalTriggerItem
+
+指令候选项，字段均只读。
+
+```ts
+interface ConversationLexicalTriggerItem {
+  readonly id: string; // 稳定标识
+  readonly type: string; // 指令类型
+  readonly label: string; // 展示文字
+  readonly description?: string; // 补充说明
+  readonly metadata?: import('assistant-stream/utils').ReadonlyJSONObject;
+}
+```
+
+`metadata` 是可选的只读 JSON 对象，完整 JSON 类型可在编辑器中查询。
+
+#### ConversationComposerDirectiveChipProps
+
+指令标签组件接收的属性。
+
+```ts
+interface ConversationComposerDirectiveChipProps {
+  directiveId: string; // 指令标识
+  directiveType: string; // 指令类型
+  label: string; // 展示文字
+}
+```
+
+#### ConversationLexicalSegment
+
+格式化器解析后的片段，字段均只读；按 `kind` 区分普通文本和提及。
+
+```ts
+type ConversationLexicalSegment =
+  | { readonly kind: 'text'; readonly text: string }
+  | { readonly kind: 'mention'; readonly type: string; readonly label: string; readonly id: string };
+```
+
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

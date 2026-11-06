@@ -74,6 +74,6 @@ Agent 准备执行需要确认的操作时，卡片会列出操作内容和参�
 
 [回答问题与处理审批](/plugins/#提问与审批) · [工具调用详情](/plugins/tool-fallback) · [前端工具接入](/development/frontend-tools) · [返回插件总览](/plugins/)
 
-## 手动开发
+## 数据与操作接口
 
-提交审批或补充信息时，使用[会话方法](/development/react-host-api#会话方法)；问题与工具卡片的数据接口见[询问用户](./ask-user-question#手动开发)和[工具调用详情](./tool-fallback#手动开发)。展示层保留当前会话提供的处理方法。
+提交审批或补充信息时，使用[会话方法](/development/react-host-api#会话方法)；问题与工具卡片的数据接口见[询问用户](./ask-user-question#属性)和[工具调用详情](./tool-fallback#属性)。展示层保留当前会话提供的处理方法。

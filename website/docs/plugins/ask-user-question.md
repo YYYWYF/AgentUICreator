@@ -6,7 +6,7 @@ title: "询问用户"
 
 `ask-user-question` 让 Agent 在对话中提出问题，收集单选、多选或文字回答，再根据答案继续处理。它是正式 UI 插件，随 `@za38.03/agent-ui-plugins` 提供，默认按需启用。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ## 添加到项目
 
@@ -27,6 +27,31 @@ title: "询问用户"
 - 多步提问：每次调用 1–3 题，最后提交一次答案。
 
 已回答的卡片显示原答案；只读历史和不能继续回答的调用不提供提交入口。提交失败时可重试，能否恢复未完成的问题由 Agent 服务决定。
+
+## 显示条件与数据来源
+
+**数据来源：**只在工具 `ask_user_question` 发起提问时显示，参数和答案见下方[Agent 服务接入](#agent-服务接入)。一次提问的事件如下，随后以 `RUN_FINISHED` 的成功 outcome 结束本轮，等待用户提交工具结果并通过后续请求续答；此时服务端不预先发送 `TOOL_CALL_RESULT`：
+
+```json
+[
+  {
+    "type": "TOOL_CALL_START",
+    "toolCallId": "call-1",
+    "toolCallName": "ask_user_question"
+  },
+  {
+    "type": "TOOL_CALL_ARGS",
+    "toolCallId": "call-1",
+    "delta": "{\"steps\":[{\"id\":\"layout\",\"question\":\"你希望采用哪种首页布局？\",\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1,\"options\":[{\"id\":\"dashboard\",\"label\":\"数据总览\"},{\"id\":\"sidebar\",\"label\":\"侧边导航\"}]}]}"
+  },
+  {
+    "type": "TOOL_CALL_END",
+    "toolCallId": "call-1"
+  }
+]
+```
+
+事件逐条包装成 SSE，见[共用格式](./ag-ui-data#共用的-sse-格式)。问题卡片使用 human 工具结果提交，与 `outcome.type: "interrupt"` 的后端审批是两条接入路径。
 
 ## Agent 服务接入
 
@@ -70,11 +95,9 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 [人机交互与操作确认](/plugins/human-interaction) · [前端工具接入](/development/frontend-tools) · [返回插件总览](/plugins/)
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/ask-user-question/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
@@ -94,7 +117,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 问题和答案分别来自工具 `args`、`result`。可回答状态还要求当前工具等待用户操作、Runtime 允许回答且有 `addResult`；历史记录保持只读。问答协议见[询问用户](./ask-user-question)。
 
-#### 外观与无障碍属性
+### 外观与无障碍属性
 
 以下属性均可选。
 
@@ -108,7 +131,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 | `aria-describedby` | `string` | 描述元素 ID |
 | `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
 
-#### 当前工具调用的数据与操作
+### 当前工具调用的数据与操作
 
 这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
 
@@ -122,19 +145,46 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 | `result?` | `unknown` | 工具结果 |
 | `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
 | `isError?` | `boolean` | 结果是否为错误 |
-| `status` | `ConversationToolCallStatus` | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `status` | [`ConversationToolCallStatus`](#conversationtoolcallstatus) | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
 | `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
 | `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
-| `decisionRequest?` | `ConversationCommandDecisionRequest` | 运行环境提供的操作确认请求 |
+| `decisionRequest?` | [`ConversationCommandDecisionRequest`](#conversationcommanddecisionrequest) | 运行环境提供的操作确认请求 |
 | `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
-
-`ConversationToolCallStatus` 为 `{ type: 'running' }`、`{ type: 'complete' }`、`{ type: 'incomplete'; reason?: string; error?: unknown }` 或 `{ type: 'requires-action'; reason?: string }`。`ConversationCommandDecisionRequest` 含 `allowedDecisions: readonly string[]` 和可选 `description: string`。
 
 该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
 
+### 类型说明
+
+#### ConversationToolCallStatus
+
+按 `type` 区分工具状态：运行中、已完成、未完成和等待用户操作。
+
+```ts
+type ConversationToolCallStatus =
+  | { type: 'running' }
+  | { type: 'complete' }
+  | { type: 'incomplete'; reason?: string; error?: unknown }
+  | { type: 'requires-action'; reason?: string };
+```
+
+`reason` 是可选原因，`error` 是未完成时的可选错误详情。
+
+#### ConversationCommandDecisionRequest
+
+运行环境提供的操作确认请求。
+
+```ts
+interface ConversationCommandDecisionRequest {
+  allowedDecisions: readonly string[]; // 后端允许提交的决定标识
+  description?: string; // 请求说明
+}
+```
+
+提交决定时使用 `allowedDecisions` 中的原始标识。
+
 ### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
 ```ts
 import type { ComponentProps } from 'react';

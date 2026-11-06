@@ -6,7 +6,7 @@ title: "消息引用（conversation-quote）"
 
 选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![引用消息（conversation-quote）界面示例](/images/plugins/conversation-quote.png)
 
@@ -33,11 +33,9 @@ title: "消息引用（conversation-quote）"
 保留：选中引用、移除引用和发送时携带引用的行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/conversation-quote/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 

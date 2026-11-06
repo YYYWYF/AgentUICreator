@@ -6,7 +6,7 @@ title: "思考状态提示（thinking-indicator）"
 
 对话中会出现带动画的小提示；已有思考详情、工具活动或正文可展示时，会按配置让位给实际内容。它提示正在等待，**不展示具体思考文字或任务完成百分比**。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[手动开发](#手动开发)。
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
 ![显示正在思考提示（thinking-indicator）界面示例](/images/plugins/thinking-indicator.png)
 
@@ -32,11 +32,9 @@ title: "思考状态提示（thinking-indicator）"
 保留：提示随真实回复状态出现和消失的行为。
 ```
 
-## 手动开发
+## 属性
 
 打开项目中的 `plugins/thinking-indicator/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-### 属性
 
 `?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
