@@ -38,12 +38,13 @@ export function projectPluginDirectory(project: Record<string, any>) {
   const plugins = [...capabilities.values()].map(item => {
     const current = instances.filter(instance => instance.pluginId === item.pluginId);
     const binding = bindings.find(binding => binding.kind === "plugin_source" && binding.pluginId === item.pluginId);
+    const declaredNames = catalog?.candidates?.find((candidate: any) => candidate.id === binding?.targetId)?.targetNames ?? [];
     const displayNames = [zhCN.commands, enUS.commands].flatMap(locale => {
       const name = (locale as Record<string, unknown>)[`plugin_${item.pluginId}`];
       return typeof name === "string" ? [name] : [];
     });
     return { pluginId: item.pluginId, name: item.name ?? item.pluginId, description: item.description,
-      targetNames: pluginTargetNames({ ...item, targetNames: [...(item.targetNames ?? []), ...displayNames] }),
+      targetNames: pluginTargetNames({ ...item, targetNames: [...(item.targetNames ?? []), ...declaredNames, ...displayNames] }),
       intents: item.authoring?.intents, role: item.authoring?.visualRole,
       ...(item.componentPresentation ? { componentPresentation: item.componentPresentation } : {}),
       state: !current.length ? "not_composed" : current.some(instance => instance.effectiveEnabled ?? instance.enabled !== false) ? "enabled" : "disabled",

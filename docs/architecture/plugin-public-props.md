@@ -48,7 +48,7 @@
 | `conversation-command-source` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |
 | `conversation-data-source` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |
 | `conversation-service` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |
-| `conversation-surface` | 直接 autoFocus、labels、welcome、suggestions、composer、整体样式；语义 Slot 仍优先，Adapter 为完整替换入口。 |
+| `conversation-surface` | 直接 autoFocus、welcome、suggestions、composer、整体样式；欢迎文案由统一 locale 提供，无 labels prop。语义 Slot 仍优先，Adapter 为完整替换入口。 |
 | `lexical-composer-input` | 已直接继承原生输入与编辑器公开属性；保留输入与中文 composition 行为。 |
 | `lexical-edit-composer` | 已直接继承编辑区公开属性；保留编辑提交和取消生命周期。 |
 | `locale-provider` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |

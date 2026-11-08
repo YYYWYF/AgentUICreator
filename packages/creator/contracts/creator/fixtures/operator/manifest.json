@@ -316,6 +316,16 @@
       "file": "invalid-plugin-usage-example.result.json",
       "operation": "inspect_ui_plugin",
       "valid": false
+    },
+    {
+      "file": "inspect_ui_plugin.presentation-impact.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": true
+    },
+    {
+      "file": "invalid-plugin-impact-completeness.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": false
     }
   ]
 }

@@ -196,3 +196,25 @@ it("ranks exact API identifiers above generic context titles and returns the ans
   // Generic context remains discoverable when it is the actual requested topic.
   expect(await readCreatorDocumentation({ query: "上下文 context" }, root)).toHaveProperty("entries.0.documentId", distraction.id);
 });
+
+it("searches dotted API fragments and anchors editing navigation to the selected Plugin", async () => {
+  const { root, documents, manifest } = await fixture();
+  const text = '# Composer\n## 属性\n`inputProps` accepts native input options. `style` configures a surface.\n';
+  const start = text.indexOf('## 属性');
+  const document = { id: 'public:plugins/composer', title: 'Composer', source: 'public', topic: '插件', path: 'plugins/composer.md', summary: 'Composer options', sha256: digest(text), sections: [{ id: 's1', title: 'Composer', level: 1, start: 0, end: text.length }, { id: 's2', title: '属性', level: 2, start, end: text.length }] };
+  documents.push(document);
+  await mkdir(path.join(root, 'plugins'));
+  await writeFile(path.join(root, document.path), text);
+  const catalog = JSON.stringify({ schemaVersion: 1, documents });
+  manifest.files = [{ path: 'agent-index.json', sha256: digest(catalog) }, ...documents.map(document => ({ path: document.path, sha256: document.sha256 }))];
+  await writeFile(path.join(root, 'agent-index.json'), catalog); await writeFile(path.join(root, 'index.json'), JSON.stringify(manifest));
+  const result: any = await readCreatorDocumentation({ query: 'inputProps.style', documentId: document.id }, root);
+  expect(result.entries).toHaveLength(1);
+  expect(result.entries[0].nextRead.input).toMatchObject({ documentId: document.id, sectionId: 's2' });
+  expect(await readCreatorDocumentation(result.entries[0].nextRead.input, root)).toHaveProperty('content', expect.stringContaining('inputProps'));
+  const { editingDocumentation } = await import('../src/agent/documentation.js');
+  const editing = await editingDocumentation('composer', 'usePluginServiceSnapshot', root);
+  expect(editing).toHaveProperty('entries.0.documentId', document.id);
+  expect(editing).toHaveProperty('entries.0.nextRead.input.sectionId', 's2');
+  expect(editing.entries?.some(entry => entry.documentId === 'public:development/plugin-api')).toBe(true);
+});

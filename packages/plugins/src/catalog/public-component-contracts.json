@@ -72,7 +72,7 @@
     },
     "@za38.03/agent-ui-plugins/conversation-suggestions": {
       "ConversationSuggestionsPlugin": {
-        "presentation": "Default starters read localized title/label/prompt fields from application/locales.ts, bound by project-config.tsx. getConversationStarterSuggestions(locale, resolvedMessages) in project-config.tsx organizes count/order. Runtime passes the merged project/Host locale messages; do not create Agent suggestions arrays or callbacks. items/renderSuggestion remain data/composition extensions for dynamic business suggestions."
+        "presentation": "Default starter text uses locales.starterSuggestions (title/label/prompt), bound in application/project-config.tsx. getConversationStarterSuggestions(locale, resolvedMessages) maps merged project/Host locale messages into item structure, count and order. To remove descriptions, omit label in the returned items and keep localized title/prompt; empty required locale labels fall back to default text. The project configuration callback is not an Agent suggestions prop. Use sendOnSelect for send versus draft behavior; items/renderSuggestion remain public extensions for dynamic business data."
       }
     }
   }

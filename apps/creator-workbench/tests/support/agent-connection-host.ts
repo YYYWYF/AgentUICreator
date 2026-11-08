@@ -20,7 +20,8 @@ import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void> } = {}) {
+export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; verificationMode?: "static_only" | "static_and_runtime"; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void> } = {}) {
+  const verificationMode = options.verificationMode ?? "static_only";
   // Explicit opt-in for isolated upstream repair experiments. Production builds
   // and the default fixture continue resolving the installed dependency.
   const coreCandidate = process.env.AGENT_UI_TEST_CORE_CANDIDATE;
@@ -141,7 +142,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       await options.prepareHost?.(hostRoot);
     }
     if (options.liveModel) {
-      const environment = { ...process.env, CREATOR_VERIFICATION_MODE: "static_and_runtime", CREATOR_HOT_RELOAD: "0" };
+      const environment = { ...process.env, CREATOR_VERIFICATION_MODE: verificationMode, CREATOR_HOT_RELOAD: "0" };
       const initializationHost = createAgentUIInitializationHost();
       liveWorkspace = new CreatorWorkspaceManager({
         inspectProject: inspectCreatorProject,
@@ -157,7 +158,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       if (ready.status !== "ready" || ready.runtime.status !== "ready") throw new Error("Live Creator startup failed: " + JSON.stringify(ready.status === "ready" ? ready.runtime : ready.status));
     }
     if (!projectChecks && !options.existingHostRoot) await options.prepareHost?.(hostRoot);
-    const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-creator/ui", "@za38.03/agent-ui-creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ ...(options.liveModel ? { workspaceManager:liveWorkspace,configRoot:repository } : { projectRoot:hostRoot }), runtime: { environment: options.liveModel ? { ...process.env, CREATOR_VERIFICATION_MODE: "static_and_runtime" } : { CREATOR_VERIFICATION_MODE: "static_only" },
+    const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-creator/ui", "@za38.03/agent-ui-creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ ...(options.liveModel ? { workspaceManager:liveWorkspace,configRoot:repository } : { projectRoot:hostRoot }), runtime: { environment: options.liveModel ? { ...process.env, CREATOR_VERIFICATION_MODE: verificationMode } : { CREATOR_VERIFICATION_MODE: verificationMode },
       ...(options.themeCommands ? { allowExternalEndpoint: false } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: options.creatorPort ?? 0, strictPort: options.creatorPort !== undefined, hmr: false, fs: { allow: [root, hostRoot, repository, ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
@@ -179,7 +180,7 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       import { connectCreatorHostPreview } from "@za38.03/agent-ui-creator/host-preview";
       function Preview({threadId, workspaceId}) {
         const ref = useRef(null); const [revision, setRevision] = useState(0);
-        useEffect(() => ref.current ? connectCreatorHostPreview(ref.current, {threadId, workspaceId, runtimeDiagnostics:${options.liveModel ? 'true' : 'false'}, visualObservation:false}) : undefined, [threadId, workspaceId, revision]);
+        useEffect(() => ref.current ? connectCreatorHostPreview(ref.current, {threadId, workspaceId, runtimeDiagnostics:${options.liveModel && verificationMode === 'static_and_runtime' ? 'true' : 'false'}, visualObservation:false}) : undefined, [threadId, workspaceId, revision]);
         return <iframe ref={ref} title="Host Application" src=${JSON.stringify(`${hostOrigin}?creator-preview`)} allow="clipboard-write" onLoad={() => setRevision(value => value + 1)} style={{width:"100%",height:"100%",border:0}} />;
       }
       createRoot(document.getElementById("root")).render(<CreatorWorkbench previewWorkspaceId=${JSON.stringify(workspaceId)}>{context => <Preview {...context} />}</CreatorWorkbench>);

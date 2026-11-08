@@ -12,7 +12,8 @@ export interface DocumentationInput {
 const hash = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 const pageSize = 8, tocSize = 32;
 const metadata = (document: DocumentEntry) => ({ documentId: document.id, title: document.title, source: document.source,
-  topic: document.topic, path: document.path, summary: document.summary, sha256: document.sha256 });
+  topic: document.topic, path: document.path, summary: document.summary, sha256: document.sha256,
+  kind: document.source === "internal" ? "reference" : /^guide\/(?:examples|adjustments)\//u.test(document.path) ? "example" : /^(?:plugins|development)\//u.test(document.path) ? "api" : "guide" });
 const nextRead = (documentId: string, sectionId?: string) => ({ tool: "read_creator_documentation", input: {
   action: "read" as const, documentId, ...(sectionId ? { sectionId } : {}),
 } });
@@ -29,6 +30,9 @@ function terms(query: string) {
   const normalized = query.normalize("NFKC").toLocaleLowerCase("en-US");
   const words = [...new Intl.Segmenter("zh", { granularity: "word" }).segment(normalized)]
     .filter(part => part.isWordLike).map(part => part.segment);
+  // Segmenter can keep a dotted API path as one word. Search its actual
+  // identifiers too, while retaining the complete path for exact ranking.
+  words.push(...(normalized.match(/[a-z_$][\w$]*/gu) ?? []));
   // Chinese compounds are often segmented differently in prose and headings.
   for (const sequence of normalized.match(/\p{Script=Han}{2,}/gu) ?? []) {
     for (let i = 0; i < sequence.length - 1; i++) words.push(sequence.slice(i, i + 2));
@@ -72,8 +76,8 @@ export async function readCreatorDocumentation(input: DocumentationInput = {}, d
         requestedTopic: input.topic, availableTopics: [...new Set(documents.filter(document => !input.source || document.source === input.source).map(document => document.topic))].sort(),
         nextRead: { tool: "read_creator_documentation", input: { ...retry, offset: 0 } } };
     }
-    const filtered = documents.filter(document => (!input.source || document.source === input.source) && (!input.topic || document.topic === input.topic));
-    if (!input.query?.trim() && !input.source && !input.topic) {
+    const filtered = documents.filter(document => (!input.source || document.source === input.source) && (!input.topic || document.topic === input.topic) && (!input.documentId || document.id === input.documentId));
+    if (!input.query?.trim() && !input.source && !input.topic && !input.documentId) {
       const topics = new Map<string, { source: string; topic: string; count: number }>();
       for (const document of filtered) {
         const key = `${document.source}:${document.topic}`;
@@ -104,7 +108,9 @@ export async function readCreatorDocumentation(input: DocumentationInput = {}, d
         // ancestor whose range happens to include every descendant chapter.
         const sections = document.sections.map((section, index) => {
           const body = text.slice(section.start, Math.min(section.end, document.sections[index + 1]?.start ?? section.end));
-          return { section, identifiers: identifierMatches(section.title + " " + body), codeScore: codeMatches(body), score: matchScore(section.title, words, weights) * 4 + matchScore(body, words, weights) };
+          const anchor = [...identifiers, ...[...words].sort((a, b) => b.length - a.length)].map(word => body.toLowerCase().indexOf(word)).find(index => index >= 0) ?? 0;
+          const excerpt = body.slice(Math.max(0, anchor - 60), anchor + 180);
+          return { section, excerpt, identifiers: identifierMatches(section.title + " " + body), codeScore: codeMatches(body), score: matchScore(section.title, words, weights) * 4 + matchScore(body, words, weights) };
         }).sort((a, b) => b.identifiers - a.identifiers || b.codeScore - a.codeScore || b.score - a.score || (a.section.end - a.section.start) - (b.section.end - b.section.start));
         const score = matchScore(`${document.title} ${document.id}`, words, weights) * 4 + matchScore(document.summary, words, weights) * 2 + (sections[0]?.score ?? 0);
         return { document, score, codeScore: codeMatches(text), sections, identifiers: identifierMatches(`${document.title} ${document.id} ${document.summary} ${text}`) };
@@ -116,7 +122,9 @@ export async function readCreatorDocumentation(input: DocumentationInput = {}, d
       .sort((a, b) => b.identifiers - a.identifiers || b.codeScore - a.codeScore || b.score - a.score || (a.document.source === b.document.source ? a.document.id.localeCompare(b.document.id) : a.document.source === "public" ? -1 : 1));
     return { ...base, query: input.query ?? "", total: ranked.length, offset,
       entries: ranked.slice(offset, offset + pageSize).map(({ document, sections }) => ({ ...metadata(document),
-        nextRead: nextRead(document.id), matchingSections: words.length ? sections.filter(item => item.score > 0).slice(0, 3).map(({ section }) => ({ sectionId: section.id, title: section.title, nextRead: nextRead(document.id, section.id) })) : [] })),
+        nextRead: nextRead(document.id, words.length ? sections.find(item => item.score > 0)?.section.id : undefined),
+        tableOfContents: nextRead(document.id),
+        matchingSections: words.length ? sections.filter(item => item.score > 0).slice(0, 3).map(({ section, excerpt }) => ({ sectionId: section.id, title: section.title, excerpt, nextRead: nextRead(document.id, section.id) })) : [] })),
       nextOffset: offset + pageSize < ranked.length ? offset + pageSize : null };
   }
   const document = documents.find(entry => entry.id === input.documentId);
@@ -159,12 +167,26 @@ export async function editingDocumentation(pluginId: string | undefined, focus: 
     if (!selected || selected.status === "not_found") selected = await readCreatorDocumentation({ action: "read", documentId: "public:development/plugin-api" }, directory);
     if (!("documentId" in selected) || !("title" in selected) || !("source" in selected)) return { status: selected.status, referenceOnly: true };
     return { status: selected.status, referenceOnly: true, creatorVersion: selected.creatorVersion,
-      entries: [{ documentId: selected.documentId, title: selected.title, source: selected.source, nextRead: nextRead(selected.documentId), matchingSections: [] }] };
+      entries: [{ documentId: selected.documentId, title: selected.title, source: selected.source, kind: selected.kind, nextRead: nextRead(selected.documentId), matchingSections: [] }] };
   }
   const result = await readCreatorDocumentation({ query: focus.slice(0, 300) }, directory);
   if (!("entries" in result)) return { status: result.status, referenceOnly: true };
-  const entries = result.entries.slice(0, 3).map(entry => ({ documentId: entry.documentId, title: entry.title, source: entry.source,
+  const entries = result.entries.slice(0, 3).map(entry => ({ documentId: entry.documentId, title: entry.title, source: entry.source, kind: entry.kind,
     nextRead: entry.nextRead, matchingSections: entry.matchingSections.slice(0, 2) }));
-  return { status: result.status, referenceOnly: true, creatorVersion: result.creatorVersion, entries,
+  if (pluginId) {
+    const documentId = `public:plugins/${pluginId}`;
+    const scoped = await readCreatorDocumentation({ documentId, query: focus.slice(0, 300) }, directory);
+    let anchor = "entries" in scoped ? scoped.entries[0] : undefined;
+    if (!anchor) {
+      const toc = await readCreatorDocumentation({ action: "read", documentId }, directory);
+      if ("documentId" in toc && "sections" in toc) {
+        const section = toc.sections.find(section => /属性|API|Props|定制/iu.test(section.title));
+        anchor = { documentId, title: toc.title, source: toc.source, topic: toc.topic, path: toc.path, summary: toc.summary, sha256: toc.sha256, kind: toc.kind,
+          nextRead: nextRead(documentId, section?.sectionId), tableOfContents: nextRead(documentId), matchingSections: [] };
+      }
+    }
+    if (anchor) entries.unshift({ documentId: anchor.documentId, title: anchor.title, source: anchor.source, kind: anchor.kind, nextRead: anchor.nextRead, matchingSections: anchor.matchingSections.slice(0, 2) });
+  }
+  return { status: result.status, referenceOnly: true, creatorVersion: result.creatorVersion, entries: entries.filter((entry, index) => entries.findIndex(other => other.documentId === entry.documentId) === index).slice(0, 3),
     interpretation: "Versioned documentation navigation, not source reads, installed target API facts or permission. Read relevant sections on demand; ordinary coding and inspection remain available." };
 }

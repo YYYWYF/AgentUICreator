@@ -67,7 +67,8 @@ export async function rememberProjectTargets(context: ToolContext, inspection: R
     const candidate = catalog.candidates?.find((item: any) => item.id === binding.targetId);
     if (!candidate || !binding.ownerPath || !["application_config", "plugin_source"].includes(candidate.kind)) return [];
     return [{ target: { id: candidate.id, kind: candidate.kind, name: candidate.name, entryPath: binding.ownerPath,
-      pluginId: binding.pluginId, definitionPath: binding.definitionPath, manifestPath: binding.manifestPath }, identity }];
+      pluginId: binding.pluginId, definitionPath: binding.definitionPath, manifestPath: binding.manifestPath }, identity,
+      description: candidate.description, intents: candidate.intents, relatedPluginIds: candidate.relatedPluginIds }];
   });
 }
 
@@ -142,9 +143,11 @@ export class EditingSessionStore {
       staticallyVerified: context.activity.validationRevision === context.activity.revision, changes }, savedAt: this.now() });
     while (this.entries.size > this.maxEntries) this.entries.delete(this.entries.keys().next().value!);
   }
-  async prepare(context: ToolContext) {
+  async prepare(context: ToolContext, requestedPluginId?: string) {
     const key = await this.key(context), saved = this.entries.get(key);
     if (!saved) return undefined;
+    // A different explicit target must not pay for reading the previous owner's source.
+    if (requestedPluginId && saved.target.pluginId !== requestedPluginId) return undefined;
     const files: Awaited<ReturnType<typeof readProjectFile>>[] = [];
     const stale = (reason: string) => {
       forgetReadEvidence(context, files.map(file => file.path));

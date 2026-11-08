@@ -10,23 +10,18 @@ title: "组件属性与组合定制"
 
 ## 示例：调整输入框
 
-以 `plugins/composer/index.tsx` 为例，找到已有的 `ConversationCanonicalComposer` JSX，保留已有 `renderSlot(...)` 调用，再设置需要修改的属性：
+新生成的 `plugins/composer/index.tsx` 使用 npm 组件的薄应用入口。保留现有导入、别名和转发参数，在已有 JSX 上设置需要修改的属性：
 
 ```tsx
-<ConversationCanonicalComposer
-  {...props}
-  rows={3}
-  maxLength={2000}
-  triggers={renderSlot('triggers', props.triggers ?? null)}
-  input={renderSlot('input', props.input ?? null)}
-  beforeInput={renderSlot('beforeInput', props.beforeInput ?? null)}
-  leadingActions={renderSlot('leadingActions', props.leadingActions ?? null, { layout: 'inline' })}
-  trailingActions={renderSlot('trailingActions', props.trailingActions ?? null, { layout: 'inline' })}
-  submitAction={renderSlot('submitAction', props.submitAction ?? null, { layout: 'inline' })}
-/>
+import { ConversationComposerPlugin as Composer } from '@za38.03/agent-ui-plugins/composer';
+import type { ComponentProps } from 'react';
+
+export const ConversationComposerPlugin = (props: ComponentProps<typeof Composer>) => {
+  return <Composer {...props} rows={3} maxLength={2000} />;
+};
 ```
 
-这是替换现有 JSX 的局部示例，变量和导入沿用模板。`ConversationCanonicalComposer` 从 `@za38.03/agent-ui-plugins` 导入。
+这是薄应用入口的示例，npm 实现继续负责原有的语义插槽与会话接线。已有源码项目或自定义入口应保留自己的组件、作用域和 `renderSlot(...)` 调用；不要为了套用示例重建入口。底层公开展示组件 `ConversationCanonicalComposer` 仍可用于需要自行组合的场景。
 
 `input` 插槽未配置独立组件时，包内部提供默认输入框，并应用 `rows`、`maxLength`、`submitMode`。该插槽有独立插件或项目传入自定义 React 元素时，它优先显示；这时在那个组件的项目入口中调整输入属性。
 

@@ -124,6 +124,7 @@ it("does not prepare in read-only mode and renders the plan in the Host locale",
 
 it("runs interaction verification on an existing Plugin without a development question", async () => {
   const { context } = await fixture();
+  context.verificationMode = "static_and_runtime";
   context.behaviorVerificationEnabled = true;
   context.validation!.behavior = vi.fn(async (pluginId: string, interactions: string[]) => ({ status: "passed", revision: 0, pluginId, interactions })) as any;
   await createTools(context);

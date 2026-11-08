@@ -4,11 +4,17 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { packageRoot, readSourceLayout, sourcePath } from "./materialize-plugin-sources.mjs";
+import { buildPresentationUsage } from "../../../scripts/plugin-presentation-usage.mjs";
 
 const json = async file => JSON.parse(await readFile(file, "utf8"));
 const pkg = await json(path.join(packageRoot, "package.json"));
 const catalog = await json(path.join(packageRoot, "dist/catalog.json"));
 if (catalog.package.name !== pkg.name || catalog.package.version !== pkg.version) throw new Error("Stale Plugins catalog identity; rebuild before publishing");
+if (JSON.stringify(catalog.presentationUsage) !== JSON.stringify(await buildPresentationUsage(packageRoot))) throw new Error("Stale presentation usage index; rebuild before publishing");
+for (const file of catalog.presentationUsage.files) {
+  const snapshot = await readFile(sourcePath(path.join(packageRoot, "dist"), file.path));
+  if (createHash("sha256").update(snapshot).digest("hex") !== file.sha256) throw new Error(`Stale presentation reference snapshot: ${file.path}`);
+}
 const indexed = new Map([...catalog.plugins.flatMap(plugin => plugin.files), ...catalog.shared].map(file => [file.path, file]));
 for (const entry of (await readSourceLayout()).files) {
   const publishedPath = entry.source.replace(/^src\//u, "sources/");

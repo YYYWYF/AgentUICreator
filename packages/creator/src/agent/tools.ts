@@ -31,6 +31,7 @@ import { EvidenceProgress } from "./evidence-progress.js";
 import { rememberPublicApiRead, projectPublicApiRead } from "./working-context.js";
 import { readCreatorDocumentation } from "./documentation.js";
 import { prepareDevelopment } from "./development-tools.js";
+import { InvestigationState } from "./investigation-state.js";
 
 export interface ToolContext {
   documentationRoot?: string;
@@ -50,6 +51,11 @@ export interface ToolContext {
   messages?: AgentMessages;
   evidenceRevision?: number;
   evidenceProgress?: EvidenceProgress;
+  requiredPostconditions?: CreatorPostcondition[];
+  sourceConditionsFailed?: boolean;
+  sourceVerification?: { status: string; revision: number; checked: number };
+  staticVerification?: { status: string; revision: number; checks?: { command: string; status: string }[]; reusable?: boolean };
+  investigation?: InvestigationState;
   sourceSnapshots?: Map<string, import("./working-context.js").SourceSnapshot>;
   publicApiSnapshots?: Map<string, import("./working-context.js").PublicApiSnapshot>;
   metrics?: { modelCalls: number; toolCalls: number };
@@ -65,7 +71,7 @@ export interface ToolContext {
   readRanges?: Map<string, { hash: string; start: number; end: number }[]>;
   editingSelection?: EditingSelection;
   pluginOwnerships?: Map<string, { pluginId: string; entryPath?: string; assetOwnership?: string; implementationOwnership: "npm" | "project" | "unknown" }>;
-  editingTargets?: { target: EditingTarget; identity: string }[];
+  editingTargets?: { target: EditingTarget; identity: string; description?: string; intents?: string[]; relatedPluginIds?: string[] }[];
   noChangeOutcome?: { toolName: string; status: "already_current" | "declined"; identity: string; file?: { path: string; hash: string }; metadataOnly?: boolean; postconditions?: CreatorPostcondition[] };
 }
 const READ_TOOLS = new Set(["verify_creator_outcome", "ls", "glob", "grep", "read_file", "read_creator_context", "read_creator_documentation", "ask_user_question", "inspect_ui_edit_context", "inspect_ui_project", "inspect_app_ui_model", "inspect_ui_plugin", "inspect_ui_capabilities", "enable_creator_tools", "inspect_static_diagnostics", "inspect_runtime_errors", "inspect_runtime_layout", "inspect_creator_transactions", "inspect_creator_transaction"]);
@@ -78,7 +84,11 @@ export const TOOL_GROUPS: Record<string, string[]> = {
   debugging: ["inspect_static_diagnostics", "inspect_runtime_errors", "inspect_runtime_layout", "select_debugging_target", "select_all_current_runtime_diagnostics"],
   history: ["inspect_creator_transactions", "inspect_creator_transaction", "inspect_creator_transaction_change", "inspect_creator_baseline", "undo_creator_run", "undo_creator_changes", "reapply_creator_changes"],
 };
+export function verificationToolDisabled(name: string, context: ToolContext): boolean {
+  return context.verificationMode === "static_only" && ["inspect_runtime_errors", "inspect_runtime_layout", "select_all_current_runtime_diagnostics", "verify_ui_plugin_behavior"].includes(name);
+}
 export function visibleTool(name: string, context: ToolContext): boolean {
+  if (verificationToolDisabled(name, context)) return false;
   if (name === "verify_ui_plugin_behavior" && !context.behaviorVerificationEnabled) return false;
   return (CORE.has(name) || [...context.groups].some(group => TOOL_GROUPS[group]?.includes(name))) && (!context.readOnly || READ_TOOLS.has(name) || /^(inspect_|list_|plan_|verify_agent_ui_integration)/u.test(name));
 }
@@ -117,20 +127,30 @@ export async function createTools(context: ToolContext) {
   const messages = context.messages ?? defaultAgentMessages;
   context.debugging ??= new DebuggingEvidence();
   context.recovery ??= new ToolRecovery();
+  context.investigation ??= new InvestigationState();
   context.validation ??= new CreatorValidation(context.root, context.activity, () => context.signal, context.debugging);
   const contracts = await agentContracts(context.contracts);
   const { operations, inputSchema } = await operatorContracts(context.contracts);
   const tools: any[] = [];
   const add = (name: string, description: string, schema: any, invoke: (input: any) => Promise<any> | any) => {
-    const admitted = (input: any) => { assertExecutionOpen(context); return invoke(input); };
+    const admitted = (input: any) => {
+      assertExecutionOpen(context);
+      if (verificationToolDisabled(name, context)) throw new Error("CREATOR_RUNTIME_VERIFICATION_DISABLED");
+      return invoke(input);
+    };
     (context.hostTools ??= new Map()).set(name, admitted);
     tools.push(tool(async (input: any) => {
+      const started = performance.now();
       context.signal.throwIfAborted();
       try {
         const readIdentity = toolReadIdentity(name, input);
         if (readIdentity) await context.activity.log("tool_read_request", { toolName: name, input: readIdentity, revision: context.activity.revision });
         if (/^(?:edit_|create_|delete_|mutate_|takeover_|purge_|apply_|undo_|reapply_)/u.test(name)) delete context.noChangeOutcome;
         const result = await admitted(input);
+        const investigation = context.investigation!.record(name, input, result, context.activity.revision);
+        if (investigation) await context.activity.log("investigation_repeated_observation", { toolName: name, revision: context.activity.revision });
+        if (["inspect_ui_plugin", "inspect_ui_edit_context"].includes(name)) rememberPublicApiRead(context, result,
+          [input.focus, input.query, ...(input.sharedSymbols ?? [])].filter((value): value is string => typeof value === "string"));
         if (!READ_TOOLS.has(name) && result && (result.changed === false || result.status === "declined")) {
           const identity = await projectCheckIdentity(context.root, context.signal);
           if (identity !== undefined) context.noChangeOutcome = { toolName: name, status: result.status === "declined" ? "declined" : "already_current", identity };
@@ -147,9 +167,9 @@ export async function createTools(context: ToolContext) {
           await context.activity.log("evidence_progress", { toolName: name, newEvidence: progress.newEvidence, unchangedReads: progress.unchangedReads, revision: context.activity.revision });
         }
         (context.toolObservations ??= []).push({ toolName: name, status: "success" });
-        await context.activity.log("tool_finished", { toolName: name, status: "success", revision: context.activity.revision });
+        await context.activity.log("tool_finished", { toolName: name, status: "success", revision: context.activity.revision, durationMs: performance.now() - started });
         const recovery = context.recovery!.search(name, input, result, context.activity.revision);
-        return json({ ok: true, result, ...(recovery ? { recovery } : {}) });
+        return json({ ok: true, result, ...(recovery ? { recovery } : {}), ...(investigation ? { investigation } : {}) });
       }
       catch (error) {
         if (isGraphInterrupt(error)) throw error;
@@ -164,7 +184,8 @@ export async function createTools(context: ToolContext) {
             purpose: "For rendered UI dimensions, actual container/attribute locations and computed layout styles. Enable debugging alone first. This does not read npm implementation or protected configuration." }, ...failure.recovery.alternatives] };
         }
         const recovery = context.recovery!.failure(error);
-        await context.activity.log("tool_finished", { toolName: name, status: "error", code, revision: context.activity.revision,
+        context.investigation!.record(name, input, { code, reason: failure.reason, scope: failure.scope, recovery }, context.activity.revision, true);
+        await context.activity.log("tool_finished", { toolName: name, status: "error", code, revision: context.activity.revision, durationMs: performance.now() - started,
           ...(recovery ? { recovery, reason: (error as any).reason, scope: (error as any).scope } : {}) });
         if (["CREATOR_OPERATOR_RESTART_REQUIRED", "CREATOR_OPERATOR_RESULT_CONTRACT_INVALID", "OPERATOR_RESULT_CONTRACT_VIOLATION", "OPERATOR_TIMEOUT", "OPERATOR_OUTPUT_LIMIT", "CREATOR_RUN_FILE_CHANGED_EXTERNALLY", "CREATOR_TRANSACTION_SNAPSHOT_TOO_LARGE", "CREATOR_TRANSACTION_TOO_LARGE", "CREATOR_FILE_INVENTORY_LIMIT"].includes(code)) context.blocker = { code, message: (error as Error).message };
         if (failure.category === "workspace_integrity" && (failure.automaticRepairAllowed !== true || failure.recovery?.action === "stop_and_report_blocker")) context.blocker = { code, message: (error as Error).message };
@@ -224,7 +245,6 @@ export async function createTools(context: ToolContext) {
         const referenceOnly = Boolean(input.sharedModule || input.sharedSymbols?.length);
         try { await rememberInspectedPlugin(context, result, { referenceOnly }); }
         catch { context.signal.throwIfAborted(); if (!referenceOnly) delete context.editingSelection; }
-        rememberPublicApiRead(context, result);
         if (referenceOnly) result = projectPublicApiRead(result, input.pluginId);
       }
       if (operation.name === "inspect_ui_project") await rememberProjectTargets(context, result);
@@ -238,8 +258,8 @@ export async function createTools(context: ToolContext) {
   add("enable_creator_tools", "Expose tool schemas for subsequent calls. Discovery never grants write permission.", z.object({ groups: z.array(z.enum(["composition", "plugin_authoring", "services", "integration", "debugging", "history"])) }), input => { for (const group of input.groups) context.groups.add(group); return { enabledGroups: [...context.groups] }; });
   add("inspect_ui_edit_context", "Get editing context for an official OR custom project Plugin: owner, fresh source pages and local imports, definition/manifest/slots, instances, Service dependencies, parent composition, installed public API/shared types and documentation section links. Use pluginId/targetId when known, or query current owners. Optional sharedSymbols/sharedModule use the same installed-type lookup as inspect_ui_plugin. Follow coverage.fileNavigation.nextRead for omitted source and references.documentation for relevant docs. Reads grant no write/development/takeover permission. Ordinary coding tools remain available.", editContextInput, input => inspectEditingContext(context, input));
   add("read_file", "Read a virtual project path or /skills/ resource. Read edit targets before editing. Paths use / on every OS.", z.object({ file_path: z.string(), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(2000).default(2000) }), input => readProjectFile(context, input));
-  add("read_creator_documentation", "Browse packaged public and internal reference docs without loading whole books. Start with action=index for topics; use query (Chinese or English), topic/source and offset to find documents (8/page). action=read with documentId returns a table of contents (32/page); add sectionId for bounded text (limit characters, max 8000). Follow nextRead/nextOffset. References describe this Creator version; inspect actual target code and installed APIs before editing. This tool grants no write authority or source freshness.", z.object({ action: z.enum(["index", "read"]).default("index"), query: z.string().max(300).optional(), topic: z.string().max(150).optional(), source: z.enum(["public", "internal"]).optional(), documentId: z.string().max(300).optional(), sectionId: z.string().max(80).optional(), offset: z.number().int().min(0).default(0), limit: z.number().int().min(2).max(8000).default(4000) }), input => readCreatorDocumentation(input, context.documentationRoot));
-  add("read_creator_context", "Read an exact run-local archived tool snapshot by artifactId and JSON path (for example [result, files, 0]). Use artifactId 'list' with empty path to discover full IDs if a summary abbreviated them. Use keys to navigate, then offset/limit character pages, including the index. This reads historical data only, never grants permission or refreshes filesystem observations. Ordinary source reads remain available.", z.object({ artifactId: z.union([z.literal("list"), z.string().regex(/^ctx-[a-f0-9]{64}$/u)]), path: z.array(z.union([z.string(), z.number().int().min(0)])).max(16).default([]), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(8000).default(2400) }), input => {
+  add("read_creator_documentation", "Browse packaged public and internal reference docs without loading whole books. Use action=index with query (Chinese or English) for matching sections (8 documents/page); documentId optionally scopes the search to a known document. Follow the matching section nextRead directly; tableOfContents is optional navigation. Without filters the index lists topics. action=read with documentId returns a table of contents (32/page); add sectionId for bounded text (limit characters, max 8000). Follow nextRead/nextOffset. References describe this Creator version; inspect actual target code and installed APIs before editing. This tool grants no write authority or source freshness.", z.object({ action: z.enum(["index", "read"]).default("index"), query: z.string().max(300).optional(), topic: z.string().max(150).optional(), source: z.enum(["public", "internal"]).optional(), documentId: z.string().max(300).optional(), sectionId: z.string().max(80).optional(), offset: z.number().int().min(0).default(0), limit: z.number().int().min(2).max(8000).default(4000) }), input => readCreatorDocumentation(input, context.documentationRoot));
+  add("read_creator_context", "Read an exact run-local archived tool snapshot or submitted conversation history by artifactId and JSON path (for example [result, files, 0] or [result, messages, 0, content]). Use artifactId 'list' with empty path to discover full IDs if a summary abbreviated them. Use keys to navigate, then offset/limit character pages, including the index. This reads historical data only, never grants permission or refreshes filesystem observations. Ordinary source reads remain available.", z.object({ artifactId: z.union([z.literal("list"), z.string().regex(/^ctx-[a-f0-9]{64}$/u)]), path: z.array(z.union([z.string(), z.number().int().min(0)])).max(16).default([]), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(8000).default(2400) }), input => {
     if (!context.contextWindow) throw new Error("CREATOR_CONTEXT_ARTIFACT_NOT_FOUND");
     return context.contextWindow.artifacts.read(input.artifactId, input.path, input.offset, input.limit);
   });
@@ -357,7 +377,18 @@ export async function createTools(context: ToolContext) {
     return prepareDevelopment(context, input);
   });
   add("inspect_ui_capabilities", "Inspect installed capabilities and current project composition; no ownership or mutation authority is granted.", z.object({}), async () => ({ plugins: await requestOperator(context.root, "list_ui_plugins", {}, context.signal), services: await requestOperator(context.root, "inspect_ui_services", {}, context.signal) }));
-  add("validate_creator_changes", "Synchronize changed Plugin manifests/definitions into the generated registry, then run target typecheck and structural validation for the current revision, optionally build. This is the registry synchronization entry; do not search for a project generator script or hand-edit the registry. With includeBuild=true call this tool alone. Preserve unrelated baseline diagnostics as warnings in delta mode. Identical successful checks may be reused; force reruns them.", z.object({ includeBuild: z.boolean().default(false), mode: z.enum(["delta", "clean"]).default("delta"), force: z.boolean().default(false) }), input => context.validation!.validate(input));
+  add("validate_creator_changes", "Synchronize changed Plugin manifests/definitions into the generated registry, then run target typecheck and structural validation for the current revision, optionally build. This is the registry synchronization entry; do not search for a project generator script or hand-edit the registry. With includeBuild=true call this tool alone. Preserve unrelated baseline diagnostics as warnings in delta mode. Identical successful checks may be reused; force reruns them. Optional postconditions verify requested source/composition conditions in this same call; use them for preservation checks instead of separate reads. These are static conditions, not interaction tests.", z.object({ includeBuild: z.boolean().default(false), mode: z.enum(["delta", "clean"]).default("delta"), force: z.boolean().default(false), postconditions: creatorPostconditions.optional() }), async input => {
+    const result = await context.validation!.validate(input);
+    if (!input.postconditions) return result;
+    context.requiredPostconditions = input.postconditions;
+    const sourceConditions = await checkCreatorPostconditions(context, input.postconditions);
+    context.sourceConditionsFailed = sourceConditions.status !== "satisfied";
+    context.sourceVerification = { status: sourceConditions.status, revision: context.activity.revision, checked: input.postconditions.length };
+    if (result.status === "passed" && !context.sourceConditionsFailed) {
+      context.noChangeOutcome = { toolName: "validate_creator_changes", status: "already_current", identity: "", postconditions: input.postconditions };
+    } else delete context.noChangeOutcome;
+    return { ...result, sourceConditions };
+  });
   add("inspect_static_diagnostics", "Inspect current target TypeScript and structural diagnostics without claiming visual acceptance.", z.object({}), async () => { const result = await context.validation!.inspectStatic(); context.debugging!.observeStatic(result); return result; });
   add("inspect_runtime_errors", "Inspect diagnostics bound to this thread and the current AppUIModel hash. Stale or unavailable evidence is not a pass.", z.object({ includeStale: z.boolean().default(false) }), input => inspectRuntime(context, input));
   add("inspect_runtime_layout", "Request fresh bounded geometry, semantic-region structure and computed layout styles from the connected preview. Inspect zero widths and actual attribute locations using these facts before repeating source searches. Use current inspect_ui_project instance IDs and nodeRefs; runtime nodeId and arbitrary DOM selectors are not nodeRefs. Omit filters to discover geometry and root structure; narrow filters for truncated structure. No page text, input values or arbitrary JavaScript. A bounded refresh timeout is an observation gap, not a source defect.", z.object({ instanceIds: z.union([z.string(), z.array(z.string()).max(50)]).optional(), nodeRefs: z.union([z.string(), z.array(z.string()).max(50)]).optional() }), input => inspectRuntime(context, { ...input, refresh: true }));

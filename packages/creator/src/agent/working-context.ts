@@ -14,7 +14,7 @@ export function projectPublicApiRead(result: any, pluginId: string) {
 }
 
 /** Retain bounded, actually returned signatures, never guessed or missing APIs. */
-export function rememberPublicApiRead(context: ToolContext, result: any) {
+export function rememberPublicApiRead(context: ToolContext, result: any, queries: readonly string[] = []) {
   const shared = result?.sharedTypes ?? result?.application?.sharedTypes ?? result?.references?.sharedTypes;
   if (shared?.status !== "available" || !shared.module || !shared.packageVersion) return;
   const cache = context.publicApiSnapshots ??= new Map();
@@ -22,10 +22,20 @@ export function rememberPublicApiRead(context: ToolContext, result: any) {
   for (const symbol of shared.symbols ?? []) {
     const key = `${shared.module}:${symbol.name}`;
     if (symbol.status !== "available") { cache.delete(key); continue; }
+    const normalized = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+    const hints = normalized([context.userMessage, context.editingSelection?.target?.id, ...queries,
+      ...Object.values(result?.application?.publicApi?.localizedDefaults ?? result?.references?.publicApi?.localizedDefaults ?? {})].join(" "));
+    const members = [...(symbol.members ?? [])].sort((a: any, b: any) => Number(hints.includes(normalized(b.name))) - Number(hints.includes(normalized(a.name))));
+    const names = [...new Set<string>([...(symbol.memberNames ?? []), ...(symbol.members ?? []).map((member: any) => member.name)])];
+    const pluginId = result?.pluginId ?? result?.asset?.pluginId ?? result?.plugin?.pluginId ?? context.editingSelection?.target?.pluginId;
     const snapshot = { name: symbol.name,
+      ...(pluginId ? { nextRead: { tool: "inspect_ui_plugin", input: { pluginId, sharedModule: shared.module, sharedSymbols: [symbol.name] } } } : {}),
       ...(typeof symbol.type === "string" && symbol.type.length <= 1000 ? { type: symbol.type, truncated: symbol.truncated } : { detailsOmitted: true }),
-      ...(symbol.members?.length ? { members: symbol.members.filter((member: any) => typeof member.type === "string" && member.type.length <= 500).slice(0, 4),
-        membersOmitted: Boolean(symbol.membersTruncated || symbol.members.length > 4 || symbol.members.some((member: any) => typeof member.type !== "string" || member.type.length > 500)) } : {}) };
+      ...(names.length ? { memberNames: names.slice(0, 128), memberNamesOmitted: Boolean(symbol.memberNamesTruncated || names.length > 128),
+        queryGuidance: "Query the required export.member through inspect_ui_plugin sharedSymbols in this same module; omitted details are not missing APIs." } : {}),
+      ...(members.length ? { members: members.slice(0, 6).map((member: any) => ({ name: member.name,
+        ...(typeof member.type === "string" ? { type: member.type.slice(0, 400), truncated: Boolean(member.truncated || member.type.length > 400) } : { detailsOmitted: true }) })),
+        membersOmitted: Boolean(symbol.membersTruncated || members.length > 6) } : {}) };
     cache.delete(key); cache.set(key, { module: shared.module, packageVersion: shared.packageVersion, symbol: snapshot });
   }
   while (cache.size > 16) cache.delete(cache.keys().next().value!);
@@ -35,8 +45,14 @@ export function workingPublicApiContext(context: ToolContext, maximumTokens: num
   const observations: PublicApiSnapshot[] = [];
   const make = () => new HumanMessage("Host same-run installed API observations (reference data, not permission or behavior verification; re-inspect after dependency changes).\n" + JSON.stringify({ observations }));
   for (const value of [...(context.publicApiSnapshots?.values() ?? [])].reverse()) {
-    observations.push(value);
-    if (Math.ceil(Buffer.byteLength(JSON.stringify(make().content), "utf8") / 3) + 64 > maximumTokens) observations.pop();
+    const item = structuredClone(value);
+    observations.push(item);
+    const fits = () => Math.ceil(Buffer.byteLength(JSON.stringify(make().content), "utf8") / 3) + 64 <= maximumTokens;
+    // Keep navigation to later members even when expanded signatures do not fit.
+    while (!fits() && Array.isArray(item.symbol.members) && item.symbol.members.length) { item.symbol.members.pop(); item.symbol.membersOmitted = true; }
+    if (!fits()) { delete item.symbol.type; item.symbol.detailsOmitted = true; }
+    while (!fits() && Array.isArray(item.symbol.memberNames) && item.symbol.memberNames.length) { item.symbol.memberNames.pop(); item.symbol.memberNamesOmitted = true; }
+    if (!fits()) observations.pop();
     if (observations.length >= 6) break;
   }
   return observations.length ? [make()] : [];
@@ -79,7 +95,19 @@ export function workingContext(context: ToolContext, maximumTokens: number) {
   const used = decisions.reduce((sum, message) => sum + Math.ceil(Buffer.byteLength(JSON.stringify(message.content), "utf8") / 3) + 64, 0);
   const apis = workingPublicApiContext(context, Math.min(700, Math.max(0, maximumTokens - used) / 3));
   const apiUsed = apis.reduce((sum, message) => sum + Math.ceil(Buffer.byteLength(JSON.stringify(message.content), "utf8") / 3) + 64, 0);
-  return [...decisions, ...apis, ...workingSourceContext(context, Math.max(0, maximumTokens - used - apiUsed))];
+  const investigation = context.investigation?.context(Math.min(900, Math.max(0, maximumTokens - used - apiUsed) / 2), context.activity.revision, context.groups ?? []) ?? [];
+  const investigationUsed = investigation.reduce((sum, message) => sum + Math.ceil(Buffer.byteLength(JSON.stringify(message.content), "utf8") / 3) + 64, 0);
+  const completion = new HumanMessage("Host recorded completion evidence (not proof all requested code is implemented):\n" + JSON.stringify({
+    policy: context.verificationMode, revision: context.activity.revision, staticValidation: context.staticVerification,
+    sourceConditions: context.sourceVerification ? { ...context.sourceVerification, historicalRevision: context.sourceVerification.revision !== context.activity.revision } : undefined,
+    guidance: context.verificationMode === "static_only"
+      ? "Finish when all requested code changes are implemented and this revision passes required static checks. Do not investigate browser/interaction acceptance, search for visual tests or query Runtime to close this task. An intermediate static pass does not finish unimplemented work. Further investigation needs a concrete remaining code requirement, failed check or conflict."
+      : "Use the configured verification policy; source/static observations do not establish interaction acceptance.",
+  }));
+  const completionUsed = Math.ceil(Buffer.byteLength(JSON.stringify(completion.content), "utf8") / 3) + 64;
+  const remaining = Math.max(0, maximumTokens - used - apiUsed - investigationUsed);
+  const completionMessages = completionUsed <= Math.min(550, remaining) ? [completion] : [];
+  return [...decisions, ...apis, ...investigation, ...completionMessages, ...workingSourceContext(context, Math.max(0, remaining - (completionMessages.length ? completionUsed : 0)))];
 }
 
 /** Cache only text actually returned by a same-run read. This does not read files or grant evidence. */
@@ -107,13 +135,13 @@ export function rememberSourceRead(context: ToolContext, result: { path: string;
 
 /** Keep the working source outside lossy summaries, within the same model-input budget. */
 export function workingSourceContext(context: ToolContext, maxEstimatedTokens: number) {
-  const cache = context.sourceSnapshots;
-  if (!cache?.size || maxEstimatedTokens < 200) return [];
-  const files: (SourceSnapshot & { readInCurrentRun: true })[] = [];
+  const cache = context.sourceSnapshots ?? new Map<string, SourceSnapshot>();
+  if ((!cache.size && !context.activity.after?.size) || maxEstimatedTokens < 200) return [];
+  const files: (SourceSnapshot & { readInCurrentRun?: true; committedInCurrentRun?: true })[] = [];
   const preferred = context.editingSelection?.filePaths ?? [];
   const metadata = (file: string) => /(?:^|\/)(?:(?:manifest|application)\.json|definition\.[cm]?[jt]s)$/u.test(file);
   const code = (file: string) => !metadata(file) && /\.[cm]?[jt]sx?$/iu.test(file);
-  const recent = [...cache.keys()].reverse();
+  const recent = [...new Set([...cache.keys(), ...(context.activity.after?.keys() ?? [])])].reverse();
   const entry = context.editingSelection?.target?.entryPath;
   const directory = entry?.slice(0, entry.lastIndexOf("/") + 1);
   const primary = entry && code(entry) ? entry : preferred.find(file => code(file) && directory && file.startsWith(directory))
@@ -127,13 +155,26 @@ export function workingSourceContext(context: ToolContext, maxEstimatedTokens: n
     ...preferred.filter(file => !metadata(file)), ...recent.filter(file => !metadata(file)),
     ...preferred, ...recent,
   ])];
-  const make = () => new HumanMessage("Host same-run source observations (data, not authorization; original file-hash guards still apply):\n" + JSON.stringify({ files }));
+  const make = () => new HumanMessage("Host same-run source observations (data, not authorization). committedInCurrentRun records successfully written bytes, not a fresh read or edit-range grant. External changes still require current reads/hash checks; original edit guards apply:\n" + JSON.stringify({ files }));
   const fits = () => Math.ceil(Buffer.byteLength(JSON.stringify(make().content), "utf8") / 3) + 64 <= maxEstimatedTokens;
   for (const file of candidates) {
-    const saved = cache.get(file);
-    if (!saved || context.activity.observations.get(file)?.hash !== saved.hash ||
-      !context.readRanges?.get(file)?.some(range => range.hash === saved.hash && range.start <= saved.start && range.end >= saved.end)) continue;
-    const entry = { ...saved, readInCurrentRun: true as const }; files.push(entry);
+    const saved = cache.get(file), written = context.activity.after?.get(file);
+    const observedHash = context.activity.observations.get(file)?.hash;
+    let entry: typeof files[number];
+    if (written?.exists && typeof written.content === "string" && written.hash === observedHash) {
+      const lines = written.content.split(/\r?\n/u), selected: string[] = [];
+      for (const [index, line] of lines.slice(0, 120).entries()) {
+        const numbered = `${index + 1}: ${line}`;
+        if (selected.join("\n").length + numbered.length > 6000) break;
+        selected.push(numbered);
+      }
+      entry = { path: file, hash: written.hash, content: selected.join("\n"), start: 1, end: selected.length,
+        truncated: selected.length < lines.length, committedInCurrentRun: true };
+    } else {
+      if (!saved || observedHash !== saved.hash || !context.readRanges?.get(file)?.some(range => range.hash === saved.hash && range.start <= saved.start && range.end >= saved.end)) continue;
+      entry = { ...saved, readInCurrentRun: true };
+    }
+    files.push(entry);
     const lines = entry.content.split("\n");
     while (lines.length && !fits()) { lines.pop(); entry.content = lines.join("\n"); entry.end = entry.start + lines.length - 1; entry.truncated = true; }
     if (!lines.length) files.pop();

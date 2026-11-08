@@ -58,17 +58,30 @@ title: "开场建议（conversation-suggestions）"
 
 ### 设置建议内容
 
-业务问题保存在项目组件中，例如在已有 JSX 中传入：
+默认推荐问题的文案在 `application/locales.ts` 的 `starterSuggestions` 中维护，`application/project-config.tsx` 将解析后的项目和 Host 文案映射为建议项。修改点击行为时，保留内容来源，在现有薄应用入口设置公开属性：
 
 ```tsx
-<ConversationCanonicalSuggestions
-  {...props}
-  items={[{ title: '查询账单', prompt: '查询我本月的账单' }]}
-  buttonProps={{ ...props.triggerProps, send: false }}
-/>
+import { ConversationSuggestionsPlugin as Suggestions } from '@za38.03/agent-ui-plugins/conversation-suggestions';
+import type { ComponentProps } from 'react';
+
+export const ConversationSuggestionsPlugin = (props: ComponentProps<typeof Suggestions>) => {
+  return <Suggestions {...props} sendOnSelect={false} />;
+};
 ```
 
-这里的标题和问题由项目维护；通用包不预置银行业务问题。插件按钮等固定文案仍使用统一语言层。
+`false` 表示只写入草稿；默认 `true` 表示立即发送。不要把 `send` 放入 `buttonProps`，它由 `sendOnSelect` 管理。动态业务建议也可以通过公开 `items` 或 `renderSuggestion` 定制。
+
+要移除标题下方的附加说明，在 `project-config.tsx` 的现有 `getConversationStarterSuggestions` 回调中省略 `label`，保留其他项目配置和文案绑定：
+
+```tsx
+getConversationStarterSuggestions: (_locale, messages) => [
+  { title: messages.architectureTitle, prompt: messages.architecturePrompt },
+  { title: messages.debugTitle, prompt: messages.debugPrompt },
+  { title: messages.nextTitle, prompt: messages.nextPrompt },
+],
+```
+
+将必需的 locale 标签设为 `''` 会回退到默认文案，不能用于隐藏说明。`title` 控制展示标题，`prompt` 控制发送内容；检查两种语言下完整问句、说明是否存在及实际发送行为。
 
 ### 类型说明
 

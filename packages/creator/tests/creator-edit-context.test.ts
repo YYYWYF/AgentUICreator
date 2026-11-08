@@ -12,7 +12,8 @@ import { CreatorAgentRuntime } from "../src/agent/runner.js";
 import { CreatorValidation } from "../src/agent/validation.js";
 import { creatorContentHash } from "../src/agent/files/creatorFileState.js";
 import { inspectEditingContext, findEditingTargets, requestedEditingPlugin } from "../src/agent/edit-context.js";
-import { EditingSessionStore } from "../src/agent/editing-session.js";
+import { EditingSessionStore, rememberProjectTargets } from "../src/agent/editing-session.js";
+import { rememberPublicApiRead, workingPublicApiContext } from "../src/agent/working-context.js";
 import { inspectProject, projectInspectionSummary } from "../src/agent/inspection.js";
 import { readProjectFile, logicalProjectPath } from "../src/agent/project-read.js";
 import { preparePluginDirectory, projectPluginDirectory } from "../src/agent/plugin-directory.js";
@@ -273,6 +274,20 @@ it("supports working sets established by ordinary plugin inspection and read_fil
   await sessions.remember(context);
   expect(await sessions.prepare(next(context))).toMatchObject({ status: "fresh", target: { entryPath: entry } });
   expect(state.inspect).toHaveBeenCalledTimes(1);
+});
+
+it("skips the prior owner's reads for a different explicit target while preserving same-target continuation", async () => {
+  const context = await project(), sessions = new EditingSessionStore();
+  state.inspect.mockImplementation(() => inspectResult(context.root));
+  await inspectEditingContext(context, { pluginId: "composer" });
+  await sessions.remember(context);
+  const switched = next(context);
+  expect(await sessions.prepare(switched, "tool-fallback")).toBeUndefined();
+  expect(switched.activity.observations.get(entry)).toBeUndefined();
+  expect(switched.editingSelection).toBeUndefined();
+  const continued = next(context);
+  expect(await sessions.prepare(continued, "composer")).toMatchObject({ status: "fresh", target: { pluginId: "composer" } });
+  expect(continued.activity.observations.get(entry)?.exists).toBe(true);
 });
 
 it("keeps the selected owner and its source closure while querying another Plugin's installed public types", async () => {
@@ -924,6 +939,81 @@ it("reuses only successful checks of unchanged contents within the same run, wit
   await validation.validate({ mode: "clean" }); expect(script).toHaveBeenCalledTimes(5);
   await validation.validate({ includeBuild: true }); expect(script).toHaveBeenCalledTimes(7);
 });
+it("invalidates completion evidence after external changes or a later failing check", async () => {
+  const context = await project(), validation = new CreatorValidation(context.root, context.activity, () => context.signal);
+  context.activity.revision = 1;
+  state.inspect.mockResolvedValue({ status: "passed", errors: [] });
+  const script = vi.spyOn(validation as any, "script").mockResolvedValue({ command: "typecheck", status: "passed", exitCode: 0, output: "", truncated: false, revision: 1 });
+  await validation.validate({});
+  expect(await validation.currentStatus()).toMatchObject({ status: "passed", revision: 1, reusable: true });
+  await writeFile(path.join(context.root, entry), "external edit");
+  expect(await validation.currentStatus()).toMatchObject({ status: "stale" });
+  expect(context.activity.validationRevision).toBeNull();
+  expect(await validation.currentStatus()).toMatchObject({ status: "not-run" });
+  await validation.validate({});
+  script.mockResolvedValue({ command: "typecheck", status: "failed", exitCode: 1, output: "src/a.ts(1,1): error TS1001: introduced", truncated: false, revision: 1 });
+  expect(await validation.validate({ force: true })).toMatchObject({ status: "failed" });
+  expect(await validation.currentStatus()).toMatchObject({ status: "failed" });
+  expect(context.activity.validationRevision).toBeNull();
+});
+
+it("combines required source conditions with static validation without claiming interaction proof", async () => {
+  const context = await project(); passingValidation();
+  const tools = await createTools(context), validate = tools.find(tool => tool.name === "validate_creator_changes")!;
+  const postconditions = [{ kind: "file_text", path: entry, text: "minHeight: 48", present: true }];
+  const result = JSON.parse(await validate.invoke({ postconditions }));
+  expect(result).toMatchObject({ ok: true, result: { status: "passed", sourceConditions: { status: "satisfied" } } });
+  expect(context.requiredPostconditions).toEqual(postconditions);
+  expect(context.sourceConditionsFailed).toBe(false);
+  expect(context.noChangeOutcome?.postconditions).toEqual(postconditions);
+  expect(result.result.sourceConditions.evidenceBoundary).toContain("not runtime behavior");
+});
+
+it("continues a multi-file implementation after an intermediate static pass", async () => {
+  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
+  const calls = [new AIMessage('{"permission":"domain_write"}'),
+    call("create_ui_source_file", { path: "src/应用/helpers/first.ts", content: "export const first = 1;" }, "first"),
+    call("validate_creator_changes", {}, "midpoint"),
+    call("create_ui_source_file", { path: "src/应用/helpers/second.ts", content: "export const second = 2;" }, "second"),
+    call("validate_creator_changes", {}, "final-check"), new AIMessage("Both requested files are complete and statically checked.")];
+  state.model = new ScriptedModel(index => calls[index]!);
+  const events: any[] = [], runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
+  await runtime.run({ threadId: "multi-file", runId: "multi-file-1", messages: [{role:"user",content:"创建两个辅助文件，完成后做静态检查"}] }, context.signal, async e => { events.push(e); });
+  expect(await readFile(path.join(context.root,"src/应用/helpers/second.ts"),"utf8")).toContain("second = 2");
+  expect(events.at(-1).result).toMatchObject({ completion: "success", receipt: { verification: { projectRevision: 2, validationRevision: 2 } } });
+  expect(events.filter(e=>e.type==="TOOL_CALL_START").map(e=>e.toolCallName)).toEqual(["create_ui_source_file","validate_creator_changes","create_ui_source_file","validate_creator_changes"]);
+});
+
+it("keeps source-condition failures open until the remaining code is repaired", async () => {
+  const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
+  const file = "src/应用/helpers/flag.ts";
+  const sequence = [new AIMessage('{"permission":"domain_write"}'),
+    call("create_ui_source_file", {path:file,content:"export const flag = 1;"}, "create-flag"),
+    call("validate_creator_changes", {postconditions:[{kind:"file_text",path:file,text:"flag = 2",present:true}]}, "check-flag"),
+    new AIMessage("done"),
+    call("read_file", {file_path:file}, "read-flag"),
+    call("edit_file", {file_path:file,old_string:"flag = 1",new_string:"flag = 2",replace_all:false}, "repair-flag"),
+    call("validate_creator_changes", {}, "recheck-flag"), new AIMessage("Implemented and checked.")];
+  let sawRepairGuidance = false;
+  state.model = new ScriptedModel((index,messages)=>{
+    sawRepairGuidance ||= JSON.stringify(messages).includes("source conditions supplied with static validation are not satisfied");
+    return sequence[index]!;
+  });
+  const events:any[]=[];await new CreatorAgentRuntime(context.root,context.skills,contracts).run({threadId:"source-condition",runId:"source-condition-1",messages:[{role:"user",content:"把辅助变量设为2"}]},context.signal,async e=>{events.push(e)});
+  expect(await readFile(path.join(context.root,file),"utf8")).toContain("flag = 2");
+  expect(events.at(-1).result.completion).toBe("success");
+  expect(sawRepairGuidance).toBe(true);
+});
+
+it("does not let a committed source preview grant fresh edit-line ranges", async () => {
+  const context=await project();passingValidation();const tools=await createTools(context);
+  await readProjectFile(context,{file_path:entry,offset:0,limit:200});
+  const edit=tools.find(t=>t.name==="edit_file")!,lineEdit=tools.find(t=>t.name==="edit_file_from_read")!;
+  expect(JSON.parse(await edit.invoke({file_path:entry,old_string:"minHeight: 48",new_string:"minHeight: 56"})).ok).toBe(true);
+  const {workingSourceContext}=await import("../src/agent/working-context.js");
+  expect(String(workingSourceContext(context,1500)[0]!.content)).toContain('"committedInCurrentRun":true');
+  expect(JSON.parse(await lineEdit.invoke({file_path:entry,mode:"replace_lines",start_line:1,replacement:"changed"}))).toMatchObject({ok:false,error:{code:"READ_RANGE_REQUIRED"}});
+});
 
 it.each(["", "已完成"])("rejects a write completion with no project change even when the model says %s", async reply => {
   const context = await project();
@@ -1380,4 +1470,44 @@ it.each(["approve", "decline"])("uses the native source-takeover question for %s
   expect(applications).toBe(choice === "approve" ? 1 : 0);
   expect(events.filter(event => event.name === "on_interrupt")).toHaveLength(1);
   expect(await readFile(path.join(context.root, entry), "utf8")).toBe(choice === "approve" ? original.replace("minHeight: 48", "minHeight: 64") + "// owned implementation selected\n" : original);
+});
+
+it("keeps the input owner in the first candidates and resolves declared IDs and exports exactly", () => {
+  const distractors = Array.from({ length: 12 }, (_, i) => ({ id: `official-plugin-reference:aaa${i}`, kind: "official_plugin_reference" as const, name: `Input ${i}`, description: "输入框相关组件 占位文字", relatedPluginIds: [`aaa${i}`] }));
+  const composer = { id: "plugin-source:composer", kind: "plugin_source" as const, name: "Conversation Composer Plugin application", description: "Use current public props", relatedPluginIds: ["composer"], targetNames: ["composer", "ConversationComposerPlugin"] };
+  const candidates = [...distractors, composer];
+  expect(findEditingTargets(candidates, "修改输入框占位文字").slice(0, 3).map(c => c.id)).toContain(composer.id);
+  for (const query of ["composer", "ConversationComposerPlugin", "plugin-source:composer"]) expect(findEditingTargets(candidates, query).map(c => c.id)).toEqual([composer.id]);
+  expect(findEditingTargets([{ id: "plugin-source:copy-action", kind: "plugin_source", name: "Copy", description: "Copy messages", relatedPluginIds: ["copy-action"] }], "copyright")).toEqual([]);
+});
+
+it("includes declared upstream locale and structure owners without creating source takeover authority", async () => {
+  const context = await project();
+  const locale = "src/应用/application/locales.ts", config = "src/应用/application/project-config.tsx";
+  await mkdir(path.join(context.root, "src/应用/application"));
+  await writeFile(path.join(context.root, locale), 'export const locales = { "zh-CN": {}, "en-US": {} };');
+  await writeFile(path.join(context.root, config), 'export const suggestions = (messages: any) => [{ title: messages.title, prompt: messages.prompt }];');
+  await rememberProjectTargets(context, { authoringTargetCatalog: {
+    candidates: [{ id: "copy", kind: "application_config", name: "Copy", description: "Localized input copy", relatedPluginIds: ["composer"] }, { id: "structure", kind: "application_config", name: "Structure", description: "Input composition", relatedPluginIds: ["composer"] }],
+    bindings: [{ targetId: "copy", ownerPath: locale }, { targetId: "structure", ownerPath: config }],
+  } });
+  state.inspect.mockResolvedValue(await inspectResult(context.root));
+  const result = await inspectEditingContext(context, { pluginId: "composer" });
+  if (!("files" in result) || !("relatedOwners" in result)) throw new Error("Missing editing context");
+  expect(result.files?.map(file => file.path)).toEqual(expect.arrayContaining(["/" + entry, "/" + locale, "/" + config]));
+  expect(result.relatedOwners?.map(owner => owner.path)).toEqual([locale, config]);
+  expect(context.authorizedPlugins.size).toBe(0);
+});
+
+it("keeps later locale member names and prioritizes the queried domain within a small working budget", async () => {
+  const context = await project();
+  context.userMessage = "调整输入框";
+  const names = ["layout", "toolResult", "humanQuestion", "copyAction", "theme", "conversationTriggers", "agentIdentity", "conversationQuote", "transientMessages", "auth", "thinkingIndicator", "toolTimeline", "common", "composer", "conversationFeedback", "starterSuggestions", "conversation", "threadList"];
+  rememberPublicApiRead(context, { sharedTypes: { status: "available", module: "@za38.03/agent-ui-plugins", packageVersion: "3.2.1", symbols: [{ name: "AgentUILocaleOverrides", status: "available", type: "AgentUILocaleOverrides", members: names.map(name => ({ name, type: name === "composer" ? 'Partial<{ placeholder: string; input: string; }>' : "Long type ".repeat(80) })) }] } }, ["AgentUILocaleOverrides.composer"]);
+  const text = String(workingPublicApiContext(context, 700)[0]!.content);
+  const snapshot = JSON.parse(text.slice(text.indexOf("\n") + 1)).observations[0].symbol;
+  expect(snapshot.memberNames).toEqual(names);
+  expect(snapshot.members[0]).toMatchObject({ name: "composer", type: expect.stringContaining("placeholder") });
+  rememberPublicApiRead(context, { sharedTypes: { status: "available", module: "@za38.03/agent-ui-plugins", packageVersion: "4.0.0", symbols: [{ name: "Other", status: "available", type: "string" }] } });
+  expect(String(workingPublicApiContext(context, 700)[0]!.content)).not.toContain("3.2.1");
 });

@@ -1,14 +1,35 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
 import { artifactPath, documentationIdentity, isDocumentationResource, logicalPath, prepareDocumentation, sealStaticWebsite } from './creator-documentation.mjs';
 import { packageRepository } from './package-repository.mjs';
 import { buildAgentDocumentation, documentationSections, portableReferenceLinks, referenceManifest } from './creator-agent-documentation.mjs';
+import { spawnPnpmSync } from './pnpm-process.mjs';
+
+test('documented thin application examples compile against installed public declarations', async t => {
+  const repository = fileURLToPath(new URL('../', import.meta.url));
+  const root = await mkdtemp(path.join(tmpdir(), 'Creator 文档 snippets '));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'package.json'), '{"type":"module"}');
+  await symlink(path.join(repository, 'packages/creator/node_modules'), path.join(root, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  let index = 0;
+  for (const name of ['development/component-customization.md', 'plugins/conversation-suggestions.mdx']) {
+    const text = await readFile(path.join(repository, 'website/docs', name), 'utf8');
+    const snippet = [...text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/gu)].map(match => match[1])
+      .find(code => code.includes('export const ') && code.includes('@za38.03/agent-ui-plugins/'));
+    assert(snippet, `Missing complete thin-application example: ${name}`);
+    await writeFile(path.join(root, `example${index++}.tsx`), snippet);
+  }
+  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx', module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022' }, include: ['*.tsx'] }));
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+});
 
 async function fixture(t) {
   const directory = await mkdtemp(path.join(tmpdir(), 'creator docs 文档 '));

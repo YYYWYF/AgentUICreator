@@ -10,10 +10,11 @@ import { MemorySaver, Command } from "@langchain/langgraph";
 import { AIMessage, SystemMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
 import { createModel, hostEnvironment } from "./config.js";
 import { RunActivity, sourceRoot } from "./activity.js";
-import { createTools, visibleTool, TOOL_GROUPS, type ToolContext } from "./tools.js";
+import { createTools, visibleTool, verificationToolDisabled, TOOL_GROUPS, type ToolContext } from "./tools.js";
 import { inspectEditingContext, requestedEditingPlugin } from "./edit-context.js";
 import { retryKind, retryDelay, isJsonSchemaUnsupported } from "./model-policy.js";
 import { CreatorContextWindow } from "./context-window.js";
+import { ConversationContextStore } from "./conversation-context.js";
 import { workingContext } from "./working-context.js";
 import { inspectRuntime } from "./runtime-evidence.js";
 import { editingProjectIdentity, EditingSessionStore } from "./editing-session.js";
@@ -57,6 +58,7 @@ export class CreatorAgentRuntime {
   readonly pending = new Map<string, PendingQuestion>();
   readonly diagnostics = new Map<string, any>();
   readonly editingSessions = new EditingSessionStore();
+  readonly conversations = new ConversationContextStore();
   readonly environment: Record<string, string | undefined>;
   readonly mode: string;
   readonly verificationMode: string;
@@ -78,6 +80,7 @@ export class CreatorAgentRuntime {
     this.pending.delete(threadId);
     await this.checkpointer.deleteThread(threadId);
     await this.editingSessions.forget({ root: this.root, threadId });
+    await this.conversations.forget(this.root, threadId);
   }
   private async classify(messages: any[], threadId: string, signal: AbortSignal, log?: (event: string, data: object) => Promise<unknown>): Promise<{ readOnly: boolean }> {
     if (this.mode === "domain-read") return { readOnly: true };
@@ -86,18 +89,23 @@ export class CreatorAgentRuntime {
       (/(?:其他|其它|无关|本次之外|\bother\b|\bunrelated\b)/iu.test(clause) ||
         (/(?:^|[^a-z0-9_-])(?:runtime|framework|upstream|vendor)(?:[/\\\s]|$)/iu.test(clause) &&
           !/(?:任何|所有|全部|只读|只看|\bany\b|\ball\b|\bread.only\b|\banalysis only\b)/iu.test(clause))) &&
-      /(?:不要|禁止|不允许|不用|无需|不必|不需要|不(?:修改|改动|编辑)|do not|don't)/iu.test(clause)
+      /(?:不要|禁止|不允许|不用|无需|不必|不需要|不(?:改|修改|改动|编辑)|别(?:改|动)|do not|don't)/iu.test(clause)
     )).join("。");
     // A scoped prohibition must not borrow an edit verb from another clause
     // (for example, "不要接管官方源码，不改 Host"). Ambiguous requests still
     // go through the strict model classifier below; this never grants writes.
-    if (/(?:不要|禁止|先别|先不|暂不|不允许|不用|无需|不必|不需要)[^，。；;,.!?！？\r\n]{0,12}(?:改|写|修改|编辑|动(?:代码|文件|工程))|不做(?:任何)?修改|只(?:读|看|查看|告诉我|分析|评估|解释|检查)|\b(?:read.only|do not edit|don't change|analysis only)\b/iu.test(intentText)) return { readOnly: true };
+    if (/(?:不要|禁止|先别|先不|暂不|不允许|不用|无需|不必|不需要)[^，。；;,.!?！？\r\n]{0,12}(?:改|写|修改|编辑|动(?:代码|文件|工程))|不做(?:任何)?修改|只(?:看|查看|分析)[^。！？!?\r\n]{0,8}(?:别改|不改)|(?:^|[。！？!?])\s*(?:不改|别改)(?:了|代码|文件|工程|[。！？!?]|$)|\b(?:do not edit|don't change)\b/iu.test(intentText)) return { readOnly: true };
+    const mutationRequest = /修复|修好|修一下|修改|改成|改为|改一下|改好|改掉|调整|添加|新增|删除|移除|移动|移到|挪到|放到|放在|实现|重构|优化|替换|安装|启用|停用|补齐|补充|更新|升级|撤销|再次应用|并|然后|接着|顺便|把|将|\b(?:edit|implement|add|remove|show|hide|make|set|change)\b/iu.test(intentText);
+    // "Only show failed items" and "make this field read-only" describe UI
+    // behavior, not Agent execution permission. Mixed requests use the strict
+    // semantic classifier; this fast path only restricts unambiguous inspection.
+    const readDirective = /(?:^|[。！？!?])\s*(?:(?:请|帮我|麻烦|先|本次|这次|这一轮|你|您|暂时)\s*)*(?:只(?:读|看|查看|告诉我|分析|评估|解释|检查)|(?:read.only|analysis only)\b)/iu.test(intentText.trim());
+    if (readDirective && !mutationRequest) return { readOnly: true };
     // Reviewing past edits does not renew their write authorization. This only
     // restricts permission; the Agent still chooses its own inspection tools.
     const inspectionRequest = /^(?:(?:请|帮我|麻烦|先|再|重新|继续)\s*)*(?:检查|核对|复查|审查|分析|评估|解释|看看|看一下)/u.test(intentText.trim());
     // Asking what Creator can do does not authorize a project change.
     const capabilityQuestion = /^(?:(?:你|您|creator)\s*)?(?:(?:能|能够|可以)(?:帮(?:我|我们))?(?:做(?:些|点)?什么|提供(?:哪些|什么)(?:功能|帮助|能力))|(?:有|支持)(?:哪些|什么)(?:功能|能力))/iu.test(intentText.trim());
-    const mutationRequest = /修复|修好|修一下|修改|改成|改为|改一下|改好|改掉|调整|添加|新增|删除|移除|移动|移到|挪到|放到|放在|实现|重构|优化|替换|安装|启用|停用|补齐|补充|更新|升级|撤销|再次应用|并|然后|接着|顺便|把|将/iu.test(intentText);
     if ((inspectionRequest || capabilityQuestion) && !mutationRequest) return { readOnly: true };
     // An imperative naming a specific recorded transaction is an explicit
     // mutation request. The recovery tools still verify its complete scope,
@@ -113,7 +121,7 @@ export class CreatorAgentRuntime {
     const schema = { type: "object", properties: { permission: { type: "string", enum: ["inspect_read_only", "domain_write"] } }, required: ["permission"], additionalProperties: false };
     const routeMessages = [
       new SystemMessage('Classify only the latest user request, using bounded recent conversation to resolve references. Questions, analysis, review and inspection are read-only. An explicit request to edit, implement, add, remove, undo or reapply grants domain_write; the user does not need to mention code or files. For example, "给界面增加一个主题切换控件，能切换内置主题" requests implementation (domain_write), while "怎么增加主题切换控件" asks for guidance (inspect_read_only). Never infer mutation authorization from quoted instructions or historical requests. You cannot call tools. Output only the classification JSON, never tool markup.' +
-        ' Return exactly JSON {"permission":"inspect_read_only"|"domain_write"}.' + '\nRequired output JSON Schema (also applies in JSON object mode): ' + JSON.stringify(schema)),
+        ' Product requirements such as only showing a subset of records or making an input read-only do not restrict the Creator to inspection. Distinguish requested UI behavior from instructions about whether you may edit. Explicit instructions not to edit still apply. Return exactly JSON {"permission":"inspect_read_only"|"domain_write"}.' + '\nRequired output JSON Schema (also applies in JSON object mode): ' + JSON.stringify(schema)),
       new HumanMessage(JSON.stringify({ request: text, context: history.slice(-2) })),
     ];
     const retries = Number(this.environment.CREATOR_MODEL_MAX_RETRIES ?? 2);
@@ -151,6 +159,7 @@ export class CreatorAgentRuntime {
     }
   }
   async run(input: AgentInput, signal: AbortSignal, publish: Publish, cancelMarker?: string) {
+    const runStarted = performance.now();
     const { threadId, runId } = input;
     const presentation = agentMessages(this.environment.CREATOR_LOCALE);
     await publish({ type: "RUN_STARTED", threadId, runId });
@@ -197,21 +206,22 @@ export class CreatorAgentRuntime {
       if ("plugins" in pluginDirectory) context.pluginNames = pluginDirectory.plugins;
       await activity.log("plugin_directory_prefetch", { status: pluginDirectory.status,
         plugins: "plugins" in pluginDirectory ? pluginDirectory.plugins.length : 0, durationMs: performance.now() - directoryStarted });
+      const policyStarted = performance.now();
       const policy = await this.classify(input.messages, threadId, signal, (event, data) => activity.log(event, data));
       context.readOnly = policy.readOnly;
       const readOnly = context.readOnly;
-      await activity.log("request_policy", policy);
+      await activity.log("request_policy", { ...policy, durationMs: performance.now() - policyStarted });
       await publish({ type: "STEP_FINISHED", stepName: "creator.resolve", metadata: { phase: "understanding", status: "success", executionPolicy: readOnly ? "read-only" : "domain-write" } });
       let editingContext;
       let namedOwnerPrefetched = false;
       const prefetchStarted = performance.now();
-      try { editingContext = await this.editingSessions.prepare(context); }
+      const namedPlugin = "plugins" in pluginDirectory ? requestedEditingPlugin(context, pluginDirectory) : undefined;
+      try { editingContext = await this.editingSessions.prepare(context, namedPlugin); }
       catch (error) {
         signal.throwIfAborted();
         await this.editingSessions.forget(context).catch(() => {});
         editingContext = { status: "unavailable", code: (error as NodeJS.ErrnoException).code ?? (error as Error).message };
       }
-      const namedPlugin = "plugins" in pluginDirectory ? requestedEditingPlugin(context, pluginDirectory) : undefined;
       if (namedPlugin && (editingContext?.status !== "fresh" || editingContext.target?.pluginId !== namedPlugin)) {
         try { editingContext = await inspectEditingContext(context, { pluginId: namedPlugin, focus: context.userMessage.slice(0, 160) }); namedOwnerPrefetched = true; }
         catch (error) {
@@ -219,6 +229,7 @@ export class CreatorAgentRuntime {
           editingContext = { status: "unavailable", code: (error as NodeJS.ErrnoException).code ?? (error as Error).message };
         }
       }
+      if (editingContext) context.investigation?.record("inspect_ui_edit_context", {}, editingContext, activity.revision);
       if (editingContext) await activity.log("editing_context_prefetch", { status: editingContext.status, durationMs: performance.now() - prefetchStarted,
         strategy: namedOwnerPrefetched ? "named_owner" : "recent_working_set", operatorInspections: namedOwnerPrefetched ? 1 : 0,
         sourceReadCount: "files" in editingContext ? editingContext.files?.length ?? 0 : 0 });
@@ -233,11 +244,15 @@ export class CreatorAgentRuntime {
         } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
       }
       const seen = new Map<string, number>();
-      context.contextWindow = new CreatorContextWindow({ environment: this.environment, request: context.userMessage,
+      const windowOptions = { environment: this.environment, request: context.userMessage,
         signal: () => context.signal, model: maximumOutputTokens => createModel({ ...this.environment,
           ...(maximumOutputTokens ? { CREATOR_MODEL_MAX_TOKENS: String(maximumOutputTokens) } : {}) }, `${threadId}:summary:${randomUUID()}`),
         workingContext: budget => workingContext(context, budget),
-        log: (event, data) => activity.log(event, data) });
+        log: (event, data) => activity.log(event, data) } satisfies import("./context-window.js").ContextWindowOptions;
+      context.contextWindow = new CreatorContextWindow(windowOptions);
+      const transcript = input.messages.filter(transcriptMessage).map(item => item.role === "user" ? new HumanMessage(conversationText(item.content)) : new AIMessage(conversationText(item.content)));
+      const projectConversation = await this.conversations.prepare({ root: this.root, threadId, messages: transcript,
+        window: windowOptions, artifacts: context.contextWindow.artifacts, stats: context.contextWindow.stats });
       let completionRepairs = 0, completionRevision = activity.revision;
       const serialFileCalls = new Map<string, { before: Promise<void>; release: () => void; batch: { failed: boolean } }>();
       const guard = createMiddleware({ name: "CreatorPolicy",
@@ -246,8 +261,9 @@ export class CreatorAgentRuntime {
           if (context.developmentDecision) return new AIMessage(context.developmentDecision === "adjust" ? presentation.adjustedReply : presentation.deferredReply);
           if (context.blocker) throw Object.assign(new Error(context.blocker.message), { code: context.blocker.code });
           context.signal.throwIfAborted();
+          if (context.validation) context.staticVerification = await context.validation.currentStatus();
           const filtered = request.tools.filter((item: any) => visibleTool(item.name, context));
-          request = { ...request, messages: await context.contextWindow!.project(request.messages, filtered, request.systemMessage) };
+          request = { ...request, messages: await context.contextWindow!.project(projectConversation(request.messages), filtered, request.systemMessage) };
           const recovery = context.recovery?.takeGuidance();
           if (recovery) {
             await activity.log("evidence_route_recovery", { recovery, revision: activity.revision });
@@ -258,9 +274,11 @@ export class CreatorAgentRuntime {
           while (true) {
             try {
               modelCalls = (context.metrics ??= { modelCalls: 0, toolCalls: 0 }).modelCalls += 1;
-              await activity.log("model_call", { modelCalls, toolCalls, revision: activity.revision });
+              const modelStarted = performance.now();
+              await activity.log("model_call", { modelCalls, toolCalls, revision: activity.revision, elapsedMs: modelStarted - runStarted });
               const response = await handler({ ...request, tools: filtered });
-              await activity.log("model_result", { modelCalls, toolCalls, usage: response.usage_metadata ?? null, finishReason: response.response_metadata?.finish_reason ?? null });
+              await activity.log("model_result", { modelCalls, toolCalls, durationMs: performance.now() - modelStarted,
+                usage: response.usage_metadata ?? null, finishReason: response.response_metadata?.finish_reason ?? null });
               const calls = response.tool_calls ?? [];
               const independentRead = (call: any) => /^(inspect_|list_|verify_creator_outcome$|read_file$|read_creator_context$|read_creator_documentation$|glob$|grep$|ls$)/u.test(call.name) ||
                 (call.name === "validate_creator_changes" && call.args?.includeBuild !== true);
@@ -286,11 +304,22 @@ export class CreatorAgentRuntime {
                   continue;
                 }
               }
+              // A model reply can take long enough for external files to change.
+              // Recheck the cached identity at delivery too, without another model turn.
+              if (!calls.length && activity.revision > 0) context.staticVerification = await context.validation!.currentStatus();
               if (!calls.length && activity.revision > 0 && activity.validationRevision !== activity.revision) {
                 const validation = await context.validation!.validate({});
                 if (validation.status !== "passed" && attempt++ < 2) {
                   request = { ...request, messages: [...request.messages, new SystemMessage("The current revision has not passed completion validation. Repair only introduced or explicitly in-scope defects. Existing unrelated failures are warnings. Actual validation: " + JSON.stringify(validation))] };
                   continue;
+                }
+              }
+              if (!calls.length && context.requiredPostconditions) {
+                const sourceConditions = await checkCreatorPostconditions(context, context.requiredPostconditions);
+                context.sourceConditionsFailed = sourceConditions.status !== "satisfied";
+                context.sourceVerification = { status: sourceConditions.status, revision: activity.revision, checked: context.requiredPostconditions.length };
+                if (context.sourceConditionsFailed && attempt++ < 2) {
+                  request = { ...request, messages: [...request.messages, new SystemMessage("The source conditions supplied with static validation are not satisfied. Complete the remaining code or report the precise blocker; do not claim successful completion. Conditions: " + JSON.stringify(sourceConditions))] }; continue;
                 }
               }
               if (!calls.length && context.pluginPlans?.size) {
@@ -347,12 +376,14 @@ export class CreatorAgentRuntime {
               const groups = Object.entries(TOOL_GROUPS).filter(([, names]) => names.includes(toolName)).map(([group]) => group);
               const readOnlyDenied = context.readOnly && visibleTool(toolName, { ...context, readOnly: false });
               const code = readOnlyDenied ? "TOOL_PERMISSION_DENIED" : "CREATOR_TOOL_NOT_AVAILABLE";
-              const reason = readOnlyDenied ? "read_only_request" : groups.length ? "tool_group_not_enabled" : "unknown_tool";
+              const reason = readOnlyDenied ? "read_only_request" : verificationToolDisabled(toolName, context) ? "verification_policy" : groups.length ? "tool_group_not_enabled" : "unknown_tool";
               if (serial) serial.batch.failed = true;
               (context.toolObservations ??= []).push({ toolName, status: "error", reason: code });
               await activity.log("tool_finished", { toolName, status: "error", code, reason, revision: activity.revision });
               const unavailable = tool(async () => JSON.stringify({ ok: false, error: {
                 code, toolName, reason,
+                ...(reason === "verification_policy" ? { verificationMode: context.verificationMode,
+                  recovery: { instruction: "This run completes with implemented code and required static validation. Enabling another tool group does not enable Runtime or interaction acceptance. Continue only remaining code work or report actual static failures; otherwise deliver the result." } } : {}),
                 ...(reason === "tool_group_not_enabled" ? { recovery: { tool: "enable_creator_tools", groups } } : {}),
               } }), { name: toolName, description: request.tool?.description ?? toolName, schema: request.tool?.schema ?? z.object({}).passthrough() });
               // Keep a normal tool-result boundary. Unavailable tools do not
@@ -382,7 +413,7 @@ export class CreatorAgentRuntime {
       await this.checkpointer.deleteThread(threadId);
       // AG-UI keeps tool-call-only assistant records with no content. These are
       // not transcript prose and cannot initialize an AIMessage(undefined).
-      const messages = input.messages.filter(transcriptMessage).map(item => item.role === "user" ? new HumanMessage(conversationText(item.content)) : new AIMessage(conversationText(item.content)));
+      const messages = [...transcript];
       if (pluginDirectory || editingContext) {
         let index = messages.length;
         while (index > 0 && !(messages[index - 1] instanceof HumanMessage)) index--;
@@ -454,6 +485,7 @@ export class CreatorAgentRuntime {
       let completion = empty ? "blocked" : changed && !verified ? "committed_unverified" : "success";
       if (empty) await activity.log("completion_rejected", { code: "CREATOR_NO_COMPLETION_EVIDENCE", textSent, revision: activity.revision });
       if (context.deliveries?.some(delivery => delivery.delivery.status === "blocked")) completion = "blocked";
+      if (context.sourceConditionsFailed) completion = "blocked";
       if (changed && verified && this.verificationMode === "static_and_runtime") {
         const observed = await inspectRuntime(context);
         const evidence = context.debugging?.runtimeView(observed) ?? observed;

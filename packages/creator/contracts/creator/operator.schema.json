@@ -4136,6 +4136,9 @@
         },
         "localizedDefaults": {
           "$ref": "#/$defs/pluginLocalizedDefaults"
+        },
+        "changeImpact": {
+          "$ref": "#/$defs/pluginPresentationImpact"
         }
       },
       "oneOf": [
@@ -4785,6 +4788,9 @@
         },
         "localizedDefaults": {
           "$ref": "#/$defs/pluginLocalizedDefaults"
+        },
+        "changeImpact": {
+          "$ref": "#/$defs/pluginPresentationImpact"
         }
       }
     },
@@ -4894,6 +4900,136 @@
         "maxLength": 200
       },
       "maxProperties": 128
+    },
+    "pluginPresentationImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "coverage",
+        "interpretation"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "coverage": {
+          "enum": [
+            "partial-static-references",
+            "unknown"
+          ]
+        },
+        "interpretation": {
+          "type": "string",
+          "maxLength": 1600
+        },
+        "guidance": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "package": {
+          "$ref": "#/$defs/pluginInstalledPackageIdentity"
+        },
+        "localeReads": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "references",
+              "truncated"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "references": {
+                "type": "array",
+                "maxItems": 16,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "packagePath",
+                    "sha256",
+                    "line",
+                    "owner"
+                  ],
+                  "properties": {
+                    "packagePath": {
+                      "$ref": "#/$defs/path"
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "line": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "owner": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  }
+                }
+              },
+              "truncated": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "localeReadsTruncated": {
+          "type": "boolean"
+        },
+        "sharedDependencies": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/path"
+          }
+        },
+        "sharedDependenciesTruncated": {
+          "type": "boolean"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "available"
+            },
+            "coverage": {
+              "const": "partial-static-references"
+            }
+          },
+          "required": [
+            "package",
+            "localeReads",
+            "localeReadsTruncated",
+            "sharedDependencies",
+            "sharedDependenciesTruncated",
+            "guidance"
+          ]
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            },
+            "coverage": {
+              "const": "unknown"
+            }
+          }
+        }
+      ]
     }
   },
   "oneOf": [

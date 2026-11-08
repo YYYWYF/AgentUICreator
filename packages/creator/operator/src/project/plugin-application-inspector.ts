@@ -7,6 +7,7 @@ import { assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 import { inspectPluginSharedTypes, publicComponentPresentation } from "./plugin-shared-types";
 import type { PluginAsset } from "./types";
 import { isInheritedPublicMember, isScalarPublicType, prioritizePublicMembers } from "./public-type-navigation";
+import { presentationImpact } from "./presentation-impact";
 
 /** Read-only type navigation through this project's resolved dependencies. Never extracts source. */
 export async function inspectPluginApplication(projectRoot: string, asset: Pick<PluginAsset, "pluginId" | "application">, sharedSymbols: readonly string[] = [], sharedModule?: string) {
@@ -32,6 +33,7 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
       ? "npm implementation is read-only until explicit takeover; application metadata is not takeover authorization."
       : "Existing source ownership permits ordinary local implementation edits; preserve vendor, Runtime, application contract and BASE.",
   };
+  let changeImpact: ReturnType<typeof presentationImpact> | undefined;
   const api = new API();
   try {
     const catalogPath = createRequire(path.join(projectRoot, "package.json")).resolve("@za38.03/agent-ui-plugins/catalog.json");
@@ -44,6 +46,7 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
     const presentationContract = publicComponentPresentation(catalog, asset.application.implementationImport, component);
     const localizedDefaults = catalog.publicComponents?.schemaVersion === 1
       ? catalog.publicComponents.modules?.[asset.application.implementationImport]?.[component]?.localizedDefaults : undefined;
+    changeImpact = presentationImpact(catalog, asset.pluginId, localizedDefaults);
     const snapshot = api.updateSnapshot({ openFiles: [entry] });
     try {
       const project = snapshot.getDefaultProjectForFile(entry);
@@ -89,14 +92,15 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
       return { ...navigation, usageGuide: {
         ...navigation.usageGuide,
         package: { name: pkg.name, version: pkg.version }, component,
+        customization: `Edit the current ${component} application in ${asset.application.entryPath}; keep its existing import/alias and forwarded props. Set supported props on that existing JSX instead of replacing it with a canonical-component template. For shared copy, structure or styles use the current related owners returned by inspect_ui_edit_context. Query only concrete missing installed types.`,
         customizationProps: properties.filter(property => !["renderSlot", "renderScopedSlot"].includes(property.name)).slice(0, 512).map(property => property.name),
         runtimeManagedProps: publicProps.filter(property => "runtimeManaged" in property && property.runtimeManaged).map(property => property.name),
         completePropNames: properties.length <= 512,
         ...(presentationContract ? { presentationContract } : {}),
-        ...(localizedDefaults ? { localizedDefaults } : {}),
+        ...(localizedDefaults ? { localizedDefaults } : {}), changeImpact,
         ...(applicationContract?.composition ? { compositionContract: applicationContract.composition } : {}),
       }, publicApi: {
-        status: "available", component, ...(localizedDefaults ? { localizedDefaults } : {}), ...(presentationContract ? { presentationContract } : {}), ...(applicationContract?.composition ? { compositionContract: applicationContract.composition } : {}), publicModuleQueries: { defaultModule: "@za38.03/agent-ui-plugins/contracts", presentationModule: "@za38.03/agent-ui-plugins", note: "Use sharedModule and sharedSymbols for installed public declarations, including @za38.03/agent-ui-runtime/ui AgentProps. Query exact members from propNames. No implementation access or takeover authority." }, package: { name: pkg.name, version: pkg.version },
+        status: "available", component, changeImpact, ...(localizedDefaults ? { localizedDefaults } : {}), ...(presentationContract ? { presentationContract } : {}), ...(applicationContract?.composition ? { compositionContract: applicationContract.composition } : {}), publicModuleQueries: { defaultModule: "@za38.03/agent-ui-plugins/contracts", presentationModule: "@za38.03/agent-ui-plugins", note: "Use sharedModule and sharedSymbols for installed public declarations, including @za38.03/agent-ui-runtime/ui AgentProps. Query exact members from propNames. No implementation access or takeover authority." }, package: { name: pkg.name, version: pkg.version },
         source: "Current application component types resolved through the target project's installed declarations",
         evidenceBoundary: "Component props only. Plugin setup, registered commands and Service bindings are described by the returned definitionSource and services, not by these props. Few props do not imply missing behavior. Neither types nor enablement prove visual visibility or successful interaction.",
         completePropNames: properties.length <= 512, propNames: properties.slice(0, 512).map(property => property.name), props: boundedProps,
@@ -104,6 +108,6 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
       } };
     } finally { snapshot.dispose(); }
   } catch (error) {
-    return { ...navigation, publicApi: { status: "unavailable", reason: error instanceof Error ? error.message.slice(0, 300) : "Type inspection failed", interpretation: "Unavailable contract is not evidence that the requested capability is unsupported. Report the missing fact or inspect the concrete local contract; do not guess props." } };
+    return { ...navigation, publicApi: { status: "unavailable", ...(changeImpact ? { changeImpact } : {}), reason: error instanceof Error ? error.message.slice(0, 300) : "Type inspection failed", interpretation: "Unavailable contract is not evidence that the requested capability is unsupported. Report the missing fact or inspect the concrete local contract; do not guess props." } };
   } finally { api.close(); }
 }

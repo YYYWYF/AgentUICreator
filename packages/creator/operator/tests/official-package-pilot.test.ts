@@ -72,7 +72,7 @@ it("only selected package entries enter runtime registry; discovery and referenc
   const result = await generatePluginRegistry(root, model, ctx);
   expect(result.errors).toEqual([]);
   expect(result.capabilityCatalog.pluginIds).toEqual(["composer"]);
-  expect(result.capabilityCatalog.source).toContain('import("@za38.03/agent-ui-plugins/composer")');
+  expect(result.capabilityCatalog.source).toMatch(/import\(['"]@za38\.03\/agent-ui-plugins\/composer['"]\)/u);
   expect(result.capabilityCatalog.source).not.toMatch(/feedback|reasoning|chart/);
   const catalog = await buildCreatorAuthoringTargetCatalog({ projectRoot: root, ...ctx, projectFacts: facts, applicationTargets: [] });
   expect(catalog.candidates.find(target => target.relatedPluginIds?.includes("composer"))?.kind).toBe("official_plugin_reference");

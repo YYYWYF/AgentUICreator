@@ -20,6 +20,25 @@ it("reuses exactly read source without granting freshness or overwriting changed
   hashes.set("src/界面/index.tsx", { hash: "read-hash" }); ctx.readRanges!.clear();
   expect(workingSourceContext(ctx, 1000)).toEqual([]);
 });
+it("retains committed writes through summaries without granting new read ranges, and drops superseded bytes", async () => {
+  const { ctx, hashes } = context(), file = "src/界面/index.tsx";
+  const beforeRanges = JSON.stringify([...ctx.readRanges!]);
+  Object.assign(ctx.activity, { after: new Map([[file, { exists: true, hash: "written", content: "export const written = 2;\r\n" }]]) });
+  hashes.set(file, { hash: "written" });
+  const messages = workingSourceContext(ctx, 1000);
+  expect(String(messages[0]!.content)).toContain('"committedInCurrentRun":true');
+  expect(String(messages[0]!.content)).toContain("export const written = 2");
+  expect(String(messages[0]!.content)).not.toContain('"readInCurrentRun":true');
+  expect(JSON.stringify([...ctx.readRanges!])).toBe(beforeRanges);
+  const window = new CreatorContextWindow({ environment: { CREATOR_CONTEXT_MAX_TOKENS: "6000", CREATOR_CONTEXT_KEEP_TOKENS: "500", CREATOR_MODEL_MAX_TOKENS: "512" },
+    request: "Finish the code", signal: () => new AbortController().signal, workingContext: budget => workingSourceContext(ctx, budget),
+    model: () => ({ invoke: async () => new AIMessage("Historical summary without the implementation.") }) as any, log: async () => {} });
+  const projected = await window.project([new HumanMessage("Old history ".repeat(3000)), new HumanMessage("Finish the code")], []);
+  expect(window.stats.compactions).toBeGreaterThan(0);
+  expect(projected.some(message => String(message.content).includes("export const written = 2"))).toBe(true);
+  hashes.set(file, { hash: "external-change" });
+  expect(workingSourceContext(ctx, 1000)).toEqual([]);
+});
 it("bounds working source memory and model input without imposing an execution limit", () => {
   const { ctx, hashes } = context();
   for (let i = 0; i < 100; i++) {

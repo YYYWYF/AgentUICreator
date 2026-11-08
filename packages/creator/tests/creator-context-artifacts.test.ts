@@ -31,6 +31,29 @@ it("keeps the requested installed API visible while archiving an unrelated large
   expect(a.read(archived.artifactId, ["result", "application", "sharedTypes"]).content).toContain("AgentProps.locales");
   expect(JSON.parse(original.content as string).result.application.sharedTypes).toEqual(sharedTypes);
 });
+it("preserves editing contracts ahead of large inherited props and supplies exact continuations", () => {
+  const presentationContract = { styles: 'Use the scoped [data-slot="aui_composer-shell"] selector; inspect the actual borderRadius.', interaction: "Preserve draft and submit handlers." };
+  const publicApi = { status: "available", component: "Composer", package: { name: "@za38.03/agent-ui-plugins", version: "3.2.1" }, presentationContract,
+    localizedDefaults: { "inputProps.placeholder": "composer.placeholder" },
+    propNames: Array.from({ length: 300 }, (_, i) => `onNativeEvent${i}`),
+    props: Array.from({ length: 64 }, (_, i) => ({ name: `onNativeEvent${i}`, type: "Inherited DOM event type ".repeat(40) })) };
+  const a = new CreatorContextArtifacts();
+  const archived = a.archive(new ToolMessage({ tool_call_id: "composer-types", content: JSON.stringify({ ok: true, result: { application: { publicApi } } }) }), "inspect_ui_plugin")!;
+  const output = JSON.parse(archived.message.content as string);
+  expect(output.contracts[0].value).toMatchObject({ presentationContract, package: publicApi.package, localizedDefaults: publicApi.localizedDefaults });
+  const link = output.contracts[0].detailReads.find((item: any) => item.field === "presentationContract").nextRead.input;
+  expect(JSON.parse(a.read(link.artifactId, link.path).content)).toEqual(presentationContract);
+  expect(() => a.read(archived.artifactId, ["result", "application", "presentationContract"])).toThrow(/availableKeys.*publicApi/);
+});
+it("reserves room for presentation guidance when shared signatures also need archiving", () => {
+  const sharedTypes = { status: "available", module: "@za38.03/agent-ui-plugins", packageVersion: "3.2.1",
+    symbols: Array.from({ length: 8 }, (_, i) => ({ name: `Type${i}`, type: "x".repeat(900), members: Array.from({ length: 12 }, (_, j) => ({ name: `member${j}`, type: "y".repeat(400) })) })) };
+  const presentationContract = { styles: "Actual current project scoped selector ".repeat(30) };
+  const a = new CreatorContextArtifacts(), archived = a.archive(new ToolMessage({ tool_call_id: "both", content: JSON.stringify({ ok: true, result: { application: { sharedTypes, publicApi: { status: "available", presentationContract } } } }) }), "inspect_ui_plugin")!;
+  expect(JSON.parse(archived.message.content as string).contracts[1].value.presentationContract).toEqual(presentationContract);
+  const largeComposition = a.archive(new ToolMessage({ tool_call_id: "large-composition", content: JSON.stringify({ ok: true, result: { application: { publicApi: { status: "available", presentationContract, compositionContract: { information: "x".repeat(30000) } } } } }) }), "inspect_ui_plugin")!;
+  expect(JSON.parse(largeComposition.message.content as string).contracts[0].value.presentationContract).toEqual(presentationContract);
+});
 it("preserves exact snapshots with bounded JSON-path reads and run isolation", () => {
   const artifacts = new CreatorContextArtifacts(), original = message(), before = JSON.stringify(original);
   const archived = artifacts.archive(original, "inspect_ui_plugin")!;

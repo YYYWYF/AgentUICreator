@@ -48,6 +48,10 @@ AppUIModel 拥有生成项目的布局、Plugin 实例身份、启用关系和�
 
 连续编辑使用按工程真实路径和会话隔离的进程内工作集，下一轮重新检查权限、owner、安装身份及文件内容后，只预读相关区域。不复用授权、checkpoint 或验证结果。预算不足时关闭缓存并执行原检查，不能用缓存容量限制工程准入。
 
+新请求明确指定另一 Plugin 时，跳过旧 owner 的源码工作集，直接准备新目标；同目标或未指定目标的续改沿用现有新鲜度检查。
+
+历史用户/助手正文使用独立的 `CREATOR_CONTEXT_HISTORY_TOKENS` 估算预算（默认 8000，0 关闭此投影），近期完整轮次优先保留。更早对话的投影按工程 realpath 和线程缓存，最多 64 项、闲置 20 分钟失效；只追加时增量复用，已覆盖前缀变动时失效。摘要标记历史任务、约束来源、结果与未完成事项，不把旧目标当成本轮目标。原始会话及图 checkpoint 保持完整，当前请求保留原文；精确历史通过当前运行重新绑定的 `read_creator_context` 句柄分页回查。缓存不含工具结果、源码证据、审批或验证状态，摘要失败退回原始输入与既有容量处理，取消立即传播。模型输入投影、摘要调用/耗时、预读、模型和工具耗时分别记入现有日志。
+
 ## 4. 权限、读后写与事务
 
 结构化权限判定区分当前请求和最近会话；解析失败不授予写权限。文件写入必须使用当前已读范围及内容 hash，保留 LF/CRLF 和相邻行边界。框架、Runtime 和 vendor 不能作为普通插件定制的写入捷径。
@@ -136,6 +140,10 @@ Windows 路径、文件 URL、进程解析与退出必须使用跨平台 helper�
 
 ## 按需文档索引
 
+入口定位复用 canonical Plugin ID、实际安装包声明的组件名、统一导航别名与当前工程绑定；精确名称优先，候选排名不选择操作或授予权限。薄应用入口的编辑上下文还关联当前目录声明的文案、结构与样式 owner，以有界源码或精确续读返回；不通过 npm 正向 import 猜测上层配置。可选 Shell 目标必须绑定实际存在的对应文件，不能回退到任意 `Agent.tsx`。
+
+归档先保留安装身份、presentation/composition/localization 合同，再压缩 props 细节；超预算字段给出精确 JSON 路径续读。API 工作快照保留轻量成员名称索引并优先保留当前查询相关签名，不固定截取类型的前四个成员；这些引用仍不授予权限、不更新源码新鲜度。
+
 `inspect_ui_edit_context` 为官方薄应用层和自定义项目 Plugin 提供同一入口：返回实际 owner、definition/manifest 与语义 Slots、实例、Service 依赖、父级组合、已安装公开 API/共享类型及相关文档导航。无 application 元数据的自定义 Plugin 从真实 definition 定位，再跟随本地字面量 import 读取组件、样式和服务契约，不猜测入口必须叫 index.tsx。
 
 可写请求首句明确点名唯一一个已有本地 owner 时，在首个执行模型调用前预取这份上下文；同目标已有新鲜 working set 时沿用既有续改入口。只读问题、名称歧义、多个目标或无本地 owner 均不强制源码预取。该判断只使用当前目录的真实身份与已有名称词汇，不选择修改操作或增加固定任务流程；日志单独记录预取策略、Operator 调用和源码读取数量，避免把自动预取成本混入模型工具次数。
@@ -144,7 +152,7 @@ Windows 路径、文件 URL、进程解析与退出必须使用跨平台 helper�
 
 Creator 的只读核心工具 `read_creator_documentation` 使用随包发布的离线文档，不从目标工程寻找仓库 `docs/`。公开目录由 Website 生成的 `llms.txt` 派生；内部参考的路径、主题和摘要由 `packages/creator/contracts/documentation/references.json` 维护，正文仍以原 `docs/` 文件为唯一 Owner。人可阅读的入口为包内 `dist/documentation/creator-index.md`。
 
-- `action=index` 先返回主题与数量；通过 `query`、`source` 或 `topic` 获取每页 8 条目录。检索包含标题、摘要、章节和正文中的 API 名称，但输出只有元数据、章节链接和可继续调用的 `nextRead`。
+- `action=index` 无筛选时返回主题与数量；通过 `query`、`source` 或 `topic` 获取每页 8 条目录，`documentId` 可限定已知文档。检索支持完整 API 路径与成员片段；主 `nextRead` 直达最佳匹配小节，整篇目录保留为 `tableOfContents`，命中摘要不代替正文证据。已知 Plugin 的编辑上下文优先给出该 Plugin 的具体小节，再附相关全局参考。
 - `action=read` 加 `documentId` 返回章节目录，每页 32 条；再加 `sectionId` 才读取正文，默认 4000、最多 8000 个 UTF-16 单元，使用 `nextOffset` 续读，不拆开 Unicode 代理对。
 - 安装、启动、构建、打包、验包和发布不校验 documentation；可选的静态资源存在时原样复制，缺失时跳过。Agent 按需读取文档时独立处理内容和读取错误。
 - 结果标明 Creator 文档版本与 `referenceOnly`；目标项目的实际文件及安装包声明仍是编辑依据。文档读取不登记源文件观察、不授予开发或源码接管权限。更换关键词但没有找到新文档，不算调查进展。

@@ -2,6 +2,7 @@ import { deliveries, portableSource, sourceEntries } from "./plugin-source-recip
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildPresentationUsage } from "../../../scripts/plugin-presentation-usage.mjs";
 
 // Curate this package's own resources; development fixtures and deferred
 // resources must not leak into tarballs. Source files remain in the workspace.
@@ -110,9 +111,18 @@ for (const { item } of published.filter(record => record.item.id.startsWith("plu
   } : undefined;
   plugins.push({ id, version: manifest.version, application, sourceRoot: `sources/plugins/${id}`, files });
 }
+const presentationUsage = await buildPresentationUsage(packageRoot);
+// Root public/support modules also have presentation readers. Keep every
+// indexed package path real, in the existing source distribution only.
+for (const file of presentationUsage.files.filter(file => !file.path.startsWith("sources/plugins/") && !file.path.startsWith("sources/shared/"))) {
+  const target = path.join(packageRoot, "dist", ...file.path.split("/"));
+  await mkdir(path.dirname(target), { recursive: true });
+  await cp(path.join(packageRoot, ...file.path.replace(/^sources\//u, "src/").split("/")), target);
+}
 await writeFile(path.join(packageRoot, "dist/catalog.json"), JSON.stringify({ schemaVersion: 1,
   package: { name: pkg.name, version: pkg.version }, plugins,
   publicComponents: JSON.parse(await readFile(path.join(packageRoot, "src/catalog/public-component-contracts.json"), "utf8")),
+  presentationUsage,
   shared: await Promise.all(sourceLayout.files.filter(file => !file.pluginId).map(async file => ({
     path: file.source.replace(/^src\//u, "sources/"), logicalPath: file.view, kind: file.kind,
     sha256: digest(await readFile(path.join(packageRoot, ...file.source.split("/")))),

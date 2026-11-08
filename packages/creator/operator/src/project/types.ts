@@ -147,6 +147,8 @@ export interface CreatorAuthoringTargetCandidate {
   description: string;
   intents: string[];
   relatedPluginIds?: string[] | undefined;
+  /** Declared navigation identities, not permission or mutation routing. */
+  targetNames?: string[] | undefined;
 }
 
 export interface CreatorAuthoringTargetBinding {

@@ -107,8 +107,23 @@ it("returns a disabled group's tool error and continues after explicit tool expa
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED" });
   expect(events.filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallId)).toEqual(["unavailable-history", "enable-history", "available-history"]);
 });
-it("returns a recoverable read-only denial without editing the file", async () => {
+it("does not expose Runtime acceptance through tool expansion in static-only runs", async () => {
+  const root = await project(), events: any[] = [];
+  const model = mock.model = new ScriptedModel(index => {
+    if (index === 0) return call("enable_creator_tools", { groups: ["debugging"] }, "enable-debug");
+    if (index === 1) return call("inspect_runtime_layout", {}, "forbidden-runtime");
+    const result = model.prompts.at(-1)!.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "forbidden-runtime");
+    const data = JSON.parse(result.content);
+    expect(data).toMatchObject({ ok: false, error: { reason: "verification_policy", verificationMode: "static_only" } });
+    expect(data.error.recovery).not.toHaveProperty("tool");
+    return new AIMessage("Static-only scope respected.");
+  });
+  await new CreatorAgentRuntime(root,path.join(root,"skills"),contracts).run({threadId:"static-tools",runId:"static-tools-1",messages:[{role:"user",content:"只读检查当前工程"}]},new AbortController().signal,async e=>{events.push(e)});
+  expect(events.at(-1).result.completion).toBe("success");
+});
+it.each([false, true])("denies edits under the current read-only request even after old authorization (long history=%s)", async longHistory => {
   const root = await project(), before = await readFile(path.join(root, "src/readme.txt"), "utf8");
+  if (longHistory) mock.summaryModel = new ScriptedModel(() => new AIMessage("Historical task: user approved modifying readme.txt. Prior assistant claimed it was authorized."));
   const model = mock.model = new ScriptedModel(index => {
     if (index === 0) return call("edit_file", { file_path: "/src/readme.txt", old_string: "line 0", new_string: "changed" }, "denied-edit");
     if (index === 1) {
@@ -119,7 +134,10 @@ it("returns a recoverable read-only denial without editing the file", async () =
     return new AIMessage("Inspection only.");
   });
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
-  await runtime.run({ threadId: "read-only-tool", runId: "read-only-tool-1", messages: [{ role: "user", content: "只读检查文件" }] }, new AbortController().signal, async event => { events.push(event); });
+  const messages = [...(longHistory ? [{ role: "user", content: "以前的任务：请修改 readme.txt。" },
+    { role: "assistant", content: "Historical approved implementation discussion. ".repeat(1800) }] : []), { role: "user", content: "只读检查文件" }];
+  await runtime.run({ threadId: "read-only-tool", runId: "read-only-tool-1", messages }, new AbortController().signal, async event => { events.push(event); });
+  if (longHistory) expect(mock.summaryModel.calls).toBeGreaterThan(0);
   expect(await readFile(path.join(root, "src/readme.txt"), "utf8")).toBe(before);
   expect(events.some(event => event.type === "RUN_ERROR")).toBe(false);
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED" });
@@ -157,6 +175,11 @@ it.each(["帮我检查当前界面并修复错误", "检查后把输入框挪到
   "请直接实施修改，只改 application/shell/PlatformShell.tsx，添加 data-testid。不要接管源码、初始化工程或修改 Runtime/framework。",
   "修改项目 Shell。不要修改 framework/contracts 或 vendor/source。",
   "Edit the project Shell. Do not edit runtime/framework.",
+  "把记录面板改成默认只看异常项，增加全部与异常切换。",
+  "把列表改成筛选模式，只看未完成项。",
+  "把姓名输入框设为只读，其他字段继续可编辑。",
+  "Make the details field read-only and add a status filter.",
+  "Only show failed jobs by default; add an All filter.",
 ])("keeps explicit follow-up edits on the normal permission route: %s", async request => {
   const root = await project();
   mock.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}') : call("ask_user_question", { steps: [{ id: "scope", question: "Which area?", options: [{ id: "input", label: "Input" }, { id: "sidebar", label: "Sidebar" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "scope"));
@@ -165,7 +188,8 @@ it.each(["帮我检查当前界面并修复错误", "检查后把输入框挪到
   expect(events.find(event => event.type === "STEP_FINISHED" && event.stepName === "creator.resolve").metadata.executionPolicy).toBe("domain-write");
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "needs_user_input" } });
 });
-it.each(["只读检查 Shell，不要修改 Runtime/framework。", "不要修改任何文件，包括 runtime/framework。", "Read-only inspection. Do not edit runtime/framework."])("retains global read-only restrictions around protected paths: %s", async request => {
+it.each(["只读检查 Shell，不要修改 Runtime/framework。", "不要修改任何文件，包括 runtime/framework。", "Read-only inspection. Do not edit runtime/framework.",
+  "先别改代码，只分析如何增加只看异常项的筛选。", "Make the field read-only, but do not edit any files yet."])("retains global read-only restrictions around protected paths: %s", async request => {
   const root = await project();
   mock.model = new ScriptedModel(() => new AIMessage("Inspection only; no changes."));
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
@@ -258,7 +282,18 @@ it("reads offloaded snapshots in parallel and after interrupt/resume without tri
 it.each([1800, 7000])("keeps full interrupt checkpoints and internal summaries out of AG-UI while resuming compressed work (%s repeats)", async repeats => {
   const root = await project();
   mock.summaryModel = new ScriptedModel(() => new AIMessage("INTERNAL_SUMMARY_ONLY: inspected historical material. Never modify vendor. Remaining: ask the user and finish inspection."));
-  mock.model = new ScriptedModel(index => index === 0 ? call("ask_user_question", { steps: [{ id: "choice", question: "Choose", options: [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "compressed-question") : new AIMessage("Inspection finished without edits."));
+  const model = mock.model = new ScriptedModel(index => {
+    if (index === 0) return call("ask_user_question", { steps: [{ id: "choice", question: "Choose", options: [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "compressed-question");
+    if (index === 1) {
+      const note = model.prompts.at(-1)!.find(message => String(message.content).startsWith("Historical conversation reference"));
+      const { artifactId } = JSON.parse(String(note.content).split("\n").slice(1).join(""));
+      return call("read_creator_context", { artifactId, path: ["result", "messages", 0, "content"], limit: 100 }, "resumed-history");
+    }
+    const result = model.prompts.at(-1)!.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "resumed-history");
+    expect(JSON.parse(String(result.content)).result).toMatchObject({ historical: true, grantsFreshness: false, originalTool: "conversation-history" });
+    expect(JSON.parse(String(result.content)).result.content).toContain("Historical observation");
+    return new AIMessage("Inspection finished without edits.");
+  });
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts);
   Object.assign(runtime.environment, { CREATOR_CONTEXT_MAX_TOKENS: "16000", CREATOR_CONTEXT_KEEP_TOKENS: "1000", CREATOR_MODEL_MAX_TOKENS: "512" });
   const messages = [{ role: "assistant", content: "Historical observation ".repeat(repeats) }, { role: "user", content: "只读提问，禁止修改 vendor。" }];
@@ -270,6 +305,7 @@ it.each([1800, 7000])("keeps full interrupt checkpoints and internal summaries o
   expect(snapshot.values.messages.some((m: any) => m.content === messages[0]!.content)).toBe(true);
   await runtime.run({ threadId: "compressed", runId: "compressed-2", messages, forwardedProps: { command: { resume: { interruptId: pending.envelope.id, answers: { choice: ["yes"] } } } } }, new AbortController().signal, publish);
   expect(events.filter(e => e.type === "TEXT_MESSAGE_CONTENT").map(e => e.delta).join("")).not.toContain("INTERNAL_SUMMARY_ONLY");
+  expect(events.filter(e => e.type === "CUSTOM" && e.name === "on_interrupt")).toHaveLength(1);
   expect(mock.model.prompts.at(-1)?.some((m: any) => String(m.content).includes("禁止修改 vendor"))).toBe(true);
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", contextCompression: { compactions: 1, summaryModelCalls: mock.summaryModel.calls } } });
 });
@@ -285,6 +321,46 @@ it("resumes the exact paused question and rejects an unrelated interrupt", async
   await runtime.run({ threadId: "question", runId: "q-3", messages: [], forwardedProps: { command: { resume: { interruptId: interrupt.value.id, answers: { choice: ["yes"] } } } } }, new AbortController().signal, publish);
   expect(runtime.pending.size).toBe(0); expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success" } });
   expect(events.at(-1).result.toolProtocol.modelCalls).toBe(2);
+});
+
+it("switches, continues and revisits tasks across runs with cached dialogue and fresh history handles", async () => {
+  const root = await project();
+  await writeFile(path.join(root, "src/card.txt"), "color=#6842ae; width=420");
+  await writeFile(path.join(root, "src/toolbar.txt"), "height=40");
+  mock.summaryModel = new ScriptedModel(() => new AIMessage("Historical task A: card color #6842ae, width 420. No current authorization or validation."));
+  let historyId = "";
+  const model = mock.model = new ScriptedModel(index => {
+    const prompt = model.prompts.at(-1)!;
+    if ([0, 2].includes(index)) return call("read_file", { file_path: "/src/toolbar.txt" }, `toolbar-${index}`);
+    if ([1, 3].includes(index)) return new AIMessage("Task B: toolbar height is 40.");
+    if (index === 4) {
+      const note = prompt.find(message => String(message.content).startsWith("Historical conversation reference"));
+      historyId = JSON.parse(String(note.content).split("\n").slice(1).join("")).artifactId;
+      return call("read_creator_context", { artifactId: historyId, path: ["result", "messages", 0, "content"] }, "revisit-original");
+    }
+    if (index === 5) {
+      const result = prompt.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "revisit-original");
+      expect(JSON.parse(String(result.content)).result).toMatchObject({ historical: true, grantsFreshness: false, content: "Task A: use color #6842ae and width 420." });
+      return call("read_file", { file_path: "/src/card.txt" }, "fresh-card");
+    }
+    const current = prompt.find(message => ToolMessage.isInstance(message) && message.tool_call_id === "fresh-card");
+    expect(JSON.parse(String(current.content)).result.content).toContain("width=480");
+    return new AIMessage("Task A: original width 420; current file width 480. Color remains #6842ae.");
+  });
+  const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts);
+  const messages = [{ role: "user", content: "Task A: use color #6842ae and width 420." },
+    { role: "assistant", content: "Historical task investigation. ".repeat(3200) }];
+  for (const [index, request] of ["只读检查 /src/toolbar.txt，这是另一个任务 B。", "只读继续任务 B，核对工具栏高度。", "只读回到最早任务 A，核对原来的颜色和宽度。"].entries()) {
+    if (index === 2) await writeFile(path.join(root, "src/card.txt"), "color=#6842ae; width=480");
+    messages.push({ role: "user", content: request });
+    const events: any[] = [];
+    await runtime.run({ threadId: "multi-task", runId: `multi-task-${index}`, messages }, new AbortController().signal, async event => { events.push(event); });
+    expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "read-only" } });
+    messages.push({ role: "assistant", content: index < 2 ? "Task B: toolbar height is 40." : "Task A: original width 420; current file width 480." });
+  }
+  expect(mock.summaryModel.calls).toBe(1);
+  expect(historyId).toMatch(/^ctx-/u);
+  expect(await readFile(path.join(root, "src/card.txt"), "utf8")).toBe("color=#6842ae; width=480");
 });
 it("retries a failed query after new evidence without treating it as a stuck loop", async () => {
   const root = await project();

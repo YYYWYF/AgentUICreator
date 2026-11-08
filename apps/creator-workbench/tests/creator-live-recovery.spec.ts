@@ -18,7 +18,7 @@ async function hashes(root: string, directory = path.join(root, "src")): Promise
 
 test("configured Creator edits a disposable Shell and its real receipt supports undo, reapply and conflict refusal", async ({ page }, testInfo) => {
   const errors: string[] = []; await captureWindowErrors(page, errors); page.on("pageerror", error => errors.push(error.message));
-  const fixture = await createConnectionHostFixture({ liveModel: true });
+  const fixture = await createConnectionHostFixture({ liveModel: true, verificationMode: "static_and_runtime" });
   const target = "src/agent-ui/application/shell/PlatformShell.tsx";
   const file = path.join(fixture.hostRoot, ...target.split("/"));
   const before = await readFile(file, "utf8"); const initial = await hashes(fixture.hostRoot);

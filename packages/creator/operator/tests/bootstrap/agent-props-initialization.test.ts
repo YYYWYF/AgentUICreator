@@ -82,6 +82,11 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  const catalog=await buildCreatorAuthoringTargetCatalog({projectRoot:root,...context,projectFacts});
  expect(catalog.bindings.find(binding=>binding.targetId==='conversation.welcome')?.ownerPath).toBe('src/agent-ui/application/locales.ts');
  expect(catalog.bindings.find(binding=>binding.targetId==='conversation.starter-suggestions')?.ownerPath).toBe('src/agent-ui/application/locales.ts');
+ expect(catalog.bindings.find(binding=>binding.targetId==='conversation.starter-structure')?.ownerPath).toBe('src/agent-ui/application/project-config.tsx');
+ expect(catalog.bindings.find(binding=>binding.targetId==='conversation.composer-copy')?.ownerPath).toBe('src/agent-ui/application/locales.ts');
+ expect(catalog.candidates.find(target=>target.id==='plugin-source:composer')?.targetNames).toContain('ConversationComposerPlugin');
+ if(mode==='assistant') expect(catalog.bindings.find(binding=>binding.targetId==='appearance.assistant-panel-width')?.ownerPath).toBe('src/agent-ui/application/shell/assistant-shell.css');
+ else expect(catalog.bindings.some(binding=>binding.targetId==='appearance.assistant-panel-width')).toBe(false);
  expect(catalog.candidates.find(target=>target.id==='conversation.welcome')?.description).toContain('locales.conversation.welcome');
  expect(catalog.bindings.some(binding=>binding.ownerPath?.endsWith('/config.ts'))).toBe(false);
  if(mode==='assistant') expect(catalog.bindings.find(binding=>binding.targetId==='appearance.assistant-shell')?.ownerPath).toBe('src/agent-ui/application/shell/AssistantShell.tsx');

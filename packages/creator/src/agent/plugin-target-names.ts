@@ -12,11 +12,25 @@ const featureNames: Record<string, readonly string[]> = {
   "conversation-new": ["新建会话", "新建对话", "新对话", "new chat", "new conversation"],
   "locale-switch": ["语言切换", "切换语言", "界面语言", "中英文切换", "中英切换", "切换中英文", "中文英文切换", "中文和英文之间切换", "language switch"],
   "composer": ["输入框", "消息输入", "composer", "message input"],
+  "submit-action": ["发送按钮", "停止按钮", "发送消息", "send button", "stop button"],
+  "agent-identity": ["助手名字", "助手名称", "助理名称", "assistant name"],
+  "reasoning": ["思考过程", "推理过程", "reasoning"],
+  "tool-result": ["工具结果", "审批按钮", "工具审批", "tool approval"],
+  "tool-fallback": ["工具结果", "审批按钮", "工具审批", "tool approval"],
 };
 
 export function pluginTargetNames(plugin: { pluginId: string; name?: string; targetNames?: readonly string[] }) {
   return [...new Set([plugin.pluginId, ...(plugin.name && plugin.name.length >= 4 ? [plugin.name] : []),
     ...(plugin.targetNames ?? []), ...(featureNames[plugin.pluginId] ?? [])])];
+}
+
+/** The same word boundaries apply to owner retrieval and explicit subjects. */
+export function containsTargetName(text: string, name: string) {
+  text = text.toLowerCase(); name = name.toLowerCase();
+  for (let index = text.indexOf(name); name && index >= 0; index = text.indexOf(name, index + 1)) {
+    if (!/^[a-z]/u.test(name) || (!/[a-z0-9_-]/u.test(text[index - 1] ?? "") && !/[a-z0-9_-]/u.test(text[index + name.length] ?? ""))) return true;
+  }
+  return false;
 }
 
 /** Do not let one shared word such as history override a different feature.
@@ -26,13 +40,7 @@ export function namesRequestedPlugins(request: string, plugins: readonly { plugi
   const clauses = request.toLowerCase().split(/[，。；;\n]/u)
     .map(clause => clause.replace(/(?:保留|保持).{0,8}(?:源码|代码|源文件)|(?:源码|代码|源文件).{0,8}(?:保留|保持)/gu, ""))
     .filter(clause => !/(?:保留|保持|别动|不要改|不修改|(?:不要|别|不)(?:隐藏|停用|删除|移除|去掉)|\bkeep\b|\bpreserve\b|don't change|do not change)/iu.test(clause));
-  const contains = (text: string, name: string) => {
-    name = name.toLowerCase();
-    for (let index = text.indexOf(name); index >= 0; index = text.indexOf(name, index + 1)) {
-      if (!/^[a-z]/u.test(name) || (!/[a-z0-9_-]/u.test(text[index - 1] ?? "") && !/[a-z0-9_-]/u.test(text[index + name.length] ?? ""))) return true;
-    }
-    return false;
-  };
+  const contains = containsTargetName;
   const names = plugins.map(pluginTargetNames);
   if (names.every(aliases => aliases.some(alias => clauses.some(clause => contains(clause, alias))))) return true;
   // A bare reference can reuse a bounded, explicit previous subject. A phrase

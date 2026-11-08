@@ -18,7 +18,21 @@ function diagnostics(output: string) { return new Set(output.split(/\r?\n/u).fil
 export class CreatorValidation {
   private baseline: Promise<{ staticErrors: Set<string>; typeErrors: Set<string>; typeCheck: Check }> | undefined;
   private checked: { identity: string; revision: number; mode: string; scope: string; result: any } | undefined;
+  private lastResult: any;
   constructor(readonly root: string, readonly activity: RunActivity, readonly signal: () => AbortSignal, readonly debugging?: DebuggingEvidence) {}
+  async currentStatus() {
+    const revision = this.activity.revision;
+    if (!this.lastResult) return { status: "not-run", revision };
+    if (this.lastResult.revision !== revision) return { status: "stale", revision };
+    if (this.checked && (this.checked.scope !== JSON.stringify([...(this.debugging?.selected ?? [])].sort()) || this.checked.identity !== await projectCheckIdentity(this.root, this.signal()))) {
+      this.checked = undefined;
+      this.lastResult = undefined;
+      this.activity.validationRevision = null;
+      return { status: "stale", revision };
+    }
+    return { status: this.lastResult.status, revision, reusable: Boolean(this.checked),
+      checks: this.lastResult.checks.map((check: Check) => ({ command: check.command, status: check.status })) };
+  }
   ensureBaseline() {
     return this.baseline ??= (async () => {
       const staticResult = await requestOperator(this.root, "verify_ui_project", {}, this.signal());
@@ -85,7 +99,8 @@ export class CreatorValidation {
       ...checks,
       { command: "verify_creator_delta", status: passed ? "passed" : "failed", exitCode: passed ? 0 : 1, output: JSON.stringify(result), truncated: false, revision: this.activity.revision },
     ];
-    if (passed) this.activity.validationRevision = this.activity.revision;
+    this.lastResult = structuredClone(result);
+    this.activity.validationRevision = passed ? this.activity.revision : null;
     if (passed && identity !== undefined && identity === await projectCheckIdentity(this.root, this.signal())) {
       this.checked = { identity, revision: this.activity.revision, mode, scope, result: structuredClone(result) };
     } else this.checked = undefined;

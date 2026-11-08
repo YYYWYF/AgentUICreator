@@ -65,7 +65,7 @@ export function projectInspectionSummary(result: Record<string, any>): Record<st
   const actions = result.creatorActions;
   return { ...pick(result, ["view", "sourceRoot", "workspaceDiagnostics", "observationCoverage", "hostGuarantees", "appUIModel", "pluginInstances", "pluginSources", "capabilityCatalogRevision", "activeComposition", "layoutConstraints", "runtimeObservation"]),
     ...(catalog ? { authoringTargetCatalog: { revision: catalog.revision,
-      candidates: catalog.candidates?.map((item: any) => pick(item, ["id", "kind", "name", "pluginId", "relatedPluginIds"])),
+      candidates: catalog.candidates?.map((item: any) => pick(item, ["id", "kind", "name", "pluginId", "relatedPluginIds", "targetNames"])),
       bindings: catalog.bindings?.map((item: any) => pick(item, ["targetId", "kind", "pluginId", "ownerPath", "definitionPath", "ownerRoot"])),
     } } : {}),
     ...(actions ? { creatorActions: { revision: actions.revision,

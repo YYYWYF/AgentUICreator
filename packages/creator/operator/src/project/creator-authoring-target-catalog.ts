@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { createRequire } from "node:module";
 
 import { creatorApplicationAuthoringTargets } from "./creator-authoring-targets";
 import type { CreatorApplicationAuthoringTarget } from "./creator-authoring-targets";
@@ -140,20 +141,20 @@ function pluginSourceTarget(asset: PluginAsset): {
   binding: CreatorAuthoringTargetBinding;
 } {
   const targetId = `plugin-source:${asset.pluginId}`;
-  const intents = [
+  const intents = [...new Set([...(asset.authoring?.intents ?? []),
     `modify ${asset.name} rendering`,
     `change ${asset.name} styling`,
     `change ${asset.name} interaction`,
     `change ${asset.name} behavior`,
     `modify ${asset.name} implementation`,
-  ];
+  ])].slice(0, MAX_AUTHORING_TARGET_INTENTS);
   return {
     candidate: {
       id: targetId,
       kind: "plugin_source",
       name: `${asset.name} Plugin ${asset.application ? "application" : "implementation"}`,
       description: asset.application
-        ? "Customize this project-owned Plugin application entry with public props/composition. inspect_ui_plugin returns its resolved API contract and implementation ownership. Application edits need no takeover; npm implementation edits require explicit consent."
+        ? `${asset.description.slice(0, 120)} Customize the project application with public props/composition and installed APIs. Application edits need no takeover; npm implementation edits need explicit consent.`
         : `Modify rendering, styling, interaction, or implementation behavior of the ${asset.name} Plugin.`,
       intents: normalizeIntents(intents, targetId),
       relatedPluginIds: [asset.pluginId],
@@ -190,6 +191,17 @@ export async function buildCreatorAuthoringTargetCatalog(
   input: CreatorAuthoringTargetCatalogInput,
 ): Promise<CreatorAuthoringTargetCatalog> {
   const pluginIds = new Set(input.projectFacts.assets.map((asset) => asset.pluginId));
+  // Names only, from the target installation. This does not inspect types or
+  // make missing optional catalog data a project admission requirement.
+  const componentNames = new Map<string, string>();
+  try {
+    const catalogPath = createRequire(path.join(input.projectRoot, "package.json")).resolve("@za38.03/agent-ui-plugins/catalog.json");
+    const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
+    const pkg = JSON.parse(await readFile(path.join(path.dirname(catalogPath), "..", "package.json"), "utf8"));
+    if (pkg.name === "@za38.03/agent-ui-plugins" && catalog.package?.name === pkg.name && catalog.package?.version === pkg.version) {
+      for (const plugin of catalog.plugins ?? []) if (typeof plugin.application?.component === "string") componentNames.set(plugin.id, plugin.application.component);
+    }
+  } catch { /* Source-only projects retain their existing identity navigation. */ }
   const candidates: CreatorAuthoringTargetCandidate[] = [];
   const bindings: CreatorAuthoringTargetBinding[] = [];
   const targetIds = new Set<string>();
@@ -200,6 +212,8 @@ export async function buildCreatorAuthoringTargetCatalog(
     boundedText(candidate.id, "id", MAX_AUTHORING_TARGET_ID_CHARS);
     boundedText(candidate.name, `${candidate.id}.name`, MAX_AUTHORING_TARGET_NAME_CHARS);
     boundedText(candidate.description, `${candidate.id}.description`, MAX_AUTHORING_TARGET_DESCRIPTION_CHARS);
+    if ((candidate.targetNames?.length ?? 0) > MAX_AUTHORING_TARGET_INTENTS) fail(`Too many navigation names for ${candidate.id}.`);
+    for (const name of candidate.targetNames ?? []) boundedText(name, `${candidate.id}.targetNames`, MAX_AUTHORING_TARGET_NAME_CHARS);
     const relatedPluginIds = candidate.relatedPluginIds ?? [];
     if (relatedPluginIds.length > MAX_AUTHORING_TARGET_INTENTS) {
       fail(`Authoring target ${candidate.id} has too many related Plugins.`);
@@ -217,17 +231,18 @@ export async function buildCreatorAuthoringTargetCatalog(
   const agentEntry = await readFile(path.join(input.paths.sourceRoot, "application", "Agent.tsx"), "utf8").then(source => source.includes("AgentApplication"), error => { if (error.code === "ENOENT") return false; throw error; });
   const applicationTargets: readonly CreatorApplicationAuthoringTarget[] = input.applicationTargets ?? creatorApplicationAuthoringTargets;
   for (const declaration of applicationTargets) {
-    if (input.applicationTargets === undefined &&
-        !(declaration.relatedPluginIds ?? []).every((pluginId) => pluginIds.has(pluginId))) {
+    if (input.applicationTargets === undefined && declaration.relatedPluginIds?.length &&
+        !declaration.relatedPluginIds.some((pluginId) => pluginIds.has(pluginId))) {
       continue;
     }
     // Local shell owners are opt-in. Legacy source projects keep their existing paths.
-    if (declaration.projectOwnerPath && !agentEntry && input.applicationTargets === undefined) continue;
+    if (declaration.projectOwnerPath && !agentEntry && input.applicationTargets === undefined &&
+        !(await stat(path.join(input.paths.agentUIAdaptersRoot, declaration.ownerPath)).catch(() => undefined))) continue;
     const projectOwnerPath = declaration.projectOwnerPath === "application/locales.ts" &&
       !(await stat(path.join(input.paths.sourceRoot, "application", "locales.ts")).catch(() => undefined))
       ? "application/Agent.tsx" : declaration.projectOwnerPath;
     const declaredPath = input.applicationTargets === undefined
-      ? resolvedProjectRelativePath(input.projectRoot, path.join(agentEntry ? input.paths.sourceRoot : input.paths.agentUIAdaptersRoot, agentEntry ? (projectOwnerPath ?? (declaration.id === "theme.brand-palette" ? "styles.css" : "application/Agent.tsx")) : declaration.ownerPath))
+      ? resolvedProjectRelativePath(input.projectRoot, path.join(agentEntry ? input.paths.sourceRoot : input.paths.agentUIAdaptersRoot, agentEntry ? (projectOwnerPath ?? declaration.ownerPath) : declaration.ownerPath))
       : declaration.ownerPath;
     const ownerPath = projectRelativePath(input.projectRoot, declaredPath, `${declaration.id}.ownerPath`);
     // Existing projects without this opt-in application seam keep their catalog.
@@ -236,7 +251,7 @@ export async function buildCreatorAuthoringTargetCatalog(
     }
     underRoot(input.projectRoot, resolvedProjectRelativePath(input.projectRoot, agentEntry && input.applicationTargets === undefined ? input.paths.sourceRoot : input.paths.agentUIAdaptersRoot), ownerPath, `${declaration.id}.ownerPath`);
     await requireFile(input.projectRoot, ownerPath, `${declaration.id}.ownerPath`);
-    const relatedPluginIds = [...(declaration.relatedPluginIds ?? [])];
+    const relatedPluginIds = [...(declaration.relatedPluginIds ?? [])].filter(id => input.applicationTargets !== undefined || pluginIds.has(id));
     const candidate: CreatorAuthoringTargetCandidate = {
       id: declaration.id,
       kind: "application_config",
@@ -259,11 +274,13 @@ export async function buildCreatorAuthoringTargetCatalog(
       const id = `official-plugin-reference:${asset.pluginId}`;
       await add({ id, kind: "official_plugin_reference", name: asset.name,
         description: `Dependency-owned Plugin. Inspect public Slots and APIs, if implementation edits are necessary use takeover_plugin_source to request explicit source ownership confirmation; reference source: ${asset.referenceSourceItemId}.`,
-        intents: [`customize ${asset.name}`, `port official capabilities to a custom ${asset.name}`], relatedPluginIds: [asset.pluginId] },
+        intents: [`customize ${asset.name}`, `port official capabilities to a custom ${asset.name}`], relatedPluginIds: [asset.pluginId],
+        targetNames: [asset.pluginId, ...(componentNames.has(asset.pluginId) ? [componentNames.get(asset.pluginId)!] : [])] },
         { targetId: id, kind: "official_plugin_reference", pluginId: asset.pluginId, relatedPluginIds: [asset.pluginId] });
       continue;
     }
     const sourceTarget = pluginSourceTarget(asset);
+    sourceTarget.candidate.targetNames = [asset.pluginId, ...(asset.application?.implementationOwnership === "npm" && componentNames.has(asset.pluginId) ? [componentNames.get(asset.pluginId)!] : [])];
     const ownerRoot = projectRelativePath(input.projectRoot, sourceTarget.binding.ownerRoot!, `${sourceTarget.candidate.id}.ownerRoot`);
     const definitionPath = projectRelativePath(input.projectRoot, sourceTarget.binding.definitionPath!, `${sourceTarget.candidate.id}.definitionPath`);
     const manifestPath = projectRelativePath(input.projectRoot, sourceTarget.binding.manifestPath!, `${sourceTarget.candidate.id}.manifestPath`);

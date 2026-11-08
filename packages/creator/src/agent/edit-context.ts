@@ -11,7 +11,7 @@ import { inspectProject } from "./inspection.js";
 import { readEditingSources } from "./edit-context-sources.js";
 import { readCreatorFileState } from "./files/creatorFileState.js";
 import { editingDocumentation } from "./documentation.js";
-import { namesRequestedPlugins } from "./plugin-target-names.js";
+import { namesRequestedPlugins, pluginTargetNames, containsTargetName } from "./plugin-target-names.js";
 
 /** A unique explicitly named existing owner is navigation, never a mutation route. */
 export function requestedEditingPlugin(context: Pick<ToolContext, "readOnly" | "userMessage">, directory: { plugins?: readonly { pluginId: string; name: string; targetNames: readonly string[]; applicationPath: string | undefined }[] }) {
@@ -29,7 +29,7 @@ export const editContextInput = z.object({
   targetId: z.string().trim().min(1).max(200).optional(),
   pluginId: z.string().trim().min(1).max(100).optional(),
   focus: z.string().trim().max(160).optional(),
-  sharedSymbols: z.array(z.string().trim().min(1).max(200)).max(12).optional(),
+  sharedSymbols: z.array(z.string().trim().min(1).max(200)).max(8).optional(),
   sharedModule: z.string().trim().max(200).optional(),
 }).refine(input => Boolean(input.query || input.targetId || input.pluginId), "An exact target or search query is required");
 
@@ -40,6 +40,7 @@ interface Candidate {
   description: string;
   intents?: string[];
   relatedPluginIds?: string[];
+  targetNames?: string[];
 }
 
 function words(value: string) {
@@ -52,20 +53,24 @@ function words(value: string) {
 }
 
 /** Retrieval ranks existing owners; it never maps request words to mutations. */
-export function findEditingTargets(candidates: Candidate[], query: string) {
+export function findEditingTargets(candidates: Candidate[], query: string, activePluginIds: ReadonlySet<string> = new Set()) {
   const tokens = words(query), normalized = query.normalize("NFKC").toLowerCase().trim();
   const matches = candidates.map(candidate => {
     const labels = (candidate.relatedPluginIds ?? []).flatMap(id => [enUS.commands, zhCN.commands].flatMap(locale => {
       const copy = locale as Record<string, unknown>;
       return [copy[`plugin_${id}`], copy[`pluginDescription_${id}`]].filter((text): text is string => typeof text === "string");
     }));
-    const names = [candidate.id, candidate.name, ...labels].map(value => value.normalize("NFKC").toLowerCase());
+    const ids = candidate.kind === "application_config" ? [] : candidate.relatedPluginIds ?? [];
+    const names = [candidate.id, candidate.name, ...(candidate.targetNames ?? []), ...ids, ...labels].map(value => value.normalize("NFKC").toLowerCase());
+    const aliases = (candidate.relatedPluginIds ?? []).flatMap(pluginId => pluginTargetNames({ pluginId })).map(value => value.normalize("NFKC").toLowerCase());
+    const matchedNames = aliases.filter(alias => alias.length >= 3 && containsTargetName(normalized, alias));
     const text = [...names, candidate.description, ...(candidate.intents ?? [])].join(" ").normalize("NFKC").toLowerCase();
     const exact = names.includes(normalized);
-    const score = exact ? 1000 : tokens.reduce((total, token) => total + (text.includes(token) ? (names.some(name => name.includes(token)) ? 2 : 1) : 0), 0);
-    return { ...candidate, score };
-  }).filter(candidate => candidate.score > 0).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  const exact = matches.filter(candidate => candidate.score === 1000);
+    const score = exact ? 1000 : matchedNames.reduce((sum, name) => sum + name.length * 10, 0) + tokens.reduce((total, token) => total + (text.includes(token) ? (names.some(name => name.includes(token)) ? 2 : 1) : 0), 0);
+    return { ...candidate, score, matchedNames, exactMatch: exact };
+  }).filter(candidate => candidate.score > 0).sort((a, b) => b.score - a.score ||
+    Number((b.relatedPluginIds ?? []).some(id => activePluginIds.has(id))) - Number((a.relatedPluginIds ?? []).some(id => activePluginIds.has(id))) || a.id.localeCompare(b.id));
+  const exact = matches.filter(candidate => candidate.exactMatch);
   return exact.length ? exact : matches;
 }
 
@@ -134,9 +139,10 @@ export async function inspectEditingContext(context: ToolContext, input: z.infer
     const catalog = project.authoringTargetCatalog;
     const candidates: Candidate[] = catalog?.candidates ?? [];
     const matches = input.targetId ? candidates.filter(candidate => candidate.id === input.targetId)
-      : findEditingTargets(candidates, input.query ?? "");
+      : findEditingTargets(candidates, input.query ?? "", new Set((project.pluginInstances ?? []).map((instance: any) => instance.pluginId)));
     if (matches.length !== 1) return { status: matches.length ? "candidates" : "not_found", catalogRevision: catalog?.revision,
       candidates: matches.slice(0, 8), totalMatches: matches.length, candidatesTruncated: matches.length > 8,
+      ...(input.sharedSymbols?.length ? { apiQuery: { status: "not_run", reason: "No unique owner was selected. Query installed types through inspect_ui_plugin with an actual pluginId, sharedModule and sharedSymbols; an owner search miss is not an API search result." } } : {}),
       interpretation: "Search over current declared editing owners only, not proof that a capability is absent. Select a returned targetId, narrow the query, or use ordinary inspection/file tools. No target or operation has been selected for the user." };
     const candidate = matches[0]!;
     description = candidate.description;
@@ -155,7 +161,18 @@ export async function inspectEditingContext(context: ToolContext, input: z.infer
     interpretation: "No editable project owner was resolved. Returned npm/catalog facts are references, not project source reads. Use the existing controlled application-preparation/integration tools when the task requires a local application. This does not authorize source takeover or imply that a capability is absent." };
   target.entryPath = logicalProjectPath(target.entryPath);
   if (!target.entryPath.startsWith(source + "/")) throw new Error("EDITING_CONTEXT_OWNER_OUTSIDE_SOURCE");
+  const currentOwners = (context.editingTargets ?? []).filter(item => item.identity === identity && item.target.kind === "application_config");
+  const focus = input.focus ?? input.query ?? "";
+  const focusedOwners = focus ? findEditingTargets(currentOwners.map(item => ({ ...item.target, description: item.description ?? "", intents: item.intents ?? [], relatedPluginIds: item.relatedPluginIds ?? [] })), focus) : [];
+  const relatedOwners = currentOwners.filter(item => item.target.id !== target.id &&
+    ((target.pluginId && item.relatedPluginIds?.includes(target.pluginId)) || focusedOwners.some(owner => owner.id === item.target.id)))
+    .sort((a, b) => (focusedOwners.find(owner => owner.id === b.target.id)?.score ?? 0) - (focusedOwners.find(owner => owner.id === a.target.id)?.score ?? 0))
+    .slice(0, 6).map(item => ({ targetId: item.target.id, path: item.target.entryPath, description: item.description,
+      nextRead: { tool: "read_file", input: { file_path: "/" + logicalProjectPath(item.target.entryPath), offset: 0, limit: 120 } } }));
   const paths = [{ path: target.entryPath, role: "entry" }];
+  // Upstream application bindings cannot be discovered by following a thin
+  // wrapper's imports into npm. These paths come from the current owner catalog.
+  for (const owner of relatedOwners.slice(0, 2)) paths.push({ path: owner.path, role: "related_application" });
   if (target.definitionPath) paths.push({ path: target.definitionPath, role: "definition" });
   if (target.manifestPath) paths.push({ path: target.manifestPath, role: "manifest" });
   const applicationMetadata = inspection?.files?.find((file: any) => file.kind === "file" && /\/application\.json$/u.test(file.path));
@@ -188,7 +205,7 @@ export async function inspectEditingContext(context: ToolContext, input: z.infer
   }
   await selectEditingTarget(context, target, files.map(file => file.path), identity);
   const editingPolicy = inspection ? await rememberPluginOwnership(context, inspection) : undefined;
-  return { status: files.some(file => file.path === "/" + target.entryPath) ? "resolved" : "partial", target, files, unavailableFiles,
+  return { status: files.some(file => file.path === "/" + target.entryPath) ? "resolved" : "partial", target, files, unavailableFiles, relatedOwners,
     ...(editingPolicy ? { editingPolicy } : {}),
     ...(inspection ? { plugin: { pluginId: target.pluginId, instances: inspection.instances, manifest: inspection.manifest,
       definitionSource: inspection.definitionSource, implementationOwnership: inspection.application?.implementationOwnership ?? inspection.asset?.application?.implementationOwnership ?? "project",
