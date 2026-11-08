@@ -9,13 +9,21 @@
 | 跨平台进程 | `pnpm-process.mjs`；新增 pnpm 调用复用此模块，避免自行调用 Windows `.cmd` |
 | 测试与类型检查 | `test-workspace-ts.mjs`、`typecheck-workspace.mjs`、`generated-source-test-config.ts`、同名 `.test.*` |
 | 示例 Host | `host-examples/`：初始化、检查、重置和维护示例项目绑定 |
-| 包发行 | `sync-package-release-metadata.mjs`、`prepare-compatibility-release.mjs`、`verify-public-packages.mjs`、`creator-documentation.mjs` |
+| 包发行 | `version-packages.mjs`、`sync-package-release-metadata.mjs`、`prepare-compatibility-release.mjs`、`verify-public-packages.mjs`、`creator-documentation.mjs` |
 | assistant-ui 维护 | `update-assistant-ui.mjs`、`assistant-ui-workspace-packages.mjs`、`generate-assistant-ui-upgrade-report.mjs`、`check-assistant-ui-*.mjs`、`check-ag-ui-lockfile.mjs`、`check-generative-ui-resource.mjs` |
 | 其他检查 | `check-dependency-pins.mjs`、`check-operator-contract.mjs`、`check-react-compat.mjs`、`verify-dev-startup.mjs` |
 | 国际化 | `audit-ui-copy.mjs`；语言与主题行为由主流程测试和 Web Component 嵌入测试覆盖 |
 | 手动维护 | `audit-packed-plugin-sources.mts`（包内容审计）、`package-repository.mjs`（仓库与静态文档 ZIP 打包） |
 
 Creator 发行使用 `packages/creator` 的 `build` 和 `pnpm pack`。Agent、Operator、契约、提示词及浏览器工作台随同一个 `@za38.03/agent-ui-creator` 包交付，不再生成 Python wheel 或各平台运行包。公开清单共六个独立版本的 API 包。
+
+`pnpm release:version` 一次完成识别改动、升版、提交和自动打标签。命令通过 `pnpm view` 分别查询六个包在 npm 上实际存在的最高稳定版本，沿用仓库 `.npmrc`、scope registry 和凭据；包单独设置 `publishConfig.registry` 时查询该发布源。已发布包的源码指纹决定是否有新改动，默认升一个 patch，并联动需要新依赖版本的公开包。内部数字依赖/peer 和当前模板资源的依赖声明同步为准确版本；`workspace:*` 保留，由 pnpm 打包时转换为准确版本。锁文件通过 `pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile` 更新，不增加工具依赖，也不接入构建、测试或发布流程。
+
+命令将当前包源码、相关脚本、根 TypeScript/包配置和锁文件一起提交，自动创建 `release-时间-提交号` 格式的本地 annotated tag；目录外的无关暂存改动保留。标签标记准备发布的源码，不是发布成功的依据。只推送但没跑流水线时，同一源码复用已有标签；有新源码也保留尚未发布的目标版本。npm 确认该版本已存在后，后续改动才进入下一版本。流水线部分发布时逐包识别已发布/待发布状态，已发布且要求未变化的包不重复升版。通过正常 Git 流程推送该提交及标签（例如 `git push --follow-tags`），再手动运行原流水线。
+
+npm 返回包不存在（404）时按首次发行处理并保留当前初始版本；网络、认证或元数据读取失败会在修改文件前停止，不推断为“未发布”。每个待发包的 `package.json.agentUISource` 记录源码指纹和本轮内部依赖版本，这些元数据随原流水线自然发布，构建生成的兼容清单不会覆盖它。旧已发布包没有该字段时使用其 npm `gitHead` 定位源码；旧元数据也缺少 `gitHead` 时，用 `--since <上次实际发布的tag或commit>` 一次性补充源码基准。仅有标签不会被认作发布成功。
+
+识别包括已提交、未提交和未忽略的新文件，排除 Git 忽略的生成产物；包内文件、使用的共享脚本、根 TypeScript 配置及根 pnpm 覆盖/引擎配置属于识别范围，单独修改网站或示例不触发包升版。可先执行 `pnpm release:version --dry-run` 查看清单；新增功能或破坏性变更由维护者选择 `--bump minor` / `--bump major`，源码差异本身不能推断 API 兼容性。现有发布流水线继续负责构建、发行资料与发布。
 
 `pnpm package:repo [output.zip]` 打包仓库，ZIP 中的 `website/` 固定为完整静态站点；`pnpm docs:zip [output.zip]` 只构建并打包静态 `website/`，默认输出 `../AgentUIWebsite.zip`，不生成 Creator 离线文档。两者保留工作区源码，部署服务器无需 Node.js 或 npm 依赖。
 
