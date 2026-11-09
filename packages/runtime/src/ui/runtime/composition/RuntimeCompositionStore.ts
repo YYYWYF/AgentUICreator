@@ -10,6 +10,7 @@ import { buildRuntimeComposition } from "./RuntimeCompositionBuilder.js";
 export interface CompositionRevisionDescriptor {
   transactionId: string;
   appUIModelHash: string;
+  appUIModelJsonHash?: string | undefined;
   capabilityCatalogRevision: string;
 }
 
@@ -61,6 +62,8 @@ function parseRevisionDescriptor(
     typeof value.transactionId !== "string" ||
     typeof value.appUIModelHash !== "string" ||
     !/^[a-f0-9]{64}$/u.test(value.appUIModelHash) ||
+    (value.appUIModelJsonHash !== undefined &&
+      (typeof value.appUIModelJsonHash !== "string" || !/^[a-f0-9]{64}$/u.test(value.appUIModelJsonHash))) ||
     typeof value.capabilityCatalogRevision !== "string" ||
     !/^[a-f0-9]{64}$/u.test(value.capabilityCatalogRevision)
   ) {
@@ -69,6 +72,7 @@ function parseRevisionDescriptor(
   return {
     transactionId: value.transactionId,
     appUIModelHash: value.appUIModelHash,
+    appUIModelJsonHash: value.appUIModelJsonHash as string | undefined,
     capabilityCatalogRevision: value.capabilityCatalogRevision,
   };
 }
@@ -139,9 +143,12 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
 
       const descriptorMatches =
         descriptor !== undefined &&
-        descriptor.appUIModelHash === appUIModelHash &&
+        (descriptor.appUIModelHash === appUIModelHash ||
+          (descriptor.appUIModelJsonHash !== undefined && descriptor.appUIModelJsonHash ===
+            await sha256Text(JSON.stringify(JSON.parse(candidate.appUIModelSource))))) &&
         descriptor.capabilityCatalogRevision ===
           candidate.capabilityCatalogRevision;
+      if (generation !== this.#generation) return;
       if (
         this.#pendingTransactionId !== undefined &&
         (!descriptorMatches ||
@@ -158,7 +165,7 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
 
       const built = await buildRuntimeComposition(candidate);
       if (generation !== this.#generation) return;
-      appUIModelHash = built.appUIModelHash;
+      appUIModelHash = descriptorMatches ? descriptor.appUIModelHash : built.appUIModelHash;
       const transactionId = descriptorMatches
         ? descriptor.transactionId
         : undefined;

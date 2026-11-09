@@ -1,3 +1,4 @@
+import { development } from './agent-ui/application/environment';
 import { useMemo } from "react";
 import { useAgentUILocale, useAgentUILocaleCode } from "@za38.03/agent-ui-plugins";
 import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
@@ -10,9 +11,9 @@ export function AgentMount() {
   const locale = useAgentUILocaleCode();
   const attachmentMessages = useAgentUILocale("attachments");
   // Production Hosts supply their own history data source and API credentials.
-  const conversationDataSource = useMemo(() => import.meta.env.DEV
+  const conversationDataSource = useMemo(() => development
     ? createHttpConversationDataSource({ endpoint: "/__agent-ui/mock-data" })
     : undefined, []);
-  const demoAttachmentAdapter = useMemo(() => import.meta.env.DEV ? new DemoAttachmentAdapter(attachmentMessages) : undefined, [attachmentMessages]);
+  const demoAttachmentAdapter = useMemo(() => development ? new DemoAttachmentAdapter(attachmentMessages) : undefined, [attachmentMessages]);
   return <Agent endpoint="/agent" locale={locale} attachmentAdapter={demoAttachmentAdapter} conversationDataSource={conversationDataSource} />;
 }

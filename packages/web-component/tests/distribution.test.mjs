@@ -3,6 +3,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 import ts from "typescript-ui-audit";
 const root = new URL("../", import.meta.url);
+const elementDeclaration = await readFile(new URL('dist/types/src/AgentUIElement.d.ts', root), 'utf8');
+assert(!elementDeclaration.includes('styles.css'), 'Public declarations must not require build-only CSS assets');
 for (const name of ["agent-ui.js", "agent-ui.es.js"]) {
   const script = await readFile(new URL(`dist/${name}`, root), "utf8");
   assert(!script.includes("__AGENT_UI_BUNDLED_PLUGIN_CSS__"));

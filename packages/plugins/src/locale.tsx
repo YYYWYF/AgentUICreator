@@ -18,9 +18,10 @@ export function mergeAgentUILocaleOverrides(base: AgentUILocaleOverrides = {}, o
 }
 const LocaleContext = createContext({ locale: "en-US" as AgentUILocaleCode, messages: DEFAULT_AGENT_UI_MESSAGES });
 
+declare const process: { env: { NODE_ENV?: string } };
 const warnedKeys = new Set<string>();
 function warnMissingKey(key: string) {
-  const development = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ?? (typeof process !== "undefined" && process.env.NODE_ENV !== "production");
+  const development = process.env.NODE_ENV !== "production";
   if (development && !warnedKeys.has(key)) { warnedKeys.add(key); console.warn(`Missing locale key: ${key}`); }
 }
 

@@ -73,14 +73,34 @@ export async function inspectIntegrationHost(projectRoot: string) {
     recommendedResource: framework === "react" ? "canonical-react" : framework === "nuxt" ? "unsupported" : "web-component-bridge" };
 }
 
+/** Browser-owned module loading: public URLs never enter the Host bundler module graph. */
+function loadPublicModule(specifier: string): string {
+  return `if (!customElements.get('agent-ui')) {
+      await new Promise((resolve, reject) => {
+        const moduleUrl = new URL(${literal(specifier)}, window.location.href);
+        if (agentUIModuleLoadFailures) moduleUrl.searchParams.set('__agent_ui_retry', String(agentUIModuleLoadFailures));
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = moduleUrl.href;
+        const cleanup = () => { script.onload = null; script.onerror = null; script.remove(); };
+        script.onload = () => {
+          cleanup();
+          if (customElements.get('agent-ui')) resolve();
+          else { agentUIModuleLoadFailures++; reject(new Error('AGENT_UI_MODULE_REGISTRATION_MISSING')); }
+        };
+        script.onerror = () => { cleanup(); agentUIModuleLoadFailures++; reject(new Error('AGENT_UI_MODULE_LOAD_ERROR')); };
+        document.head.append(script);
+      });
+    }`;
+}
+
 // Templates are Host-owned. The wrapper creates the Custom Element directly so
 // Vue's compiler never needs an isCustomElement or React/TSX configuration.
 function vueWrapper(options: z.output<typeof integrationOptionsSchema>, major: 2 | 3) {
   const config = literal({ endpoint: options.endpoint, locale: options.locale, theme: options.theme });
   const publicModule = options.moduleSpecifier.startsWith("/");
-  const registration = publicModule ? "" : `import ${literal(options.moduleSpecifier)};`;
-  const loadModule = publicModule ? `const moduleUrl = new URL(${literal(options.moduleSpecifier)}, window.location.href).href;
-    try { await import(/* @vite-ignore */ moduleUrl); }\n    catch (error) { if (!this._agentDisposed) this.$emit('agent-error', { code: 'AGENT_UI_MODULE_LOAD_ERROR', error }); return; }\n    if (this._agentDisposed) return;` : "";
+  const registration = publicModule ? "let agentUIModuleLoadFailures = 0;" : `import ${literal(options.moduleSpecifier)};`;
+  const loadModule = publicModule ? `try { ${loadPublicModule(options.moduleSpecifier)} }\n    catch (error) { if (!this._agentDisposed) this.$emit('agent-error', { code: 'AGENT_UI_MODULE_LOAD_ERROR', error }); return; }\n    if (this._agentDisposed) return;` : "";
   const props = `props: { endpoint: { type: String, default: ${literal(options.endpoint)} }, locale: { type: String, default: ${literal(options.locale)} }, theme: { type: String, default: ${literal(options.theme)} }, threadId: String },`;
   return `<template><div ref="container"></div></template>\n<script>\n${registration}\nexport default {\n  name: 'AgentUIBridge',\n  ${props}\n  ${major === 3 ? "emits: ['agent-ready', 'thread-change', 'theme-change', 'agent-error']," : ""}\n  async mounted() {\n    ${loadModule}\n    const element = document.createElement('agent-ui');\n    this._agentElement = element;\n    element.config = { ...${config}, endpoint: this.endpoint, locale: this.locale, theme: this.theme, threadId: this.threadId };\n    this._agentListeners = ['agent-ready', 'thread-change', 'theme-change', 'agent-error'].map(name => {\n      const listener = event => this.$emit(name, event.detail);\n      element.addEventListener(name, listener);\n      return [name, listener];\n    });\n    this.$refs.container.append(element);\n  },\n  watch: {\n    endpoint: 'updateAgentConfig', locale: 'updateAgentConfig', theme: 'updateAgentConfig', threadId: 'updateAgentConfig',\n  },\n  methods: {\n    updateAgentConfig() { if (this._agentElement) this._agentElement.config = { endpoint: this.endpoint, locale: this.locale, theme: this.theme, threadId: this.threadId }; },\n    disposeAgentElement() {\n      this._agentDisposed = true;\n      if (!this._agentElement) return;\n      for (const [name, listener] of this._agentListeners) this._agentElement.removeEventListener(name, listener);\n      this._agentElement.remove();\n      this._agentElement = undefined;\n    },\n  },\n  ${major === 3 ? "beforeUnmount" : "beforeDestroy"}() { this.disposeAgentElement(); },\n};\n</script>\n`;
 }
@@ -146,7 +166,7 @@ export async function planIntegrationRecipe(projectRoot: string, input: Integrat
   } else {
     const moduleFile = "agent-ui-integration.js";
     await add(moduleFile, "create_file", before => {
-      const template = `${options.moduleSpecifier.startsWith("/") ? `await import(/* @vite-ignore */ ${literal(options.moduleSpecifier)});` : `import ${literal(options.moduleSpecifier)};`}\nconst element = document.createElement('agent-ui');\nelement.config = ${literal({ endpoint: options.endpoint, locale: options.locale, theme: options.theme })};\ndocument.getElementById('agent-ui-mount').append(element);\n`;
+      const template = `${options.moduleSpecifier.startsWith("/") ? `let agentUIModuleLoadFailures = 0;\n${loadPublicModule(options.moduleSpecifier)}` : `import ${literal(options.moduleSpecifier)};`}\nconst element = document.createElement('agent-ui');\nelement.config = ${literal({ endpoint: options.endpoint, locale: options.locale, theme: options.theme })};\ndocument.getElementById('agent-ui-mount').append(element);\n`;
       if (before !== null && before !== template) fail("INTEGRATION_FILE_CONFLICT");
       return template;
     });

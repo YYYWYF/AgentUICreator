@@ -21,6 +21,14 @@
     {
       "source": "files/integrations/web-component-bridge/vite.config.ts",
       "target": "integrations/web-component-bridge/vite.config.ts"
+    },
+    {
+      "source": "files/integrations/web-component-bridge/build-styles.mjs",
+      "target": "integrations/web-component-bridge/build-styles.mjs"
+    },
+    {
+      "source": "files/integrations/web-component-bridge/build-styles.d.mts",
+      "target": "integrations/web-component-bridge/build-styles.d.mts"
     }
   ],
   "packages": {

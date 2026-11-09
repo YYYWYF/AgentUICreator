@@ -7,7 +7,7 @@
           "sha256": "0e2a85e090945e3c766bb66915478c05e52887c66e549a44949dbdb155e1f4a1"
         },
         "application/project-config.tsx": {
-          "sha256": "b2a126ca64f1bb2097d1a2383a91e3ca905e9470beb9a8f160f69e01fd1898ab"
+          "sha256": "4fde9c68abaafddebd82a27461116061c22a6894504a396c522468a01f31e48d"
         },
         "application/locales.ts": {
           "sha256": "bf89853794d68f1995c27c7c4641b249227b189e825faa2f39415ab292ba3e89"
@@ -17,6 +17,21 @@
         },
         "plugins/index.ts": {
           "sha256": "861575fddd1d069d6b11a4516c74839831a77a273e0fe96b16239c72c08ca1b3"
+        },
+        "application/environment.ts": {
+          "sha256": "c29099b8c1d13f6d9b62528694b05469d7f11d712cf683ef923f8062b4d72992"
+        },
+        "application/composition-store.ts": {
+          "sha256": "e66f26557cd3d258711054658f26f84709dfc67f84fdb4019bb128e63380a835"
+        },
+        "application/resources.generated.ts": {
+          "sha256": "c41db7c5236cbc7edc0a980a08d40befea0f326a19a8a2b835ad51fcc84020e4"
+        },
+        "composition-revision.generated.json": {
+          "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+        },
+        "application/assets.d.ts": {
+          "sha256": "1ae7ecf6ec60cf47774171838ba687131d718dafd5a22c1a9d998413b069c61d"
         }
       }
     },

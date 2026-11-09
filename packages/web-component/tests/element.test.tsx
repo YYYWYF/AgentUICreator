@@ -6,7 +6,7 @@ import { dispatchAgentUIEvent } from "../src/events";
 import type { AgentUIConfig } from "../src/config";
 import type { AgentUIElement } from "../src/AgentUIElement";
 const calls = vi.hoisted(() => ({ mounted: 0, unmounted: 0, configs: [] as AgentUIConfig[] }));
-vi.mock("../src/styles.css?inline", () => ({ default: ":host { display: block; }" }));
+vi.mock("../src/styles.css", () => ({}));
 vi.mock("../src/AgentUIBridgeRoot", () => ({ AgentUIBridgeRoot: ({ config }: { config: AgentUIConfig }) => {
   calls.configs.push(config);
   useEffect(() => { calls.mounted++; return () => { calls.unmounted++; }; }, []);

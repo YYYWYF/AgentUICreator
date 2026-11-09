@@ -24,7 +24,7 @@ try {
   await mkdir(path.join(root, 'node_modules/@za38.03'), { recursive: true });
   await symlink(packageRoot, path.join(root, 'node_modules/@za38.03/agent-ui-web-component'), 'junction');
   await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@za38.03/agent-ui-web-component': '^0.0.1' } }));
-  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: true, types: ['vite/client', 'node'] }, include: ['src'] }));
+  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, resolveJsonModule: true, skipLibCheck: true, types: ['node'] }, include: ['src'] }));
   const host = createAgentUIInitializationHost();
   await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installOperatorEntry: async () => [] });
   const before = await inspectOfficialAgentUIResourceCatalog(root);
@@ -33,11 +33,15 @@ try {
   assert.equal(result.changed, true);
   assert.equal((await inspectOfficialAgentUIResourceCatalog(root)).find(item => item.id === 'web-component-bridge').status, 'ready');
   assert.equal((await installOfficialAgentUIResource(root, 'web-component-bridge')).changed, false);
+  const bridgeEntry = await readFile(path.join(root, 'src/agent-ui/integrations/web-component-bridge/register.tsx'), 'utf8');
+  assert(bridgeEntry.includes("import './styles.css'"));
+  assert(!bridgeEntry.includes('?inline'));
+  assert((await readFile(path.join(root, 'src/agent-ui/integrations/web-component-bridge/build-styles.mjs'), 'utf8')).includes('finalizeShadowStyles'));
   // The producer's edited React Plugin must enter its own bundle, rather than
   // silently loading the bridge package's default preset.
   const plugin = path.join(root, 'src/agent-ui/plugins/conversation-surface/index.tsx');
   const source = await readFile(plugin, 'utf8');
-  const customized = source.replace(/return (<Implementation\b[\s\S]*\/>);/u, 'return <div data-compatibility-fixture="local-plugin">$1</div>;');
+  const customized = source.replace(/return\s*\(\s*(<Implementation\b[\s\S]*\/>)\s*\);/u, 'return (<div data-compatibility-fixture="local-plugin">$1</div>);');
   assert.notEqual(customized, source, 'The enabled project application component must actually be customized');
   await writeFile(plugin, customized);
   const build = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/vite/bin/vite.js'), 'build', '--config', 'src/agent-ui/integrations/web-component-bridge/vite.config.ts'], { cwd: root, encoding: 'utf8' });

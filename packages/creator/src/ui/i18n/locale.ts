@@ -8,9 +8,10 @@ export type CreatorLocaleMessages = { [N in keyof typeof zhCN]: { [K in keyof (t
 export const CREATOR_LOCALES: Record<CreatorLocaleCode, CreatorLocaleMessages> = { "en-US": enUS, "zh-CN": zhCN };
 export const DEFAULT_CREATOR_MESSAGES: CreatorLocaleMessages = zhCN;
 
+declare const process: { env: { NODE_ENV?: string } };
 const warnedKeys = new Set<string>();
 function warnMissingKey(key: string) {
-  const development = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ?? (typeof process !== "undefined" && process.env.NODE_ENV !== "production");
+  const development = process.env.NODE_ENV !== "production";
   if (development && !warnedKeys.has(key)) { warnedKeys.add(key); console.warn(`Missing locale key: ${key}`); }
 }
 export function resolveCreatorLocaleMessages(locale: CreatorLocaleCode, warn: (key: string) => void = warnMissingKey): CreatorLocaleMessages {

@@ -2,11 +2,11 @@ import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, symlink, stat } from 
 import path from "node:path";
 import { createHash } from "node:crypto";
 import os from "node:os";
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { planIntegrationRecipe, applyIntegrationRecipe, verifyIntegrationRecipe } from "../src/project/integration-recipe";
 import { handleUIOperatorRequest } from "../src/handler";
 const roots: string[] = [];
-afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
+afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllGlobals(); await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 async function fixture(dependencies: Record<string, string> = { vue: "^3.5.0", vite: "^8.0.0" }) {
   const root = await mkdtemp(path.join(os.tmpdir(), "integration-recipe-")); roots.push(root);
   await mkdir(path.join(root, "src"));
@@ -22,6 +22,54 @@ async function recipe(root: string) {
   if (plan.status !== "planned") throw new Error(plan.status);
   return plan.integrationRecipe;
 }
+
+test.each([2, 3])('loads public modules in Vue %s without a bundler import context', async major => {
+  const root = await fixture({ vue: `^${major}.0.0`, '@vue/cli-service': '^5.0.0' });
+  const plan = await recipe(root);
+  const wrapper = plan.edits.find(edit => edit.file === 'src/components/AgentUIBridge.vue')!.after;
+  expect(wrapper).not.toMatch(/import\s*\(|vite-ignore|webpackIgnore/);
+  const script = wrapper.match(/<script>([\s\S]*?)<\/script>/)![1]!;
+  const component = new Function(script.replace('export default', 'return'))();
+  let registered = false;
+  vi.stubGlobal('customElements', { get: () => registered ? class {} : undefined });
+  const append = vi.spyOn(document.head, 'append').mockImplementation((...nodes) => {
+    const script = nodes[0] as HTMLScriptElement;
+    expect(script.type).toBe('module');
+    expect(new URL(script.src).pathname).toBe('/agent-ui.js');
+    queueMicrotask(() => { registered = true; script.onload!(new Event('load')); });
+  });
+  const container = document.createElement('div');
+  const host = { $refs: { container }, $emit: vi.fn() };
+  await component.mounted.call(host);
+  expect(container.querySelector('agent-ui')).not.toBeNull();
+  expect(host.$emit).not.toHaveBeenCalled();
+  await component.mounted.call({ $refs: { container: document.createElement('div') }, $emit: vi.fn() });
+  expect(append).toHaveBeenCalledTimes(1);
+});
+
+test('reports native module load failures and permits a later retry', async () => {
+  const root = await fixture();
+  const plan = await recipe(root);
+  const wrapper = plan.edits.find(edit => edit.file === 'src/components/AgentUIBridge.vue')!.after;
+  const component = new Function(wrapper.match(/<script>([\s\S]*?)<\/script>/)![1]!.replace('export default', 'return'))();
+  let registered = false;
+  vi.stubGlobal('customElements', { get: () => registered ? class {} : undefined });
+  const append = vi.spyOn(document.head, 'append').mockImplementation((...nodes) => {
+    const script = nodes[0] as HTMLScriptElement;
+    queueMicrotask(() => { script.onerror!(new Event('error')); });
+  });
+  const host = { $refs: { container: document.createElement('div') }, $emit: vi.fn() };
+  await component.mounted.call(host);
+  expect(host.$emit).toHaveBeenCalledWith('agent-error', expect.objectContaining({ code: 'AGENT_UI_MODULE_LOAD_ERROR' }));
+  expect(host.$refs.container.children).toHaveLength(0);
+  append.mockImplementation((...nodes) => {
+    const script = nodes[0] as HTMLScriptElement;
+    expect(new URL(script.src).searchParams.get('__agent_ui_retry')).toBe('1');
+    queueMicrotask(() => { registered = true; script.onload!(new Event('load')); });
+  });
+  await component.mounted.call(host);
+  expect(host.$refs.container.querySelector('agent-ui')).not.toBeNull();
+});
 test("guide is read-only, exposes facts and requires an explicit target", async () => {
   const root = await fixture();
   const before = await readdir(root, { recursive: true });
@@ -89,7 +137,7 @@ test("clean Vue uses Host distribution without installing producer dependencies"
   const plan = await planIntegrationRecipe(root, { targetFile: "src/App.vue" });
   if (plan.status !== "planned") throw new Error(plan.status);
   expect(plan.integrationRecipe.integration.moduleSpecifier).toBe("/agent-ui.js");
-  expect(plan.integrationRecipe.edits[0]!.after).toContain('new URL("/agent-ui.js", window.location.href).href');
+  expect(plan.integrationRecipe.edits[0]!.after).toContain('new URL("/agent-ui.js", window.location.href)');
   expect(await readdir(root, { recursive: true })).toEqual(initial);
   const manifest = await readFile(path.join(root, "package.json"), "utf8");
   const result = await applyIntegrationRecipe(root, plan.integrationRecipe);

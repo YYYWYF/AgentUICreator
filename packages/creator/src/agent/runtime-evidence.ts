@@ -45,10 +45,11 @@ export async function inspectRuntime(context: ToolContext, options: { includeSta
   const project = await requestOperator(context.root, "inspect_ui_project", { view: "composition" }, context.signal);
   const currentHash = project.appUIModel?.hash ?? project.appUIModelHash;
   if (!/^[a-f0-9]{64}$/u.test(currentHash)) throw new Error("CREATOR_RUNTIME_MODEL_HASH_UNAVAILABLE");
+  const currentHashes = [...new Set([currentHash, project.appUIModel?.runtimeHash].filter((value): value is string => typeof value === "string" && /^[a-f0-9]{64}$/u.test(value)))];
   let scoped: any[] = [], current: any[] = [], latest: any, composition: any;
   const collect = (requestId?: string) => {
     scoped = [...context.diagnostics.values()].filter(item => item.threadId === context.threadId);
-    current = scoped.filter(item => (item.diagnostic ?? item.composition)?.appUIModelHash === currentHash);
+    current = scoped.filter(item => currentHashes.includes((item.diagnostic ?? item.composition)?.appUIModelHash));
     latest = current.filter(item => item.composition).sort((a, b) => Date.parse(b.composition.observedAt) - Date.parse(a.composition.observedAt))[0];
     if (requestId) latest = current.find(item => item.composition && item.observationRequestId === requestId) ?? latest;
     composition = latest?.composition;
@@ -108,7 +109,7 @@ export async function inspectRuntime(context: ToolContext, options: { includeSta
       const saved = context.runtimeObservationRefresh;
       const refresh = saved?.key === key ? saved : { key, pending: (async () => {
         const requestId = randomUUID();
-        await context.requestRuntimeObservation!({ requestId, currentHash,
+        await context.requestRuntimeObservation!({ requestId, currentHash, currentHashes,
           ...(runtimeInstanceIds.length ? { instanceIds: runtimeInstanceIds } : {}), ...(runtimeNodeIds.length ? { nodeIds: runtimeNodeIds } : {}) });
         const deadline = Date.now() + 3000;
         while (Date.now() < deadline) {
@@ -156,7 +157,7 @@ export async function inspectRuntime(context: ToolContext, options: { includeSta
       composition?.application && ["bootstrapping", "resolving-gates", "error"].includes(composition.application.phase) ? `application_${composition.application.phase}` : undefined].filter(Boolean),
       recovery: { action: "check_connected_preview", retryable: false, instruction: "No fresh runtime proof was obtained. Check the selected project's connected preview; do not repeat unchanged inspections or treat this as a source defect. Continue independent static work and report the observation gap." } } : {}),
     summary: { currentOpenCount: errors.length, truncated: false },
-    ...(options.includeStale ? { stale: scoped.filter(item => (item.diagnostic ?? item.composition)?.appUIModelHash !== currentHash).filter(item => item.diagnostic).map(item => sanitize(item.diagnostic)) } : {}),
+    ...(options.includeStale ? { stale: scoped.filter(item => !currentHashes.includes((item.diagnostic ?? item.composition)?.appUIModelHash)).filter(item => item.diagnostic).map(item => sanitize(item.diagnostic)) } : {}),
     ...(composition ? { observedAt: composition.observedAt, viewport: composition.viewport, application: composition.application, instances, layoutNodes } : {}),
     interpretation: "Current-hash geometry is structural observation. Browser focus, appearance and interaction require a live browser check. Unavailable or stale evidence is not a pass.",
   };

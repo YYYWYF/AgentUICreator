@@ -360,6 +360,8 @@ export interface UICompositionInspection {
   observationCoverage: CompositionObservationCoverage[];
   appUIModel: {
     hash: string;
+    /** Hash of JSON.stringify(JSON.parse(source)), for portable JSON imports. */
+    runtimeHash?: string;
     layout: CompactLayoutNode;
     slots: InspectedSlot[];
   };

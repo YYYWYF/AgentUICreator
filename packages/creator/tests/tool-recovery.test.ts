@@ -5,8 +5,9 @@ import { inspectRuntime, recordRuntimeEvidence } from "../src/agent/runtime-evid
 import type { ToolContext } from "../src/agent/tools.js";
 import { runtimeObservationNavigation } from "../src/agent/inspection.js";
 
-const fixture = vi.hoisted(() => ({ hash: "a".repeat(64) }));
+const fixture = vi.hoisted(() => ({ hash: "a".repeat(64), runtimeHash: undefined as string | undefined }));
 vi.mock("../src/agent/operator.js", () => ({ requestOperator: async () => ({ appUIModel: { hash: fixture.hash,
+  runtimeHash: fixture.runtimeHash,
   layout: { type: "sidebar", nodeRef: "l0", items: [{ id: "history", child: { type: "slot", nodeRef: "l1" } }], content: { type: "slot", nodeRef: "l2" } } },
   pluginInstances: [{ id: "history", runtimeInstanceId: "internal-history", target: { type: "layout_slot", slotRef: "l1" } }] }) }));
 function context() {
@@ -19,7 +20,19 @@ function report(ctx: ToolContext, observationRequestId?: string, observedAt = ne
     composition: { appUIModelHash, observedAt, instances: [], slots: [],
       layoutNodes: [{ nodeId: "layout-node:root", rect: { x: 0, y: 0, width: 900, height: 600 } }] } });
 }
-afterEach(() => vi.useRealTimers());
+afterEach(() => { vi.useRealTimers(); fixture.runtimeHash = undefined; });
+
+it("correlates portable JSON observations while rejecting hashes outside the current file", async () => {
+  fixture.runtimeHash = "c".repeat(64);
+  const ctx = context();
+  ctx.requestRuntimeObservation = async request => {
+    expect(request.currentHashes).toEqual([fixture.hash, fixture.runtimeHash]);
+    report(ctx, request.requestId, new Date().toISOString(), ctx.threadId, fixture.runtimeHash);
+  };
+  report(ctx, undefined, new Date().toISOString(), ctx.threadId, "d".repeat(64));
+  const result = await inspectRuntime(ctx, { refresh: true, includeStale: true });
+  expect(result).toMatchObject({ runtimeStatus: "available", observationRefresh: { status: "received" } });
+});
 
 it.each(["/node_modules/a/index.d.ts", "/NODE_MODULES/a", "/dist/a", "/.env.local", "/.agent-ui/creator/logs", "C:/project/src/x.ts", "C:\\project\\src\\x.ts", "../outside", "\\\\server\\share"])("keeps denied path %s denied with recovery", path => {
   expect(() => logicalProjectPath(path)).toThrow("TOOL_PERMISSION_DENIED");

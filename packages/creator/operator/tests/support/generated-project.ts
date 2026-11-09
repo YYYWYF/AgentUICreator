@@ -42,6 +42,11 @@ export function generatedProjectFixture(): Promise<string> {
           await mkdir(path.dirname(path.join(root, file.target)), { recursive: true });
           await writeFile(path.join(root, file.target), file.target === "application/project-config.tsx" ? file.content.toString().replaceAll("../app-ui.json", "../app-ui/app-ui.json").replaceAll("../composition-revision.generated.json", "../app-ui/composition-revision.generated.json") : file.content);
         }
+        if (file.target === "composition-revision.generated.json") {
+          for (const base of [root, path.join(root, "agent-ui")]) {
+            await writeFile(path.join(base, "app-ui", file.target), file.content);
+          }
+        }
       }
     }
     // Legacy template tests consume the same project-owned shared application

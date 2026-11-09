@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
 import { afterEach, expect, it, vi } from "vitest";
 import { connectCreatorHostPreview } from "../src/host-preview/hostPreviewWorkbench.js";
-import { CREATOR_OBSERVATION_REQUEST_EVENT } from "../src/host-preview/protocol.js";
+import { CREATOR_OBSERVATION_REQUEST_EVENT, isRuntimeObservationRequest } from "../src/host-preview/protocol.js";
 import { agentContracts } from "../src/agent/contracts.js";
 import path from "node:path";
 
 afterEach(() => vi.unstubAllGlobals());
+it("bounds alternate JSON identities and requires the inspected file identity", () => {
+  const request = { requestId: "12345678-1234-1234-1234-123456789abc", currentHash: "a".repeat(64), threadId: "thread" };
+  expect(isRuntimeObservationRequest({ ...request, currentHashes: [request.currentHash, "b".repeat(64)] })).toBe(true);
+  for (const currentHashes of [[], ["b".repeat(64)], [request.currentHash, "bad"], [request.currentHash, "b".repeat(64), "c".repeat(64)]]) {
+    expect(isRuntimeObservationRequest({ ...request, currentHashes })).toBe(false);
+  }
+});
 it("forwards only current workspace/thread requests over the selected preview port and removes its listener on dispose", async () => {
   const ports: any[] = [];
   class Channel {

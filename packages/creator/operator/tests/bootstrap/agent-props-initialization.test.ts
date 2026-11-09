@@ -40,6 +40,11 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  expect(projectConfig).toContain("import { locales } from './locales'");
  expect(projectConfig).toContain('getConversationStarterSuggestions: (_locale, messages)');
  expect(projectConfig).toContain('label: messages.architectureLabel');
+ expect(projectConfig).not.toMatch(/import\.meta|\?raw/);
+ expect(projectConfig).toContain("import appUIModel from '../app-ui.json'");
+ expect(projectConfig).toContain('compositionStore: agentCompositionStore');
+ expect(await readFile(path.join(source,'composition-revision.generated.json'),'utf8')).toBe('null\n');
+ expect(await readFile(path.join(source,'application/composition-store.ts'),'utf8')).not.toMatch(/import\.meta|globalThis/);
  expect(await readFile(path.join(source,'application/locales.ts'),'utf8')).toContain("'zh-CN': {}");
  async function inspect(directory:string):Promise<void> {
   for(const entry of await readdir(directory,{withFileTypes:true})) {
@@ -48,6 +53,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
    else if(/\.(tsx?|json)$/.test(entry.name)) {
     const content=await readFile(file,'utf8');
     expect(content,file).not.toContain('agentUIConfig');
+    expect(content,file).not.toMatch(/import\.meta(?:\.glob|\.env|\.hot)|\?raw/);
     expect(content,file).not.toMatch(/from\s+["'](?:\.\.\/)+hooks\//);
     expect(content,file).not.toMatch(/agentUIRuntimeConfig|ModeShell|data-agent-ui-mode|["']?mode["']?\s*[:=]\s*["'](?:assistant|embedded|platform)["']/);
     expect(content,file).not.toMatch(/from\s+["']\.[^"']*\/services\/agent-ui-(?:theme|locale)["']/);

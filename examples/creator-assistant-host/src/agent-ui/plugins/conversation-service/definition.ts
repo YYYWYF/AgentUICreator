@@ -5,6 +5,7 @@ import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
   createConversationService,
+  type ConversationDataSource,
 } from '../../services/conversations';
 import { ConversationServicePlugin } from './index';
 
@@ -13,7 +14,7 @@ export const conversationServicePlugin: UIPluginDefinition = {
   inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   provides: [AGENT_UI_CONVERSATION_SERVICE],
   setup: implementation.bindSetup(({ services }: Parameters<NonNullable<UIPluginDefinition['setup']>>[0]) => {
-    const dataSource = services.get(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
+    const dataSource = services.get<ConversationDataSource>(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
     if (dataSource === undefined) {
       throw new Error('Conversation DataSource is unavailable.');
     }

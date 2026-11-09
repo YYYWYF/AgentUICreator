@@ -1,3 +1,4 @@
+import { writeGeneratedProjectResources } from "./project/project-resources-generator";
 import { readdir, readFile, writeFile, mkdir, rename, lstat } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -51,5 +52,6 @@ function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): Conve
     await rename(temporary, destination);
     changedPaths.push(path.relative(projectRoot, destination).split(path.sep).join("/"));
   }
+  changedPaths.push(...(await writeGeneratedProjectResources(projectRoot)).changedPaths);
   return { changedPaths };
 }

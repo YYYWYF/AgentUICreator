@@ -64,7 +64,7 @@ for (const mode of ["platform", "assistant", "embedded"]) {
     for (const legacy of ["runtime", "framework", "agent-ui", "app-ui"]) {
       assert(!entries.includes(legacy), `${mode}: obsolete generated directory ${legacy}`);
     }
-    assert.deepEqual((await readdir(path.join(sourceRoot, "application"))).sort(), ["Agent.tsx", "locales.ts", "project-config.tsx", "runtime-config.generated.ts", "shell"]);
+    assert.deepEqual((await readdir(path.join(sourceRoot, "application"))).sort(), ["Agent.tsx", "assets.d.ts", "composition-store.ts", "environment.ts", "locales.ts", "project-config.tsx", "resources.generated.ts", "runtime-config.generated.ts", "shell"]);
     const presetRoot = path.join(workspaceRoot, "packages", "creator", "operator", "presets", mode);
     let preset = JSON.parse(await readFile(path.join(presetRoot, "app-ui.json"), "utf8"));
     if (preset.$ref) preset = JSON.parse(await readFile(path.resolve(presetRoot, preset.$ref), "utf8"));

@@ -36,7 +36,7 @@ export async function recoverPendingPluginPurge(projectRoot: string, own = false
   const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
   const sourceRelative = (target: string) => projectRelativePath(projectRoot, path.join(paths.sourceRoot, target));
   const lockPath = projectRelativePath(projectRoot, paths.sourceLockPath);
-  const allowed = new Set([lockPath, ...["app-ui.json", "composition-revision.generated.json", "app-ui/app-ui.json", "app-ui/composition-revision.generated.json", "plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"].map(sourceRelative)]);
+  const allowed = new Set([lockPath, ...["app-ui.json", "composition-revision.generated.json", "app-ui/app-ui.json", "app-ui/composition-revision.generated.json", "plugins/registry.generated.ts", "application/resources.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"].map(sourceRelative)]);
   const lockOriginal = journal.files.find(file => file.path === lockPath);
   if (lockOriginal?.before != null) {
     const lock = JSON.parse(Buffer.from(lockOriginal.before, "base64").toString());

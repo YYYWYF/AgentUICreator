@@ -1,3 +1,4 @@
+import { appUIModelJsonHash } from "./app-ui-serialization";
 import { admitAppUIModelCandidate } from "./app-ui-admission";
 import { stringifyAppUIModel } from "./app-ui-serialization";
 import { remapPluginIdentities, resolveCreatorPluginRefs } from "./app-ui-plugin-refs";
@@ -1351,6 +1352,7 @@ async function runTransaction(
   const compositionRevision = {
     transactionId,
     appUIModelHash: afterHash,
+    appUIModelJsonHash: appUIModelJsonHash(afterModelSource),
     capabilityCatalogRevision: generation.capabilityCatalog.revision,
   };
   const compositionRevisionPath = path.join(

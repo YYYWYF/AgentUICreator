@@ -1,3 +1,4 @@
+import { writeGeneratedProjectResources } from "./project/project-resources-generator";
 import { readdir, readFile, writeFile, mkdir, rename } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
@@ -59,11 +60,11 @@ export async function generateConversationIntegrationRegistry(projectRoot: strin
 export async function writeGeneratedConversationIntegrationRegistry(projectRoot: string): Promise<{ changedPaths: string[] }> {
   const { destination, source, empty } = await generateConversationIntegrationRegistry(projectRoot);
   const old = await readFile(destination, "utf8").catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
-  if (empty && old === undefined) return { changedPaths: [] };
-  if (old === source) return { changedPaths: [] };
+  if (empty && old === undefined) return writeGeneratedProjectResources(projectRoot);
+  if (old === source) return writeGeneratedProjectResources(projectRoot);
   await mkdir(path.dirname(destination), { recursive: true });
   const temporary = `${destination}.${randomUUID()}.tmp`;
   await writeFile(temporary, source);
   await rename(temporary, destination);
-  return { changedPaths: [path.relative(projectRoot, destination).split(path.sep).join("/")] };
+  return { changedPaths: [path.relative(projectRoot, destination).split(path.sep).join("/"), ...(await writeGeneratedProjectResources(projectRoot)).changedPaths] };
 }

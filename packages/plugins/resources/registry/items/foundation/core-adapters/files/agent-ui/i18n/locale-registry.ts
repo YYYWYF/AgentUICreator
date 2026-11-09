@@ -15,13 +15,14 @@ export const AGENT_UI_LOCALE_METADATA = {
   "en-US": { direction: "ltr" },
 } satisfies Record<AgentUILocaleCode, { direction: AgentUIDirection }>;
 
+declare const process: { env: { NODE_ENV?: string } };
 const warnedKeys = new Set<string>();
 /** Namespace fallbacks are presentation-only; locale never changes protocol values. */
 export function resolveLocaleNamespace<K extends keyof AgentUILocaleMessages>(locale: AgentUILocaleCode, namespace: K): AgentUILocaleMessages[K] {
   const fallback = AGENT_UI_LOCALES["en-US"][namespace];
   const selected = AGENT_UI_LOCALES[locale]?.[namespace];
   const messages: Record<string, string> = {};
-  const development = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV;
+  const development = process.env.NODE_ENV !== "production";
   for (const [key, defaultValue] of Object.entries(fallback)) {
     const value = (selected as Record<string, string> | undefined)?.[key];
     const path = `${namespace}.${key}`;

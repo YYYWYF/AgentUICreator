@@ -25,6 +25,26 @@
     {
       "source": "files/plugins/index.ts",
       "target": "plugins/index.ts"
+    },
+    {
+      "source": "files/application/environment.ts",
+      "target": "application/environment.ts"
+    },
+    {
+      "source": "files/application/composition-store.ts",
+      "target": "application/composition-store.ts"
+    },
+    {
+      "source": "files/application/resources.generated.ts",
+      "target": "application/resources.generated.ts"
+    },
+    {
+      "source": "files/composition-revision.generated.json",
+      "target": "composition-revision.generated.json"
+    },
+    {
+      "source": "files/application/assets.d.ts",
+      "target": "application/assets.d.ts"
     }
   ],
   "packages": {

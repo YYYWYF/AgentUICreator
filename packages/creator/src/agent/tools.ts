@@ -41,7 +41,7 @@ export interface ToolContext {
   groups: Set<string>; authorizedPlugins: Set<string>;
   diagnostics: Map<string, any>; verificationMode: string;
   behaviorVerificationEnabled?: boolean;
-  requestRuntimeObservation?: (request: { requestId: string; currentHash: string; nodeIds?: string[]; instanceIds?: string[] }) => Promise<void>;
+  requestRuntimeObservation?: (request: { requestId: string; currentHash: string; currentHashes?: string[]; nodeIds?: string[]; instanceIds?: string[] }) => Promise<void>;
   runtimeObservationRefresh?: { key: string; pending: Promise<{ status: string; requestId: string }> };
   recovery?: ToolRecovery;
   cancelMarker?: string;

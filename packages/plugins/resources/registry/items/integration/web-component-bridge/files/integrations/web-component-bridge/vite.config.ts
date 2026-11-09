@@ -1,7 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { readFile, readdir, unlink, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { finalizeShadowStyles } from './build-styles.mjs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 export default defineConfig({
@@ -11,24 +10,8 @@ export default defineConfig({
     {
       name: 'agent-ui-shadow-css',
       async writeBundle(options) {
-        const directory = options.dir!;
-        let css = '';
-        for (const name of await readdir(directory)) {
-          if (name.endsWith('.css')) {
-            css += await readFile(path.join(directory, name), 'utf8');
-            await unlink(path.join(directory, name));
-          }
-        }
-        const file = path.join(directory, 'agent-ui.js');
-        const script = await readFile(file, 'utf8');
-        const marker = /(["'`])__AGENT_UI_BUNDLED_PLUGIN_CSS__\1/g;
-        if (!marker.test(script)) {
-          throw new Error('AGENT_UI_SHADOW_STYLES_MARKER_MISSING');
-        }
-        await writeFile(
-          file,
-          script.replace(marker, () => JSON.stringify(css)),
-        );
+        if (!options.dir) throw new Error('AGENT_UI_SHADOW_OUTPUT_MISSING');
+        await finalizeShadowStyles(options.dir);
       },
     },
   ],

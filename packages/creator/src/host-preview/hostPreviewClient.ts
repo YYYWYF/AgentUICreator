@@ -129,11 +129,11 @@ export function installCreatorHostPreviewBridge(): () => void {
       if (observation.type === "runtime-diagnostic" && session.runtimeDiagnostics) diagnostic(observation.diagnostic);
       if (observation.type === "runtime-composition" && session.runtimeDiagnostics) {
         const observedAt = Date.parse(observation.composition.observedAt ?? "");
-        const requests = [...observationRequests.values()].filter(pending => pending.request.currentHash === observation.composition.appUIModelHash &&
+        const requests = [...observationRequests.values()].filter(pending => (pending.request.currentHashes ?? [pending.request.currentHash]).includes(observation.composition.appUIModelHash ?? "") &&
           observedAt >= pending.requestedAt && (!Number.isFinite(pending.previousObservedAt) || observedAt > pending.previousObservedAt));
         if (!requests.length) runtimeComposition(observation.composition);
         for (const { request } of requests) {
-          const root = preview?.appUIModelHash === request.currentHash ? preview.root : undefined;
+          const root = preview && preview.appUIModelHash === observation.composition.appUIModelHash ? preview.root : undefined;
           runtimeComposition(observation.composition, request.requestId, collectRuntimePresentation(root, observation.composition, request));
           observationRequests.delete(request.requestId);
         }

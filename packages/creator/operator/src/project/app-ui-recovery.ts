@@ -1,3 +1,4 @@
+import { appUIModelJsonHash } from "./app-ui-serialization";
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -87,7 +88,7 @@ export async function repairAppUIModel(projectRoot: string, rawInput: unknown, o
     const changes = [
       { relativePath: path.relative(projectRoot, paths.appUIModelPath), before: current.source, after: afterSource },
       { relativePath: path.relative(projectRoot, paths.generatedPluginRegistryPath), before: await optionalRead(paths.generatedPluginRegistryPath), after: admitted.generation.capabilityCatalog.source },
-      { relativePath: path.relative(projectRoot, revisionPath), before: await optionalRead(revisionPath), after: `${JSON.stringify({ transactionId, appUIModelHash: afterHash, capabilityCatalogRevision: admitted.generation.capabilityCatalog.revision }, null, 2)}\n` },
+      { relativePath: path.relative(projectRoot, revisionPath), before: await optionalRead(revisionPath), after: `${JSON.stringify({ transactionId, appUIModelHash: afterHash, appUIModelJsonHash: appUIModelJsonHash(afterSource), capabilityCatalogRevision: admitted.generation.capabilityCatalog.revision }, null, 2)}\n` },
     ].filter(change => change.before !== change.after);
     try { await commitFiles(projectRoot, transactionId, changes, {
       ...options,

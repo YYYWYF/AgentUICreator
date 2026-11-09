@@ -1,4 +1,5 @@
 import { sharedStyleScanSources } from "./shared-style-sources.mjs";
+import { finalizeEsmImports } from "../../../scripts/finalize-esm-imports.mjs";
 import { deliveries, packageDefinitionSource, portableSource, sourceEntries } from "./plugin-source-recipes.mjs";
 import { cp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -160,6 +161,9 @@ for (const [id, imports] of importsByPlugin) {
 }
 
 // Bind the portable source plan to this build's matching runtime artifacts.
+// Webpack/Rspack enforce fully specified imports in emitted ESM packages.
+// Normalize before recording artifact hashes; exact source snapshots stay untouched.
+await finalizeEsmImports(path.join(root, "dist"));
 const catalogPath = path.join(root, "dist/catalog.json");
 const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
 for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {

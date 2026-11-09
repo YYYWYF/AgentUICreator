@@ -10,7 +10,6 @@
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "types": [
-      "vite/client",
       "node"
     ],
     "strict": true,

@@ -1,3 +1,4 @@
+import { appUIModelJsonHash } from "./app-ui-serialization";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -171,7 +172,8 @@ export async function verifyRuntimeComposition(
       { expectedHash: input.appUIModelHash, actualHash: currentHash },
     );
   }
-  if (input.composition.appUIModelHash !== input.appUIModelHash) {
+  if (input.composition.appUIModelHash !== input.appUIModelHash &&
+      input.composition.appUIModelHash !== appUIModelJsonHash(appUIModelSource)) {
     throw new RuntimeCompositionVerificationError(
       "RUNTIME_COMPOSITION_HASH_CONFLICT",
       "Runtime composition evidence belongs to a different AppUIModel hash.",
@@ -212,7 +214,7 @@ export async function verifyRuntimeComposition(
       "utf8",
     )) as Record<string, unknown>;
     if (
-      descriptor.appUIModelHash === currentHash &&
+      descriptor !== null && descriptor.appUIModelHash === currentHash &&
       descriptor.capabilityCatalogRevision ===
         registry.capabilityCatalog.revision &&
       input.composition.compositionRevision !== descriptor.transactionId

@@ -5,6 +5,7 @@ import { afterEach, expect, it } from "vitest";
 import { writeGeneratedFrontendToolRegistries } from "../src/generate-frontend-tool-registry";
 import { inspectScenarioResources } from "../src/project/install-scenario-resources";
 import { writeGeneratedConversationIntegrationRegistry } from "../src/generate-conversation-integration-registry";
+import { generateProjectResources, projectResourcesTarget } from "../src/project/project-resources-generator";
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 async function fixture() {
@@ -47,4 +48,25 @@ it("wires installed resources and retires their imports after the last removal",
   for (const name of ["agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"]) {
     expect(await readFile(path.join(source, name), "utf8")).not.toContain('from "./');
   }
+});
+
+it("maintains portable explicit imports without requiring absent optional modules", async () => {
+  const root = await fixture();
+  const source = path.join(root, "src/agent-ui");
+  await mkdir(path.join(source, "application"));
+  const entry = path.join(source, projectResourcesTarget);
+  const empty = await generateProjectResources(source);
+  await writeFile(entry, empty);
+  expect(empty).not.toMatch(/import\.meta|\?raw|resource0/);
+  await mkdir(path.join(source, "agent-contract/frontend-tools"), { recursive: true });
+  const tool = path.join(source, "agent-contract/frontend-tools/business.ts");
+  await writeFile(tool, "export const frontendTools = [] as const;\n");
+  const result = await writeGeneratedFrontendToolRegistries(root);
+  expect(result.changedPaths).toContain(`src/agent-ui/${projectResourcesTarget}`);
+  expect(await readFile(entry, "utf8")).toContain("from '../agent-contract/frontend-tools.generated'");
+  expect(await readFile(entry, "utf8")).not.toContain("frontend-tool-uis.generated");
+  await rm(tool);
+  await writeGeneratedFrontendToolRegistries(root);
+  expect(await readFile(path.join(source, "agent-contract/frontend-tools.generated.ts"), "utf8")).not.toContain("business");
+  expect((await writeGeneratedFrontendToolRegistries(root)).changedPaths).toEqual([]);
 });

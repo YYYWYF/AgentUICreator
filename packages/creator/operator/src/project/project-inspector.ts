@@ -1,3 +1,4 @@
+import { appUIModelJsonHash } from "./app-ui-serialization";
 import { AppUIModelInvalidError, appUIModelDiagnostics } from "./app-ui-diagnostics";
 import { withCreatorPluginRefs } from "./app-ui-plugin-refs";
 import { validateAppUIModelCandidateStructure } from "./app-ui-admission";
@@ -373,6 +374,7 @@ async function inspectUICompositionData(
     observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
     appUIModel: {
       hash: appUIModelHash,
+      runtimeHash: appUIModelJsonHash(appUIModelSource),
       layout,
       slots,
     },
