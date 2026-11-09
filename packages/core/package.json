@@ -41,5 +41,13 @@
       "schemaVersion": 1,
       "releases": []
     }
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "testing": [
+        "./dist/testing/index.d.ts"
+      ]
+    }
   }
 }

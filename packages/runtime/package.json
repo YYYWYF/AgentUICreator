@@ -73,5 +73,16 @@
       "schemaVersion": 1,
       "releases": []
     }
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "ui/*": [
+        "./dist/ui/*.d.ts"
+      ],
+      "ui": [
+        "./dist/ui/index.d.ts"
+      ]
+    }
   }
 }

@@ -5,7 +5,7 @@ description: 查看三种模板中默认启用和按需启用的官方插件。
 
 # 插件默认启用情况
 
-以下状态按当前工作台（`platform`）、悬浮助手（`assistant`）和嵌入式助手（`embedded`）模板列出，三种模板的启用清单相同。目前 46 个官方插件中，22 个默认启用，24 个默认未启用。已有项目可能经过调整，以项目实际配置为准。
+以下状态按当前工作台（`platform`）、悬浮助手（`assistant`）和嵌入式助手（`embedded`）模板列出，三种模板的启用清单相同。目前 46 个官方插件中，23 个默认启用，23 个默认未启用。已有项目可能经过调整，以项目实际配置为准。
 
 **默认启用**表示新建项目已组合该插件；有对应数据或发生相关操作时才显示。附件上传、历史会话等功能还需业务服务支持。**默认未启用**的插件可以按需让 Creator 添加，或在项目应用层接入。
 
@@ -58,7 +58,7 @@ Agent 服务返回什么数据才能显示卡片，见[插件显示条件与 AG-
 | [`tool-fallback`](./tool-fallback) | 展开单次工具调用的参数和结果，必要时允许或拒绝执行。 | 默认未启用 |
 | [`tool-result`](./tool-result) | 按内容顺序显示工具返回的文本、图片、音频、视频和文档，保留工具详情和审批操作。 | 默认启用 |
 | [`ask-user-question`](./ask-user-question) | 在对话中展示问题与选项，收集用户回答后继续执行。 | 默认未启用 |
-| [`task-group`](./task-group) | 展开 SubAgent 任务，查看各自的执行状态、过程和结果。 | 默认未启用 |
+| [`task-group`](./task-group) | 展开 SubAgent 任务，查看各自的执行状态、过程和结果。 | 默认启用 |
 | [`agent-status-message`](./agent-status-message) | 用简短状态文字说明 Agent 当前正在做什么。 | 默认未启用 |
 | [`agent-plan-message`](./agent-plan-message) | 显示计划步骤、当前步骤和已完成步骤。 | 默认未启用 |
 | [`job-progress-message`](./job-progress-message) | 显示后台作业的阶段和进度，业务支持时可取消。 | 默认未启用 |

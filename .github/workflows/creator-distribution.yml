@@ -7,7 +7,6 @@ on:
       - 'packages/creator/contracts/creator/**'
       - 'packages/**'
       - 'scripts/**'
-      - 'website/**'
       - 'pnpm-workspace.yaml'
       - 'package.json'
       - '.npmrc'
@@ -37,8 +36,6 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile --engine-strict
-      - run: pnpm docs:install
-      - run: pnpm docs:package
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test

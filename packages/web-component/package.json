@@ -85,5 +85,15 @@
       "schemaVersion": 1,
       "releases": []
     }
+  },
+  "typesVersions": {
+    "*": {
+      "register": [
+        "./dist/types.d.ts"
+      ],
+      "host": [
+        "./dist/types/src/host.d.ts"
+      ]
+    }
   }
 }

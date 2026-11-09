@@ -33,8 +33,9 @@ generated pages, sidebar entries and link anchors as well.
 
 The locale reference in `docs/development/styling-and-localization.md` is generated
 from `packages/plugins/src/locales/{zh-CN,en-US}.ts`. Run `pnpm docs:locales` from
-the repository root after dictionary changes; `pnpm docs:locales:check`, site builds
-and `check:docs` reject stale tables. Maintain only functional grouping in
+the repository root after dictionary changes; the explicit `pnpm docs:locales:check`
+and `check:docs` commands reject stale tables. Site builds compile without this
+freshness check. Maintain only functional grouping in
 `website/scripts/generate-locale-reference.mjs`, never the generated rows.
 Run `pnpm test:locale-reference` for generator validation. These commands use the
 website's existing TypeScript dependency installed by `docs:install`.
@@ -51,7 +52,7 @@ SSG-MD is experimental and its generated output must be checked when upgrading.
 
 For a standalone intranet deployment ZIP, run `pnpm docs:zip` from the repository
 root (or `pnpm docs:zip /path/to/website.zip` for a custom destination). It rebuilds
-and verifies the site in the external source checkout, then writes
+the site in the external source checkout, then writes
 `../AgentUIWebsite.zip`. An intranet transfer already contains static files and
 is packaged as-is without loading website scripts or checking a site manifest.
 The archive contains
@@ -77,7 +78,7 @@ To prepare documentation for release packaging:
 1. In the documentation build environment, finish documentation and package metadata changes,
    then run `pnpm docs:install`.
 2. Run `pnpm package:repo` to create `../AgentUICreator.zip` (or pass an output
-   path: `pnpm package:repo /path/to/transfer.zip`). It rebuilds and verifies the
+   path: `pnpm package:repo /path/to/transfer.zip`). It rebuilds the
    documentation before writing the archive. In the ZIP, `website/` contains
    only the complete static site, including local search, demos and assets;
    its source, package manifests, lockfile and compiler dependencies are omitted.
@@ -103,6 +104,8 @@ Use `pnpm docs:package`, `pnpm --dir website check:docs` and
 prepare and check documentation resources.
 Root `pnpm test` does not run those website checks. `artifacts/` survives
 Creator's `dist/` cleanup.
+Startup, package distribution and integration CI do not install or generate
+documentation as a prerequisite.
 
 For intranet deployment, copy the ZIP's entire `website/` directory to an existing
 static server's site root and follow `website/DEPLOY.txt`. No Node.js, pnpm or

@@ -24,8 +24,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
-      - run: pnpm docs:install
-      - run: pnpm docs:package
       # No product install/build, generated Host is prepared.
       # The command under test must bootstrap everything through pnpm dev.
       - run: pnpm verify:dev-startup --install-browser

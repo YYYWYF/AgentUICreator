@@ -490,6 +490,30 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   },
   {
     manifest: {
+      id: 'task-group',
+      name: 'Task Group',
+      description: 'Renders nested agent work as expandable task cards.',
+      version: '0.0.1',
+      capabilities: ['conversation-task-group-renderer'],
+      requiresRenderScope: true,
+      authoring: {
+        intents: [
+          'show agent tasks',
+          'show nested agent work',
+          'show delegated agent tasks',
+          'group nested tool tasks',
+        ],
+        visualRole: 'conversation task group',
+        defaultPlacement: { type: 'plugin_slot', parentPluginId: 'conversation-surface', slot: 'taskGroup' },
+      },
+    },
+    provides: [],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () => import('./task-group/definition').then(({ default: definition }) => definition),
+  },
+  {
+    manifest: {
       id: 'theme-provider',
       name: 'Headless Theme Service Provider',
       description: 'Provides the shared Agent UI theme preset service to other UI plugins.',

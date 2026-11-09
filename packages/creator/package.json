@@ -205,5 +205,76 @@
       "schemaVersion": 1,
       "releases": []
     }
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "vite": [
+        "./dist/vitePlugin.d.ts"
+      ],
+      "ui": [
+        "./dist/ui/CreatorWorkbench.d.ts"
+      ],
+      "runtime-diagnostics": [
+        "./dist/runtime-diagnostics/runtimeDiagnosticReporter.d.ts"
+      ],
+      "visual-observation": [
+        "./dist/visual-observation/VisualObservationReporter.d.ts"
+      ],
+      "host-preview": [
+        "./dist/host-preview/hostPreviewWorkbench.d.ts"
+      ],
+      "host-preview/vite": [
+        "./dist/host-preview/vite.d.ts"
+      ],
+      "server": [
+        "./dist/standaloneServer.d.ts"
+      ],
+      "dock": [
+        "./dist/dock/creatorDock.d.ts"
+      ],
+      "dock/vite": [
+        "./dist/dock/vite.d.ts"
+      ],
+      "dock/rsbuild": [
+        "./dist/dock/rsbuild.d.ts"
+      ],
+      "dock/webpack": [
+        "./dist/dock/webpack.d.ts"
+      ],
+      "mock-agent": [
+        "./dist/mock-agent/index.d.ts"
+      ],
+      "bootstrap": [
+        "./dist/operator/dist/types/bootstrap/index.d.ts"
+      ],
+      "source-registry": [
+        "./dist/operator/dist/types/source-catalog/index.d.ts"
+      ],
+      "project": [
+        "./dist/operator/dist/types/install.d.mts"
+      ],
+      "project/resources": [
+        "./dist/operator/dist/types/resources.d.mts"
+      ],
+      "project/dev": [
+        "./dist/operator/dist/types/dev.d.ts"
+      ],
+      "project/updates": [
+        "./dist/operator/dist/types/updates.d.mts"
+      ],
+      "project/commands": [
+        "./dist/operator/dist/types/commands.d.mts"
+      ],
+      "project/host": [
+        "./dist/operator/dist/types/host.d.mts"
+      ],
+      "creator-runtime": [
+        "./dist/creatorRuntimeDistribution.d.ts"
+      ],
+      "process": [
+        "./dist/CreatorProcessManager.d.ts"
+      ]
+    }
   }
 }

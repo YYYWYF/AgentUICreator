@@ -2,12 +2,14 @@
 import {readFile,writeFile,mkdir} from "node:fs/promises";
 import {fileURLToPath,pathToFileURL} from "node:url";
 import path from "node:path";
+import {publicPackageTypes} from "./public-package-types.mjs";
 const repositoryRoot=fileURLToPath(new URL("..",import.meta.url));
 const modules=["core","renderer","runtime","plugins","creator","web-component"];
 export async function syncPackageReleaseMetadata(id,root=repositoryRoot,{publishing=false,checkOnly=false}={}){
  if(!modules.includes(id))throw new Error("Unknown public package");
  const file=path.join(root,"packages",id,"package.json");
  const pkg=JSON.parse(await readFile(file,"utf8"));
+ const typeMetadata=publicPackageTypes(pkg);
  const manifest=JSON.parse(await readFile(path.join(root,"releases/compatibility.json"),"utf8"));
  // Ordinary builds only generate metadata. Release validation is explicit.
  if(publishing||checkOnly){
@@ -22,6 +24,7 @@ export async function syncPackageReleaseMetadata(id,root=repositoryRoot,{publish
   }
  }
  if(checkOnly){
+ for(const [key,value] of Object.entries(typeMetadata))if(JSON.stringify(pkg[key])!==JSON.stringify(value))throw new Error(`Stale package type metadata: ${pkg.name}; rebuild locally`);
  const expected={schemaVersion:1,compatibility:manifest};
  if(JSON.stringify(pkg.agentUI)!==JSON.stringify(expected))throw new Error(`Stale package compatibility metadata: ${pkg.name}; rebuild locally`);
  const bundled=JSON.parse(await readFile(path.join(root,"packages",id,"dist/compatibility.json"),"utf8"));
@@ -29,6 +32,7 @@ export async function syncPackageReleaseMetadata(id,root=repositoryRoot,{publish
  return;
  }
  pkg.agentUI={schemaVersion:1,compatibility:manifest};
+ Object.assign(pkg,typeMetadata);
  const text=JSON.stringify(pkg,null,2)+"\n";if(text!==await readFile(file,"utf8"))await writeFile(file,text);
  await mkdir(path.join(root,"packages",id,"dist"),{recursive:true});
  await writeFile(path.join(root,"packages",id,"dist/compatibility.json"),JSON.stringify(manifest,null,2)+"\n");

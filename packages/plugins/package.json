@@ -415,5 +415,178 @@
       "schemaVersion": 1,
       "releases": []
     }
+  },
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "lexical": [
+        "./dist/lexical.d.ts"
+      ],
+      "theme": [
+        "./dist/theme/theme-contract.d.ts"
+      ],
+      "demo-attachments": [
+        "./dist/demo-attachments.d.ts"
+      ],
+      "generative-ui": [
+        "./dist/generative-ui.d.ts"
+      ],
+      "composer": [
+        "./dist/composer/index.d.ts"
+      ],
+      "form-tools": [
+        "./dist/form-tools.d.ts"
+      ],
+      "catalog": [
+        "./dist/catalog/index.d.ts"
+      ],
+      "composer-support": [
+        "./dist/composer-support.d.ts"
+      ],
+      "copy-action": [
+        "./dist/copy-action/index.d.ts"
+      ],
+      "reload-action": [
+        "./dist/reload-action/index.d.ts"
+      ],
+      "feedback-actions": [
+        "./dist/feedback-actions/index.d.ts"
+      ],
+      "export-markdown-action": [
+        "./dist/export-markdown-action/index.d.ts"
+      ],
+      "reasoning": [
+        "./dist/reasoning/index.d.ts"
+      ],
+      "tool-group": [
+        "./dist/tool-group/index.d.ts"
+      ],
+      "plugin-support": [
+        "./dist/plugin-support.d.ts"
+      ],
+      "add-attachment-action": [
+        "./dist/add-attachment-action/index.d.ts"
+      ],
+      "dictation-action": [
+        "./dist/dictation-action/index.d.ts"
+      ],
+      "submit-action": [
+        "./dist/submit-action/index.d.ts"
+      ],
+      "response-footer": [
+        "./dist/response-footer/index.d.ts"
+      ],
+      "conversation-suggestions": [
+        "./dist/conversation-suggestions/index.d.ts"
+      ],
+      "thinking-indicator": [
+        "./dist/thinking-indicator/index.d.ts"
+      ],
+      "tool-timeline": [
+        "./dist/tool-timeline/index.d.ts"
+      ],
+      "tool-fallback": [
+        "./dist/tool-fallback/index.d.ts"
+      ],
+      "transient-assistant-messages": [
+        "./dist/transient-assistant-messages/index.d.ts"
+      ],
+      "agent-status-message": [
+        "./dist/agent-status-message/index.d.ts"
+      ],
+      "agent-plan-message": [
+        "./dist/agent-plan-message/index.d.ts"
+      ],
+      "job-progress-message": [
+        "./dist/job-progress-message/index.d.ts"
+      ],
+      "generated-file-message": [
+        "./dist/generated-file-message/index.d.ts"
+      ],
+      "chart-message": [
+        "./dist/chart-message/index.d.ts"
+      ],
+      "context-retrieval-message": [
+        "./dist/context-retrieval-message/index.d.ts"
+      ],
+      "source-citations-message": [
+        "./dist/source-citations-message/index.d.ts"
+      ],
+      "retrieval-chunks": [
+        "./dist/retrieval-chunks/index.d.ts"
+      ],
+      "web-search": [
+        "./dist/web-search/index.d.ts"
+      ],
+      "conversation-thread-list": [
+        "./dist/conversation-thread-list/index.d.ts"
+      ],
+      "conversation-new": [
+        "./dist/conversation-new/index.d.ts"
+      ],
+      "conversation-quote": [
+        "./dist/conversation-quote/index.d.ts"
+      ],
+      "agent-identity": [
+        "./dist/agent-identity/index.d.ts"
+      ],
+      "auth-account": [
+        "./dist/auth-account/index.d.ts"
+      ],
+      "auth-gate": [
+        "./dist/auth-gate/index.d.ts"
+      ],
+      "conversation-command-source": [
+        "./dist/conversation-command-source/index.d.ts"
+      ],
+      "conversation-data-source": [
+        "./dist/conversation-data-source/index.d.ts"
+      ],
+      "conversation-service": [
+        "./dist/conversation-service/index.d.ts"
+      ],
+      "conversation-surface": [
+        "./dist/conversation-surface/index.d.ts"
+      ],
+      "lexical-composer-input": [
+        "./dist/lexical-composer-input/index.d.ts"
+      ],
+      "lexical-edit-composer": [
+        "./dist/lexical-edit-composer/index.d.ts"
+      ],
+      "locale-provider": [
+        "./dist/locale-provider/index.d.ts"
+      ],
+      "mention-trigger": [
+        "./dist/mention-trigger/index.d.ts"
+      ],
+      "slash-command-trigger": [
+        "./dist/slash-command-trigger/index.d.ts"
+      ],
+      "task-group": [
+        "./dist/task-group/index.d.ts"
+      ],
+      "theme-provider": [
+        "./dist/theme-provider/index.d.ts"
+      ],
+      "theme-switch": [
+        "./dist/theme-switch/index.d.ts"
+      ],
+      "locale-switch": [
+        "./dist/locale-switch/index.d.ts"
+      ],
+      "contracts": [
+        "./dist/contracts.d.ts"
+      ],
+      "ask-user-question": [
+        "./dist/ask-user-question/index.d.ts"
+      ],
+      "tool-result": [
+        "./dist/tool-result/index.d.ts"
+      ],
+      "search-files-example": [
+        "./dist/search-files-example.d.ts"
+      ]
+    }
   }
 }

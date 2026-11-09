@@ -118,6 +118,11 @@
                         "pluginId": "tool-group"
                       }
                     ],
+                    "taskGroup": [
+                      {
+                        "pluginId": "task-group"
+                      }
+                    ],
                     "toolFallback": [
                       {
                         "pluginId": "tool-result"
