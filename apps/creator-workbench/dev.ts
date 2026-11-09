@@ -3,7 +3,7 @@ import {
   type ChildProcess,
   type SpawnOptions,
 } from "node:child_process";
-import { readFileSync, watch } from "node:fs";
+import { watch } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -15,9 +15,8 @@ import {
   packageSourceFingerprint,
   workspacePackageFingerprints,
   prepareWorkspacePackagesAsync,
-  hostPackages,
 } from "../../scripts/workspace-build-cache.mjs";
-import { openDevelopmentCache } from "../../scripts/development-cache.mjs";
+import { prepareDevelopmentCache } from "../../scripts/development-cache.mjs";
 export { isDevelopmentInput };
 
 const logical = (file: string) => file.replaceAll("\\", "/");
@@ -124,38 +123,16 @@ type ReloadMessage = {
   projectRoot?: string;
 };
 
-/** Separate processes/configurations never write into the same optimizer cache. */
+/** Clear each service's previous Vite cache at startup, without lock/preflight gates. */
 export function developmentCachePlugin(root: string, role: "workbench" | "host-preview"): Plugin {
-  let cache: ReturnType<typeof openDevelopmentCache> | undefined;
-  const abandon = () => cache?.finish(false);
-  const finish = (clean: boolean) => {
-    process.off("exit", abandon);
-    cache?.finish(clean);
-  };
   return {
     name: "agent-ui-development-cache",
     apply: "serve",
     config() {
-      const inputs = workspacePackageFingerprints([...hostPackages, "creator"], { root });
-      for (const file of ["apps/creator-workbench/dev.ts", "apps/creator-workbench/vite.config.ts", "apps/creator-workbench/host-preview.vite.config.ts", "scripts/development-cache.mjs"]) {
-        inputs.push(readFileSync(path.join(root, ...file.split("/")), "utf8"));
-      }
-      cache = openDevelopmentCache(root, role, inputs);
-      process.once("exit", abandon);
-      return { cacheDir: cache.cacheDir };
+      return { cacheDir: prepareDevelopmentCache(root, role) };
     },
     configResolved(config) {
-      config.logger.info(`[Creator] ${role} dependency cache: ${cache?.reused ? "reusing" : "new generation"}`);
-    },
-    configureServer(server) {
-      const close = server.close.bind(server);
-      // Vite closes plugin containers and dependency optimizers concurrently.
-      // closeBundle/httpServer.close alone cannot prove the optimizer stopped.
-      server.close = async () => {
-        try { await close(); }
-        catch (error) { finish(false); throw error; }
-        finish(true);
-      };
+      config.logger.info(`[Creator] ${role} dependency cache: clean startup directory`);
     },
   };
 }
