@@ -29,7 +29,7 @@ npm 返回包不存在（404）时按首次发行处理并保留当前初始版�
 
 website 相关 `.mjs` 只用于外网源码环境。内网安装、启动、构建、打包、验包和发布不校验 documentation；Creator 的普通资源拷贝步骤在 `artifacts/creator-documentation/` 存在时原样复制，缺失时跳过。内网 ZIP 二次打包直接收集静态 `website/`，不编译网站、不检查网站清单。`docs:package`、`test:documentation` 留作外网手动入口，不接入内网主流程。
 
-启动、发行和集成 CI 不再前置安装或生成文档。文档站 `build` 只编译站点；语言参考表与文档结构检查通过 `docs:locales:check`、`pnpm --dir website check:docs` 手动运行。
+启动、发行和集成 CI 不再前置安装或生成文档。文档站 `build` 只编译站点；语言参考表与文档结构检查通过 `docs:locales:check`、`pnpm --dir website check:docs` 手动运行。`verify:package` 在独立消费目录中移除可选的离线文档后验证 Creator 启动和工程操作。
 
 `pnpm dev` 只准备依赖、生成资源、编译并启动服务，不执行额外审计。构建后的依赖版本、发布兼容元数据、Plugin 服务声明和边界检查通过 `pnpm check:build` 手动运行；`pnpm check:dependency-pins`、`pnpm check:release-metadata` 和 `pnpm check:examples` 提供独立入口。依赖精确版本审计不再接入 `preinstall`。发布元数据生成保留在构建/prepack 中，发布审核仍由显式检查和 `prepublishOnly` 执行。`pnpm test`、`pnpm typecheck` 和其他 `check:*` / `verify:*` 按修改范围运行。
 

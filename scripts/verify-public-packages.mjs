@@ -5,8 +5,10 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gunzipSync } from "node:zlib";
+import ts from "typescript-ui-audit";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
+import { publicTypeEntries } from "./public-package-types.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const consumer = await realpath(await mkdtemp(path.join(tmpdir(), "agent-ui independent packages 中文 ")));
 const manifests = {};
@@ -58,6 +60,22 @@ try {
 
   const published = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   assert.equal(published.name, manifest.name);
+  // Resolve from unpacked tarballs: workspace paths must not hide missing types
+  // or legacy CRA/webpack (moduleResolution: node) entry metadata.
+  const packedFiles = await readdir(packageRoot, { recursive: true });
+  for (const [entry, target] of Object.entries(published.exports)) {
+    if (typeof target?.types !== "string") continue;
+    const entries = publicTypeEntries(entry, target.types, packedFiles);
+    assert(entries.length > 0, `No declarations packed for ${published.name}${entry}`);
+    for (const subpath of entries) {
+      const specifier = published.name + (subpath === "." ? "" : subpath.slice(1));
+      for (const mode of [ts.ModuleResolutionKind.Node10, ts.ModuleResolutionKind.Bundler, ts.ModuleResolutionKind.Node16]) {
+        const resolved = ts.resolveModuleName(specifier, path.join(consumer, "consumer.tsx"), { moduleResolution: mode }, ts.sys).resolvedModule;
+        assert(resolved && /\.d\.[cm]?ts$/u.test(resolved.resolvedFileName), `${ts.ModuleResolutionKind[mode]} cannot resolve packed types: ${specifier}`);
+        assert(path.relative(packageRoot, resolved.resolvedFileName).split(path.sep)[0] !== "..", `Types escaped packed package: ${specifier}`);
+      }
+    }
+  }
   for (const [dependency, version] of Object.entries(published.dependencies ?? {})) {
     assert(!version.startsWith("workspace:"));
     if (dependency.startsWith("@za38.03/agent-ui-")) {
@@ -153,6 +171,9 @@ async function assertProductSource(directory) {
 await assertProductSource("src/agent-ui");
 assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assistant-ui"));
 `);
+ // Documentation is optional: exercise installed startup and project operations
+ // without the snapshot, even when the external build included one.
+ await rm(path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/documentation"), { recursive: true, force: true });
  run(["smoke.mjs"]);
  // Product facades must work without downstream installs of upstream adapters.
  for (const name of ["@assistant-ui/react-lexical", "@assistant-ui/react-hook-form"]) {
@@ -162,6 +183,9 @@ assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assista
  await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\nexport { formTools } from "@za38.03/agent-ui-plugins/form-tools";\n');
  await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: !process.argv.includes("--strict-types"), noEmit: true, esModuleInterop: true, resolveJsonModule: true, types: ["node", "react", "vite/client"], lib: ["DOM", "ES2022"] }, include: ["consumer.tsx", "app.tsx", "src"] }));
  run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
+ // TypeScript 5.9 models existing CRA hosts independently of the workspace's
+ // newer compiler and modern resolution settings.
+ run([path.join(root, "node_modules/typescript-ui-audit/bin/tsc"), "--noEmit", "--moduleResolution", "node10"]);
  if (process.argv.includes("--takeover")) {
   // Exercise the public packaged Operator against the independently unpacked
   // target package, then ship the resulting frontend with no development tools.
@@ -247,5 +271,5 @@ if (${process.argv.includes("--takeover")}) {
 console.log("Production module graph excludes development tooling.");
 `);
  run(["bundle.mjs"]);
- console.log(`${publicModules.length} independent tarballs: exact dependencies, public subpaths, Registry, initialization, consumer types and production without Creator/Operator passed.`);
+ console.log(`${publicModules.length} independent tarballs: exact dependencies, public types (Node10/Bundler/Node16), Registry, initialization, consumer typechecks (Bundler/Node10) and production without Creator/Operator passed.`);
 } finally { await rm(consumer, { recursive: true, force: true }); }
