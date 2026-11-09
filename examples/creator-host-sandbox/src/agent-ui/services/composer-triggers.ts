@@ -18,7 +18,7 @@ export function createConversationCommandRegistry(): ConversationCommandRegistry
   const listeners = new Set<() => void>();
   let snapshot: readonly ConversationSlashCommand[] = Object.freeze([]);
   const publish = () => {
-    snapshot = Object.freeze([...entries.values()]);
+    snapshot = Object.freeze(Array.from(entries.values()));
     listeners.forEach((listener) => listener());
   };
   return {
