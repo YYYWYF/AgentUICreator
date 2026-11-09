@@ -3,23 +3,21 @@ import {
   type ChildProcess,
   type SpawnOptions,
 } from "node:child_process";
-import { createHash } from "node:crypto";
 import { watch } from "node:fs";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import type { Plugin } from "vite";
 import { terminateProcessTree } from "../../packages/creator/src/processTree.js";
 import type { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
+import {
+  isDevelopmentInput,
+  packageSourceFingerprint,
+  workspacePackageFingerprints,
+  prepareWorkspacePackagesAsync,
+} from "../../scripts/workspace-build-cache.mjs";
+export { isDevelopmentInput };
 
-const ignoredDirectories = new Set([
-  "node_modules",
-  "dist",
-  "tests",
-  "test-results",
-  "coverage",
-  ".git",
-]);
 const logical = (file: string) => file.replaceAll("\\", "/");
 
 export function isWorkspacePackage(
@@ -36,57 +34,20 @@ export function isWorkspacePackage(
   );
 }
 
-/** Generated compatibility views are outputs, never development inputs. */
-export function isDevelopmentInput(
-  relative: string,
-  generated = new Set<string>(),
-): boolean {
-  const file = logical(relative);
-  return (
-    !file
-      .split("/")
-      .some((part) => ignoredDirectories.has(part) || part.startsWith(".")) &&
-    !/(?:^|\/)internal\/(?:vendor-generated|adapters-generated)(?:\/|$)/u.test(
-      file,
-    ) &&
-    !/\.(?:test|spec)\.[cm]?[jt]sx?$/u.test(file) &&
-    !file.endsWith(".tsbuildinfo") &&
-    !generated.has(file)
-  );
+/** Shared config imports must not let Vite bypass the supervisor's idle gate. */
+export function isSupervisedDevelopmentFile(file: string, root: string, platform = process.platform): boolean {
+  if (isWorkspacePackage(file, root, platform)) return true;
+  const paths = platform === "win32" ? path.win32 : path;
+  for (const directory of ["scripts", "releases", "artifacts/creator-documentation"]) {
+    const relative = paths.relative(paths.join(root, ...directory.split("/")), file);
+    if (relative !== ".." && !relative.startsWith(`..${paths.sep}`) && !paths.isAbsolute(relative)) return true;
+  }
+  const relative = logical(paths.relative(root, file));
+  return ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "tsconfig.json", ".npmrc", ".pnpmfile.cjs", "pnpmfile.cjs"].includes(platform === "win32" ? relative.toLowerCase() : relative);
 }
 
 export async function developmentFingerprint(root: string): Promise<string> {
-  const generated = new Set<string>();
-  try {
-    const layout = JSON.parse(
-      await readFile(path.join(root, "source-layout.json"), "utf8"),
-    );
-    for (const entry of layout.files) generated.add(entry.view);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-  const hash = createHash("sha256");
-  const visit = async (relative: string) => {
-    const entries = await readdir(path.join(root, relative), {
-      withFileTypes: true,
-    });
-    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
-      const file = path.posix.join(relative, entry.name);
-      if (!isDevelopmentInput(file, generated)) continue;
-      if (entry.isDirectory()) await visit(file);
-      else if (entry.isFile()) {
-        let data = await readFile(path.join(root, ...file.split("/")));
-        if (file === "package.json") {
-          const pkg = JSON.parse(data.toString());
-          delete pkg.agentUI; // Build/prepack refreshes this generated metadata.
-          data = Buffer.from(JSON.stringify(pkg));
-        }
-        hash.update(file).update(data);
-      }
-    }
-  };
-  await visit("");
-  return hash.digest("hex");
+  return packageSourceFingerprint(root);
 }
 
 /** Serializes saves and retains changes made during an asynchronous build. */
@@ -95,13 +56,14 @@ export class DevelopmentRebuilder {
   #running = false;
   #closed = false;
   #pending = false;
+  #needsRebuild = false;
   #baseline: string[];
   constructor(
     readonly options: {
       initial: string[];
       snapshot: () => Promise<string[]>;
       prepare: () => Promise<boolean>;
-      rebuild: (firstChanged: number) => Promise<void>;
+      rebuild: (firstChanged: number) => Promise<string[] | void>;
       error: (error: unknown) => void;
       delay?: number;
     },
@@ -131,15 +93,17 @@ export class DevelopmentRebuilder {
         const first = before.findIndex(
           (value, index) => value !== this.#baseline[index],
         );
-        if (first < 0) continue;
+        if (first < 0 && !this.#needsRebuild) continue;
         if (!(await this.options.prepare())) {
           this.#pending = true;
           retryDelay = 1000;
           break;
         }
         if (this.#closed) break;
-        await this.options.rebuild(first);
-        this.#baseline = before;
+        this.#needsRebuild = true;
+        const prepared = await this.options.rebuild(Math.max(0, first));
+        this.#needsRebuild = false;
+        this.#baseline = prepared ?? before;
         this.#pending = true; // Recheck saves made during the build.
       }
     } catch (error) {
@@ -174,7 +138,7 @@ export function developmentReloadPlugin(
         return {
           server: {
             watch: {
-              ignored: [(file: string) => isWorkspacePackage(file, root)],
+              ignored: [(file: string) => isSupervisedDevelopmentFile(file, root)],
             },
           },
         };
@@ -236,6 +200,7 @@ export async function startDevelopment(options: {
   workspaceRoot: string;
   args: string[];
   packages: string[];
+  forceOptimize?: boolean;
   spawnPnpm: (args: string[], options: SpawnOptions) => ChildProcess;
 }) {
   const { workspaceRoot: root, args, packages, spawnPnpm } = options;
@@ -264,12 +229,7 @@ export async function startDevelopment(options: {
     requestId = 0,
     waiting = false,
     teardownFailed = false;
-  const snapshot = () =>
-    Promise.all(
-      packages.map((name) =>
-        developmentFingerprint(path.join(root, "packages", name)),
-      ),
-    );
+  const snapshot = async () => workspacePackageFingerprints(packages, { root });
   const closeChild = async (child: ChildProcess) => {
     if (child.connected) {
       // Release the separately spawned Creator worker before terminating Vite.
@@ -299,7 +259,7 @@ export async function startDevelopment(options: {
       throw error;
     }
   };
-  const startServers = () => {
+  const startServers = (forceOptimize = options.forceOptimize ?? false) => {
     if (stopping) return;
     const entries = [
       [
@@ -329,7 +289,7 @@ export async function startDevelopment(options: {
           "--port",
           String(listenPort),
           "--strictPort",
-          "--force",
+          ...(forceOptimize ? ["--force"] : []),
         ],
         {
           cwd,
@@ -391,10 +351,29 @@ export async function startDevelopment(options: {
     waiting = !ready;
     return ready;
   };
-  const rebuild = async (first: number) => {
+  const rebuild = async () => {
     await stopServers();
-    for (const name of packages.slice(first)) {
-      if (stopping) return;
+    if (stopping) return;
+    // Run dependency repair only after admission closes and both servers stop.
+    // Track its process tree just like package builds, including on Windows.
+    const dependencyChild = spawn(process.execPath, [path.join(root, "scripts/ensure-workspace-dependencies.mjs")], {
+      cwd: root, env, stdio: "inherit", detached: process.platform !== "win32",
+    });
+    children.add(dependencyChild);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        dependencyChild.once("error", reject);
+        dependencyChild.once("close", code => code === 0 ? resolve() : reject(new Error(`Dependency preparation failed (${code}); fix the error and save again.`)));
+      });
+    } finally {
+      children.delete(dependencyChild);
+    }
+    if (stopping) return;
+    // The install receipt may change here. Remember the inputs actually handed
+    // to the build, while retaining any later saves for the next drain pass.
+    const prepared = await snapshot();
+    const rebuilt = await prepareWorkspacePackagesAsync(packages, async (name) => {
+      if (stopping) return false;
       console.log(`[Creator] Rebuilding ${name}...`);
       const child = spawnPnpm(
         ["--filter", `@za38.03/agent-ui-${name}`, "build"],
@@ -422,8 +401,10 @@ export async function startDevelopment(options: {
       } finally {
         children.delete(child);
       }
-    }
-    startServers();
+      return true;
+    }, { root });
+    startServers(rebuilt.length > 0);
+    return prepared;
   };
   const reloader = new DevelopmentRebuilder({
     initial: await snapshot(),
@@ -479,6 +460,20 @@ export async function startDevelopment(options: {
         ),
       );
     }
+  }
+  // Shared build/install inputs use the same idle gate and serialized restart.
+  for (const directory of ["", "scripts", "releases", "artifacts/creator-documentation"]) {
+    const target = path.join(root, directory);
+    try {
+      if (!(await stat(target)).isDirectory()) continue;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") continue;
+      throw error;
+    }
+    watchers.push(watch(target, { recursive: directory === "artifacts/creator-documentation" }, (_event, file) => {
+      if (!file || isDevelopmentInput(logical(String(file))) ||
+          (directory === "" && isSupervisedDevelopmentFile(path.join(root, String(file)), root))) reloader.changed();
+    }));
   }
   for (const watcher of watchers)
     watcher.on("error", (error) => {

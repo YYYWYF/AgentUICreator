@@ -7,6 +7,7 @@ import {
   developmentFingerprint,
   isDevelopmentInput,
   isWorkspacePackage,
+  isSupervisedDevelopmentFile,
 } from "../../../apps/creator-workbench/dev.js";
 
 const roots: string[] = [];
@@ -48,6 +49,16 @@ it("keeps Windows drive case, UNC and spaces within the correct package boundary
       "win32",
     ),
   ).toBe(true);
+});
+
+it("routes shared build imports through the supervisor while retaining application HMR", () => {
+  const root = "C:\\Company Projects\\UI";
+  for (const file of ["scripts\\workspace-build-cache.mjs", "scripts\\pnpm-process.mjs", "releases\\compatibility.json", "artifacts\\creator-documentation\\index.json", "pnpm-lock.yaml", ".npmrc", ".pnpmfile.cjs"]) {
+    expect(isSupervisedDevelopmentFile(path.win32.join(root, file), root, "win32")).toBe(true);
+  }
+  for (const file of ["scripts-extra\\index.mjs", "apps\\creator-workbench\\src\\App.tsx", "examples\\creator-host-sandbox\\src\\main.tsx"]) {
+    expect(isSupervisedDevelopmentFile(path.win32.join(root, file), root, "win32")).toBe(false);
+  }
 });
 
 it("tracks canonical additions, edits and removals without looping on build outputs", async () => {
@@ -179,4 +190,17 @@ it("keeps watching after a failed build and cancels queued work on shutdown", as
   state.reloader.close();
   await vi.advanceTimersByTimeAsync(1000);
   expect(rebuild).toHaveBeenCalledTimes(2);
+});
+
+it("restarts after a failed build even when the fix restores the previous source", async () => {
+  const rebuild = vi.fn()
+    .mockRejectedValueOnce(new Error("compile failed"))
+    .mockResolvedValue(undefined);
+  const state = fixture(rebuild);
+  state.edit(["core-1", "broken"]);
+  await vi.advanceTimersByTimeAsync(300);
+  state.edit(["core-1", "creator-1"]);
+  await vi.advanceTimersByTimeAsync(300);
+  expect(rebuild).toHaveBeenCalledTimes(2);
+  expect(state.error).toHaveBeenCalledOnce();
 });

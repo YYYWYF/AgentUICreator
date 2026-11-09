@@ -53,16 +53,69 @@ test("copied macOS modules are rebuilt on Windows, and failed installs never mar
     assert.deepEqual(args, ["install", "--frozen-lockfile", "--force"]);
     return { status: 1 };
   } }), /Dependency installation failed/);
-  assert.equal(JSON.parse(readFileSync(receipt)).platform, "darwin");
+  assert.throws(() => readFileSync(receipt), /ENOENT/, "failed installs invalidate the old receipt");
 }));
-test("a second launch still verifies the lockfile without forcing another platform rebuild", () => fixture(root => {
+test("a second unchanged launch skips installation", () => fixture(root => {
+  let installs = 0;
   const options = { root, platform: "win32", architecture: "x64", nodeAbi: "test", run: args => {
+    installs++;
     assert.deepEqual(args, ["install", "--frozen-lockfile"]);
     installViteEntries(root);
     return { status: 0 };
   } };
   ensureWorkspaceDependencies(options);
   ensureWorkspaceDependencies(options);
+  assert.equal(installs, 1);
+}));
+test("lockfile, dependency declarations, workspace configuration and installed state invalidate reuse", () => fixture(root => {
+  let installs = 0;
+  const options = { root, run: () => { installs++; installViteEntries(root); return { status: 0 }; } };
+  ensureWorkspaceDependencies(options);
+  const put = (file, text) => { mkdirSync(path.dirname(path.join(root, file)), { recursive: true }); writeFileSync(path.join(root, file), text); };
+  for (const [file, text] of [
+    ["pnpm-lock.yaml", "lockfileVersion: '6.0'\n# changed"],
+    ["packages/core/package.json", JSON.stringify({ name: "core", dependencies: {} })],
+    ["pnpm-workspace.yaml", "packages: ['packages/*']"],
+    [".npmrc", "registry=https://example.invalid"],
+    ["node_modules/.modules.yaml", "changed installed state"],
+  ]) {
+    put(file, text);
+    const before = installs;
+    ensureWorkspaceDependencies(options);
+    assert.equal(installs, before + 1, file);
+    ensureWorkspaceDependencies(options);
+    assert.equal(installs, before + 1, `${file}: second launch`);
+  }
+}));
+test("ordinary scripts and generated release metadata do not require installation", () => fixture(root => {
+  let installs = 0;
+  const options = { root, run: () => { installs++; installViteEntries(root); return { status: 0 }; } };
+  ensureWorkspaceDependencies(options);
+  const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+  pkg.scripts = { dev: "changed command" };
+  pkg.agentUI = { compatibility: "generated" };
+  writeFileSync(path.join(root, "package.json"), JSON.stringify(pkg));
+  ensureWorkspaceDependencies(options);
+  assert.equal(installs, 1);
+}));
+test("a deleted direct dependency link is repaired before it can be reused", () => fixture(root => {
+  const manifest = path.join(root, "package.json");
+  writeFileSync(manifest, JSON.stringify({ packageManager: "pnpm@8.12.0", devDependencies: { compiler: "1.0.0" } }));
+  const installed = path.join(root, "node_modules/compiler/package.json");
+  let installs = 0;
+  const options = { root, run: args => {
+    installs++;
+    if (installs === 2) assert(args.includes("--force"));
+    installViteEntries(root);
+    mkdirSync(path.dirname(installed), { recursive: true });
+    writeFileSync(installed, "{}");
+    return { status: 0 };
+  } };
+  ensureWorkspaceDependencies(options);
+  rmSync(installed);
+  ensureWorkspaceDependencies(options);
+  ensureWorkspaceDependencies(options);
+  assert.equal(installs, 2);
 }));
 test("a missing Vite entry forces repair even with a matching platform receipt", () => fixture(root => {
   mkdirSync(path.join(root, "node_modules"));
@@ -75,6 +128,14 @@ test("a missing Vite entry forces repair even with a matching platform receipt",
 }));
 test("an install reporting success without Vite stops before starting either server", () => fixture(root => {
   assert.throws(() => ensureWorkspaceDependencies({ root, run: () => ({ status: 0 }) }), /Vite installation is incomplete/);
+  assert.throws(() => readFileSync(path.join(root, "node_modules/.agent-ui-platform.json")), /ENOENT/);
+}));
+test("a lockfile edited during install is never recorded as successfully installed", () => fixture(root => {
+  assert.throws(() => ensureWorkspaceDependencies({ root, run: () => {
+    installViteEntries(root);
+    writeFileSync(path.join(root, "pnpm-lock.yaml"), "changed during install");
+    return { status: 0 };
+  } }), /inputs changed during installation/);
   assert.throws(() => readFileSync(path.join(root, "node_modules/.agent-ui-platform.json")), /ENOENT/);
 }));
 test("modules installed by a different pnpm version are rebuilt before launch", () => fixture(root => {

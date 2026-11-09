@@ -20,6 +20,8 @@ const hostPort = await freePort();
 let dockPort = await freePort();
 while (dockPort === hostPort) dockPort = await freePort();
 const environment = { ...process.env };
+const startedAt = performance.now();
+const timing = {};
 const child = spawnPnpm(["dev", "--host-port", String(hostPort), "--workbench-port", String(dockPort)], { cwd: root, env: environment, stdio: ["ignore", "pipe", "pipe"] });
 let exited = false;
 let failure;
@@ -44,6 +46,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   assert.equal(workspace?.status, "ready", "Creator did not select a ready workspace");
+  timing.workspaceReadyMs = Math.round(performance.now() - startedAt);
   assert.equal(workspace.project?.mode, "platform", "Default dev target must be the platform template");
   const diagnostics = await fetch(`http://127.0.0.1:${dockPort}/__creator/runtime-diagnostics`, {
     method: "POST", body: "{}",
@@ -84,6 +87,7 @@ try {
     assert.deepEqual(errors, [], `Browser runtime failed for ${url}`);
     await page.close();
   }
+  timing.browserReadyMs = Math.round(performance.now() - startedAt);
 } finally {
   stopping = true;
   await browser?.close();
@@ -96,3 +100,4 @@ try {
 }
 
 console.log("Source-copy pnpm dev: Host, Creator Dock, workspace readiness, Agent proxy, and Chromium rendering passed.");
+console.log(`DEV_STARTUP_TIMING ${JSON.stringify(timing)}`);

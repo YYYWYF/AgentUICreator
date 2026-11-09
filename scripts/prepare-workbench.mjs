@@ -1,23 +1,7 @@
-import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
-import { prepareHostPackages } from "./prepare-host-packages.mjs";
-
-import { hostPackages, preparationState } from "./preparation-state.mjs";
-
-const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
+import { hostPackages, prepareWorkspacePackages } from "./workspace-build-cache.mjs";
 /** Creator preparation belongs to the development composition, never to a Host. */
 export function prepareWorkbench() {
-  if (process.env.AGENT_UI_WORKBENCH_PREPARED === preparationState([...hostPackages, "creator"])) return;
-  prepareHostPackages();
-  const result = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator", "build"], {
-    cwd: workspaceRoot, stdio: "inherit",
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error("Workbench package preparation failed: Creator");
-  const prepared = preparationState([...hostPackages, "creator"]);
-  process.env.AGENT_UI_WORKBENCH_PREPARED = prepared;
-  // Host predev includes Creator's mock entry. Both children must inherit the
-  // complete receipt so it cannot rebuild shared packages beside a running Vite.
-  process.env.AGENT_UI_HOST_PACKAGES_PREPARED = prepared;
+  return prepareWorkspacePackages([...hostPackages, "creator"]);
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) prepareWorkbench();

@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { checkDependencyPins } from "./check-dependency-pins.mjs";
 import { syncPackageReleaseMetadata } from "./sync-package-release-metadata.mjs";
-import { hostPackages } from "./preparation-state.mjs";
+import { hostPackages } from "./workspace-build-cache.mjs";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
