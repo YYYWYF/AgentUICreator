@@ -9,6 +9,7 @@ import path from "node:path";
 import { publicModules, publicPackageName as name } from "./build-public-packages.mjs";
 import { versionPackages as runVersionPackages, versionAndTagPackages as runVersionAndTagPackages, readPublishedPackage } from "./version-packages.mjs";
 import { syncPackageReleaseMetadata } from "./sync-package-release-metadata.mjs";
+import { setPackageVersions } from "./set-package-versions.mjs";
 
 const registries = new Map();
 const withRegistry = options => ({ ...options, readPublished: options.readPublished ?? (async ({ name }) => registries.get(options.root).get(name)) });
@@ -49,6 +50,8 @@ async function fixture(run) {
     execFileSync("git", ["config", "user.name", "Version Test"], { cwd: root });
     execFileSync("git", ["config", "user.email", "version@example.test"], { cwd: root });
     await put(".gitignore", "dist/\nnode_modules/\n");
+    // Fixture versions are intentionally unpublished; don't fetch auto peers.
+    await put(".npmrc", "auto-install-peers=false\n");
     await put("package.json", JSON.stringify({ private: true, packageManager: "pnpm@8.12.0" }));
     await put("pnpm-workspace.yaml", 'packages:\n  - "packages/*"\n');
     await put("tsconfig.json", "{}\n");
@@ -67,6 +70,7 @@ async function fixture(run) {
         scripts: { build: "node ../../scripts/build.mjs" },
         dependencies: dependencies[id] ?? {},
         ...(id === "plugins" ? { peerDependencies: { [name("renderer")]: "2.3.4" } } : {}),
+        ...(id === "plugins" ? { devDependencies: { [name("renderer")]: "2.3.4" } } : {}),
         ...(id === "web-component" ? { devDependencies: { [name("creator")]: "workspace:*" } } : {}),
       }, null, 2) + "\n");
     }
@@ -87,6 +91,70 @@ test("first release, preview and no source changes after publication", () => fix
   await put("packages/core/package.json", JSON.stringify({ ...pkg, agentUI: { compatibility: "generated" } }));
   await put("packages/core/src/index.ts", 'export const id = "core";\r\n');
   assert.deepEqual(await versionPackages({ root, updateLockfile: false }), []);
+}));
+
+test("explicit versions update all six packages, consumers and resource requirements without touching Git or history", () => fixture(async ({ root, put, read, publish }) => {
+  const resource = "packages/plugins/resources/registry/items/foundation/core/item.json";
+  await put(resource, JSON.stringify({ id: "foundation/core", packages: { [name("core")]: "0.0.1", react: "19.1.1" } }));
+  const consumer = "examples/custom-host/package.json";
+  await put(consumer, JSON.stringify({ name: "custom-host", version: "1.2.3", dependencies: { [name("core")]: "^0.0.1", [name("plugins")]: "workspace:*", react: "19.1.1" }, optionalDependencies: { [name("renderer")]: "~2.3.4" }, devDependencies: { [name("creator")]: "file:../../packages/creator" } }));
+  await put("packages/plugins/resources/registry/release.json", '{"releaseVersion":"historical"}');
+  await put("releases/compatibility.json", '{"schemaVersion":1,"releases":[]}');
+  publish();
+  await put("notes.md", "staged user edit");
+  execFileSync("git", ["add", "notes.md"], { cwd: root });
+  const gitState = () => [
+    execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }),
+    execFileSync("git", ["tag", "--list"], { cwd: root, encoding: "utf8" }),
+    execFileSync("git", ["diff", "--cached"], { cwd: root, encoding: "utf8" }),
+  ];
+  const before = gitState();
+  const preview = await setPackageVersions({ root, version: "0.0.5", dryRun: true });
+  assert.ok(preview.files.includes(resource));
+  assert.ok(preview.files.includes(consumer));
+  assert.equal((await read("packages/core/package.json")).version, "0.0.1");
+  await setPackageVersions({ root, version: "0.0.5", updateLockfile: false });
+  for (const id of publicModules) assert.equal((await read(`packages/${id}/package.json`)).version, "0.0.5");
+  const host = await read(consumer);
+  assert.equal(host.version, "1.2.3");
+  assert.equal(host.dependencies[name("core")], "0.0.5");
+  assert.equal(host.dependencies[name("plugins")], "workspace:*");
+  assert.equal(host.dependencies.react, "19.1.1");
+  assert.equal(host.optionalDependencies[name("renderer")], "0.0.5");
+  assert.equal(host.devDependencies[name("creator")], "file:../../packages/creator");
+  assert.equal((await read(resource)).packages[name("core")], "0.0.5");
+  assert.equal((await read(resource)).packages.react, "19.1.1");
+  assert.equal((await read("packages/plugins/package.json")).peerDependencies[name("renderer")], "0.0.5");
+  assert.equal((await read("packages/plugins/resources/registry/release.json")).releaseVersion, "historical");
+  assert.deepEqual(await read("releases/compatibility.json"), { schemaVersion: 1, releases: [] });
+  assert.deepEqual(gitState(), before);
+  assert.deepEqual((await setPackageVersions({ root, version: "0.0.5", dryRun: true })).files, []);
+}));
+
+test("explicit versions reject malformed input before writes and recover manifests after pnpm failure", () => fixture(async ({ root, put, read }) => {
+  const original = await read("packages/core/package.json");
+  for (const version of [undefined, "latest", "0.0", "01.0.5", "0.0.5-beta.1", "0.0.5 && echo bad"]) {
+    await assert.rejects(setPackageVersions({ root, version }), /exact stable version/u);
+  }
+  await put("pnpm.cjs", "process.exit(1);\n");
+  const previous = process.env.npm_execpath;
+  process.env.npm_execpath = path.join(root, "pnpm.cjs");
+  try { await assert.rejects(setPackageVersions({ root, version: "0.0.5" }), /Lockfile update failed/u); }
+  finally {
+    if (previous === undefined) delete process.env.npm_execpath;
+    else process.env.npm_execpath = previous;
+  }
+  assert.deepEqual(await read("packages/core/package.json"), original);
+}));
+
+test("explicit versions synchronize the real pnpm lockfile including peers and remain idempotent", () => fixture(async ({ root, read }) => {
+  await setPackageVersions({ root, version: "0.0.5" });
+  assert.equal((await read("packages/plugins/package.json")).dependencies[name("core")], "workspace:*");
+  const lock = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8");
+  assert.match(lock, /specifier: 0\.0\.5/u);
+  assert.match(lock, /specifier: workspace:\*/u);
+  await setPackageVersions({ root, version: "0.0.5" });
+  assert.equal(await readFile(path.join(root, "pnpm-lock.yaml"), "utf8"), lock);
 }));
 
 test("changes since the last publication propagate without a dev cycle or repeated bumps", () => fixture(async ({ root, put, read, publish }) => {

@@ -25,6 +25,8 @@ npm 返回包不存在（404）时按首次发行处理并保留当前初始版�
 
 识别包括已提交、未提交和未忽略的新文件，排除 Git 忽略的生成产物；包内文件、使用的共享脚本、根 TypeScript 配置及根 pnpm 覆盖/引擎配置属于识别范围，单独修改网站或示例不触发包升版。可先执行 `pnpm release:version --dry-run` 查看清单；新增功能或破坏性变更由维护者选择 `--bump minor` / `--bump major`，源码差异本身不能推断 API 兼容性。现有发布流水线继续负责构建、发行资料与发布。
 
+需要手动指定六个公开包的相同版本时，执行 `pnpm release:version:set 0.0.5`；先预览可执行 `pnpm release:version:set 0.0.5 --dry-run`。此命令不查询 npm 发布状态，不暂存、提交、打标签或发布。它更新六个包的 `version`、根目录及 `packages/*` / `apps/*` / `examples/*` 包清单中对这六个包的数字依赖（含 dev、peer、optional），以及 Plugins 当前 `resources/registry/items/**/item.json` 的包依赖；保留 `workspace:` / `file:` / `link:` / `npm:` 等协议声明和第三方依赖。通过现有跨平台 pnpm 助手运行 `install --lockfile-only --ignore-scripts --no-frozen-lockfile` 同步锁文件，不安装 node_modules。锁文件更新失败时恢复本命令写入的清单，锁文件若有变化需检查后重试。插件自身版本、Source Release、历史快照和已审阅兼容记录保持原值；指定包版本不代表完成兼容验证，发行资料仍由原发布流程维护。
+
 `pnpm package:repo [output.zip]` 打包仓库，ZIP 中的 `website/` 固定为完整静态站点；`pnpm docs:zip [output.zip]` 只构建并打包静态 `website/`，默认输出 `../AgentUIWebsite.zip`，不生成 Creator 离线文档。两者保留工作区源码，部署服务器无需 Node.js 或 npm 依赖。
 
 仓库 ZIP 的 `artifacts/` 只保留当前 `creator-documentation/` 离线文档；历史压缩包、解压目录和验收产物不进入交付包。各工程的 `dist/`、覆盖率、Playwright 报告和测试结果目录也不打包，构建时从源码重新生成。
