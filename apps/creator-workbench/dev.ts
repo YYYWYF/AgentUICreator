@@ -3,7 +3,7 @@ import {
   type ChildProcess,
   type SpawnOptions,
 } from "node:child_process";
-import { watch } from "node:fs";
+import { readFileSync, watch } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -15,7 +15,9 @@ import {
   packageSourceFingerprint,
   workspacePackageFingerprints,
   prepareWorkspacePackagesAsync,
+  hostPackages,
 } from "../../scripts/workspace-build-cache.mjs";
+import { openDevelopmentCache } from "../../scripts/development-cache.mjs";
 export { isDevelopmentInput };
 
 const logical = (file: string) => file.replaceAll("\\", "/");
@@ -122,6 +124,42 @@ type ReloadMessage = {
   projectRoot?: string;
 };
 
+/** Separate processes/configurations never write into the same optimizer cache. */
+export function developmentCachePlugin(root: string, role: "workbench" | "host-preview"): Plugin {
+  let cache: ReturnType<typeof openDevelopmentCache> | undefined;
+  const abandon = () => cache?.finish(false);
+  const finish = (clean: boolean) => {
+    process.off("exit", abandon);
+    cache?.finish(clean);
+  };
+  return {
+    name: "agent-ui-development-cache",
+    apply: "serve",
+    config() {
+      const inputs = workspacePackageFingerprints([...hostPackages, "creator"], { root });
+      for (const file of ["apps/creator-workbench/dev.ts", "apps/creator-workbench/vite.config.ts", "apps/creator-workbench/host-preview.vite.config.ts", "scripts/development-cache.mjs"]) {
+        inputs.push(readFileSync(path.join(root, ...file.split("/")), "utf8"));
+      }
+      cache = openDevelopmentCache(root, role, inputs);
+      process.once("exit", abandon);
+      return { cacheDir: cache.cacheDir };
+    },
+    configResolved(config) {
+      config.logger.info(`[Creator] ${role} dependency cache: ${cache?.reused ? "reusing" : "new generation"}`);
+    },
+    configureServer(server) {
+      const close = server.close.bind(server);
+      // Vite closes plugin containers and dependency optimizers concurrently.
+      // closeBundle/httpServer.close alone cannot prove the optimizer stopped.
+      server.close = async () => {
+        try { await close(); }
+        catch (error) { finish(false); throw error; }
+        finish(true);
+      };
+    },
+  };
+}
+
 /** Installed Creator Hosts do not opt into this repository-only IPC protocol. */
 export function developmentReloadPlugin(
   root: string,
@@ -200,7 +238,6 @@ export async function startDevelopment(options: {
   workspaceRoot: string;
   args: string[];
   packages: string[];
-  forceOptimize?: boolean;
   spawnPnpm: (args: string[], options: SpawnOptions) => ChildProcess;
 }) {
   const { workspaceRoot: root, args, packages, spawnPnpm } = options;
@@ -259,7 +296,7 @@ export async function startDevelopment(options: {
       throw error;
     }
   };
-  const startServers = (forceOptimize = options.forceOptimize ?? false) => {
+  const startServers = () => {
     if (stopping) return;
     const entries = [
       [
@@ -289,7 +326,6 @@ export async function startDevelopment(options: {
           "--port",
           String(listenPort),
           "--strictPort",
-          ...(forceOptimize ? ["--force"] : []),
         ],
         {
           cwd,
@@ -372,7 +408,7 @@ export async function startDevelopment(options: {
     // The install receipt may change here. Remember the inputs actually handed
     // to the build, while retaining any later saves for the next drain pass.
     const prepared = await snapshot();
-    const rebuilt = await prepareWorkspacePackagesAsync(packages, async (name) => {
+    await prepareWorkspacePackagesAsync(packages, async (name) => {
       if (stopping) return false;
       console.log(`[Creator] Rebuilding ${name}...`);
       const child = spawnPnpm(
@@ -403,7 +439,7 @@ export async function startDevelopment(options: {
       }
       return true;
     }, { root });
-    startServers(rebuilt.length > 0);
+    startServers();
     return prepared;
   };
   const reloader = new DevelopmentRebuilder({

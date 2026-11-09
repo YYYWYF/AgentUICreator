@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import net from "node:net";
 import path from "node:path";
@@ -48,6 +48,13 @@ try {
   assert.equal(workspace?.status, "ready", "Creator did not select a ready workspace");
   timing.workspaceReadyMs = Math.round(performance.now() - startedAt);
   assert.equal(workspace.project?.mode, "platform", "Default dev target must be the platform template");
+  const duplicate = spawnSync(process.execPath, [path.join(root, "scripts/dev-workbench.mjs"), "--host-port", String(await freePort()), "--workbench-port", String(await freePort())], {
+    cwd: root, env: environment, encoding: "utf8", timeout: 10_000,
+  });
+  assert.equal(duplicate.status, 1, "A second dev session must stop before installing or building, even on different ports");
+  const duplicateLog = duplicate.stdout + duplicate.stderr;
+  assert.match(duplicateLog, /AGENT_UI_DEV_BUSY/u);
+  assert.doesNotMatch(duplicateLog, /Preparing dependencies|Building|Reusing/u);
   const diagnostics = await fetch(`http://127.0.0.1:${dockPort}/__creator/runtime-diagnostics`, {
     method: "POST", body: "{}",
     headers: { "x-agent-ui-workspace-id": workspace.workspace.id, "Content-Type": "application/json" }, signal: AbortSignal.timeout(5000),

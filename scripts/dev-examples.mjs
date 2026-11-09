@@ -4,12 +4,15 @@ import { spawnPnpm } from "./pnpm-process.mjs";
 import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
 import { prepareWorkbench } from "./prepare-workbench.mjs";
 import { ensureExampleHost, exampleHosts } from "./prepare-example-host.mjs";
+import { acquireDevelopmentSession } from "./development-cache.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const modes = process.argv.length > 2 ? process.argv.slice(2) : Object.keys(exampleHosts);
 if (new Set(modes).size !== modes.length || modes.some(mode => !Object.hasOwn(exampleHosts, mode))) {
   throw new Error("Usage: pnpm dev:examples [platform|assistant|embedded ...]");
 }
+const release = acquireDevelopmentSession(root);
+process.once("exit", release);
 ensureWorkspaceDependencies();
 prepareWorkbench();
 for (const mode of modes) await ensureExampleHost(mode);

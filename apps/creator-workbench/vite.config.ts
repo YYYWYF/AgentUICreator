@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { developmentReloadPlugin } from "./dev";
+import { developmentCachePlugin, developmentReloadPlugin } from "./dev";
 
 import { readCreatorHostConfigValue } from "../../packages/creator/src/creatorRuntimeConfig.js";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
@@ -47,6 +47,7 @@ export default defineConfig({
     ),
   },
   plugins: [
+    developmentCachePlugin(workspaceRoot, "workbench"),
     developmentReloadPlugin(workspaceRoot, workspaceManager),
     react(),
     tailwindcss(),
