@@ -69,9 +69,13 @@ builders run `docs:install`; the site's existing React resolution is pinned
 locally rather than inherited from the product workspace.
 
 `docs:package` explicitly builds the site and generates a portable handoff at
-`artifacts/creator-documentation/`. It contains generated Markdown, text indexes,
-and local images, with `index.json` recording package versions, source digest
-and file hashes. It also stages a copy under `packages/creator/dist/documentation/`.
+`artifacts/creator-documentation/`. It contains generated Markdown, internal
+references and text indexes, with `index.json` recording package versions, source
+digest and file hashes. Images remain owned by the website under
+`docs/public/images/` and ship only in the complete static site. Creator's
+reference tool reads text; Markdown image references remain unchanged, without
+bundling another image copy. The command also stages the text snapshot under
+`packages/creator/dist/documentation/`.
 
 To prepare documentation for release packaging:
 
@@ -84,9 +88,10 @@ To prepare documentation for release packaging:
    its source, package manifests, lockfile and compiler dependencies are omitted.
    The working checkout retains the original website source.
    `artifacts/creator-documentation/` is included so Creator builds can copy the
-   offline snapshot. Keep it with the transfer when offline reference docs are
-   needed; a Git checkout alone lacks this ignored handoff. An extracted
-   transfer can be repackaged without Rspress.
+   offline snapshot. This text-only directory is also tracked in Git, so an
+   intranet checkout receives it without a separate artifact download. Other
+   generated artifacts remain ignored. An extracted transfer can be repackaged
+   without Rspress.
 3. In the intranet package build environment, run the normal root dependency
    install and `pnpm build:package`. Creator's existing asset-copy step copies
    `artifacts/creator-documentation/` into its fresh `dist/documentation/` when
@@ -99,6 +104,8 @@ To prepare documentation for release packaging:
 
 The prepared Creator documentation directory is optional for product builds;
 intranet builds copy it when present and do not regenerate or audit it.
+After documentation changes, regenerate the text snapshot in the documentation
+build environment and commit `artifacts/creator-documentation/` with the sources.
 Use `pnpm docs:package`, `pnpm --dir website check:docs` and
 `pnpm test:documentation` in the external documentation build environment to
 prepare and check documentation resources.

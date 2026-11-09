@@ -1,0 +1,145 @@
+# 任务计划与完成状态（agent-plan-message）
+
+例如依次列出「检查代码」「修改界面」「执行验证」。Agent 更新计划时，卡片里的当前步骤和完成标记随之变化。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![查看计划步骤与完成情况（agent-plan-message）界面示例](/images/plugins/agent-plan-message.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable agent-plan-message`，点击下图中的 **「查看计划步骤与完成情况」**。
+
+![Creator 启用菜单：点击「查看计划步骤与完成情况」，插件 ID 为 agent-plan-message](/images/plugins/enable/agent-plan-message.jpg)
+
+## 显示条件与数据来源
+
+**Agent 服务接入：**&#x8BA1;划由 `activityType: "agent-plan"` 的 Activity 快照提供，后续 delta 更新同一个 `messageId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+
+```json
+[
+  {
+    "type": "ACTIVITY_SNAPSHOT",
+    "messageId": "plan-1",
+    "activityType": "agent-plan",
+    "replace": true,
+    "content": {
+      "title": "生成报告",
+      "steps": [
+        {
+          "id": "search",
+          "label": "检索资料"
+        },
+        {
+          "id": "write",
+          "label": "生成报告"
+        }
+      ],
+      "activeIndex": 0
+    }
+  },
+  {
+    "type": "ACTIVITY_DELTA",
+    "messageId": "plan-1",
+    "activityType": "agent-plan",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/activeIndex",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "type": "ACTIVITY_DELTA",
+    "messageId": "plan-1",
+    "activityType": "agent-plan",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/activeIndex",
+        "value": 2
+      }
+    ]
+  }
+]
+```
+
+`steps` 每项需要非空 `label`，可含非空 `id`、字符串 `description`；`title` 可省略。`activeIndex` 是从 0 开始的整数，之前的步骤视为完成，等于 `steps.length` 时全部完成。无效数据不显示计划。
+
+先发完整快照，再逐条发送 JSON Patch；恢复实时运行时先重发最新完整快照。Runtime 将其映射到具名消息 `agui-activity/agent-plan`，服务端仍发送 `ACTIVITY_*`。工具次数、思考文字和耗时不会自动生成或推进计划。
+
+## 定制选项
+
+| 可以改什么  | 效果                |
+| ------ | ----------------- |
+| 计划标题   | 修改步骤清单上方的标题。      |
+| 卡片外观   | 调整宽度、背景、边框、圆角和间距。 |
+| 整张计划卡片 | 换一种方式排列标题和步骤。     |
+
+## 需求示例
+
+```text
+请修改「查看计划步骤与完成情况（agent-plan-message）」：
+修改：计划标题改为【处理步骤】，卡片圆角设为【12px】。
+保留：Agent 返回的步骤和完成进度。
+```
+
+## 属性
+
+打开项目中的 `plugins/agent-plan-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalAgentPlanMessage`；类型：`AgentPlanMessageProps`。还支持下方列出的样式和无障碍属性。
+
+| 属性             | 类型                                                                               | 省略时 / 用途                 |
+| -------------- | -------------------------------------------------------------------------------- | ------------------------ |
+| `data`         | `unknown`                                                                        | 必需，由会话传入的计划消息；数据无法解析时不显示 |
+| `title?`       | `string`                                                                         | 覆盖解析后的标题                 |
+| `steps?`       | [`readonly (string \| ConversationAgentPlanStep)[]`](#conversationagentplanstep) | 覆盖解析后的步骤                 |
+| `activeIndex?` | `number`                                                                         | 覆盖当前步骤索引                 |
+| `renderPlan?`  | `(props: ConversationAgentPlanProps) => ReactNode`                               | 自定义整个计划内容                |
+
+自定义展示属性不会绕过原始 `data` 的校验。
+
+### 外观与无障碍属性
+
+以下属性均可选。
+
+| 属性                 | 类型                                    | 用途      |
+| ------------------ | ------------------------------------- | ------- |
+| `className`        | `string`                              | 整体样式类   |
+| `style`            | `CSSProperties`                       | 整体内联样式  |
+| `id`               | `string`                              | 元素标识    |
+| `role`             | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色   |
+| `aria-label`       | `string`                              | 无障碍名称   |
+| `aria-describedby` | `string`                              | 描述元素 ID |
+| `onClick`          | `MouseEventHandler<HTMLElement>`      | 点击回调    |
+
+### 类型说明
+
+#### ConversationAgentPlanStep
+
+计划中的一个步骤；只需要步骤文字时，也可以在 `steps` 中直接传字符串。
+
+```ts
+interface ConversationAgentPlanStep {
+  id?: string; // 步骤标识
+  label: string; // 步骤标题
+  description?: string; // 补充说明
+}
+```
+
+### 类型查询
+
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalAgentPlanMessage } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalAgentPlanMessage>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

@@ -1,0 +1,61 @@
+# 消息引用（conversation-quote）
+
+选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![引用消息（conversation-quote）界面示例](/images/plugins/conversation-quote.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable conversation-quote`，点击下图中的 **「引用消息」**。
+
+![Creator 启用菜单：点击「引用消息」，插件 ID 为 conversation-quote](/images/plugins/enable/conversation-quote.jpg)
+
+## 定制选项
+
+| 可以改什么     | 效果                  |
+| --------- | ------------------- |
+| 引用按钮提示    | 修改选中文字后出现的“引用”按钮文案。 |
+| 移除引用提示    | 修改草稿里移除引用按钮的读屏名称。   |
+| 引用预览样式    | 调整输入框上方引用内容的排版和外观。  |
+| 选中文字后的工具条 | 替换引用工具条的图标、布局和外观。   |
+
+## 需求示例
+
+```text
+请修改「引用消息（conversation-quote）」：
+修改：引用按钮文字改为【引用这段】，草稿中的引用预览加上【浅蓝色背景】。
+保留：选中引用、移除引用和发送时携带引用的行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/conversation-quote/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationQuote`；类型：`ConversationQuotePluginProps`。没有独立的界面容器；预览与选择工具栏为两个表面。
+
+| 属性               | 类型                | 省略时 / 用途   |
+| ---------------- | ----------------- | ---------- |
+| `renderPreview?` | `() => ReactNode` | 自定义引用预览    |
+| `renderToolbar?` | `() => ReactNode` | 自定义选择工具栏   |
+| `children?`      | `ReactNode`       | 替换默认预览与工具栏 |
+
+默认组件没有根级 `className`／`style`；结构替换使用渲染回调或 children。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationQuote>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+引用与关闭文案统一在 `locales.conversationQuote.quote` / `dismiss` 修改。`renderPreview` 与 `renderToolbar` 是无参数的结构渲染回调。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

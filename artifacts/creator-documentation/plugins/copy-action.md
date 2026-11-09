@@ -1,0 +1,73 @@
+# 回复复制（copy-action）
+
+回复完成后点击复制，即可把文本粘贴到其他地方。一次回复分成多条消息时，会按这次回复一起复制。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![复制回复（copy-action）界面示例](/images/plugins/copy-action.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable copy-action`，点击下图中的 **「复制回复」**。
+
+![Creator 启用菜单：点击「复制回复」，插件 ID 为 copy-action](/images/plugins/enable/copy-action.jpg)
+
+## 定制选项
+
+| 可以改什么   | 效果               |
+| ------- | ---------------- |
+| 鼠标提示    | 修改鼠标移到复制按钮上时的提示。 |
+| 按钮图标或文字 | 替换复制图标，或直接显示文字。  |
+| 按钮大小和外观 | 调整大小、颜色、边框和圆角。   |
+| 暂时不可点击  | 需要时将按钮设为不可点击。    |
+
+## 需求示例
+
+```text
+请修改「复制回复（copy-action）」：
+修改：按钮显示文字【复制答案】，悬停提示改为【复制完整回答】。
+保留：复制完整回复的行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/copy-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationCanonicalResponseCopyAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+
+| 属性          | 类型                                              | 省略时 / 用途                           |
+| ----------- | ----------------------------------------------- | ---------------------------------- |
+| `children?` | `ReactNode`                                     | 默认复制图标，复制成功后短暂切换为成功图标              |
+| `disabled?` | `boolean`                                       | 与回答生成中／没有正文的禁用条件叠加                 |
+| `onClick?`  | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行复制；`preventDefault()` 可阻止默认动作 |
+
+复制范围为当前完整回答的文本，由现有会话提供。
+
+### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseCopyAction>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+默认提示文案只读取 `locales.common.copy`，失败提示读取 `locales.copyAction.failed`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

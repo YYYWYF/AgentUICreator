@@ -1,0 +1,64 @@
+# Agent 名称与头像（agent-identity）
+
+例如把默认助手名称换成「客服助手」，配上产品头像和说明，方便用户识别正在使用哪个助手。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![显示 Agent 名称与头像（agent-identity）界面示例](/images/plugins/agent-identity.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable agent-identity`，点击下图中的 **「显示 Agent 名称与头像」**。
+
+![Creator 启用菜单：点击「显示 Agent 名称与头像」，插件 ID 为 agent-identity](/images/plugins/enable/agent-identity.jpg)
+
+在当前项目的 Agent 身份设置中填写名称、说明和头像，检查欢迎区或侧栏实际显示。它不改变服务地址或业务权限。
+
+## 定制选项
+
+| 可以改什么   | 效果                            |
+| ------- | ----------------------------- |
+| 助手名称    | 例如把默认名称改为“客服助手”，也可以分别设置中英文名称。 |
+| 助手头像    | 换成自己的产品图标或头像图片。               |
+| 助手介绍    | 修改名称下方的简短说明。                  |
+| 文字和图片样式 | 调整头像大小、字号、颜色和间距。              |
+| 整体排版    | 调整这块区域的大小，或重新排列头像、名称和介绍。      |
+
+## 需求示例
+
+```text
+请修改「显示 Agent 名称与头像（agent-identity）」：
+修改：助手名称改为【客服助手】，头像换为【/brand/assistant.svg】，介绍改为【随时为你解答】。
+保留：原有位置和排版。
+```
+
+## 属性
+
+打开项目中的 `plugins/agent-identity/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalAgentIdentityPlugin`；类型：`AgentIdentityPluginProps`。继承 `div` 原生属性，`children` 单独定义。
+
+| 属性             | 类型                                                        | 省略时 / 用途                              |
+| -------------- | --------------------------------------------------------- | ------------------------------------- |
+| `name?`        | `string \| Partial<Record<'en-US' \| 'zh-CN', string>>`   | 名称；省略或当前语言未配置时使用 `agentIdentity.name` |
+| `logo?`        | `string`                                                  | Logo URL；没有时展示默认机器人图标                 |
+| `description?` | `string`                                                  | 可选描述                                  |
+| `logoProps?`   | `ComponentProps<'img'>`                                   | Logo 图片原生属性，仅在有 `logo` 时使用            |
+| `classNames?`  | `Partial<Record<'name' \| 'description', string>>`        | 名称与描述样式类                              |
+| `styles?`      | `Partial<Record<'name' \| 'description', CSSProperties>>` | 名称与描述内联样式                             |
+| `children?`    | `ReactNode`                                               | 替换默认身份内容                              |
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalAgentIdentityPlugin } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalAgentIdentityPlugin>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

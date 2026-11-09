@@ -3,6 +3,9 @@
 # without reviewing their recorded integrity/provenance.
 * text=auto eol=lf
 
+# Generated reference text mirrors website bytes, including trailing blank lines.
+artifacts/creator-documentation/** whitespace=-blank-at-eof
+
 # Native Windows command scripts use CRLF when checked out.
 *.bat text eol=crlf
 *.cmd text eol=crlf

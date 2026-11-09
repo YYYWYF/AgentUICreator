@@ -1,0 +1,78 @@
+# 主题切换（theme-switch）
+
+选择后，对话区域等受主题控制的界面会同步更新外观，当前会话继续保留。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+| 浅色主题                                                 | 深色主题                                           |
+| ---------------------------------------------------- | ---------------------------------------------- |
+| ![官方模板的浅色主题](/images/plugins/theme-switch-light.png) | ![官方模板的深色主题](/images/plugins/theme-switch.png) |
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable theme-switch`，点击下图中的 **「切换主题」**。
+
+![Creator 启用菜单：点击「切换主题」，插件 ID 为 theme-switch](/images/plugins/enable/theme-switch.jpg)
+
+不传 `Agent.theme` 时使用内置紫色主题，控件可自行切换；业务页面传入 `theme` 后，需通过 `onThemeChange` 更新当前值，见[主题参数](/development/agent-options.md#主题切换)。**切换不新建会话或重新发送消息**。
+
+## 定制选项
+
+页面主题参数见[主题配置](/development/agent-options.md#主题切换)。控件属性如下：
+
+| 可以改什么    | 效果                    |
+| -------- | --------------------- |
+| 选择框大小和外观 | 调整大小、宽度、颜色和边框。        |
+| 周围的间距    | 调整选择框与周围内容的距离。        |
+| 选项文字     | 修改各个主题的显示名称，保留对应的主题值。 |
+
+## 需求示例
+
+```text
+请修改「切换主题（theme-switch）」：
+修改：浅色主题显示为【日间】，深色主题显示为【夜间】，紫色主题显示为【紫色】，选择框宽度设为【120px】。
+保留：light、dark、violet 主题值和切换行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/theme-switch/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalThemeSwitchPlugin`；类型：`ThemeSwitchPluginProps`。继承 `section` 原生属性。
+
+| 属性               | 类型                                                                                                                                | 省略时 / 用途                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `theme?`         | [`AgentUITheme`](#agentuitheme)                                                                                                   | 受控主题，优先于服务快照；均未提供时回退 `violet`                                                    |
+| `onThemeChange?` | [`(theme: AgentUITheme) => void`](#agentuitheme)                                                                                  | 受控变化回调，优先于服务的 `setTheme`                                                         |
+| `service?`       | [`{ getTheme(): AgentUITheme; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }`](#agentuitheme) | 已有主题服务                                                                           |
+| `contextId?`     | `string`                                                                                                                          | 默认 `theme`，选择框 ID 为 `${contextId}-control`                                       |
+| `disabled?`      | `boolean`                                                                                                                         | 选择框禁用设置                                                                          |
+| `selectProps?`   | `ComponentProps<typeof NativeSelect>`                                                                                             | 原生下拉框属性，`size` 为 `'sm' \| 'default'`；其 `onChange` 先调用，`preventDefault()` 可阻止默认切换 |
+| `children?`      | `ReactNode`                                                                                                                       | 替换默认主题选项                                                                         |
+
+没有变化回调且没有可用服务时，组件不显示。
+
+### 类型说明
+
+#### AgentUITheme
+
+```ts
+type AgentUITheme = 'light' | 'dark' | 'violet';
+```
+
+分别为浅色、深色和紫色主题；紫色主题使用浅色配色模式。
+
+### 类型查询
+
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalThemeSwitchPlugin } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalThemeSwitchPlugin>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

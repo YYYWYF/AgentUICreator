@@ -1,0 +1,92 @@
+# / 快捷命令（slash-command-trigger）
+
+用户可以搜索并选择项目已提供的命令。**操作类命令会执行相应动作**；**指令类命令会加入草稿，随问题一起发送**。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![输入 / 使用命令（slash-command-trigger）界面示例](/images/plugins/slash-command-trigger.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable slash-command-trigger`，点击下图中的 **「输入 / 使用命令」**。
+
+![Creator 启用菜单：点击「输入 / 使用命令」，插件 ID 为 slash-command-trigger](/images/plugins/enable/slash-command-trigger.jpg)
+
+## 定制选项
+
+命令名称、列表和执行内容在[应用命令配置](/guide/adjustments/mention-and-commands.md)中说明。这个菜单可以调整：
+
+| 可以改什么  | 效果                 |
+| ------ | ------------------ |
+| 候选列表提示 | 修改菜单标题和没有可选命令时的提示。 |
+| 命令失败提示 | 修改操作失败和重试时的文字。     |
+
+## 需求示例
+
+```text
+请修改「输入 / 使用命令（slash-command-trigger）」：
+修改：菜单标题改为【可用指令】，无结果提示改为【没有匹配的指令】，重试文字改为【再试一次】。
+保留：现有命令列表和执行行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/slash-command-trigger/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationSlashCommandTrigger`；类型：`ConversationSlashCommandTriggerProps`。无独立根外观属性。
+
+| 属性        | 类型                                                                  | 省略时 / 用途                    |
+| --------- | ------------------------------------------------------------------- | --------------------------- |
+| `source?` | [`ConversationSlashCommandSource`](#conversationslashcommandsource) | 从已有命令数据源读取命令列表；缺少时不显示命令候选界面 |
+
+`mode: 'directive'` 插入序列化指令引用，没有独立草稿文本属性，不自动发送消息。
+
+文案字段见统一 `conversationTriggers` 命名空间。
+
+### 类型说明
+
+#### ConversationSlashCommandSource
+
+已有的命令数据源；命令项的结构见 [`ConversationSlashCommand`](#conversationslashcommand)。
+
+```ts
+interface ConversationSlashCommandSource {
+  getSnapshot(): readonly ConversationSlashCommand[];
+  subscribe(listener: () => void): () => void;
+}
+```
+
+`getSnapshot` 读取命令列表，`subscribe` 订阅列表变化并返回取消订阅函数。
+
+#### ConversationSlashCommand
+
+```ts
+type ConversationSlashCommand = {
+  id: string; // 命令标识
+  label: string; // 展示文字
+  description?: string; // 补充说明
+  disabled?: boolean; // 是否禁用
+} & (
+  | { mode: 'action'; execute(): void | Promise<void> }
+  | { mode: 'directive' }
+);
+```
+
+`action` 执行 `execute`；`directive` 插入指令引用。
+
+### 类型查询
+
+React 原生属性及其他复杂类型可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationSlashCommandTrigger>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

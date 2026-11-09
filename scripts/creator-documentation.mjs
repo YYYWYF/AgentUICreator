@@ -12,15 +12,14 @@ const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const modules = ['core', 'renderer', 'runtime', 'plugins', 'web-component', 'creator'];
 const skipped = new Set(['node_modules', 'doc_build', '.rspress', '.git', 'pnpm-lock.yaml']);
 const textSourceExtensions = new Set(['.md', '.mdx', '.txt', '.json', '.yaml', '.yml', '.ts', '.tsx', '.js', '.mjs', '.css']);
-const resourceExtensions = new Set(['.md', '.txt', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif']);
 export const staticWebsiteManifest = 'agent-ui-static-site.json';
 
 export function isDocumentationResource(name) {
   if (name === agentIndexPath) return true;
   const extension = path.posix.extname(name).toLowerCase();
-  return extension === '.txt'
-    ? name === 'llms.txt' || name === 'llms-full.txt'
-    : resourceExtensions.has(extension);
+  // Creator's reference tool reads text only. Website images have one owner
+  // and remain in the complete static site, never in this offline text snapshot.
+  return extension === '.md' || name === 'llms.txt' || name === 'llms-full.txt';
 }
 
 // Artifact paths are POSIX identifiers, regardless of the build host platform.
@@ -81,7 +80,7 @@ export async function sealStaticWebsite(directory, sourceRecords) {
 无需安装 Node.js、pnpm、Rspress 或 website 的任何 npm 依赖；搜索使用本地资源。
 Markdown、llms.txt、llms-full.txt 是静态文档资源，请直接返回原文件。
 agent-ui-static-site.json 记录本次生成信息。
-仓库交接包另含 artifacts/creator-documentation/，供 Creator 构建时使用，请随仓库保留；单独部署本静态网站无需该目录。
+仓库交接包另含 artifacts/creator-documentation/ 文本参考资料，供 Creator 构建时使用，请随仓库保留。图片只随本静态网站交付；单独部署本静态网站无需该参考资料目录。
 `);
   const files = [];
   for (const name of await filesUnder(directory)) {

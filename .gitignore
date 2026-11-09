@@ -62,6 +62,7 @@ examples/creator-embedded-host/.agent-ui/*
 examples/creator-embedded-host/.agent-ui/mocks/*
 !examples/creator-embedded-host/.agent-ui/mocks/*.jsonl
 
-# Generated local artifacts. Keep offline documentation locally for source handoff.
-/artifacts/
+# Track only the generated Creator text references for offline builds.
+/artifacts/*
+!/artifacts/creator-documentation/
 /docs/verification/

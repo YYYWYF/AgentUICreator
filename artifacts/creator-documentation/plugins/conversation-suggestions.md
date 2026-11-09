@@ -1,0 +1,107 @@
+# 开场建议（conversation-suggestions）
+
+例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置**填入输入框或直接发起提问**。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![使用开场建议（conversation-suggestions）界面示例](/images/plugins/conversation-suggestions.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable conversation-suggestions`，点击下图中的 **「使用开场建议」**。
+
+![Creator 启用菜单：点击「使用开场建议」，插件 ID 为 conversation-suggestions](/images/plugins/enable/conversation-suggestions.jpg)
+
+## 定制选项
+
+| 可以改什么     | 效果                   |
+| --------- | -------------------- |
+| 建议内容      | 在项目组件中传入业务问题、标题和说明。  |
+| 点击后是否立即发送 | 选择只把问题填入草稿，或点击后直接发送。 |
+| 建议按钮样式    | 调整按钮大小、边框和颜色。        |
+| 标题和说明样式   | 调整每个建议的字号、颜色和间距。     |
+| 列表排版      | 调整整组建议的布局和间距。        |
+| 单个建议的展示   | 为每条建议增加图标，或重新安排文字。   |
+
+## 需求示例
+
+```text
+请修改「使用开场建议（conversation-suggestions）」：
+修改：点击建议后【只填入草稿，不立即发送】，按钮间距设为【12px】。
+保留：现有建议内容。
+```
+
+## 属性
+
+打开项目中的 `plugins/conversation-suggestions/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationCanonicalSuggestions`；类型：`ConversationCanonicalSuggestionsProps`。继承 `div` 原生属性。
+
+| 属性                  | 类型                                                                                  | 省略时 / 用途                                                 |
+| ------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `items?`            | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem)              | 省略时读取当前会话建议；空数组表示不显示列表项                                  |
+| `sendOnSelect?`     | `boolean`                                                                           | 默认 `true`；`false` 时将建议写入输入框                              |
+| `clearComposer?`    | `boolean`                                                                           | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置                           |
+| `buttonProps?`      | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |
+| `classNames?`       | `Partial<Record<'title' \| 'description', string>>`                                 | 标题与说明的样式类                                                |
+| `styles?`           | `Partial<Record<'title' \| 'description', CSSProperties>>`                          | 标题与说明的内联样式                                               |
+| `renderSuggestion?` | `ConversationCanonicalSuggestionsProps['renderSuggestion']`                         | 自定义当前会话的建议列表项，仅在未传 `items` 时使用                           |
+| `children?`         | `ReactNode`                                                                         | 替换整个默认建议内容                                               |
+
+`SuggestionActions` 来自公开 `/plugin-support` 入口。
+
+### 设置建议内容
+
+默认推荐问题的文案在 `application/locales.ts` 的 `starterSuggestions` 中维护，`application/project-config.tsx` 将解析后的项目和 Host 文案映射为建议项。修改点击行为时，保留内容来源，在现有薄应用入口设置公开属性：
+
+```tsx
+import { ConversationSuggestionsPlugin as Suggestions } from '@za38.03/agent-ui-plugins/conversation-suggestions';
+import type { ComponentProps } from 'react';
+
+export const ConversationSuggestionsPlugin = (props: ComponentProps<typeof Suggestions>) => {
+  return <Suggestions {...props} sendOnSelect={false} />;
+};
+```
+
+`false` 表示只写入草稿；默认 `true` 表示立即发送。不要把 `send` 放入 `buttonProps`，它由 `sendOnSelect` 管理。动态业务建议也可以通过公开 `items` 或 `renderSuggestion` 定制。
+
+要移除标题下方的附加说明，在 `project-config.tsx` 的现有 `getConversationStarterSuggestions` 回调中省略 `label`，保留其他项目配置和文案绑定：
+
+```tsx
+getConversationStarterSuggestions: (_locale, messages) => [
+  { title: messages.architectureTitle, prompt: messages.architecturePrompt },
+  { title: messages.debugTitle, prompt: messages.debugPrompt },
+  { title: messages.nextTitle, prompt: messages.nextPrompt },
+],
+```
+
+将必需的 locale 标签设为 `''` 会回退到默认文案，不能用于隐藏说明。`title` 控制展示标题，`prompt` 控制发送内容；检查两种语言下完整问句、说明是否存在及实际发送行为。
+
+### 类型说明
+
+#### ConversationSuggestionItem
+
+一条建议的内容。
+
+```ts
+interface ConversationSuggestionItem {
+  prompt: string; // 选择后发送或写入输入框的文本
+  title?: string; // 展示标题，省略时显示 prompt
+  label?: string; // 标题下方的附加说明
+}
+```
+
+### 类型查询
+
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalSuggestions>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

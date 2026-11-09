@@ -1,0 +1,180 @@
+# Plugin Authoring Contract
+
+The Plugin manifest describes three different capabilities:
+
+```text
+Runtime-compatible
+    the Plugin can be activated by the UI Runtime
+
+Composition-compatible
+    the Plugin can be placed in the Layout Tree or a declared child Slot
+
+Creator-operable
+    the Host can discover, add, and restore the Plugin deterministically
+```
+
+These concepts are related, but they are not interchangeable. Runtime and
+composition validation remain part of the existing Host validation pipeline.
+This document defines the additional Creator Authoring Readiness contract.
+
+## Scope
+
+The existing `UIPluginManifest.authoring` fields are the contract, without a
+`creatorReady` flag, a readiness score, or another manifest schema.
+The Host derives readiness from the manifest, capabilities, and child
+Slot declarations. It never reads React source to infer placement.
+
+The contract is optional. A Plugin without `authoring` is still a valid Runtime
+Plugin and may be configured manually in the project's `app-ui.json`; it makes
+no promise that Creator can discover or automatically add and restore it.
+
+## Plugin categories
+
+| Plugin category | Creator Authoring Contract |
+| --- | --- |
+| Visual leaf | Declare `authoring.intents`; declare `defaultPlacement` when Creator Add/Restore is intended. |
+| Container | The visual leaf rules plus a complete `slots.children` contract for each rendered child Slot. |
+| Renderer | Declare `requiresRenderScope`, the renderer capability, and a canonical `plugin_slot` placement targeting a renderer Slot when Creator operation is intended. |
+| Headless / Application Gate | No visual placement is required. Use the existing Service or Application contract. |
+
+`capabilities: ["headless"]` and `manifest.application.gate` identify
+non-visual authoring scope. These Plugins receive
+`status: "not-applicable"` and do not produce a missing-placement warning.
+
+## Authoring fields
+
+### `intents`
+
+Intents describe why a user wants the Plugin. They are semantic discovery
+phrases, for example:
+
+```json
+[
+  "show the reasoning process",
+  "browse conversation history",
+  "switch between light and dark themes"
+]
+```
+
+They are not operation instructions such as `insert plugin`, `add component`,
+or `mount this plugin`.
+
+### `visualRole`
+
+`visualRole` describes the Plugin's product role and helps Creator distinguish
+similar capabilities, for example `conversation navigation` or
+`assistant reasoning presentation`.
+
+### `defaultPlacement`
+
+`defaultPlacement` is the canonical placement used by Creator Add/Restore. It
+is not a suggestion. When it is present and valid, the Host may promise a
+deterministic placement.
+
+For a relative placement, the anchor Plugin must exist and be unique. The
+recommended dimension must match the relation axis:
+
+```text
+before / after  -> recommendedSize.width
+above / below   -> recommendedSize.height
+```
+
+Missing required axis sizing makes deterministic Creator Add/Restore
+unavailable. The Analyzer reports this as a non-blocking readiness warning so
+the Plugin can remain limited without making structural validation fail.
+
+For a `plugin_slot` placement, the parent Plugin and child Slot must exist and
+be unique. The Slot's accepted capability must match the child Plugin's
+capabilities. A scoped renderer must target a `mode: "renderer"` Slot, and a
+non-renderer Plugin must not target one.
+
+### `recommendedSize`
+
+`recommendedSize` supplies deterministic geometry when a relative placement
+needs to create or extend a Layout region. A `plugin_slot` placement does not
+need a recommended size.
+
+## Readiness states
+
+The Host reports one readiness record per discovered Plugin:
+
+```ts
+interface PluginCreatorReadiness {
+  pluginId: string;
+  status: "ready" | "limited" | "manual-only" | "not-applicable";
+  discoverable: boolean;
+  addRestore: "ready" | "unavailable" | "not-applicable";
+  reasons: string[];
+}
+```
+
+The rules are:
+
+| Contract | Status | Add/Restore | Diagnostics |
+| --- | --- | --- | --- |
+| Headless or Application Gate | `not-applicable` | `not-applicable` | None |
+| Visual, no `authoring` | `manual-only` | `unavailable` | None |
+| `authoring` without `defaultPlacement` | `limited` | `unavailable` | `CREATOR_ADD_RESTORE_UNAVAILABLE` warning |
+| Valid authoring and placement | `ready` | `ready` | None |
+| Relative placement missing its required axis size | `limited` | `unavailable` | `CREATOR_DEFAULT_PLACEMENT_SIZE_NOT_PORTABLE` warning |
+| Declared placement with an invalid target, capability, or renderer mode | `limited` | `unavailable` | Blocking `CREATOR_DEFAULT_PLACEMENT_*` error |
+
+`manual-only` is intentional and is not a warning. A warning means that the
+Plugin declared authoring intent but did not provide enough information for a
+deterministic Creator operation. A declared but false placement is a blocking
+contract error.
+
+## Style Isolation Contract
+
+Visual Plugins own a stable root selector for their presentation. Every Plugin
+CSS selector must begin with a Plugin-owned class or a `data-ui-plugin` /
+`data-plugin-id` attribute. Descendants such as `.my-plugin button` are valid;
+bare `button`, `body`, `html`, `:root`, `*`, and global reset selectors are not.
+Plugin CSS must not depend on Host DOM or define theme tokens on `:root`.
+Theme tokens and dark variants are inherited from `AgentUIRoot`. Isolation covers
+ordinary Host global and reset CSS; Host rules that explicitly target Agent UI
+with `!important` are outside this contract.
+
+Plugins using Agent UI's Base UI overlays use the
+`@za38.03/agent-ui-plugins` Tooltip, Popover, and Dialog facades. They must not
+import Base UI Portal primitives directly or mount overlays on `document.body`.
+Projects retain their selected UI library; its overlays must preserve the
+owning Agent UI container and theme boundary.
+
+The Host checks CSS during Operator's `verify_ui_project` without changing the
+authoring manifest.
+An unsafe selector or CSS import produces the blocking diagnostic
+`PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED`; Creator must repair the CSS source.
+Direct Base UI Dialog, Popover, Tooltip, or Sheet imports in Plugin source
+produce `PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED`; use the corresponding
+`@za38.03/agent-ui-plugins` facade.
+
+The browser acceptance gate is `pnpm verify:style-isolation`, including
+`pnpm test:web-component`. CI runs it for Agent UI changes. It checks Host
+probe stability, ordinary Host reset isolation, themed Tooltip/Popover/Dialog
+Portals, dark variants, and the public Dialog container boundary.
+
+## Validation boundary
+
+Operator's `verify_ui_project` is the structural validation entry point. Its
+result includes `creatorReadiness.plugins`, errors and warnings alongside
+Registry, child Slot, Service, and Composition checks. Node tooling can call
+`verifyUIProject` from `@za38.03/agent-ui-creator/project/dev`.
+
+```text
+invalid declared contract -> errors -> structural validation failed
+limited Creator operation -> warnings -> structural validation passed
+```
+
+`validate_creator_changes` synchronizes changed Plugin registrations, invokes
+`verify_ui_project`, and runs the target project's `typecheck` through its
+detected package manager. `includeBuild: true` also runs its `build` script.
+Default delta validation distinguishes introduced errors from existing baseline
+diagnostics; clean mode checks all current errors. Structural composition and
+readiness do not prove browser mounting or interaction; Runtime and browser
+acceptance need separate evidence.
+
+When a newly created visual Plugin receives a warning, Creator decides whether
+that Plugin was intended to be Creator-operable. If yes, it repairs the
+authoring contract. If the Plugin is intentionally manual-only, it keeps the
+minimal contract and does not invent a default placement.

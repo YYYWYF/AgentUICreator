@@ -1,0 +1,102 @@
+# 登录认证（开发中）
+
+:::warning 开发中
+正在对接行内一号通。以下仅示例，不代表最终效果。
+:::
+
+检查登录状态时显示等待；未登录时显示账号、密码和登录按钮。认证成功后，应用再显示允许访问的聊天内容。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![登录后进入聊天（auth-gate）界面示例](/images/plugins/auth-gate.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable auth-gate`，点击下图中的 **「登录后进入聊天」**。
+
+![Creator 启用菜单：点击「登录后进入聊天」，插件 ID 为 auth-gate](/images/plugins/enable/auth-gate.jpg)
+
+先接好业务登录服务，再决定未登录用户看到什么。测试检查中、未登录、登录失败和已登录，不以隐藏界面代替服务端权限校验。
+
+## 使用前提
+
+需要真实业务认证；**客户端门禁不能保护服务端数据**。未登录、无权限和网络失败要分别给出提示。
+
+## 定制选项
+
+| 可以改什么   | 效果                       |
+| ------- | ------------------------ |
+| 登录区排版   | 调整登录表单的宽度、背景、边框和间距。      |
+| 账号输入框   | 修改输入提示、输入长度、字号和边框样式。     |
+| 密码输入框   | 修改输入提示、输入长度和外观。          |
+| 登录按钮    | 修改按钮大小、颜色和圆角。            |
+| 标题和按钮文字 | 修改登录标题、账号标签、密码标签和登录按钮文字。 |
+
+## 需求示例
+
+```text
+请修改「登录后进入聊天（auth-gate）」：
+修改：登录标题改为【登录客服工作台】，表单宽度设为【360px】，按钮文字改为【进入工作台】。
+保留：现有登录接口和认证流程。
+```
+
+## 属性
+
+打开项目中的 `plugins/auth-gate/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalAuthGatePlugin`；类型：`AuthGatePluginProps`。继承 `div` 原生属性，排除 `children` 和原生 `title`。
+
+| 属性                    | 类型                                                                        | 省略时 / 用途                                     |
+| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------- |
+| `title?`              | `ReactNode`                                                               | 默认 `auth.title`                              |
+| `submitText?`         | `ReactNode`                                                               | 优先于按钮 `children`；默认按忙碌状态选择登录文案               |
+| `formProps?`          | `ComponentProps<'form'>`                                                  | 表单属性；`onSubmit` 中 `preventDefault()` 可阻止默认登录 |
+| `accountInputProps?`  | `ComponentProps<typeof Input>`                                            | 账号输入框原生属性；保留内部输入状态更新                         |
+| `passwordInputProps?` | `ComponentProps<typeof Input>`                                            | 密码输入框原生属性；保留内部输入状态更新                         |
+| `submitButtonProps?`  | `ComponentProps<typeof Button>`                                           | 登录按钮配置                                       |
+| `session?`            | `{ signIn(input: { account: string; password: string }): Promise<void> }` | 现有登录服务                                       |
+| `state?`              | [`AuthSessionSnapshot`](#authsessionsnapshot)                             | 现有认证状态，单独使用组件时默认检查中                          |
+
+省略 `state` 时为 `{ status: 'checking', user: null, busy: false, error: null }`，显示检查提示。这些服务类型沿用项目已有 `services/` 声明；不是新增登录状态源。
+
+### 类型说明
+
+#### AuthSessionSnapshot
+
+认证服务提供的当前状态，所有字段均必需。
+
+```ts
+interface AuthSessionSnapshot {
+  status: 'checking' | 'anonymous' | 'authenticated';
+  user: AuthUser | null;
+  busy: boolean;
+  error: 'sign-in-failed' | 'sign-out-failed' | null;
+}
+```
+
+`status` 分别表示检查中、未登录和已登录；`user` 为当前用户，未登录时为 `null`；`busy` 表示认证操作正在执行；`error` 分别表示登录失败、退出失败或没有错误。用户结构见 [`AuthUser`](#authuser)。
+
+#### AuthUser
+
+```ts
+interface AuthUser {
+  userId: string; // 用户标识
+  userName: string; // 展示名称
+  avatar?: string; // 头像 URL
+}
+```
+
+### 类型查询
+
+React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalAuthGatePlugin>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

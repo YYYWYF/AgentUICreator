@@ -27,6 +27,12 @@ npm 返回包不存在（404）时按首次发行处理并保留当前初始版�
 
 `pnpm package:repo [output.zip]` 打包仓库，ZIP 中的 `website/` 固定为完整静态站点；`pnpm docs:zip [output.zip]` 只构建并打包静态 `website/`，默认输出 `../AgentUIWebsite.zip`，不生成 Creator 离线文档。两者保留工作区源码，部署服务器无需 Node.js 或 npm 依赖。
 
+仓库 ZIP 的 `artifacts/` 只保留当前 `creator-documentation/` 离线文档；历史压缩包、解压目录和验收产物不进入交付包。各工程的 `dist/`、覆盖率、Playwright 报告和测试结果目录也不打包，构建时从源码重新生成。
+
+新生成的 Creator 参考包仅包含 Markdown 正文、内部参考及文本索引，构建/prepack 时复制到 npm 包的 `dist/documentation/`。图片以官网 `website/docs/public/images/` 为准，只进入完整静态网站；文档正文及图片引用保持原文。旧的含图片快照可通过外网文档生成命令更新，内网复制不编译网站或重写快照。
+
+Git 仅放行 `artifacts/creator-documentation/`，内网流水线拉取仓库后即可自动复制其中的文本资料。文档修改后，在外网重新生成快照并和源码一起提交；其他产物继续忽略，不需要强制添加整个 `artifacts/`。
+
 website 相关 `.mjs` 只用于外网源码环境。内网安装、启动、构建、打包、验包和发布不校验 documentation；Creator 的普通资源拷贝步骤在 `artifacts/creator-documentation/` 存在时原样复制，缺失时跳过。内网 ZIP 二次打包直接收集静态 `website/`，不编译网站、不检查网站清单。`docs:package`、`test:documentation` 留作外网手动入口，不接入内网主流程。
 
 启动、发行和集成 CI 不再前置安装或生成文档。文档站 `build` 只编译站点；语言参考表与文档结构检查通过 `docs:locales:check`、`pnpm --dir website check:docs` 手动运行。`verify:package` 在独立消费目录中移除可选的离线文档后验证 Creator 启动和工程操作。

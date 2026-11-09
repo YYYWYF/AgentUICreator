@@ -39,7 +39,6 @@ async function fixture(t) {
     ['guide/start.md', '# Start\nOffline instructions.'],
     ['llms.txt', '## Getting started\n- [Start](/guide/start.md): Offline instructions.'],
     ['llms-full.txt', '# Start\nOffline instructions.'],
-    ['images/example.svg', '<svg xmlns="http://www.w3.org/2000/svg"/>'],
   ]) {
     const file = artifactPath(directory, name);
     await mkdir(path.dirname(file), { recursive: true });
@@ -67,9 +66,12 @@ test('Windows filesystem paths become portable manifest paths; unsafe identifier
   }
 });
 
-test('offline distribution includes documentation and images, not the website application', () => {
-  for (const name of ['guide/index.md', 'llms.txt', 'llms-full.txt', 'images/界面.PNG']) assert(isDocumentationResource(name));
-  for (const name of ['index.html', 'static/js/app.js', 'static/js/app.js.LICENSE.txt', 'static/search.json', 'style.css']) assert(!isDocumentationResource(name));
+test('offline references select text while website images and browser assets stay on the website', () => {
+  for (const name of ['guide/index.md', 'llms.txt', 'llms-full.txt', 'agent-index.json']) assert(isDocumentationResource(name));
+  for (const name of ['images/界面.PNG', 'images/example.svg', 'images/demo.webp', 'index.html', 'static/js/app.js', 'static/js/app.js.LICENSE.txt', 'static/search.json', 'style.css']) assert(!isDocumentationResource(name));
+  const root = 'C:\\工程 空间\\doc_build';
+  assert(isDocumentationResource(logicalPath(root, path.win32.join(root, 'guide', 'start.md'), path.win32)));
+  assert(!isDocumentationResource(logicalPath(root, path.win32.join(root, 'images', '界面.png'), path.win32)));
 });
 
 async function handoffFixture(t) {
@@ -117,7 +119,7 @@ test('clean intranet packaging copies static pages without documentation tooling
   await writeFile(path.join(root, 'pnpm-lock.yaml'), 'internal registry resolutions');
   await writeFile(path.join(root, 'website/pnpm-lock.yaml'), 'external tooling resolutions');
   await writeFile(path.join(root, 'website/docs/index.md'), '# Source\r\n');
-  assert.match(await readFile(path.join(destination, 'images/example.svg'), 'utf8'), /<svg/u);
+  await assert.rejects(readFile(path.join(destination, 'images/example.svg')), { code: 'ENOENT' });
 });
 
 function zipEntries(zip) {
@@ -158,6 +160,21 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   await sealStaticWebsite(path.join(root, 'website'), sourceRecords);
   assert.deepEqual(await documentationIdentity(root), identity);
   await prepareDocumentation(root);
+  const localOnly = [
+    'artifacts/old-acceptance/report.md',
+    'artifacts/old-website.zip',
+    'artifacts/extracted/package/index.js',
+    'packages/creator/dist/documentation/duplicate.md',
+    'examples/host/dist/index.html',
+    'apps/workbench/test-results/result.json',
+    'apps/workbench/playwright-report/index.html',
+    'coverage/summary.json',
+  ];
+  for (const name of localOnly) {
+    const file = artifactPath(root, name);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, 'local output');
+  }
   const output = path.join(root, 'transfer.zip');
   await packageRepository(root, output);
   const entries = zipEntries(await readFile(output));
@@ -166,6 +183,11 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   assert(entries.has(`${prefix}/website/index.html`));
   assert(entries.has(`${prefix}/website/DEPLOY.txt`));
   assert(entries.has(`${prefix}/artifacts/creator-documentation/index.json`));
+  for (const name of localOnly) {
+    assert(!entries.has(`${prefix}/${name}`), `Local output was packaged: ${name}`);
+    assert.equal(await readFile(artifactPath(root, name), 'utf8'), 'local output');
+  }
+  assert(![...entries.keys()].some(name => name.includes('/dist/')));
   assert([...entries.keys()].every(name => !name.includes('\\') && !name.endsWith('/transfer.zip')));
   assert([...entries.keys()].every(name => !/website\/(?:package\.json|docs\/|theme\/|doc_build\/|node_modules\/)/u.test(name)));
   // Extract the actual ZIP to a fresh directory, including Unicode and spaces.
@@ -176,7 +198,7 @@ test('static-only ZIP preserves Creator identity and repackages without website 
     await writeFile(target, content);
   }
   const transferred = path.join(extracted, prefix);
-  await rm(path.join(transferred, 'packages/creator/dist'), { recursive: true });
+  await rm(path.join(transferred, 'packages/creator/dist'), { recursive: true, force: true });
   await rm(path.join(transferred, 'website'), { recursive: true });
   await rm(path.join(transferred, 'scripts'), { recursive: true });
   await copyIntranetAssets(transferred);
@@ -198,7 +220,7 @@ test('source packaging builds a complete static website for repository and stand
         'static/app.js': 'fetch("/static/search.json");',
         'static/search.json': '{"local":true}',
         'images/界面.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>',
-        'guide/start.md': '# Start\nOffline instructions.',
+        'guide/start.md': '# Start\nOffline instructions.\n![界面](/images/界面.svg)',
         'llms.txt': '## Getting started\n- [Start](/guide/start.md): Offline instructions.',
         'llms-full.txt': '# Full documentation',
       })};
@@ -211,6 +233,11 @@ test('source packaging builds a complete static website for repository and stand
     await mkdir(path.join(root, 'website/theme'), { recursive: true });
     await writeFile(path.join(root, 'website/theme/index.tsx'), '// source only');
     await writeFile(path.join(root, 'website/pnpm-lock.yaml'), 'compiler dependencies');
+    if (!websiteOnly) {
+      const staleImage = path.join(root, 'artifacts/creator-documentation/images/界面.svg');
+      await mkdir(path.dirname(staleImage), { recursive: true });
+      await writeFile(staleImage, '<svg>old snapshot</svg>');
+    }
     const output = path.join(root, '文档 transfer.zip');
     await packageRepository(root, output, { websiteOnly });
     const entries = zipEntries(await readFile(output));
@@ -223,6 +250,22 @@ test('source packaging builds a complete static website for repository and stand
     assert([...entries.keys()].every(name => !name.includes('\\')));
     assert([...entries.keys()].every(name => !/website\/(?:package\.json|pnpm-lock\.yaml|build\.mjs|docs\/|theme\/|doc_build\/|node_modules\/)/u.test(name)));
     assert.equal(entries.has(`${prefix}artifacts/creator-documentation/index.json`), !websiteOnly);
+    if (!websiteOnly) {
+      const offlinePrefix = `${prefix}artifacts/creator-documentation/`;
+      assert(![...entries.keys()].some(name => name.startsWith(`${offlinePrefix}images/`)));
+      assert.equal(entries.get(`${offlinePrefix}guide/start.md`).toString(), entries.get(`${prefix}website/guide/start.md`).toString());
+      assert(entries.has(`${offlinePrefix}references/docs/current.md`));
+      const offlineManifest = JSON.parse(entries.get(`${offlinePrefix}index.json`));
+      assert(offlineManifest.files.every(file => !file.path.startsWith('images/')));
+      const catalog = JSON.parse(entries.get(`${offlinePrefix}agent-index.json`));
+      assert.deepEqual(catalog.documents.map(document => document.source).sort(), ['internal', 'public']);
+      for (const document of catalog.documents) {
+        const content = entries.get(`${offlinePrefix}${document.path}`);
+        assert.equal(createHash('sha256').update(content).digest('hex'), document.sha256);
+        for (const section of document.sections) assert(content.toString().slice(section.start, section.end).length > 0);
+      }
+      await assert.rejects(readFile(path.join(root, 'artifacts/creator-documentation/images/界面.svg')), { code: 'ENOENT' });
+    }
     if (websiteOnly) {
       assert.equal(entries.size, websiteEntries.length);
       await assert.rejects(readFile(path.join(root, 'artifacts/creator-documentation/index.json')), { code: 'ENOENT' });

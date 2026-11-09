@@ -1,0 +1,72 @@
+# 附件添加（add-attachment-action）
+
+点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![添加附件（add-attachment-action）界面示例](/images/plugins/add-attachment-action.jpg)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable add-attachment-action`，点击下图中的 **「添加附件」**。
+
+![Creator 启用菜单：点击「添加附件」，插件 ID 为 add-attachment-action](/images/plugins/enable/add-attachment-action.jpg)
+
+## 定制选项
+
+| 可以改什么   | 效果                  |
+| ------- | ------------------- |
+| 按钮提示    | 修改鼠标移到按钮上时的提示和读屏名称。 |
+| 一次选几个文件 | 选择每次只能选一个文件，或允许多选。  |
+| 按钮图标    | 把加号换成其他图标，或显示文字。    |
+| 大小和样式   | 调整按钮大小、颜色、边框和圆角。    |
+
+## 需求示例
+
+```text
+请修改「添加附件（add-attachment-action）」：
+修改：文件选择设为【单选】，按钮提示改为【添加文件】。
+保留：原有上传和移除附件的行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/add-attachment-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationComposerAddAttachment`；类型：`ConversationComposerAddAttachmentProps`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+
+| 属性          | 类型          | 省略时 / 用途                     |
+| ----------- | ----------- | ---------------------------- |
+| `multiple?` | `boolean`   | 文件选择器是否允许多选；省略时使用现有附件组件的默认设置 |
+| `children?` | `ReactNode` | 默认加号图标                       |
+
+默认提示方向为 `bottom`，按钮为 `ghost`／`icon`。上传地址和上传方法继续使用项目已有的附件服务配置。
+
+### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationComposerAddAttachment>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+默认提示与无障碍文案只读取 `locales.composer.addAttachment`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

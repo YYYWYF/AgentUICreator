@@ -1,0 +1,85 @@
+# 语音输入（开发中）
+
+:::warning 开发中
+正在对接行内语音服务，以下仅示例，不代表最终效果。
+:::
+
+点击语音按钮开始听写，再次操作停止。识别出的文字进入输入框，用户确认或修改后再发送。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![语音输入（dictation-action）界面示例](/images/plugins/dictation-action.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable dictation-action`，点击下图中的 **「语音输入」**。
+
+![Creator 启用菜单：点击「语音输入」，插件 ID 为 dictation-action](/images/plugins/enable/dictation-action.jpg)
+
+## 使用前提
+
+默认使用受支持的浏览器语音识别，需要麦克风权限和可用设备。使用业务转写服务时让 Creator 接入项目的转写实现，见[语音接入](/development/attachments-dictation-feedback.md#语音)。
+
+## 定制选项
+
+| 可以改什么   | 效果                     |
+| ------- | ---------------------- |
+| 按钮提示    | 修改开始听写、停止听写按钮的提示和读屏名称。 |
+| 按钮图标或文字 | 替换麦克风、停止图标，或直接显示文字。    |
+| 按钮大小和外观 | 调整按钮大小、颜色、边框和圆角。       |
+
+开始和停止听写是两个按钮，需要分别调整。语音识别服务仍沿用已有配置。
+
+## 需求示例
+
+```text
+请修改「语音输入（dictation-action）」：
+修改：开始听写提示改为【点击说话】，停止听写提示改为【结束听写】，按钮大小设为【32px】。
+保留：现有语音识别服务和开始、停止行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/dictation-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+插件入口：`ConversationDictationActionPlugin`。没有独立根节点；整体外观参数同时传给开始和停止按钮，子按钮参数可覆盖它们。
+
+| 属性                  | 类型                                                         | 省略时 / 用途  |
+| ------------------- | ---------------------------------------------------------- | --------- |
+| `className?`        | `string`                                                   | 两个按钮的样式类  |
+| `style?`            | `CSSProperties`                                            | 两个按钮的内联样式 |
+| `disabled?`         | `boolean`                                                  | 两个按钮的禁用设置 |
+| `startButtonProps?` | `ComponentProps<typeof ConversationComposerDictate>`       | 开始听写按钮属性  |
+| `stopButtonProps?`  | `ComponentProps<typeof ConversationComposerStopDictation>` | 停止听写按钮属性  |
+| `children?`         | `ReactNode`                                                | 替换默认两个按钮  |
+
+两个子按钮保留原生样式、事件和 children 属性，根据现有听写能力和录音状态切换可见性。
+
+### 子按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationComposerDictate } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationComposerDictate>;
+```
+
+表中的成对 `…Props` 是项目组件的组合入口；类型示例对应其中一个公开动作组件，另一个沿用现有导入。
+
+语音按钮提示及无障碍名称统一在 `locales.composer` 修改：`voiceInput`、`startVoice`、`stopDictation`、`stopVoice`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

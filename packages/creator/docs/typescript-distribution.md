@@ -36,6 +36,10 @@ pnpm --filter @za38.03/agent-ui-creator typecheck
 
 打包参考文档由实际 Creator 发行目录下的 `dist/documentation` 提供，源码热重载也读取同一份资源，不在 `src` 维护第二套分发。离线文档可在外网通过 `pnpm docs:package` 生成并随源码交接。安装、启动、构建、打包、验包和发布不校验 documentation 的清单、hash、来源或版本；普通资源复制步骤在 `artifacts/creator-documentation/` 存在时原样复制，缺失时跳过。安装后的 Creator 不依赖仓库或文档站构建工具。
 
+新生成的 Creator 离线资料只包含公开文档正文、内部参考和文本索引，供文档工具离线检索和按章节读取。图片以官网 `website/docs/public/images/` 为唯一来源，随完整静态网站交付，不复制到 Creator 参考包；正文中的图片引用保持原文，文档工具不读取图片。构建与 prepack 复制已经生成的文本资料，不编译官网、不下载图片。已有含图片的旧快照需在外网重新生成，普通内网复制步骤不改写快照。
+
+`artifacts/creator-documentation/` 是 Git 中唯一收录的交接产物目录，内网流水线拉取仓库后即可由现有构建/prepack 自动复制，无需额外下载文档。文档修改后，在外网重新生成该文本快照并随源码一起提交；其他 `artifacts/` 内容、构建输出和验收产物继续忽略。
+
 按行编辑工具保留相邻行边界与原文件 LF/CRLF 风格；文件 hash 与已读范围检查保持不变。
 
 首轮插件目录、单插件与编辑上下文检查同时返回目标安装包声明的公开组件展示说明（若存在），区分组件部件、props 和样式作用对象。说明由 Plugins catalog 持有，Operator 按真实模块/组件读取并限制字段和长度；缺失时不借用其他模块或版本的说明，不提供源码接管授权或运行效果证明。

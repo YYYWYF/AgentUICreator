@@ -1,0 +1,71 @@
+# 回复重新生成（reload-action）
+
+点击回复下方的重新生成按钮后，会发起新的生成。项目提供分支切换时，可以比较和切换不同版本的回复。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![重新生成回复（reload-action）界面示例](/images/plugins/reload-action.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable reload-action`，点击下图中的 **「重新生成回复」**。
+
+![Creator 启用菜单：点击「重新生成回复」，插件 ID 为 reload-action](/images/plugins/enable/reload-action.jpg)
+
+## 定制选项
+
+| 可以改什么   | 效果               |
+| ------- | ---------------- |
+| 鼠标提示    | 修改鼠标移到重试按钮上时的提示。 |
+| 按钮图标或文字 | 替换重试图标，或直接显示文字。  |
+| 按钮大小和外观 | 调整大小、颜色、边框和圆角。   |
+| 暂时不可点击  | 需要时将按钮设为不可点击。    |
+
+## 需求示例
+
+```text
+请修改「重新生成回复（reload-action）」：
+修改：按钮显示文字【重新回答】，悬停提示改为【重新生成这次回答】。
+保留：原有重新生成行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/reload-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationCanonicalResponseReloadAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+
+| 属性          | 类型                                              | 省略时 / 用途                                      |
+| ----------- | ----------------------------------------------- | --------------------------------------------- |
+| `children?` | `ReactNode`                                     | 默认重新生成图标                                      |
+| `disabled?` | `boolean`                                       | 只有当前回答允许重试（`canReload`）且此属性未设为 `true` 时，按钮才可用 |
+| `onClick?`  | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行重试；`preventDefault()` 可阻止默认动作            |
+
+### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseReloadAction>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+默认提示文案只读取 `locales.common.refresh`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

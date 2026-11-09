@@ -1,0 +1,75 @@
+# 回复评价（feedback-actions）
+
+用户点击正向或负向评价后，按钮会显示当前选择。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![评价回复（feedback-actions）界面示例](/images/plugins/feedback-actions.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable feedback-actions`，点击下图中的 **「评价回复」**。
+
+![Creator 启用菜单：点击「评价回复」，插件 ID 为 feedback-actions](/images/plugins/enable/feedback-actions.jpg)
+
+## 使用前提
+
+默认仅保留当前会话中的评价选择。要保存到业务服务，让 Creator 修改项目的评价实现，详见[评价保存](/development/attachments-dictation-feedback.md#反馈)。
+
+## 定制选项
+
+| 可以改什么   | 效果                    |
+| ------- | --------------------- |
+| 评价提示    | 修改“有帮助”和“没有帮助”的鼠标提示。  |
+| 两个按钮的外观 | 分别调整点赞和点踩按钮的大小、颜色、边框。 |
+| 两个按钮的图标 | 分别替换点赞和点踩图标，或改为文字。    |
+
+## 需求示例
+
+```text
+请修改「评价回复（feedback-actions）」：
+修改：点赞提示改为【回答有帮助】，点踩提示改为【需要改进】，按钮大小设为【28px】。
+保留：现有评价提交行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/feedback-actions/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationCanonicalResponseFeedbackActions`。插件入口将文案变为可选并填入 `conversationFeedback` 默认值；独立使用展示组件时，两个文案必需。无独立展示根节点。
+
+| 插件入口属性                | 类型                                            | 省略时 / 用途                  |
+| --------------------- | --------------------------------------------- | ------------------------- |
+| `likeButtonProps?`    | `Partial<ConversationTooltipIconButtonProps>` | 点赞按钮的外观、提示、事件与 `children` |
+| `dislikeButtonProps?` | `Partial<ConversationTooltipIconButtonProps>` | 点踩按钮的外观、提示、事件与 `children` |
+
+没有根级 `className`／`style`。仅在当前会话支持反馈功能时显示按钮。
+
+### 子按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseFeedbackActions } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseFeedbackActions>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+默认评价文案只读取 `locales.conversationFeedback.helpful` / `notHelpful`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

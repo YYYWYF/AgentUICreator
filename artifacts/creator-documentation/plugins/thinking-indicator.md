@@ -1,0 +1,59 @@
+# 思考状态提示（thinking-indicator）
+
+对话中会出现带动画的小提示；已有思考详情、工具活动或正文可展示时，会按配置让位给实际内容。它提示正在等待，**不展示具体思考文字或任务完成百分比**。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![显示正在思考提示（thinking-indicator）界面示例](/images/plugins/thinking-indicator.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable thinking-indicator`，点击下图中的 **「显示正在思考提示」**。
+
+![Creator 启用菜单：点击「显示正在思考提示」，插件 ID 为 thinking-indicator](/images/plugins/enable/thinking-indicator.jpg)
+
+## 定制选项
+
+| 可以改什么 | 效果                      |
+| ----- | ----------------------- |
+| 等待提示  | 把“正在思考”等提示换成自己的文案。      |
+| 耗时文字  | 显示业务提供的耗时文字，例如“已用 5 秒”。 |
+| 提示外观  | 调整颜色、字号和间距。             |
+
+## 需求示例
+
+```text
+请修改「显示正在思考提示（thinking-indicator）」：
+修改：等待提示改为【正在为你整理答案】，字号设为【13px】，颜色改为【灰色】。
+保留：提示随真实回复状态出现和消失的行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/thinking-indicator/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationThinkingIndicator`；类型：`ConversationThinkingIndicatorProps`。继承 `div` 原生属性，排除 `children`。插件入口将可见性参数设为可选并默认 `false`。
+
+| 属性                 | 类型        | 省略时 / 用途                          |
+| ------------------ | --------- | --------------------------------- |
+| `label?`           | `string`  | 默认根据当前阶段读取 `thinkingIndicator` 文案 |
+| `elapsed?`         | `string`  | 可选耗时文字                            |
+| `reasoningVisible` | `boolean` | 推理区是否可见；单独使用组件时必需，由父组件根据当前消息传入    |
+| `timelineVisible`  | `boolean` | 时间线是否可见；单独使用组件时必需，由父组件根据当前消息传入    |
+
+组件仍根据消息内容和运行状态决定是否显示；传入 `label` 不会强制显示。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationThinkingIndicator } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationThinkingIndicator>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。

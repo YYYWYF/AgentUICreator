@@ -1,0 +1,90 @@
+# @ 提及搜索（mention-trigger）
+
+例如输入「@产品」后选择「产品说明文档」。选择结果会带上对象 ID，方便 Agent 按项目约定识别引用的是哪一份资料。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![输入 @ 搜索对象（mention-trigger）界面示例](/images/plugins/mention-trigger.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable mention-trigger`，点击下图中的 **「输入 @ 搜索对象」**。
+
+![Creator 启用菜单：点击「输入 @ 搜索对象」，插件 ID 为 mention-trigger](/images/plugins/enable/mention-trigger.jpg)
+
+## 定制选项
+
+| 可以改什么    | 效果                              |
+| -------- | ------------------------------- |
+| 搜索等待时间   | 设置停止输入后等待多少毫秒再搜索，避免每输入一个字就请求一次。 |
+| 加载和无结果提示 | 修改“正在加载”和“没有结果”等提示。             |
+| 失败和重试提示  | 修改搜索失败时的说明和重试文字。                |
+
+要更换可搜索的人或资料，见[自定义 @ 来源](/guide/adjustments/mention-and-commands.md)。
+
+## 需求示例
+
+```text
+请修改「输入 @ 搜索对象（mention-trigger）」：
+修改：搜索等待时间设为【300ms】，加载提示改为【正在查找资料】，无结果提示改为【未找到匹配资料】。
+保留：现有搜索来源和选中后的引用行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/mention-trigger/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`CanonicalConversationMentionTrigger`；类型：`ConversationMentionTriggerPluginProps`。无独立根外观属性。
+
+| 属性            | 类型                                                        | 省略时 / 用途                   |
+| ------------- | --------------------------------------------------------- | -------------------------- |
+| `source?`     | [`ConversationMentionSource`](#conversationmentionsource) | 从已有提及数据源搜索候选项；缺少时不显示提及候选界面 |
+| `debounceMs?` | `number`                                                  | 搜索防抖；省略时沿用底层触发器默认值         |
+
+项目改变身份、权限、语言或可用数据时更新 `source.cacheKey` 并通知。
+
+文案字段见统一 `conversationTriggers` 命名空间。
+
+### 类型说明
+
+#### ConversationMentionSource
+
+已有的提及搜索数据源；返回项的结构见 [`ConversationMentionItem`](#conversationmentionitem)。
+
+```ts
+interface ConversationMentionSource {
+  cacheKey: string | number;
+  subscribe?(listener: () => void): () => void;
+  search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>;
+}
+```
+
+`cacheKey` 标识当前缓存；`subscribe` 可通知缓存标识变化并返回取消订阅函数。`search` 接收查询文本和取消信号，异步返回候选项。
+
+#### ConversationMentionItem
+
+```ts
+interface ConversationMentionItem {
+  id: string; // 候选项标识
+  type: string; // 提及类型
+  label: string; // 展示文字
+  description?: string; // 补充说明
+}
+```
+
+### 类型查询
+
+React 原生属性及其他复杂类型可在编辑器中查询。通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { CanonicalConversationMentionTrigger } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof CanonicalConversationMentionTrigger>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

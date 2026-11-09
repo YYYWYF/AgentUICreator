@@ -17,12 +17,15 @@ export async function packageRepository(root, output, { websiteOnly = false } = 
     await (websiteOnly ? buildStaticWebsite(root) : generateDocumentation(root));
   }
   const website = path.join(root, sourceWebsite ? "website/doc_build" : "website");
-  const excluded = new Set([".git", ".github", ".venv", ".vscode", ".pnpm-store", ".pytest_cache", "node_modules", "tests", "doc_build", ".rspress", ".vite"]);
+  const excluded = new Set([".git", ".github", ".venv", ".vscode", ".pnpm-store", ".pytest_cache", "node_modules", "tests", "dist", "coverage", "test-results", "playwright-report", "doc_build", ".rspress", ".vite"]);
   const files = [];
   async function visit(relative = "") {
     for (const entry of (await readdir(path.join(root, relative), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
       const logical = path.posix.join(relative, entry.name);
       if (entry.isSymbolicLink() || logical === "website") continue;
+      // Only the current offline documentation belongs in the source handoff.
+      // Historical archives, extracted packages and acceptance output stay local.
+      if (relative === "artifacts" && entry.name !== "creator-documentation") continue;
       if (entry.isDirectory()) { if (!excluded.has(entry.name)) await visit(logical); }
       else if (entry.isFile() && entry.name !== "pnpm-lock.yaml" && !(entry.name.startsWith(".env") && entry.name.endsWith(".local")) && path.resolve(root, logical) !== output) files.push({ logical, absolute: path.join(root, logical) });
     }

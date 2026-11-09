@@ -1,0 +1,76 @@
+# Markdown 回复导出（export-markdown-action）
+
+在回复的更多菜单中选择导出，浏览器会下载文件。导出的是这次回复，不是全部聊天记录。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![导出回复（export-markdown-action）界面示例](/images/plugins/export-markdown-action.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable export-markdown-action`，点击下图中的 **「导出回复」**。
+
+![Creator 启用菜单：点击「导出回复」，插件 ID 为 export-markdown-action](/images/plugins/enable/export-markdown-action.jpg)
+
+## 定制选项
+
+| 可以改什么      | 效果                        |
+| ---------- | ------------------------- |
+| 菜单文字       | 修改“导出为 Markdown”菜单项显示的文字。 |
+| 独立按钮的提示和图标 | 不放在菜单里时，调整导出按钮的提示和内容。     |
+| 按钮或菜单项样式   | 调整大小、颜色、间距和圆角。            |
+
+当前没有单独修改下载文件名的属性。
+
+## 需求示例
+
+```text
+请修改「导出回复（export-markdown-action）」：
+修改：导出菜单文字改为【下载 Markdown】，菜单项圆角设为【8px】。
+保留：原有导出内容和下载行为。
+```
+
+## 属性
+
+打开项目中的 `plugins/export-markdown-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+组件：`ConversationCanonicalResponseExportMarkdownAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+
+| 属性               | 类型                                              | 省略时 / 用途                                   |
+| ---------------- | ----------------------------------------------- | ------------------------------------------ |
+| `presentation?`  | `"button" \| "menu"`                            | 选择按钮或菜单项结构；组件默认按钮，插件入口默认菜单                 |
+| `menuItemProps?` | `Partial<ConversationActionMoreMenuItemProps>`  | 菜单项的 `children`、`disabled`、`onSelect` 和外观等 |
+| `children?`      | `ReactNode`                                     | 按钮模式的自定义内容；菜单模式使用 `menuItemProps.children` |
+| `disabled?`      | `boolean`                                       | 按钮模式禁用；菜单模式使用 `menuItemProps.disabled`     |
+| `onClick?`       | `ConversationTooltipIconButtonProps['onClick']` | 按钮模式点击回调，`preventDefault()` 阻止导出           |
+
+当前插件入口使用菜单模式并放在更多操作菜单中。菜单模式使用 `menuItemProps.onSelect?: (event: Event) => void`，同样支持 `preventDefault()`。生成中或无正文时不能导出。
+
+### 按钮属性
+
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+
+| 属性         | 类型                                                                                           | 省略时 / 用途          |
+| ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null`        | 按钮样式；各操作按钮可能预设不同值 |
+| `size?`    | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
+| `side?`    | `'top' \| 'bottom' \| 'left' \| 'right'`                                                     | 默认 `bottom`，提示位置  |
+
+提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseExportMarkdownAction>;
+```
+
+组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+默认导出文案只读取 `locales.conversation.exportMarkdown`，更多菜单标题读取 `moreActions`。`presentation?: "button" | "menu"` 选择结构，插件入口默认菜单模式。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

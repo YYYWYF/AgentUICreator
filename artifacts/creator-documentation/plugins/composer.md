@@ -1,0 +1,94 @@
+# 消息输入（composer）
+
+用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。
+
+日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+
+![输入消息（composer）界面示例](/images/plugins/composer.png)
+
+## 启用与使用
+
+在 **Creator 输入框**输入 `/enable composer`，点击下图中的 **「输入消息」**。
+
+![Creator 启用菜单：点击「输入消息」，插件 ID 为 composer](/images/plugins/enable/composer.jpg)
+
+打开已有对话页面，在输入区填写内容并发送。调整输入区时，可要求 Creator 保留附件、引用和发送入口。
+
+## 定制选项
+
+| 可以改什么    | 效果                                   |
+| -------- | ------------------------------------ |
+| 输入提示     | 修改输入框为空时显示的提示文字。                     |
+| 输入框高度    | 设置初始行数、最小高度和内边距。                     |
+| 字数限制     | 限制一条草稿最多可以输入多少字符。                    |
+| 发送快捷键    | 选择回车发送、Ctrl/Cmd + Enter 发送，或关闭快捷键发送。 |
+| 自动进入输入状态 | 决定打开页面时是否自动把光标放到输入框。                 |
+| 拖入附件     | 允许或禁止把文件拖入输入区。                       |
+| 按钮和引用的位置 | 调整输入框上方内容、左右按钮和发送按钮的组合。              |
+
+## 需求示例
+
+```text
+请修改「输入消息（composer）」：
+修改：输入提示改为【请输入你的问题】，初始显示【3】行，发送快捷键改为【Ctrl/Cmd + Enter】。
+保留：附件、引用和发送按钮。
+```
+
+## 属性
+
+打开项目中的 `plugins/composer/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+
+`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+
+输入组件：`ConversationCanonicalComposer`；类型：`ConversationCanonicalComposerProps`。继承表单原生属性，排除 `children`。
+
+| 属性                 | 类型                                          | 省略时 / 用途                                       |
+| ------------------ | ------------------------------------------- | ---------------------------------------------- |
+| `rows?`            | `number`                                    | 默认输入框行数，最终默认 `1`；覆盖 `inputProps.rows`          |
+| `maxLength?`       | `number`                                    | 最大长度；覆盖 `inputProps.maxLength`                 |
+| `submitMode?`      | `'enter' \| 'ctrlEnter' \| 'none'`          | 优先于 `inputProps.submitMode`；最终未设置时底层默认 `enter` |
+| `autoFocus?`       | `boolean`                                   | 使用所在输入区的自动聚焦设置                                 |
+| `compact?`         | `boolean`                                   | 继承表单组件的紧凑模式开关，默认 `false`                       |
+| `inputProps?`      | `ConversationComposerInputProps`            | 默认输入框属性，见下表                                    |
+| `dropzoneProps?`   | `ConversationComposerDropzoneProps`         | 附件拖放区属性，类型来自现有 AttachmentDropzone              |
+| `triggers?`        | `ReactNode`                                 | 提及／命令触发器内容                                     |
+| `beforeInput?`     | `ReactNode`                                 | 输入框前的内容，例如引用预览                                 |
+| `input?`           | `ReactNode`                                 | 替换默认 textarea；自定义输入自行接收其属性                     |
+| `leadingActions?`  | `ReactNode`                                 | 前部操作区                                          |
+| `trailingActions?` | `ReactNode`                                 | 后部操作区                                          |
+| `submitAction?`    | `ReactNode`                                 | 提交操作区                                          |
+| `onSubmit?`        | `ConversationComposerRootProps['onSubmit']` | 表单提交回调；保留默认发送与等待回复检查                           |
+
+`inputProps` 继承自动增高 textarea 的原生属性，包括 `rows`、`maxLength`、`minRows`、`maxRows`、`onChange`、`onKeyDown`、`className`、`style`，另有：
+
+| 嵌套属性                                             | 类型                                 | 省略时 / 用途                                    |
+| ------------------------------------------------ | ---------------------------------- | ------------------------------------------- |
+| `inputProps.submitMode?`                         | `'enter' \| 'ctrlEnter' \| 'none'` | 默认 `enter`；`ctrlEnter` 在 macOS 上为 Cmd+Enter |
+| `inputProps.cancelOnEscape?`                     | `boolean`                          | 默认 `true`，Esc 取消编辑                          |
+| `inputProps.addAttachmentOnPaste?`               | `boolean`                          | 默认 `true`，粘贴文件时添加附件                         |
+| `inputProps.asChild?`                            | `boolean`                          | 把输入属性传给已有子元素                                |
+| `inputProps.render?`                             | `ReactElement`                     | 自定义输入容器                                     |
+| `inputProps.submitOnEnter?`                      | `boolean`                          | 旧接口，已弃用；与 `submitMode` 二选一                  |
+| `inputProps.unstable_focusOnRunStart?`           | `boolean`                          | 实验接口，默认 `true`；运行开始时按底层条件聚焦                 |
+| `inputProps.unstable_focusOnScrollToBottom?`     | `boolean`                          | 实验接口，默认 `true`；滚动到底部时聚焦                     |
+| `inputProps.unstable_focusOnThreadSwitched?`     | `boolean`                          | 实验接口，默认 `true`；切换会话时聚焦                      |
+| `inputProps.unstable_insertNewlineOnTouchEnter?` | `boolean`                          | 实验接口，默认 `false`；触控主设备的 Enter 插入换行           |
+
+`dropzoneProps` 继承 `div` 原生属性，另公开 `asChild?: boolean`、`render?: ReactElement`、`disabled?: boolean`。当前 Composer 默认通过 `asChild` 把拖放事件交给已有容器处理；`disabled` 与会话禁用状态叠加。它不是另一个上传服务配置入口。
+
+同一位置已经配置子插件时，优先显示该子插件；没有配置时，才使用相应的内容属性。`input` 已替换时，根上的 `rows` 等不会自动配置任意自定义组件。
+
+### 类型查询
+
+可在编辑器中通过公开组件取得完整属性类型：
+
+```ts
+import type { ComponentProps } from 'react';
+import type { ConversationCanonicalComposer } from '@za38.03/agent-ui-plugins';
+
+type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
+```
+
+具体属性和保留插槽的修改示例见[输入框定制](/development/component-customization.md)。
+
+默认输入提示、无障碍名称和排队文案统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
