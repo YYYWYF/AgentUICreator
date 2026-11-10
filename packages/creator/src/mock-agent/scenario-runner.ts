@@ -1,4 +1,4 @@
-import { toolMessageText } from "./tool-message.js";
+import { mockToolContinuationResults, toolMessageText } from "./tool-message.js";
 import { parseMockApprovalDecisions } from "./approval-review.js";
 import { normalizeTimingScale, waitForDelay } from "./timing.js";
 import {
@@ -593,12 +593,9 @@ function selectSteps(
   if (scenario.humanQuestionContinuation !== undefined) {
     const continuation = scenario.humanQuestionContinuation;
     if (input.resume?.length) throw new Error("Question answers must be sent as ToolMessages");
-    const lastUser = input.messages.reduce((last, message, index) => message.role === "user" ? index : last, -1);
-    const turn = input.messages.slice(lastUser + 1);
-    const call = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : [])
-      .reverse().find(tool => tool.function.name === continuation.toolName);
-    if (call) {
-      const result = turn.find(message => message.role === "tool" && message.toolCallId === call.id);
+    const results = mockToolContinuationResults(input, continuation.toolName);
+    if (results.length) {
+      const result = results.at(-1);
       if (result?.role !== "tool") return [];
       let payload: unknown;
       if (result.error === undefined) {
@@ -620,14 +617,9 @@ function selectSteps(
   }
   if (scenario.frontendContinuation !== undefined) {
     const continuation = scenario.frontendContinuation;
-    let lastUserIndex = -1;
-    input.messages.forEach((message, index) => { if (message.role === "user") lastUserIndex = index; });
-    const turn = input.messages.slice(lastUserIndex + 1);
-    const calls = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : []);
-    const matching = calls.filter(call => call.function.name === continuation.toolName);
-    const results = matching.map(call => turn.find(message => message.role === "tool" && message.toolCallId === call.id));
-    if (matching.length && results.some(result => result === undefined)) return [];
-    if (matching.length && results.every(result => result?.role === "tool")) {
+    const results = mockToolContinuationResults(input, continuation.toolName);
+    if (results.length && results.some(result => result === undefined)) return [];
+    if (results.length && results.every(result => result?.role === "tool")) {
       const failed = results.some(result => result?.role === "tool" && (result.error !== undefined || (() => {
         try { return JSON.parse(toolMessageText(result.content)).success === false; } catch { return false; }
       })()));

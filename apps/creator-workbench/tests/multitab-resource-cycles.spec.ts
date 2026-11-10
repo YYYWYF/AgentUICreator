@@ -104,7 +104,7 @@ test("twenty root lifetimes release pending history requests and Host tool subsc
     },
     other(request, response) {
       if (request.url === "/history/conversations") { response.setHeader("Content-Type", "application/json"); response.end('{"conversations":[{"id":"held-history","title":"Pending history"}]}'); }
-      else if (request.url === "/history/conversation/held-history") { started++; active++; peak = Math.max(peak, active); response.once("close", () => { closed++; active--; }); }
+      else if (request.url === "/history/conversations/held-history") { started++; active++; peak = Math.max(peak, active); response.once("close", () => { closed++; active--; }); }
       else { response.writeHead(404); response.end(); }
     },
     run(input, response) { startRun(response, input); finishRun(response, input, "No run expected"); },

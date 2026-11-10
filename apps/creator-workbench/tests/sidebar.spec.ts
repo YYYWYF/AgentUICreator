@@ -25,7 +25,35 @@ test.beforeAll(async () => {
       ]}><button>Main content</button></AgentUISidebarFrame>
     </AgentUIRoot></div></AgentUILocaleProvider>);
   `);
-  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], resolve: { dedupe: ["react", "react-dom"], alias: { "@za38.03/agent-ui-plugins/styles.css": path.resolve("../../packages/plugins/dist/styles.css"), "@za38.03/agent-ui-plugins": path.resolve("../../packages/plugins/dist/index.js") } }, server: { host: "127.0.0.1", port: 0 } });
+  await writeFile(path.join(fixture, "identity.html"), '<div id="root"></div><script type="module" src="/identity.tsx"></script>');
+  // Match template consumers: scoped base CSS, without a global Tailwind reset.
+  await writeFile(path.join(fixture, "identity.css"), '@import "@za38.03/agent-ui-plugins/styles-base.css"; html,body,#root { height:100%; margin:0; } .identity-shell { height:500px; width:900px; }');
+  await writeFile(path.join(fixture, "identity.tsx"), `
+    import { createRoot } from "react-dom/client";
+    import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
+    import { AgentIdentityPlugin } from "@za38.03/agent-ui-plugins/agent-identity";
+    import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
+    import "./identity.css";
+    const params = new URLSearchParams(location.search);
+    const root = { id:"root", type:"row", gap:0, sizes:["280px", "minmax(0, 1fr)"],
+      responsive:{type:"drawer",primaryIndex:1,drawerIndex:0,minPrimaryWidth:320}, children:[
+        {id:"side",type:"panel",child:{id:"column",type:"column",gap:0,sizes:["52px","minmax(0, 1fr)"],children:[
+          {id:"title",type:"slot",slotId:"title"},{id:"list",type:"slot",slotId:"list"}]}},
+        {id:"main",type:"slot",slotId:"main"}
+      ]};
+    createRoot(document.getElementById("root")).render(<AgentUILocaleProvider locale="en-US"><div className="identity-shell"><AgentUIRoot theme={params.get("theme") || "violet"}><main className="agent-ui-platform-shell">
+      <LayoutRenderer root={root} drawerLabels={{open:"Open",close:"Close",collapse:"Collapse",restore:"Restore"}}
+        renderSlot={slot => slot.slotId === "title" ? <AgentIdentityPlugin name={params.get("name") || undefined} /> : <div>{slot.slotId}</div>} />
+    </main></AgentUIRoot></div></AgentUILocaleProvider>);
+  `);
+  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], resolve: { dedupe: ["react", "react-dom"], alias: {
+    "@za38.03/agent-ui-plugins/styles-base.css": path.resolve("../../packages/plugins/dist/styles-base.css"),
+    "@za38.03/agent-ui-plugins/styles.css": path.resolve("../../packages/plugins/dist/styles.css"),
+    "@za38.03/agent-ui-plugins/agent-identity": path.resolve("../../packages/plugins/dist/agent-identity/index.js"),
+    "@za38.03/agent-ui-plugins/contracts": path.resolve("../../packages/plugins/dist/contracts.js"),
+    "@za38.03/agent-ui-plugins": path.resolve("../../packages/plugins/dist/index.js"),
+    "@za38.03/agent-ui-renderer": path.resolve("../../packages/renderer/dist/index.js"),
+  } }, server: { host: "127.0.0.1", port: 0 } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async () => { await server?.close(); if (fixture) await rm(fixture, { recursive: true, force: true }); });
@@ -67,4 +95,39 @@ test("narrow container traps focus, restores it after Escape and closes on navig
   await trigger.click();
   await page.getByRole("button", { name: "Navigate files" }).click();
   await expect(dialog).toHaveCount(0);
+});
+
+for (const theme of ['violet', 'light', 'dark']) {
+  test(`${theme} platform title fits its track, aligns with collapse and retains a themed background`, async ({ page }) => {
+    await page.goto(url + "identity.html?theme=" + theme);
+    const title = page.locator('.agent-identity-plugin');
+    const track = page.locator('[data-slot-id="title"]');
+    const toggle = page.getByRole('button', { name: 'Collapse', exact: true });
+    await expect(title).toBeVisible();
+    const titleBox = (await title.boundingBox())!;
+    const trackBox = (await track.boundingBox())!;
+    const logoBox = (await page.locator('.agent-identity-logo').boundingBox())!;
+    const toggleBox = (await toggle.boundingBox())!;
+    expect(titleBox.height).toBe(52);
+    expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(trackBox.y + trackBox.height);
+    expect(Math.abs(logoBox.y + logoBox.height / 2 - toggleBox.y - toggleBox.height / 2)).toBeLessThan(1);
+    const background = await title.evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(background).not.toBe('rgb(255, 255, 255)');
+    await toggle.click();
+    await expect(title).not.toBeVisible();
+    await page.getByRole('button', { name: 'Restore', exact: true }).click();
+    await expect(title).toBeVisible();
+  });
+}
+
+test("long platform title leaves space for the collapse button", async ({ page }) => {
+  await page.goto(url + "identity.html?name=" + encodeURIComponent('A very long assistant name that must leave the collapse control clear'));
+  const name = page.locator('.agent-identity-name');
+  const toggle = page.getByRole('button', { name: 'Collapse', exact: true });
+  await expect(name).toBeVisible();
+  const nameBox = (await name.boundingBox())!;
+  const toggleBox = (await toggle.boundingBox())!;
+  expect(nameBox.x + nameBox.width).toBeLessThanOrEqual(toggleBox.x);
+  expect(await name.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
 });

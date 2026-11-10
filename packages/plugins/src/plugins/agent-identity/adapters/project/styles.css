@@ -1,5 +1,9 @@
-.agent-identity-plugin { min-width: 0; padding: 8px calc(8px + var(--agent-ui-assistant-inset, 0px)); }
-.agent-identity-content { display: flex; align-items: center; min-height: 48px; min-width: 0; width: 100%; padding: 0; gap: 8px; cursor: default; }
+.agent-identity-plugin { box-sizing: border-box; display: flex; align-items: center; height: 100%; min-height: 0; min-width: 0; padding: 8px calc(8px + var(--agent-ui-assistant-inset, 0px)); }
+.agent-identity-content { display: flex; align-items: center; min-height: 36px; min-width: 0; width: 100%; padding: 0; gap: 8px; cursor: default; }
+/* The default platform title track is 52px, shared with the 32px drawer
+ * toggle at a 10px inset. Keep the brand centered inside that track. */
+.agent-identity-plugin:where(.agent-ui-platform-shell *) { background: var(--agent-brand-surface, var(--sidebar-accent)); }
+.agent-identity-plugin:where(.app-ui-layout-drawer[data-layout-drawer-mode] *) { padding-inline-end: 48px; }
 .agent-identity-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) { padding: 8px 16px; }
 .agent-identity-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .agent-identity-content { min-height: 36px; }
 .agent-identity-logo { display: flex; flex: 0 0 32px; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 8px; background: var(--agent-brand, var(--sidebar-primary)); color: var(--primary-foreground); }

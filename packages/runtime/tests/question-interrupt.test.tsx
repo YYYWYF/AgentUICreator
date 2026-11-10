@@ -80,7 +80,7 @@ describe("human frontend tools through canonical runtime", () => {
         if (kind === "native") {
           expect(inputs[1]!.resume).toEqual([{ interruptId: "approval-resume-1", status: "resolved", payload: answer }]);
           expect(inputs[1]!.forwardedProps.command).toBeUndefined();
-          expect(inputs[1]!.messages.filter(message => message.role === "tool")).toEqual([]);
+          expect(inputs[1]!.messages).toEqual([]);
         } else {
           expect(inputs[1]!.resume).toBeUndefined();
           expect(inputs[1]!.forwardedProps.command).toEqual(answer);
@@ -102,7 +102,7 @@ describe("human frontend tools through canonical runtime", () => {
       expect(inputs[1]!.threadId).toBe(inputs[0]!.threadId);
       expect(inputs[1]!.runId).not.toBe(inputs[0]!.runId);
       expect(inputs[1]!.resume?.length ?? 0).toBe(0);
-      expect(inputs[1]!.messages.filter(message => message.role === "user")).toHaveLength(1);
+      expect(inputs[1]!.messages.filter(message => message.role === "user" || message.role === "assistant")).toEqual([]);
       expect(inputs[1]!.messages.filter(message => message.role === "tool")).toMatchObject([
         { toolCallId: callId, content: JSON.stringify(answer) },
       ]);

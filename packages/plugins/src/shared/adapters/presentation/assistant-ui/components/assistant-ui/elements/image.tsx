@@ -213,7 +213,7 @@ function ImagePreview({
     <div
       data-agent-ui-owned=''
       data-slot='image-preview'
-      className={cn('relative', fixedRatio ? ratioClassName : 'min-h-32', containerClassName)}
+      className={cn('relative', fixedRatio ? ratioClassName : !loaded && 'min-h-32', containerClassName)}
     >
       {!loaded && !error && (
         <div

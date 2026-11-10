@@ -8,7 +8,7 @@ describe("multipart tool answer continuation", () => {
   it.each([
     { scenario: askUserQuestionScenario, name: "ask_user_question", answer: { answers: { layout: ["dashboard"] } }, expected: "好的，我会按数据总览布局继续设计。" },
     { scenario: frontendToolFillFormScenario, name: "collect_user_details", answer: { values: { firstName: "Bob", lastName: "Li", email: "bob@example.com", projectIdea: "Tasks" } }, expected: "已收到 Bob 的资料" },
-  ])("continues $name from text parts without interpreting image data as JSON", async ({ scenario, name, answer, expected }) => {
+  ].flatMap(test => [false, true].map(resultOnly => ({ ...test, resultOnly }))))("continues $name from text parts (resultOnly=$resultOnly)", async ({ scenario, name, answer, expected, resultOnly }) => {
     const text = JSON.stringify(answer), split = Math.floor(text.length / 2);
     const input: RunAgentInput = {
       threadId: "multipart", runId: "continuation", state: {}, context: [], tools: [], forwardedProps: {},
@@ -22,6 +22,7 @@ describe("multipart tool answer continuation", () => {
         ] },
       ],
     };
+    if (resultOnly) input.messages = input.messages.filter(message => message.role === "tool");
     const events = [];
     for await (const event of runMockScenario(input, scenario, { timingScale: 0 })) events.push(event);
     expect(events.filter(event => event.type === "TEXT_MESSAGE_CONTENT").map(event => event.delta).join("")).toContain(expected);

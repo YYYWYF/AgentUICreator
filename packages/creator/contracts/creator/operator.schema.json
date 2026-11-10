@@ -2395,6 +2395,9 @@
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         },
+        "runtimeHash": {
+          "$ref": "#/$defs/hash"
+        },
         "layout": {
           "$ref": "#/$defs/opaqueHostObject"
         },

@@ -103,15 +103,15 @@ export function createMockConversationApiHandler({
       return true;
     }
     const isList = url.pathname === conversationsEndpoint;
-    // Keep the plural detail alias for Hosts generated with older templates.
-    const legacyDetailPrefix = `${conversationsEndpoint}/`;
-    const isLegacyDetail = url.pathname.startsWith(legacyDetailPrefix);
-    const detailPrefix = isLegacyDetail ? legacyDetailPrefix : `${baseEndpoint}/conversation/`;
+    // Plural detail routes support reads and deletion; retain singular reads for older Hosts.
+    const pluralDetailPrefix = `${conversationsEndpoint}/`;
+    const isPluralDetail = url.pathname.startsWith(pluralDetailPrefix);
+    const detailPrefix = isPluralDetail ? pluralDetailPrefix : `${baseEndpoint}/conversation/`;
     const isDetail = url.pathname.startsWith(detailPrefix);
     if (!isList && !isDetail) return false;
 
-    if (request.method !== "GET" && !(isLegacyDetail && request.method === "DELETE")) {
-      response.setHeader("Allow", isLegacyDetail ? "GET, DELETE" : "GET");
+    if (request.method !== "GET" && !(isPluralDetail && request.method === "DELETE")) {
+      response.setHeader("Allow", isPluralDetail ? "GET, DELETE" : "GET");
       sendJson(response, 405, { error: "Method not allowed for this conversation endpoint." });
       return true;
     }

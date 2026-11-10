@@ -18,6 +18,8 @@ export function Chat() {
 }
 ```
 
+每次发送时，AG-UI 请求的 `messages` 默认只包含本次用户消息，不附带历史用户和 AI 消息。前端继续展示完整历史，后端按 `threadId` 维护会话上下文。前端工具续传只带本次工具结果；中断恢复通过 `resume` 传递，没有新消息时 `messages` 为空。
+
 参数可传字符串、用户资料或回调，完整字段见[Agent 属性表](/development/react-host-api#agent-属性表)。用户资料的传法例如：
 
 ```tsx

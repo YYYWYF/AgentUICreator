@@ -19,7 +19,7 @@ export interface HttpConversationDataSourceOptions {
 // current user credentials here when connecting a business history service.
 const conversationRequests = {
   listUrl: (base: string) => `${base}/conversations`,
-  detailUrl: (base: string, id: string) => `${base}/conversation/${encodeURIComponent(id)}`,
+  detailUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
   deleteUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
   renameUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
   archiveUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}/archive`,

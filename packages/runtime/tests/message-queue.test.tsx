@@ -66,7 +66,8 @@ describe("native AG-UI follow-up Queue", () => {
       await act(async () => f.runtime.thread.composer.removeQueueItem(f.queue[0]!.id));
       await act(async () => f.runs[0]!.finish());
       await until(() => f.runs.length === 2);
-      expect(f.runs[1]!.input.messages.filter(x => x.role === "user").map(x => x.content)).toEqual(["A", "C"]);
+      expect(f.runs[1]!.input.messages).toMatchObject([{ role: "user", content: "C" }]);
+      expect(f.runs[1]!.input.messages).toHaveLength(1);
       expect(f.runs[1]!.input).toMatchObject({ threadId: "A", runId: expect.any(String) });
       expect(f.queue).toEqual([]);
     } finally { await f.dispose(); }
@@ -111,6 +112,7 @@ describe("native AG-UI follow-up Queue", () => {
       expect(f.runtime.thread.getState().messages.at(-1)?.status?.type).toBe("requires-action");
       const resumed = f.bridge.resumeInterrupts([{ interruptId: "approval", status: "resolved" }]);
       await until(() => f.runs.length === 2);
+      expect(f.runs[1]!.input.messages).toEqual([]);
       expect(f.queue).toHaveLength(1);
       await act(async () => f.runs[1]!.finish());
       await act(async () => { await resumed; });
@@ -141,6 +143,8 @@ describe("native AG-UI follow-up Queue", () => {
       expect(f.runs).toHaveLength(1); expect(f.queue).toHaveLength(1);
       await act(async () => resolveTool({ content: "confirmed" }));
       await until(() => f.runs.length === 2);
+      expect(f.runs[1]!.input.messages).toMatchObject([{ role: "tool", content: "confirmed" }]);
+      expect(f.runs[1]!.input.messages).toHaveLength(1);
       expect(f.queue).toHaveLength(1);
       await act(async () => f.runs[1]!.finish());
       await until(() => f.runs.length === 3);

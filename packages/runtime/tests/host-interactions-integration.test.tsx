@@ -81,7 +81,8 @@ describe("public Host interactions through the canonical Agent runtime", () => {
         await act(async () => { next = host.sendMessage("A fresh request after cancelling"); });
         await until(() => requests.length === 2 && !native.thread.getState().isRunning);
         await next;
-        expect(requests[1]!.messages.filter((message: any) => message.role === "user")).toHaveLength(2);
+        expect(requests[1]!.messages).toMatchObject([{ role: "user", content: "A fresh request after cancelling" }]);
+        expect(requests[1]!.messages).toHaveLength(1);
         expect(errors).toEqual([]);
         return;
       }
@@ -92,7 +93,7 @@ describe("public Host interactions through the canonical Agent runtime", () => {
       expect(opened).toHaveBeenCalledExactlyOnceWith("T-1", "open-1");
       expect(requests[0]!.tools).toEqual(expect.arrayContaining([expect.objectContaining({ name: "open_ticket" })]));
       expect(requests[1]!.threadId).toBe(requests[0]!.threadId);
-      expect(requests[1]!.messages.filter((message: any) => message.role === "user")).toHaveLength(1);
+      expect(requests[1]!.messages.filter((message: any) => message.role === "user" || message.role === "assistant")).toEqual([]);
       expect(requests[1]!.messages.filter((message: any) => message.role === "tool")).toMatchObject([{ toolCallId: "open-1", content: '{"opened":"T-1"}' }]);
       expect(requests[1]!.resume).toBeUndefined();
     } finally { await act(async () => tree.unmount()); }

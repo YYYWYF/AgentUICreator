@@ -27,7 +27,7 @@ for (const failBackground of [false, true]) test(`background conversation stays 
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
       if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: [{ id: "A", title: "工单 A", status: "regular" }, { id: "B", title: "工单 B", status: "regular" }] }));
-      else if (request.url?.startsWith("/history/conversation/")) { const id = request.url.split("/").at(-1); response.end(JSON.stringify({ id, title: `工单 ${id}`, state: { values: { messages: [] } } })); }
+      else if (request.url?.startsWith("/history/conversations/")) { const id = request.url.split("/").at(-1); response.end(JSON.stringify({ id, title: `工单 ${id}`, state: { values: { messages: [] } } })); }
       else { response.writeHead(404); response.end(); }
     },
     run(input, response) {

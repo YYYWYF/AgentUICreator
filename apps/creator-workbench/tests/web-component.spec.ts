@@ -169,7 +169,7 @@ test("a compiled project producer with its history service loads and switches pe
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     let agentRuns = 0; page.on("request", request => { if (request.method() === "POST" && new URL(request.url()).pathname === "/agent") agentRuns++; });
     const requests: string[] = []; page.on("request", request => requests.push(new URL(request.url()).pathname));
-    let historyLoaded = false; page.on("response", response => { if (new URL(response.url()).pathname === "/api/conversation/mock-history-tool") historyLoaded = response.ok(); });
+    let historyLoaded = false; page.on("response", response => { if (new URL(response.url()).pathname === "/api/conversations/mock-history-tool") historyLoaded = response.ok(); });
     await page.addInitScript(() => {
       (window as any).producerErrors = [];
       document.addEventListener("agent-error", event => (window as any).producerErrors.push((event as CustomEvent).detail.error?.message));

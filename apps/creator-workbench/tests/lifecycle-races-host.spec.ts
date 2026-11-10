@@ -88,7 +88,7 @@ test("background replies and drafts stay isolated and stopping the foreground le
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
       if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: ["a", "b"].map(id => ({ id: `thread-${id}`, title: `History ${id}` })) }));
-      else if (request.url?.startsWith("/history/conversation/thread-")) {
+      else if (request.url?.startsWith("/history/conversations/thread-")) {
         const id = request.url.slice(-1); response.end(JSON.stringify({ id: `thread-${id}`, title: `History ${id}`, state: { values: { messages: [{ id: `saved-${id}`, type: "human", content: `Saved message ${id}` }] } } }));
       } else { response.writeHead(404); response.end(); }
     },

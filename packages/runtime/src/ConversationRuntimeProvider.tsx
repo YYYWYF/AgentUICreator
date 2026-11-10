@@ -10,6 +10,7 @@ import { fetchWithSseLineEndings } from "./compatibility/sse-line-endings.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import { useFrontendToolSource } from "./tools/use-frontend-tool-source.js";
 import { installCancelledToolContinuationGuard } from "./compatibility/cancelled-tool-continuation.js";
+import { installConversationOutgoingMessages } from "./compatibility/conversation-outgoing-messages.js";
 import {
   AuiConfig,
   AssistantRuntimeProvider,
@@ -192,7 +193,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
       subscribe: listener => threadBinding.subscribe(listener),
       createNewThread: () => threadBinding.createNewThread(),
     }), [ownedId, threadBinding]);
-    const toolContinuation = useMemo(() => installCancelledToolContinuationGuard(agent), [agent]);
+    const toolContinuation = useMemo(() => {
+      const guard = installCancelledToolContinuationGuard(agent);
+      installConversationOutgoingMessages(agent);
+      return guard;
+    }, [agent]);
     // Composer cancellation can stop a frontend tool after the wire run has
     // already finished, so AG-UI's onCancel will not fire. Mark this turn before
     // upstream publishes the tool cancellation receipt and attempts continuation.
@@ -284,6 +289,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     }, [getRunContext]);
     const runtime = useAgUiRuntime({
       agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: enableMessageQueue,
+      resumeTranscript: "appended",
       ...(readRunContext === undefined ? {} : { getRunContext: readRunContext }),
       adapters: {
         history,

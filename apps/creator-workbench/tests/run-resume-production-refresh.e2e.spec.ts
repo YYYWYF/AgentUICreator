@@ -20,7 +20,7 @@ test("formal generated binding reopens its initial thread and resumes after prod
     const route = new URL(request.url!, "http://backend.test").pathname;
     const json = (value: unknown) => { response.setHeader("Content-Type", "application/json"); response.end(JSON.stringify(value)); };
     if (route === "/conversations") { json({ conversations: [{ id: threadId, title: "Durable task" }] }); return; }
-    if (route === `/conversation/${threadId}`) {
+    if (route === `/conversations/${threadId}`) {
       historyLoads++;
       json({ id: threadId, title: "Durable task", state: { values: { messages: runs ? [
         { id: "user-1", type: "human", content: "Complete durable task" },

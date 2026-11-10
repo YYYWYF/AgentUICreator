@@ -66,7 +66,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       response.setHeader("Content-Type", "application/json");
       const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(Buffer.from(chunk)); const body = Buffer.concat(chunks).toString(); calls.push({ url, method: request.method!, body });
       if (request.method === "GET" && url === "/history/conversations") { if (failList) { failList = false; response.writeHead(503); response.end('{}'); } else response.end(JSON.stringify({ conversations: records })); return true; }
-      if (request.method === "GET" && url.startsWith("/history/conversation/")) {
+      if (request.method === "GET" && url.startsWith("/history/conversations/")) {
         if (failDetail) { failDetail = false; response.writeHead(503); response.end('{}'); return true; }
         const id = url.split("/").at(-1)!; response.end(JSON.stringify({ id, title: records.find(item => item.id === id)?.title ?? id, state: { values: { messages: [{ id: `${id}-user`, type: "human", content: `Saved question ${id}` }, { id: `${id}-answer`, type: "ai", content: `Saved answer ${id}` }] } } })); return true;
       }

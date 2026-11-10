@@ -1,4 +1,4 @@
-import { toolMessageText } from "../tool-message.js";
+import { mockToolContinuationResults, toolMessageText } from "../tool-message.js";
 import { defineScenario } from "../scenario.js";
 export const frontendToolFillFormScenario = defineScenario({
   // Retain the scenario ID so existing Mock selections remain valid.
@@ -15,12 +15,9 @@ export const frontendToolFillFormScenario = defineScenario({
   ],
   async prepareRun(input) {
     if (input.resume?.length) throw new Error("Form answers must be sent as ToolMessages");
-    const lastUser = input.messages.reduce((last, message, index) => message.role === "user" ? index : last, -1);
-    const turn = input.messages.slice(lastUser + 1);
-    const call = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : [])
-      .reverse().find(tool => tool.function.name === "collect_user_details");
-    if (call) {
-      const result = turn.find(message => message.role === "tool" && message.toolCallId === call.id);
+    const results = mockToolContinuationResults(input, "collect_user_details");
+    if (results.length) {
+      const result = results.at(-1);
       if (result?.role !== "tool") return { steps: [] };
       if (result.error !== undefined) return { steps: [{ type: "message", text: "未收到有效的资料提交，资料收集已结束。" }] };
       const payload: unknown = JSON.parse(toolMessageText(result.content));

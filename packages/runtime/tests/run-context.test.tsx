@@ -105,7 +105,8 @@ describe("public Host run context", () => {
       expect(first).toHaveBeenCalledOnce(); expect(second).toHaveBeenCalledOnce();
       expect(f.requests.map(input => input.context)).toEqual([[{ description: "page", value: "one" }], [{ description: "page", value: "two" }], []]);
       expect(new Set(f.requests.map(input => input.threadId)).size).toBe(1);
-      expect(f.requests[2]!.messages.filter(message => message.role === "user")).toHaveLength(3);
+      expect(f.requests.map(input => input.messages.map(message => message.content))).toEqual([["First"], ["Second"], ["Third"]]);
+      expect(f.native.thread.getState().messages.filter(message => message.role === "user")).toHaveLength(3);
     } finally { await f.close(); }
   });
 

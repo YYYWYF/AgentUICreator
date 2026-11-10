@@ -49,7 +49,7 @@ for (const submitted of [false, true]) test(`persisted forms retain their receip
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
       if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: [{ id: "saved-form", title: "已保存的表单" }] }));
-      else if (request.url === "/history/conversation/saved-form") response.end(JSON.stringify({ id: "saved-form", title: "已保存的表单", state: { values: { messages: [
+      else if (request.url === "/history/conversations/saved-form") response.end(JSON.stringify({ id: "saved-form", title: "已保存的表单", state: { values: { messages: [
         { id: "saved-user", type: "human", content: "Saved form request" },
         { id: "saved-call", type: "ai", content: "", tool_calls: [{ id: "saved-form-tool", name: "collect_user_details", args: {}, type: "tool_call" }] },
         ...(submitted ? [{ id: "saved-tool-result", type: "tool", tool_call_id: "saved-form-tool", content: JSON.stringify({ values }) }] : []),
@@ -127,7 +127,7 @@ test("failed history deletion retains the selected thread and a successful retry
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
       if (request.url === "/history/conversations" && request.method === "GET") response.end(JSON.stringify({ conversations: removed ? [] : [{ id: "deletable", title: "删除测试工单" }] }));
-      else if (request.url === "/history/conversation/deletable") response.end(JSON.stringify({ id: "deletable", title: "删除测试工单", state: { values: { messages: [{ id: "saved-delete-user", type: "human", content: "Keep history on failed delete" }] } } }));
+      else if (request.url === "/history/conversations/deletable" && request.method === "GET") response.end(JSON.stringify({ id: "deletable", title: "删除测试工单", state: { values: { messages: [{ id: "saved-delete-user", type: "human", content: "Keep history on failed delete" }] } } }));
       else if (request.url === "/history/conversations/deletable" && request.method === "DELETE") { deletes++; if (deletes === 1) { response.writeHead(503); response.end('{"error":"fixture deletion outage"}'); } else { removed = true; response.writeHead(204); response.end(); } }
       else { response.writeHead(404); response.end(); }
     },

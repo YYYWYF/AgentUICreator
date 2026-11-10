@@ -111,6 +111,13 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/image.tsx") {
+    // Keep the loading placeholder, but let loaded auto-ratio thumbnails use
+    // their actual height. Fixed-ratio previews retain their requested ratio.
+    installed = replaceExactlyOnce(installed,
+      'fixedRatio ? ratioClassName : "min-h-32"',
+      'fixedRatio ? ratioClassName : !loaded && "min-h-32"', localPath);
+  }
   if (localPath === "components/ui/tooltip.tsx") {
     installed = replaceExactlyOnce(installed,
       '      <TooltipPrimitive.Positioner\n',

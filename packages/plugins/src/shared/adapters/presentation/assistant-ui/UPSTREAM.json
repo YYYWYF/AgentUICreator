@@ -53,7 +53,7 @@
     {
       "localPath": "components/assistant-ui/elements/image.tsx",
       "upstreamInstalledSha256": "2e0501673bb976ae7d76de3eecccdaa3f037f84e71bd929c5084ba65ebaff457",
-      "installedSha256": "1e194441ac368f5f9ed0247bc64abfeed3bcc1f7efff655a5280464065df4d5f"
+      "installedSha256": "26b679164b56b3ad9472a6c250d1769f0d22a3ad0e3e9c6a2c298ff8dcd30da2"
     },
     {
       "localPath": "components/assistant-ui/elements/job-progress.tsx",

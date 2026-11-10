@@ -82,7 +82,7 @@ function createPersistenceFixture() {
   };
 }
 
-type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; input: { threadId: string; runId: string; resume?: unknown[] } };
+type Stream = { emit(event: Record<string, unknown>): void; finish(outcome?: Record<string, unknown>): void; input: { threadId: string; runId: string; resume?: unknown[]; messages: { role: string; content?: unknown }[] } };
 async function fixture(failFirstBHistory = false, providedBinding?: ConversationThreadBinding) {
   const agents = new Map<string, HttpAgent>();
   const streams = new Map<string, Stream>();
@@ -168,6 +168,16 @@ async function fixture(failFirstBHistory = false, providedBinding?: Conversation
 }
 
 describe("upstream-owned concurrent AG-UI threads", () => {
+  it("sends only the current message after loading user and assistant history", async () => {
+    const persistence = createPersistenceFixture();
+    const f = await fixture(false, persistence.binding);
+    try {
+      await f.start("A");
+      expect(f.streams.get("A")!.input.messages).toMatchObject([{ role: "user", content: "AAA" }]);
+      expect(f.streams.get("A")!.input.messages).toHaveLength(1);
+      expect(f.text("A")).toContain("request A|complete A|AAA");
+    } finally { await f.dispose(); }
+  });
   it("deletes non-current B while preserving A's running session and subsequent tokens", async () => {
     const persistence = createPersistenceFixture();
     persistence.persistThread("B");
