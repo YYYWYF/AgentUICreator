@@ -33,16 +33,10 @@ Tailwind coverage, local runtime aliases, overlay DOM containment and browser
 visual acceptance. Passing one does not imply the others passed. Generative UI
 vocabulary serialization is maintained by its existing separate source owner.
 
-Markdown compatibility optimizations live once under `src/shared/markdown/`.
-They keep the installed 0.14.6 primitive and its native contexts. The fixed GFM
-pipeline reuses read-only mdast (tested with frozen trees); mutable remark
-pipelines retain isolated trees. Default renderers also reuse unchanged resolved
-HAST blocks, with render-local snapshots for interrupted React work. Custom
-renderers bypass block reuse. Full-document parsing still resolves references,
-footnotes and fences before presentation caching. The legacy pre wrapper strips
-node metadata without node-based memoization, so current code children survive
-fence transitions. These are targeted compatibility adaptations, not a package
-upgrade, incremental Markdown parser or source baseline adoption.
+Markdown uses the installed `@assistant-ui/react-markdown` 0.14.24 primitive
+and its public `memoizeMarkdownComponents` export. Deferred rendering and
+code-block updates use the upstream implementation. Product integration keeps
+GFM, styling, locale labels and application renderer props.
 
 Product style ownership is per DOM element. Existing `aui-*` classes and
 `agent-ui-*` slots identify presentation; generic upstream slots also occur in

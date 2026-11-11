@@ -8,14 +8,10 @@ import {
   type CodeHeaderProps,
   MarkdownTextPrimitive,
   type MarkdownTextPrimitiveProps,
+  memoizeMarkdownComponents,
   useIsMarkdownCodeBlock,
 } from '@assistant-ui/react-markdown';
 import remarkGfm from 'remark-gfm';
-import { createMarkdownParseCache } from '../../../../../../shared/markdown/markdown-parse-cache.js';
-import {
-  createMarkdownBlockCache,
-  memoizeMarkdownComponents,
-} from '../../../../../../shared/markdown/markdown-block-cache.js';
 import { type FC, memo, useMemo, useRef } from 'react';
 import type { TextMessagePartProps } from '@assistant-ui/react';
 import { CheckIcon, CopyIcon } from 'lucide-react';
@@ -44,25 +40,19 @@ const useShallowStable = <T extends Record<string, unknown> | undefined>(value: 
 };
 
 const MarkdownTextImpl: FC<MarkdownTextProps> = ({ components, componentsByLanguage }) => {
-  const remarkPlugins = useMemo(() => [remarkGfm, createMarkdownParseCache({ readOnly: true })], []);
-  const blockCache = useMemo(createMarkdownBlockCache, []);
   const stableComponents = useShallowStable(components);
   const stableComponentsByLanguage = useShallowStable(componentsByLanguage);
-  const cacheBlocks = !stableComponents && !stableComponentsByLanguage;
-  const rehypePlugins = useMemo(() => (cacheBlocks ? [blockCache.rehype] : []), [blockCache, cacheBlocks]);
   const markdownComponents = useMemo(() => {
-    blockCache.reset();
-    if (!stableComponents) return cacheBlocks ? { ...defaultComponents, ...blockCache.components } : defaultComponents;
+    if (!stableComponents) return defaultComponents;
     return {
       ...defaultComponents,
       ...memoizeMarkdownComponents(stableComponents),
     };
-  }, [stableComponents, stableComponentsByLanguage, blockCache, cacheBlocks]);
+  }, [stableComponents]);
 
   return (
     <MarkdownTextPrimitive
-      remarkPlugins={remarkPlugins}
-      rehypePlugins={rehypePlugins}
+      remarkPlugins={[remarkGfm]}
       className='aui-md'
       components={markdownComponents}
       componentsByLanguage={stableComponentsByLanguage}

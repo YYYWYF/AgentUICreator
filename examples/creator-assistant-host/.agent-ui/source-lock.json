@@ -61,10 +61,34 @@
     "foundation/shell-assistant": {
       "files": {
         "application/shell/assistant-shell.css": {
-          "sha256": "8b07e6932e0ea58e750ec7c210d5d84d0662872b558482a4e1916a8eb5b7140c"
+          "sha256": "96778299f19b79f2fa36df7a1f507777bdf8c06b8ba29f8f54e9c068855f862c"
         },
         "application/shell/AssistantShell.tsx": {
-          "sha256": "f74a3539b586ea5285331f3788874026071eb9b4f8a739f6da80c6a28267c83b"
+          "sha256": "cead5465361882364347553e947718bac193d078f11511181587efd1f22c153a"
+        },
+        "application/shell/AssistantRobot.tsx": {
+          "sha256": "65feb03a8d46697110641d1b4e097fd300ff6d62d9398bed26a4f79469044c64"
+        },
+        "application/shell/assistant-robot-assets.d.ts": {
+          "sha256": "1b9ba9df2f840442a23fc441a3cb9aaf7ecbbe1af90a30df7379dfe0be66da6b"
+        },
+        "application/shell/assistant-robot-frames.ts": {
+          "sha256": "bcb0b093cac5835b2342c38e36fa5ac00ff3d90b60d7aec0d2a9acf4c182285d"
+        },
+        "application/shell/assistant-robot-still.png": {
+          "sha256": "b60442577a7cdf061f760dcf3b3672c07bc902634a721bc2c712cd415b652cc5"
+        },
+        "application/shell/assistant-robot-frames-0.webp": {
+          "sha256": "f4ae022d3bcb94ccfba5b1204c5910e76ad70d1c9f45e88cc30641e9c43184ef"
+        },
+        "application/shell/assistant-robot-frames-1.webp": {
+          "sha256": "a02b5942aab03f8c73a3079e0468674422cc1ee60cebe115d783ffac8330e958"
+        },
+        "application/shell/assistant-robot-frames-2.webp": {
+          "sha256": "7eb86810a138a29236001002d9cc9604d79a2b9eece5fdf3ff68f2b2e548b929"
+        },
+        "application/shell/assistant-robot-motion.ts": {
+          "sha256": "7fa29a8ef8b5c86df1ebced1dd2524f8915cd37a156a9c9f1d3586ad3f38f606"
         }
       }
     }

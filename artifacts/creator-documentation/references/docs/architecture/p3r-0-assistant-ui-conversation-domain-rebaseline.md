@@ -36,6 +36,8 @@ Thread 绑定在一次挂载期间保持稳定。Host 提供历史数据源，Ru
 
 历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流，也不让 Plugin 接管会话持久化或分支仓库。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。
 
+AG-UI 请求的 `messages` 默认只发送本次用户消息，不附带历史用户或 assistant 消息；完整历史仍由本地 Conversation Runtime 展示，后端按 `threadId` 维护上下文。前端工具续传只发送本次工具结果；中断恢复使用原生 `resume`，`messages` 只携带中断后追加的消息，没有新消息时为空。
+
 ## Frontend Tool 与 HITL
 
 应用决定允许向 Agent 暴露的前端工具，Plugin 提供 activation-scoped Service，Tool UI 显示参数、状态与结果。执行、取消和标准 continuation 使用原生工具链路，详见 [Frontend Tool 生命周期](frontend-tool-lifecycle.md)。

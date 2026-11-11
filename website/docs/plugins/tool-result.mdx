@@ -69,7 +69,7 @@ title: "工具结果（tool-result）"
 
 **Agent 服务接入：**先发送[通用工具事件](./ag-ui-data#通用工具事件)中的 `TOOL_CALL_START`、`TOOL_CALL_ARGS`、`TOOL_CALL_END`，建立 `toolCallId: "call-1"` 的调用，再发送上面的 `TOOL_CALL_RESULT`。内容数组及其 `source` 格式见[启用与使用](#启用与使用)。仅发送图片 URL 或插件 ID 不会创建多模态工具结果。
 
-本插件与 `tool-fallback` 使用同一语义位置，有同名专用 Tool UI 时专用展示优先。审批区默认可用，同时支持[旧版 CUSTOM `on_interrupt`](./tool-fallback#旧版格式custom-on_interrupt) 和[新版 `RUN_FINISHED` interrupt](./tool-fallback#新版格式run_finished-interrupt)：两者读取相同的 `action_requests`、`review_configs`，显示「允许」「拒绝」按钮。审批要求由事件表达，不放在媒体内容中。
+本插件与 `tool-fallback` 使用同一语义位置，有同名专用 Tool UI 时专用展示优先。审批区默认可用，同时支持[旧版 CUSTOM `ON_INTERRUPT`](./tool-fallback#旧版格式custom-on_interrupt) 和[新版 `RUN_FINISHED` interrupt](./tool-fallback#新版格式run_finished-interrupt)：两者读取相同的 `action_requests`、`review_configs`，显示「允许」「拒绝」按钮。审批要求由事件表达，不放在媒体内容中。
 
 Mock 中的 `approval-legacy` 和 `approval-resume` 分别演示两种格式；新建项目无需另启用审批插件。若同一轮收到两种格式，只显示一组审批按钮，并通过新版 `resume[]` 提交。完整事件结构和回传字段见[审批数据接入](./tool-fallback#显示条件与数据来源)。
 

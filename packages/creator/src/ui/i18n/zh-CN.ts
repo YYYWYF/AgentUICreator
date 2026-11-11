@@ -1014,7 +1014,7 @@ export const zhCN = {
     "agent-state-sync": "使用 ToolCall 锚定 CI Job，再通过 STATE_DELTA 实时推进 transcript 中的 Agent UI JobProgress。",
     "tool-error": "Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。",
     "approval-resume": "从 RUN_FINISHED 的 metadata.langgraph.raw 读取审批，通过 resume[] 提交决定。",
-    "approval-legacy": "从 CUSTOM on_interrupt 的 JSON 字符串读取审批，通过 forwardedProps.command 提交决定。",
+    "approval-legacy": "从 CUSTOM ON_INTERRUPT 的对象读取审批，通过 forwardedProps.command 提交决定。",
     "reasoning-tool-success": "模拟一次思考、工具调用、再次思考和最终回复。",
     "cancel-before-first-output": "运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。",
     "composer-mention": "输入 @ 搜索示例花名册，选中对象后发送；在请求记录中检查稳定员工 ID。",

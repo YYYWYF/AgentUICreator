@@ -73,8 +73,8 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  }
 
  const shellName=mode[0]!.toUpperCase()+mode.slice(1)+'Shell';
- expect(await readdir(path.join(source,'application/shell'))).toEqual(expect.arrayContaining([shellName+'.tsx',mode+'-shell.css']));
- expect((await readdir(path.join(source,'application/shell'))).length).toBe(2);
+ const shellFiles = [shellName+'.tsx',mode+'-shell.css',...(mode==='assistant'?['AssistantRobot.tsx','assistant-robot-motion.ts','assistant-robot-assets.d.ts','assistant-robot-frames.ts','assistant-robot-still.png',...Array.from({length:3},(_,index)=>`assistant-robot-frames-${index}.webp`)]:[])];
+ expect((await readdir(path.join(source,'application/shell'))).sort()).toEqual(shellFiles.sort());
  const binding=await readFile(path.join(source,'application/runtime-config.generated.ts'),'utf8');
  expect(binding).toContain(`export { ${shellName} as ProjectShell } from './shell/${shellName}';`);
  expect(await readFile(path.join(source,'application/project-config.tsx'),'utf8')).toContain('Shell: ProjectShell');

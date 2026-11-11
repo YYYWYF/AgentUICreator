@@ -11,8 +11,40 @@
       "target": "application/shell/AssistantShell.tsx"
     },
     {
+      "source": "files/application/shell/AssistantRobot.tsx",
+      "target": "application/shell/AssistantRobot.tsx"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-motion.ts",
+      "target": "application/shell/assistant-robot-motion.ts"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-assets.d.ts",
+      "target": "application/shell/assistant-robot-assets.d.ts"
+    },
+    {
       "source": "files/application/shell/assistant-shell.css",
       "target": "application/shell/assistant-shell.css"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-frames.ts",
+      "target": "application/shell/assistant-robot-frames.ts"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-still.png",
+      "target": "application/shell/assistant-robot-still.png"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-frames-0.webp",
+      "target": "application/shell/assistant-robot-frames-0.webp"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-frames-1.webp",
+      "target": "application/shell/assistant-robot-frames-1.webp"
+    },
+    {
+      "source": "files/application/shell/assistant-robot-frames-2.webp",
+      "target": "application/shell/assistant-robot-frames-2.webp"
     }
   ],
   "packages": {

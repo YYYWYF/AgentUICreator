@@ -250,7 +250,7 @@ export function createMockAgentHttpHandler({
       for await (const event of stream) {
         if (controller.signal.aborted || response.destroyed) return;
         const standardEvent = EventSchemas.parse(event) as AGUIEvent;
-        if (standardEvent.type === "CUSTOM" && standardEvent.name === "on_interrupt") {
+        if (standardEvent.type === "CUSTOM" && (standardEvent.name === "ON_INTERRUPT" || standardEvent.name === "on_interrupt")) {
           const review = parseMockApprovalReview(standardEvent.value);
           if (review !== undefined) pendingInterrupts.set(parsedInput.data.threadId, {
             type: "custom", scenarioId: scenarioId ?? registry.defaultScenarioId, review,

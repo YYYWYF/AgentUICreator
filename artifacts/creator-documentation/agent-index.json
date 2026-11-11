@@ -1764,14 +1764,14 @@
       "path": "plugins/tool-fallback.md",
       "title": "工具调用详情（tool-fallback）",
       "summary": "工具调用是 Agent 发起的一次具体操作，例如读取项目配置。点击工具名称可展开参数、结果或错误；需要确认的操作会提供允许或拒绝入口。工具组负责归类多次调用，本插件负责展示其中每一次调用的内容。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。",
-      "sha256": "fa4642cd02f12c12f4f8ef47fe07511752baa397859591f87d8a9e8e8dd7663a",
+      "sha256": "9598c64b14ef30f2f9a7fd8b4ddaffb4f426b82f5ad065735426ee70074784ff",
       "sections": [
         {
           "id": "s1",
           "title": "工具调用详情（tool-fallback）",
           "level": 1,
           "start": 0,
-          "end": 11958
+          "end": 12206
         },
         {
           "id": "s9",
@@ -1785,7 +1785,7 @@
           "title": "显示条件与数据来源",
           "level": 2,
           "start": 575,
-          "end": 4992
+          "end": 5240
         },
         {
           "id": "s28",
@@ -1796,87 +1796,87 @@
         },
         {
           "id": "s53",
-          "title": "旧版格式：CUSTOM on_interrupt",
+          "title": "旧版格式：CUSTOM ON_INTERRUPT",
           "level": 3,
           "start": 1888,
-          "end": 2795
+          "end": 3043
         },
         {
-          "id": "s90",
+          "id": "s112",
           "title": "新版格式：RUN_FINISHED interrupt",
           "level": 3,
-          "start": 2795,
-          "end": 4625
+          "start": 3043,
+          "end": 4873
         },
         {
-          "id": "s165",
+          "id": "s187",
           "title": "共同约定",
           "level": 3,
-          "start": 4625,
-          "end": 4992
+          "start": 4873,
+          "end": 5240
         },
         {
-          "id": "s173",
+          "id": "s195",
           "title": "定制选项",
           "level": 2,
-          "start": 4992,
-          "end": 5268
+          "start": 5240,
+          "end": 5516
         },
         {
-          "id": "s183",
+          "id": "s205",
           "title": "需求示例",
           "level": 2,
-          "start": 5268,
-          "end": 5382
+          "start": 5516,
+          "end": 5630
         },
         {
-          "id": "s191",
+          "id": "s213",
           "title": "属性",
           "level": 2,
-          "start": 5382,
-          "end": 11958
+          "start": 5630,
+          "end": 12206
         },
         {
-          "id": "s218",
+          "id": "s240",
           "title": "外观与无障碍属性",
           "level": 3,
-          "start": 8161,
-          "end": 8843
+          "start": 8409,
+          "end": 9091
         },
         {
-          "id": "s232",
+          "id": "s254",
           "title": "当前工具调用的数据与操作",
           "level": 3,
-          "start": 8843,
-          "end": 11005
+          "start": 9091,
+          "end": 11253
         },
         {
-          "id": "s256",
+          "id": "s278",
           "title": "类型说明",
           "level": 3,
-          "start": 11005,
-          "end": 11567
+          "start": 11253,
+          "end": 11815
         },
         {
-          "id": "s258",
+          "id": "s280",
           "title": "ConversationToolCallStatus",
           "level": 4,
-          "start": 11015,
-          "end": 11328
+          "start": 11263,
+          "end": 11576
         },
         {
-          "id": "s272",
+          "id": "s294",
           "title": "ConversationCommandDecisionRequest",
           "level": 4,
-          "start": 11328,
-          "end": 11567
+          "start": 11576,
+          "end": 11815
         },
         {
-          "id": "s285",
+          "id": "s307",
           "title": "类型查询",
           "level": 3,
-          "start": 11567,
-          "end": 11958
+          "start": 11815,
+          "end": 12206
         }
       ]
     },
@@ -1887,7 +1887,7 @@
       "path": "plugins/tool-result.md",
       "title": "工具结果（tool-result）",
       "summary": "工具返回文本、图片、音频、视频或文档时，按内容顺序展示文本、图片预览、播放器和文件下载入口。图片、播放器和文件卡片复用 assistant-ui 的现有组件与 Agent UI 主题。",
-      "sha256": "9d3911c8d3c164624ee171abe202c2f1d9c3f42ec7873558ae4bba214cba4aac",
+      "sha256": "d067f2880bd21c64aabb5a6605cf66e605c2fe49d32d759a8c0451ad2476db8c",
       "sections": [
         {
           "id": "s1",
@@ -2105,7 +2105,7 @@
       "path": "plugins/human-interaction.md",
       "title": "人机交互与操作确认",
       "summary": "让 Agent 在需要用户作决定或补充信息时，先停下来提问，再根据用户的选择继续处理。 例如，Agent 可以先问「允许删除这些临时文件吗？」，也可以问「首页要用哪种布局？」。用户在对话中的卡片上确认或回答，不用猜应该在聊天框里输入什么。",
-      "sha256": "6cde97fe3998a72b51ac2907c03912475a4222f381a4bf41c1e65685fda80d21",
+      "sha256": "925999ccc6fc29a223f16a9f68ff5eeef0076b580114e36466df738ee0578e72",
       "sections": [
         {
           "id": "s1",
@@ -4565,14 +4565,14 @@
       "path": "mock/builtin-scenarios.md",
       "title": "内置演示场景",
       "summary": "设置面板列出官方内置演示场景，覆盖 AG-UI 事件与前端展示。仅用于仓库内部测试的场景不对外提供。",
-      "sha256": "131f16dc15d9bf5c9a3113438e1edd35af5c9bf83b55833fdecabfee93d33cf9",
+      "sha256": "7998e8e2aaf0b0d82a4f16c36716c1a1fb855d1fdea1062f90b2d16e6f349c5e",
       "sections": [
         {
           "id": "s1",
           "title": "内置演示场景",
           "level": 1,
           "start": 0,
-          "end": 6906
+          "end": 6668
         },
         {
           "id": "s5",
@@ -4600,14 +4600,14 @@
           "title": "内置场景目录",
           "level": 2,
           "start": 939,
-          "end": 6906
+          "end": 6668
         },
         {
           "id": "s33",
           "title": "检查旧版与新版审批",
           "level": 3,
           "start": 950,
-          "end": 6906
+          "end": 6668
         }
       ]
     },
@@ -5056,56 +5056,56 @@
       "path": "development/agent-options.md",
       "title": "Agent 参数与配置",
       "summary": "通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 React 页面参数与方法。",
-      "sha256": "d513cadb3148e94e9666c790bdf545e71417ca97a714804a3709a048ef40d86a",
+      "sha256": "f76e86952130643eb122b27449d40d52e53c12539e6942744a75eba418cbd9f7",
       "sections": [
         {
           "id": "s1",
           "title": "Agent 参数与配置",
           "level": 1,
           "start": 0,
-          "end": 5089
+          "end": 5234
         },
         {
           "id": "s5",
           "title": "页面参数",
           "level": 2,
           "start": 146,
-          "end": 1814
+          "end": 1959
         },
         {
-          "id": "s48",
+          "id": "s50",
           "title": "传入业务上下文",
           "level": 2,
-          "start": 1814,
-          "end": 3151
+          "start": 1959,
+          "end": 3296
         },
         {
-          "id": "s86",
+          "id": "s88",
           "title": "主题切换",
           "level": 2,
-          "start": 3151,
-          "end": 3601
+          "start": 3296,
+          "end": 3746
         },
         {
-          "id": "s100",
+          "id": "s102",
           "title": "界面语言切换",
           "level": 2,
-          "start": 3601,
-          "end": 3971
+          "start": 3746,
+          "end": 4116
         },
         {
-          "id": "s116",
+          "id": "s118",
           "title": "打开已有会话",
           "level": 2,
-          "start": 3971,
-          "end": 4180
+          "start": 4116,
+          "end": 4325
         },
         {
-          "id": "s126",
+          "id": "s128",
           "title": "其他配置入口",
           "level": 2,
-          "start": 4180,
-          "end": 5089
+          "start": 4325,
+          "end": 5234
         }
       ]
     },
@@ -5355,14 +5355,14 @@
       "path": "development/history-backend.md",
       "title": "接入历史会话",
       "summary": "历史服务提供会话列表和聊天记录。读取历史与继续对话是不同能力：要继续提问，还需相应的 Agent 数据和接口。相关参数见Agent 参数与配置。",
-      "sha256": "5e821b7f30b23c86e95701c729b1028e54d3a56b9f5ae02f96a6e63aafddf164",
+      "sha256": "ab7e089a7d5ad68ba18556a768ae04e6023f27ad09ba8a4983b2a15754b495f0",
       "sections": [
         {
           "id": "s1",
           "title": "接入历史会话",
           "level": 1,
           "start": 0,
-          "end": 5115
+          "end": 5286
         },
         {
           "id": "s5",
@@ -5376,28 +5376,28 @@
           "title": "HTTP 数据源",
           "level": 2,
           "start": 1629,
-          "end": 3415
+          "end": 3586
         },
         {
-          "id": "s98",
+          "id": "s100",
           "title": "初始化时打开已有会话",
           "level": 2,
-          "start": 3415,
-          "end": 3570
+          "start": 3586,
+          "end": 3741
         },
         {
-          "id": "s102",
+          "id": "s104",
           "title": "重命名、归档与取消归档",
           "level": 2,
-          "start": 3570,
-          "end": 5042
+          "start": 3741,
+          "end": 5213
         },
         {
-          "id": "s133",
+          "id": "s135",
           "title": "验证",
           "level": 2,
-          "start": 5042,
-          "end": 5115
+          "start": 5213,
+          "end": 5286
         }
       ]
     },
@@ -6425,14 +6425,14 @@
       "topic": "职责与所有权",
       "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。",
       "title": "Conversation Domain 架构",
-      "sha256": "b2b0b4d9fc70734ea3ee03799137bfd83827b8a827c8b032008991dab1337b48",
+      "sha256": "e401f131f1a1b3167ce3a7fca08d86dc82f32a7b7c25688089ae06d35874bce8",
       "sections": [
         {
           "id": "s1",
           "title": "Conversation Domain 架构",
           "level": 1,
           "start": 0,
-          "end": 3133
+          "end": 3310
         },
         {
           "id": "s5",
@@ -6460,28 +6460,28 @@
           "title": "Thread 与历史",
           "level": 2,
           "start": 1444,
-          "end": 1728
+          "end": 1905
         },
         {
-          "id": "s39",
+          "id": "s41",
           "title": "Frontend Tool 与 HITL",
           "level": 2,
-          "start": 1728,
-          "end": 2027
+          "start": 1905,
+          "end": 2204
         },
         {
-          "id": "s45",
+          "id": "s47",
           "title": "数据、事件与展示",
           "level": 2,
-          "start": 2027,
-          "end": 3011
+          "start": 2204,
+          "end": 3188
         },
         {
-          "id": "s55",
+          "id": "s57",
           "title": "验证边界",
           "level": 2,
-          "start": 3011,
-          "end": 3133
+          "start": 3188,
+          "end": 3310
         }
       ]
     },

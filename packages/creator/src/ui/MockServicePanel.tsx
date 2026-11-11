@@ -68,7 +68,7 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
   "frontend-tool-fill-form": ["TOOL_CALL_*", "RUN_FINISHED · success", "ToolMessage"],
   "ask-user-question": ["TOOL_CALL_*", "RUN_FINISHED · success", "ToolMessage"],
   "approval-resume": ["RUN_FINISHED · interrupt", "TOOL_CALL_RESULT", localeMessages.mock.approvalRecovery],
-  "approval-legacy": ["CUSTOM · on_interrupt", "forwardedProps.command", "TOOL_CALL_RESULT"],
+  "approval-legacy": ["CUSTOM · ON_INTERRUPT", "forwardedProps.command", "TOOL_CALL_RESULT"],
   "agent-state-sync": ["STATE_SNAPSHOT", "STATE_DELTA"],
   "agent-plan": ["ACTIVITY_SNAPSHOT", "ACTIVITY_DELTA"],
   "agent-status": ["TOOL_CALL_ARGS", localeMessages.mock.agentState],

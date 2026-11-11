@@ -357,21 +357,7 @@ function adaptationsFor({ localPath, source, previous }) {
   const adaptations = new Set();
   if (isElementPath(localPath)) adaptations.add("official-registry-base-ui-rendering");
   if (source.includes("@/")) adaptations.add("import-alias-to-relative");
-  if (adaptMarkdownMemoizeImport(source, localPath) !== source) adaptations.add(MARKDOWN_MEMOIZE_COMPATIBILITY);
   return [...adaptations];
-}
-
-export const MARKDOWN_MEMOIZE_COMPATIBILITY = "react-markdown-0.14.6-memoize-export";
-
-// Markdown 0.14.6 is a required dependency in the intranet combination. Apply
-// its export-name compatibility in the upstream layer; presentation adapters
-// are derived from that compatible source. Preserve the original upstream
-// hash and record the installed hash separately, as with relative imports.
-export function adaptMarkdownMemoizeImport(source, localPath, version = JSON.parse(readFileSync(targetPath, "utf8")).packages["@assistant-ui/react-markdown"]) {
-  if (localPath !== "components/assistant-ui/elements/markdown-text.tsx" || version !== "0.14.6") return source;
-  const anchor = "  memoizeMarkdownComponents,\n";
-  if (source.split(anchor).length !== 2) throw new Error("Markdown memoize import changed; review the 0.14.6 compatibility adaptation.");
-  return source.replace(anchor, "  unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,\n");
 }
 
 function toRelativeImport(aliasPath, localPath) {
@@ -389,7 +375,7 @@ function adaptImports(source, localPath) {
 }
 
 export function applyApprovedAdaptations(source, localPath) {
-  return adaptMarkdownMemoizeImport(adaptImports(source, localPath), localPath);
+  return adaptImports(source, localPath);
 }
 
 export function installedVendorEntry({ source, localPath, upstreamPath, previous }) {

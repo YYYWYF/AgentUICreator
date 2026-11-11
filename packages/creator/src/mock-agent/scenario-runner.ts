@@ -505,7 +505,7 @@ async function* runSteps(
       yield event({ type: EventType.TOOL_CALL_END, toolCallId: step.toolCallId });
       if (step.format === "custom") {
         const langgraph = step.interrupt.metadata?.langgraph as { raw: unknown };
-        yield { type: EventType.CUSTOM, name: "on_interrupt", value: JSON.stringify(langgraph.raw) } as AGUIEvent;
+        yield { type: EventType.CUSTOM, name: "ON_INTERRUPT", value: structuredClone(langgraph.raw) } as AGUIEvent;
         yield { type: EventType.RUN_FINISHED, threadId: input.threadId, runId: input.runId } as AGUIEvent;
         return;
       }

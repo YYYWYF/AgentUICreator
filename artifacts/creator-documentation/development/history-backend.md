@@ -41,7 +41,7 @@ export function App() {
 
 ## HTTP 数据源
 
-按上述位置设置 API 地址。以 `/api` 为例，现有数据源请求 `GET /api/conversations`（列表）、`GET /api/conversation/{id}`（详情）及 `DELETE /api/conversations/{id}`（删除）。其中 `id` 就是会话的 `threadId`。
+按上述位置设置 API 地址。以 `/api` 为例，现有数据源请求 `GET /api/conversations`（列表）、`GET /api/conversations/{key}`（详情）及 `DELETE /api/conversations/{key}`（删除）。其中 `key` 就是会话的 `threadId`。
 
 列表返回会话 ID 和展示信息；详情返回消息、状态及可用操作。返回值须符合项目数据源的类型定义，**不能只返回文本数组**。未接入服务时使用空数据源，刷新后不会自动恢复历史。
 
@@ -94,6 +94,8 @@ export function App() {
 `returnCode` 必须为 `SUC0000`，其他返回码会作为错误处理并带上 `errorMsg`。`body.thread_id` 映射为会话 ID；`body.title` 可选，缺少时显示 `thread_id`。快照仍按当前 `LangGraphStateSnapshotDto` 校验；HTTP 适配层也接受存储格式的 `channel_values`，同时存在时优先使用 `values`。消息字段及历史转换沿用当前版本，不根据后端示例更换 LangGraph 版本。`start_time`、`total_checkpoints` 等统计字段不参与消息恢复。
 
 `body.agentState` 可选，**必须由后端显式返回**，不会从 checkpoint 的业务字段推断。原有直接返回 `{ id, title, state, agentState? }` 的格式仍兼容。
+
+历史助手消息若以 `<think>…</think>` 开头，会将其中的内容恢复为思考部分，后面的内容作为回复正文；未闭合但有内容的思考也会保留。只有空 `<think>` 标记的助手记录不显示。用户消息、正文中的标签示例和已有结构化内容保持原有语义；工具调用与结果仍按 `tool_call_id` 关联，读取历史不会执行工具。
 
 ## 初始化时打开已有会话
 

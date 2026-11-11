@@ -18,18 +18,18 @@ function createApprovalScenario(legacy: boolean) {
     resources: ["reasoning", "tool-group", "tool-approval"],
     title: legacy ? "Tool Approval · Legacy CUSTOM" : "Tool Approval · Modern Interrupt",
     description: legacy
-      ? "Legacy format: on_interrupt carries a JSON string; decisions use forwardedProps.command."
+      ? "Legacy format: ON_INTERRUPT carries an object; decisions use forwardedProps.command."
       : "Modern format: RUN_FINISHED carries metadata.langgraph.raw; decisions use resume[].",
     category: "human-in-loop",
     capabilities: ["reasoning", "tool", "approval"],
     reference: {
       audience: "backend",
       protocol: legacy ? "AG-UI CUSTOM compatibility" : "AG-UI 1.0",
-      pattern: legacy ? "CUSTOM on_interrupt → Command" : "Interrupt → Resume",
+      pattern: legacy ? "CUSTOM ON_INTERRUPT → Command" : "Interrupt → Resume",
       presentation: "Tool approval",
       eventFlow: [
         "TOOL_CALL_START/ARGS/END",
-        legacy ? "CUSTOM on_interrupt (JSON string)" : "RUN_FINISHED(outcome: interrupt, metadata.langgraph.raw)",
+        legacy ? "CUSTOM ON_INTERRUPT (object)" : "RUN_FINISHED(outcome: interrupt, metadata.langgraph.raw)",
         "TOOL_CALL_RESULT (after approval)",
       ],
       notes: [

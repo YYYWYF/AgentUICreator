@@ -2646,7 +2646,7 @@ url: /plugins/tool-fallback.md
 
 | 格式   | 后端返回                                                              | 用户决定的回传位置                          | Mock 场景           |
 | ---- | ----------------------------------------------------------------- | ---------------------------------- | ----------------- |
-| 旧版格式 | `CUSTOM`，`name: "on_interrupt"`，`value` 为 JSON 字符串                | `forwardedProps.command.decisions` | `approval-legacy` |
+| 旧版格式 | `CUSTOM`，`name: "ON_INTERRUPT"`，`value` 为对象                       | `forwardedProps.command.decisions` | `approval-legacy` |
 | 新版格式 | `RUN_FINISHED.outcome.interrupts`，审批内容位于 `metadata.langgraph.raw` | `resume[].payload.decisions`       | `approval-resume` |
 
 ### 两种格式共用的工具调用
@@ -2674,16 +2674,38 @@ url: /plugins/tool-fallback.md
 
 `action_requests[].name`、`args` 必须与等待结果的工具调用匹配。没有 `toolCallId` 的审批按工具名和参数做唯一匹配；存在多个相同调用时不会猜测绑定。
 
-### 旧版格式：CUSTOM on_interrupt
+### 旧版格式：CUSTOM ON_INTERRUPT
 
-`value` 是序列化后的 JSON 字符串，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
+`value` 是对象，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
 
 ```json
 [
   {
     "type": "CUSTOM",
-    "name": "on_interrupt",
-    "value": "{\"action_requests\":[{\"name\":\"confirm_take_leave_policy\",\"args\":{\"user\":\"杨康\",\"leave_policy\":\"年假\"},\"description\":\"请确认您的请假方案\\n\\nTool: confirm_take_leave_policy\\nArgs: {'user': '杨康', 'leave_policy': '年假'}\"}],\"review_configs\":[{\"action_name\":\"confirm_take_leave_policy\",\"allowed_decisions\":[\"approve\",\"edit\",\"reject\",\"respond\"]}]}"
+    "name": "ON_INTERRUPT",
+    "value": {
+      "action_requests": [
+        {
+          "name": "confirm_take_leave_policy",
+          "args": {
+            "user": "杨康",
+            "leave_policy": "年假"
+          },
+          "description": "请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"
+        }
+      ],
+      "review_configs": [
+        {
+          "action_name": "confirm_take_leave_policy",
+          "allowed_decisions": [
+            "approve",
+            "edit",
+            "reject",
+            "respond"
+          ]
+        }
+      ]
+    }
   },
   {
     "type": "RUN_FINISHED",
@@ -2709,7 +2731,7 @@ url: /plugins/tool-fallback.md
 }
 ```
 
-此格式通过 `forwardedProps.command` 继续，不填写标准 `resume[]`。
+此格式通过 `forwardedProps.command` 继续，不填写标准 `resume[]`。 Runtime 也兼容小写 `on_interrupt` 和 JSON 字符串 `value`；本示例恢复使用原有大写名称和对象格式。
 
 ### 新版格式：RUN_FINISHED interrupt
 
@@ -2992,7 +3014,7 @@ url: /plugins/tool-result.md
 
 **Agent 服务接入：**&#x5148;发送[通用工具事件](/plugins/ag-ui-data.md#通用工具事件)中的 `TOOL_CALL_START`、`TOOL_CALL_ARGS`、`TOOL_CALL_END`，建立 `toolCallId: "call-1"` 的调用，再发送上面的 `TOOL_CALL_RESULT`。内容数组及其 `source` 格式见[启用与使用](#启用与使用)。仅发送图片 URL 或插件 ID 不会创建多模态工具结果。
 
-本插件与 `tool-fallback` 使用同一语义位置，有同名专用 Tool UI 时专用展示优先。审批区默认可用，同时支持[旧版 CUSTOM `on_interrupt`](/plugins/tool-fallback.md#旧版格式custom-on_interrupt) 和[新版 `RUN_FINISHED` interrupt](/plugins/tool-fallback.md#新版格式run_finished-interrupt)：两者读取相同的 `action_requests`、`review_configs`，显示「允许」「拒绝」按钮。审批要求由事件表达，不放在媒体内容中。
+本插件与 `tool-fallback` 使用同一语义位置，有同名专用 Tool UI 时专用展示优先。审批区默认可用，同时支持[旧版 CUSTOM `ON_INTERRUPT`](/plugins/tool-fallback.md#旧版格式custom-on_interrupt) 和[新版 `RUN_FINISHED` interrupt](/plugins/tool-fallback.md#新版格式run_finished-interrupt)：两者读取相同的 `action_requests`、`review_configs`，显示「允许」「拒绝」按钮。审批要求由事件表达，不放在媒体内容中。
 
 Mock 中的 `approval-legacy` 和 `approval-resume` 分别演示两种格式；新建项目无需另启用审批插件。若同一轮收到两种格式，只显示一组审批按钮，并通过新版 `resume[]` 提交。完整事件结构和回传字段见[审批数据接入](/plugins/tool-fallback.md#显示条件与数据来源)。
 
@@ -3413,7 +3435,7 @@ Agent 准备执行需要确认的操作时，卡片会列出操作内容和参�
 
 ## 项目接入
 
-三种新建项目模板默认启用 [`tool-result`](/plugins/tool-result.md)，已包含操作确认区。后端发送[旧版 CUSTOM `on_interrupt` 或新版标准 interrupt](/plugins/tool-fallback.md#显示条件与数据来源)，即可在匹配的工具卡片上显示「允许」「拒绝」。若项目已调整过工具展示，检查当前 `toolFallback` 位置是否仍保留审批入口。
+三种新建项目模板默认启用 [`tool-result`](/plugins/tool-result.md)，已包含操作确认区。后端发送[旧版 CUSTOM `ON_INTERRUPT` 或新版标准 interrupt](/plugins/tool-fallback.md#显示条件与数据来源)，即可在匹配的工具卡片上显示「允许」「拒绝」。若项目已调整过工具展示，检查当前 `toolFallback` 位置是否仍保留审批入口。
 
 在 Mock 中选择 `approval-legacy` 或 `approval-resume`，分别检查旧版、新版格式。两种格式共用同一审批区，不是两个需要分别开启的插件。
 
@@ -7031,7 +7053,7 @@ url: /mock/builtin-scenarios.md
 
 在「提问与审批」分组中分别选择：
 
-- **工具审批 · 旧版 CUSTOM 格式**（`approval-legacy`）：接收 `CUSTOM on_interrupt`，`value` 为 JSON 字符串；点击后通过 `forwardedProps.command.decisions` 提交。
+- **工具审批 · 旧版 CUSTOM 格式**（`approval-legacy`）：接收 `CUSTOM ON_INTERRUPT`，`value` 为对象；点击后通过 `forwardedProps.command.decisions` 提交。
 - **工具审批 · 新版 interrupt 格式**（`approval-resume`）：接收 `RUN_FINISHED.outcome.interrupts`，从 `metadata.langgraph.raw` 读取审批；点击后通过 `resume[].payload.decisions` 提交。
 
 两者先返回 `confirm_take_leave_policy` 工具调用，再等待用户确认请假方案。新建项目默认启用的 `tool-result` 已提供审批区，无需另启用插件。每个场景分别新建会话检查「允许」「拒绝」：允许后返回确认结果并续答；拒绝后返回取消结果并续答。Mock 只模拟流程，不办理真实请假。
@@ -7040,39 +7062,39 @@ url: /mock/builtin-scenarios.md
 
 在「示例与回放」中按场景名称或 ID 选择。提示缺少插件时，先按提示启用，再发送消息。
 
-| 场景 ID                          | 名称                                          | 用来测试什么                                                                    |
-| ------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------- |
-| `composer-mention-context`     | Composer · Mention Backend Context          | 服务端按稳定员工 ID 查询示例花名册，将安全字段注入 AG-UI Context 后回答。                            |
-| `web-search`                   | Web Search                                  | 标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。                                    |
-| `retrieval-chunks`             | Retrieval Chunks                            | 标准 AG-UI 工具调用，通过独立 UI Plugin 展示检索片段。                                      |
-| `source-citations`             | Tool Result：Source Citations                | search_sources 返回应用自定义来源结构，由按工具名注册的界面展示官方 Sources。                        |
-| `multimodal-input`             | Multimodal Input                            | 发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。                  |
-| `concurrent-conversations`     | Concurrent Conversations                    | 在两个会话分别发送 AAA / BBB，观察交错的慢速 stream 和独立 Stop。                              |
-| `simple-chat`                  | Simple Chat                                 | 模拟一次纯文本流式回复。                                                              |
-| `markdown-showcase`            | Markdown Showcase                           | 展示 Markdown / GFM 常见文本类型及代码块的流式渲染。                                        |
-| `reasoning-chat`               | Reasoning + Message                         | 模拟一次思考和最终回复。                                                              |
-| `reasoning-tool-success`       | Reasoning → Tool → Answer                   | 模拟一次思考、工具调用、再次思考和最终回复。                                                    |
-| `parallel-tools`               | Parallel Tools                              | 三个工具以确定性的交错顺序并行执行。                                                        |
-| `tool-error`                   | Run Error During Tool                       | Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。                        |
-| `approval-legacy`              | 工具审批 · 旧版 CUSTOM 格式                         | `on_interrupt` 的 JSON 字符串 → 允许 / 拒绝 → `forwardedProps.command.decisions`。 |
-| `approval-resume`              | 工具审批 · 新版 interrupt 格式                      | `metadata.langgraph.raw` → 允许 / 拒绝 → `resume[].payload.decisions`。        |
-| `agent-state-sync`             | AG-UI State → Job Progress                  | 工具调用关联 CI 作业，随后通过 STATE_DELTA 更新进度卡片。                                     |
-| `nested-subagent-conversation` | AG-UI Subagent → Task Card                  | 父工具调用启动 Researcher 子任务，返回 SubAgent 事件，在任务卡片中展示子任务消息。                      |
-| `tool-timeline-thinking`       | Thinking → Tool Timeline → Answer           | 切换 ThinkingIndicator-only、Reasoning-only、Both；展开三次同名工具的摘要及原始详情。           |
-| `thinking-placeholder`         | Thinking Placeholder                        | 持续 reasoning 时的简洁占位演示；启用 ThinkingIndicator 并关闭 Reasoning 展示实例。            |
-| `cancel-before-first-output`   | Cancel Before First Output                  | 运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。                                   |
-| `file-output`                  | Tool Result：File Output                     | Backend generate_file 返回虚拟 PDF URL，由按工具名注册的界面展示官方文件卡片和下载入口。               |
-| `frontend-tool-open-dialog`    | Frontend Tool · Open Dialog                 | 标准 AG-UI 工具调用 → 浏览器弹窗能力 → Tool Result → continuation。                     |
-| `frontend-tool-fill-form`      | Human Tool · Conversation Form              | 会话内收集多个字段，校验并整体提交 ToolMessage 后继续 Agent。                                  |
-| `ask-user-question`            | 询问用户偏好                                      | Frontend Human Tool · 思考、提问、选择、ToolMessage、继续回答                           |
-| `multi-message-response`       | Multi-message Response                      | 一次回答包含三条连续 assistant 消息，共用一组 Response 操作。                                 |
-| `data-message-chart`           | Data Message / Custom Chart                 | 标准 AG-UI CUSTOM 在 assistant 消息中渲染图表。                                      |
-| `context-retrieval`            | Data Message / Context Retrieval            | 标准 AG-UI CUSTOM 上下文检索事件，并在 assistant 消息中显示检索结果。                           |
-| `nested-subagent-task-group`   | AG-UI Subagent Task Group                   | 返回多个同级 SubAgent 的事件，在界面中形成任务组。                                            |
-| `agent-plan`                   | AG-UI Activity → AgentPlan                  | 通过标准 AG-UI Activity 快照和增量更新 AgentPlan。                                    |
-| `agent-status`                 | Application-defined Tool Args → AgentStatus | 工具参数提供状态文字，工具调用状态决定进行中或完成标记。                                              |
-| `nested-subagent-recursive`    | Recursive AG-UI Subagents                   | 展示 SubAgent A 继续委派任务给 SubAgent B 的嵌套任务卡片。                                 |
-| `nested-subagent-error`        | AG-UI Subagent Error                        | 展示 SubAgent 执行失败的状态，保留错误发生前的消息。                                           |
+| 场景 ID                          | 名称                                          | 用来测试什么                                                             |
+| ------------------------------ | ------------------------------------------- | ------------------------------------------------------------------ |
+| `composer-mention-context`     | Composer · Mention Backend Context          | 服务端按稳定员工 ID 查询示例花名册，将安全字段注入 AG-UI Context 后回答。                     |
+| `web-search`                   | Web Search                                  | 标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。                             |
+| `retrieval-chunks`             | Retrieval Chunks                            | 标准 AG-UI 工具调用，通过独立 UI Plugin 展示检索片段。                               |
+| `source-citations`             | Tool Result：Source Citations                | search_sources 返回应用自定义来源结构，由按工具名注册的界面展示官方 Sources。                 |
+| `multimodal-input`             | Multimodal Input                            | 发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。           |
+| `concurrent-conversations`     | Concurrent Conversations                    | 在两个会话分别发送 AAA / BBB，观察交错的慢速 stream 和独立 Stop。                       |
+| `simple-chat`                  | Simple Chat                                 | 模拟一次纯文本流式回复。                                                       |
+| `markdown-showcase`            | Markdown Showcase                           | 展示 Markdown / GFM 常见文本类型及代码块的流式渲染。                                 |
+| `reasoning-chat`               | Reasoning + Message                         | 模拟一次思考和最终回复。                                                       |
+| `reasoning-tool-success`       | Reasoning → Tool → Answer                   | 模拟一次思考、工具调用、再次思考和最终回复。                                             |
+| `parallel-tools`               | Parallel Tools                              | 三个工具以确定性的交错顺序并行执行。                                                 |
+| `tool-error`                   | Run Error During Tool                       | Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。                 |
+| `approval-legacy`              | 工具审批 · 旧版 CUSTOM 格式                         | `ON_INTERRUPT` 的对象 → 允许 / 拒绝 → `forwardedProps.command.decisions`。 |
+| `approval-resume`              | 工具审批 · 新版 interrupt 格式                      | `metadata.langgraph.raw` → 允许 / 拒绝 → `resume[].payload.decisions`。 |
+| `agent-state-sync`             | AG-UI State → Job Progress                  | 工具调用关联 CI 作业，随后通过 STATE_DELTA 更新进度卡片。                              |
+| `nested-subagent-conversation` | AG-UI Subagent → Task Card                  | 父工具调用启动 Researcher 子任务，返回 SubAgent 事件，在任务卡片中展示子任务消息。               |
+| `tool-timeline-thinking`       | Thinking → Tool Timeline → Answer           | 切换 ThinkingIndicator-only、Reasoning-only、Both；展开三次同名工具的摘要及原始详情。    |
+| `thinking-placeholder`         | Thinking Placeholder                        | 持续 reasoning 时的简洁占位演示；启用 ThinkingIndicator 并关闭 Reasoning 展示实例。     |
+| `cancel-before-first-output`   | Cancel Before First Output                  | 运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。                            |
+| `file-output`                  | Tool Result：File Output                     | Backend generate_file 返回虚拟 PDF URL，由按工具名注册的界面展示官方文件卡片和下载入口。        |
+| `frontend-tool-open-dialog`    | Frontend Tool · Open Dialog                 | 标准 AG-UI 工具调用 → 浏览器弹窗能力 → Tool Result → continuation。              |
+| `frontend-tool-fill-form`      | Human Tool · Conversation Form              | 会话内收集多个字段，校验并整体提交 ToolMessage 后继续 Agent。                           |
+| `ask-user-question`            | 询问用户偏好                                      | Frontend Human Tool · 思考、提问、选择、ToolMessage、继续回答                    |
+| `multi-message-response`       | Multi-message Response                      | 一次回答包含三条连续 assistant 消息，共用一组 Response 操作。                          |
+| `data-message-chart`           | Data Message / Custom Chart                 | 标准 AG-UI CUSTOM 在 assistant 消息中渲染图表。                               |
+| `context-retrieval`            | Data Message / Context Retrieval            | 标准 AG-UI CUSTOM 上下文检索事件，并在 assistant 消息中显示检索结果。                    |
+| `nested-subagent-task-group`   | AG-UI Subagent Task Group                   | 返回多个同级 SubAgent 的事件，在界面中形成任务组。                                     |
+| `agent-plan`                   | AG-UI Activity → AgentPlan                  | 通过标准 AG-UI Activity 快照和增量更新 AgentPlan。                             |
+| `agent-status`                 | Application-defined Tool Args → AgentStatus | 工具参数提供状态文字，工具调用状态决定进行中或完成标记。                                       |
+| `nested-subagent-recursive`    | Recursive AG-UI Subagents                   | 展示 SubAgent A 继续委派任务给 SubAgent B 的嵌套任务卡片。                          |
+| `nested-subagent-error`        | AG-UI Subagent Error                        | 展示 SubAgent 执行失败的状态，保留错误发生前的消息。                                    |
 
 继续：[本地数据回放](/mock/local-recordings.md)。
 
@@ -7733,6 +7755,8 @@ export function Chat() {
 }
 ```
 
+每次发送时，AG-UI 请求的 `messages` 默认只包含本次用户消息，不附带历史用户和 AI 消息。前端继续展示完整历史，后端按 `threadId` 维护会话上下文。前端工具续传只带本次工具结果；中断恢复通过 `resume` 传递，没有新消息时 `messages` 为空。
+
 参数可传字符串、用户资料或回调，完整字段见[Agent 属性表](/development/react-host-api.md#agent-属性表)。用户资料的传法例如：
 
 ```tsx
@@ -8377,7 +8401,7 @@ export function App() {
 
 ## HTTP 数据源
 
-按上述位置设置 API 地址。以 `/api` 为例，现有数据源请求 `GET /api/conversations`（列表）、`GET /api/conversation/{id}`（详情）及 `DELETE /api/conversations/{id}`（删除）。其中 `id` 就是会话的 `threadId`。
+按上述位置设置 API 地址。以 `/api` 为例，现有数据源请求 `GET /api/conversations`（列表）、`GET /api/conversations/{key}`（详情）及 `DELETE /api/conversations/{key}`（删除）。其中 `key` 就是会话的 `threadId`。
 
 列表返回会话 ID 和展示信息；详情返回消息、状态及可用操作。返回值须符合项目数据源的类型定义，**不能只返回文本数组**。未接入服务时使用空数据源，刷新后不会自动恢复历史。
 
@@ -8430,6 +8454,8 @@ export function App() {
 `returnCode` 必须为 `SUC0000`，其他返回码会作为错误处理并带上 `errorMsg`。`body.thread_id` 映射为会话 ID；`body.title` 可选，缺少时显示 `thread_id`。快照仍按当前 `LangGraphStateSnapshotDto` 校验；HTTP 适配层也接受存储格式的 `channel_values`，同时存在时优先使用 `values`。消息字段及历史转换沿用当前版本，不根据后端示例更换 LangGraph 版本。`start_time`、`total_checkpoints` 等统计字段不参与消息恢复。
 
 `body.agentState` 可选，**必须由后端显式返回**，不会从 checkpoint 的业务字段推断。原有直接返回 `{ id, title, state, agentState? }` 的格式仍兼容。
+
+历史助手消息若以 `<think>…</think>` 开头，会将其中的内容恢复为思考部分，后面的内容作为回复正文；未闭合但有内容的思考也会保留。只有空 `<think>` 标记的助手记录不显示。用户消息、正文中的标签示例和已有结构化内容保持原有语义；工具调用与结果仍按 `tool_call_id` 关联，读取历史不会执行工具。
 
 ## 初始化时打开已有会话
 

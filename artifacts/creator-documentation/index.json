@@ -10,12 +10,12 @@
     "@za38.03/agent-ui-web-component": "0.0.1",
     "@za38.03/agent-ui-creator": "0.0.1"
   },
-  "sourceDigest": "c580da102522b6654de6e4bdbebcf82651677f7832e24bc4400170ef1f90c0bc",
+  "sourceDigest": "72d20cc1210ad2d7399e2f9a57fafa27705ba9f95fdd1ab8b96270905e87beaa",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 214252,
-      "sha256": "60a735ffe976c4ff108ad3c4c415a10e84448ea1c5fe91575d713ff902162258"
+      "bytes": 214254,
+      "sha256": "69ea4dc51a3bb2202477cad5f3a8c371b95152fc8875b0bf21c8b207e487f218"
     },
     {
       "path": "creator-index.md",
@@ -24,8 +24,8 @@
     },
     {
       "path": "development/agent-options.md",
-      "bytes": 7505,
-      "sha256": "d513cadb3148e94e9666c790bdf545e71417ca97a714804a3709a048ef40d86a"
+      "bytes": 7824,
+      "sha256": "f76e86952130643eb122b27449d40d52e53c12539e6942744a75eba418cbd9f7"
     },
     {
       "path": "development/attachments-dictation-feedback.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "development/history-backend.md",
-      "bytes": 8601,
-      "sha256": "5e821b7f30b23c86e95701c729b1028e54d3a56b9f5ae02f96a6e63aafddf164"
+      "bytes": 9010,
+      "sha256": "ab7e089a7d5ad68ba18556a768ae04e6023f27ad09ba8a4983b2a15754b495f0"
     },
     {
       "path": "development/index.md",
@@ -224,8 +224,8 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 701809,
-      "sha256": "edbf8adbaec4446da68a8c0807b636e40926db09a29942dce1991fbff061c623"
+      "bytes": 702587,
+      "sha256": "909f74bfadec129cfff009e32267fde461bc376cf08390099e8656aa455b653a"
     },
     {
       "path": "llms.txt",
@@ -234,8 +234,8 @@
     },
     {
       "path": "mock/builtin-scenarios.md",
-      "bytes": 9918,
-      "sha256": "131f16dc15d9bf5c9a3113438e1edd35af5c9bf83b55833fdecabfee93d33cf9"
+      "bytes": 9676,
+      "sha256": "7998e8e2aaf0b0d82a4f16c36716c1a1fb855d1fdea1062f90b2d16e6f349c5e"
     },
     {
       "path": "mock/getting-started.md",
@@ -380,7 +380,7 @@
     {
       "path": "plugins/human-interaction.md",
       "bytes": 5358,
-      "sha256": "6cde97fe3998a72b51ac2907c03912475a4222f381a4bf41c1e65685fda80d21"
+      "sha256": "925999ccc6fc29a223f16a9f68ff5eeef0076b580114e36466df738ee0578e72"
     },
     {
       "path": "plugins/index.md",
@@ -474,8 +474,8 @@
     },
     {
       "path": "plugins/tool-fallback.md",
-      "bytes": 16240,
-      "sha256": "fa4642cd02f12c12f4f8ef47fe07511752baa397859591f87d8a9e8e8dd7663a"
+      "bytes": 16532,
+      "sha256": "9598c64b14ef30f2f9a7fd8b4ddaffb4f426b82f5ad065735426ee70074784ff"
     },
     {
       "path": "plugins/tool-group.md",
@@ -485,7 +485,7 @@
     {
       "path": "plugins/tool-result.md",
       "bytes": 15612,
-      "sha256": "9d3911c8d3c164624ee171abe202c2f1d9c3f42ec7873558ae4bba214cba4aac"
+      "sha256": "d067f2880bd21c64aabb5a6605cf66e605c2fe49d32d759a8c0451ad2476db8c"
     },
     {
       "path": "plugins/tool-timeline.md",
@@ -584,8 +584,8 @@
     },
     {
       "path": "references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md",
-      "bytes": 5541,
-      "sha256": "b2b0b4d9fc70734ea3ee03799137bfd83827b8a827c8b032008991dab1337b48"
+      "bytes": 5902,
+      "sha256": "e401f131f1a1b3167ce3a7fca08d86dc82f32a7b7c25688089ae06d35874bce8"
     },
     {
       "path": "references/docs/architecture/plugin-authoring-contract.md",

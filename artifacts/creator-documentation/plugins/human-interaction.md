@@ -50,7 +50,7 @@ Agent 准备执行需要确认的操作时，卡片会列出操作内容和参�
 
 ## 项目接入
 
-三种新建项目模板默认启用 [`tool-result`](/plugins/tool-result.md)，已包含操作确认区。后端发送[旧版 CUSTOM `on_interrupt` 或新版标准 interrupt](/plugins/tool-fallback.md#显示条件与数据来源)，即可在匹配的工具卡片上显示「允许」「拒绝」。若项目已调整过工具展示，检查当前 `toolFallback` 位置是否仍保留审批入口。
+三种新建项目模板默认启用 [`tool-result`](/plugins/tool-result.md)，已包含操作确认区。后端发送[旧版 CUSTOM `ON_INTERRUPT` 或新版标准 interrupt](/plugins/tool-fallback.md#显示条件与数据来源)，即可在匹配的工具卡片上显示「允许」「拒绝」。若项目已调整过工具展示，检查当前 `toolFallback` 位置是否仍保留审批入口。
 
 在 Mock 中选择 `approval-legacy` 或 `approval-resume`，分别检查旧版、新版格式。两种格式共用同一审批区，不是两个需要分别开启的插件。
 

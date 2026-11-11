@@ -127,16 +127,16 @@ describe("public Mock API boundary", () => {
       const finish = initial.find(event => event.type === "RUN_FINISHED");
       if (finish?.type !== "RUN_FINISHED") throw new Error("Missing finish");
       if (scenario === "approval-legacy") {
-        const custom = initial.find(event => event.type === "CUSTOM" && event.name === "on_interrupt");
+        const custom = initial.find(event => event.type === "CUSTOM" && event.name === "ON_INTERRUPT");
         if (custom?.type !== "CUSTOM") throw new Error("Missing legacy approval");
-        expect(typeof custom.value).toBe("string");
-        expect(JSON.parse(custom.value)).toMatchObject({
+        expect(typeof custom.value).toBe("object");
+        expect(custom.value).toMatchObject({
           action_requests: [{ name: "confirm_take_leave_policy", args: { user: "杨康", leave_policy: "年假" } }],
           review_configs: [{ action_name: "confirm_take_leave_policy", allowed_decisions: ["approve", "edit", "reject", "respond"] }],
         });
         expect(finish.outcome).toBeUndefined();
       } else {
-        expect(initial.some(event => event.type === "CUSTOM" && event.name === "on_interrupt")).toBe(false);
+        expect(initial.some(event => event.type === "CUSTOM" && event.name === "ON_INTERRUPT")).toBe(false);
         expect(finish.outcome).toMatchObject({ type: "interrupt", interrupts: [{ id: "approval-resume-1", reason: "langgraph:interrupt",
           metadata: { langgraph: { raw: { action_requests: [{ name: "confirm_take_leave_policy" }] }, ns: null, resumable: null, when: null } },
         }] });

@@ -1,0 +1,65 @@
+<!doctype html><html><meta charset="utf-8"><title>Offline robot model renderer</title><style>body{margin:0;background:#f0e8fa}canvas{display:block}</style><script type="importmap">{"imports":{"three":"/vendor/build/three.module.js","three/addons/":"/vendor/examples/jsm/"}}</script><script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { createRobot } from './model.mjs';
+import { robotPose } from './animation.mjs';
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});renderer.setSize(640,640);renderer.setPixelRatio(1);renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;document.body.append(renderer.domElement);
+const scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);
+const studio=new THREE.Scene();studio.background=new THREE.Color('#80778f');
+function softbox(color,intensity,position,scale){const mat=new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(intensity)});const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,48,32),mat);mesh.position.set(...position);mesh.scale.set(...scale);studio.add(mesh)}
+softbox('#ffffff',4,[-3,4,5],[2.8,1.6,.5]);softbox('#ffd4f4',2,[4,2,3],[1.3,3,.5]);softbox('#a5edff',3,[-3,2,-4],[2,2,1]);softbox('#ffffff',2,[0,6,-2],[3,.5,3]);
+scene.environment=pmrem.fromScene(studio,.08).texture;scene.environmentIntensity=.45;
+const appearance=await new THREE.TextureLoader().loadAsync('/appearance.jpg');appearance.colorSpace=THREE.SRGBColorSpace;
+const bodyAtlas=await new THREE.TextureLoader().loadAsync('/body-atlas.jpg');bodyAtlas.colorSpace=THREE.SRGBColorSpace;
+const robot=createRobot(THREE,RoundedBoxGeometry,appearance,bodyAtlas);scene.add(robot.root);
+const ambient=new THREE.HemisphereLight('#e5eaff','#ac80b6',.28);scene.add(ambient);
+function area(color,intensity,x,y,z,w,h){const light=new THREE.DirectionalLight(color,intensity);light.position.set(x,y,z);scene.add(light)}
+area('#ffffff',.75,-3,5,5);area('#ffa9ec',.35,4,1,2);area('#b6f3ff',.45,-4,2,-2);
+const camera=new THREE.OrthographicCamera(-2.1,2.1,2.1,-2.1,.1,30);camera.position.set(0,.75,7);camera.lookAt(0,.25,0);
+const baseTarget=new THREE.WebGLRenderTarget(640,640,{type:THREE.HalfFloatType});
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));const bloom=new UnrealBloomPass(new THREE.Vector2(640,640),.24,.45,1.05);composer.addPass(bloom);composer.renderToScreen=false;
+const quadScene=new THREE.Scene(),quadCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const composite=new THREE.ShaderMaterial({toneMapped:false,transparent:true,depthTest:false,depthWrite:false,uniforms:{base:{value:baseTarget.texture},combined:{value:null}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'uniform sampler2D base;uniform sampler2D combined;varying vec2 v;void main(){vec4 a=texture2D(base,v);vec3 b=texture2D(combined,v).rgb;vec3 glow=max(vec3(0.),b-a.rgb);float alpha=clamp(a.a+max(glow.r,max(glow.g,glow.b))*.5,0.,1.);vec3 rgb=a.rgb+glow;gl_FragColor=vec4(rgb*alpha,alpha);\n#include <colorspace_fragment>\n}'});
+quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),composite));
+window.renderPose=(yaw=0,blink=1,size=640,options={})=>{renderer.setSize(size,size);baseTarget.setSize(size,size);composer.setSize(size,size);robot.root.rotation.set(options.pitch??0,yaw,0);for(const eye of robot.eyes){eye.scale.y=blink;eye.visible=!options.noFace&&!options.smile}for(const eye of robot.smileEyes)eye.visible=!options.noFace&&!!options.smile;robot.root.getObjectByName('Soft smile').visible=!options.noFace;renderer.setRenderTarget(baseTarget);renderer.clear();renderer.render(scene,camera);renderer.setRenderTarget(null);composer.render();composite.uniforms.combined.value=composer.readBuffer.texture;renderer.setRenderTarget(null);renderer.clear();renderer.render(quadScene,quadCamera);return renderer.domElement.toDataURL('image/png')};
+// Export vector silhouettes from the same meshes and camera as the body renders.
+window.faceGeometry=(yaw=0,pitch=0)=>{
+ robot.root.rotation.set(pitch,yaw,0);for(const eye of robot.eyes)eye.scale.y=1;
+ robot.root.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+ const pixel=(v,mesh)=>{const p=v.clone().applyMatrix4(mesh.matrixWorld).project(camera);return [+(96+p.x*96).toFixed(2),+(96-p.y*96).toFixed(2)]};
+ const cross=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+ const outline=mesh=>{
+  const pos=mesh.geometry.attributes.position,points=[];
+  for(let i=0;i<pos.count;i++)points.push(pixel(new THREE.Vector3().fromBufferAttribute(pos,i),mesh));
+  const sorted=[...new Map(points.map(p=>[p.join(','),p])).values()].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const lower=[],upper=[];for(const p of sorted){while(lower.length>1&&cross(lower.at(-2),lower.at(-1),p)<=0)lower.pop();lower.push(p)}
+  for(const p of [...sorted].reverse()){while(upper.length>1&&cross(upper.at(-2),upper.at(-1),p)<=0)upper.pop();upper.push(p)}
+  lower.pop();upper.pop();const hull=[...lower,...upper];
+  let changed=true;while(changed&&hull.length>10){changed=false;for(let i=0;i<hull.length;i++){const a=hull[(i+hull.length-1)%hull.length],b=hull[i],c=hull[(i+1)%hull.length];if(Math.abs(cross(a,b,c))/Math.hypot(c[0]-a[0],c[1]-a[1])<.10){hull.splice(i,1);changed=true;break}}}
+  return 'M'+hull.map(p=>p.join(' ')).join('L')+'Z';
+ };
+ const curve=mesh=>{const c=mesh.geometry.parameters.path;return 'M'+pixel(c.v0,mesh).join(' ')+'Q'+pixel(c.v1,mesh).join(' ')+' '+pixel(c.v2,mesh).join(' ')};
+ const simplify=points=>{
+  const result=points.slice();if(result.length>1&&Math.hypot(result[0][0]-result.at(-1)[0],result[0][1]-result.at(-1)[1])<.01)result.pop();
+  const minX=Math.min(...result.map(p=>p[0])),maxX=Math.max(...result.map(p=>p[0])),minY=Math.min(...result.map(p=>p[1])),maxY=Math.max(...result.map(p=>p[1]));
+  let changed=true;while(changed&&result.length>12){changed=false;for(let i=0;i<result.length;i++){const a=result[(i+result.length-1)%result.length],b=result[i],c=result[(i+1)%result.length];if(b[0]===minX||b[0]===maxX||b[1]===minY||b[1]===maxY)continue;if(Math.abs(cross(a,b,c))/Math.hypot(c[0]-a[0],c[1]-a[1])<.08){result.splice(i,1);changed=true;break}}}return result;
+ };
+ const display=robot.root.getObjectByName('Curved violet display');
+ const projectedSurface=(x,y)=>pixel(robot.surfacePoint(x,y),display);
+ const eyes=robot.eyes.map((eye,i)=>{
+  const points=simplify(eye.userData.surfaceOutline.map(v=>pixel(v,eye)));
+  const x=eye.position.x,y=eye.position.y,ux=projectedSurface(x+.02,y),lx=projectedSurface(x-.02,y),uy=projectedSurface(x,y+.02),ly=projectedSurface(x,y-.02);
+  const a=ux[0]-lx[0],b=ux[1]-lx[1],c=uy[0]-ly[0],d=uy[1]-ly[1],det=a*d-b*c;
+  const blink=[-c*b/det,-d*b/det,c*a/det,d*a/det].map(v=>+v.toFixed(5));
+  return {open:'M'+points.map(p=>p.join(' ')).join('L')+'Z',smile:curve(robot.smileEyes[i]),center:pixel(new THREE.Vector3(),eye),blink};
+ });
+ return {eyes,mouth:curve(robot.root.getObjectByName('Soft smile')),screen:outline(display)};
+};
+window.exportModel=async()=>{robot.root.rotation.set(0,0,0);for(const eye of robot.eyes)eye.scale.set(1,1,1);const times=[],rotations=[],scales=[];for(let i=0;i<=800;i++){const t=i/25,pose=robotPose(t);times.push(t);rotations.push(0,Math.sin(pose.yaw/2),0,Math.cos(pose.yaw/2));scales.push(1,pose.blink,1)}const tracks=[new THREE.QuaternionKeyframeTrack(robot.root.name+'.quaternion',times,rotations),...robot.eyes.map(eye=>new THREE.VectorKeyframeTrack(eye.name+'.scale',times,scales))];const clip=new THREE.AnimationClip('Natural idle turn and blink',32,tracks);const buffer=await new GLTFExporter().parseAsync(robot.root,{binary:true,onlyVisible:true,animations:[clip]});let s='';for(const b of new Uint8Array(buffer))s+=String.fromCharCode(b);return btoa(s)};
+window.renderPose(.55);window.ready=true;
+</script></html>

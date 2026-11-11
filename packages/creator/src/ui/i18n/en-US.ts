@@ -1014,7 +1014,7 @@ export const enUS = {
     "agent-state-sync": "Anchor a CI job with a ToolCall, then update its JobProgress through STATE_DELTA.",
     "tool-error": "Fail the Agent Run through RUN_ERROR after a tool call starts but before its result arrives.",
     "approval-resume": "Read metadata.langgraph.raw from RUN_FINISHED and send decisions through resume[].",
-    "approval-legacy": "Read the JSON string in CUSTOM on_interrupt and send decisions through forwardedProps.command.",
+    "approval-legacy": "Read the object in CUSTOM ON_INTERRUPT and send decisions through forwardedProps.command.",
     "reasoning-tool-success": "Simulate reasoning, a tool call, further reasoning, and the final response.",
     "cancel-before-first-output": "Wait 10 seconds before the first output. Click Stop to explore cancellation of an empty response.",
     "composer-mention": "Type @ to search a demo directory, select a person, and send. Inspect the stable employee ID in the request.",

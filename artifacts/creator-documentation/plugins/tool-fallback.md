@@ -22,7 +22,7 @@
 
 | 格式   | 后端返回                                                              | 用户决定的回传位置                          | Mock 场景           |
 | ---- | ----------------------------------------------------------------- | ---------------------------------- | ----------------- |
-| 旧版格式 | `CUSTOM`，`name: "on_interrupt"`，`value` 为 JSON 字符串                | `forwardedProps.command.decisions` | `approval-legacy` |
+| 旧版格式 | `CUSTOM`，`name: "ON_INTERRUPT"`，`value` 为对象                       | `forwardedProps.command.decisions` | `approval-legacy` |
 | 新版格式 | `RUN_FINISHED.outcome.interrupts`，审批内容位于 `metadata.langgraph.raw` | `resume[].payload.decisions`       | `approval-resume` |
 
 ### 两种格式共用的工具调用
@@ -50,16 +50,38 @@
 
 `action_requests[].name`、`args` 必须与等待结果的工具调用匹配。没有 `toolCallId` 的审批按工具名和参数做唯一匹配；存在多个相同调用时不会猜测绑定。
 
-### 旧版格式：CUSTOM on_interrupt
+### 旧版格式：CUSTOM ON_INTERRUPT
 
-`value` 是序列化后的 JSON 字符串，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
+`value` 是对象，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
 
 ```json
 [
   {
     "type": "CUSTOM",
-    "name": "on_interrupt",
-    "value": "{\"action_requests\":[{\"name\":\"confirm_take_leave_policy\",\"args\":{\"user\":\"杨康\",\"leave_policy\":\"年假\"},\"description\":\"请确认您的请假方案\\n\\nTool: confirm_take_leave_policy\\nArgs: {'user': '杨康', 'leave_policy': '年假'}\"}],\"review_configs\":[{\"action_name\":\"confirm_take_leave_policy\",\"allowed_decisions\":[\"approve\",\"edit\",\"reject\",\"respond\"]}]}"
+    "name": "ON_INTERRUPT",
+    "value": {
+      "action_requests": [
+        {
+          "name": "confirm_take_leave_policy",
+          "args": {
+            "user": "杨康",
+            "leave_policy": "年假"
+          },
+          "description": "请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"
+        }
+      ],
+      "review_configs": [
+        {
+          "action_name": "confirm_take_leave_policy",
+          "allowed_decisions": [
+            "approve",
+            "edit",
+            "reject",
+            "respond"
+          ]
+        }
+      ]
+    }
   },
   {
     "type": "RUN_FINISHED",
@@ -85,7 +107,7 @@
 }
 ```
 
-此格式通过 `forwardedProps.command` 继续，不填写标准 `resume[]`。
+此格式通过 `forwardedProps.command` 继续，不填写标准 `resume[]`。 Runtime 也兼容小写 `on_interrupt` 和 JSON 字符串 `value`；本示例恢复使用原有大写名称和对象格式。
 
 ### 新版格式：RUN_FINISHED interrupt
 
