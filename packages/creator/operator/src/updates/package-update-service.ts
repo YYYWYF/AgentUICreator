@@ -12,6 +12,8 @@ export interface PackageVersionUpdate {
   declared?: string; updateAvailable: boolean; historyIncomplete: boolean;
   summary: { id: string; summary: string; kind: "feature" | "fix" | "breaking"; pluginId?: string; versions: string[] }[];
   history: CompatibilityRelease["packages"][number]["changes"];
+  versionHistory?: PackageVersionUpdate["history"];
+  versions?: string[];
 }
 export interface PackageUpdateOverview {
   status: ReleaseDiscovery["status"]; checkedAt: string; fetchedAt?: string; digest?: string;
@@ -90,14 +92,16 @@ export class PackageUpdateService {
         const target=selected!.packages.find(entry=>entry.name===pkg.name)!;
         const historicalChanges = releases.filter(release=>Date.parse(release.publishedAt)<=Date.parse(selected!.publishedAt)).flatMap(release=>release.packages.find(entry=>entry.name===pkg.name)?.changes ?? []);
         const unique = new Map(historicalChanges.map(change=>[JSON.stringify([change.version,change.id,change.pluginId,change.kind,change.summary]),change]));
-        const history=[...unique.values()].filter(change=>pkg.currentVersion&&compare(change.version,pkg.currentVersion)>0&&compare(change.version,target.version)<=0).sort((a,b)=>compare(b.version,a.version));
+        const versionHistory=[...unique.values()].filter(change=>compare(change.version,target.version)<=0).sort((a,b)=>compare(b.version,a.version));
+        const versions=[...new Set(releases.filter(release=>Date.parse(release.publishedAt)<=Date.parse(selected!.publishedAt)).flatMap(release=>release.packages.filter(entry=>entry.name===pkg.name&&compare(entry.version,target.version)<=0).map(entry=>entry.version)))].sort((a,b)=>compare(b,a));
+        const history=versionHistory.filter(change=>pkg.currentVersion&&compare(change.version,pkg.currentVersion)>0);
         const summary=new Map<string,PackageVersionUpdate["summary"][number]>();
         for(const change of history){
           const key=JSON.stringify([change.id,change.pluginId,change.kind,change.summary]);const entry=summary.get(key);
           if(entry){if(!entry.versions.includes(change.version))entry.versions.push(change.version);}
           else summary.set(key,{id:change.id,summary:change.summary,kind:change.kind,...(change.pluginId?{pluginId:change.pluginId}:{}),versions:[change.version]});
         }
-        return {...pkg,targetVersion:target.version,updateAvailable:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0,historyIncomplete:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0&&(!target.historyFrom||compare(target.historyFrom,pkg.currentVersion)>0||history.length===0),history,summary:[...summary.values()]};
+        return {...pkg,targetVersion:target.version,updateAvailable:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0,historyIncomplete:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0&&(!target.historyFrom||compare(target.historyFrom,pkg.currentVersion)>0||history.length===0),history,versionHistory,versions,summary:[...summary.values()]};
       });
     }
     overview.fingerprint=createHash("sha256").update(JSON.stringify([overview.digest,overview.recommendedReleaseId,overview.packages.map(pkg=>[pkg.name,pkg.currentVersion,pkg.targetVersion])])).digest("hex");

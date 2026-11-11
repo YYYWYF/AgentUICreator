@@ -58,7 +58,7 @@ export class OwnedPluginUpdateService {
         await assertNoSymbolicLinkTraversal(path.dirname(catalogPath),changelogFile.path);
         const bytes=await readFile(path.join(path.dirname(catalogPath),...changelogFile.path.split("/")));
         if(hash(bytes.toString())!==changelogFile.sha256)throw new Error("PLUGIN_SOURCE_CHANGELOG_INTEGRITY");
-        changelog=Object.entries(JSON.parse(bytes.toString()) as Record<string,ChangelogEntry>).filter(([version])=>comparePluginVersions(version,owner.pluginVersion)>0&&comparePluginVersions(version,snapshot.pluginVersion)<=0).map(([version,entry])=>({version,entry}));
+        changelog=Object.entries(JSON.parse(bytes.toString()) as Record<string,ChangelogEntry>).filter(([version])=>comparePluginVersions(version,snapshot.pluginVersion)<=0).sort(([a],[b])=>comparePluginVersions(b,a)).map(([version,entry])=>({version,entry}));
       }
       result.push({pluginId:id,name:JSON.parse(text(manifest.target)!).name,currentVersion:owner.pluginVersion,targetVersion:snapshot.pluginVersion,
         sourceRelease:null,status:snapshot.mergeFiles.some(file=>file.local!==file.base)?"customized":"managed",

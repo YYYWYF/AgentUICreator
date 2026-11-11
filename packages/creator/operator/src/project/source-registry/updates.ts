@@ -3,7 +3,7 @@ import { isPluginApplication } from "../plugin-application";
 import { readPluginSourceOwnership } from "../plugin-source-ownership";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { comparePluginVersions, isAgentUISourceItemAvailable, InstalledUpdateSourceProvider, resolveAgentUISourceItemClosure, type UpdateSourceProvider, type ResolvedSourceRelease } from "../../source-catalog/index.js";
+import { comparePluginVersions, isAgentUISourceItemAvailable, InstalledUpdateSourceProvider, projectSourceRegistryRoot, resolveAgentUISourceItemClosure, type UpdateSourceProvider, type ResolvedSourceRelease } from "../../source-catalog/index.js";
 import { readAgentUIProjectConfig } from "../project-mode";
 import { resolveAgentUIProjectPaths, operatorConfigForPaths } from "../agent-ui-project-paths";
 import { inspectAgentUISources } from "./inspector";
@@ -19,7 +19,10 @@ interface StoredPlan { projectRoot: string; release: ResolvedSourceRelease; stat
 export class AgentUIUpdateService {
   private readonly owned = new OwnedPluginUpdateService();
   private readonly plans = new Map<string, StoredPlan>();
-  constructor(readonly provider: UpdateSourceProvider = new InstalledUpdateSourceProvider(), readonly creatorVersion?: string, readonly supportedContractVersion = 1) {}
+  constructor(readonly provider?: UpdateSourceProvider, readonly creatorVersion?: string, readonly supportedContractVersion = 1) {}
+  private providerFor(projectRoot: string): UpdateSourceProvider {
+    return this.provider ?? new InstalledUpdateSourceProvider(projectSourceRegistryRoot(projectRoot));
+  }
   private compatibility(release: ResolvedSourceRelease): UpdateCompatibility {
     if (release.descriptor.contractVersion > this.supportedContractVersion || (release.descriptor.minimumCreatorVersion && (!this.creatorVersion || comparePluginVersions(this.creatorVersion, release.descriptor.minimumCreatorVersion) < 0))) return "creator-upgrade-required";
     if (release.descriptor.contractVersion !== this.supportedContractVersion) return "unsupported";
@@ -40,28 +43,31 @@ export class AgentUIUpdateService {
     return { config, inspection, lock, lockHash, stateHash: sha256(inspection.stateHash + serializeAgentUISourceLock(lock).toString()) };
   }
   async inspect(projectRoot: string, options?: { readOnly?: boolean }): Promise<UpdateInspection> {
-    const latest = await this.provider.getLatestRelease();
-    const release = await this.provider.resolveRelease(latest.releaseVersion);
+    const provider = this.providerFor(projectRoot);
+    const latest = await provider.getLatestRelease();
+    const release = await provider.resolveRelease(latest.releaseVersion);
     const { lock, inspection } = await this.context(projectRoot, release, options?.readOnly === true);
     const ownedPlugins = await this.owned.inspect(projectRoot);
     const ownedIds = new Set(ownedPlugins.map(plugin=>plugin.pluginId));
     const plugins: PluginUpdate[] = [...ownedPlugins];
-const projectPaths = await resolveAgentUISourceRoots(projectRoot, operatorConfigForPaths(resolveAgentUIProjectPaths(projectRoot, (await readAgentUIProjectConfig(projectRoot)).config)));
+    const pluginNames: Record<string, string> = Object.fromEntries(ownedPlugins.map(plugin => [plugin.pluginId, plugin.name]));
+    const projectPaths = await resolveAgentUISourceRoots(projectRoot, operatorConfigForPaths(resolveAgentUIProjectPaths(projectRoot, (await readAgentUIProjectConfig(projectRoot)).config)));
     for (const [id, target] of Object.entries(release.descriptor.plugins).sort()) {
+      const manifest = release.registry.byId.get(`plugin/${id}`)!.loadedFiles.find(file => file.target === `plugins/${id}/manifest.json`)!;
+      pluginNames[id] = JSON.parse(manifest.content.toString()).name ?? id;
       if (ownedIds.has(id)) continue;
       if (await isPluginApplication(path.join(projectPaths.sourceRoot,"plugins",id),id)) continue;
       const locked = lock.items[`plugin/${id}`];
       if (!locked) continue;
       const currentVersion = locked.pluginVersion ?? null;
-      const manifest = release.registry.byId.get(`plugin/${id}`)!.loadedFiles.find(file => file.target === `plugins/${id}/manifest.json`)!;
       // Legacy locks have no trustworthy release provenance. Surface recovery instead of guessing BASE.
       const updateAvailable = currentVersion === null || comparePluginVersions(target.version, currentVersion) > 0;
-      plugins.push({ pluginId: id, name: JSON.parse(manifest.content.toString()).name ?? id, currentVersion, targetVersion: target.version, sourceRelease: locked.sourceRelease ?? null,
+      plugins.push({ pluginId: id, name: pluginNames[id]!, currentVersion, targetVersion: target.version, sourceRelease: locked.sourceRelease ?? null,
         status: inspection.items.find(item => item.id === `plugin/${id}`)!.status, updateAvailable,
         changelog: Object.entries(release.changelogs[id] ?? {}).filter(([version]) => (!currentVersion || comparePluginVersions(version, currentVersion) > 0) && comparePluginVersions(version, target.version) <= 0)
           .sort(([a], [b]) => comparePluginVersions(a, b)).map(([version, entry]) => ({ version, entry })) });
     }
-    return { releaseVersion: latest.releaseVersion, compatibility: this.compatibility(release), plugins,
+    return { releaseVersion: latest.releaseVersion, compatibility: this.compatibility(release), plugins, pluginNames,
       fingerprint: sha256(plugins.filter(plugin => plugin.updateAvailable).map(plugin => `${plugin.pluginId}@${plugin.targetVersion}:${plugin.packageVersion ?? ""}`).sort().join("\n")) };
   }
   async plan(projectRoot: string, pluginIds: string[], releaseVersion: string): Promise<UpgradePlan> {
@@ -72,7 +78,7 @@ const projectPaths = await resolveAgentUISourceRoots(projectRoot, operatorConfig
       if(pluginIds.length!==1) throw new Error("PLUGIN_SOURCE_SYNC_ONE_AT_A_TIME");
       return this.owned.plan(projectRoot,pluginIds[0]!,releaseVersion);
     }
-    const release = await this.provider.resolveRelease(releaseVersion);
+    const release = await this.providerFor(projectRoot).resolveRelease(releaseVersion);
     const ctx = await this.context(projectRoot, release);
     const ownership = await readPluginSourceOwnership((await resolveAgentUISourceRoots(projectRoot, ctx.config)).metadataRoot);
     const sourcePaths = await resolveAgentUISourceRoots(projectRoot, ctx.config);
@@ -136,7 +142,7 @@ const projectPaths = await resolveAgentUISourceRoots(projectRoot, operatorConfig
     for (const entry of stored.plan.items.filter(item => item.changed && !item.provided)) {
       const locked = ctx.lock.items[entry.itemId];
       if (!locked?.sourceRelease && entry.status === "customized") throw new Error(`${entry.itemId} 缺少历史 Release，无法构建 BASE；请手动合并。`);
-      const historical = locked?.sourceRelease ? await this.provider.resolveRelease(locked.sourceRelease) : undefined;
+      const historical = locked?.sourceRelease ? await this.providerFor(projectRoot).resolveRelease(locked.sourceRelease) : undefined;
       const base = historical?.registry.byId.get(entry.itemId);
       const baselineVersionMatches = !entry.itemId.startsWith("plugin/") || historical?.descriptor.plugins[entry.itemId.slice(7)]?.version === locked?.pluginVersion;
       if (locked?.sourceRelease && (!baselineVersionMatches || !base || base.loadedFiles.some(file => locked.files[file.target]?.sha256 !== sha256(file.content)) || Object.keys(locked.files).length !== base.loadedFiles.length)) throw new Error("历史 Release 与 source-lock 基线不一致。");

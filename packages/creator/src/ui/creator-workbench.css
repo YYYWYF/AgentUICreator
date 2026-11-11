@@ -3094,6 +3094,66 @@
 .creator-source-diff-file > summary { overflow-wrap: anywhere; cursor: pointer; }
 .creator-source-diff-file h4 { margin: 10px 0 4px; font-size: 12px; font-weight: 600; }
 
+.creator-owned-plugin-overview { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.creator-owned-plugin-overview ul { display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.creator-owned-plugin-overview li { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; overflow-wrap: anywhere; }
+.creator-owned-plugin-overview button { max-width: 100%; height: auto; padding: 0; font-size: 12px; white-space: normal; text-align: left; }
+.creator-source-package-changes { padding-top: 10px; border-top: 1px solid var(--update-border); line-height: 1.75; }
+.creator-source-package-changes ul { padding-left: 16px; }
+.creator-update-plugin-card:focus-visible { outline: 2px solid var(--creator-primary); outline-offset: 2px; }
+
+/* Release-first update cards, shared by npm and separately maintained Plugins. */
+.creator-official-plugins { padding: 16px; border: 1px solid var(--update-border); border-radius: 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.creator-release-card-heading { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.creator-release-card-heading > div { flex: 1; min-width: 0; }
+.creator-release-card-heading h3 { font-size: 15px; font-weight: 650; }
+.creator-release-card-heading .creator-package-version { white-space: normal; }
+.creator-update-plugin-status[data-current="true"] { color: #15803d; background: #eefbf2; }
+.creator-update-page .creator-release { padding-top: 12px; border-top: 1px solid var(--update-border); min-width: 0; }
+.creator-release + .creator-release { margin-top: 12px; }
+.creator-release-heading { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.creator-release-heading > strong { font-size: 14px; color: var(--creator-foreground); }
+.creator-release-latest { color: var(--creator-primary); background: color-mix(in srgb, var(--creator-primary) 10%, transparent); border-radius: 4px; padding: 0 6px; font-size: 11px; }
+.creator-release-notes { color: var(--creator-foreground); line-height: 1.8; overflow-wrap: anywhere; }
+.creator-update-page .creator-release-notes { font-size: 14px; margin-block: 12px; }
+.creator-update-page .creator-release-notes > li + li { margin-top: 10px; }
+.creator-release-plugin { margin-top: 12px; }
+.creator-release-plugin > h4 { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.creator-update-page .creator-release-plugin > h4 + .creator-release-notes { margin-top: 4px; }
+.creator-other-package { margin-top: 16px; min-width: 0; }
+.creator-other-package > h4 { font-size: 13px; overflow-wrap: anywhere; }
+.creator-update-page .creator-update-muted { font-size: 13px; }
+.creator-update-page .creator-prepare-upgrade,
+.creator-update-page .creator-update-plan-entry { font-size: 14px; }
+.creator-dependency-details code { overflow-wrap: anywhere; }
+.creator-update-page .creator-package-version,
+.creator-update-page .creator-update-plugin-heading [data-slot="card-description"],
+.creator-update-page .creator-release-history > summary { font-size: 13px; }
+.creator-release-notes ul { margin: 4px 0 0; padding-left: 16px; }
+.creator-update-page .creator-release-history { background: var(--update-surface); border-radius: 8px; }
+.creator-update-page .creator-release-history[open] { padding-bottom: 10px; }
+.creator-update-page .creator-release-history > summary { padding: 9px 10px; width: 100%; color: var(--creator-foreground); border-radius: 8px; }
+.creator-update-page .creator-release-history > .creator-release { margin: 8px 10px 0; padding: 12px; background: var(--creator-background); border: 1px solid var(--update-border); border-radius: 7px; }
+.creator-update-page .creator-release-history > .creator-release:first-of-type { margin-top: 0; }
+.creator-update-page .creator-official-plugins .creator-prepare-upgrade { margin-top: 4px; }
+.creator-update-includes { text-align: center; }
+.creator-update-success { display: flex; align-items: flex-start; gap: 8px; color: #15803d; padding: 10px 0; font-size: 13px; overflow-wrap: anywhere; }
+.creator-update-success > svg { margin-top: 3px; }
+.creator-update-success p + p { margin-top: 4px; }
+.creator-package-progress { padding: 12px; border-radius: 8px; background: var(--update-surface); }
+.creator-package-progress > p { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.creator-package-progress ol { list-style: none; padding: 0; margin: 12px 0 0; display: flex; gap: 12px; flex-wrap: wrap; counter-reset: update-step; }
+.creator-package-progress li { counter-increment: update-step; color: var(--update-muted); display: flex; gap: 5px; align-items: center; }
+.creator-package-progress li::before { content: counter(update-step); display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--update-border); font-size: 11px; }
+.creator-package-progress li[data-active="true"] { color: var(--creator-primary); }
+.creator-package-progress li[data-active="true"]::before { color: var(--creator-primary-foreground); background: var(--creator-primary); }
+.creator-package-progress li[data-done="true"] { color: #15803d; }
+.creator-tool-record { padding: 10px 12px; border: 1px solid var(--update-border); border-radius: 8px; }
+.creator-tool-record > summary { width: 100%; display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+.creator-update-page .creator-tool-record { margin-top: 0; }
+.creator-update-page .creator-update-plan-entry { width: 100%; min-height: 34px; }
+@media (prefers-reduced-motion: reduce) { .creator-update-page .cui\:animate-spin { animation: none; } }
+
 .creator-integration-frameworks {
   display: flex;
   flex-wrap: wrap;

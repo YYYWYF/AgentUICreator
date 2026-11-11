@@ -21,8 +21,8 @@ export interface AgentUIProjectPaths {
   readonly runtimeRoot: string;
 }
 
-export function projectRelativePath(projectRoot: string, absolutePath: string): string {
-  return path.relative(projectRoot, absolutePath).split(path.sep).join("/");
+export function projectRelativePath(projectRoot: string, absolutePath: string, paths = path): string {
+  return paths.relative(paths.toNamespacedPath(projectRoot), paths.toNamespacedPath(absolutePath)).split(paths.sep).join("/");
 }
 
 export { AgentUISourceRootError, validateAgentUISourceRoot } from "../bootstrap/index.js";

@@ -21,6 +21,6 @@ export { parseCompatibilityManifest, compatibilityManifestSchema } from "./updat
 export type { CompatibilityManifest, CompatibilityRelease } from "./updates/compatibility-release.js";
 
 export { PackageUpgradeService } from "./updates/package-upgrade-service.js";
-export type { PackageUpgradePlan, PackageUpgradeResult } from "./updates/package-upgrade-service.js";
+export type { PackageUpgradePlan, PackageUpgradeResult, PackageUpgradeStage } from "./updates/package-upgrade-service.js";
 
 export { NpmCompatibilityReleaseProvider } from "./updates/npm-release-provider.js";

@@ -17,6 +17,10 @@ test("authoring module specifiers preserve spaces and Unicode on Windows", () =>
 
 test("authoring refresh preserves unchanged files and canonical owners while removing obsolete bridges", async () => {
   await prepareTypeScriptAuthoring();
+  assert.deepEqual(await readFile(path.join(root, ".typecheck/project/app-ui.json")), await readFile(path.join(workspace, "packages/creator/operator/presets/platform/app-ui.json")));
+  for (const asset of ["assistant-robot-still.png", "assistant-robot-frames-0.webp", "assistant-robot-frames-1.webp", "assistant-robot-frames-2.webp"]) {
+    assert.equal(existsSync(path.join(root, ".typecheck/resources/registry/items/foundation/shell-assistant/files/application/shell", `${asset}.ts`)), false);
+  }
   const generated = path.join(root, ".typecheck/service-map.ts");
   const stale = path.join(root, ".typecheck/__obsolete-fixture.ts");
   const owner = path.join(root, "src/plugins/add-attachment-action/upstream/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx");

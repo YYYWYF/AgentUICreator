@@ -59,6 +59,15 @@ it("selects newest compatible stable combination, shows cumulative notes and doe
 it("collects intermediate release notes and flags missing history instead of asserting no changes",async()=>{
  const f=await feed();const target=release();target.packages.forEach(pkg=>{pkg.changes=[];delete (pkg as {historyFrom?:string}).historyFrom;});const earlier=release("1.0.1");earlier.publishedAt="2026-10-17T00:00:00Z";earlier.packages.forEach(pkg=>{pkg.changes=pkg.changes.filter(c=>c.version==="1.0.1");});f.set({schemaVersion:1,releases:[target,earlier]});const {root,tools}=await project();const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);const plugins=result.packages.find(pkg=>pkg.name===name("plugins"))!;expect(plugins.history).toHaveLength(1);expect(plugins.historyIncomplete).toBe(true);
 });
+it("keeps published version history readable after installation without reporting it as a new update",async()=>{
+ const f=await feed();const earlier=release("1.0.1");earlier.publishedAt="2026-10-17T00:00:00Z";earlier.packages.forEach(pkg=>{pkg.changes=pkg.changes.filter(change=>change.version==="1.0.1");});f.set({schemaVersion:1,releases:[release(),earlier]});
+ const {root,tools}=await project();
+ for(const pkg of [name("plugins"),name("core")])await writeFile(path.join(root,"node_modules",pkg,"package.json"),JSON.stringify({name:pkg,version:"1.0.8"}));
+ const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);
+ const plugins=result.packages.find(pkg=>pkg.name===name("plugins"))!;
+ expect(plugins.updateAvailable).toBe(false);expect(plugins.summary).toEqual([]);expect(plugins.history).toEqual([]);
+ expect(plugins.versions).toEqual(["1.0.8","1.0.1"]);expect(plugins.versionHistory?.map(change=>change.version)).toEqual(["1.0.8","1.0.4","1.0.1"]);
+});
 it("fails compatibility closed for missing Node/React/tools, mismatched declarations and downgrade",async()=>{
  const f=await feed();const r=release();Object.assign(r,{node:">=99",react:">=99",minimumCreatorVersion:"99.0.0"});f.set({schemaVersion:1,releases:[r]});const {root,tools}=await project();const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeUndefined();expect(result.blockedReleases[0]!.issues.map(i=>i.code)).toEqual(expect.arrayContaining(["node","react","creator"]));
 });

@@ -6,7 +6,7 @@ import {
   type AgentUIProjectConfig,
 } from "../bootstrap/index.js";
 import { installManagedOperator, MANAGED_OPERATOR_ENTRY } from "../install.mjs";
-import { officialPackagePlugins, loadAgentUISourceRegistry } from "../source-catalog/index.js";
+import { officialPackagePlugins, loadProjectAgentUISourceRegistry } from "../source-catalog/index.js";
 
 import { parseAppUIModel, type AppUIModel } from "../framework/contracts/app-ui-model";
 import { stringifyAppUIModel } from "./app-ui-serialization";
@@ -52,7 +52,7 @@ export function createAgentUIInitializationHost() {
       if (await exists(paths.sourceLockPath)) {
         throw new AgentUIInitializationError("AGENT_UI_PROJECT_INVALID_STATE", "An uninitialized project already has source-lock.json.");
       }
-      const registry = await loadAgentUISourceRegistry();
+      const registry = await loadProjectAgentUISourceRegistry(projectRoot);
       const items = resolveAgentUISourceItems(registry, itemIds);
       const applicationPaths = plannedPluginApplicationPaths(projectRoot,projectConfig,paths,new Set(items.filter(item => item.id.startsWith("plugin/")).map(item => item.id.slice(7))));
       for(const file of applicationPaths){
@@ -82,7 +82,7 @@ export function createAgentUIInitializationHost() {
     },
     async installSources(projectRoot, itemIds, projectConfig) {
       const { config } = context(projectRoot, projectConfig);
-      return installAgentUISourceItems(projectRoot, itemIds, config);
+      return installAgentUISourceItems(projectRoot, itemIds, config, await loadProjectAgentUISourceRegistry(projectRoot));
     },
     async writeAppUIModel(projectRoot, model, projectConfig) {
       const { paths } = context(projectRoot, projectConfig);

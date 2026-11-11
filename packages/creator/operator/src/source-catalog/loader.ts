@@ -1,7 +1,10 @@
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readPackageIdentity } from "../updates/package-identity.js";
+import { officialPackageNames } from "../updates/compatibility-release.js";
 
 import {
   AgentUISourceRegistryError,
@@ -27,6 +30,28 @@ export const DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT = isSourceMode && existsSync(
   : path.join(path.dirname(fileURLToPath(import.meta.resolve("@za38.03/agent-ui-plugins/catalog.json"))), "resources", "registry");
 
 let workspaceSourceLayout: Promise<Map<string, string>> | undefined;
+
+/** Project tooling reads the same installed Plugins package as the generated app. */
+export function projectSourceRegistryRoot(projectRoot: string): string {
+  return path.dirname(createRequire(path.join(projectRoot, "package.json"))
+    .resolve("@za38.03/agent-ui-plugins/source-registry/registry.json"));
+}
+
+export async function loadProjectAgentUISourceRegistry(projectRoot: string): Promise<LoadedAgentUISourceRegistry> {
+  const installed = await readPackageIdentity(projectRoot, "@za38.03/agent-ui-plugins");
+  // Preserve Creator-only dependency preparation; installed packages never fall back to tool assets.
+  if (!installed) return loadAgentUISourceRegistry();
+  const registry = await loadAgentUISourceRegistry(projectSourceRegistryRoot(projectRoot));
+  const names = new Set(registry.items.flatMap(item => Object.keys(item.packages ?? {}))
+    .filter(name => officialPackageNames.includes(name)));
+  const packages = await Promise.all([...names].map(name => readPackageIdentity(projectRoot, name)));
+  // Installed official dependencies are authoritative; template release pins are not compatibility constraints.
+  for (const item of registry.items) {
+    for (const pkg of packages) if (pkg && item.packages?.[pkg.name] !== undefined) item.packages[pkg.name] = pkg.version;
+    if (item.id.startsWith("plugin/")) item.packages = { ...item.packages, [installed.name]: installed.version };
+  }
+  return registry;
+}
 
 async function resolveWorkspaceSourceView(view: string): Promise<string | undefined> {
   workspaceSourceLayout ??= (async () => {

@@ -62,7 +62,8 @@ for(const manager of ["npm","pnpm"] as const)it(`installs verified artifacts wit
  const {root,service}=await setup(manager),before=await readFile(path.join(root,"app-ui/composer.tsx"));
  const plan=await service.plan(root);expect(plan.manager).toBe(manager);expect(plan.packages[0]!.target).toBe("0.0.2");
  expect(JSON.parse(await readFile(path.join(root,"package.json"),"utf8")).dependencies[name]).toBe("0.0.1");
- expect(await service.execute(root,plan.id)).toMatchObject({status:"installed"});
+ const stages:string[]=[];expect(await service.execute(root,plan.id,stage=>{stages.push(stage);if(stage==="checking")throw new Error("observer disconnected");})).toMatchObject({status:"installed"});
+ expect(stages).toEqual(["installing","checking"]);
  expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.2");
  expect(await readFile(path.join(root,"app-ui/composer.tsx"))).toEqual(before);expect(await readFile(path.join(root,"plugins/owned.ts"),"utf8")).toBe("// LOCAL custom source");expect(await readFile(path.join(root,"plugins/base.json"),"utf8")).toBe('"original BASE"');
  expect(await service.recovery(root)).toBeNull();
@@ -74,7 +75,7 @@ it("rejects stale plans and forged confirmation IDs without changing dependencie
 it("restores manifest, exact lock and actual old installed version after validation fails",async()=>{
  const {root,provider,overview}=await setup();const before=await readFile(path.join(root,"package.json"),"utf8"),lock=await readFile(path.join(root,"package-lock.json"),"utf8");
  let fail=true;const service=new PackageUpgradeService(provider,overview,async(root,command,args)=>{const output=await runUpdateCommand(root,command,args);if(fail&&args[0]==="install"){fail=false;throw new Error("injected validation failure");}return output;});
- const plan=await service.plan(root);expect(await service.execute(root,plan.id)).toMatchObject({status:"restored"});
+ const plan=await service.plan(root);const stages:string[]=[];expect(await service.execute(root,plan.id,stage=>stages.push(stage))).toMatchObject({status:"restored"});expect(stages).toEqual(["installing","recovering"]);
  expect(await readFile(path.join(root,"package.json"),"utf8")).toBe(before);expect(await readFile(path.join(root,"package-lock.json"),"utf8")).toBe(lock);expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.1");
 },60000);
 it("persists failed recovery across service restart and retries the original lock install",async()=>{

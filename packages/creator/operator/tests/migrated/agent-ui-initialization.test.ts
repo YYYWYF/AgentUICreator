@@ -35,7 +35,7 @@ async function hostProject(sourceParent?: string, linkDependencies = true): Prom
     dependencies: examplePackage.dependencies,
   }));
   if (linkDependencies) {
-    await symlink(path.join(exampleRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+    await symlink(path.join(exampleRoot, "node_modules"), path.join(projectRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
   }
   if (sourceParent !== undefined) await mkdir(path.join(projectRoot, sourceParent), { recursive: true });
   return projectRoot;
@@ -71,7 +71,7 @@ describe("Agent UI project setup", () => {
     const root = await hostProject();
     const external = await mkdtemp(path.join(os.tmpdir(), "agent-ui-external-"));
     roots.push(external);
-    await symlink(external, path.join(root, "linked"), "dir");
+    await symlink(external, path.join(root, "linked"), process.platform === "win32" ? "junction" : "dir");
     const validation = await validateAgentUIProjectSetup({ projectRoot: root, mode: "assistant", sourceRoot: "linked/agent-ui" });
     expect(validation.valid).toBe(false);
     expect(validation.issues.some((issue) => issue.code === "AGENT_UI_SOURCE_ROOT_INVALID")).toBe(true);

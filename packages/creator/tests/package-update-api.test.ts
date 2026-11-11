@@ -4,11 +4,11 @@ import { mkdir, mkdtemp, readFile, readdir, writeFile, rm, symlink } from "node:
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { afterEach, it, expect } from "vitest";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-creator/source-registry";
+import { afterEach, it, expect, vi } from "vitest";
+import { PackageUpgradeService } from "@za38.03/agent-ui-creator/project/updates";
 import { createCreatorUpdateHandler } from "../src/updates/update-api.js";
 const servers:Server[]=[];const roots:string[]=[];
-afterEach(async()=>{for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});});
+afterEach(async()=>{vi.restoreAllMocks();for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});});
 async function listen(server:Server){servers.push(server);await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));return `http://127.0.0.1:${(server.address() as {port:number}).port}`;}
 it("connects real HTTP publisher to Creator check API, preserves local files, and keeps source updates installed-version based",async()=>{
  const root=await mkdtemp(path.join(tmpdir(),"creator-update-api-"));roots.push(root);const repo=fileURLToPath(new URL("../../..",import.meta.url));
@@ -19,14 +19,14 @@ it("connects real HTTP publisher to Creator check API, preserves local files, an
  let calls=0;let fail=false;
  const publisher=await listen(createServer((_req,res)=>{calls++;if(fail){res.writeHead(503);res.end();return;}res.setHeader("Content-Type","application/json");res.end(JSON.stringify({schemaVersion:1,releases:[{id:"official-next",publishedAt:"2026-10-18T00:00:00Z",channel:"stable",packages:["core","renderer","runtime","plugins","creator"].map(id=>({name:`@za38.03/agent-ui-${id}`,version:"0.0.2",requires:{},historyFrom:"0.0.1",changes:id==="plugins"?[{id:"new-input",version:"0.0.2",summary:"New Composer input feature",kind:"feature",pluginId:"composer"}]:[]}))}]}));}));
  const config=path.join(root,"tool-config");await mkdir(path.join(config,".agent-ui","creator"),{recursive:true});await writeFile(path.join(config,".agent-ui/creator/.env.local"),`CREATOR_UPDATE_MANIFEST_URL=${publisher}/releases.json\n`);
- const registry=await loadAgentUISourceRegistry();
- const descriptor={releaseVersion:"0.0.1",contractVersion:1,plugins:{}};
- // This npm-only project has no legacy source-release baseline; source takeover/sync has its own integration flow.
- const sourceProvider={getLatestRelease:async()=>descriptor,resolveRelease:async()=>({registry,descriptor,changelogs:{}})};
- const handler=createCreatorUpdateHandler(undefined,root,sourceProvider,{configRoot:config,environment:{}});
+ // Use the project's installed package resources, including canonical Plugin names.
+ const handler=createCreatorUpdateHandler(undefined,root,undefined,{configRoot:config,environment:{}});
  const api=await listen(createServer((req,res)=>void handler(req,res)));
  const request=async(workspaceId=root)=>{const response=await fetch(`${api}/check`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceId,refresh:true})});return {status:response.status,body:await response.json()};};
  const first=await request();expect(first.status, JSON.stringify(first.body)).toBe(200);expect(first.body.packageUpdates.status).toBe("online");expect(first.body.packageUpdates.packages.find((pkg:{name:string})=>pkg.name.endsWith("-plugins")).currentVersion).toBe("0.0.1");expect(first.body.packageUpdates.packages.find((pkg:{name:string})=>pkg.name.endsWith("-plugins")).targetVersion).toBe("0.0.2");expect(first.body.plugins).toEqual([]);expect(first.body.releaseVersion).toBe("0.0.1");
+ const reloadManifest=JSON.parse(await readFile(path.join(repo,"packages/plugins/src/plugins/reload-action/plugin.json"),"utf8"));
+ expect(first.body.pluginNames[reloadManifest.id]).toBe(reloadManifest.name);
+ expect(first.body.packageUpdates.packages.find((pkg:{name:string})=>pkg.name.endsWith("-plugins")).history[0]).toMatchObject({pluginId:"composer",summary:"New Composer input feature"});
  expect(await readFile(customization,"utf8")).toBe("// preserved app customization\r\n");expect(await readdir(path.join(root,".agent-ui"))).toEqual(["project.json"]);
  fail=true;const cached=await request();expect(cached.body.packageUpdates.status).toBe("cached");expect(calls).toBe(2);expect((await request("different-project")).status).toBe(409);
  const pending=path.join(root,".agent-ui/source-project-transaction.json");const journal='{ "interrupted": true }';await writeFile(pending,journal);const blocked=await request();expect(blocked.status).toBe(409);expect(blocked.body.error).toBe("AGENT_UI_UPDATE_RECOVERY_REQUIRED");expect(await readFile(pending,"utf8")).toBe(journal);expect(await readFile(customization,"utf8")).toBe("// preserved app customization\r\n");
@@ -37,4 +37,20 @@ it("connects real HTTP publisher to Creator check API, preserves local files, an
  const recovery=await request();expect(recovery.status).toBe(200);expect(recovery.body.packageUpdates.recovery).toEqual({id:"recover-id",state:"recovery-required"});expect(recovery.body.plugins).toEqual([]);
  expect((await invoke("/packages/recover",{planId:"recover-id",confirmed:false})).status).toBe(409);
  expect(await readFile(customization,"utf8")).toBe("// preserved app customization\r\n");
+});
+it("streams real execution stages on the existing confirmed route while retaining JSON clients",async()=>{
+ let finish!:()=>void;
+ const pending=new Promise<void>(resolve=>{finish=resolve;});
+ vi.spyOn(PackageUpgradeService.prototype,"execute").mockImplementation(async(_root,_id,onProgress)=>{
+  onProgress?.("installing");await pending;onProgress?.("checking");return {status:"installed",checks:["typecheck"]};
+ });
+ const handler=createCreatorUpdateHandler(undefined,"fixture-project");
+ const api=await listen(createServer((request,response)=>void handler(request,response)));
+ const request=(stream:boolean)=>fetch(`${api}/packages/execute`,{method:"POST",headers:{"Content-Type":"application/json",...(stream?{Accept:"application/x-ndjson"}:{})},body:JSON.stringify({workspaceId:"fixture-project",planId:"confirmed-plan",confirmed:true})});
+ const response=await request(true);expect(response.headers.get("content-type")).toContain("application/x-ndjson");
+ const reader=response.body!.getReader(),decoder=new TextDecoder();
+ expect(decoder.decode((await reader.read()).value)).toBe('{"stage":"installing"}\n');
+ finish();let remaining="";for(;;){const chunk=await reader.read();remaining+=decoder.decode(chunk.value);if(chunk.done)break;}
+ expect(remaining.trim().split('\n').map(line=>JSON.parse(line))).toEqual([{stage:"checking"},{result:{status:"installed",checks:["typecheck"]}}]);
+ const legacy=await request(false);expect(legacy.headers.get("content-type")).toContain("application/json");expect(await legacy.json()).toEqual({status:"installed",checks:["typecheck"]});
 });

@@ -1,6 +1,8 @@
 export {
   DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT,
   loadAgentUISourceRegistry,
+  loadProjectAgentUISourceRegistry,
+  projectSourceRegistryRoot,
 } from "./loader.js";
 export {
   AgentUISourceRegistryError,

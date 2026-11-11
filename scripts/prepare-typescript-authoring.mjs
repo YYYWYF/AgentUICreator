@@ -142,7 +142,8 @@ export async function prepareTypeScriptAuthoring() {
       const specifier = imported.fileName;
       if (!specifier.startsWith(".")) continue;
       const target = resolve(path.posix.normalize(path.posix.join(path.posix.dirname(view), specifier)), contexts.get(source));
-      if (!target) continue; // The compiler reports genuinely missing modules.
+      // Images and other assets use the existing Vite ambient declarations, not TS re-export bridges.
+      if (!target || !/\.(?:[cm]?[jt]sx?|json)$/u.test(target)) continue; // The compiler reports genuinely missing modules.
       const candidate = path.posix.normalize(path.posix.join(path.posix.dirname(source), specifier));
       if (candidate.startsWith("../") || path.posix.isAbsolute(candidate)) throw new Error(`Authoring import escapes package: ${source}: ${specifier}`);
       const physical = resolve(`package/${candidate}`);
@@ -174,6 +175,8 @@ export async function prepareTypeScriptAuthoring() {
     } finally { await rm(temporary, { force: true }); }
   }
   await writeGenerated(augmentationFile, [...augmentationImports, ...augmentations].join("\n") + "\n");
+  // Bootstrap writes this file in real projects; typecheck the template against the canonical preset.
+  await writeGenerated(path.join(output, "project/app-ui.json"), await readFile(path.join(workspace, "packages/creator/operator/presets/platform/app-ui.json")));
   for (const [bridge, { target, json, hasDefault }] of bridges) {
     const file = sourcePath(output, bridge);
     await mkdir(path.dirname(file), { recursive: true });

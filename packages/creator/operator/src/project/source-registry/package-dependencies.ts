@@ -6,5 +6,5 @@ export function packageSourceDependency(id: string) {
 
 export function withPackageDependency(item: LoadedAgentUISourceItem): LoadedAgentUISourceItem {
   const official = packageSourceDependency(item.id);
-  return official ? { ...item, packages: { ...item.packages, [official.runtime.package]: official.runtime.version } } : item;
+  return official ? { ...item, packages: { ...item.packages, [official.runtime.package]: item.packages?.[official.runtime.package] ?? official.runtime.version } } : item;
 }

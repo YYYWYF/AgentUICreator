@@ -38,7 +38,11 @@ export function createCreatorUpdateHandler(workspaceManager?: CreatorWorkspaceMa
           return { ...sources, packageUpdates: { ...packageUpdates, installationSupported: true, recovery: await upgrades.recovery(root) }, fingerprint: sources.fingerprint + ":" + packageUpdates.fingerprint };
         }
         if (route === "/packages/plan") return upgrades.plan(root);
-        if (route === "/packages/execute" && input.confirmed === true && typeof input.planId === "string") return upgrades.execute(root, input.planId);
+        if (route === "/packages/execute" && input.confirmed === true && typeof input.planId === "string") return upgrades.execute(root, input.planId, request.headers.accept === "application/x-ndjson" ? stage => {
+          if (response.destroyed) return;
+          if (!response.headersSent) response.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+          response.write(JSON.stringify({ stage }) + "\n");
+        } : undefined);
         if (route === "/packages/recover" && input.confirmed === true && typeof input.planId === "string") return upgrades.recover(root, input.planId);
         if (route === "/plan") {
           if (!Array.isArray(input.pluginIds) || input.pluginIds.some((id: unknown) => typeof id !== "string") || typeof input.releaseVersion !== "string") throw new Error("无效升级请求。");
@@ -53,13 +57,14 @@ export function createCreatorUpdateHandler(workspaceManager?: CreatorWorkspaceMa
       };
       const result = workspaceManager ? await workspaceManager.runProjectOperation(input.workspaceId, run, { mutation: route !== "/check" && route !== "/plan" && route !== "/packages/plan" }) :
         projectRoot && input.workspaceId === projectRoot ? await run(projectRoot) : (() => { throw new Error("当前项目已改变。"); })();
-      response.end(JSON.stringify(result));
+      response.end(JSON.stringify(response.headersSent ? { result } : result) + (response.headersSent ? "\n" : ""));
     } catch (error) {
       const message=error instanceof Error ? error.message : String(error);
       const packageRoute=request.url?.split("?")[0]?.startsWith("/packages/");
       const code=error && typeof error === "object" && "code" in error ? error.code : undefined;
       const safe=packageRoute ? code === "OPERATOR_BUSY" ? "PACKAGE_OPERATION_ACTIVE" : /^PACKAGE_[A-Z_]+$/.test(message) ? message : "PACKAGE_OPERATION_FAILED" : message;
-      response.statusCode = 409; response.end(JSON.stringify({ error: safe }));
+      if (!response.headersSent) response.statusCode = 409;
+      response.end(JSON.stringify({ error: safe }) + (response.headersSent ? "\n" : ""));
     }
   };
 }

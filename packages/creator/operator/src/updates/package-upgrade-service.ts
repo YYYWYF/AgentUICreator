@@ -20,6 +20,7 @@ export interface PackageUpgradePlan {
   checks:string[]; expiresAt:string;
 }
 export interface PackageUpgradeResult { status:"installed"|"restored"|"recovery-required"; checks:string[]; failure?:string; recoveryId?:string }
+export type PackageUpgradeStage = "installing" | "checking" | "recovering";
 interface Journal { schemaVersion:1; id:string; root:string; manager:"npm"|"pnpm"; lockfile:string; before:string; lockBefore:string; after:string; protectedHash:string; previous:{name:string;version:string}[]; state:"installing"|"recovering"|"recovery-required"; lockAfter?:string|null }
 interface Stored { root:string;plan:PackageUpgradePlan;before:string;lockBefore:string;after:string;protectedHash:string;identities:string;artifacts:VerifiedArtifact[] }
 const active=new Set<string>();
@@ -129,7 +130,9 @@ export class PackageUpgradeService {
     while(this.plans.size>=8)this.plans.delete(this.plans.keys().next().value!);
     this.plans.set(plan.id,{root,plan,before,lockBefore,after,protectedHash:protectedBefore,identities,artifacts});return plan;
   }
-  async execute(projectRoot:string,id:string):Promise<PackageUpgradeResult>{
+  async execute(projectRoot:string,id:string,onProgress?:(stage:PackageUpgradeStage)=>void):Promise<PackageUpgradeResult>{
+    // A disconnected progress observer must not change the install/recovery result.
+    const progress=(stage:PackageUpgradeStage)=>{try{onProgress?.(stage);}catch{}};
     const root=await realpath(projectRoot),stored=this.plans.get(id);
     if(!stored||stored.root!==root||Date.parse(stored.plan.expiresAt)<Date.now())throw new Error("PACKAGE_PLAN_STALE");
     if(active.has(root))throw new Error("PACKAGE_OPERATION_ACTIVE");active.add(root);
@@ -143,8 +146,10 @@ export class PackageUpgradeService {
       const journal:Journal={schemaVersion:1,id,root,manager:stored.plan.manager,lockfile:stored.plan.lockfile,before:stored.before,lockBefore:stored.lockBefore,after:stored.after,protectedHash:stored.protectedHash,previous:stored.plan.packages.map(p=>({name:p.name,version:p.current})),state:"installing"};
       await writeFile(path.join(root,journalName),JSON.stringify(journal),{flag:"wx",mode:0o600});this.plans.delete(id);
       try{
+        progress("installing");
         await writeFile(path.join(root,"package.json"),stored.after);
         await this.run(root,stored.plan.manager,["install","--ignore-scripts",...(stored.plan.manager==="pnpm"?["--no-frozen-lockfile"]:[])]);
+        progress("checking");
         await this.verify(root,stored.plan.packages.map(p=>({name:p.name,version:p.target})));
         const resolved=await this.overview.inspect(root);
         if(resolved.recommendedReleaseId!==stored.plan.releaseId||resolved.packages.some(pkg=>pkg.scope==="project"&&!stored.plan.packages.some(expected=>expected.name===pkg.name&&expected.target===pkg.currentVersion)))throw new Error("PACKAGE_INSTALLED_COMBINATION");
@@ -168,6 +173,7 @@ export class PackageUpgradeService {
       }catch(error){
         if(journal.lockAfter===undefined)journal.lockAfter=await optional(path.join(root,journal.lockfile));
         journal.state="recovery-required";await this.save(root,journal);
+        progress("recovering");
         const restored=await this.restore(root,journal);
         return {...restored, failure:error instanceof Error && /^PACKAGE_[A-Z_]+$/.test(error.message)?error.message:"PACKAGE_VALIDATION_FAILED"};
       }

@@ -27,6 +27,7 @@ import {
 } from "./transaction";
 import type { AgentUISourceApplyResult, AgentUISourceLock, AgentUISourceLockItem } from "./types";
 import { generatedSourceTargets } from "./generated-targets";
+import { withPackageDependency } from "./package-dependencies";
 
 export interface ApplyAgentUISourceItemInput {
   itemId: string;
@@ -57,9 +58,7 @@ export function resolveAgentUISourceItems(
   }
   return [...ordered.values()].map(item => {
     const official = item.id.startsWith("plugin/") ? officialPackagePlugin(item.id.slice(7)) : undefined;
-    return official ? { ...item, loadedFiles: [], files: [], packages: {
-      ...item.packages, [official.runtime.package]: official.runtime.version,
-    } } : item;
+    return official ? { ...withPackageDependency(item), loadedFiles: [], files: [] } : item;
   });
 }
 

@@ -4,7 +4,7 @@ export interface PluginUpdate {
   pluginId: string; name: string; currentVersion: string | null; targetVersion: string; sourceRelease: string | null;
   status: string; updateAvailable: boolean; changelog: { version: string; entry: import("./source-catalog/index.js").ChangelogEntry }[];
 }
-export interface UpdateInspection { packageUpdates?: import("./updates/package-update-service.js").PackageUpdateOverview; releaseVersion: string; compatibility: UpdateCompatibility; fingerprint: string; plugins: PluginUpdate[] }
+export interface UpdateInspection { packageUpdates?: import("./updates/package-update-service.js").PackageUpdateOverview; pluginNames?: Record<string, string>; releaseVersion: string; compatibility: UpdateCompatibility; fingerprint: string; plugins: PluginUpdate[] }
 export interface UpgradePlan {
   kind?: "owned-source";
   id: string; releaseVersion: string; compatibility: UpdateCompatibility; requestedPlugins: string[];

@@ -3,10 +3,9 @@ import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { satisfies, valid, validRange, intersects } from "semver";
 import { createDefaultAgentUIPresetRegistry, agentUIModeRegistry, initializeAgentUIProject, validateAgentUIProjectSetup, type InitializeAgentUIProjectInput } from "../bootstrap/index.js";
-import { loadAgentUISourceRegistry } from "../source-catalog/index.js";
+import { loadProjectAgentUISourceRegistry } from "../source-catalog/index.js";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { resolveAgentUISourceItems } from "./source-registry/installer";
-import { withPackageDependency } from "./source-registry/package-dependencies";
 import { createAgentUIInitializationHost } from "./bootstrap-host";
 import { detectResourcePackageManager } from "./ensure-resource-packages";
 import { ownPackageIdentity, readPackageIdentity } from "../updates/package-identity";
@@ -60,9 +59,9 @@ export async function planReactAgentUIProject(input: InitializeAgentUIProjectInp
   if (Object.entries(locks).some(([name, text]) => text !== undefined && name !== (manager === "npm" ? "package-lock.json" : "pnpm-lock.yaml"))) fail("AGENT_UI_SETUP_MANAGER_UNSUPPORTED");
   const original = await readFile(path.join(projectRoot, "package.json"), "utf8");
   const manifest = JSON.parse(original);
-  const registry = await loadAgentUISourceRegistry();
+  const registry = await loadProjectAgentUISourceRegistry(projectRoot);
   const preset = createDefaultAgentUIPresetRegistry(parseAppUIModel).getDefaultForMode(input.mode, agentUIModeRegistry);
-  const items = resolveAgentUISourceItems(registry, preset.sourceItems ?? []).map(withPackageDependency);
+  const items = resolveAgentUISourceItems(registry, preset.sourceItems ?? []);
   const required = new Map<string, Set<string>>();
   for (const item of items) for (const [name, range] of Object.entries(item.packages ?? {})) {
     required.set(name, new Set([...(required.get(name) ?? []), range]));

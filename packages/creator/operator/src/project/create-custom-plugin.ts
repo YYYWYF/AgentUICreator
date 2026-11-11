@@ -88,7 +88,7 @@ export async function createCustomPlugin(projectRoot: string, raw: CreateCustomP
   files.set(modelTarget, Buffer.from(stringifyAppUIModel(model)));
   const staged = await mkdtemp(path.join(tmpdir(), "agent-ui-custom-plugin-"));
   try {
-    await cp(projectRoot, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist"].includes(path.relative(projectRoot, source).split(path.sep)[0]!) && !isCreatorMetadataPath(projectRoot, source) });
+    await cp(projectRoot, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist"].includes(projectRelativePath(projectRoot, source).split("/")[0]!) && !isCreatorMetadataPath(projectRoot, source) });
     await symlink(path.resolve(projectRoot, "node_modules"), path.join(staged, "node_modules"), process.platform === "win32" ? "junction" : "dir");
     const stagedContext = await resourcePaths(staged);
     for (const [file, content] of files) {

@@ -14,6 +14,7 @@ import { parseAppUIModelJson, collectAppUIPluginLocations } from "../framework/c
 import { generatePluginRegistry } from "./registry-generator";
 import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
 import { isCreatorMetadataPath } from "./creator-metadata-path";
+import { projectRelativePath } from "./agent-ui-project-paths";
 import { detectResourcePackageManager, runResourcePackageCommand, type ResourcePackageRunner } from "./ensure-resource-packages";
 
 const pluginId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u);
@@ -170,7 +171,7 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
   const ownershipBytes = Buffer.from(JSON.stringify(ownership, null, 2) + "\n");
   const staged = await mkdtemp(path.join(tmpdir(), "agent-ui-takeover-"));
   try {
-    await cp(root, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist"].includes(path.relative(root, source).split(path.sep)[0]!) && !isCreatorMetadataPath(root, source) });
+    await cp(root, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist"].includes(projectRelativePath(root, source).split("/")[0]!) && !isCreatorMetadataPath(root, source) });
     await symlink(path.join(root, "node_modules"), path.join(staged, "node_modules"), process.platform === "win32" ? "junction" : "dir");
     const stage = await resourcePaths(staged);
     const mutations: { target: string; content?: Buffer | undefined }[] = [...changes].map(([file, content]) => ({ target: `plugins/${input.pluginId}/${application ? "source/" : ""}${file}`, content }));

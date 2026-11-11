@@ -2,6 +2,7 @@
 import { validateOperatorResult } from "../src/result-contract.mjs";
 import { verifyPluginChildSlots } from "../src/project/plugin-child-slot-verifier";
 import { OwnedPluginUpdateService } from "../src/project/owned-plugin-updates";
+import { AgentUIUpdateService } from "../src/project/source-registry/updates";
 import { commitAgentUISourceUpgrade } from "../src/project/source-registry/project-mutation";
 import { loadAgentUISourceRegistry } from "../src/source-catalog/index.js";
 import { ensurePluginApplication } from "../src/project/plugin-application";
@@ -15,6 +16,7 @@ import { build } from "vite";
 import { repositoryRoot } from "./support/generated-project";
 import { planPluginSourceTakeover, takeoverPluginSource } from "../src/project/takeover-plugin-source";
 import { resourcePaths } from "../src/project/optional-resource-paths";
+import { projectRelativePath } from "../src/project/agent-ui-project-paths";
 import { generatePluginRegistry, collectPluginProjectFacts } from "../src/project/registry-generator";
 import { collectPluginAssets } from "../src/project/plugin-assets";
 import { parseAppUIModelJson } from "../src/framework/contracts/app-ui-model";
@@ -30,7 +32,7 @@ async function fixture(id = "composer", ownPackage = false) {
   await writeFile(path.join(root,".agent-ui/project.json"),JSON.stringify({mode:"assistant",sourceRoot:"src/ui"}));
   await writeFile(path.join(root,"package.json"),JSON.stringify({type:"module",scripts:{typecheck:"tsc",build:"vite build",test:"vitest run"}}));
   const pkg = path.join(root,"node_modules/@za38.03/agent-ui-plugins");
-  if (ownPackage) await cp(path.join(repositoryRoot,"packages/plugins"),pkg,{recursive:true,filter: source => !["node_modules", ".generated"].includes(path.relative(path.join(repositoryRoot,"packages/plugins"),source).split(path.sep)[0]!)});
+  if (ownPackage) await cp(path.join(repositoryRoot,"packages/plugins"),pkg,{recursive:true,filter: source => !["node_modules", ".generated"].includes(projectRelativePath(path.join(repositoryRoot,"packages/plugins"),source).split("/")[0]!)});
   else await symlink(path.join(repositoryRoot,"packages/plugins"),pkg,process.platform === "win32" ? "junction":"dir");
   await symlink(path.join(repositoryRoot,"packages/runtime"),path.join(root,"node_modules/@za38.03/agent-ui-runtime"),process.platform === "win32" ? "junction":"dir");
   await symlink(path.join(repositoryRoot,"packages/creator/node_modules/react"),path.join(root,"node_modules/react"),process.platform === "win32" ? "junction":"dir");
@@ -306,6 +308,16 @@ it("keeps application props and composition through npm upgrade, takeover and im
   expect(await readFile(localHelper,"utf8")).toBe("export const localHelper = true;\n");
   expect(await readFile(index)).toEqual(after);
   expect((await service.inspect(root))[0]?.updateAvailable).toBe(false);
+
+  // Default discovery follows this project's package, even when the tool has a different release.
+  const releasePath = path.join(pkgRoot, "dist/resources/registry/release.json");
+  const release = JSON.parse(await readFile(releasePath, "utf8"));
+  release.releaseVersion = "98.0.0";
+  await writeFile(releasePath, JSON.stringify(release));
+  const overview = await new AgentUIUpdateService(undefined, "99.0.0").inspect(root, { readOnly: true });
+  expect(overview.releaseVersion).toBe("98.0.0");
+  expect(overview.pluginNames?.["reload-action"]).toBe(JSON.parse(await readFile(path.join(pkgRoot,"dist/sources/plugins/reload-action/plugin.json"),"utf8")).name);
+  expect(overview.plugins.find(plugin => plugin.pluginId === "composer")).toMatchObject({ delivery: "source-owned", updateAvailable: false, packageVersion: "99.0.0" });
 
 });
 
