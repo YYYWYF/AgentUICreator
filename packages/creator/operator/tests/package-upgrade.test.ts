@@ -25,6 +25,9 @@ async function setup(manager:"npm"|"pnpm"="npm", plugins=false){
       await writeFile(path.join(pkg,"package.json"),JSON.stringify({name,version,type:"module",exports:metadata.exports}));
       await cp(path.join(repo,"packages/plugins/dist"),path.join(pkg,"dist"),{recursive:true});
       const catalogFile=path.join(pkg,"dist/catalog.json"),catalog=JSON.parse(await readFile(catalogFile,"utf8"));catalog.package.version=version;
+      // This registry fixture deliberately publishes no third-party dependencies.
+      // Dependency planning and real presentation typechecks have separate coverage.
+      for (const record of catalog.plugins) if (record.takeover) record.takeover.requiredDependencies = {};
       if(version==="0.0.2"){
         const record=catalog.plugins.find((p:{id:string})=>p.id==="composer");record.version=version;
         for(const file of record.takeover.files){

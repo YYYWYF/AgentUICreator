@@ -148,7 +148,7 @@ async function installedPackageVersion(
 
 export async function inspectAgentUIPackages(
   projectRoot: string,
-  items: readonly LoadedAgentUISourceItem[],
+  items: readonly Pick<LoadedAgentUISourceItem, "packages">[],
 ): Promise<{ packages: AgentUISourcePackageInspection[]; issues: AgentUISourceIssue[] }> {
   const packageJson = JSON.parse(await readFile(path.join(projectRoot, "package.json"), "utf8")) as unknown;
   const versions = dependencyVersions(packageJson);

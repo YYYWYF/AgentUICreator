@@ -5,11 +5,18 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { afterEach, it, expect, vi } from "vitest";
-import { PackageUpgradeService } from "@za38.03/agent-ui-creator/project/updates";
+import { AgentUIUpdateService, PackageUpgradeService } from "@za38.03/agent-ui-creator/project/updates";
 import { createCreatorUpdateHandler } from "../src/updates/update-api.js";
 const servers:Server[]=[];const roots:string[]=[];
 afterEach(async()=>{vi.restoreAllMocks();for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});});
 async function listen(server:Server){servers.push(server);await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));return `http://127.0.0.1:${(server.address() as {port:number}).port}`;}
+it.each(["PLUGIN_SOURCE_DEPENDENCY_CONFLICT", "PLUGIN_SOURCE_CONTEXT_DUPLICATED", "PLUGIN_SOURCE_DEPENDENCY_STATE_CHANGED", "PLUGIN_SOURCE_DEPENDENCIES_REQUIRED"])("returns a localizable source dependency code: %s", async code => {
+ vi.spyOn(AgentUIUpdateService.prototype,"plan").mockRejectedValue(Object.assign(new Error("Internal dependency diagnostic"),{code}));
+ const handler=createCreatorUpdateHandler(undefined,"fixture-project");
+ const api=await listen(createServer((request,response)=>void handler(request,response)));
+ const response=await fetch(`${api}/plan`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({workspaceId:"fixture-project",pluginIds:["composer"],releaseVersion:"0.0.1"})});
+ expect(response.status).toBe(409);expect(await response.json()).toEqual({error:code});
+});
 it("connects real HTTP publisher to Creator check API, preserves local files, and keeps source updates installed-version based",async()=>{
  const root=await mkdtemp(path.join(tmpdir(),"creator-update-api-"));roots.push(root);const repo=fileURLToPath(new URL("../../..",import.meta.url));
  for(const dir of [".agent-ui","src/agent-ui/plugins","src/agent-ui/app-ui","node_modules/@za38.03"])await mkdir(path.join(root,dir),{recursive:true});

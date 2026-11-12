@@ -62,7 +62,8 @@ export function createCreatorUpdateHandler(workspaceManager?: CreatorWorkspaceMa
       const message=error instanceof Error ? error.message : String(error);
       const packageRoute=request.url?.split("?")[0]?.startsWith("/packages/");
       const code=error && typeof error === "object" && "code" in error ? error.code : undefined;
-      const safe=packageRoute ? code === "OPERATOR_BUSY" ? "PACKAGE_OPERATION_ACTIVE" : /^PACKAGE_[A-Z_]+$/.test(message) ? message : "PACKAGE_OPERATION_FAILED" : message;
+      const sourceDependencyCode=typeof code === "string" && /^PLUGIN_SOURCE_(?:DEPENDENCY_CONFLICT|CONTEXT_DUPLICATED|DEPENDENCY_STATE_CHANGED|DEPENDENCIES_REQUIRED)$/.test(code);
+      const safe=packageRoute ? code === "OPERATOR_BUSY" ? "PACKAGE_OPERATION_ACTIVE" : /^PACKAGE_[A-Z_]+$/.test(message) ? message : "PACKAGE_OPERATION_FAILED" : sourceDependencyCode ? code : message;
       if (!response.headersSent) response.statusCode = 409;
       response.end(JSON.stringify({ error: safe }) + (response.headersSent ? "\n" : ""));
     }

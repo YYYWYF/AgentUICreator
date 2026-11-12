@@ -1,4 +1,6 @@
-import { deliveries, portableSource, sourceEntries } from "./plugin-source-recipes.mjs";
+import { deliveries } from "./plugin-source-recipes.mjs";
+import { buildPluginTakeoverSources } from "./plugin-takeover-sources.mjs";
+import { pluginTakeoverStyles } from "./plugin-takeover-styles.mjs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -136,17 +138,22 @@ for (const delivery of deliveries) {
   const { id } = delivery;
   const plugin = plugins.find(plugin => plugin.id === id);
   const entries = [];
-  const add = async (target, origin, transform = text => text) => {
-    const bytes = Buffer.from(await transform(await readFile(path.join(packageRoot, origin), "utf8")));
+  const add = async (target, origin, content) => {
+    const bytes = Buffer.from(content);
     const snapshot = `sources/takeover/${id}/${target}`;
     await mkdir(path.dirname(path.join(packageRoot, "dist", snapshot)), { recursive: true });
     await writeFile(path.join(packageRoot, "dist", snapshot), bytes);
     entries.push({ target, path: snapshot, sha256: digest(bytes), origin });
   };
-  for (const [target, origin] of sourceEntries(delivery)) await add(target, origin, text => portableSource(delivery, target, text));
+  const takeover = await buildPluginTakeoverSources(delivery);
+  const styles = await pluginTakeoverStyles(packageRoot, takeover.files);
+  for (const style of styles) takeover.files.push(style);
+  const index = takeover.files.find(file => file.target === "index.tsx");
+  index.content = styles.map(file => `import "./${file.target}";`).join("\n") + "\n" + index.content;
+  for (const { target, origin, content } of takeover.files) await add(target, origin, content);
   const api = `@za38.03/agent-ui-plugins/${delivery.supportEntry}`;
-  plugin.takeover = { schemaVersion: 1, files: entries, sharedApi: api, requiredDependencies: {},
-    sharedDependencies: ["react", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@za38.03/agent-ui-runtime", api, "@za38.03/agent-ui-plugins/styles.css"],
+  plugin.takeover = { schemaVersion: 1, files: entries, sharedApi: api, requiredDependencies: takeover.requiredDependencies,
+    sharedDependencies: ["react", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@za38.03/agent-ui-runtime", api, "@za38.03/agent-ui-plugins/styles-base.css"],
     compatibility: { [delivery.support]: 1 },
   };
 }

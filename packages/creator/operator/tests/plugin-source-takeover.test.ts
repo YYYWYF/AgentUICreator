@@ -7,8 +7,9 @@ import { commitAgentUISourceUpgrade } from "../src/project/source-registry/proje
 import { loadAgentUISourceRegistry } from "../src/source-catalog/index.js";
 import { ensurePluginApplication } from "../src/project/plugin-application";
 import { planPluginSourceSync, syncPluginSource } from "../src/project/takeover-plugin-source";
+import { samePackageLocation } from "../src/project/plugin-source-dependencies";
 import { createHash } from "node:crypto";
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, expect, it } from "vitest";
@@ -30,12 +31,27 @@ async function fixture(id = "composer", ownPackage = false) {
   const root = await mkdtemp(path.join(tmpdir(), "plugin takeover 测试-")); roots.push(root);
   for (const directory of [".agent-ui", "src/ui/app-ui", "src/ui/plugins", "src/ui/runtime", "node_modules/@za38.03"]) await mkdir(path.join(root,directory),{recursive:true});
   await writeFile(path.join(root,".agent-ui/project.json"),JSON.stringify({mode:"assistant",sourceRoot:"src/ui"}));
-  await writeFile(path.join(root,"package.json"),JSON.stringify({type:"module",scripts:{typecheck:"tsc",build:"vite build",test:"vitest run"}}));
+  await writeFile(path.join(root,"package.json"),JSON.stringify({name:"plugin-takeover-fixture",type:"module",scripts:{typecheck:"tsc",build:"vite build",test:"vitest run"}}));
   const pkg = path.join(root,"node_modules/@za38.03/agent-ui-plugins");
   if (ownPackage) await cp(path.join(repositoryRoot,"packages/plugins"),pkg,{recursive:true,filter: source => !["node_modules", ".generated"].includes(projectRelativePath(path.join(repositoryRoot,"packages/plugins"),source).split("/")[0]!)});
   else await symlink(path.join(repositoryRoot,"packages/plugins"),pkg,process.platform === "win32" ? "junction":"dir");
   await symlink(path.join(repositoryRoot,"packages/runtime"),path.join(root,"node_modules/@za38.03/agent-ui-runtime"),process.platform === "win32" ? "junction":"dir");
   await symlink(path.join(repositoryRoot,"packages/creator/node_modules/react"),path.join(root,"node_modules/react"),process.platform === "win32" ? "junction":"dir");
+  // Extracted presentation has direct, declared dependencies under pnpm too.
+  const pluginsPackage = JSON.parse(await readFile(path.join(repositoryRoot, "packages/plugins/package.json"), "utf8"));
+  const dependencies = { ...pluginsPackage.peerDependencies, ...pluginsPackage.dependencies };
+  for (const name of Object.keys(dependencies)) {
+    if (name === "react") continue;
+    const source = path.join(repositoryRoot, "packages/plugins/node_modules", name);
+    if (!await access(source).then(() => true, () => false)) continue;
+    const destination = path.join(root, "node_modules", name);
+    if (await access(destination).then(() => true, () => false)) continue;
+    await mkdir(path.dirname(destination), { recursive: true });
+    await symlink(source, destination, process.platform === "win32" ? "junction" : "dir");
+  }
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+  manifest.dependencies = Object.fromEntries(await Promise.all(Object.entries(dependencies).map(async ([name, version]) => [name, String(version).startsWith("workspace:") ? JSON.parse(await readFile(path.join(root, "node_modules", name, "package.json"), "utf8")).version : version])));
+  await writeFile(path.join(root, "package.json"), JSON.stringify(manifest));
   await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
   await mkdir(path.join(root,"src/ui/services"));
   await mkdir(path.join(root,"src/ui/agent-ui/i18n"),{recursive:true});
@@ -46,6 +62,113 @@ async function fixture(id = "composer", ownPackage = false) {
   return root;
 }
 const pass = async () => {};
+it("compares resolved Context locations with Windows drive, case and namespaced paths", () => {
+  expect(samePackageLocation("C:\\项目\\node_modules\\react", "c:\\项目\\NODE_MODULES\\react", path.win32)).toBe(true);
+  expect(samePackageLocation("C:\\项目\\node_modules\\react", "\\\\?\\C:\\项目\\node_modules\\react", path.win32)).toBe(true);
+  expect(samePackageLocation("\\\\server\\share\\项目\\react", "\\\\?\\UNC\\server\\share\\项目\\react", path.win32)).toBe(true);
+  expect(samePackageLocation("C:\\项目\\node_modules\\react", "C:\\项目\\other\\react", path.win32)).toBe(false);
+});
+it("plans direct presentation dependencies without mutation and installs only after confirmation", async () => {
+  const root = await fixture("composer");
+  const manifestFile = path.join(root, "package.json");
+  const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+  delete manifest.dependencies["@base-ui/react"];
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  await rm(path.join(root, "node_modules/@base-ui/react"), { recursive: true, force: true });
+  const before = await readFile(manifestFile);
+  const plan = await planPluginSourceTakeover(root, { pluginId: "composer" });
+  expect(plan.dependencyChanges).toContain("@base-ui/react@1.8.0");
+  expect(await readFile(manifestFile)).toEqual(before);
+  let installations = 0;
+  await takeoverPluginSource(root, { pluginId: "composer", planHash: plan.planHash }, async (directory, command) => {
+    if (!command.args.includes("--ignore-scripts")) return;
+    installations++;
+    expect(directory).toBe(root);
+    expect(command.args).toContain("@base-ui/react@1.8.0");
+    const next = JSON.parse(await readFile(manifestFile, "utf8"));
+    next.dependencies["@base-ui/react"] = "1.8.0";
+    next.dependencies = Object.fromEntries(Object.entries(next.dependencies).sort(([a], [b]) => a.localeCompare(b)));
+    await writeFile(manifestFile, JSON.stringify(next));
+    await mkdir(path.join(root, "node_modules/@base-ui"), { recursive: true });
+    await symlink(path.join(repositoryRoot, "packages/plugins/node_modules/@base-ui/react"), path.join(root, "node_modules/@base-ui/react"), process.platform === "win32" ? "junction" : "dir");
+  });
+  expect(installations).toBe(1);
+  const { paths } = await resourcePaths(root);
+  expect((await readPluginSourceOwnership(paths.metadataRoot)).plugins.composer?.approvedPlanHash).toBe(plan.planHash);
+});
+
+it("refuses conflicting source dependencies and separate copies of the same runtime Context", async () => {
+  const root = await fixture("composer");
+  const manifestFile = path.join(root, "package.json");
+  const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+  manifest.dependencies["@base-ui/react"] = "99.0.0";
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).rejects.toMatchObject({ code: "PLUGIN_SOURCE_DEPENDENCY_CONFLICT" });
+  manifest.dependencies["@base-ui/react"] = "1.8.0";
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  const duplicate = path.join(root, "node_modules/@assistant-ui/react");
+  const metadata = await readFile(path.join(duplicate, "package.json"));
+  await rm(duplicate, { recursive: true, force: true });
+  await mkdir(duplicate, { recursive: true });
+  await writeFile(path.join(duplicate, "package.json"), metadata);
+  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).rejects.toMatchObject({ code: "PLUGIN_SOURCE_CONTEXT_DUPLICATED" });
+});
+
+it("keeps independently taken-over copies of a shared button isolated during source synchronization", async () => {
+  const root = await fixture("composer");
+  for (const pluginId of ["composer", "copy-action"]) {
+    await ensurePluginApplication(root, pluginId);
+    const plan = await planPluginSourceTakeover(root, { pluginId });
+    await takeoverPluginSource(root, { pluginId, planHash: plan.planHash }, pass);
+  }
+  const { paths } = await resourcePaths(root);
+  const relative = "source/presentation/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx";
+  const composer = path.join(paths.pluginsRoot, "composer", relative), copy = path.join(paths.pluginsRoot, "copy-action", relative);
+  const original = await readFile(copy);
+  await writeFile(composer, (await readFile(composer, "utf8")) + "\n// Composer-only button customization\n");
+  const sync = await planPluginSourceSync(root, { pluginId: "composer" });
+  await syncPluginSource(root, { pluginId: "composer", planHash: sync.planHash }, pass);
+  expect(await readFile(copy)).toEqual(original);
+  expect(await readFile(composer, "utf8")).toContain("Composer-only button customization");
+});
+
+it("prepares confirmed merge dependencies before editing without advancing BASE or reinstalling on adoption", async () => {
+  const root = await fixture("composer", true);
+  await ensurePluginApplication(root, "composer");
+  const first = await planPluginSourceTakeover(root, { pluginId: "composer" });
+  await takeoverPluginSource(root, { pluginId: "composer", planHash: first.planHash }, pass);
+  const { paths } = await resourcePaths(root);
+  const baseline = await readFile(path.join(paths.metadataRoot, "plugin-ownership.json"));
+  const local = path.join(paths.pluginsRoot, "composer/source/adapters/composer.tsx");
+  await writeFile(local, (await readFile(local, "utf8")) + "\n// LOCAL customization\n");
+  const catalogFile = path.join(root, "node_modules/@za38.03/agent-ui-plugins/dist/catalog.json");
+  const catalog = JSON.parse(await readFile(catalogFile, "utf8"));
+  const entry = catalog.plugins.find((plugin: { id: string }) => plugin.id === "composer").takeover.files.find((file: { target: string }) => file.target === "adapters/composer.tsx");
+  const targetFile = path.join(root, "node_modules/@za38.03/agent-ui-plugins/dist", entry.path);
+  const target = (await readFile(targetFile, "utf8")) + "\n// TARGET improvement\n";
+  await writeFile(targetFile, target); entry.sha256 = createHash("sha256").update(target).digest("hex");
+  await writeFile(catalogFile, JSON.stringify(catalog));
+  const manifestFile = path.join(root, "package.json"), manifest = JSON.parse(await readFile(manifestFile, "utf8"));
+  delete manifest.dependencies["@base-ui/react"]; await writeFile(manifestFile, JSON.stringify(manifest));
+  await rm(path.join(root, "node_modules/@base-ui/react"), { recursive: true, force: true });
+  let installed = 0;
+  const service = new OwnedPluginUpdateService(async (directory, command) => {
+    if (!command.args.includes("--ignore-scripts")) return;
+    expect(directory).toBe(root); installed++;
+    const next = JSON.parse(await readFile(manifestFile, "utf8")); next.dependencies["@base-ui/react"] = "1.8.0";
+    await writeFile(manifestFile, JSON.stringify(next));
+    await symlink(path.join(repositoryRoot, "packages/plugins/node_modules/@base-ui/react"), path.join(root, "node_modules/@base-ui/react"), process.platform === "win32" ? "junction" : "dir");
+  });
+  const plan = await service.plan(root, "composer", "0.0.1");
+  expect(plan.requiresMerge).toBe(true); expect(plan.dependencyChanges).toContain("@base-ui/react@1.8.0");
+  await service.merge(root, plan.id);
+  expect(installed).toBe(1); expect(await readFile(path.join(paths.metadataRoot, "plugin-ownership.json"))).toEqual(baseline);
+  expect(await readFile(local, "utf8")).not.toContain("TARGET improvement");
+  await writeFile(local, target + "\n// LOCAL customization\n");
+  await service.adopt(root, plan.id);
+  expect(installed).toBe(1); expect(await readFile(local, "utf8")).toContain("LOCAL customization");
+}, 60_000);
+
 it("takes over tool-result with its recognizer and preserves the thin application and model", async () => {
   const root = await fixture("tool-result");
   const wrapper = path.join(root, "src/ui/plugins/test-host");

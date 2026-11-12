@@ -7,6 +7,7 @@ export interface PluginUpdate {
 export interface UpdateInspection { packageUpdates?: import("./updates/package-update-service.js").PackageUpdateOverview; pluginNames?: Record<string, string>; releaseVersion: string; compatibility: UpdateCompatibility; fingerprint: string; plugins: PluginUpdate[] }
 export interface UpgradePlan {
   kind?: "owned-source";
+  dependencyChanges?: string[];
   id: string; releaseVersion: string; compatibility: UpdateCompatibility; requestedPlugins: string[];
   items: { itemId: string; reason: "requested" | "dependency"; requiredBy: string[]; status: string; changed: boolean; provided: boolean; currentVersion: string | null; targetVersion: string | null; paths: string[] }[];
   fileCount: number; requiresMerge: boolean; blocked: boolean; issues: string[];

@@ -170,12 +170,24 @@ for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
   const delivery = deliveries.find(delivery => delivery.id === plugin.id);
   const support = `${delivery.supportEntry}.js`;
   const presentationId = delivery.presentationOwner;
-  plugin.takeover.runtimeFiles = await Promise.all([
+  const runtimeFiles = new Set([
     `${plugin.id}/index.js`, "public.js", support, "internal/composable-thread.js",
     ...utilityFilesByPlugin.get(plugin.id),
     ...(delivery.projectFiles?.some(file => file.endsWith(".css")) ? [`${plugin.id}/index.css`] : []),
     ...delivery.presentation.map(name => `plugins/${presentationId}/adapters/presentation/${name.replace(/\.tsx?$/u, ".js")}`),
-  ].map(async file => ({ path: file, sha256: createHash("sha256").update(await readFile(path.join(root, "dist", file))).digest("hex") })));
+  ]);
+  // Bind extracted shared presentation to the compiled canonical owners too,
+  // including owners reached through generated compatibility views.
+  for (const file of plugin.takeover.files) {
+    if (!/\.(?:tsx?|css)$/u.test(file.origin)) continue;
+    const views = sourceLayout.files.filter(entry => entry.source === file.origin && entry.view.startsWith("src/")).map(entry => entry.view);
+    for (const source of views.length ? views : [file.origin]) {
+      const emitted = source.replace(/^src\//u, "").replace(/\.tsx?$/u, ".js");
+      try { await readFile(path.join(root, "dist", ...emitted.split("/"))); runtimeFiles.add(emitted); }
+      catch (error) { if (error.code !== "ENOENT") throw error; }
+    }
+  }
+  plugin.takeover.runtimeFiles = await Promise.all([...runtimeFiles].sort().map(async file => ({ path: file, sha256: createHash("sha256").update(await readFile(path.join(root, "dist", ...file.split("/")))).digest("hex") })));
 
 }
 catalog.sharedApis = Object.fromEntries(deliveries.map(delivery => [delivery.support, 1]));

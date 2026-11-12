@@ -87,7 +87,7 @@ it("persists reviewed upstream removals instead of resurrecting them on rebuild"
 });
 
 
-it("typechecks the published portable Composer adapter with its support declarations", async () => {
+it("typechecks every extracted presentation with its declared direct dependencies", async () => {
   const consumer = await mkdtemp(path.join(tmpdir(), "composer public types 中文 "));
   try {
     const require = createRequire(path.join(root,"package.json"));
@@ -97,15 +97,23 @@ it("typechecks the published portable Composer adapter with its support declarat
     await symlink(path.dirname(require.resolve("react/package.json")),path.join(consumer,"node_modules/react"),junction);
     await symlink(path.dirname(require.resolve("@types/react/package.json")),path.join(consumer,"node_modules/@types/react"),junction);
     const catalog=JSON.parse(await readFile(path.join(root,"dist/catalog.json"),"utf8"));
+    const dependencies = new Set(catalog.plugins.flatMap(plugin => Object.keys(plugin.takeover.requiredDependencies)));
+    for (const name of [...new Set([...dependencies, "@types/node", "@types/react-dom"])]) {
+      const destination = path.join(consumer, "node_modules", ...name.split("/"));
+      await mkdir(path.dirname(destination), { recursive: true });
+      await symlink(path.join(root, "node_modules", ...name.split("/")), destination, junction);
+    }
     const portableFiles=catalog.plugins.find(plugin=>plugin.id==="composer").takeover.files;
     const portableIndex=await readFile(sourcePath(path.join(root,"dist"),portableFiles.find(file=>file.target==="index.tsx").path),"utf8");
     expect(portableIndex).not.toContain("queueLabels");
     expect(portableIndex).not.toMatch(/from ['"]@za38\.03\/agent-ui-plugins['"]/u);
     expect(portableIndex.match(/from ['"]\.\/adapters\/composer['"]/gu)).toHaveLength(1);
-    for(const file of portableFiles.filter(file=>file.target.startsWith("adapters/"))) {
-      await copyFile(sourcePath(path.join(root,"dist"),file.path),sourcePath(consumer,file.target));
+    for (const plugin of catalog.plugins) for (const file of plugin.takeover.files) {
+      const destination = sourcePath(consumer, `${plugin.id}/${file.target}`);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await copyFile(sourcePath(path.join(root,"dist"),file.path),destination);
     }
-    await writeFile(path.join(consumer,"probe.tsx"), `import type { ConversationCanonicalComposerProps } from "./adapters/composer";
+    await writeFile(path.join(consumer,"probe.tsx"), `import type { ConversationCanonicalComposerProps } from "./composer/adapters/composer";
 import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "@za38.03/agent-ui-plugins/composer-support";
 const input: ConversationComposerInputProps = { submitMode: "ctrlEnter" };
 const root: ConversationComposerRootProps = { style: { padding: 12 } };
@@ -113,7 +121,8 @@ const dropzone: ConversationComposerDropzoneProps = { className: "custom" };
 const props: ConversationCanonicalComposerProps = { ...root, inputProps: input, dropzoneProps: dropzone };
 void props;
 `);
-    execFileSync(process.execPath,[path.join(path.dirname(require.resolve("typescript/package.json")),"bin/tsc"),"--noEmit","--skipLibCheck","--strict","--jsx","react-jsx","--module","ESNext","--moduleResolution","Bundler","--esModuleInterop","--target","ES2022","probe.tsx"],{cwd:consumer,stdio:"inherit"});
+    await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { noEmit: true, skipLibCheck: true, strict: true, jsx: "react-jsx", module: "ESNext", moduleResolution: "Bundler", esModuleInterop: true, target: "ES2022", resolveJsonModule: true, types: ["react", "node"] }, include: ["probe.tsx", "*/index.tsx", "*/styles.d.ts", "*/adapters/**/*", "*/presentation/**/*", "*/upstream/**/*"] }));
+    execFileSync(process.execPath,[path.join(path.dirname(require.resolve("typescript/package.json")),"bin/tsc"),"-p", "tsconfig.json"],{cwd:consumer,stdio:"inherit"});
   } finally { await rm(consumer,{recursive:true,force:true}); }
 });
 
@@ -128,4 +137,35 @@ it("binds takeover integrity to final runtime entries including appended utility
   const question = catalog.plugins.find(plugin => plugin.id === "ask-user-question");
   expect(question.takeover.files.some(file => file.target === "adapters/contract.ts")).toBe(true);
   expect(question.application.registration).toEqual({ kind: "tool", name: "ask_user_question" });
+});
+
+it("owns each Plugin's presentation closure while preserving upstream bytes and npm Context owners", async () => {
+  const catalog = JSON.parse(await readFile(path.join(root, "dist/catalog.json"), "utf8"));
+  const forbiddenOwners = /src\/internal\/(?:composer-input-host-context|assistant-response-runtime|conversation-transient-messages|task-disclosure-context|tool-renderer-context|quote-thread-root)\.tsx?$/u;
+  for (const plugin of catalog.plugins) {
+    const files = plugin.takeover.files;
+    expect(files.some(file => file.target === "presentation.css"), plugin.id).toBe(true);
+    const css = await readFile(sourcePath(path.join(root, "dist"), files.find(file => file.target === "presentation.css").path), "utf8");
+    expect(css, plugin.id).not.toMatch(/@(?:tailwind|reference|source)\b/u);
+    for (const file of files) {
+      expect(file.path.startsWith(`sources/takeover/${plugin.id}/`)).toBe(true);
+      expect(file.origin, `${plugin.id}/${file.target}`).not.toMatch(forbiddenOwners);
+      const bytes = await readFile(sourcePath(path.join(root, "dist"), file.path));
+      expect(sha256(bytes)).toBe(file.sha256);
+      if (file.origin.includes("/upstream/")) expect(bytes.equals(await readFile(sourcePath(root, file.origin))), file.origin).toBe(true);
+    }
+  }
+  const button = id => catalog.plugins.find(plugin => plugin.id === id).takeover.files.find(file => file.target.endsWith("/tooltip-icon-button.tsx"));
+  const composer = button("composer"), reasoning = button("reasoning");
+  expect(composer.path).not.toBe(reasoning.path);
+  expect(composer.sha256).toBe(reasoning.sha256);
+  const temporary = await mkdtemp(path.join(tmpdir(), "private presentation 中文 "));
+  try {
+    for (const [id, file] of [["composer", composer], ["reasoning", reasoning]]) {
+      await mkdir(path.join(temporary, id), { recursive: true });
+      await copyFile(sourcePath(path.join(root, "dist"), file.path), path.join(temporary, id, "button.tsx"));
+    }
+    await writeFile(path.join(temporary, "composer/button.tsx"), "// Project-owned Composer button\n");
+    expect(sha256(await readFile(path.join(temporary, "reasoning/button.tsx")))).toBe(reasoning.sha256);
+  } finally { await rm(temporary, { recursive: true, force: true }); }
 });

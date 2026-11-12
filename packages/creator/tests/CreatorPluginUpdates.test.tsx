@@ -56,11 +56,13 @@ it("does not execute until the displayed dependency plan is explicitly confirmed
   const routes: string[] = [];
   vi.stubGlobal("fetch", vi.fn(async (url: string) => {
     routes.push(url);
-    return new Response(JSON.stringify(url.endsWith("/plan") ? { id: "plan", releaseVersion: "0.0.2", compatibility: "compatible", requiresMerge: false, blocked: false, fileCount: 8, issues: [], requestedPlugins: ["conversation-surface"], items: [{ itemId: "foundation/core", status: "managed", changed: true, provided: false, currentVersion: null, targetVersion: null, paths: ["index.ts"] }] } : inspection));
+    return new Response(JSON.stringify(url.endsWith("/plan") ? { id: "plan", releaseVersion: "0.0.2", compatibility: "compatible", requiresMerge: false, blocked: false, fileCount: 8, issues: [], dependencyChanges: ["@base-ui/react@1.8.0"], requestedPlugins: ["conversation-surface"], items: [{ itemId: "foundation/core", status: "managed", changed: true, provided: false, currentVersion: null, targetVersion: null, paths: ["index.ts"] }] } : inspection));
   }));
   const { container } = await mount();
   await click(container, "查看更新"); await click(container, "更新此插件");
   expect(container.textContent).toContain("foundation/core");
+  expect(container.textContent).toContain("@base-ui/react@1.8.0");
+  expect(container.textContent).toContain("已准备的依赖会保留");
   const region = container.querySelector<HTMLElement>('[aria-label="更新方案"]')!;
   expect(region.closest(".creator-update-plugin-card")?.textContent).toContain("Conversation Surface");
   expect(document.activeElement).toBe(region);

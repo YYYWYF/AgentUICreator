@@ -38,3 +38,16 @@ export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.
 
 /** Internal pure helpers receive already-resolved copy from the question Plugin. */
 export { ConversationOptionList as QuestionOptionList, ConversationQuestionFlow as QuestionFlow } from "./internal/conversation-question-flow.js";
+
+// Source-owned presentation uses the same Host/runtime instances as npm UI.
+// These are behavior seams; their Providers and stores are never extracted.
+export { useThreadRootElementRef } from "./internal/quote-thread-root.js";
+export { SelectionToolbarPrimitive } from "./internal/quote-selection-adapter.js";
+export { TaskDisclosureScopeContext, useTaskDisclosure } from "./internal/task-disclosure-context.js";
+export { useConversationToolRenderer } from "./internal/tool-renderer-context.js";
+export { resolveConversationTurnGroup } from "./internal/conversation-turn.js";
+export { deleteThreadWithSelectionRecovery } from "./internal/thread-delete-recovery.js";
+export { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, conversationDirectiveDisplayLabel } from "./internal/directive-formatter.js";
+export { detectTrigger, type TriggerMatch } from "./internal/trigger-matcher.js";
+export { serializeConversationDirective } from "./internal/composer-trigger-utils.js";
+export type { ConversationMentionTriggerProps, ConversationCommandTriggerProps } from "./internal/composer-trigger-types.js";

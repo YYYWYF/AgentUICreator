@@ -351,6 +351,7 @@
     "@za38.03/agent-ui-renderer": "0.0.1"
   },
   "devDependencies": {
+    "postcss": "8.5.28",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "react": "19.1.1",

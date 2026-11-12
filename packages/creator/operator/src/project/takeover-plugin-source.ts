@@ -16,6 +16,7 @@ import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./
 import { isCreatorMetadataPath } from "./creator-metadata-path";
 import { projectRelativePath } from "./agent-ui-project-paths";
 import { detectResourcePackageManager, runResourcePackageCommand, type ResourcePackageRunner } from "./ensure-resource-packages";
+import { inspectPluginSourceDependencies, installPluginSourceDependencies } from "./plugin-source-dependencies";
 
 const pluginId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u);
 export const planPluginSourceInputSchema = z.strictObject({ pluginId });
@@ -26,7 +27,7 @@ const fail = (code: string, message: string): never => { throw new AgentUISource
 
 /** Hash all relevant local state, including derived source and install lockfiles.
  * No logical manifest path is constructed using platform-dependent separators. */
-async function stateHash(root: string) {
+async function stateHash(root: string, includeDependencies = true) {
   const { paths } = await resourcePaths(root);
   const hash = createHash("sha256");
   async function walk(directory: string): Promise<void> {
@@ -38,8 +39,13 @@ async function stateHash(root: string) {
     }
   }
   await walk(paths.sourceRoot);
-  for (const file of [path.join(paths.metadataRoot, "project.json"), path.join(paths.metadataRoot, PLUGIN_OWNERSHIP_FILE), paths.sourceLockPath,
-    ...["package.json", "pnpm-lock.yaml", "package-lock.json", "yarn.lock"].map(name => path.join(root, name))]) {
+  const dependencyFiles: string[] = [];
+  for (let directory = path.resolve(root); ; directory = path.dirname(directory)) {
+    const names = [".npmrc", "pnpm-workspace.yaml", ...(includeDependencies ? ["package.json", "pnpm-lock.yaml", "package-lock.json", "yarn.lock", "bun.lock", "bun.lockb", "npm-shrinkwrap.json"] : directory !== path.resolve(root) ? ["package.json"] : [])];
+    dependencyFiles.push(...names.map(name => path.join(directory, name)));
+    if (directory === path.dirname(directory)) break;
+  }
+  for (const file of [path.join(paths.metadataRoot, "project.json"), path.join(paths.metadataRoot, PLUGIN_OWNERSHIP_FILE), paths.sourceLockPath, ...dependencyFiles]) {
     const bytes = await readFile(file).catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
     hash.update(path.relative(root,file).split(path.sep).join("/") + "\0").update(bytes ?? "<missing>");
   }
@@ -79,7 +85,7 @@ async function prepare(root: string, id: string, sync = false) {
   if (sync && ((previousContract !== undefined && previousContract !== applicationContractHash) || (previousContract === undefined && (plugin.application?.hostApplication || plugin.application?.registration || plugin.application?.hostBindings?.length || plugin.application?.railAction)))) {
     fail("PLUGIN_SOURCE_APPLICATION_API_CHANGED", "The Plugin application contract changed; adapt and validate the application separately before adopting this source version.");
   }
-  if (Object.keys(plugin.takeover.requiredDependencies).length) fail("PLUGIN_SOURCE_DEPENDENCIES_REQUIRED", "Install the planned source dependencies before requesting takeover.");
+  const dependencies = await inspectPluginSourceDependencies(root, path.dirname(installedRoot), plugin.takeover.requiredDependencies);
   require.resolve(`@za38.03/agent-ui-plugins/${id}`);
   const compatibility = z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9]*$/u).max(100), z.number().int().positive()).parse(plugin.takeover.compatibility);
   if (!Object.keys(compatibility).length || Object.entries(compatibility).some(([api, version]) => catalog.sharedApis?.[api] !== version)) fail("PLUGIN_SOURCE_INCOMPATIBLE", "Installed package does not support the planned shared APIs.");
@@ -116,10 +122,10 @@ async function prepare(root: string, id: string, sync = false) {
   }
   const catalogHash = digest(catalogBytes);
   const plan = { pluginId: id, package: { name: pkg.name as string, version: pkg.version as string }, pluginVersion: plugin.version as string,
-    catalogHash, stateHash: await stateHash(root), applicationChanges: [...applicationEdits.keys()], files: [...files.keys()].map(file => `${target}/${file}`).sort(), instances,
-    sharedDependencies: plugin.takeover.sharedDependencies as string[], dependencyChanges: [] as string[],
+    catalogHash, stateHash: digest(await stateHash(root) + JSON.stringify(dependencies.identities)), applicationChanges: [...applicationEdits.keys()], files: [...files.keys()].map(file => `${target}/${file}`).sort(), instances,
+    sharedDependencies: plugin.takeover.sharedDependencies as string[], dependencyChanges: dependencies.changes,
     compatibility, origins };
-  return { context, ownership, files, model, application, applicationEdits, applicationContractHash, plan: { ...plan, planHash: digest(JSON.stringify(plan)) } };
+  return { context, ownership, files, model, application, applicationEdits, applicationContractHash, dependencies, plan: { ...plan, planHash: digest(JSON.stringify(plan)) } };
 }
 export async function planPluginSourceTakeover(root: string, input: {pluginId: string}) {
   return (await prepare(root, input.pluginId)).plan;
@@ -131,12 +137,34 @@ export async function takeoverPluginSource(root: string, raw: z.infer<typeof tak
   return applySource(root, raw, run);
 }
 
+async function prepareDependencies(root: string, id: string, sync: boolean, prepared: Awaited<ReturnType<typeof prepare>>, run: ResourcePackageRunner) {
+  if (!prepared.dependencies.changes.length) return prepared;
+  const protectedBefore = await stateHash(root, false), catalogHash = prepared.plan.catalogHash;
+  await installPluginSourceDependencies(root, prepared.dependencies, run);
+  if (await stateHash(root, false) !== protectedBefore) fail("PLUGIN_SOURCE_PLAN_STALE", "Dependency preparation changed protected project files; source has not been adopted.");
+  const next = await prepare(root, id, sync);
+  if (next.plan.catalogHash !== catalogHash || next.dependencies.changes.length) fail("PLUGIN_SOURCE_DEPENDENCIES_REQUIRED", "Source dependency preparation is incomplete or replaced the selected package.");
+  return next;
+}
+
+/** A confirmed merge prepares its declared dependencies before handing source
+ * to the model/manual editor. This operation never edits implementation or BASE.
+ */
+export async function preparePluginSourceSyncDependencies(root: string, input: { pluginId: string; planHash: string }, run: ResourcePackageRunner = runResourcePackageCommand) {
+  const prepared = await prepare(root, input.pluginId, true);
+  if (prepared.plan.planHash !== input.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Package or project changed since confirmation; request a new plan and confirmation.");
+  if (!prepared.dependencies.manifest.scripts?.build) fail("PLUGIN_SOURCE_BUILD_REQUIRED", "Source synchronization requires the Host build script.");
+  await prepareDependencies(root, input.pluginId, true, prepared, run);
+}
+
 async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourceInputSchema>, run: ResourcePackageRunner, resolutions?: Record<string, string | null>) {
   const sync = resolutions !== undefined;
   const input = takeoverPluginSourceInputSchema.parse(raw);
-  const prepared = await prepare(root, input.pluginId, sync);
+  let prepared = await prepare(root, input.pluginId, sync);
   if (prepared.plan.planHash !== input.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Package or project changed since confirmation; request a new plan and confirmation.");
-  const { context: { paths, config }, ownership, files, model, application, applicationEdits, applicationContractHash, plan } = prepared;
+  if (!prepared.dependencies.manifest.scripts?.build) fail("PLUGIN_SOURCE_BUILD_REQUIRED", "Source takeover requires the Host build script.");
+  const { context: { paths, config }, ownership, files, model, application, applicationEdits, applicationContractHash } = prepared;
+  let plan = prepared.plan;
   const changes = new Map<string, Buffer | undefined>(files);
   if (sync) {
     const previous = ownership.plugins[input.pluginId]!;
@@ -159,13 +187,17 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
       changes.set(file, merged);
     }
   }
+  if (prepared.dependencies.changes.length) {
+    prepared = await prepareDependencies(root, input.pluginId, sync, prepared, run);
+    plan = prepared.plan;
+  }
   const protectedApplication = application ? await applicationFiles(path.join(paths.pluginsRoot, input.pluginId)) : new Map<string, Buffer>();
   const originalLock = await readAgentUISourceLock(root, config);
   ownership.plugins[input.pluginId] = { pluginId: input.pluginId, directory: input.pluginId,
     ...(application ? { implementationRoot: "source" as const, applicationContractHash } : {}),
     package: { name: "@za38.03/agent-ui-plugins", version: plan.package.version }, pluginVersion: plan.pluginVersion,
-    catalogHash: plan.catalogHash, approvedPlanHash: sync ? ownership.plugins[input.pluginId]!.approvedPlanHash : plan.planHash,
-    ...(sync ? { lastSyncPlanHash: plan.planHash } : {}),
+    catalogHash: plan.catalogHash, approvedPlanHash: sync ? ownership.plugins[input.pluginId]!.approvedPlanHash : input.planHash,
+    ...(sync ? { lastSyncPlanHash: input.planHash } : {}),
     origins: Object.fromEntries(Object.entries(plan.origins).map(([file, origin]) => [application ? `source/${file}` : file, origin])), sharedDependencies: plan.sharedDependencies, compatibility: plan.compatibility,
     base: Object.fromEntries([...files].map(([file, bytes]) => [application ? `source/${file}` : file, { sha256: digest(bytes), contentBase64: bytes.toString("base64") }])) };
   const ownershipBytes = Buffer.from(JSON.stringify(ownership, null, 2) + "\n");
@@ -206,7 +238,7 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
       for (const [file, bytes] of protectedApplication) if (!stagedApplication.get(file)?.equals(applicationEdits.get(file) ?? bytes)) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Validation changed application customization.");
     }
     await assertCreatorCommitAllowed(root, input.cancelMarker);
-    if ((await prepare(root, input.pluginId, sync)).plan.planHash !== input.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Project changed during validation; request confirmation again.");
+    if ((await prepare(root, input.pluginId, sync)).plan.planHash !== plan.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Project changed during validation; request confirmation again.");
     await commitAgentUISourceTransaction(root, config, sync ? "sync_plugin_source" : "takeover_plugin_source", mutations.map(({ target, content }) => ({ target, ...(content === undefined ? {} : { content }) })), serializeAgentUISourceLock(originalLock.lock), { nextOwnership: ownershipBytes, cancelMarker: input.cancelMarker });
     return { pluginId: input.pluginId, ownership: "project_source" as const, packageVersion: plan.package.version,
       changedPaths: [...mutations.map(mutation => path.relative(root, path.join(paths.sourceRoot, ...mutation.target.split("/"))).split(path.sep).join("/")), path.relative(root, path.join(paths.metadataRoot, PLUGIN_OWNERSHIP_FILE)).split(path.sep).join("/")], checks };

@@ -102,7 +102,13 @@ Creator 先用 AppUIModel 和应用层公开 props/组合。确需修改内部�
 <metadataRoot>/plugin-ownership.json
 ```
 
-实际 source 闭包由 catalog 指定，不能臆造所有插件都含相同目录。Composer 的主体、队列和 textarea 共用唯一 presentation owner；其共享 primitives、Context、附件/按钮与发送服务使用 `/composer-support`（API 1）。其他适用插件使用 `/plugin-support`（API 1）；共享 Runtime、主题、locale 与 Portal 仍由 npm 提供。
+实际 source 闭包由 catalog 指定，不能臆造所有插件都含相同目录。接管同时提取该插件实际消费的展示组件、展示辅助代码、局部交互与配套样式。`adapters/` 保留插件入口实现，`presentation/` 保存所需产品展示模块，`upstream/` 保存未修改的上游展示源码及其原有相对目录。所有文件位于该插件自己的 `source/` 子树；A、B 消费同一个官方按钮时，各自取得独立快照，修改或同步 A 不改写 B。官方仓库仍由 canonical owner 维护唯一实现，构建生成快照，不维护第二套官方组件源码。
+
+Composer 的主体、队列、textarea、附件和提示按钮，以及其他插件使用的折叠、推理、Markdown、图片、对话框等展示模块按实际依赖闭包提取。纯展示 props 类型随实现保存；组件内部私有的预览/折叠 Context 可以随完整组件一起提取。会话 Runtime、Host/Composer 共享 Context、消息/工具状态、发送和审批操作、共享 transient store、主题/locale/Portal 容器仍从同一个 npm 实例读取。只提取混合模块中所需的展示声明和局部辅助函数，不复制 facade 全部实现或 Runtime Provider。保留 `/composer-support` 和 `/plugin-support`（API 1）的旧导出以兼容已有接管项目；新快照使用这些入口的状态/命令接口和项目安装的第三方库，不再靠这些入口导入已纳入快照的产品展示实现。
+
+`takeover.requiredDependencies` 来自实际源码 import 与安装包的依赖声明。计划列出需要新增或恢复的直接依赖，用户确认后通过原包管理器准备，不静默升级冲突依赖；React、assistant-ui 与可选编辑器的共享实例还需核对真实解析位置。同版本的另一份 Context 也不视为兼容。依赖准备与源码事务分阶段：准备完成后重新验证包身份和受保护源码，再在临时工程运行现有检查。源码验证失败会保留已准备依赖，但不会提交实现或推进 BASE；不得把源码事务失败说成依赖也已撤销。
+
+源码快照包含预编译展示 utility CSS、所需产品 CSS 与 CSS 声明，保持现有主题变量和 Portal 边界；提取的展示样式不因接管新增 Creator 或 Tailwind 编译器要求，工程既有样式构建流程保持。新的样式定制使用项目自己的样式工具。第三方 UI/Markdown 引擎继续是项目 npm 依赖，语言字典与主题基础仍共享，不承诺冻结所有第三方行为。
 
 机械切换 import 必须保留 CRLF、现有 JSX/props、Plugin/实例 ID、AppUIModel、服务与语义 Slot。包模式合同来自准确安装包；成功接管后本地 manifest 和服务声明是权威，同 ID 不得双重注册。本地实现丢失时明确报错，不自动切回 npm。
 
@@ -126,7 +132,7 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 
 不兼容应用合同要求单独迁移。失败、取消、冲突未解决或验证未通过保持原 BASE。定向特性移植只是 LOCAL 定制，不声称完整升级。采用失败恢复采用事务前状态，保留此前合并编辑；依赖安装恢复是独立阶段，不能互相替代。
 
-已有有效定制源码和 BASE 保留，不因重新初始化、npm 安装或发现同 ID 而自动变成 wrapper，也不能补记接管授权。未知或残缺路径冲突不覆盖。既有源码保持原结构，不自动迁移。
+已有有效定制源码和 BASE 保留，不因重新初始化、npm 安装或发现同 ID 而自动变成 wrapper，也不能补记接管授权。未知或残缺路径冲突不覆盖。既有源码保持原结构，不自动迁移。展示闭包扩充也只能通过显式实现同步纳入新增文件、依赖计划和三方合并；npm 升级不自动扩充或改写旧 BASE。
 
 ## 9. 默认组合与正式插件
 

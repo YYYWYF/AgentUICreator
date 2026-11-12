@@ -65,6 +65,10 @@ async function updateRequest<T>(workspaceId: string, route: string, body: Record
       PLUGIN_SOURCE_PLAN_STALE: localeMessages.pluginUpdates.planExpired,
       PLUGIN_SOURCE_TARGET_CHANGED: localeMessages.pluginUpdates.planExpired,
       PLUGIN_SOURCE_PLAN_EXPIRED: localeMessages.pluginUpdates.planExpired,
+      PLUGIN_SOURCE_DEPENDENCY_CONFLICT: localeMessages.pluginUpdates.sourceDependencyConflict,
+      PLUGIN_SOURCE_CONTEXT_DUPLICATED: localeMessages.pluginUpdates.sourceContextDuplicated,
+      PLUGIN_SOURCE_DEPENDENCY_STATE_CHANGED: localeMessages.pluginUpdates.sourceDependencyPreparationFailed,
+      PLUGIN_SOURCE_DEPENDENCIES_REQUIRED: localeMessages.pluginUpdates.sourceDependencyPreparationFailed,
     };
     throw new Error(errors[result.error] ?? (typeof result.error === "string" && result.error.startsWith("PACKAGE_") ? localeMessages.pluginUpdates.packageOperationBlocked : result.error) ?? localeMessages.pluginUpdates.pluginUpdateFailed);
   }
@@ -165,6 +169,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
         <div className="cui:flex cui:flex-col cui:gap-3 cui:text-xs">
           {plan.kind !== "owned-source" && plan.items.length ? <details className="creator-update-details"><summary>{localeMessages.pluginUpdates.sourceAffectedComponents}</summary><ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={creatorDisplayText(item.itemId)}>{creatorDisplayText(item.itemId)}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : null}</li>)}</ul></details> : null}
           <div className="creator-update-callout"><ShieldCheck aria-hidden="true"/><p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergePreservation : localeMessages.pluginUpdates.sourceSyncPreservation}</p></div>
+          {plan.dependencyChanges?.length ? <div className="creator-update-callout"><div><p>{localeMessages.pluginUpdates.sourceDependenciesNotice}</p><ul>{plan.dependencyChanges.map(dependency => <li key={dependency}><code>{dependency}</code></li>)}</ul></div></div> : null}
           {plan.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.upgradeCreatorFirst}</AlertDescription></Alert> : null}
           {plan.issues.map((issue, index) => <Alert key={index} variant="destructive"><AlertDescription>{creatorDisplayText(issue)}</AlertDescription></Alert>)}
           {!merging ? <p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergeConfirmation : localeMessages.pluginUpdates.sourceSyncConfirmation}</p> : null}

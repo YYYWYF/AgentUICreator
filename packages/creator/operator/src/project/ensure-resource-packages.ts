@@ -98,7 +98,7 @@ function combinedPackageRange(ranges: readonly string[]): string {
 }
 
 /** Adds only absent declarations. Existing direct dependencies are never silently upgraded. */
-export async function ensureResourcePackages(projectRoot: string, closure: readonly LoadedAgentUISourceItem[], run: ResourcePackageRunner = runResourcePackageCommand): Promise<void> {
+export async function ensureResourcePackages(projectRoot: string, closure: readonly Pick<LoadedAgentUISourceItem, "packages">[], run: ResourcePackageRunner = runResourcePackageCommand): Promise<void> {
   const before = await inspectAgentUIPackages(projectRoot, closure);
   const manifest = JSON.parse(await readFile(path.join(projectRoot, "package.json"), "utf8")) as Record<string, unknown>;
   const fields = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"].map(field => (manifest[field] ?? {}) as Record<string, string>);

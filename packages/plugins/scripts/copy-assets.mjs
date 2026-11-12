@@ -1,7 +1,7 @@
 import { sharedStyleSources } from "./shared-style-sources.mjs";
 import { deliveries } from "./plugin-source-recipes.mjs";
-import { isPublicPluginDeclaration } from "./public-declarations.mjs";
-import { cp, mkdir, readdir, rm, copyFile, readFile, writeFile } from "node:fs/promises";
+import { isPublicPluginDeclaration, sourceRuntimeDeclarations } from "./public-declarations.mjs";
+import { cp, mkdir, readdir, rm, copyFile, readFile, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -150,3 +150,11 @@ export function useTransientMessages(): readonly import("./public.js").Transient
 export function resolveTransientMessageAnchor(message: import("./public.js").TransientMessage, messageIds: readonly string[]): string | null;
 export { AlertCircleIcon, ChevronDownIcon, CircleMinusIcon, LoaderIcon, XCircleIcon } from "lucide-react";
 `);
+
+// Keep the added runtime seams' declarations tied to the actual source exports.
+// Their emitted declarations expose only existing npm state/command interfaces.
+const supportSource = await readFile(path.join(sourceRoot, "plugin-support.ts"), "utf8");
+await appendFile(path.join(distRoot, "plugin-support.d.ts"), supportSource.split("\n").filter(line => {
+  const entry = line.match(/^export .* from "\.\/(.+)\.js";$/u)?.[1];
+  return entry && sourceRuntimeDeclarations.has(`${entry}.d.ts`);
+}).join("\n") + "\n");

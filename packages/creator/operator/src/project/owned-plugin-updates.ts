@@ -6,7 +6,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { resourcePaths } from "./optional-resource-paths";
 import { readPluginSourceOwnership } from "./plugin-source-ownership";
-import { planPluginSourceSync, syncPluginSource } from "./takeover-plugin-source";
+import { planPluginSourceSync, syncPluginSource, preparePluginSourceSyncDependencies } from "./takeover-plugin-source";
 import type { ResourcePackageRunner } from "./ensure-resource-packages";
 import type { UpgradePlan, PluginUpdate } from "../update-contract";
 
@@ -76,7 +76,7 @@ export class OwnedPluginUpdateService {
     const plan: UpgradePlan={id:randomUUID(),kind:"owned-source",releaseVersion,compatibility:"compatible",requestedPlugins:[id],
       items:[{itemId:`plugin/${id}`,reason:"requested",requiredBy:[id],status:snapshot.mergeFiles.some(file=>file.local!==file.base)?"customized":"managed",changed:true,provided:false,
         currentVersion:ownership.plugins[id]!.pluginVersion,targetVersion:snapshot.pluginVersion,paths:files.map(file=>`plugins/${id}/source/${file.path}`)}],
-      fileCount:files.length,requiresMerge:files.some(conflict),blocked:false,issues:[]};
+      fileCount:files.length,requiresMerge:files.some(conflict),blocked:false,issues:[],dependencyChanges:snapshot.dependencyChanges};
     for(const [key,value] of this.plans)if(Date.now()-value.createdAt>3600000)this.plans.delete(key);
     this.plans.set(plan.id,{root:path.resolve(root),snapshot,guard:await guard(root,id),baseline:hash(JSON.stringify(ownership.plugins[id])),createdAt:Date.now(),merging:false,plan});
     return plan;
@@ -85,8 +85,14 @@ export class OwnedPluginUpdateService {
   private stored(root:string,id:string){const value=this.plans.get(id);if(!value||value.root!==path.resolve(root)||Date.now()-value.createdAt>3600000)throw new Error("PLUGIN_SOURCE_PLAN_EXPIRED");return value;}
   async merge(root:string,id:string){
     const stored=this.stored(root,id), pluginId=stored.snapshot.pluginId;
-    const fresh=await planPluginSourceSync(root,{pluginId});
+    let fresh=await planPluginSourceSync(root,{pluginId});
     if(fresh.planHash!==stored.snapshot.planHash)throw new Error("PLUGIN_SOURCE_PLAN_STALE");
+    if (fresh.dependencyChanges.length) {
+      await preparePluginSourceSyncDependencies(root, { pluginId, planHash: fresh.planHash }, this.run);
+      fresh = await planPluginSourceSync(root, { pluginId });
+      stored.snapshot = fresh;
+      stored.guard = await guard(root, pluginId);
+    }
     const {config}=await resourcePaths(root);
     const files=stored.snapshot.mergeFiles.map(file=>({itemId:`plugin/${pluginId}`,path:path.posix.join(config.agentUI.sourceRoot,`plugins/${pluginId}/source/${file.path}`),base:text(file.base),local:text(file.local),target:text(file.target)}));
     stored.merging=true;
