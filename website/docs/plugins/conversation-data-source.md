@@ -50,5 +50,7 @@ export function App() {
 
 这里 `/api` 是历史接口基础地址，`/agent` 是实时 AG-UI 地址。数据源实例应保持稳定；保留数据源和会话服务插件启用。
 
-具体路由、鉴权和响应转换在生成目录的 `services/conversations/http-data-source.ts` 中按业务接口适配。完整格式及可选操作见[接入历史会话](/development/history-backend)。
+在生成目录的 `services/conversations/http-data-source.ts` 中配置 `conversationDataSourceConfig`：地址、动态鉴权、Cookie 凭据、路由，以及自定义 `fetch`、`decodeList`、`decodeDetail`。该文件经项目的插件入口调用所选实现；默认 HTTP 请求、响应包装、`max_message_checkpoint` 和 `channel_values → values` 等转换由本插件实现。
+
+自己的数据库和历史接口可以使用不同格式，通过项目解码器或自定义数据源转换为公共会话契约即可。项目配置由用户维护，npm 升级保留这些覆盖；若显式接管了插件实现，其更新走单独的源码同步。已有项目的完整 HTTP 实现不会自动迁移。完整格式及可选操作见[接入历史会话](/development/history-backend)。
 

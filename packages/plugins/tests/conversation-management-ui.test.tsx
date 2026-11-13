@@ -5,7 +5,7 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
 import { ConversationThreadListPlugin } from "../dist/conversation-thread-list/index.js";
-import { createHttpConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/http-data-source";
+import { createHttpConversationDataSource } from "../src/plugins/conversation-data-source/adapters/presentation/http-data-source";
 import { createConversationService } from "../resources/registry/items/foundation/core-application/files/services/conversations/service";
 import { createConversationServiceThreadBinding } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 

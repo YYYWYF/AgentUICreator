@@ -125,12 +125,17 @@ test("markdown and attachments use existing Plugins", async ({ page }) => {
   await expect(ui.getByRole("heading", { name: "一级标题", exact: true })).toBeVisible();
   expect(JSON.stringify(sent)).toContain("bridge.pdf");
   await expect(ui.locator(".aui-md table")).toBeVisible();
-  await expect(ui.locator(".aui-md pre")).toBeVisible();
+  const codeBlocks = ui.locator(".aui-md pre");
+  await expect(codeBlocks).toHaveCount(2);
+  await expect(codeBlocks.nth(0)).toBeVisible();
+  await expect(codeBlocks.nth(1)).toBeVisible();
   await expect(ui.getByRole("button", { name: "发送消息", exact: true })).toBeVisible({ timeout: 20_000 });
   expect(errors).toEqual([]);
 });
 
 test("a compiled project producer with its history service loads and switches persisted thread config", async ({ page }) => {
+  // This case builds a standalone production producer before opening the page.
+  test.setTimeout(180_000);
   const fixture = await createConnectionHostFixture({ mode: "embedded" });
   let consumer: Awaited<ReturnType<typeof createServer>> | undefined;
   try {
@@ -154,7 +159,7 @@ test("a compiled project producer with its history service loads and switches pe
     } catch (error) { throw new Error(JSON.stringify((error as { technicalDetails?: unknown }).technicalDetails), { cause: error }); }
     const config = path.join(fixture.hostRoot, "src/agent-ui/application/AgentUICompatibilityRoot.tsx");
     const source = await readFile(config, "utf8");
-    await writeFile(config, 'import { createHttpConversationDataSource } from "../services/conversations";\nconst history = createHttpConversationDataSource({ endpoint: "/api" });\n' + source.replace('<CompatibilityRoot {...props}', '<CompatibilityRoot {...props} agentProps={{...props.agentProps, conversationDataSource:history}}'));
+    await writeFile(config, 'import { createHttpConversationDataSource, AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE } from "../services/conversations";\nconst history = createHttpConversationDataSource({ endpoint: "/api" });\n' + source.replace('<CompatibilityRoot {...props}', '<CompatibilityRoot {...props} agentProps={{...props.agentProps, services:{...props.agentProps?.services, [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history}}}'));
     // Playwright runs with NODE_ENV=test. Build the delivered producer under
     // its real production environment, independently from the test process.
     await promisify(execFile)(process.execPath, [path.join(fixture.hostRoot, "node_modules/vite/bin/vite.js"), "build", "--config", "src/agent-ui/integrations/web-component-bridge/vite.config.ts"], {
@@ -222,6 +227,7 @@ for (const width of [1440, 420]) for (const theme of ["light", "dark", "violet"]
     await ui.evaluate((element: any, theme) => { element.config = { ...element.config, theme }; }, theme);
     await expect(ui.locator('[data-agent-ui-root]')).toHaveAttribute('data-theme', theme);
     await ui.getByRole('textbox').fill('检查项目'); await ui.getByRole('button', { name: '发送消息', exact: true }).click();
+    await expect(ui.getByRole('button', { name: '发送消息', exact: true })).toBeVisible({ timeout: 20_000 });
     // Exercise the default toolbar Button, whose ownership and focus-ring
     // contract differs from the unstyled disclosure used by a tool group.
     const tool = ui.getByRole('button', { name: '更多操作', exact: true }); await expect(tool).toBeVisible();

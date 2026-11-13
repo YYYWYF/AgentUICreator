@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, access } from "node:fs/promises";
+import { readFile, access, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { publicModules } from "./build-public-packages.mjs";
@@ -32,3 +32,16 @@ test("public entries use portable logical paths and exist in built packages", as
   }
 });
 import { test } from "node:test";
+
+test("Runtime has no production dependency or implementation import from Plugins", async () => {
+  const runtime = await manifest("runtime");
+  for (const field of ["dependencies", "optionalDependencies", "peerDependencies"]) {
+    assert(!runtime[field]?.["@za38.03/agent-ui-plugins"], field);
+  }
+  const directory = path.join(root, "packages/runtime/src");
+  for (const name of await readdir(directory, { recursive: true })) {
+    if (!/\.[jt]sx?$/u.test(name)) continue;
+    const source = await readFile(path.join(directory, name), "utf8");
+    assert(!/["']@za38\.03\/agent-ui-plugins(?:\/|["'])/u.test(source), name);
+  }
+});

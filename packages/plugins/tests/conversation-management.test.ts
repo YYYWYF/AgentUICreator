@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createHttpConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/http-data-source";
+import { createHttpConversationDataSource } from "../src/plugins/conversation-data-source/adapters/presentation/http-data-source";
 import { createConversationService } from "../resources/registry/items/foundation/core-application/files/services/conversations/service";
 import type { ConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/data-source";
 import { createConversationServiceThreadBinding } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";

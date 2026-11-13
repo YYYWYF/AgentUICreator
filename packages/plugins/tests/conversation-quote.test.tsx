@@ -79,7 +79,7 @@ async function mount(disabled = false, history: readonly ConversationMessage[] =
   };
   return { host, requests, runtime, select, remove: async () => { installed = false; await act(async () => render()); } };
 }
-it("selects inside the scoped Portal, dismisses, sends quote context for every turn and retains history after removal", async () => {
+it("selects inside the scoped Portal, dismisses, sends quote context only with the current message and retains history after removal", async () => {
   const { host, requests, runtime, select, remove } = await mount();
   expect(runtime.thread.composer.getState().isEditing).toBe(true);
   await select();
@@ -104,7 +104,9 @@ it("selects inside the scoped Portal, dismisses, sends quote context for every t
   await select();
   expect(host.querySelector('[data-slot="selection-toolbar"]')).toBeNull();
   await act(async () => { runtime.thread.composer.setText("Continue"); runtime.thread.composer.send(); }); await until(() => requests.length === 2 && !runtime.thread.getState().isRunning);
-  expect(requests[1]!.messages.find(message => message.id === user.id)!.content).toBe("> Actions simplify asynchronous state changes.\n\nWhy?");
+  expect(requests[1]!.messages.find(message => message.id === user.id)).toBeUndefined();
+  expect(requests[1]!.messages).toHaveLength(1);
+  expect(runtime.thread.getState().messages.find(message => message.id === user.id)?.metadata.custom.quote).toEqual(user.metadata.custom.quote);
   expect(requests[1]!.messages.filter(message => message.role === "user").at(-1)!.content).toBe("Continue");
 });
 it("keeps readonly history selectable without an actionable Quote toolbar", async () => {
@@ -144,11 +146,12 @@ it("shows Quote for an ordinary editing composer, previews and dismisses it", as
   expect(host.querySelector('[data-slot="composer-quote"]')).toBeNull();
 });
 
-it("seeds outbound quote context from structured loaded history after removing creation UI", async () => {
+it("retains structured loaded quote history locally without resending it after removing creation UI", async () => {
+  const restoredQuote = { text: "Restored passage", messageId: "earlier-assistant" };
   const historicalUser: ConversationMessage = {
     id: "historical-user", role: "user", content: [{ type: "text", text: "Earlier question" }],
     attachments: [], createdAt: new Date(0),
-    metadata: { custom: { quote: { text: "Restored passage", messageId: "earlier-assistant" } } },
+    metadata: { custom: { quote: restoredQuote } },
   };
   const { runtime, requests, remove } = await mount(false, [historicalUser]);
   await remove();
@@ -157,8 +160,9 @@ it("seeds outbound quote context from structured loaded history after removing c
     runtime.thread.composer.send();
   });
   await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
-  expect(requests[0]!.messages.find(message => message.id === historicalUser.id)!.content)
-    .toBe("> Restored passage\n\nEarlier question");
+  expect(requests[0]!.messages.find(message => message.id === historicalUser.id)).toBeUndefined();
+  expect(requests[0]!.messages).toHaveLength(1);
+  expect(runtime.thread.getState().messages.find(message => message.id === historicalUser.id)?.metadata).toMatchObject({ custom: { quote: restoredQuote } });
   expect(requests[0]!.messages.filter(message => message.role === "user").at(-1)!.content).toBe("Continue");
   expect(runtime.thread.getState().messages.find(message => message.id === historicalUser.id)!.content)
     .toEqual(historicalUser.content);

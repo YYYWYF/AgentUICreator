@@ -35,7 +35,8 @@ describe("official package metadata authority", () => {
     const item = byId.get("foundation/core-application");
     expect(item).toBeDefined();
     byId.set(item.id, { ...item, loadedFiles: item.loadedFiles.map(file => file.target === "services/composer-triggers.ts"
-      ? { ...file, content: Buffer.from(file.content.toString().replace('"conversation.slash-command-source"', '"changed.command-source"')) } : file) });
+      ? { ...file, content: Buffer.from(file.content.toString().replace(/(['"])conversation\.slash-command-source\1/u, '"changed.command-source"')) } : file) });
+    expect(byId.get(item.id).loadedFiles.find(file => file.target === "services/composer-triggers.ts").content.toString()).toContain("changed.command-source");
     await expect(validateOfficialPackageServices({ ...registry, byId })).rejects.toMatchObject({ code: "OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT" });
   });
 });

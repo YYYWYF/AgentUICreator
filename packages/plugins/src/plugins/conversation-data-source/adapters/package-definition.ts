@@ -18,3 +18,9 @@ export const conversationDataSourcePlugin = {
   Component: ConversationDataSourcePlugin,
 } satisfies UIPluginDefinition & { bindSetup: typeof bindSetup };
 export default conversationDataSourcePlugin;
+
+export {
+  createHttpConversationDataSource,
+  type HttpConversationDataSourceOptions,
+  type HttpConversationDataSourceRoutes,
+} from './adapters/http-data-source';

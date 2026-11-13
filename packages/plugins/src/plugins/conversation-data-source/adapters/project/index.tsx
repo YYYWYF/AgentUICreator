@@ -6,3 +6,9 @@ export function ConversationDataSourcePlugin(
 ) {
   return <Implementation {...props} />;
 }
+
+export {
+  createHttpConversationDataSource,
+  type HttpConversationDataSourceOptions,
+  type HttpConversationDataSourceRoutes,
+} from '@za38.03/agent-ui-plugins/conversation-data-source';

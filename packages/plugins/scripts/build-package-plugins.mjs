@@ -40,7 +40,9 @@ await mkdir(generated, { recursive: true });
 await mkdir(path.join(generated, "framework/contracts"), { recursive: true });
 await writeFile(path.join(generated, "framework/contracts/ui-plugin.ts"), 'export * from "@za38.03/agent-ui-plugins/contracts";\n');
 // Each official plugin has one product entry point.
-const plugins = deliveries;
+// The HTTP adapter consumes the conversation-service public DTO/schema contract.
+const plugins = [...deliveries].sort((a, b) =>
+  Number(a.id === "conversation-data-source") - Number(b.id === "conversation-data-source"));
 const utilityCandidatesByPlugin = new Map();
 // Do not emit the utilities already guaranteed by styles-base.css a second time.
 const baseCandidates = new Set(new Scanner({ sources: sharedStyleScanSources(path.join(root, "dist")) }).scan());
@@ -79,6 +81,9 @@ await writeFile(path.join(generated, "tsconfig.json"), JSON.stringify({ compiler
   target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true,
   skipLibCheck: true, resolveJsonModule: true, declaration: true, emitDeclarationOnly: true,
   outDir: "../dist/types", rootDir: ".",
+  paths: Object.fromEntries(plugins.map(({ id }) => [
+    `@za38.03/agent-ui-plugins/${id}`, [`./plugins/${id}/definition.ts`],
+  ])),
 }, include: ["**/*.ts", "**/*.tsx"] }));
 const result = spawnPnpmSync(["exec", "tsc", "-p", path.join(generated, "tsconfig.json")], { cwd: root, stdio: "inherit" });
 if (result.error) throw result.error;
@@ -174,7 +179,6 @@ for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
     `${plugin.id}/index.js`, "public.js", support, "internal/composable-thread.js",
     ...utilityFilesByPlugin.get(plugin.id),
     ...(delivery.projectFiles?.some(file => file.endsWith(".css")) ? [`${plugin.id}/index.css`] : []),
-    ...delivery.presentation.map(name => `plugins/${presentationId}/adapters/presentation/${name.replace(/\.tsx?$/u, ".js")}`),
   ]);
   // Bind extracted shared presentation to the compiled canonical owners too,
   // including owners reached through generated compatibility views.

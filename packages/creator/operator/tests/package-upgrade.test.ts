@@ -12,7 +12,9 @@ import { runUpdateCommand, verifyNpmArtifact } from "../src/updates/npm-artifact
 import { officialPackageNames } from "../src/updates/compatibility-release";
 import { resourcePackageInvocation } from "../src/project/ensure-resource-packages";
 const roots:string[]=[],servers:Server[]=[];
-afterEach(async()=>{for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});});
+// Upgrade fixtures include two complete published Plugin trees and installed
+// consumers; cleanup must finish before the next test starts.
+afterEach(async()=>{for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});},120_000);
 const coreName="@za38.03/agent-ui-core";
 const name=coreName;
 async function setup(manager:"npm"|"pnpm"="npm", plugins=false){

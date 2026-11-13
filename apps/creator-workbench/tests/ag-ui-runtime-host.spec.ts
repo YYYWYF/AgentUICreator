@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { createConnectionHostFixture } from "./support/agent-connection-host.js";
 import { captureWindowErrors } from "./support/window-errors.js";
@@ -70,21 +70,24 @@ test("canonical runtime renders reasoning and resumes a tool approval once", asy
     await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
     await page.getByRole("button", { name: "返回对话", exact: true }).click();
     const host = page.frameLocator('iframe[title="Host Application"]');
-    expect((await page.request.post(`${preview.creatorOrigin}__agent-ui/creator/mock/select`, { data: { scenarioId: "approval-resume", speed: 0 } })).ok()).toBe(true);
+    // Scenario selection validates the installed Plugin APIs before switching.
+    expect((await page.request.post(`${preview.creatorOrigin}__agent-ui/creator/mock/select`, { data: { scenarioId: "approval-resume", speed: 0 }, timeout: 120_000 })).ok()).toBe(true);
     await host.locator(".aui-composer-root").getByRole("textbox").fill("Test approval");
     await host.locator(".aui-composer-send").click();
     await host.getByRole("button", { name: /思考/ }).click();
-    await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("这个操作会修改工作区");
-    await host.getByRole("button", { name: /1 次工具调用/ }).click();
-    await expect(host.getByRole("button", { name: "允许", exact: true })).toBeVisible();
+    await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("请确认您的请假方案");
+    const allow = host.getByRole("button", { name: "允许", exact: true });
+    if (!await allow.isVisible()) await host.getByRole("button", { name: /1 次工具调用/ }).click();
+    await expect(allow).toBeVisible();
     await mkdir(evidence, { recursive: true });
     await page.screenshot({ path: path.join(evidence, "tool-approval.png"), fullPage: true });
     await host.getByRole("button", { name: "允许", exact: true }).click();
-    await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("已获得许可，临时构建产物已清理。");
+    await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("已确认这次请假方案，继续处理后续流程。");
     await expect(host.getByRole("button", { name: "允许", exact: true })).toHaveCount(0);
     expect(runs).toHaveLength(2);
     expect(runs[1]!.threadId).toBe(runs[0]!.threadId);
-    expect(runs[1]!.resume).toEqual([{ interruptId: "approval-resume-1", status: "resolved", payload: { approved: true } }]);
+    expect(runs[1]!.messages).toEqual([]);
+    expect(runs[1]!.resume).toEqual([{ interruptId: "approval-resume-1", status: "resolved", payload: { decisions: [{ type: "approve" }] } }]);
     await page.screenshot({ path: path.join(evidence, "approval-completed.png"), fullPage: true });
     expect(errors).toEqual([]);
   } catch (error) {
@@ -102,7 +105,7 @@ test("public Generative UI facade renders a tool card and continues once", async
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => { if (message.type() === "error" && /React does not recognize/.test(message.text())) errors.push(message.text()); });
   try {
-    await writeFile(path.join(preview.hostRoot, "src/main.tsx"), 'import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import { createConversationToolkit } from "@za38.03/agent-ui-plugins"; import { createAgentUIGenerativeUI } from "@za38.03/agent-ui-plugins/generative-ui"; import "./host.css"; import "@za38.03/agent-ui-plugins/generative-ui.css"; const toolkit=createConversationToolkit({present:createAgentUIGenerativeUI().present({display:"standalone"})}); createRoot(document.getElementById("root")!).render(<Agent toolkit={toolkit} endpoint="/generative-acceptance" />);');
+    await preview.writeHostEntry('import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import { createConversationToolkit } from "@za38.03/agent-ui-plugins"; import { createAgentUIGenerativeUI } from "@za38.03/agent-ui-plugins/generative-ui"; import "./host.css"; import "@za38.03/agent-ui-plugins/generative-ui.css"; const toolkit=createConversationToolkit({present:createAgentUIGenerativeUI().present({display:"standalone"})}); createRoot(document.getElementById("root")!).render(<Agent toolkit={toolkit} endpoint="/generative-acceptance" />);');
     await page.route(`${preview.hostOrigin}generative-acceptance`, async route => {
       const input = route.request().postDataJSON(); runs.push(input);
       const identity = { threadId: input.threadId, runId: input.runId };

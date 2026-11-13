@@ -10,7 +10,6 @@ import {
   useAgentUILocale,
   useAgentUISidebarNavigation,
   useConversationNavigation,
-  type AgentUITheme,
 } from '../../../../public.js';
 import { PolicyThreadList, type PolicyThreadListProps } from './PolicyThreadList.js';
 export interface ConversationThreadListPluginProps
@@ -30,7 +29,7 @@ export interface ConversationThreadListPluginProps
   };
   serviceAvailable?: boolean;
   onRefresh?: () => void | Promise<void>;
-  theme?: AgentUITheme;
+  theme?: string;
   runStatus?: string;
 }
 export function CanonicalConversationThreadList({

@@ -1,4 +1,4 @@
-import type { DataMessageUIDefinition } from "@za38.03/agent-ui-plugins";
+import type { DataMessageUIDefinition } from "../../../plugin-api/index.js";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";
 import { isValidDataMessageUIName } from "../../framework/contracts/data-message-ui.js";

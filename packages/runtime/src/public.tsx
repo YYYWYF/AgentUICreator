@@ -40,7 +40,7 @@ import type {
   ConversationThreadListItem,
   ConversationThreadListSnapshot,
 } from "./threads/types.js";
-import type { ConversationToolkit, ConversationTransientMessageService } from "@za38.03/agent-ui-plugins";
+import type { ConversationToolkit, ConversationTransientMessageService } from "./plugin-api/index.js";
 import type { ReactNode } from "react";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
 
@@ -135,12 +135,13 @@ export { createConversationFrontendToolPort } from "./tools/types.js";
 export type { ConversationFrontendToolPort, ConversationFrontendToolUIEntry, ConversationFrontendToolUIRegistry } from "./tools/types.js";
 import type { ConversationFrontendToolPort } from "./tools/types.js";
 
-export function createEphemeralConversationThreadBinding(): ConversationThreadBinding {
-  let threadId = crypto.randomUUID();
+export function createEphemeralConversationThreadBinding(initialThreadId?: string): ConversationThreadBinding {
+  let threadId = initialThreadId ?? crypto.randomUUID();
   const listeners = new Set<() => void>();
 
   return {
     getThreadId: () => threadId,
+    activateThread(id) {if(threadId===id)return;threadId=id;for(const listener of listeners)listener();},
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

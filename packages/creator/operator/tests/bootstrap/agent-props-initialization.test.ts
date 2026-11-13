@@ -39,7 +39,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  const projectConfig = await readFile(path.join(source,'application/project-config.tsx'),'utf8');
  expect(projectConfig).toContain("import { locales } from './locales'");
  expect(projectConfig).toContain('getConversationStarterSuggestions: (_locale, messages)');
- expect(projectConfig).toContain('label: messages.architectureLabel');
+ expect(projectConfig).toMatch(/label:\s*\(?messages\.architectureLabel\s*\?\?\s*["']{2}\)?/);
  expect(projectConfig).not.toMatch(/import\.meta|\?raw/);
  expect(projectConfig).toContain("import appUIModel from '../app-ui.json'");
  expect(projectConfig).toContain('compositionStore: agentCompositionStore');

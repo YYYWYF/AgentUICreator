@@ -1,5 +1,6 @@
 import "./check-build-contracts.mjs";
-import { deliveries, portableSource } from "./plugin-source-recipes.mjs";
+import { buildPluginTakeoverDistribution } from "./plugin-takeover-sources.mjs";
+import { deliveries } from "./plugin-source-recipes.mjs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -64,10 +65,14 @@ for (const recipe of deliveries.filter(delivery => Object.keys(delivery.applicat
 }
 for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
   if (plugin.takeover.schemaVersion !== 1 || !plugin.takeover.runtimeFiles?.length) throw new Error("Incomplete takeover distribution");
+  const expected = await buildPluginTakeoverDistribution(deliveries.find(delivery => delivery.id === plugin.id));
+  const files = new Map(expected.files.map(file => [file.target,file]));
+  if(files.size !== plugin.takeover.files.length || JSON.stringify(expected.requiredDependencies)!==JSON.stringify(plugin.takeover.requiredDependencies)) throw new Error(`Stale takeover inventory: ${plugin.id}`);
   for (const file of plugin.takeover.files) {
     const published = await readFile(sourcePath(path.join(packageRoot,"dist"),file.path));
-    let source = await readFile(sourcePath(packageRoot,file.origin),"utf8");
-    source = await portableSource(deliveries.find(delivery => delivery.id === plugin.id), file.target, source);
+    const canonical = files.get(file.target);
+    if (!canonical || canonical.origin !== file.origin) throw new Error(`Stale takeover owner: ${plugin.id}/${file.target}`);
+    const source = canonical.content;
     if (!published.equals(Buffer.from(source)) || createHash("sha256").update(published).digest("hex") !== file.sha256) throw new Error(`Stale takeover source: ${plugin.id}/${file.target}`);
   }
   for (const file of plugin.takeover.runtimeFiles) if (createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot,"dist"),file.path))).digest("hex") !== file.sha256) throw new Error(`Stale takeover runtime: ${file.path}`);

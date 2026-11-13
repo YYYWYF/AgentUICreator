@@ -150,13 +150,13 @@ test("failed history deletion retains the selected thread and a successful retry
   } finally { await f.close(); }
 });
 
-test("composition disable, stale mutation refusal, removal and reinsertion preserve application code and the draft", async ({ page }) => {
+test("ordinary workspace recomposition revokes its old session and preserves application code through stale refusal and reinsertion", async ({ page }) => {
   const errors = await watch(page);
-  let stream: ServerResponse | undefined, activeInput: ControlledRunInput | undefined, closed = false;
+  let closed = false;
   const f = await createControlledAgentHost({ run(input, response, index) {
     startRun(response, input);
     if (index > 1) { finishRun(response, input, "Usable after composition changes"); return; }
-    stream = response; activeInput = input; response.once("close", () => { closed = true; });
+    response.once("close", () => { closed = true; });
     writeEvent(response, { type: "TEXT_MESSAGE_START", messageId: "composition-live", role: "assistant" });
     writeEvent(response, { type: "TEXT_MESSAGE_CONTENT", messageId: "composition-live", delta: "Active through composition changes" });
   } });
@@ -184,7 +184,10 @@ test("composition disable, stale mutation refusal, removal and reinsertion prese
     await composer(page).fill("Draft through composition changes");
     await mutate({ type: "set_plugin_enabled", instanceId: plugin.id, enabled: false });
     await expect(page.getByRole("button", { name: "添加附件", exact: true })).toHaveCount(0);
-    await expect(composer(page)).toHaveValue("Draft through composition changes");
+    // Unlike a scoped renderer substitution, ordinary workspace recomposition
+    // rebuilds service owners, including the conversation binding capability.
+    await expect.poll(() => closed).toBe(true);
+    await expect(composer(page)).toHaveValue("");
     const disabled = await readFile(modelFile, "utf8");
     const stale = await handleUIOperatorRequest({ operation: "mutate_app_ui_model", input: { appUIModelHash: originalHash, operations: [{ type: "set_plugin_enabled", instanceId: plugin.id, enabled: true }] } }, f.hostRoot);
     expect(stale).toMatchObject({ ok: false }); expect(await readFile(modelFile, "utf8")).toBe(disabled);
@@ -195,13 +198,11 @@ test("composition disable, stale mutation refusal, removal and reinsertion prese
     expect(await readFile(applicationFile, "utf8")).toBe(application);
     await mutate({ type: "insert_plugin_default", plugin });
     await expect(page.getByRole("button", { name: "添加附件", exact: true })).toBeVisible();
-    await expect(composer(page)).toHaveValue("Draft through composition changes");
+    await expect(composer(page)).toHaveValue("");
     expect(await readFile(applicationFile, "utf8")).toBe(application);
-    expect(closed).toBe(false); expect(f.requests).toHaveLength(1);
-    writeEvent(stream!, { type: "TEXT_MESSAGE_END", messageId: "composition-live" });
-    writeEvent(stream!, { type: "RUN_FINISHED", threadId: activeInput!.threadId, runId: activeInput!.runId }); stream!.end();
+    expect(closed).toBe(true); expect(f.requests).toHaveLength(1);
     await expect(page.getByRole("button", { name: "停止生成", exact: true })).toHaveCount(0);
-    await page.locator(".aui-composer-send").click(); await expect(page.locator(".aui-md").last()).toContainText("Usable after composition changes");
+    await send(page, "Fresh request after composition changes"); await expect(page.locator(".aui-md").last()).toContainText("Usable after composition changes");
     expect(f.requests).toHaveLength(2); expect(f.failures).toEqual([]); expect(errors).toEqual([]);
   } finally { await f.close(); }
 });

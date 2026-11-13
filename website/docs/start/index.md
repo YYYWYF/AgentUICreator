@@ -228,6 +228,7 @@ src/agent-ui/                        # 生成的 Agent 前端源码
 | Vite | `@tailwindcss/vite` | [Vite 样式配置](/development/react#vite-样式配置) |
 | Rsbuild | `@tailwindcss/postcss` | [Rsbuild 样式配置](/development/react#rsbuild-样式配置) |
 | Webpack 5 | `@tailwindcss/postcss` 与 `postcss-loader` | [Webpack 样式配置](/development/react#webpack-5-样式配置) |
+| CRACO / CRA | 在内置 PostCSS 处理链中加入 `@tailwindcss/postcss` | [CRACO 样式配置](/development/react#craco--cra-样式配置) |
 
 完成后重启工程开发服务，继续挂载助理。样式配置用于助理界面的开发和生产构建，需要保留在工程中。
 

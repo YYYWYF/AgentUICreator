@@ -13,6 +13,7 @@ it("retains subpath-only declarations and reports missing subpath dependencies",
   const root = await mkdtemp(path.join(tmpdir(), "ui declarations 中文 "));
   try {
     await mkdir(path.join(root, "ui"));
+    for(const entry of ["contracts/index.d.ts","plugin-api/index.d.ts","locale.d.ts","presentation.d.ts"]){await mkdir(path.dirname(path.join(root,entry)),{recursive:true});await writeFile(path.join(root,entry),"export {};\n");}
     await writeFile(path.join(root, "index.d.ts"), "export {};\n");
     await writeFile(path.join(root, "ui/index.d.ts"), "export {};\n");
     await writeFile(path.join(root, "ui/feature.d.ts"), 'export type { Shared } from "../shared.js";\n');

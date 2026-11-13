@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { officialPackagePlugins } from "../../../../plugins/src/catalog/package-plugins.ts";
@@ -17,32 +18,49 @@ export async function validateOfficialPackageServices(registry, catalog = offici
       const prefix = `plugins/${plugin.pluginId}/`;
       const bundled = await build({
         stdin: { contents: `export { default } from "./${prefix}definition.ts";`, resolveDir: "/" },
-        bundle: true, write: false, platform: "node", format: "esm",
+        bundle: true, write: false, platform: "node", format: "esm", packages: "external", loader: { ".css": "empty" },
         plugins: [{ name: "reference-metadata", setup(builder) {
           builder.onResolve({ filter: /.*/ }, args => {
             if (args.path === "@za38.03/agent-ui-plugins/contracts") return { path: args.path, namespace: "contract-metadata" };
-            if (args.path === "@za38.03/agent-ui-plugins") return {path:args.path,namespace:"public-metadata"};
+            if (args.path === "@za38.03/agent-ui-plugins") return {path:args.importer,namespace:"public-metadata"};
+            if (args.namespace === "file") {
+              if (!args.path.startsWith(".") && !path.isAbsolute(args.path)) return { path: import.meta.resolve(args.path), external: true };
+              return;
+            }
+            // Follow actual package service constants, while keeping CSS out of Node.
+            if (args.path.startsWith("@za38.03/agent-ui-plugins/")) return { path: fileURLToPath(import.meta.resolve(args.path)) };
             if (!args.path.startsWith(".")) return { path: import.meta.resolve(args.path), external: true };
             const base = args.namespace === "reference" ? path.posix.dirname(args.importer) : "";
             const target = path.posix.normalize(path.posix.join(base, args.path));
+            if (target.startsWith("plugins/")) {
+              const dependency = catalog.find(entry => entry.pluginId === target.split("/")[1]);
+              if (dependency) for (const item of resolveAgentUISourceItemClosure(registry, dependency.referenceSourceItemId)) {
+                for (const file of item.loadedFiles) if (!files.has(file.target)) files.set(file.target, file.content.toString("utf8"));
+              }
+            }
             const resolved = [target, `${target}.ts`, `${target}.tsx`, `${target}.json`, `${target}/index.ts`, `${target}/index.tsx`].find(file => files.has(file));
             if (!resolved) throw new Error(`Unresolved reference import: ${target}`);
             return { path: resolved, namespace: "reference" };
           });
           builder.onLoad({filter:/.*/,namespace:"contract-metadata"}, () => ({ contents: "export const parseUIPluginManifest = value => value;", loader: "js" }));
-          builder.onLoad({filter:/.*/,namespace:"public-metadata"}, () => {
+          builder.onLoad({filter:/.*/,namespace:"public-metadata"}, async args => {
             // Evaluate metadata without loading browser UI/CSS. Locale defaults
             // are actual package data; presentation functions never execute here.
-            const names = new Set([...files.values()].flatMap(text => [...text.matchAll(/(?:import|export)\s*\{([^}]+)\}\s*from\s*["']@za38\.03\/agent-ui-plugins["']/gu)].flatMap(match => match[1].split(",").map(name=>name.trim()).filter(name=>name && !name.startsWith("type ")).map(name=>name.split(/\s+as\s+/u)[0]))));
+            const source = files.get(args.path) ?? await readFile(args.path, "utf8");
+            const names = new Set([source].flatMap(text => [...text.matchAll(/(?:import|export)\s*\{([^}]+)\}\s*from\s*["']@za38\.03\/agent-ui-plugins["']/gu)].flatMap(match => match[1].split(",").map(name=>name.trim()).filter(name=>name && !name.startsWith("type ")).map(name=>name.split(/\s+as\s+/u)[0]))));
             const locale = new URL("../../../../plugins/dist/locale.js", import.meta.url).href;
             return {contents: `export {AGENT_UI_PRESENTATION_LOCALES} from ${JSON.stringify(locale)};\n` + [...names].filter(name=>name!=="AGENT_UI_PRESENTATION_LOCALES").map(name=>`export const ${name}=()=>null;`).join("\n"),loader:"js"};
           });
           builder.onLoad({ filter: /.*/, namespace: "reference" }, args => {
-            if (args.path === `${prefix}index.tsx`) {
+            if (/^plugins\/[^/]+\/index\.tsx$/u.test(args.path)) {
               // Legacy reference renderers may have different names from the
               // newly published component. Stub their real exported bindings;
               // this check evaluates service metadata, never presentation.
-              const names = [...files.get(args.path).matchAll(/export\s+(?:const|function|class)\s+(\w+)/gu)].map(match => match[1]);
+              const source = files.get(args.path);
+              const names = [...source.matchAll(/export\s+(?:const|function|class)\s+(\w+)/gu)].map(match => match[1]);
+              for (const match of source.matchAll(/export\s*\{([^}]+)\}/gu)) {
+                names.push(...match[1].split(",").map(name => name.trim()).filter(name => name && !name.startsWith("type ")).map(name => name.split(/\s+as\s+/u).at(-1)));
+              }
               return { contents: [...new Set(names)].map(name => `export const ${name} = () => null;`).join("\n"), loader: "js" };
             }
             if (args.path === "framework/contracts/ui-plugin.ts") return { contents: "export const parseUIPluginManifest = value => value;", loader: "js" };

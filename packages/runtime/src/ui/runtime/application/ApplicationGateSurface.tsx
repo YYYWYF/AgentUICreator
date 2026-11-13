@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useAgentUILocale } from "../../../locale.js";
 import type { ReactNode } from "react";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";

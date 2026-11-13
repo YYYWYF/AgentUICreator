@@ -9,11 +9,11 @@ onlyBuiltDependencies:
 
 overrides:
   '@assistant-ui/react': 0.15.31
-  '@assistant-ui/core': 0.3.31
-  '@assistant-ui/store': 0.3.22
-  '@assistant-ui/tap': 0.9.24
-  assistant-stream: 0.3.54
-  assistant-cloud: 0.2.8
+  '@assistant-ui/core': 0.3.35
+  '@assistant-ui/store': 0.3.23
+  '@assistant-ui/tap': 0.9.25
+  assistant-stream: 0.3.57
+  assistant-cloud: 0.2.11
   '@assistant-ui/react-markdown': 0.14.24
   '@assistant-ui/react-lexical': 0.2.15
   '@assistant-ui/react-ag-ui': 0.1.0
@@ -99,7 +99,7 @@ importers:
     dependencies:
       '@assistant-ui/react-lexical':
         specifier: 0.2.15
-        version: 0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
+        version: 0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
@@ -187,7 +187,7 @@ importers:
     dependencies:
       '@assistant-ui/react-lexical':
         specifier: 0.2.15
-        version: 0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
+        version: 0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
@@ -275,7 +275,7 @@ importers:
     dependencies:
       '@assistant-ui/react-lexical':
         specifier: 0.2.15
-        version: 0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
+        version: 0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
@@ -488,7 +488,7 @@ importers:
         version: 0.15.31(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       '@assistant-ui/react-hook-form':
         specifier: 0.12.34
-        version: 0.12.34(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
+        version: 0.12.34(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@6.4.5)
@@ -553,8 +553,8 @@ importers:
   packages/plugins:
     dependencies:
       '@assistant-ui/core':
-        specifier: 0.3.31
-        version: 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+        specifier: 0.3.35
+        version: 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/generative-ui':
         specifier: 0.0.7
         version: 0.0.7(@assistant-ui/react@0.15.31)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
@@ -565,8 +565,8 @@ importers:
         specifier: 0.14.24
         version: 0.14.24(@assistant-ui/react@0.15.31)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       '@assistant-ui/store':
-        specifier: 0.3.22
-        version: 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+        specifier: 0.3.23
+        version: 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
@@ -577,8 +577,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       assistant-stream:
-        specifier: 0.3.54
-        version: 0.3.54
+        specifier: 0.3.57
+        version: 0.3.57
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -615,10 +615,10 @@ importers:
         version: 1.0.3(zod@4.5.4)
       '@assistant-ui/react-hook-form':
         specifier: 0.12.34
-        version: 0.12.34(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
+        version: 0.12.34(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
       '@assistant-ui/react-lexical':
         specifier: 0.2.15
-        version: 0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
+        version: 0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
       '@lexical/history':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
@@ -661,6 +661,9 @@ importers:
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../renderer
+      '@za38.03/agent-ui-runtime':
+        specifier: workspace:*
+        version: link:../runtime
       esbuild:
         specifier: 0.25.12
         version: 0.25.12
@@ -720,7 +723,7 @@ importers:
         version: 0.0.7(@assistant-ui/react@0.15.31)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
       '@assistant-ui/react-hook-form':
         specifier: 0.12.34
-        version: 0.12.34(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
+        version: 0.12.34(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@6.4.5)
@@ -791,20 +794,17 @@ importers:
         specifier: 1.0.3
         version: 1.0.3(zod@4.5.4)
       '@assistant-ui/core':
-        specifier: 0.3.31
-        version: 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+        specifier: 0.3.35
+        version: 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/react':
         specifier: 0.15.31
         version: 0.15.31(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       '@assistant-ui/react-ag-ui':
         specifier: 0.1.0
-        version: 0.1.0(@assistant-ui/react@0.15.31)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
+        version: 0.1.0(@assistant-ui/react@0.15.31)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
       '@assistant-ui/react-langgraph':
         specifier: 0.14.29
-        version: 0.14.29(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@za38.03/agent-ui-plugins':
-        specifier: workspace:*
-        version: link:../plugins
+        version: 0.14.29(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -853,7 +853,7 @@ importers:
     dependencies:
       '@assistant-ui/react-lexical':
         specifier: 0.2.15
-        version: 0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
+        version: 0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1)
       '@lexical/history':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
@@ -996,11 +996,11 @@ packages:
       lru-cache: 10.4.3
     dev: true
 
-  /@assistant-ui/core@0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1):
-    resolution: {integrity: sha512-NrTSgdUTM0SVmos3YMAAvPqDDNlxFmwVTjnA06T+4A7DcXswsKrBw65BsfSEn4m1DFSwaD3rfMlIFTEK3ei4uQ==}
+  /@assistant-ui/core@0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1):
+    resolution: {integrity: sha512-Qnit0K6zGvPdTdoc3bPvAr6fbbqe9GnTsx8J7p/R//YiV6MRTr9TCbqrH0ymSwpXdWa6uXM6e7dSz5gL83Z1JQ==}
     peerDependencies:
-      '@assistant-ui/store': 0.3.22
-      '@assistant-ui/tap': 0.9.24
+      '@assistant-ui/store': 0.3.23
+      '@assistant-ui/tap': 0.9.25
       '@types/react': 19.3.0
       react: 19.1.1
     peerDependenciesMeta:
@@ -1009,11 +1009,11 @@ packages:
       react:
         optional: true
     dependencies:
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/tap': 0.9.24(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/tap': 0.9.25(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
-      assistant-cloud: 0.2.8
-      assistant-stream: 0.3.54
+      assistant-cloud: 0.2.11
+      assistant-stream: 0.3.57
       nanoid: 6.0.2
       react: 19.1.1
     transitivePeerDependencies:
@@ -1053,7 +1053,7 @@ packages:
       '@assistant-ui/react': 0.15.31(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       '@types/json-schema': 7.0.15
       '@types/react': 19.3.0
-      assistant-stream: 0.3.54
+      assistant-stream: 0.3.57
       react: 19.1.1
       zod: 4.5.4
     transitivePeerDependencies:
@@ -1061,7 +1061,7 @@ packages:
       - ioredis
       - redis
 
-  /@assistant-ui/react-ag-ui@0.1.0(@assistant-ui/react@0.15.31)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4):
+  /@assistant-ui/react-ag-ui@0.1.0(@assistant-ui/react@0.15.31)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4):
     resolution: {integrity: sha512-mV+rFFMKyjhNgN87q6E4XC6YbtbDqZDng3VqdyPAi02wxIWYMcP1ILANWLsEC6PP/Ac7UTfeHfF58W38BFBRrw==}
     peerDependencies:
       '@types/react': 19.3.0
@@ -1071,11 +1071,11 @@ packages:
         optional: true
     dependencies:
       '@ag-ui/client': 1.0.3
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/generative-ui': 0.0.7(@assistant-ui/react@0.15.31)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
-      assistant-stream: 0.3.54
+      assistant-stream: 0.3.57
       fast-json-patch: 3.1.1
       react: 19.1.1
     transitivePeerDependencies:
@@ -1093,7 +1093,7 @@ packages:
       - zod
     dev: false
 
-  /@assistant-ui/react-hook-form@0.12.34(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1):
+  /@assistant-ui/react-hook-form@0.12.34(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1):
     resolution: {integrity: sha512-LMKuBpLTbM29ah6t+TPsgYCTl9v2C2OWulULH+pf5zoZI358O21iJzHGlNtXqx4tzzbzlT1a6YJWYGZmlCDPOA==}
     peerDependencies:
       '@types/react': 19.3.0
@@ -1103,8 +1103,8 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
       react: 19.1.1
       react-hook-form: 7.88.0(react@19.1.1)
@@ -1119,7 +1119,7 @@ packages:
       - redis
     dev: true
 
-  /@assistant-ui/react-langchain@0.0.32(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1):
+  /@assistant-ui/react-langchain@0.0.32(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1):
     resolution: {integrity: sha512-/NjnslPF5bC/QGFTdalZHf9WPgvJcmXNh2WtxABc5EgZ9T84IDotnkE6FaJXxBZxuxKN4cLMG+FnfxOikieerw==}
     peerDependencies:
       '@langchain/langgraph-sdk': ^1.9.20
@@ -1134,11 +1134,11 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
-      assistant-cloud: 0.2.8
-      assistant-stream: 0.3.54
+      assistant-cloud: 0.2.11
+      assistant-stream: 0.3.57
       react: 19.1.1
     transitivePeerDependencies:
       - '@assistant-ui/tap'
@@ -1150,7 +1150,7 @@ packages:
       - redis
     dev: false
 
-  /@assistant-ui/react-langgraph@0.14.29(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1):
+  /@assistant-ui/react-langgraph@0.14.29(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1):
     resolution: {integrity: sha512-1nymYeI76uZ3+hGzqlV8vT5EXkhRG4xIk+bibZeUBS4EOsnn0NjyzrJ/9vcnuwE4UIPO196efFO0+hqjmN3BJA==}
     peerDependencies:
       '@langchain/langgraph-sdk': ^1.9.20
@@ -1162,12 +1162,12 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/react-langchain': 0.0.32(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/react-langchain': 0.0.32(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
-      assistant-cloud: 0.2.8
-      assistant-stream: 0.3.54
+      assistant-cloud: 0.2.11
+      assistant-stream: 0.3.57
       react: 19.1.1
     transitivePeerDependencies:
       - '@assistant-ui/tap'
@@ -1180,12 +1180,12 @@ packages:
       - redis
     dev: false
 
-  /@assistant-ui/react-lexical@0.2.15(@assistant-ui/core@0.3.31)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.22)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1):
+  /@assistant-ui/react-lexical@0.2.15(@assistant-ui/core@0.3.35)(@assistant-ui/react@0.15.31)(@assistant-ui/store@0.3.23)(@lexical/history@0.51.0)(@lexical/plain-text@0.51.0)(@lexical/react@0.51.0)(@lexical/utils@0.51.0)(@types/react@19.3.0)(lexical@0.51.0)(react-dom@19.1.1)(react@19.1.1):
     resolution: {integrity: sha512-JEe+oyndG2b3dHvN4gaCGGgrI1/rrzBwQkwg0f1ooNeupk/6T6yE7pLZDskK5W7D37NsAnOQl3y03ernUM2KXQ==}
     peerDependencies:
-      '@assistant-ui/core': 0.3.31
+      '@assistant-ui/core': 0.3.35
       '@assistant-ui/react': 0.15.31
-      '@assistant-ui/store': 0.3.22
+      '@assistant-ui/store': 0.3.23
       '@lexical/history': 0.51.0
       '@lexical/plain-text': 0.51.0
       '@lexical/react': 0.51.0
@@ -1198,9 +1198,9 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/react': 0.15.31(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
       '@lexical/history': 0.51.0(typescript@7.0.2)
       '@lexical/plain-text': 0.51.0(typescript@7.0.2)
       '@lexical/react': 0.51.0(react-dom@19.1.1)(react@19.1.1)(typescript@7.0.2)(yjs@13.6.33)
@@ -1247,13 +1247,13 @@ packages:
       '@types/react-dom':
         optional: true
     dependencies:
-      '@assistant-ui/core': 0.3.31(@assistant-ui/store@0.3.22)(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/store': 0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/tap': 0.9.24(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/core': 0.3.35(@assistant-ui/store@0.3.23)(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/store': 0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/tap': 0.9.25(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
       '@types/react-dom': 19.3.0(@types/react@19.3.0)
-      assistant-cloud: 0.2.8
-      assistant-stream: 0.3.54
+      assistant-cloud: 0.2.11
+      assistant-stream: 0.3.57
       radix-ui: 1.8.1(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
@@ -1271,10 +1271,10 @@ packages:
       - redis
       - use-sync-external-store
 
-  /@assistant-ui/store@0.3.22(@assistant-ui/tap@0.9.24)(@types/react@19.3.0)(react@19.1.1):
-    resolution: {integrity: sha512-aXp4m42mmtZOQUE0lzxJ8Z9EZKknOWBk+DDg1Pj2gNhhBGYXmfrScYD1N1e/9/8wTKSwL0g4z2fSZqr+5fWbxg==}
+  /@assistant-ui/store@0.3.23(@assistant-ui/tap@0.9.25)(@types/react@19.3.0)(react@19.1.1):
+    resolution: {integrity: sha512-s0//CJ0miZO+LydznY8rcYD6cA9KnnMXeupaBXnGBPUNgFIwDFMtieTxnBvT8Io8PUGqDDcVEzQrLSLy8v4fRw==}
     peerDependencies:
-      '@assistant-ui/tap': 0.9.24
+      '@assistant-ui/tap': 0.9.25
       '@types/react': 19.3.0
       react: 19.1.1
     peerDependenciesMeta:
@@ -1283,12 +1283,12 @@ packages:
       react:
         optional: true
     dependencies:
-      '@assistant-ui/tap': 0.9.24(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/tap': 0.9.25(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
       react: 19.1.1
 
-  /@assistant-ui/tap@0.9.24(@types/react@19.3.0)(react@19.1.1):
-    resolution: {integrity: sha512-6O0hf2HkKbrylIwNlFUimHf2V/6Gq5UXF0y0r2Fbw5wSvvO8ZDmv0AEkMwwygSfJgbpnQgiC8Xs+2VFaeO0RBw==}
+  /@assistant-ui/tap@0.9.25(@types/react@19.3.0)(react@19.1.1):
+    resolution: {integrity: sha512-caGjum5UrE6oiis+ZO2pDVaXqzXlbJRWn3niQzLVAtcgxorhbaXGpgxQbWW4XCCQZ1CKKydi84yMr2TJf3JKDQ==}
     peerDependencies:
       '@types/react': 19.3.0
       react: 19.1.1
@@ -4762,8 +4762,8 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
-  /assistant-cloud@0.2.8:
-    resolution: {integrity: sha512-KCFwGcDgGUvKoQNw0zyEeFrS7F5B6QXfDaZ/QCNAjDWs7FxomFtLrXxlFGwlvueE+QK5vlOAdNnvKc9QfRzcqA==}
+  /assistant-cloud@0.2.11:
+    resolution: {integrity: sha512-X3zD3rfZIkxyRK3473VYlbWXyDUxu/YJDFCJmOmd6VjMpnIicSIFy079Ooubhlp0xl5IaA2KnNoM837+xMfydQ==}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/exporter-trace-otlp-http': '>=0.200.0'
@@ -4779,13 +4779,13 @@ packages:
       ai:
         optional: true
     dependencies:
-      assistant-stream: 0.3.54
+      assistant-stream: 0.3.57
     transitivePeerDependencies:
       - ioredis
       - redis
 
-  /assistant-stream@0.3.54:
-    resolution: {integrity: sha512-Jed48fZg12rzHHWDoTIRKLAO7SovX942f5VXCZ/GifGhaBH0fS1wZhhWhT8BVldJ4uDnCAMlszPGl82eZwO+vw==}
+  /assistant-stream@0.3.57:
+    resolution: {integrity: sha512-R+dAUoKcAGGjoTzbgSUhaVer2H8rNu/cY1GwdeRZ+gbsrV+DDc7QXuYDpKOp6HGO9o2Q5+7l3Dvp4qYNx8UpSg==}
     peerDependencies:
       ai: ^6.0.0 || ^7.0.0
       ioredis: ^5.10.1 || ^6.0.0

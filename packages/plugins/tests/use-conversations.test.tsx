@@ -8,9 +8,9 @@ import { createRequire } from "node:module";
 import { afterEach, expect, it, vi } from "vitest";
 import * as Plugins from "@za38.03/agent-ui-plugins";
 import { PluginServiceRuntimeProvider } from "../src/plugin-api/PluginServiceContext";
-import * as Conversations from "@za38.03/agent-ui-runtime/ui/services/conversations";
+import * as Conversations from "@za38.03/agent-ui-plugins/conversation-service";
 import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
-import { createConversationServiceThreadBinding } from "@za38.03/agent-ui-runtime/ui/agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationServiceThreadBinding } from "@za38.03/agent-ui-plugins/conversation-service";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;

@@ -17,7 +17,10 @@ export function generatedProjectFixture(): Promise<string> {
     const root = await mkdtemp(path.join(tmpdir(), "agent-ui-contract-fixture-"));
     await cp(fixtureRoot, root, { recursive: true });
     const files = JSON.parse(await readFile(path.join(fixtureRoot, "registry-files.json"), "utf8")) as Record<string, string>;
-    for (const [target, source] of Object.entries(files)) {
+    const layout = JSON.parse(await readFile(path.join(repositoryRoot, "packages/plugins/source-layout.json"), "utf8")) as { files: Array<{ view: string; source: string }> };
+    const owners = new Map(layout.files.map(file => [`packages/plugins/${file.view}`, `packages/plugins/${file.source}`]));
+    for (const [target, view] of Object.entries(files)) {
+      const source = owners.get(view) ?? view;
       await mkdir(path.dirname(path.join(root, target)), { recursive: true });
       await cp(path.join(repositoryRoot, source), path.join(root, target));
       // Registry targets are relative to the configured Agent UI source root.

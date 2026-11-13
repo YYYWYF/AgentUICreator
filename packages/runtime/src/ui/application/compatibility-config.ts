@@ -1,4 +1,5 @@
-import type { AgentUITheme, AgentUILocaleCode } from "@za38.03/agent-ui-plugins";
+import type { AgentUITheme } from "../../presentation.js";
+import type { AgentUILocaleCode } from "../../locale.js";
 import type { AppUIModel } from "../framework/contracts/app-ui-model.js";
 
 /** Host configuration; composition uses the existing AppUIModel unchanged. */

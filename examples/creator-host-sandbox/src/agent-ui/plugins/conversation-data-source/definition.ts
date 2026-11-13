@@ -7,6 +7,7 @@ import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   createEmptyConversationDataSource,
   createHttpConversationDataSource,
+  conversationDataSourceConfig,
   resolveConversationDataEndpoint,
 } from '../../services/conversations';
 import { ConversationDataSourcePlugin } from './index';
@@ -27,7 +28,7 @@ export const conversationDataSourcePlugin: UIPluginDefinition = {
         ? createEmptyConversationDataSource()
         : createHttpConversationDataSource({
             endpoint,
-            fetch: createAgentBackendTransport({ development: development }).fetch,
+            fetch: conversationDataSourceConfig.fetch ?? createAgentBackendTransport({ development: development }).fetch,
           });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   }),

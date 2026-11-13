@@ -1057,7 +1057,8 @@
     "symbol": "conversationDataSourcePlugin",
     "support": "pluginSupport",
     "presentation": [
-      "conversation-data-source.tsx"
+      "conversation-data-source.tsx",
+      "http-data-source.ts"
     ],
     "implementationExports": [
       "CanonicalConversationDataSourcePlugin",
@@ -1090,7 +1091,10 @@
       ]
     ],
     "definitionExports": [
-      "bindSetup"
+      "bindSetup",
+      "createHttpConversationDataSource",
+      "HttpConversationDataSourceOptions",
+      "HttpConversationDataSourceRoutes"
     ]
   },
   {
@@ -1099,7 +1103,12 @@
     "symbol": "conversationServicePlugin",
     "support": "pluginSupport",
     "presentation": [
-      "conversation-service.tsx"
+      "conversation-service.tsx",
+      "service.ts",
+      "contract.ts",
+      "data-source.ts",
+      "thread-binding.ts",
+      "conversation-history-projector.ts"
     ],
     "implementationExports": [
       "CanonicalConversationServicePlugin",
@@ -1112,7 +1121,8 @@
     "applicationAlias": "Implementation",
     "services": {
       "provides": [
-        "agent-ui.conversations"
+        "agent-ui.conversations",
+        "agent-ui.thread-binding"
       ],
       "inject": [
         "agent-ui.conversation-data-source"
@@ -1134,7 +1144,32 @@
       ]
     ],
     "definitionExports": [
-      "bindSetup"
+      "bindSetup",
+      "createConversationService",
+      "createConversationThreadBindingFactory",
+      "AGENT_UI_CONVERSATION_SERVICE",
+      "ConversationService",
+      "ConversationSnapshot",
+      "ConversationDataSource",
+      "ConversationDetail",
+      "ConversationSummary",
+      "EMPTY_CONVERSATION_SNAPSHOT",
+      "AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE",
+      "createEmptyConversationDataSource",
+      "createUnavailableConversationDataSource",
+      "ConversationDataSourceOptions",
+      "conversationSummarySchema",
+      "langGraphStateSnapshotSchema",
+      "conversationListResponseSchema",
+      "conversationDetailResponseSchema",
+      "ConversationListResponse",
+      "ConversationDetailResponse",
+      "LangGraphStateSnapshotDto",
+      "createConversationServiceThreadBinding",
+      "ConversationRunResumeProvider",
+      "ConversationServiceThreadBinding",
+      "ConversationThreadSelectionDisabledError",
+      "projectConversationDetail"
     ]
   },
   {

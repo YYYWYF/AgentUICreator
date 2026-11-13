@@ -88,6 +88,33 @@ async function publishInitial(
 }
 
 describe("RuntimeCompositionStore", () => {
+  it("cancels superseded builds, reuses published inputs and retries failures or changed implementations", async () => {
+    const store = createRuntimeCompositionStore();
+    const load = vi.fn(async () => definition("alpha"));
+    const capabilityCatalog = createPluginCapabilityCatalog([{
+      manifest: definition("alpha").manifest, provides: [], inject: [], optionalInject: [], loadDefinition: load,
+    }]);
+    const candidate = { appUIModelSource: modelSource(["alpha"]), capabilityCatalog, capabilityCatalogRevision: "a".repeat(64) };
+    const notify = vi.fn(); store.subscribe(notify);
+    const first = waitForPublish(store);
+    store.stageCandidate(candidate); store.stageCandidate({ ...candidate });
+    await first;
+    const snapshot = store.getSnapshot();
+    store.stageCandidate({ ...candidate });
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(load).toHaveBeenCalledOnce(); expect(notify).toHaveBeenCalledOnce();
+    expect(store.getSnapshot()).toBe(snapshot);
+    const retryLoad = vi.fn().mockRejectedValueOnce(new Error("temporary")).mockResolvedValue(definition("alpha"));
+    const changed = { ...candidate, capabilityCatalog: createPluginCapabilityCatalog([{
+      manifest: definition("alpha").manifest, provides: [], inject: [], optionalInject: [], loadDefinition: retryLoad,
+    }]) };
+    const failed = waitForError(store); store.stageCandidate(changed); await failed;
+    expect(store.getSnapshot()).toBe(snapshot);
+    const recovered = waitForPublish(store); store.stageCandidate(changed); await recovered;
+    expect(retryLoad).toHaveBeenCalledTimes(2); expect(notify).toHaveBeenCalledTimes(2);
+    expect(store.getSnapshot()).not.toBe(snapshot);
+  });
+
   it("compiles disabled instances from metadata without loading their implementations", async () => {
     const source = JSON.parse(modelSource(["alpha", "disabled"]));
     source.root.plugins[1].enabled = false;

@@ -1,5 +1,6 @@
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
-import { ConversationDefaultTool, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { ConversationDefaultTool } from "../presentation.js";
+import { type ConversationToolkit } from "../plugin-api/index.js";
 import type { Toolkit } from "@assistant-ui/react";
 import { createInterruptToolRenderer } from "./interrupt-tool-renderer.js";
 import type { ConversationFrontendToolUIRegistry } from "./types.js";

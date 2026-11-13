@@ -9,10 +9,10 @@ import {
 } from "../public.js";
 
 export interface ConversationSurfaceProps {
-  autoFocus?: boolean;
+  autoFocus?: boolean | undefined;
   children?: ReactNode;
-  className?: string;
-  components?: ConversationThreadComponents;
+  className?: string | undefined;
+  components?: ConversationThreadComponents | undefined;
   composer?: ReactNode | null;
   theme?: ConversationTheme;
 }

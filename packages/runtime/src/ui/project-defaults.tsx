@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { createConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { createConversationToolkit } from "../plugin-api/index.js";
 import type { AgentUIProjectOptions } from "./project-context.js";
 import { createRuntimeCompositionStore, type RuntimeCompositionSnapshot } from "./runtime/composition/RuntimeCompositionStore.js";
 import type { AppAgentState } from "./agent-contract/agent-state.js";

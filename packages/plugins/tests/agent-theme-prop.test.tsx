@@ -2,10 +2,13 @@
 import { act, useEffect, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AGENT_UI_DEFAULT_THEME, CanonicalThemeSwitchPlugin, type AgentUITheme } from "@za38.03/agent-ui-plugins";
-import { AgentUIThemeBridge } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/theme/AgentUIThemeBridge";
-import { themeProviderPlugin } from "../resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
-import { createPluginRegistry, PluginServiceRuntime, PluginServiceRuntimeContext } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins";
+import { AGENT_UI_DEFAULT_THEME, CanonicalThemeSwitchPlugin, createDefaultAgentUIPresentation, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AgentUIThemeBridge } from "@za38.03/agent-ui-runtime/ui/agent-ui/theme/AgentUIThemeBridge";
+import {createAgentUIThemeService} from "../src/plugins/theme-provider/adapters/presentation/theme-service";
+import {AgentUIProjectProvider,createAgentUIProject,createPluginCapabilityCatalog} from "@za38.03/agent-ui-runtime/ui";
+const themeProviderPlugin={manifest:{id:"theme-provider",name:"Theme",description:"Theme provider",version:"1.0.0",capabilities:["headless"]},provides:["agent-ui.theme"],setup:({services}:any)=>services.provide("agent-ui.theme",createAgentUIThemeService()),Component:()=>null};
+const project=createAgentUIProject({presentation:createDefaultAgentUIPresentation(),appUIModelSource:"{}",pluginCapabilityCatalog:createPluginCapabilityCatalog([]),capabilityCatalogRevision:"a".repeat(64)});
+import { createPluginRegistry, PluginServiceRuntime, PluginServiceRuntimeContext } from "@za38.03/agent-ui-runtime/ui/runtime/plugins";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
 
 const actions = { sendMessage: async () => {}, resumeInterrupts: async () => {}, startNewConversation: async () => {}, abortRun: () => {} };
@@ -25,8 +28,8 @@ function setup(withService = true) {
     useEffect(() => { mounts(); }, []);
     return <><p>Existing conversation</p><input defaultValue="Draft message" /><CanonicalThemeSwitchPlugin service={service} /></>;
   }
-  const render = (theme?: AgentUITheme, onThemeChange?: (theme: AgentUITheme) => void) => act(() => root.render(
-    <PluginServiceRuntimeContext.Provider value={runtime}><AgentUIThemeBridge theme={theme} onThemeChange={onThemeChange}><Conversation /></AgentUIThemeBridge></PluginServiceRuntimeContext.Provider>,
+  const render = (theme?: AgentUITheme, onThemeChange?: (theme: string) => void) => act(() => root.render(
+    <AgentUIProjectProvider value={project}><PluginServiceRuntimeContext.Provider value={runtime}><AgentUIThemeBridge theme={theme} onThemeChange={onThemeChange}><Conversation /></AgentUIThemeBridge></PluginServiceRuntimeContext.Provider></AgentUIProjectProvider>,
   ));
   const pick = (theme: AgentUITheme) => act(() => {
     const select = container.querySelector("select")!;
@@ -83,7 +86,7 @@ describe("Agent theme parameter", () => {
     const ui = setup();
     const changes = vi.fn();
     function ControlledHost() {
-      const [theme, setTheme] = useState<AgentUITheme>("light");
+      const [theme, setTheme] = useState<string>("light");
       return <PluginServiceRuntimeContext.Provider value={ui.runtime}><AgentUIThemeBridge theme={theme} onThemeChange={next => { changes(next); setTheme(next); }}><ui.Conversation /></AgentUIThemeBridge></PluginServiceRuntimeContext.Provider>;
     }
     act(() => ui.root.render(<ControlledHost />));

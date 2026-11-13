@@ -14,7 +14,7 @@ export interface ThemeSwitchPluginProps extends Omit<ComponentProps<'section'>, 
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
   contextId?: string;
   service?:
-    | { getTheme(): AgentUITheme; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }
+    | { getTheme(): string; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }
     | undefined;
   theme?: AgentUITheme | undefined;
   onThemeChange?: ((theme: AgentUITheme) => void) | undefined;

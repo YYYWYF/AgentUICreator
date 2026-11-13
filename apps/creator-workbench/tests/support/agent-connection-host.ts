@@ -6,7 +6,6 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import react from "@vitejs/plugin-react";
-import pluginDeliveries from "../../../../packages/plugins/src/catalog/plugin-delivery.json" with { type: "json" };
 import tailwindcss from "@tailwindcss/vite";
 import { createServer, type ViteDevServer } from "vite";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
@@ -20,7 +19,7 @@ import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; verificationMode?: "static_only" | "static_and_runtime"; projectChecks?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void> } = {}) {
+export async function createConnectionHostFixture(options: { extraOptimizeDeps?: string[]; mode?: "platform" | "assistant" | "embedded"; creatorPort?: number; hostPort?: number; themeCommands?: boolean; webSearchCommands?: boolean; liveModel?: boolean; verificationMode?: "static_only" | "static_and_runtime"; projectChecks?: boolean; sourceDependencies?: boolean; pluginsPackageRoot?: string; packageRoots?: Record<string, string>; existingHostRoot?: string; prepareHost?: (hostRoot: string) => Promise<void> } = {}) {
   const verificationMode = options.verificationMode ?? "static_only";
   // Explicit opt-in for isolated upstream repair experiments. Production builds
   // and the default fixture continue resolving the installed dependency.
@@ -111,11 +110,19 @@ export async function createConnectionHostFixture(options: { extraOptimizeDeps?:
     const template = JSON.parse(await readFile(path.join(repository, "packages/creator/operator/tests/fixtures/project/package.json"), "utf8"));
     const packageManager = JSON.parse(await readFile(path.join(repository,"package.json"),"utf8")).packageManager;
     template.dependencies["@za38.03/agent-ui-plugins"] = "workspace:*";
+    if (options.sourceDependencies) {
+      const packageRoot = options.pluginsPackageRoot ?? options.packageRoots?.["@za38.03/agent-ui-plugins"] ?? path.join(repository, "packages/plugins");
+      const catalog = JSON.parse(await readFile(path.join(packageRoot, "dist/catalog.json"), "utf8"));
+      for (const plugin of catalog.plugins) for (const [name, range] of Object.entries(plugin.takeover?.requiredDependencies ?? {})) {
+        template.dependencies[name] ??= range;
+      }
+    }
     const projectChecks = options.liveModel || options.projectChecks;
     const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite", ...(projectChecks ? ["vite", "@vitejs/plugin-react", "typescript", "tsx", "@types/react", "@types/react-dom", "@types/node"] : [])].map(name => [name, template.devDependencies[name]]));
     if (!options.existingHostRoot) {
     await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies, ...(projectChecks ? {packageManager, scripts: { build: "node validate-build.mjs", typecheck:"node node_modules/typescript/bin/tsc --noEmit", "verify:ui":"node verify-ui.mjs" } } : {}) }));
     for (const name of Object.keys({ ...template.dependencies, ...devDependencies })) await link(hostRoot, name);
+    await link(hostRoot, "html-to-image");
     await mkdir(path.join(hostRoot, "src"), { recursive: true });
     await initializeAgentUIProject({ projectRoot: hostRoot, mode: options.mode ?? "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
     if (existsSync(path.join(hostRoot, "node_modules/@za38.03/agent-ui-creator"))) throw new Error("Host fixture must not install Mock infrastructure.");
@@ -164,10 +171,26 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
     const host = await createServer({ configFile: false, root: hostRoot,
       define: { "import.meta.env.VITE_CREATOR_DOCK_URL": JSON.stringify(`${creatorOrigin}dock.html`) },
-      // Lazy plugin imports must not trigger dependency reloads mid-test.
-      // Explicitly bundle icons: noDiscovery otherwise loads thousands of ESM
-      // files from the linked Plugin dependency after a Host reload.
-      optimizeDeps: { noDiscovery: true, include: [...(options.extraOptimizeDeps ?? []), "react", "react-dom/client", "@za38.03/agent-ui-plugins", "@za38.03/agent-ui-plugins/lexical", ...new Set(pluginDeliveries.map(delivery => `@za38.03/agent-ui-plugins/${delivery.supportEntry}`)), "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@base-ui/react/**", "@assistant-ui/react-lexical", "lexical", "lucide-react", "zod", "zustand"] },
+      // Keep linked product/deep imports in one Context graph, and prepare
+      // preview-client dependencies up front so optimizer reloads cannot split React.
+      optimizeDeps: {
+        noDiscovery: true,
+        exclude: ["@za38.03/agent-ui-plugins", "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer"],
+        include: [...(options.extraOptimizeDeps ?? []), "react", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime", "html-to-image",
+          "@za38.03/agent-ui-runtime > @assistant-ui/react",
+          "@za38.03/agent-ui-runtime > @assistant-ui/core",
+          ...(coreCandidate ? ["@za38.03/agent-ui-runtime > @assistant-ui/core > assistant-stream > secure-json-parse"] : []),
+          "@za38.03/agent-ui-plugins > @assistant-ui/store",
+          "@za38.03/agent-ui-runtime > @assistant-ui/react-ag-ui",
+          "@za38.03/agent-ui-runtime > @assistant-ui/react-langgraph",
+          "@za38.03/agent-ui-runtime > @assistant-ui/react > @assistant-ui/tap/react-shim",
+          "@za38.03/agent-ui-plugins > @assistant-ui/react-markdown",
+          "@za38.03/agent-ui-plugins > @assistant-ui/generative-ui/react",
+          "@za38.03/agent-ui-plugins > react-markdown",
+          "@za38.03/agent-ui-plugins > fast-deep-equal/es6/index.js",
+          "@base-ui/react/avatar", "@base-ui/react/button", "@base-ui/react/collapsible", "@base-ui/react/dialog", "@base-ui/react/input", "@base-ui/react/merge-props", "@base-ui/react/popover", "@base-ui/react/separator", "@base-ui/react/tooltip", "@base-ui/react/use-render",
+          "lexical", "@lexical/react/LexicalComposerContext", "@lexical/react/LexicalContentEditable", "@lexical/react/LexicalExtensionComposer", "@lexical/history", "@lexical/plain-text", "@lexical/utils", "lucide-react", "zod", "zustand"],
+      },
       plugins: [react(), tailwindcss(), createCreatorHostPreviewPlugin({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: options.hostPort ?? 0, strictPort: options.hostPort !== undefined, fs: { allow: [root, hostRoot, repository, ...(coreCandidate ? [realpathSync(coreCandidate)] : []), ...(options.pluginsPackageRoot ? [options.pluginsPackageRoot] : [])] } }, resolve: { dedupe: ["react", "react-dom"], alias: coreAliases } });
     servers.push(host); await host.listen();
     const hostOrigin = host.resolvedUrls!.local[0]!;
@@ -194,6 +217,22 @@ import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:
       await server.environments.client.warmupRequest(entry);
       await server.environments.client.waitForRequestsIdle();
     }
-    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, agentEndpoint: `http://127.0.0.1:${address.port}/agent`, runUrls: () => [...runUrls], enableCors: () => { corsEnabled = true; }, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
+    const writeHostEntry = async (source: string) => {
+      const entry = path.join(hostRoot, "src/main.tsx");
+      const changed = new Promise<void>(resolve => {
+        const listener = (file: string) => {
+          if (path.relative(entry, path.resolve(file)) !== "") return;
+          host.watcher.off("change", listener);
+          resolve();
+        };
+        host.watcher.on("change", listener);
+      });
+      await writeFile(entry, source);
+      await changed;
+      host.environments.client.moduleGraph.invalidateAll();
+      await host.environments.client.warmupRequest("/src/main.tsx");
+      await host.environments.client.waitForRequestsIdle();
+    };
+    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, writeHostEntry, agentEndpoint: `http://127.0.0.1:${address.port}/agent`, runUrls: () => [...runUrls], enableCors: () => { corsEnabled = true; }, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
   } catch (error) { await close(); throw error; }
 }

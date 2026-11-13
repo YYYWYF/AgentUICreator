@@ -1,18 +1,8 @@
 import { createContext, useContext, type ReactNode } from "react";
-import {
-  type ConversationThinkingIndicatorRenderScope,
-  ConversationCanonicalUserEditComposer,
-  type ConversationUserEditComposerRenderScope,
-  type ConversationTaskGroupRenderScope,
-  toConversationMessagePartGroup,
-  type ConversationAssistantResponseFooterRenderScope,
-  type ConversationReasoningGroupRenderScope,
-  type ConversationToolGroupRenderScope,
-  type ConversationToolFallbackRenderScope,
-  type ConversationToolCallProps,
-} from "@za38.03/agent-ui-plugins";
+import { type ConversationThinkingIndicatorRenderScope, type ConversationUserEditComposerRenderScope, type ConversationTaskGroupRenderScope, toConversationMessagePartGroup, type ConversationAssistantResponseFooterRenderScope, type ConversationReasoningGroupRenderScope, type ConversationToolGroupRenderScope, type ConversationToolFallbackRenderScope, type ConversationToolCallProps } from "../../../plugin-api/index.js";
+import { ConversationCanonicalUserEditComposer } from "../../../presentation.js";
 
-import type { UIPluginComponentProps } from "@za38.03/agent-ui-plugins/contracts";
+import type { UIPluginComponentProps } from "../../../contracts/index.js";
 
 type RenderScopedSlot = UIPluginComponentProps["renderScopedSlot"];
 const ScopedRendererBridgeContext = createContext<RenderScopedSlot | null>(null);

@@ -1,5 +1,5 @@
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
-import type { ConversationToolCallComponent } from "@za38.03/agent-ui-plugins";
+import type { ConversationToolCallComponent } from "../plugin-api/index.js";
 
 /** Application-owned presentation only; entries cannot grant execution permission. */
 export interface ConversationFrontendToolUIEntry {

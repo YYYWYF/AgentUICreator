@@ -6,7 +6,8 @@ import { Scanner } from "@tailwindcss/oxide";
 
 /** Ship the installed presentation's CSS with the source closure. Consumers do
  * not need Creator or Tailwind just to build an unchanged source-owned Plugin.
- * Theme variables, the scoped reset and the Portal root keep their npm owner.
+ * Shared theme variables and the scoped reset stay in the application base
+ * stylesheet; the Portal Context keeps its canonical Runtime owner.
  */
 export async function pluginTakeoverStyles(root, files) {
   const code = files.filter(file => /\.tsx?$/u.test(file.target)).map(file => file.content).join("\n");

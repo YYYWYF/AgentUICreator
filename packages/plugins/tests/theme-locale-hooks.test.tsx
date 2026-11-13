@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
 import {
-  AGENT_UI_DEFAULT_THEME, AgentUILocaleProvider,
+  AGENT_UI_DEFAULT_THEME, AgentUILocaleProvider, createDefaultAgentUIPresentation,
   useAgentUILocale, useAgentUILocaleCode, usePluginService,
   type AgentUITheme, type AgentUILocaleCode,
 } from "@za38.03/agent-ui-plugins";
@@ -60,6 +60,7 @@ it("reads through hooks, switches through injected services, and releases old su
   }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const project = createAgentUIProject({
+    presentation:createDefaultAgentUIPresentation(),
     appUIModelSource: JSON.stringify({ root: { type: "slot", plugins: [] } }),
     pluginCapabilityCatalog: createPluginCapabilityCatalog([]), capabilityCatalogRevision: "a".repeat(64),
     defaultLocale: "zh-CN", locales: {

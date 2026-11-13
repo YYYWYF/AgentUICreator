@@ -72,7 +72,7 @@ it("keeps the project shell, draft, Plugin service and active run alive while th
     expect(committed).toHaveBeenLastCalledWith(expect.any(String), panel);
     expect(started).toHaveBeenCalledTimes(1); expect(mounted).toHaveBeenCalledTimes(1);
     expect(stopped).not.toHaveBeenCalled(); expect(unmounted).not.toHaveBeenCalled();
-  } finally { act(() => root.unmount()); container.remove(); vi.unstubAllGlobals(); }
+  } finally { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); }
   expect(stopped).toHaveBeenCalledTimes(1); expect(unmounted).toHaveBeenCalledTimes(1);
 });
 

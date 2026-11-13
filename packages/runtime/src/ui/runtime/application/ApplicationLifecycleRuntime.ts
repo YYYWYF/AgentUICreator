@@ -3,8 +3,8 @@ import type {
   UIApplicationGateStatus,
 } from "../../framework/contracts/ui-plugin.js";
 
-import type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "@za38.03/agent-ui-plugins/contracts";
-export type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "@za38.03/agent-ui-plugins/contracts";
+import type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "../../../contracts/index.js";
+export type { ApplicationRuntimePhase, ApplicationGateRuntimeEntry, ApplicationLifecycleFailure, ApplicationLifecycleSnapshot } from "../../../contracts/index.js";
 
 const INITIAL_SNAPSHOT: ApplicationLifecycleSnapshot = Object.freeze({
   phase: "bootstrapping",

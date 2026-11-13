@@ -32,7 +32,7 @@ export interface AuthSessionService {
   gate: UIApplicationGateService;
   dispose(): void;
 }
-declare module '@za38.03/agent-ui-plugins/contracts' {
+declare module "@za38.03/agent-ui-runtime/contracts" {
   interface UIPluginServiceMap {
     'auth.session': AuthSessionService;
     'auth.gate': UIApplicationGateService;

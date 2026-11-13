@@ -13,7 +13,15 @@
     "rootDirs": [
       "src"
     ],
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "paths": {
+      "@za38.03/agent-ui-runtime": [
+        "../runtime/dist/index.d.ts"
+      ],
+      "@za38.03/agent-ui-runtime/*": [
+        "../runtime/dist/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",

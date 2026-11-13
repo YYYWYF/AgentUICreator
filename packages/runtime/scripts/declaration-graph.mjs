@@ -96,7 +96,8 @@ export async function buildDeclarationGraph(declarationRoot, entryPath) {
 /** Each exported UI module is an entry; preserve all of their declaration closures. */
 export async function buildPublicDeclarationGraph(declarationRoot) {
   const uiRoot = path.join(declarationRoot, "ui");
-  const entries = [path.join(declarationRoot, "index.d.ts"), path.join(uiRoot, "index.d.ts"), ...(await isFile(path.join(uiRoot, "index.d.ts")) ? await collectDeclarationFiles(uiRoot) : [])];
+  const entries = ["contracts/index.d.ts", "plugin-api/index.d.ts", "locale.d.ts", "presentation.d.ts"].map(entry => path.join(declarationRoot, entry));
+  entries.push(path.join(declarationRoot, "index.d.ts"), path.join(uiRoot, "index.d.ts"), ...(await isFile(path.join(uiRoot, "index.d.ts")) ? await collectDeclarationFiles(uiRoot) : []));
   const graphs = await Promise.all(entries.map(entry => buildDeclarationGraph(declarationRoot, entry)));
   return { missing: graphs.flatMap(graph => graph.missing), reachable: new Set(graphs.flatMap(graph => [...graph.reachable])) };
 }

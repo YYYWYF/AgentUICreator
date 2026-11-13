@@ -53,7 +53,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) test(`${mode}
     fixture = await createConnectionHostFixture({ mode, projectChecks: true, packageRoots: packages.packageRoots, pluginsPackageRoot: packages.packageRoots["@za38.03/agent-ui-plugins"]!, prepareHost: async root => {
       await writeFile(path.join(root, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
       await writeFile(path.join(root, "src/host.css"), 'html,body{margin:0;width:100%;height:100%;}#root{height:100dvh;display:flex;flex-direction:column}.fixture-business{height:40px;flex:none;background:rgb(242,223,231)}.fixture-business input{color:rgb(193,21,85);border-radius:3px}.fixture-agent{flex:1;min-height:0;width:100%}');
-      await writeFile(path.join(root, "src/main.tsx"), process.env.AGENT_UI_TEMPLATE_HOST_MODULE ? await readFile(process.env.AGENT_UI_TEMPLATE_HOST_MODULE, "utf8") : `import {createRoot} from "react-dom/client";import {Agent} from "./agent-ui";import "./host.css";const locale=new URLSearchParams(location.search).get("locale")==="en-US"?"en-US":"zh-CN";createRoot(document.getElementById("root")!).render(<><header className="fixture-business"><input aria-label="Host business input" defaultValue="Host content"/></header><section className="fixture-agent"><Agent endpoint="/agent" locale={locale}/></section></>);`);
+      await writeFile(path.join(root, "src/main.tsx"), await readFile(process.env.AGENT_UI_TEMPLATE_HOST_MODULE ?? new URL("./fixtures/template-host.tsx", import.meta.url), "utf8"));
       const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
       manifest.scripts = { typecheck: "node node_modules/typescript/bin/tsc --noEmit", build: "node production-build.mjs" };
       await writeFile(path.join(root, "package.json"), JSON.stringify(manifest, null, 2));
@@ -63,7 +63,7 @@ const graph=new Set();await build({configFile:false,base:${JSON.stringify(base)}
     const project = JSON.parse(await readFile(path.join(fixture.hostRoot, ".agent-ui/project.json"), "utf8"));
     expect(project.mode).toBeUndefined();
     const shells = await import("node:fs/promises").then(fs => fs.readdir(path.join(fixture!.hostRoot, "src/agent-ui/application/shell")));
-    expect(shells.filter(file => file.endsWith(".tsx"))).toHaveLength(1);
+    expect(shells.filter(file => file.endsWith("Shell.tsx"))).toEqual([`${mode[0]!.toUpperCase()}${mode.slice(1)}Shell.tsx`]);
     await promisify(execFile)(process.execPath, [path.join(fixture.hostRoot, "node_modules/typescript/bin/tsc"), "--noEmit"], { cwd: fixture.hostRoot, timeout: 60_000 });
     await promisify(execFile)(process.execPath, ["production-build.mjs"], { cwd: fixture.hostRoot, timeout: 60_000 });
     for (const id of JSON.parse(await readFile(path.join(fixture.hostRoot, "production-graph.json"), "utf8")) as string[]) graph.add(id);

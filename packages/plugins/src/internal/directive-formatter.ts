@@ -1,5 +1,12 @@
 import { parseAgentUIDirectives, trySerializeAgentUIDirective } from "@za38.03/agent-ui-core";
-import type { Unstable_DirectiveFormatter } from "@assistant-ui/react";
+import type { AgentUIDirectiveReference, AgentUIDirectiveSegment } from "@za38.03/agent-ui-core";
+
+type PresentationSegment = Exclude<AgentUIDirectiveSegment, { kind: "directive" }>
+  | ({ kind: "mention" } & AgentUIDirectiveReference);
+interface DirectiveFormatter {
+  serialize(reference: AgentUIDirectiveReference): string;
+  parse(text: string): readonly PresentationSegment[];
+}
 
 const knownDirectiveTypes = new Set(["user", "resource", "file", "document", "command"]);
 
@@ -13,7 +20,7 @@ export function conversationDirectiveDisplayLabel(type: string, label: string): 
 }
 
 /** Adapt the product contract to assistant-ui's presentation vocabulary. */
-export const agentUIDirectiveFormatter: Unstable_DirectiveFormatter = {
+export const agentUIDirectiveFormatter: DirectiveFormatter = {
   serialize(reference) {
     const text = trySerializeAgentUIDirective(reference);
     if (text === undefined) throw new Error("Invalid Agent UI directive reference.");

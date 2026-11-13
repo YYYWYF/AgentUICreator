@@ -23,7 +23,13 @@ type AttachmentPreviewProps = {
 
 const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
   const localeMessages = useAgentUILocale();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [imageState, setImageState] = useState<{ src: string; status: 'loaded' | 'error' }>();
+  const isLoaded = imageState?.src === src && imageState.status === 'loaded';
+  if (imageState?.src === src && imageState.status === 'error') {
+    return <div data-agent-ui-owned='' role='alert' className='text-muted-foreground p-4'>
+      {localeMessages.attachments.previewFailed}
+    </div>;
+  }
   return (
     <img
       src={src}
@@ -32,7 +38,8 @@ const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
         'block h-auto max-h-[80vh] w-auto max-w-full rounded-sm object-contain transition-opacity duration-300 motion-reduce:transition-none',
         isLoaded ? 'aui-attachment-preview-image-loaded opacity-100' : 'aui-attachment-preview-image-loading opacity-0',
       )}
-      onLoad={() => setIsLoaded(true)}
+      onLoad={() => setImageState({ src, status: 'loaded' })}
+      onError={() => setImageState({ src, status: 'error' })}
     />
   );
 };
@@ -61,7 +68,7 @@ const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({ children, s
           )
         }
       />
-      <DialogContent className='aui-attachment-preview-dialog-content [&>button]:bg-foreground/60 [&>button]:hover:bg-foreground/80 [&_svg]:text-background p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0!'>
+      <DialogContent className='aui-attachment-preview-dialog-content min-h-12 [&>button]:bg-foreground/60 [&>button]:hover:bg-foreground/80 [&_svg]:text-background p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0!'>
         <DialogTitle className='aui-sr-only sr-only'>
           {formatPresentationMessage(localeMessages.attachments.previewNamed, { name })}
         </DialogTitle>

@@ -58,9 +58,11 @@ export const conversationSummarySchema: z.ZodType<ConversationSummary> =
 
 export const langGraphStateSnapshotSchema: z.ZodType<LangGraphStateSnapshotDto> =
   z.object({
-    values: z.object({
-      messages: z.array(z.unknown()).optional(),
-    }).catchall(z.unknown()),
+    values: z
+      .object({
+        messages: z.array(z.unknown()).optional(),
+      })
+      .catchall(z.unknown()),
     next: z.unknown().optional(),
     metadata: z.unknown().optional(),
     createdAt: z.string().optional(),

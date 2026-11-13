@@ -17,13 +17,22 @@ async function fixture(t, newline = '\n') {
   const root = await mkdtemp(path.join(os.tmpdir(), 'locale reference 文案 '));
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, dictionaries), { recursive: true });
+  await mkdir(path.join(root, 'packages/runtime/src/locales'), { recursive: true });
   await mkdir(path.dirname(path.join(root, document)), { recursive: true });
   const messages = {};
   for (const [locale, name] of [['en-US', 'enUS'], ['zh-CN', 'zhCN']]) {
     // Independently load the real dictionaries to verify extraction from their TypeScript source.
     const source = await readFile(path.join(repositoryRoot, dictionaries, `${locale}.ts`), 'utf8');
+    const runtimeSource = await readFile(path.join(repositoryRoot, 'packages/runtime/src/locales', `${locale}.ts`), 'utf8');
+    await writeFile(path.join(root, 'packages/runtime/src/locales', `${locale}.ts`), runtimeSource);
+    const runtimeExports = {};
+    vm.runInNewContext(ts.transpileModule(runtimeSource, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: runtimeExports });
     const exports = {};
-    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports });
+    const require = specifier => {
+      assert.equal(specifier, '@za38.03/agent-ui-runtime/locale');
+      return { AGENT_UI_RUNTIME_LOCALES: { [locale]: runtimeExports[name] } };
+    };
+    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports, require });
     messages[locale] = JSON.parse(JSON.stringify(exports[name]));
   }
   await writeFile(path.join(root, document), [

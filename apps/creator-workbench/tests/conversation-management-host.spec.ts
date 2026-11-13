@@ -18,7 +18,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
     page.on("pageerror", error => pageErrors.push(error.message));
     let fail = false;
     try {
-      await page.route("**/history/**", async route => {
+      await page.route(`${fixture.hostOrigin}history/**`, async route => {
         const request = route.request();
         const url = new URL(request.url());
         if (request.method() === "GET") {

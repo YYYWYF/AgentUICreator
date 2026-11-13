@@ -1,4 +1,5 @@
-import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@za38.03/agent-ui-plugins";
+import { AgentUISidebarFrame } from "../../../presentation.js";
+import { useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "../../../locale.js";
 import {
   useCallback,
   useEffect,
@@ -12,7 +13,7 @@ import {
   LayoutRenderer,
   type SlotNode,
 } from "@za38.03/agent-ui-renderer";
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useAgentUILocale } from "../../../locale.js";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";
 import { resolveRuntimePluginSlotId } from "../../framework/contracts/app-ui-composition.js";

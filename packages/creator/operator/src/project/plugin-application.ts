@@ -100,9 +100,6 @@ export async function ensurePluginApplication(root: string, id: string, context?
     ["index.tsx", `import { ${component} as ${alias}${railAction ? `, ${railAction} as RailImplementation` : ""} } from "${entry}";\nimport type { ComponentProps } from "react";\n${runtimeImport}${hostImport}${scopeKind ? 'import { usePluginRenderScope } from "@za38.03/agent-ui-plugins";\n' : ""}\nexport const ${component} = (props: ComponentProps<typeof ${alias}>) => {\n${runtimeBody}${hostBody}${scopeKind ? `  const scope = usePluginRenderScope<Partial<ComponentProps<typeof ${alias}>>>();\n  if (scope?.kind !== ${JSON.stringify(scopeKind)}) { return null; }\n  return <${alias} {...scope.value} {...props} />;` : `  return <${alias}${runtimeContext ? " state={state} abortRun={abortRun}" : ""}${hostProps} {...props} />;`}\n}\n${railSource}`],
     ["definition.ts", `import { ${registration?.kind === "data" ? "defineDataMessageUI, " : ""}type UIPluginDefinition } from "@za38.03/agent-ui-plugins";\nimport implementation from "${entry}";\nimport { ${[component, railAction].filter(Boolean).join(", ")} } from "./index";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: ${JSON.stringify(official.services.provides)}, inject: ${JSON.stringify(official.services.inject)}, optionalInject: ${JSON.stringify(official.services.optionalInject)}, ${registrationSource} };\nexport default definition;\n`],
   ]);
-  for (const [file, content] of files) {
-    if (/\.tsx?$/.test(file)) files.set(file, await formatProjectCode(content));
-  }
   const sharedEdits: {target:string;content:Buffer}[]=[];
   if (official.application.hostApplication) {
     const templates = installedApplication?.files;
@@ -165,6 +162,12 @@ export async function ensurePluginApplication(root: string, id: string, context?
     const existing = await lstat(path.join(directory, file)).catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
     if (existing && !existing.isFile()) throw new Error("PLUGIN_APPLICATION_EXISTS");
     if (existing) files.delete(file);
+  }
+  for (const [file, content] of files) {
+    if (/\.tsx?$/.test(file)) files.set(file, await formatProjectCode(content));
+  }
+  for (const edit of sharedEdits) {
+    if (/\.tsx?$/.test(edit.target)) edit.content = Buffer.from(await formatProjectCode(edit.content.toString("utf8")));
   }
   if (!files.size && !sharedEdits.length) return { changed: false, createdPaths: [] as string[] };
   const { lock } = await readAgentUISourceLock(root, config);

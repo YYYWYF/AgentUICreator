@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ensurePluginApplication, synchronizeAgentUIPluginRegistry, handleUIOperatorRequest } from "@za38.03/agent-ui-creator/project/dev";
@@ -18,9 +18,10 @@ async function applicationFiles(directory: string) {
 }
 
 test("all official applications preserve composition through exact-installed-source extraction and real project checks", async ({ page }) => {
+  await mkdir(path.dirname(evidence), { recursive: true });
   const errors: string[] = []; await captureWindowErrors(page, errors); page.on("pageerror", error => errors.push(error.message));
   const rows: { pluginId: string; status: string; checks?: string[]; error?: string }[] = [];
-  const fixture = await createConnectionHostFixture({ projectChecks: true, prepareHost: async root => {
+  const fixture = await createConnectionHostFixture({ projectChecks: true, sourceDependencies: true, prepareHost: async root => {
     for (const delivery of deliveries) await ensurePluginApplication(root, delivery.id);
     await synchronizeAgentUIPluginRegistry(root);
     await writeFile(path.join(root, "capture-validation.mjs"), `import {spawnSync} from "node:child_process";import {appendFileSync} from "node:fs";
@@ -38,7 +39,7 @@ test("all official applications preserve composition through exact-installed-sou
   const model = await readFile(modelPath, "utf8");
   try {
     fixture.enableCors();
-    await writeFile(path.join(fixture.hostRoot, "src/main.tsx"), `import {createRoot} from "react-dom/client";import {Agent} from "./agent-ui";import "./host.css";createRoot(document.getElementById("root")!).render(<Agent endpoint=${JSON.stringify(fixture.agentEndpoint)}/>);`);
+    await fixture.writeHostEntry(`import {createRoot} from "react-dom/client";import {Agent} from "./agent-ui";import "./host.css";createRoot(document.getElementById("root")!).render(<Agent endpoint=${JSON.stringify(fixture.agentEndpoint)}/>);`);
     await page.goto(fixture.hostOrigin);
     await expect(page.locator(".aui-composer-root").getByRole("textbox")).toBeEditable({ timeout: 20_000 });
     // This is a disposable test project: the trusted test harness applies each

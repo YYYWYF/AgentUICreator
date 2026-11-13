@@ -42,8 +42,8 @@ try {
   await mkdir(archives);
   const dependencies = {};
   // Pack the actual publishable files; never symlink a workspace package or its node_modules.
-  const packageNames = ["core", "renderer", "plugins", "runtime"];
-  if (checkReactCompatibility) packageNames.push("creator", "web-component");
+  const packageNames = ["core", "renderer", "runtime"];
+  if (checkReactCompatibility) packageNames.push("plugins", "creator", "web-component");
   for (const name of packageNames) {
     const destination = path.join(archives, name);
     await mkdir(destination);
@@ -88,6 +88,7 @@ module.exports = { hooks: { readPackage(pkg) {
   await run("pnpm", ["install", "--ignore-scripts", "--no-frozen-lockfile", "--prefer-offline",
     "--store-dir", path.dirname(storePath), "--fetch-retries=2", "--fetch-timeout=45000",
     "--strict-peer-dependencies=false", "--config.enableGlobalVirtualStore=false", "--config.packageImportMethod=copy", "--config.nodeLinker=isolated"]);
+  if(!checkReactCompatibility && await access(path.join(consumerRoot,"node_modules/@za38.03/agent-ui-plugins")).then(()=>true,()=>false))throw new Error("Standalone Runtime unexpectedly installed Plugins");
   const installedRoot = path.join(consumerRoot, "node_modules", "@za38.03", "agent-ui-runtime");
   const installedRealPath = await realpath(installedRoot);
   if (!installedRealPath.startsWith(consumerRoot + path.sep)) {
@@ -121,10 +122,13 @@ module.exports = { hooks: { readPackage(pkg) {
 
 import { AgentApplication, createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter, ConversationWelcomeFallback, createRuntimeCompositionStore, type AgentUIProjectOptions } from "@za38.03/agent-ui-runtime/ui";
 import { parseAppUIModel, compileAppUIModel } from "@za38.03/agent-ui-runtime/ui/framework/contracts/index";
-import { createConversationService } from "@za38.03/agent-ui-runtime/ui/services/conversations";
+import {AGENT_UI_THREAD_BINDING_SERVICE,type ConversationThreadBindingFactory} from "@za38.03/agent-ui-runtime/plugin-api";
+import {parseUIPluginManifest,type UIPluginDefinition} from "@za38.03/agent-ui-runtime/contracts";
 import "@za38.03/agent-ui-runtime/ui/styles.css";
 const projectStore: AgentUIProjectOptions["compositionStore"] = createRuntimeCompositionStore();
-void [createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter, ConversationWelcomeFallback, AgentApplication, projectStore, parseAppUIModel, compileAppUIModel, createConversationService];
+void [createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter, ConversationWelcomeFallback, AgentApplication, projectStore, parseAppUIModel, compileAppUIModel, AGENT_UI_THREAD_BINDING_SERVICE,parseUIPluginManifest];
+const plugin: UIPluginDefinition={manifest:parseUIPluginManifest({id:"custom",name:"Custom",description:"Custom plugin",version:"1.0.0"}),Component:()=>null};
+const factory:ConversationThreadBindingFactory=()=>createEphemeralConversationThreadBinding();void [plugin,factory];
 const optionalUser: AgentUIUser = {};
 const hostHook: () => AgentUIHost = useAgentUI;
 void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, optionalUser];

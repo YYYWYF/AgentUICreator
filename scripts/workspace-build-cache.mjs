@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
-export const hostPackages = ["core", "renderer", "plugins", "runtime"];
+export const hostPackages = ["core", "renderer", "runtime", "plugins"];
 const ignored = new Set(["node_modules", "dist", "tests", "test-results", "coverage"]);
 const logical = file => file.replaceAll("\\", "/");
 

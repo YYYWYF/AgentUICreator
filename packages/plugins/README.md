@@ -9,18 +9,42 @@ required. Existing runtime exports remain available.
 Import `UIPluginDefinition`, `UIPluginComponentProps`, `parseUIPluginManifest`,
 `usePluginActions`, `usePluginEvents`, `usePluginInstance`, `usePluginService`,
 `usePluginServiceSnapshot`, `usePluginRenderScope` and `useApplicationLifecycle`
-from `@za38.03/agent-ui-plugins`. The matching Providers and Contexts are owned
-by this package; generated project modules forward to these same instances.
+from `@za38.03/agent-ui-plugins` through compatibility exports. Canonical Plugin
+contracts and the manifest parser live in `@za38.03/agent-ui-runtime/contracts`;
+the shared Providers, Contexts and operation ports live in Runtime `/plugin-api`.
+Plugins re-exports the same instances; Runtime does not depend on Plugins.
 Agent snapshot hooks and `AgentRuntimeProvider` belong to
 `@za38.03/agent-ui-runtime`.
 
 Node tools can import the types and manifest parser from
-`@za38.03/agent-ui-plugins/contracts` without loading React components. Extend
-`UIPluginServiceMap` by augmenting this contracts subpath. Runtime `/ui` owns
+`@za38.03/agent-ui-runtime/contracts` without loading React components.
+`@za38.03/agent-ui-plugins/contracts` remains a compatibility entry. Extend
+`UIPluginServiceMap` at the canonical Runtime contracts subpath. Runtime `/ui` owns
 service activation, SlotRegistry, AppUIModel validation and compilation. The
 project owns its AppUIModel, Plugin applications and business service bindings.
 Existing projects need an explicit Context/import migration; updating the npm
 package alone does not rewrite project files or source baselines.
+
+## Conversation capabilities
+
+`/conversation-data-source` owns the default HTTP requests and backend response
+conversion, including `returnCode/body`, `max_message_checkpoint` and
+`channel_values` normalization. `/conversation-service` owns conversation
+management, list/detail caches, business DTO/DataSource contracts and schemas,
+history-message compatibility and the generic ThreadBinding factory. Runtime
+wraps the official assistant-ui converter, consumes the generic binding and owns
+conversation execution, recovery and cancellation.
+
+The generated `services/conversations/http-data-source.ts` is a project-owned
+configuration/delegation file: endpoint, per-request authentication, credentials,
+route overrides, fetch and list/detail decoders. It calls the selected factory
+through the project Plugin application entry, so source takeover also affects
+Host-created data sources. Application definitions select implementations and
+register/dispose services; they do not contain the management or default protocol
+implementation. Templates ship as package assets, but copied project files are
+not Plugin implementation BASE. npm upgrades preserve project configuration;
+owned implementations use separate source sync. Older full HTTP implementations
+require an explicit project migration.
 
 ## Production bundles and styles
 

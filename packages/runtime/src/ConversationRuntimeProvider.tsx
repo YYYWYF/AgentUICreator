@@ -1,11 +1,11 @@
 import { createAttachmentAdapter, createDictationAdapter, createFeedbackAdapter } from "./service-adapters.js";
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useAgentUILocale } from "./locale.js";
 import type { AttachmentConfig, DictationConfig, FeedbackConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
-import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "./plugin-api/index.js";
 import { fetchWithSseLineEndings } from "./compatibility/sse-line-endings.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import { useFrontendToolSource } from "./tools/use-frontend-tool-source.js";
@@ -108,6 +108,22 @@ const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =
     fetch: fetchWithSseLineEndings,
   });
 
+type ThreadOptions = Pick<ConversationRuntimeProviderProps, "onError" | "getRunContext" | "enableMessageQueue"> & {
+  frontendTools: AgentFrontendToolSource | undefined;
+  resolvedAttachments: AttachmentAdapter | undefined;
+  resolvedDictation: DictationAdapter | undefined;
+  resolvedFeedback: ConversationFeedbackAdapter | undefined;
+};
+function createThreadOptionsStore(initial: ThreadOptions) {
+  let current = initial;
+  const listeners = new Set<() => void>();
+  return {
+    getSnapshot: () => current,
+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    update(next: ThreadOptions) { if (current === next) return; current = next; listeners.forEach(listener => listener()); },
+  };
+}
+
 export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
   endpoint,
@@ -150,6 +166,14 @@ export function ConversationRuntimeProvider<TState = unknown>({
     () => createAssistantUiFrontendToolkit(frontendTools, toolkit, frontendToolUIs),
     [frontendTools, toolkit, frontendToolUIs, toolRevision],
   );
+  // Updating presentation/adapters must update mounted threads, not replace the
+  // upstream runtimeHook: a new hook identity retires every thread instance.
+  const threadOptions = useMemo<ThreadOptions>(() => ({
+    frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation,
+    resolvedFeedback, enableMessageQueue,
+  }), [frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation, resolvedFeedback, enableMessageQueue]);
+  const [optionsStore] = useState(() => createThreadOptionsStore(threadOptions));
+  useLayoutEffect(() => optionsStore.update(threadOptions), [optionsStore, threadOptions]);
   const config = useMemo(() => {
     const tools = Tools({ toolkit: resolvedToolkit });
     const staticSuggestions = suggestions === undefined
@@ -175,6 +199,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const sessions = useMemo(() => new ConversationThreadSessions<TState>(), [threadBinding]);
   const outerRuntime = useRef<AssistantRuntime | null>(null);
   const runtimeHook = useCallback(function useConversationThreadRuntime() {
+    const { frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation,
+      resolvedFeedback, enableMessageQueue } = useSyncExternalStore(optionsStore.subscribe, optionsStore.getSnapshot, optionsStore.getSnapshot);
     const aui = useAui();
     const item = aui.threadListItem().getState();
     // Pin ownership at mount. Optimistic assistant-ui IDs never become backend IDs.
@@ -352,7 +378,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation, resolvedFeedback, enableMessageQueue]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, optionsStore]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,

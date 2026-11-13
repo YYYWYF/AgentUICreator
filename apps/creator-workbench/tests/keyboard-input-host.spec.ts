@@ -13,9 +13,10 @@ async function configure(root: string, lexical: boolean, mode: "enter" | "ctrlEn
   if (lexical) await installOfficialAgentUIResource(root, "conversation-lexical-input", { runPackages: async () => { throw new Error("Prepared editor dependencies must be reused"); } });
   const id = lexical ? "lexical-composer-input" : "composer", name = lexical ? "ConversationLexicalComposerInput" : "ConversationComposerPlugin";
   const file = path.join(root, "src/agent-ui/plugins", id, "index.tsx"), source = await readFile(file, "utf8");
-  expect(source).toContain(`export function ${name}(`);
+  const declaration = new RegExp(`export (?:function ${name}\\(|const ${name}\\s*=)`);
+  expect(source).toMatch(declaration);
   const extra = nativeGuard ? 'inputProps={{maxLength:12,onKeyDown:event=>{if(event.key==="Enter"&&!event.shiftKey)event.preventDefault();}}}' : "";
-  await writeFile(file, source.replace(`export function ${name}(`, "function FixtureBaseInput(") + `\nexport function ${name}(props:Parameters<typeof FixtureBaseInput>[0]){return <FixtureBaseInput {...props} submitMode=${JSON.stringify(mode)} ${extra}/>;}\n`);
+  await writeFile(file, source.replace(declaration, match => match.startsWith("export function") ? "function FixtureBaseInput(" : "const FixtureBaseInput =") + `\nexport function ${name}(props:Parameters<typeof FixtureBaseInput>[0]){return <FixtureBaseInput {...props} submitMode=${JSON.stringify(mode)} ${extra}/>;}\n`);
 }
 
 for (const lexical of [false, true]) for (const mode of ["enter", "ctrlEnter", "none"] as const) test(`${lexical ? "Lexical" : "textarea"} honors ${mode} keyboard submission without duplicate requests`, async ({ page }) => {
@@ -97,7 +98,7 @@ for (const lexical of [false, true]) test(`${lexical ? "Lexical" : "textarea"} p
   try {
     await page.goto(f.hostOrigin); const input = composer(page); await expect(input).toBeEditable();
     await input.fill("Request approval"); await input.press("Enter");
-    await page.getByRole("button", { name: "1 次工具调用", exact: true }).click();
+    if (!(await page.getByRole("button", { name: "允许", exact: true }).isVisible())) await page.getByRole("button", { name: "1 次工具调用", exact: true }).click();
     await expect(page.getByRole("button", { name: "允许", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "停止生成", exact: true })).toHaveCount(0);
     await input.focus();

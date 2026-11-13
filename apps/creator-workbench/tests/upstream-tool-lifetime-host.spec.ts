@@ -47,6 +47,7 @@ for (const strict of [false, true]) for (const enabled of [false, true]) test(`u
     expect(observations.at(-1)!.listeners - observations[0]!.listeners).toBeLessThanOrEqual(20);
   } finally {
     const evidenceRoot = process.env.AGENT_UI_TEST_EVIDENCE_DIR ?? fileURLToPath(new URL("../../../artifacts/soak-keyboard-20261031", import.meta.url));
+    await mkdir(evidenceRoot, { recursive: true });
     await writeFile(path.join(evidenceRoot, `upstream-lifetime-${enabled}${strict ? "-strict" : ""}.json`), JSON.stringify({ enabled, strict, observations, errors }, null, 2));
     await cdp.detach(); await fixture.close();
   }

@@ -34,6 +34,9 @@ async function fixture() {
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: source }));
   await writeFile(path.join(root, "package.json"), '{"type":"module"}');
   for (const name of ["http-data-source.ts", "contract.ts", "data-source.ts"]) await writeFile(path.join(root, source, "services/conversations", name), await readFile(path.join(canonical, name)));
+  const httpFile = path.join(root, target);
+  await writeFile(httpFile, (await readFile(httpFile, "utf8")).replace("credentials: 'same-origin',", "credentials: 'same-origin',\n  routes: { deleteUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}` },"));
+  await writeFile(path.join(root, source, "plugins/conversation-data-source/index.ts"), 'export { createHttpConversationDataSource } from "@za38.03/agent-ui-plugins/conversation-data-source";');
   await writeFile(path.join(root, source, "plugins/conversation-data-source/definition.ts"), 'import { createHttpConversationDataSource } from "../../services/conversations/http-data-source.js"; export default createHttpConversationDataSource;');
   const signal = new AbortController().signal;
   const context: ToolContext = { root, threadId: "history-delete", skills: root, contracts: fileURLToPath(new URL("../contracts/creator", import.meta.url)),
@@ -62,7 +65,8 @@ it("preflights derived consumers without asking, then applies the exact deletion
   const bundled = await build({ entryPoints: [path.join(context.root, target)], bundle: true, write: false, format: "esm", platform: "node",
     alias: {
       zod: createRequire(import.meta.url).resolve("zod"),
-      "@za38.03/agent-ui-runtime/ui/services/conversations/contract": fileURLToPath(new URL("../../runtime/dist/ui/services/conversations/contract.js", import.meta.url)),
+      "@za38.03/agent-ui-plugins/conversation-data-source": fileURLToPath(new URL("../../plugins/src/plugins/conversation-data-source/adapters/presentation/http-data-source.ts", import.meta.url)),
+      "@za38.03/agent-ui-plugins/conversation-service": fileURLToPath(new URL("../../plugins/src/plugins/conversation-service/adapters/presentation/contract.ts", import.meta.url)),
     } });
   const implementation = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString("base64")}`);
   const fetch = vi.fn(async () => new Response(null, { status: 204 }));
@@ -88,7 +92,7 @@ it("keeps public contract paths and declarations on the contract channel", async
   state.topology.services.push({ name: "agent-ui.conversation-data-source", contractPaths: [target.replaceAll("/", "\\")] });
   await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
   state.topology.services = [];
-  await expect(prepareServiceImplementation(context, { ...proposal, edits: [{ oldText: "endpoint: string;", newText: "endpoint: number;" }] })).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
+  await expect(prepareServiceImplementation(context, { ...proposal, edits: [{ oldText: "export type { HttpConversationDataSourceOptions };", newText: "export type { HttpConversationDataSourceOptions as OtherOptions };" }] })).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
   expect(state.prompts).toHaveLength(0);
 });
 

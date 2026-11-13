@@ -1,4 +1,7 @@
-import { useAgentUILocale, ConversationSurface, ConversationWelcome, ConversationEmptyState as EmptyState } from "@za38.03/agent-ui-plugins";
+import type {ComponentType} from "react";
+import type {ConversationSurfacePresentationProps} from "../../../presentation.js";
+import { useAgentUILocale } from "../../../locale.js";
+import { ConversationSurface, ConversationWelcome, ConversationEmptyState as EmptyState } from "../../../presentation.js";
 import {
   createContext,
   useContext,
@@ -6,8 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ConversationThreadComponents } from "@za38.03/agent-ui-plugins";
-import type { UIPluginComponentProps } from "@za38.03/agent-ui-plugins/contracts";
+import type { ConversationThreadComponents } from "../../../plugin-api/index.js";
+import type { UIPluginComponentProps } from "../../../contracts/index.js";
 import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui/agent-ui/theme/useAgentUITheme";
 import {
   ScopedUserEditComposer,
@@ -36,7 +39,7 @@ function ConversationEmptyState() {
 
 export function ConversationWelcomeFallback() {
   const messages = useAgentUILocale("conversation");
-  return <ConversationWelcome title={messages.welcome} description={messages.welcomeDescription || undefined} />;
+  return <ConversationWelcome title={messages.welcome ?? ""} description={messages.welcomeDescription || undefined} />;
 }
 
 export function createConversationSemanticThreadComponents(rendererSlots: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean } = {}): ConversationThreadComponents {
@@ -55,13 +58,14 @@ export function createConversationSemanticThreadComponents(rendererSlots: { tool
 }
 
 export function ConversationAdapter({
-  autoFocus, className,
+  Surface = ConversationSurface, autoFocus, className,
   welcome,
   suggestions,
   composer,
   renderScopedSlot,
   rendererSlots = {},
 }: ConversationEmptyStateProps & {
+  Surface?: ComponentType<ConversationSurfacePresentationProps>;
   autoFocus?: boolean; className?: string;
   rendererSlots?: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean };
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
@@ -74,7 +78,7 @@ export function ConversationAdapter({
   );
   const surface = (
     <ConversationEmptyStateContext.Provider value={emptyState}>
-      <ConversationSurface
+      <Surface
         {...(autoFocus === undefined ? {} : { autoFocus })}
         {...(className === undefined ? {} : { className })}
         components={components}

@@ -1,5 +1,5 @@
 import type { AgentExecution } from "@za38.03/agent-ui-core";
-import type { ConversationCommandDecisionRequest } from "@za38.03/agent-ui-plugins";
+import type { ConversationCommandDecisionRequest } from "../plugin-api/index.js";
 
 const hiddenOnInterruptDecisions = new Set(["edit", "respond"]);
 

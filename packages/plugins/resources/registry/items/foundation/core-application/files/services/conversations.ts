@@ -1,6 +1,7 @@
-export * from '@za38.03/agent-ui-runtime/ui/services/conversations';
+export * from '@za38.03/agent-ui-plugins/conversation-service';
 export { resolveConversationDataEndpoint, type ResolveConversationDataEndpointOptions } from './conversations/endpoint';
 export {
+  conversationDataSourceConfig,
   createHttpConversationDataSource,
   type HttpConversationDataSourceOptions,
 } from './conversations/http-data-source';

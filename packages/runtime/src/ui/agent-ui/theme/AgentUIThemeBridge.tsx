@@ -1,5 +1,5 @@
 import { useLayoutEffect, type ReactNode } from "react";
-import { AgentUIRoot, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AgentUIRoot, type AgentUITheme } from "../../../presentation.js";
 import { usePluginService } from "../../runtime/plugins/index.js";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../../services/agent-ui-theme.js";
 import { useAgentUITheme } from "./useAgentUITheme.js";
@@ -31,5 +31,6 @@ export function AgentUIThemeBridge({ theme, onThemeChange, children }: {
       }
     });
   }, [service, theme, onThemeChange]);
-  return <AgentUIRoot theme={theme ?? currentTheme}>{children}</AgentUIRoot>;
+  const Root = service?.Root ?? AgentUIRoot;
+  return <Root theme={theme ?? currentTheme}>{children}</Root>;
 }

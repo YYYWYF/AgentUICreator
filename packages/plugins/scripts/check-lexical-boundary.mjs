@@ -61,7 +61,10 @@ if (manifest.version !== expectedIntegration) errors.push(`${REACT_LEXICAL}: ins
 const versions = Object.fromEntries(LEXICAL_PEERS.map(name => [name, facade.devDependencies?.[name]]));
 try { validateLexicalIntegration(manifest, target.packages["@assistant-ui/react"], versions); }
 catch (error) { errors.push(error.message); }
-for (const name of [REACT_LEXICAL, ...LEXICAL_PEERS]) {
+// The upstream React adapter is bundled by build-optional-facades, not a
+// consumer peer. Advertising it makes npm auto-resolve its broad Lexical peers.
+if (facade.dependencies?.[REACT_LEXICAL] || facade.peerDependencies?.[REACT_LEXICAL] || facade.devDependencies?.[REACT_LEXICAL] !== expectedIntegration) errors.push(`${REACT_LEXICAL}: bundled adapter must remain a pinned build dependency`);
+for (const name of LEXICAL_PEERS) {
   const expected = name === REACT_LEXICAL ? expectedIntegration : versions[name];
   if (!semver.valid(expected) || facade.dependencies?.[name] || !facade.peerDependenciesMeta?.[name]?.optional ||
       facade.peerDependencies?.[name] !== expected || facade.devDependencies?.[name] !== expected ||

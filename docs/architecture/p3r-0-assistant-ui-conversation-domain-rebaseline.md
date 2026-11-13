@@ -11,8 +11,8 @@ assistant-ui 是 Agent UI 的 canonical Conversation Domain 实现。一个 Agen
 | Composer 与附件 | canonical Composer、草稿、提交、取消、附件和编辑生命周期 |
 | 工具与中断 | 上游原生工具执行与恢复生命周期；应用控制允许的能力 |
 | UI Runtime | AppUIModel 编译、激活、Service、SlotRegistry 与诊断 |
-| UI Plugin | 公开组件、产品适配、语义插槽与项目应用层 |
-| Host | 地址、业务服务、鉴权、历史来源和明确暴露的页面能力 |
+| UI Plugin | 公开组件、产品适配、语义插槽，以及会话数据源和管理能力的实现；项目应用层负责选择与绑定 |
+| Host | 地址、鉴权、历史接口配置或自定义数据源，以及明确暴露的页面能力 |
 
 生产接入由 `packages/runtime/src/ConversationRuntimeProvider.tsx` 实现；Plugin 消费产品公开 API，不导入实现路径或创建自己的 AG-UI Client。Core 契约不依赖 UI，Renderer 只处理布局。六包交付及源码所有权见 [插件所有权](npm-default-plugin-source-ownership.md)。
 
@@ -32,9 +32,13 @@ AppUIModel 选择实际 Plugin；Runtime 解析语义 Slot。普通 content Slot
 
 ## Thread 与历史
 
-Thread 绑定在一次挂载期间保持稳定。Host 提供历史数据源，Runtime 使用现有 thread/history adapter 加载消息，不因查看历史发起新 Agent 推理，不在历史 Tool UI 挂载时执行工具。
+Thread 绑定在一次挂载期间保持稳定。项目配置历史地址、鉴权和自定义覆盖，也可显式传入 `Agent.conversationDataSource`。`conversation-data-source` 插件提供默认 HTTP 请求与后端格式转换，包括 `max_message_checkpoint` 和 `channel_values → values`；自己的历史接口通过项目响应解码器或自定义数据源适配。
 
-历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流，也不让 Plugin 接管会话持久化或分支仓库。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。
+`conversation-service` 插件拥有业务 DTO/DataSource 契约、列表/详情缓存与会话管理，处理 `<think>` 等历史兼容，并提供通用 `agent-ui.thread-binding` 工厂。项目薄应用层负责服务创建、注册和清理；Runtime 通过通用接口加载消息、封装 assistant-ui 官方转换并运行会话，不创建具体业务会话服务。直接调用 Runtime 转换器不包含插件的特殊兼容。读取历史不发起新 Agent 推理，也不在历史 Tool UI 挂载时执行工具。
+
+历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流。插件可调用业务接口管理保存的会话，但数据库持久化属于业务后端，canonical 会话分支与运行生命周期仍使用 assistant-ui，不另建仓库或 Runtime。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。
+
+项目配置和自定义适配不属于插件实现 BASE，npm 升级保留它们；已接管的插件通过单独源码同步合并更新。旧工程的完整 HTTP 实现和绑定不会因 npm 升级自动迁移。准确文件归属见 [插件所有权](npm-default-plugin-source-ownership.md#1-通用基础设施与应用配置)。
 
 AG-UI 请求的 `messages` 默认只发送本次用户消息，不附带历史用户或 assistant 消息；完整历史仍由本地 Conversation Runtime 展示，后端按 `threadId` 维护上下文。前端工具续传只发送本次工具结果；中断恢复使用原生 `resume`，`messages` 只携带中断后追加的消息，没有新消息时为空。
 

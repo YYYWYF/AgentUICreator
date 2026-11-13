@@ -1,5 +1,7 @@
+import type {AgentUIPresentation} from "../presentation.js";
 import { createContext, useContext, useEffect, useMemo, type ComponentType, type PropsWithChildren, type ReactNode, type RefCallback } from "react";
-import { type AgentUILocaleCode, type AgentUILocaleOverrides, type AgentUILocaleMessages, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { type AgentUILocaleCode, type AgentUILocaleOverrides, type AgentUILocaleMessages } from "../locale.js";
+import { type ConversationToolkit } from "../plugin-api/index.js";
 import type { ConversationRuntimeProviderProps, ConversationStarterSuggestion } from "@za38.03/agent-ui-runtime";
 import type { RuntimeCompositionStore } from "./runtime/composition/RuntimeCompositionStore.js";
 import type { PluginCapabilityCatalog } from "./runtime/composition/PluginCapabilityCatalog.js";
@@ -18,6 +20,7 @@ export interface AgentUIShellProps {
 
 /** All application decisions remain in project code. No generated module is imported by npm. */
 export interface AgentUIProjectOptions {
+  presentation?: AgentUIPresentation | undefined;
   appUIModelSource: string;
   revisionDescriptorSource?: string | undefined;
   pluginCapabilityCatalog: PluginCapabilityCatalog<AppAgentState>;

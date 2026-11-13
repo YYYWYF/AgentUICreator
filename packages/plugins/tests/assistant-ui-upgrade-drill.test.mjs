@@ -239,7 +239,8 @@ describe("assistant-ui upgrade drill", () => {
     });
     expect(report.cancellationCompatibility.reasons).not.toContain("react-ag-ui AG-UI dependency is incompatible with the resolved @ag-ui/client");
     expect(impact).toContain("Target react-ag-ui range:\n^0.0.59");
-    expect(impact).toContain("assistant-ui-upgrade-retained-evidence.md");
+    expect(impact).toContain("REVIEW REQUIRED");
+    expect(impact).not.toContain("assistant-ui-upgrade-retained-evidence.md");
   });
 
   it("requires review when react-ag-ui raises the AG-UI dependency floor", async () => {
@@ -1217,7 +1218,7 @@ exit 99
     await writeFile(staleItemPath, `${JSON.stringify(staleItem, null, 2)}\n`);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
       .toContain("integration/generative-ui must use the package facade instead of depending directly on upstream");
-  });
+  }, 120_000); // Creates and upgrades two real Git source fixtures.
 });
 
 it.each(["React incompatibility", "split Lexical family"])("fails before workspace mutation on %s", async failure => {

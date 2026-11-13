@@ -1,9 +1,10 @@
+import {AGENT_UI_THREAD_BINDING_SERVICE} from "@za38.03/agent-ui-runtime/plugin-api";
+import {createConversationService,createConversationThreadBindingFactory} from "@za38.03/agent-ui-plugins/conversation-service";
 import { type UIPluginDefinition, parseUIPluginManifest } from '@za38.03/agent-ui-plugins/contracts';
 
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
-  createConversationService,
   type ConversationDataSource,
 } from '../../services/conversations';
 import { ConversationServicePlugin } from './index';
@@ -12,7 +13,7 @@ import manifestJson from './manifest.json';
 export const conversationServicePlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   inject: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
-  provides: [AGENT_UI_CONVERSATION_SERVICE],
+  provides: [AGENT_UI_CONVERSATION_SERVICE,AGENT_UI_THREAD_BINDING_SERVICE],
   setup: ({ services }) => {
     const dataSource = services.get<ConversationDataSource>(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
     if (dataSource === undefined) {
@@ -22,6 +23,7 @@ export const conversationServicePlugin: UIPluginDefinition = {
       dataSource,
     });
     services.provide(AGENT_UI_CONVERSATION_SERVICE, service);
+    services.provide(AGENT_UI_THREAD_BINDING_SERVICE,createConversationThreadBindingFactory(service));
     void service.refresh();
     return () => {
       service.dispose();

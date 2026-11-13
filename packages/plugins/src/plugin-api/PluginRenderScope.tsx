@@ -1,23 +1,2 @@
-import { createContext, useContext, type ReactNode } from "react";
-
-import type { UIPluginRenderScope } from "../contracts.js";
-
-export const PluginRenderScopeContext = createContext<UIPluginRenderScope | null>(null);
-
-export function PluginRenderScopeProvider({
-  scope,
-  children,
-}: {
-  scope: UIPluginRenderScope;
-  children: ReactNode;
-}) {
-  return (
-    <PluginRenderScopeContext.Provider value={scope}>
-      {children}
-    </PluginRenderScopeContext.Provider>
-  );
-}
-
-export function usePluginRenderScope<T = unknown>(): UIPluginRenderScope<T> | null {
-  return useContext(PluginRenderScopeContext) as UIPluginRenderScope<T> | null;
-}
+/** One Runtime-owned implementation, including Context identity. */
+export * from "@za38.03/agent-ui-runtime/plugin-api";

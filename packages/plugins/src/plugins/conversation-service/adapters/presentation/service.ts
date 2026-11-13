@@ -1,3 +1,5 @@
+import { createConversationServiceThreadBinding } from "./thread-binding.js";
+import type { ConversationThreadBindingFactory } from "@za38.03/agent-ui-runtime/plugin-api";
 import type { ConversationDetail, ConversationSummary } from "./contract.js";
 import type { ConversationDataSource } from "./data-source.js";
 
@@ -68,7 +70,15 @@ export function createConversationService({
 } {
   let snapshot = EMPTY_CONVERSATION_SNAPSHOT;
   // Business detail observation only; messages in mounted runtimes remain upstream-owned.
-  const historyReads = new Map<string, { status: ConversationLoadStatus; detail?: ConversationDetail; error?: string; request?: AbortController }>();
+  const historyReads = new Map<
+    string,
+    {
+      status: ConversationLoadStatus;
+      detail?: ConversationDetail;
+      error?: string;
+      request?: AbortController;
+    }
+  >();
   let listRequest: AbortController | undefined;
   let detailRequest: AbortController | undefined;
   let disposed = false;
@@ -105,7 +115,8 @@ export function createConversationService({
     const normalizedId = id.trim();
     if (!normalizedId) throw new Error("Conversation id must not be blank.");
     if (disposed) throw new Error("Conversation service was disposed.");
-    if (persist === undefined) throw new Error("CONVERSATION_OPERATION_NOT_CONFIGURED");
+    if (persist === undefined)
+      throw new Error("CONVERSATION_OPERATION_NOT_CONFIGURED");
     await persist(normalizedId);
     if (disposed) return;
     // A list request started before persistence completed must not undo the result.
@@ -113,14 +124,27 @@ export function createConversationService({
     listRequest = undefined;
     const read = historyReads.get(normalizedId);
     if (patch.title !== undefined && read?.detail !== undefined) {
-      historyReads.set(normalizedId, { ...read, detail: { ...read.detail, title: patch.title } });
+      historyReads.set(normalizedId, {
+        ...read,
+        detail: { ...read.detail, title: patch.title },
+      });
     }
     update({
       ...snapshot,
-      conversations: snapshot.conversations.map(item => item.id === normalizedId ? { ...item, ...patch } : item),
-      listStatus: snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
-      ...(snapshot.activeConversation?.id === normalizedId && patch.title !== undefined
-        ? { activeConversation: { ...snapshot.activeConversation, title: patch.title } } : {}),
+      conversations: snapshot.conversations.map((item) =>
+        item.id === normalizedId ? { ...item, ...patch } : item,
+      ),
+      listStatus:
+        snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
+      ...(snapshot.activeConversation?.id === normalizedId &&
+      patch.title !== undefined
+        ? {
+            activeConversation: {
+              ...snapshot.activeConversation,
+              title: patch.title,
+            },
+          }
+        : {}),
     });
   };
 
@@ -133,21 +157,38 @@ export function createConversationService({
     },
     async renameConversation(id, title) {
       const normalizedTitle = title.trim();
-      if (!normalizedTitle) throw new Error("Conversation title must not be blank.");
-      await changeConversation(id, { title: normalizedTitle }, dataSource.rename === undefined
-        ? undefined : key => dataSource.rename!(key, normalizedTitle));
+      if (!normalizedTitle)
+        throw new Error("Conversation title must not be blank.");
+      await changeConversation(
+        id,
+        { title: normalizedTitle },
+        dataSource.rename === undefined
+          ? undefined
+          : (key) => dataSource.rename!(key, normalizedTitle),
+      );
     },
     async archiveConversation(id) {
-      await changeConversation(id, { status: "archived" }, dataSource.archive === undefined
-        ? undefined : key => dataSource.archive!(key));
+      await changeConversation(
+        id,
+        { status: "archived" },
+        dataSource.archive === undefined
+          ? undefined
+          : (key) => dataSource.archive!(key),
+      );
     },
     async unarchiveConversation(id) {
-      await changeConversation(id, { status: "regular" }, dataSource.unarchive === undefined
-        ? undefined : key => dataSource.unarchive!(key));
+      await changeConversation(
+        id,
+        { status: "regular" },
+        dataSource.unarchive === undefined
+          ? undefined
+          : (key) => dataSource.unarchive!(key),
+      );
     },
     async deleteConversation(id) {
       const normalizedId = id.trim();
-      if (normalizedId.length === 0) throw new Error("Conversation id must not be blank.");
+      if (normalizedId.length === 0)
+        throw new Error("Conversation id must not be blank.");
       if (disposed) throw new Error("Conversation service was disposed.");
       await dataSource.delete(normalizedId);
       // Invalidate observations only after persistence succeeds; navigation is upstream-owned.
@@ -162,16 +203,21 @@ export function createConversationService({
       }
       update({
         ...snapshot,
-        conversations: snapshot.conversations.filter(item => item.id !== normalizedId),
-        listStatus: snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
-        ...(deletingActive ? {
-          mode: "live" as const,
-          activeConversationId: undefined,
-          activeConversation: undefined,
-          detailStatus: "idle" as const,
-          detailError: undefined,
-          detailErrorConversationId: undefined,
-        } : {}),
+        conversations: snapshot.conversations.filter(
+          (item) => item.id !== normalizedId,
+        ),
+        listStatus:
+          snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
+        ...(deletingActive
+          ? {
+              mode: "live" as const,
+              activeConversationId: undefined,
+              activeConversation: undefined,
+              detailStatus: "idle" as const,
+              detailError: undefined,
+              detailErrorConversationId: undefined,
+            }
+          : {}),
       });
     },
     async refresh() {
@@ -186,7 +232,8 @@ export function createConversationService({
       });
       try {
         const conversations = await dataSource.list({ signal: request.signal });
-        if (listRequest !== request || request.signal.aborted || disposed) return;
+        if (listRequest !== request || request.signal.aborted || disposed)
+          return;
         update({
           ...snapshot,
           conversations,
@@ -199,7 +246,8 @@ export function createConversationService({
           request.signal.aborted ||
           disposed ||
           isAbortError(error)
-        ) return;
+        )
+          return;
         update({
           ...snapshot,
           listStatus: "error",
@@ -246,16 +294,30 @@ export function createConversationService({
           request.signal.aborted ||
           disposed ||
           isAbortError(error)
-        ) return undefined;
+        )
+          return undefined;
         const previousId = previousSnapshot.activeConversationId;
-        const previousSummary = snapshot.conversations.find(item => item.id === previousId);
-        const previousWasDeleted = previousSnapshot.conversations.some(item => item.id === previousId) && previousSummary === undefined;
+        const previousSummary = snapshot.conversations.find(
+          (item) => item.id === previousId,
+        );
+        const previousWasDeleted =
+          previousSnapshot.conversations.some(
+            (item) => item.id === previousId,
+          ) && previousSummary === undefined;
         update({
           ...snapshot,
           mode: previousWasDeleted ? "live" : previousSnapshot.mode,
           activeConversationId: previousWasDeleted ? undefined : previousId,
-          activeConversation: previousWasDeleted ? undefined : previousSnapshot.activeConversation === undefined ? undefined
-            : { ...previousSnapshot.activeConversation, title: previousSummary?.title ?? previousSnapshot.activeConversation.title },
+          activeConversation: previousWasDeleted
+            ? undefined
+            : previousSnapshot.activeConversation === undefined
+              ? undefined
+              : {
+                  ...previousSnapshot.activeConversation,
+                  title:
+                    previousSummary?.title ??
+                    previousSnapshot.activeConversation.title,
+                },
           detailStatus: "error",
           detailError: errorMessage(error),
           detailErrorConversationId: normalizedId,
@@ -268,19 +330,48 @@ export function createConversationService({
     async loadConversation(id) {
       if (disposed) throw new Error("Conversation service was disposed.");
       historyReads.get(id)?.request?.abort();
-      const read = { status: "loading" as const, request: new AbortController() };
+      const read = {
+        status: "loading" as const,
+        request: new AbortController(),
+      };
       historyReads.set(id, read);
-      if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "loading", detailError: undefined, detailErrorConversationId: undefined });
+      if (snapshot.activeConversationId === id)
+        update({
+          ...snapshot,
+          detailStatus: "loading",
+          detailError: undefined,
+          detailErrorConversationId: undefined,
+        });
       try {
-        const detail = await dataSource.get(id, { signal: read.request.signal });
-        if (disposed || read.request.signal.aborted || historyReads.get(id) !== read) throw new DOMException("History read invalidated.", "AbortError");
+        const detail = await dataSource.get(id, {
+          signal: read.request.signal,
+        });
+        if (
+          disposed ||
+          read.request.signal.aborted ||
+          historyReads.get(id) !== read
+        )
+          throw new DOMException("History read invalidated.", "AbortError");
         historyReads.set(id, { status: "ready", detail });
-        if (snapshot.activeConversationId === id) update({ ...snapshot, activeConversation: detail, detailStatus: "ready", detailError: undefined, detailErrorConversationId: undefined });
+        if (snapshot.activeConversationId === id)
+          update({
+            ...snapshot,
+            activeConversation: detail,
+            detailStatus: "ready",
+            detailError: undefined,
+            detailErrorConversationId: undefined,
+          });
         return detail;
       } catch (error) {
         if (disposed || historyReads.get(id) !== read) throw error;
         historyReads.set(id, { status: "error", error: errorMessage(error) });
-        if (snapshot.activeConversationId === id) update({ ...snapshot, detailStatus: "error", detailError: errorMessage(error), detailErrorConversationId: id });
+        if (snapshot.activeConversationId === id)
+          update({
+            ...snapshot,
+            detailStatus: "error",
+            detailError: errorMessage(error),
+            detailErrorConversationId: id,
+          });
         throw error;
       }
     },
@@ -288,9 +379,14 @@ export function createConversationService({
       detailRequest?.abort();
       detailRequest = undefined;
       const read = historyReads.get(id);
-      update({ ...snapshot, mode: "history", activeConversationId: id,
-        activeConversation: read?.detail, detailStatus: read?.status ?? "idle",
-        detailError: read?.error, detailErrorConversationId: read?.status === "error" ? id : undefined,
+      update({
+        ...snapshot,
+        mode: "history",
+        activeConversationId: id,
+        activeConversation: read?.detail,
+        detailStatus: read?.status ?? "idle",
+        detailError: read?.error,
+        detailErrorConversationId: read?.status === "error" ? id : undefined,
       });
     },
     showLiveConversation() {
@@ -313,8 +409,30 @@ export function createConversationService({
   };
 }
 
-declare module "@za38.03/agent-ui-plugins/contracts" {
+declare module "@za38.03/agent-ui-runtime/contracts" {
   interface UIPluginServiceMap {
     [AGENT_UI_CONVERSATION_SERVICE]: ConversationService;
   }
+}
+
+/** The selected service implementation supplies the standard Runtime adapter. */
+export function createConversationThreadBindingFactory(
+  service: ConversationService,
+): ConversationThreadBindingFactory {
+  return (options) => {
+    const binding = createConversationServiceThreadBinding(
+      options.resumeProvider,
+      options.initialThreadId ?? options.currentThreadId,
+    );
+    const detach = binding.attachConversationService(service);
+    if (
+      !options.initialThreadId &&
+      options.currentThreadId &&
+      !service
+        .getSnapshot()
+        .conversations.some((item) => item.id === options.currentThreadId)
+    )
+      binding.reserveThread?.(options.currentThreadId);
+    return Object.assign(binding, { dispose: detach });
+  };
 }

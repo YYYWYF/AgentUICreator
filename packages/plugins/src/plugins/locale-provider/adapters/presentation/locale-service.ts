@@ -37,6 +37,7 @@ export function createAgentUILocaleService(
         return;
       }
       messages = next;
+      snapshot = { ...snapshot };
       listeners.forEach((listener) => listener());
     },
     getSnapshot: () => snapshot,

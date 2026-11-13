@@ -41,7 +41,7 @@ try {
   // silently loading the bridge package's default preset.
   const plugin = path.join(root, 'src/agent-ui/plugins/conversation-surface/index.tsx');
   const source = await readFile(plugin, 'utf8');
-  const customized = source.replace(/return\s*\(\s*(<Implementation\b[\s\S]*\/>)\s*\);/u, 'return (<div data-compatibility-fixture="local-plugin">$1</div>);');
+  const customized = source.replace(/return\s*\(?\s*(<Implementation\b[\s\S]*\/>)\s*\)?;/u, 'return (<div data-compatibility-fixture="local-plugin">$1</div>);');
   assert.notEqual(customized, source, 'The enabled project application component must actually be customized');
   await writeFile(plugin, customized);
   const build = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/vite/bin/vite.js'), 'build', '--config', 'src/agent-ui/integrations/web-component-bridge/vite.config.ts'], { cwd: root, encoding: 'utf8' });

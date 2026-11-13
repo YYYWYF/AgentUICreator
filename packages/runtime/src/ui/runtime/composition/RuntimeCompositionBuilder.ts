@@ -1,4 +1,4 @@
-import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import type { ConversationToolkit } from "../../../plugin-api/index.js";
 import {
   collectAppUIPluginLocations,
   parseAppUIModelJson,

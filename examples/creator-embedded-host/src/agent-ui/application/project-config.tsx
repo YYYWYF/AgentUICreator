@@ -1,3 +1,4 @@
+import { createDefaultAgentUIPresentation } from "@za38.03/agent-ui-plugins";
 import {
   AgentUIProjectProvider,
   createAgentUIProject,
@@ -16,6 +17,7 @@ import { locales } from './locales';
 
 export const agentUIProject = createAgentUIProject({
   ...projectResources,
+  presentation: createDefaultAgentUIPresentation(),
   appUIModelSource: JSON.stringify(appUIModel),
   revisionDescriptorSource: revisionDescriptor === null ? undefined : JSON.stringify(revisionDescriptor),
   compositionStore: agentCompositionStore,
@@ -24,9 +26,9 @@ export const agentUIProject = createAgentUIProject({
   Shell: ProjectShell,
   locales,
   getConversationStarterSuggestions: (_locale, messages) => [
-    { title: messages.architectureTitle, label: messages.architectureLabel, prompt: messages.architecturePrompt },
-    { title: messages.debugTitle, label: messages.debugLabel, prompt: messages.debugPrompt },
-    { title: messages.nextTitle, label: messages.nextLabel, prompt: messages.nextPrompt },
+    { title: (messages.architectureTitle ?? ""), label: (messages.architectureLabel ?? ""), prompt: (messages.architecturePrompt ?? "") },
+    { title: (messages.debugTitle ?? ""), label: (messages.debugLabel ?? ""), prompt: (messages.debugPrompt ?? "") },
+    { title: (messages.nextTitle ?? ""), label: (messages.nextLabel ?? ""), prompt: (messages.nextPrompt ?? "") },
   ],
   development,
 });

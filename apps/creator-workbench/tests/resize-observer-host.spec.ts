@@ -34,8 +34,8 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       await input.fill("Resize while awaiting approval");
       await host.locator(".aui-composer-send").click();
       await host.getByRole("button", { name: /思考/ }).click();
-      await expect(surface).toContainText("这个操作会修改工作区");
-      await host.getByRole("button", { name: /1 次工具调用/ }).click();
+      await expect(surface).toContainText("请假方案已经准备好");
+      if (!(await host.getByRole("button", { name: "允许", exact: true }).isVisible())) await host.getByRole("button", { name: /1 次工具调用/ }).click();
       await expect(host.getByRole("button", { name: "允许", exact: true })).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath(`${mode}-awaiting-approval.png`), fullPage: true });
       const frame = page.locator('iframe[title="Host Application"]');
@@ -52,11 +52,11 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
         await expect(host.getByRole("button", { name: "允许", exact: true })).toBeVisible();
       }
       await host.getByRole("button", { name: "允许", exact: true }).click();
-      await expect(surface).toContainText("已获得许可，临时构建产物已清理。");
+      await expect(surface).toContainText("已确认这次请假方案，继续处理后续流程。");
       await expect(host.getByRole("button", { name: "允许", exact: true })).toHaveCount(0);
       expect(runs).toHaveLength(2);
       expect(runs[1]!.threadId).toBe(runs[0]!.threadId);
-      expect(runs[1]!.resume).toEqual([{ interruptId: "approval-resume-1", status: "resolved", payload: { approved: true } }]);
+      expect(runs[1]!.resume).toEqual([{ interruptId: "approval-resume-1", status: "resolved", payload: { decisions: [{ type: "approve" }] } }]);
       await expect(input).toBeEditable();
       await input.fill("Draft after resizing");
       await page.setViewportSize({ width: 1100, height: 850 });

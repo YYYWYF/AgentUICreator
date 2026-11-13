@@ -1,5 +1,5 @@
 import { WebSpeechDictationAdapter, type AttachmentAdapter, type DictationAdapter, type PendingAttachment } from "@assistant-ui/react";
-import type { AgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
+import type { AgentUILocaleMessages } from "./locale.js";
 import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 

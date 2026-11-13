@@ -20,7 +20,23 @@
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"
     },
-    "./ui/styles.css": "./dist/ui/styles.css"
+    "./ui/styles.css": "./dist/ui/styles.css",
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./plugin-api": {
+      "types": "./dist/plugin-api/index.d.ts",
+      "import": "./dist/plugin-api/index.js"
+    },
+    "./locale": {
+      "types": "./dist/locale.d.ts",
+      "import": "./dist/locale.js"
+    },
+    "./presentation": {
+      "types": "./dist/presentation.d.ts",
+      "import": "./dist/presentation.js"
+    }
   },
   "files": [
     "dist"
@@ -36,12 +52,11 @@
   },
   "dependencies": {
     "@ag-ui/client": "1.0.3",
-    "@za38.03/agent-ui-plugins": "workspace:*",
     "@assistant-ui/react": "0.15.31",
     "@assistant-ui/react-ag-ui": "0.1.0",
     "@assistant-ui/react-langgraph": "0.14.29",
     "rxjs": "7.8.1",
-    "@assistant-ui/core": "0.3.31",
+    "@assistant-ui/core": "0.3.35",
     "@ag-ui/core": "1.0.3",
     "zod": "4.5.4",
     "lucide-react": "1.41.0",
@@ -82,6 +97,18 @@
       ],
       "ui": [
         "./dist/ui/index.d.ts"
+      ],
+      "contracts": [
+        "./dist/contracts/index.d.ts"
+      ],
+      "plugin-api": [
+        "./dist/plugin-api/index.d.ts"
+      ],
+      "locale": [
+        "./dist/locale.d.ts"
+      ],
+      "presentation": [
+        "./dist/presentation.d.ts"
       ]
     }
   }

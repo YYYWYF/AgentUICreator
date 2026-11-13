@@ -33,7 +33,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
   });
 
   test(`${mode}: audio and video tool results load real media and unresolved files stay safe`, async ({ page, browserName }) => {
-    const audio = await readFile(new URL("../../../artifacts/template-complete-20261101/media/tone.wav", import.meta.url)), video = await readFile(new URL("../../../artifacts/template-complete-20261101/media/clip.webm", import.meta.url));
+    const audio = await readFile(new URL("./fixtures/media/tone.wav", import.meta.url)), video = await readFile(new URL("./fixtures/media/clip.webm", import.meta.url));
     const f = await staticTemplate(page, mode, run => {
       startRun(run.response, run.input); writeEvent(run.response, { type: "TOOL_CALL_START", toolCallId: "media", toolCallName: "media_report" }); writeEvent(run.response, { type: "TOOL_CALL_ARGS", toolCallId: "media", delta: "{}" }); writeEvent(run.response, { type: "TOOL_CALL_END", toolCallId: "media" });
       writeEvent(run.response, { type: "TOOL_CALL_RESULT", toolCallId: "media", messageId: "media-result", role: "tool", content: [
@@ -185,7 +185,8 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       writeEvent(run.response, { type: "RUN_FINISHED", threadId: run.input.threadId, runId: run.input.runId, outcome: { type: "interrupt", interrupts: [{ id: "decision-id", reason: "tool_call", toolCallId: "decision", message: "Controlled approval", responseSchema: { type: "object", properties: { approved: { type: "boolean" } }, required: ["approved"] } }] } }); run.response.end();
     });
     try {
-      await sendText(page, "Ask approval"); await page.getByRole("button", { name: "1 次工具调用", exact: true }).click(); const decide = page.getByRole("button", { name: approved ? "允许" : "拒绝", exact: true });
+      await sendText(page, "Ask approval"); const decide = page.getByRole("button", { name: approved ? "允许" : "拒绝", exact: true });
+      if (!(await decide.isVisible())) await page.getByRole("button", { name: "1 次工具调用", exact: true }).click();
       await inputFor(page).fill("Approval draft"); await inputFor(page).press("Enter"); await expect(inputFor(page)).toHaveValue("Approval draft"); expect(f.requests).toHaveLength(1); await decide.click();
       await expect(page.locator(".aui-md")).toHaveText(approved ? "Decision allowed" : "Decision denied"); expect(f.requests).toHaveLength(2);
       await expect(inputFor(page)).toHaveValue("Approval draft"); expect(JSON.stringify(f.requests[1]!.messages)).not.toContain("Approval draft");

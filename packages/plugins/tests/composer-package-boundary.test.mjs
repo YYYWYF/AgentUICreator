@@ -33,4 +33,4 @@ test("Composer subpath imports independently and Vite graph contains no other of
     const provenance = JSON.parse(await readFile(`${packageRoot}dist/build-provenance.json`, "utf8"));
     assert(provenance.inputs.every(id => !/plugin-(?:assistant-ui-feedback|reasoning|chart)/.test(id)));
   } finally { await rm(temporary, { recursive: true, force: true }); }
-});
+}, 120_000); // Builds the real production module graph.

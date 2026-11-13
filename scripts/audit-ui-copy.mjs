@@ -22,11 +22,13 @@ async function dictionary(file) {
   const source = await readFile(path.join(root, file), "utf8");
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const exports = {};
+  const runtime = source.includes("AGENT_UI_RUNTIME_LOCALES") ? {"en-US":await dictionary("packages/runtime/src/locales/en-US.ts"),"zh-CN":await dictionary("packages/runtime/src/locales/zh-CN.ts")} : undefined;
   const presentation = source.includes("AGENT_UI_PRESENTATION_LOCALES") ? {
     "en-US": await dictionary("packages/plugins/src/locales/en-US.ts"),
     "zh-CN": await dictionary("packages/plugins/src/locales/zh-CN.ts"),
   } : undefined;
   vm.runInNewContext(output, { exports, require: specifier => {
+    if(specifier === "@za38.03/agent-ui-runtime/locale" && runtime) return {AGENT_UI_RUNTIME_LOCALES:runtime};
     if (specifier === "@za38.03/agent-ui-plugins" && presentation) return { AGENT_UI_PRESENTATION_LOCALES: presentation };
     throw new Error(`Unsupported locale dictionary import: ${specifier}`);
   } });
@@ -40,6 +42,7 @@ function flatten(value, prefix = "") {
 }
 const dictionaries = [
   ["creator", "packages/creator/src/ui/i18n"],
+  ["runtime", "packages/runtime/src/locales"],
   ["presentation", "packages/plugins/src/locales"],
   ["generated", "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/i18n/locales"],
 ];

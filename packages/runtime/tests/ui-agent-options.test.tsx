@@ -3,9 +3,9 @@ import { act, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { useAgentUILocale, useConversationComposer, usePluginActions, usePluginEvents, usePluginService, type UIPluginDefinition } from '@za38.03/agent-ui-plugins';
+import { createDefaultAgentUIPresentation, useAgentUILocale, useConversationComposer, usePluginActions, usePluginEvents, usePluginService, type UIPluginDefinition } from '@za38.03/agent-ui-plugins';
 import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog, ConversationWelcomeFallback, type AgentProps } from '../src/ui/index.js';
-import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource } from '../src/ui/services/conversations.js';
+import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource } from '@za38.03/agent-ui-plugins/conversation-service';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -39,6 +39,7 @@ function fixture(providerEnabled = true) {
     optionalInject:[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],Component:View,
   };
   const project = createAgentUIProject({
+    presentation:createDefaultAgentUIPresentation(),
     appUIModelSource:JSON.stringify({applicationPlugins:[{pluginId:'data-source',enabled:providerEnabled}],root:{type:'slot',plugins:[{pluginId:'view'}]}}),
     pluginCapabilityCatalog:createPluginCapabilityCatalog([provider,view].map(definition=>({...definition,provides:definition.provides??[],inject:definition.inject??[],optionalInject:definition.optionalInject??[],loadDefinition:async()=>definition}))),
     capabilityCatalogRevision:'a'.repeat(64),});
@@ -64,7 +65,7 @@ it('accepts live event schemas, localized copy, welcome and history through Agen
   return new Response(frames.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(''),{headers:{'Content-Type':'text/event-stream'}});
  }));
  const f=fixture(), history=source('My history');
- const props:AgentProps={conversationDataSource:history,locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'},conversation:{welcome:'My assistant',welcomeDescription:'Project introduction'}}}};
+ const props:AgentProps={services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history},locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'},conversation:{welcome:'My assistant',welcomeDescription:'Project introduction'}}}};
  await f.render(props);
  expect(f.container.querySelector('input')?.placeholder).toBe('Business input');
  expect(f.container.querySelector('h1')?.textContent).toBe('My assistant');
@@ -88,8 +89,8 @@ it('accepts live event schemas, localized copy, welcome and history through Agen
 
 it('isolates Host history and copy between Agent instances',async()=>{
  const a=fixture(),b=fixture();
- await a.render({conversationDataSource:source('A'),locales:{'zh-CN':{composer:{placeholder:'Input A'}}}});
- await b.render({conversationDataSource:source('B'),locales:{'zh-CN':{composer:{placeholder:'Input B'}}}});
+ await a.render({services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:source('A')},locales:{'zh-CN':{composer:{placeholder:'Input A'}}}});
+ await b.render({services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:source('B')},locales:{'zh-CN':{composer:{placeholder:'Input B'}}}});
  expect(a.container.querySelector('aside')?.textContent).toBe('A');
  expect(b.container.querySelector('aside')?.textContent).toBe('B');
  expect(a.container.querySelector('input')?.placeholder).toBe('Input A');
@@ -98,7 +99,7 @@ it('isolates Host history and copy between Agent instances',async()=>{
 
 it('does not activate a disabled provider merely because a Host supplied its service',async()=>{
  const f=fixture(false),history=source('Disabled');
- await f.render({conversationDataSource:history});
+ await f.render({services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history}});
  expect(f.started).not.toHaveBeenCalled();expect(history.list).not.toHaveBeenCalled();
  expect(f.container.querySelector('aside')?.textContent).toBe('');
 });

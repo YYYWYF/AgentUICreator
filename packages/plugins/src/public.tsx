@@ -1,4 +1,47 @@
-import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
+import {
+  type ConversationMessage,
+  type ConversationThreadComponents,
+  type ConversationMessagePartGroup,
+  type ConversationReasoningGroupRenderScope,
+  type ConversationToolGroupRenderScope,
+  type ConversationToolFallbackRenderScope,
+  type ConversationTaskGroupRenderScope,
+  type ConversationUserEditComposerRenderScope,
+  type ConversationAssistantResponseFooterRenderScope,
+  toConversationMessagePartGroup,
+  type ConversationToolCallStatus,
+  type ConversationCommandDecisionRequest,
+  type ConversationCommandDecisionBinding,
+  type ConversationToolCallProps,
+  type ConversationToolCallComponent,
+  type ConversationToolkitEntry,
+  type ConversationToolkit,
+  createConversationToolkit,
+  type ConversationToolTimelineRenderScope,
+  type ConversationThinkingIndicatorRenderScope,
+} from "@za38.03/agent-ui-runtime/plugin-api";
+export {
+  type ConversationMessage,
+  type ConversationThreadComponents,
+  type ConversationMessagePartGroup,
+  type ConversationReasoningGroupRenderScope,
+  type ConversationToolGroupRenderScope,
+  type ConversationToolFallbackRenderScope,
+  type ConversationTaskGroupRenderScope,
+  type ConversationUserEditComposerRenderScope,
+  type ConversationAssistantResponseFooterRenderScope,
+  toConversationMessagePartGroup,
+  type ConversationToolCallStatus,
+  type ConversationCommandDecisionRequest,
+  type ConversationCommandDecisionBinding,
+  type ConversationToolCallProps,
+  type ConversationToolCallComponent,
+  type ConversationToolkitEntry,
+  type ConversationToolkit,
+  createConversationToolkit,
+  type ConversationToolTimelineRenderScope,
+  type ConversationThinkingIndicatorRenderScope,
+} from "@za38.03/agent-ui-runtime/plugin-api";import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
 export type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
 import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "./locale.js";
 import { createConversationTransientMessageService as createInternalTransientMessageService } from "./conversation-transient-message-service.js";
@@ -243,13 +286,6 @@ export interface DataMessageUIDefinition<TData = unknown> {
 export const defineDataMessageUI: <TData>(definition: DataMessageUIDefinition<TData>) => DataMessageUIDefinition<never> = internalDefineDataMessageUI;
 export const DataMessageUIRegistration: ComponentType<{ definition: DataMessageUIDefinition<never> }> = InternalDataMessageUIRegistration;
 
-export interface ConversationMessage {
-  readonly id: string;
-  readonly role: "user" | "assistant" | "system";
-  readonly content: readonly Record<string, unknown>[];
-  readonly [key: string]: unknown;
-}
-
 export interface ConversationState {
   readonly message: {
     readonly isCopied: boolean;
@@ -288,63 +324,8 @@ export function ConversationIf({
   );
 }
 
-export type ConversationThreadComponents = {
-  TransientMessages?: ComponentType<ConversationTransientMessagesRenderScope> | undefined;
-  UserEditComposer?: ComponentType | undefined;
-  AssistantMessage?: ComponentType | undefined;
-  AssistantResponseFooter?: ComponentType | undefined;
-  Welcome?: ComponentType | undefined;
-  ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
-  ThinkingIndicator?: ComponentType<ConversationThinkingIndicatorRenderScope> | undefined;
-  reasoningVisible?: boolean | undefined;
-  ToolTimeline?: ComponentType<{ children?: ReactNode }> | undefined;
-  ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
-  ReasoningGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
-  TaskGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
-};
-
-/** Stable metadata projected from assistant-ui GroupedParts at the facade edge. */
-export interface ConversationMessagePartGroup {
-  readonly type: "group-reasoning" | "group-tool";
-  readonly indices: readonly number[];
-  readonly status: { readonly type: string };
-  /** Presentation hint for pending tool actions, including runtime command decisions. */
-  readonly requiresAction?: boolean;
-}
-
-export interface ConversationReasoningGroupRenderScope {
-  readonly group: ConversationMessagePartGroup;
-  readonly children: ReactNode;
-}
-
-export interface ConversationToolGroupRenderScope {
-  readonly group: ConversationMessagePartGroup;
-  readonly children: ReactNode;
-}
-
-export interface ConversationToolFallbackRenderScope {
-  readonly tool: ConversationToolCallProps;
-}
-
-export interface ConversationTaskGroupRenderScope {
-  readonly group: unknown;
-  readonly children?: ReactNode;
-}
-
-/** Message and Composer state remain owned by the active assistant-ui scope. */
-export type ConversationUserEditComposerRenderScope = Record<string, never>;
-
 export function ConversationCanonicalUserEditComposer({ input }: Readonly<{ input?: ReactNode }> = {}) {
   return <InternalCanonicalUserEditComposer input={input} />;
-}
-
-/** The footer keeps its scope intentionally data-free; actions read Response Context. */
-export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
-
-export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
-  const source = group as ConversationMessagePartGroup;
-  return { type: source.type, indices: source.indices, status: source.status,
-    ...(source.requiresAction === undefined ? {} : { requiresAction: source.requiresAction }) };
 }
 
 export interface ConversationThreadProps {
@@ -525,69 +506,11 @@ export function ConversationSuggestion({
   );
 }
 
-export type ConversationToolCallStatus =
-  | { type: "running" }
-  | { type: "complete" }
-  | { type: "incomplete"; reason?: string; error?: unknown }
-  | { type: "requires-action"; reason?: string };
-
-export interface ConversationCommandDecisionRequest {
-  description?: string | undefined;
-  /** Decision types are supplied by the backend's review configuration. */
-  allowedDecisions: readonly string[];
-}
-
-export interface ConversationCommandDecisionBinding {
-  request: ConversationCommandDecisionRequest;
-  submit: (decisionType: string) => Promise<void>;
-}
-
 export function ConversationCommandDecisionProvider(props: {
   decisions: ReadonlyMap<string, ConversationCommandDecisionBinding>;
   children: ReactNode;
 }): ReactElement {
   return <InternalCommandDecisionProvider {...props} />;
-}
-
-export interface ConversationToolCallProps {
-  type?: "tool-call" | undefined;
-  toolCallId: string;
-  toolName: string;
-  args: unknown;
-  argsText?: string | undefined;
-  result?: unknown;
-  messages?: readonly ConversationMessage[];
-  isError?: boolean | undefined;
-  status: ConversationToolCallStatus;
-  addResult?: ((result: unknown) => void) | undefined;
-  /** Resume the pending lifecycle interrupt; never writes a client ToolMessage. */
-  resumeInterrupt?: ((payload: unknown) => Promise<void>) | undefined;
-  /** Legacy ON_INTERRUPT decision data projected by the Agent UI Runtime. */
-  decisionRequest?: ConversationCommandDecisionRequest | undefined;
-  /** Submit a selected backend-provided decision using the interaction's transport. */
-  submitDecision?: ((decisionType: string) => Promise<void>) | undefined;
-  /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
-  readonly [key: string]: unknown;
-}
-
-export type ConversationToolCallComponent = ComponentType<ConversationToolCallProps>;
-
-export interface ConversationToolkitEntry {
-  /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
-  interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
-  type: "backend" | "human";
-  display: "standalone";
-  render: ComponentType<any>;
-  description?: string | undefined;
-  parameters?: Record<string, unknown> | undefined;
-}
-
-export type ConversationToolkit = Readonly<Record<string, ConversationToolkitEntry>>;
-
-export function createConversationToolkit(
-  toolkit: ConversationToolkit,
-): ConversationToolkit {
-  return defineToolkit(toolkit as never) as unknown as ConversationToolkit;
 }
 
 export interface ConversationToolkitProviderProps {
@@ -1374,15 +1297,7 @@ export const AgentUISidebarHeader: ComponentType<React.HTMLAttributes<HTMLDivEle
 export const AgentUISidebarMenu: ComponentType<React.HTMLAttributes<HTMLUListElement>> = InternalSidebarMenu;
 export const AgentUISidebarMenuItem: ComponentType<React.HTMLAttributes<HTMLLIElement>> = InternalSidebarMenuItem;
 export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement> & { render?: ReactElement; size?: "default" | "sm" | "lg"; tooltip?: string }> = InternalSidebarMenuButton;
-
-/** One scoped timeline per assistant message; children reuse existing tool detail renderers. */
-export interface ConversationToolTimelineRenderScope { readonly children?: ReactNode; }
 export { ConversationToolTimeline, type ConversationToolTimelineProps } from "./plugins/tool-timeline/adapters/presentation/tool-timeline.js";
-
-export interface ConversationThinkingIndicatorRenderScope {
-  readonly reasoningVisible: boolean;
-  readonly timelineVisible: boolean;
-}
 export { ConversationThinkingIndicator, type ConversationThinkingIndicatorProps } from "./plugins/thinking-indicator/adapters/presentation/thinking-indicator.js";
 
 export { ConversationCanonicalResponseFooter, type ConversationCanonicalResponseFooterProps } from "./plugins/response-footer/adapters/presentation/response-footer.js";
@@ -1488,3 +1403,5 @@ export function ConversationDefaultTool(props: ConversationToolCallProps & { res
 }
 
 export { ConversationSurface, ConversationWelcome, ConversationEmptyState, type ConversationSurfaceProps, type ConversationTheme } from "./internal/conversation-surface.js";
+
+export { createDefaultAgentUIPresentation } from "./presentation.js";

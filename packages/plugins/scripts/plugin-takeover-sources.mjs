@@ -2,6 +2,7 @@ import ts from "typescript-ui-audit";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { pluginTakeoverStyles } from "./plugin-takeover-styles.mjs";
 import { portableSource, sourceEntries } from "./plugin-source-recipes.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -12,31 +13,35 @@ const packageName = "@za38.03/agent-ui-plugins";
 
 // These modules own shared state, services or conversation behavior. Extracted
 // presentation must consume their existing npm instance, never copy a Provider.
+const runtimePackage = "@za38.03/agent-ui-runtime";
 const boundaries = new Map([
-  ["src/locale.tsx", packageName],
-  ["src/contracts.ts", `${packageName}/contracts`],
-  ["src/theme/theme-contract.ts", `${packageName}/theme`],
-  ["src/internal/style-boundary/AgentUIRoot.tsx", packageName],
-  ["src/internal/composer-input-host-context.tsx", `${packageName}/composer-support`],
-  ["src/internal/conversation-composer-guard.tsx", `${packageName}/composer-support`],
-  ["src/internal/assistant-response-runtime.tsx", `${packageName}/plugin-support`],
-  ["src/internal/conversation-command-decisions.tsx", `${packageName}/plugin-support`],
-  ["src/internal/conversation-transient-messages.tsx", `${packageName}/plugin-support`],
-  ["src/conversation-transient-message-service.ts", `${packageName}/plugin-support`],
-  ["src/internal/tool-timeline-projection.ts", `${packageName}/plugin-support`],
-  ["src/plugin-api/useAgentUIThemeSnapshot.ts", `${packageName}/plugin-support`],
-  ["src/plugin-api/useAgentUILocaleSnapshot.ts", `${packageName}/plugin-support`],
-  ["src/internal/quote-thread-root.tsx", `${packageName}/plugin-support`],
-  ["src/internal/thread-delete-recovery.ts", `${packageName}/plugin-support`],
-  ["src/internal/directive-formatter.ts", `${packageName}/plugin-support`],
-  ["src/internal/trigger-matcher.ts", `${packageName}/plugin-support`],
-  ["src/internal/composer-trigger-utils.ts", `${packageName}/plugin-support`],
-  ["src/internal/composer-trigger-types.ts", `${packageName}/plugin-support`],
-  ["src/internal/quote-selection-adapter.ts", `${packageName}/plugin-support`],
-  ["src/internal/task-disclosure-context.tsx", `${packageName}/plugin-support`],
-  ["src/internal/tool-renderer-context.tsx", `${packageName}/plugin-support`],
-  ["src/internal/conversation-turn.tsx", `${packageName}/plugin-support`],
+ ["src/contracts.ts", runtimePackage + "/contracts"],
+ ...["assistant-response-runtime", "assistant-response", "conversation-command-decisions", "conversation-transient-messages", "quote-thread-root", "task-disclosure-context", "tool-renderer-context", "conversation-turn", "data-message-ui"].map(name => ["src/internal/" + name + (name === "assistant-response" ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
+ ["src/conversation-transient-message-service.ts", runtimePackage + "/plugin-api"],
+ ...["ApplicationLifecycleContext", "PluginInstanceContext", "PluginRenderScope", "PluginServiceContext", "usePluginServiceSnapshot", "custom-event-name"].map(name=>["src/plugin-api/" + name + (["usePluginServiceSnapshot","custom-event-name"].includes(name) ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
 ]);
+// Export identity, rather than a naming heuristic, decides the canonical owner.
+const runtimeNames = new Set();
+const visitedRuntime = new Set();
+async function collectRuntimeExports(file) {
+ if (visitedRuntime.has(file)) return; visitedRuntime.add(file);
+ const text = await readFile(path.join(root, "../runtime/src", ...file.split("/")), "utf8");
+ const source = ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ for (const node of source.statements) {
+  if (ts.isExportDeclaration(node)) {
+   if (node.exportClause && ts.isNamedExports(node.exportClause)) for (const item of node.exportClause.elements) runtimeNames.add(item.name.text);
+   else if (node.moduleSpecifier?.text.startsWith(".")) {
+    const stem=path.posix.normalize(path.posix.join(path.posix.dirname(file),node.moduleSpecifier.text)).replace(/\.js$/u,"");
+    let target; for (const ext of [".ts",".tsx"]) try {await readFile(path.join(root,"../runtime/src",stem+ext));target=stem+ext;break;} catch(error){if(error.code!=="ENOENT")throw error;}
+    if(target) await collectRuntimeExports(target);
+   }
+  } else if (node.modifiers?.some(modifier=>modifier.kind===ts.SyntaxKind.ExportKeyword)) {
+   if (node.name) runtimeNames.add(node.name.text);
+   if (ts.isVariableStatement(node)) for (const item of node.declarationList.declarations) if(ts.isIdentifier(item.name))runtimeNames.add(item.name.text);
+  }
+ }
+}
+await collectRuntimeExports("plugin-api/index.ts");
 const presentationModules = new Set([
   "src/internal/style-boundary/ConversationActionMoreMenu.tsx",
   "src/internal/conversation-question-flow.tsx",
@@ -49,11 +54,8 @@ const presentationModules = new Set([
 const selectiveModules = new Set([
   "src/public.tsx", "src/plugin-support.ts", "src/composer-support.ts",
   "src/internal/composable-thread.tsx", "src/internal/conversation-quote.tsx",
-  "src/lexical.tsx",
+  "src/lexical.tsx", "src/locale.tsx",
 ]);
-const runtimePublic = name => /^(?:use|create|define|resolve|get|is|merge)/u.test(name) ||
-  /Provider$|Context$/u.test(name) || name === "AgentUIRoot" || name === "AGENT_UI_DEFAULT_THEME" ||
-  name === "AGENT_UI_THEME_PRESETS";
 
 async function source(file) {
   const owner = owners.get(file) ?? file;
@@ -135,6 +137,8 @@ function selectDeclarations(file, text, names) {
 export async function buildPluginTakeoverSources(delivery) {
   const entries = new Map(), requests = new Map(), seeds = new Map();
   const dependencies = new Set();
+  // Bundled optional adapters are needed only when their source is taken over.
+  const sourceOnlyDependencies = new Set(["@assistant-ui/react-lexical"]);
   const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   for (const [target, origin] of sourceEntries(delivery)) {
     seeds.set(origin, target);
@@ -150,7 +154,7 @@ export async function buildPluginTakeoverSources(delivery) {
   const recordExternal = specifier => {
     const name = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
     if (name === "react" || name.startsWith("@za38.03/agent-ui-")) return;
-    const required = pkg.dependencies?.[name] ?? pkg.peerDependencies?.[name];
+    const required = pkg.dependencies?.[name] ?? pkg.peerDependencies?.[name] ?? (sourceOnlyDependencies.has(name) ? pkg.devDependencies?.[name] : undefined);
     if (!required) throw new Error(`Undeclared takeover dependency: ${delivery.id}: ${specifier}`);
     dependencies.add(name);
   };
@@ -162,24 +166,26 @@ export async function buildPluginTakeoverSources(delivery) {
     return targetOf(file);
   };
   const route = async (file, specifier, names) => {
+    if (specifier === `${packageName}/contracts`) return `${runtimePackage}/contracts`;
     let resolved;
-    if ([packageName, `${packageName}/plugin-support`, `${packageName}/composer-support`, `${packageName}/lexical`].includes(specifier)) {
-      resolved = specifier === packageName ? "src/public.tsx" : "src/" + specifier.split("/").at(-1) + (specifier.endsWith("lexical") ? ".tsx" : ".ts");
+    if ([packageName, `${packageName}/plugin-support`, `${packageName}/composer-support`, `${packageName}/lexical`, `${packageName}/theme`].includes(specifier)) {
+      resolved = specifier === `${packageName}/theme` ? "src/theme/theme-contract.ts" : specifier === packageName ? "src/public.tsx" : "src/" + specifier.split("/").at(-1) + (specifier.endsWith("lexical") ? ".tsx" : ".ts");
     } else if (specifier.startsWith(".")) {
       const portable = seeds.has(file) ? path.posix.normalize(path.posix.join(path.posix.dirname(targetOf(file)), specifier)).replace(/\.js$/u, "") : undefined;
       resolved = portable === undefined ? undefined : [...seeds].find(([, target]) => [portable, portable + ".ts", portable + ".tsx"].includes(target))?.[0];
       resolved ??= await resolve(file, specifier);
     }
     else { recordExternal(specifier); return specifier; }
-    if (resolved === "src/locale.tsx" && names.some(name => ["DEFAULT_AGENT_UI_MESSAGES", "formatPresentationMessage"].includes(name))) return `${packageName}/plugin-support`;
+
     if (resolved === "src/internal/composer-input-host-context.tsx" && names[0] === "ComposerTextareaInput") {
       resolved = "src/plugins/composer/adapters/presentation/textarea.tsx";
     }
+    if (names.length && names.every(name=>runtimeNames.has(name)) && ["src/public.tsx","src/plugin-support.ts","src/composer-support.ts","src/internal/composer-input-host-context.tsx","src/internal/conversation-composer-guard.tsx","src/internal/conversation-quote.tsx","src/internal/conversation-transient-messages.tsx","src/internal/style-boundary/AgentUIRoot.tsx"].includes(resolved)) return runtimePackage+"/plugin-api";
     if (boundaries.has(resolved)) return boundaries.get(resolved);
-    if (resolved === "src/public.tsx" && names.every(runtimePublic)) return packageName;
+
     if (resolved.startsWith("src/theme/") && resolved.endsWith(".css")) return { file: resolved, target: await request(resolved, []) };
     if (!seeds.has(resolved) && !selectiveModules.has(resolved) && !presentationModules.has(resolved) &&
-      !/^src\/internal\/(?:vendor|adapters)-generated\//u.test(resolved) && !/^src\/(?:shared|plugins\/[^/]+)\/adapters\/presentation\//u.test(resolved)) {
+      !/^src\/(?:internal|locales|theme|plugin-api)\//u.test(resolved) && !/^src\/(?:shared|plugins\/[^/]+)\/adapters\/presentation\//u.test(resolved)) {
       throw new Error(`Unclassified takeover boundary: ${delivery.id}: ${file}: ${resolved}: ${names.join(",")}`);
     }
     return { file: resolved, target: await request(resolved, names) };
@@ -249,5 +255,15 @@ export async function buildPluginTakeoverSources(delivery) {
     }
   }
   return { files: [...entries.values()].sort((a, b) => a.target.localeCompare(b.target)),
-    requiredDependencies: Object.fromEntries([...dependencies].sort().map(name => [name, pkg.dependencies?.[name] ?? pkg.peerDependencies[name]])) };
+    requiredDependencies: Object.fromEntries([...dependencies].sort().map(name => [name, pkg.dependencies?.[name] ?? pkg.peerDependencies?.[name] ?? (sourceOnlyDependencies.has(name) ? pkg.devDependencies?.[name] : undefined)])) };
+}
+
+/** The package build and verifier share the complete source/CSS recipe. */
+export async function buildPluginTakeoverDistribution(delivery) {
+  const takeover = await buildPluginTakeoverSources(delivery);
+  const styles = await pluginTakeoverStyles(root, takeover.files);
+  takeover.files.push(...styles);
+  const index = takeover.files.find(file => file.target === "index.tsx");
+  index.content = styles.map(file => `import "./${file.target}";`).join("\n") + "\n" + index.content;
+  return takeover;
 }

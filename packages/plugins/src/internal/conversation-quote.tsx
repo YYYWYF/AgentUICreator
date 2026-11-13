@@ -1,5 +1,4 @@
 import { useThreadRootElementRef } from "./quote-thread-root.js";
-import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useAuiState } from "@assistant-ui/react";
 import { QuoteIcon, XIcon } from "lucide-react";
 import { ComposerQuotePreview, QuoteBlock, SelectionToolbar } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/quote.aui.js";
@@ -24,16 +23,4 @@ export function InternalConversationQuoteSelectionToolbar({ quoteLabel }: { quot
   if (disabled || root === null) return null;
   return <SelectionToolbar.Root><SelectionToolbar.Quote><QuoteIcon className="size-3.5" />{quoteLabel}</SelectionToolbar.Quote></SelectionToolbar.Root>;
 }
-/** The canonical runtime supplies a callback bound to one concrete thread. */
-const QuoteCleanupContext = createContext<(() => void) | undefined>(undefined);
-export function InternalConversationQuoteLifecycleProvider({ clearPendingQuote, children }: {
-  clearPendingQuote: () => void;
-  children: ReactNode;
-}) {
-  return <QuoteCleanupContext.Provider value={clearPendingQuote}>{children}</QuoteCleanupContext.Provider>;
-}
-/** Capture this thread's cleanup; never resolve the mutable main thread on unmount. */
-export function useInternalConversationQuoteLifecycle() {
-  const clearPendingQuote = useContext(QuoteCleanupContext);
-  useEffect(() => clearPendingQuote, [clearPendingQuote]);
-}
+export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from "@za38.03/agent-ui-runtime/plugin-api";

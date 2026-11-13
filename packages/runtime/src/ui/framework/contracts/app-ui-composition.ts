@@ -3,8 +3,8 @@ import type {
   RuntimeLayoutNode,
 } from "./app-ui-runtime-model.js";
 
-import type { PluginChildSlotDefinition } from "@za38.03/agent-ui-plugins/contracts";
-export type { PluginChildSlotAccepts, PluginChildSlotDefinition } from "@za38.03/agent-ui-plugins/contracts";
+import type { PluginChildSlotDefinition } from "../../../contracts/index.js";
+export type { PluginChildSlotAccepts, PluginChildSlotDefinition } from "../../../contracts/index.js";
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */
 export type PluginSlotCatalog = Readonly<

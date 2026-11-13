@@ -57,12 +57,14 @@ test("plugin disable, undo, reapply and enable keep the generated registry in th
   expect(result.receipt.verification.status).toBe("changed-and-statically-verified");
   expect(result.receipt.transaction.changedPaths.sort()).toEqual(["src/agent-ui/app-ui.json", "src/agent-ui/plugins/registry.generated.ts"]);
   await expect(attachment).toHaveCount(0);
+  await expect(page.frameLocator('iframe[title="Host Application"]').locator(".aui-composer-root")).toBeVisible();
   await page.getByRole("button", { name: "撤销本次修改", exact: true }).click();
   await expect.poll(() => readFile(modelPath, "utf8")).toBe(beforeModel);
   expect(await readFile(registryPath, "utf8")).toBe(beforeRegistry);
   await expect(attachment).toBeVisible({ timeout: 15000 });
   await page.getByRole("button", { name: "再次应用本次修改", exact: true }).click();
   await expect(attachment).toHaveCount(0);
+  await expect(page.frameLocator('iframe[title="Host Application"]').locator(".aui-composer-root")).toBeVisible();
   const enabled = page.waitForResponse(value => new URL(value.url()).pathname === "/__creator/commands/execute");
   await input.fill(`/enable ${instance.id}`);
   await expect(page.getByRole("option", { name: /添加附件/ })).toBeVisible();

@@ -1,3 +1,1 @@
-import { createContext, useContext, type RefObject } from "react";
-export const QuoteThreadRootContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
-export const useThreadRootElementRef = () => useContext(QuoteThreadRootContext);
+export * from "@za38.03/agent-ui-runtime/plugin-api";

@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startRun, finishRun, writeEvent, type ControlledRunInput } from "./controlled-agent-protocol.js";
+import { captureWindowErrors } from "./window-errors.js";
 
 export type TemplateMode = "platform" | "assistant" | "embedded";
 export type StaticRun = { input: ControlledRunInput; response: ServerResponse; id: string; closed: boolean };
@@ -61,6 +62,7 @@ export async function staticTemplate(page: Page, mode: TemplateMode, run: (strea
   });
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+  await captureWindowErrors(page, errors);
   page.on("pageerror", error => errors.push(error.message));
   await page.goto(origin + "/portal/agent-ui/" + query);
   if (mode === "assistant") await page.getByRole("button", { name: "打开助手", exact: true }).click();

@@ -13,7 +13,7 @@ function fixture(work) {
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(target, text);
   };
-  const deps = { core: [], renderer: [], plugins: ["core", "renderer"], runtime: ["core", "plugins", "renderer"], creator: ["core", "runtime", "plugins", "renderer"] };
+  const deps = { core: [], renderer: [], plugins: ["core", "renderer", "runtime"], runtime: ["core", "renderer"], creator: ["core", "runtime", "plugins", "renderer"] };
   for (const name of packages) {
     put(`packages/${name}/package.json`, JSON.stringify({ name: `@za38.03/agent-ui-${name}`, dependencies: Object.fromEntries(deps[name].map(dep => [`@za38.03/agent-ui-${dep}`, "workspace:*"])) }));
     put(`packages/${name}/src/index.ts`, "export const value = 1;");
@@ -39,11 +39,11 @@ test("rebuilds only the changed package and its actual transitive consumers", ()
   build(); calls.length = 0;
   put("packages/core/src/new.ts", "new source");
   build();
-  assert.deepEqual(calls, ["core", "plugins", "runtime", "creator"], "independent Renderer is reusable");
+  assert.deepEqual(calls, ["core", "runtime", "plugins", "creator"], "independent Renderer is reusable");
   calls.length = 0;
   put("packages/runtime/src/index.ts", "changed runtime");
   build();
-  assert.deepEqual(calls, ["runtime", "creator"]);
+  assert.deepEqual(calls, ["runtime", "plugins", "creator"]);
   calls.length = 0;
   put("packages/creator/browser/dock-client.ts", "changed dock");
   build();
@@ -69,7 +69,7 @@ test("tracks config, resources and shared build inputs but ignores tests and gen
   for (const file of ["packages/plugins/tests/demo.ts", "packages/plugins/src/demo.test.ts", "packages/plugins/src/internal/vendor-generated/assistant-ui/view.ts", "packages/plugins/resources/registry/items/plugin/copy/files/generated.ts"]) put(file);
   build(); assert.deepEqual(calls, []);
   put("packages/plugins/tsconfig.build.json", "{}");
-  build(); assert.deepEqual(calls, ["plugins", "runtime", "creator"]);
+  build(); assert.deepEqual(calls, ["plugins", "creator"]);
   calls.length = 0;
   put("scripts/sync-package-release-metadata.mjs", "new build script");
   build(); assert.deepEqual(calls, packages);
@@ -80,7 +80,7 @@ test("failed builds invalidate success and do not start downstream builds", () =
   assert.throws(() => build({ run: args => { if (args[1].endsWith("-core")) return { status: 1 }; return run(args); } }), /preparation failed/);
   assert.throws(() => readFileSync(path.join(root, "node_modules/.cache/agent-ui-build/core.json")), /ENOENT/);
   assert.deepEqual(calls, []);
-  build(); assert.deepEqual(calls, ["core", "plugins", "runtime", "creator"]);
+  build(); assert.deepEqual(calls, ["core", "runtime", "plugins", "creator"]);
 }));
 test("tracks shared Plugin build helpers, shipped notices and install configuration", () => fixture(({ build, calls, put }) => {
   build();
@@ -88,7 +88,7 @@ test("tracks shared Plugin build helpers, shipped notices and install configurat
     calls.length = 0;
     put(file, "changed build input");
     build();
-    assert.deepEqual(calls, ["plugins", "runtime", "creator"], file);
+    assert.deepEqual(calls, ["plugins", "creator"], file);
   }
   calls.length = 0;
   put(".npmrc", "registry=https://example.invalid");

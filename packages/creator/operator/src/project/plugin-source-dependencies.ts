@@ -8,7 +8,10 @@ import { ensureResourcePackages, resourcePackageConflicts, type ResourcePackageR
 import { AgentUISourceError } from "./source-registry/path-policy";
 
 const fields = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"] as const;
-const singletonNames = ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/store", "@assistant-ui/core"];
+// Shared contexts are imported through these public value owners. Core/store
+// reached inside the same assistant-ui/react module already share its instance;
+// unrelated hoisted copies (including type-only dependencies) are not readers.
+const singletonNames = ["react", "react-dom", "@za38.03/agent-ui-runtime", "@assistant-ui/react"];
 const requirementsSchema = z.record(z.string().regex(/^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/u), z.string().refine(value => validRange(value) !== null));
 
 export function samePackageLocation(left: string, right: string, paths = path) {

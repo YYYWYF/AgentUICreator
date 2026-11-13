@@ -26,6 +26,8 @@ export function generatedSourceTestConfig(packageRoot: string) {
     server: { fs: { allow: [root, realpathSync(tmpdir())] } },
     root: packageRoot,
     resolve: { dedupe: ["react", "react-dom"], alias: [
+      ...["contracts", "plugin-api"].map(name => ({find: `@za38.03/agent-ui-runtime/${name}`, replacement: path.join(root, `packages/runtime/src/${name}/index.ts`)})),
+      ...["locale", "presentation"].map(name => ({find: `@za38.03/agent-ui-runtime/${name}`, replacement: path.join(root, `packages/runtime/src/${name}.tsx`)})),
       { find: "@za38.03/agent-ui-runtime/ui/styles.css", replacement: path.join(root, "packages/runtime/dist/ui/styles.css") },
       { find: /^@za38\.03\/agent-ui-runtime\/ui\/(.*)$/, replacement: path.join(root, "packages/runtime/src/ui/$1") },
       { find: "@za38.03/agent-ui-runtime/ui", replacement: path.join(root, "packages/runtime/src/ui/index.ts") },

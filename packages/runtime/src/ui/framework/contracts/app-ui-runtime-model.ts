@@ -14,8 +14,8 @@ export type {
   StackNode as RuntimeStackNode,
 } from "@za38.03/agent-ui-renderer";
 
-import type { AppUIRuntimePluginInstance } from "@za38.03/agent-ui-plugins/contracts";
-export type { AppUIRuntimePluginInstance } from "@za38.03/agent-ui-plugins/contracts";
+import type { AppUIRuntimePluginInstance } from "../../../contracts/index.js";
+export type { AppUIRuntimePluginInstance } from "../../../contracts/index.js";
 
 export interface AppUIRuntimeModel {
   root: LayoutNode;

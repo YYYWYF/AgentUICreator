@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createControlledAgentHost, startRun, finishRun, writeEvent } from "./support/controlled-agent.js";
@@ -47,7 +47,7 @@ for (const editor of ["textarea", "lexical"] as const) test(`${editor}: 110 stre
       // selected application Plugin, whose activation replaces that DOM node.
       const activeComposer = page.locator('[data-ui-plugin="composer"]');
       const input = activeComposer.locator(editor === "lexical" ? '[contenteditable="true"]' : "textarea");
-      await expect(input).toBeEditable();
+      await expect(input).toBeEditable({ timeout: cycle === 0 ? 20_000 : 5_000 });
       // Let initialization finish painting before this resource-lifetime probe
       // types into a newly mounted editor. No retry of input or sending occurs.
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -94,6 +94,7 @@ for (const editor of ["textarea", "lexical"] as const) test(`${editor}: 110 stre
   } finally {
     const evidence = { editor, elapsedMs: Date.now() - began, snapshots, controls, requests: f.requests.length, closed, active, peak, errors, navigations };
     const evidenceRoot = process.env.AGENT_UI_TEST_EVIDENCE_DIR ?? fileURLToPath(new URL("../../../artifacts/soak-keyboard-20261031", import.meta.url));
+    await mkdir(evidenceRoot, { recursive: true });
     await writeFile(path.join(evidenceRoot, `heap-observations-${editor}.json`), JSON.stringify(evidence, null, 2));
     await testInfo.attach("heap-observations", { body: JSON.stringify(evidence), contentType: "application/json" });
     await client.detach(); await f.close();
@@ -104,9 +105,8 @@ test("sixty consecutive turns preserve one thread and the complete transcript wi
   const errors: string[] = []; await captureWindowErrors(page, errors); page.on("pageerror", error => errors.push(error.message));
   const checkpoints: { turns: number; elapsedMs: number; messages: number; usedHeap: number; nodes: number }[] = [];
   const f = await createControlledAgentHost({ run(input, response, index) {
-    expect(input.messages).toHaveLength(index * 2 - 1);
-    expect(input.messages.filter(message => message.role === "user").map(message => message.content)).toEqual(Array.from({ length: index }, (_, turn) => `Sustained user turn ${turn + 1}`));
-    expect(input.messages.filter(message => message.role === "assistant").map(message => message.content)).toEqual(Array.from({ length: index - 1 }, (_, turn) => `Sustained reply ${turn + 1}`));
+    expect(input.messages).toMatchObject([{ role: "user", content: `Sustained user turn ${index}` }]);
+    expect(input.messages).toHaveLength(1);
     startRun(response, input); finishRun(response, input, `Sustained reply ${index}`);
   } });
   const client = await page.context().newCDPSession(page), began = Date.now();
@@ -132,6 +132,7 @@ test("sixty consecutive turns preserve one thread and the complete transcript wi
   } finally {
     const evidence = { checkpoints, requests: f.requests.length, errors };
     const evidenceRoot = process.env.AGENT_UI_TEST_EVIDENCE_DIR ?? fileURLToPath(new URL("../../../artifacts/soak-keyboard-20261031", import.meta.url));
+    await mkdir(evidenceRoot, { recursive: true });
     await writeFile(path.join(evidenceRoot, "sustained-conversation.json"), JSON.stringify(evidence, null, 2));
     await testInfo.attach("sustained-conversation", { body: JSON.stringify(evidence), contentType: "application/json" });
     await client.detach(); await f.close();

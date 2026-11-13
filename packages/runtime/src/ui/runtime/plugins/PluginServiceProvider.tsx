@@ -2,6 +2,7 @@ import {
   useEffect,
   useLayoutEffect,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 
@@ -49,6 +50,16 @@ export function PluginServiceProvider<TState = unknown>({
   );
   const [runtime] = useState(() => new PluginServiceRuntime(eventRuntime));
   const diagnostics = useOptionalPluginDiagnosticContext();
+  // Hosts may compose an equivalent override map on each render. Reconcile only
+  // when a provided service actually changes, preserving mounted sessions.
+  const overrides = useRef(serviceOverrides);
+  const previousNames = Object.keys(overrides.current ?? {});
+  const nextNames = Object.keys(serviceOverrides ?? {});
+  if (previousNames.length !== nextNames.length ||
+      nextNames.some(name => !Object.hasOwn(overrides.current ?? {}, name) || overrides.current?.[name] !== serviceOverrides?.[name])) {
+    overrides.current = serviceOverrides;
+  }
+  const stableOverrides = overrides.current;
 
   useLayoutEffect(
     () => eventRuntime.setDiagnosticReporter(diagnostics?.report),
@@ -72,15 +83,19 @@ export function PluginServiceProvider<TState = unknown>({
   }, [applicationEventRegistry, eventRuntime]);
 
   useLayoutEffect(() => {
-    runtime.reconcile(model, registry, actions, diagnostics, serviceOverrides);
-  }, [actions, diagnostics, model, registry, runtime, serviceOverrides]);
+    runtime.reconcile(model, registry, actions, diagnostics, stableOverrides);
+  }, [actions, diagnostics, model, registry, runtime, stableOverrides]);
 
-  useEffect(
-    () => () => {
-      runtime.dispose();
-    },
-    [runtime],
-  );
+  const disposal = useRef(0);
+  useEffect(() => {
+    ++disposal.current;
+    return () => {
+      const epoch = ++disposal.current;
+      // StrictMode immediately reconnects this owner. Dispose only a real
+      // unmount, so its rehearsal cannot revoke an opened persisted thread.
+      queueMicrotask(() => { if (disposal.current === epoch) runtime.dispose(); });
+    };
+  }, [runtime]);
 
   return (
     <PluginServiceRuntimeContext.Provider value={runtime}>

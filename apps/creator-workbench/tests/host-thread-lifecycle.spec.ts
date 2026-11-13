@@ -53,6 +53,12 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       };
       await showAssistant();
       const input = page.locator(".aui-composer-root").getByRole("textbox");
+      const waitForSource = async (source: string) => {
+        await expect.poll(() => page.evaluate(() => (window as Window & { __agentUIPreviewEnvironment?: { type: string } }).__agentUIPreviewEnvironment?.type ?? "application")).toBe(source);
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+        await showAssistant();
+        await expect(input).toBeEditable();
+      };
       const surface = page.locator('[data-ui-plugin="conversation-surface"]');
       const agentFile = path.join(preview.hostRoot, "src/agent-ui/application/Agent.tsx");
       const agentSource = await readFile(agentFile, "utf8");
@@ -66,6 +72,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
         await input.fill(draft);
         await writeFile(agentFile, `${agentSource}\nwindow.dispatchEvent(new CustomEvent("agent-ui-test:host-refreshed", {detail:${++revision}}));\n`);
         await expect.poll(() => page.evaluate(() => (window as Window & { hostRefreshCount?: number }).hostRefreshCount)).toBe(revision);
+        await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
         await expect(input).toHaveValue(draft);
       };
       const send = async (text: string) => { await input.fill(text); await page.locator(".aui-composer-send").click(); };
@@ -102,6 +109,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       await dock.getByRole("textbox", { name: "Agent 服务地址" }).fill(preview.agentEndpoint);
       await dock.getByRole("button", { name: "使用此地址", exact: true }).click();
       await page.getByRole("button", { name: /收起 Creator/ }).click(); await showAssistant();
+      await waitForSource("connected");
       await expect(surface).not.toContainText("Mock after refresh");
       await send("Connected service"); await expect(surface).toContainText("wire:first"); preview.finishRun();
       await expect(surface).toContainText("wire:finished"); await refresh("Connected draft");
@@ -118,6 +126,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
         return host.__agentUIPreviewEnvironmentReady === true && host.__agentUIPreviewEnvironment === undefined;
       })).toBe(true);
       await expect.poll(() => page.evaluate(() => (window as Window & { hostRuntimeThreadId?: string }).hostRuntimeThreadId)).not.toBe(connectedThreadId);
+      await waitForSource("application");
       await expect(surface).not.toContainText("wire:first");
       await expect(input).toBeEditable();
       await refresh("Restored application draft"); await expect(surface).not.toContainText("wire:first");

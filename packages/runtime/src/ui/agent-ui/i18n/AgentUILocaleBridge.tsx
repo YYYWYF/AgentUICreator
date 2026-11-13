@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, type ReactNode } from "react";
-import { AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
+import { useEffect, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { AgentUILocaleProvider, mergeAgentUILocaleOverrides } from "../../../locale.js";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins/index.js";
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../../services/agent-ui-locale.js";
 import { useAgentUIProject } from "../../project-context.js";
@@ -14,7 +14,10 @@ export function AgentUILocaleBridge({ locale, onLocaleChange, children }: { loca
   const AGENT_UI_LOCALES = project.locales;
   const service = usePluginService<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE);
   const snapshot = usePluginServiceSnapshot(service, defaultSnapshot);
-  useLayoutEffect(() => { if (locale !== undefined) service?.setLocale(locale); }, [locale, service]);
+  const messages = useMemo(() => mergeAgentUILocaleOverrides(
+    service?.getMessages?.(), AGENT_UI_LOCALES[locale ?? snapshot.locale],
+  ), [service, snapshot, locale, AGENT_UI_LOCALES]);
+  useLayoutEffect(() => { if (locale !== undefined) service?.setLocale(locale); service?.setMessages?.(project.locales); }, [locale, service, project.locales]);
   useEffect(() => { onLocaleChange?.(service?.getSnapshot().locale ?? locale ?? snapshot.locale); }, [service, locale, snapshot.locale, onLocaleChange]);
-  return <AgentUILocaleProvider locale={locale ?? snapshot.locale} messages={AGENT_UI_LOCALES[locale ?? snapshot.locale]}>{children}</AgentUILocaleProvider>;
+  return <AgentUILocaleProvider locale={locale ?? snapshot.locale} messages={messages}>{children}</AgentUILocaleProvider>;
 }

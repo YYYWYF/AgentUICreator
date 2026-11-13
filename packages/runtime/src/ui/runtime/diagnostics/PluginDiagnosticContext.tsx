@@ -163,6 +163,8 @@ export function PluginDiagnosticProvider<TState = unknown>({
   );
   const currentPublishedAt = useRef(publishedAt);
   const currentCompositionReporter = useRef(onRuntimeComposition);
+  const currentDiagnosticReporter = useRef(onRuntimeDiagnostic);
+  currentDiagnosticReporter.current = onRuntimeDiagnostic;
   const currentApplication = useRef<RuntimeCompositionApplication | undefined>(
     undefined,
   );
@@ -178,7 +180,8 @@ export function PluginDiagnosticProvider<TState = unknown>({
   );
   const report = useCallback(
     (event: RuntimeDiagnosticEvent) => {
-      if (onRuntimeDiagnostic === undefined) {
+      const reporter = currentDiagnosticReporter.current;
+      if (reporter === undefined) {
         return;
       }
       const location = event.instanceId === undefined
@@ -191,7 +194,7 @@ export function PluginDiagnosticProvider<TState = unknown>({
             ...(event.slotPath === undefined ? {} : { slotPath: event.slotPath }),
           };
       try {
-        onRuntimeDiagnostic({
+        reporter({
           ...event,
           appUIModelHash,
           ...(compositionRevision === undefined
@@ -214,7 +217,6 @@ export function PluginDiagnosticProvider<TState = unknown>({
       capabilityCatalogRevision,
       compositionRevision,
       locations,
-      onRuntimeDiagnostic,
       publishedAt,
     ],
   );

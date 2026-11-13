@@ -18,6 +18,7 @@ export default defineConfig({
       VITE_CREATOR_HOST_PREVIEW_URL: "http://127.0.0.1:5180/?creator-preview",
     },
     reuseExistingServer: false,
+    gracefulShutdown: { signal: "SIGTERM", timeout: 15_000 },
     timeout: 240_000,
   },
   workers: 1,

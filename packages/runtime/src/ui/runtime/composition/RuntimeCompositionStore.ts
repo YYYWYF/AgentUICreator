@@ -1,4 +1,4 @@
-import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import type { ConversationToolkit } from "../../../plugin-api/index.js";
 import type { AppUIModel } from "../../framework/contracts/app-ui-model.js";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";
 import type { PluginCompositionCatalog } from "../../framework/contracts/app-ui-composition.js";
@@ -89,6 +89,8 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
   #hasStaged = false;
   #lastDescriptorTransactionId: string | undefined;
   #pendingTransactionId: string | undefined;
+  #lastCandidate: RuntimeCompositionCandidate<TState> | undefined;
+  #publishedCandidate: RuntimeCompositionCandidate<TState> | undefined;
   readonly #listeners = new Set<() => void>();
   readonly #diagnosticListeners = new Set<() => void>();
 
@@ -113,8 +115,20 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
   };
 
   stageCandidate(candidate: RuntimeCompositionCandidate<TState>): void {
+    const previous = this.#lastCandidate;
+    if (previous !== undefined &&
+        previous.appUIModelSource === candidate.appUIModelSource &&
+        previous.revisionDescriptorSource === candidate.revisionDescriptorSource &&
+        previous.capabilityCatalog === candidate.capabilityCatalog &&
+        previous.capabilityCatalogRevision === candidate.capabilityCatalogRevision &&
+        previous.baseConversationToolkit === candidate.baseConversationToolkit &&
+        previous === this.#publishedCandidate) return;
+    // Remounting an owner with the same inputs must not publish a second
+    // registry and revoke a live session. Failed candidates remain retryable.
+    const staged = { ...candidate };
+    this.#lastCandidate = staged;
     const generation = ++this.#generation;
-    void this.#buildAndPublish(candidate, generation);
+    void this.#buildAndPublish(staged, generation);
   }
 
   async #buildAndPublish(
@@ -186,6 +200,7 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
       };
       if (generation !== this.#generation) return;
       this.#published = published;
+      this.#publishedCandidate = candidate;
       this.#listeners.forEach((listener) => listener());
       this.#setDiagnostic({
         revision: candidateRevision,

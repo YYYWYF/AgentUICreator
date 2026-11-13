@@ -10,8 +10,8 @@ const list = (page: Page) => page.locator('[data-ui-plugin="conversation-thread-
 async function watch(page: Page) { const errors: string[] = []; await captureWindowErrors(page, errors); page.on("pageerror", error => errors.push(error.message)); return errors; }
 async function refreshButton(root: string) {
   const file = path.join(root, "src/agent-ui/plugins/conversation-thread-list/index.tsx"), source = await readFile(file, "utf8");
-  const header = 'headerActions={props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}';
-  expect(source).toContain(header);
+  const header = /headerActions=\{\s*props\.renderSlot\s*\?\s*props\.renderSlot\(['"]headerActions['"],\s*props\.headerActions\s*\?\?\s*null\)\s*:\s*props\.headerActions\s*\}/;
+  expect(source).toMatch(header);
   await writeFile(file, 'import {useConversationState} from "@za38.03/agent-ui-plugins";\n' + source
     .replace('const { refresh } = useConversationActions();', 'const { refresh } = useConversationActions(); const count=useConversationState(s=>s.threads.threadIds.length);')
     .replace(header, 'headerActions={<><span data-testid="fixture-thread-count">{count}</span><button type="button" onClick={()=>void refresh()}>Fixture refresh</button>{props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}</>}'));
@@ -32,7 +32,7 @@ test("two tabs refresh shared metadata without reviving a deleted cached row or 
         const data = JSON.stringify({ conversations: records });
         if (tab === "b" && holdB) { holdB = false; stale = { response, body: data, closed: false }; response.once("close", () => { stale!.closed = true; }); }
         else response.end(data);
-      } else if (route === "conversation") {
+      } else if (route === "conversations" && id && request.method === "GET") {
         const record = records.find(item => item.id === id);
         if (!record) { response.writeHead(404); response.end('{"error":"missing"}'); return; }
         response.end(JSON.stringify({ ...record, state: { values: { messages: [{ id: `saved-${id}`, type: "human", content: `Saved content ${id}` }] } } }));

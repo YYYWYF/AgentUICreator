@@ -1,7 +1,8 @@
 import { useAgentUIProject } from "../project-context.js";
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
-import { AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AgentUILocaleProvider } from "../../locale.js";
+import { type AgentUITheme } from "../../presentation.js";
 import { PluginServiceProvider, usePluginServiceRuntime } from "../runtime/plugins/index.js";
 import { useApplicationLifecycleRuntime } from "../runtime/application/ApplicationLifecycleContext.js";
 import { ApplicationGateSurface } from "../runtime/application/ApplicationGateSurface.js";
@@ -64,16 +65,12 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale:
     observability?.onRuntimeComposition?.(snapshot);
     publishAgentUIObservation({ type: "runtime-composition", composition: snapshot }, development);
   }, [observability, development]);
-  const hasGate = Object.values(composition.runtimeModel.pluginInstances).some(instance =>
-    instance.enabled && composition.activeRegistry.get(instance.pluginId)?.manifest.application?.gate !== undefined);
-  // Toolkit renderers live outside AgentSurface, so presentation locale must
-  // also wrap the canonical conversation provider in ungated applications.
-  // Keep the original service/runtime lifetime when no gate is installed.
-  if (!hasGate) return <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>{children}</AgentUILocaleProvider>;
   const content = <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>
     <PluginServiceProvider model={composition.runtimeModel} registry={composition.activeRegistry} actions={connection.actions} frontendTools={frontendTools} applicationEventRegistry={eventRegistry} serviceOverrides={serviceOverrides}>
       <ConnectionContext.Provider value={connection}>
+        <AgentUILocaleBridge locale={locale}>
         <SessionGate composition={composition} connection={connection} locale={locale} theme={theme} onThemeChange={onThemeChange} renderGate={renderGate}>{children}</SessionGate>
+      </AgentUILocaleBridge>
       </ConnectionContext.Provider>
     </PluginServiceProvider>
   </AgentUILocaleProvider>;

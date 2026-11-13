@@ -4,10 +4,10 @@
     "foundation/core": {
       "files": {
         "application/Agent.tsx": {
-          "sha256": "0e2a85e090945e3c766bb66915478c05e52887c66e549a44949dbdb155e1f4a1"
+          "sha256": "1e4e9dd9b2ce004d69961491a23823e8cf96ff6bfaaf363dd67b61adecb84264"
         },
         "application/project-config.tsx": {
-          "sha256": "4fde9c68abaafddebd82a27461116061c22a6894504a396c522468a01f31e48d"
+          "sha256": "1b89bb844a674ec8f0e6302b72618cda74a58ccbf91983caac4beb04b466347f"
         },
         "application/locales.ts": {
           "sha256": "bf89853794d68f1995c27c7c4641b249227b189e825faa2f39415ab292ba3e89"
@@ -45,16 +45,16 @@
     "foundation/core-application": {
       "files": {
         "services/composer-triggers.ts": {
-          "sha256": "638b3568658741e888b53fd5d2084c4ba628f7226e6b20509594a9dd59d169e1"
+          "sha256": "b3619ba9dd96686fcd906f1163037834b1d410ec04c8f416340a43874625d946"
         },
         "services/conversations.ts": {
-          "sha256": "f98c2ad223598ab40a9d7f87b669a197f9352555b0eb09228aeb61a9e19f397b"
+          "sha256": "023d449ffbb65e3792ac8df1e541bffc6336373c3a819dcc4762926cadcdaea6"
         },
         "services/conversations/endpoint.ts": {
-          "sha256": "ed0d72f5db085d0dbe74f2fcde6391fc8ae18c23de2ec1e4c1e2165e0ff2a5ec"
+          "sha256": "efd5d464a13506418595006e637cb0b7977f067b9f2dea93b2cef2ce9b1fd14e"
         },
         "services/conversations/http-data-source.ts": {
-          "sha256": "9476dbafff815042ea554d4870128016dd6ed77e4f40a08802d0a20c80844872"
+          "sha256": "fb507b5bf15ef127ecd161d7a7f16428c3a63fd52847e74b0e4281c171e328c2"
         }
       }
     },

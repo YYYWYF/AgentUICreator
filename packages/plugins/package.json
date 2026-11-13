@@ -331,24 +331,24 @@
     "@za38.03/agent-ui-core": "workspace:*",
     "react-markdown": "10.1.0",
     "zod": "4.5.4",
-    "@assistant-ui/core": "0.3.31",
-    "assistant-stream": "0.3.54",
+    "@assistant-ui/core": "0.3.35",
+    "assistant-stream": "0.3.57",
     "fast-deep-equal": "3.1.3",
-    "@assistant-ui/store": "0.3.22",
+    "@assistant-ui/store": "0.3.23",
     "@types/node": "26.6.2",
     "@assistant-ui/generative-ui": "0.0.7"
   },
   "peerDependencies": {
     "react": ">=18 <20",
     "react-dom": ">=18 <20",
-    "@assistant-ui/react-lexical": "0.2.15",
     "lexical": "0.51.0",
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
     "@lexical/history": "0.51.0",
     "@lexical/plain-text": "0.51.0",
     "@za38.03/agent-ui-core": "0.0.1",
-    "@za38.03/agent-ui-renderer": "0.0.1"
+    "@za38.03/agent-ui-renderer": "0.0.1",
+    "@za38.03/agent-ui-runtime": "0.0.1"
   },
   "devDependencies": {
     "postcss": "8.5.28",
@@ -385,12 +385,10 @@
     "@za38.03/agent-ui-renderer": "workspace:*",
     "@tailwindcss/node": "4.3.3",
     "@tailwindcss/oxide": "4.3.3",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "@za38.03/agent-ui-runtime": "workspace:*"
   },
   "peerDependenciesMeta": {
-    "@assistant-ui/react-lexical": {
-      "optional": true
-    },
     "lexical": {
       "optional": true
     },

@@ -1,3 +1,5 @@
+import { conversationDataSourceConfig } from './http-data-source';
+
 export interface ResolveConversationDataEndpointOptions {
   configuredEndpoint?: string | undefined;
 }
@@ -5,6 +7,6 @@ export interface ResolveConversationDataEndpointOptions {
 export function resolveConversationDataEndpoint({
   configuredEndpoint,
 }: ResolveConversationDataEndpointOptions): string | undefined {
-  const configured = configuredEndpoint?.trim();
+  const configured = (configuredEndpoint ?? conversationDataSourceConfig.endpoint)?.trim();
   return configured || undefined;
 }

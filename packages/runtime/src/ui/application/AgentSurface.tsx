@@ -1,6 +1,7 @@
 import { type AgentUIShellProps, useAgentUIProject } from "../project-context.js";
 import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext, type ReactNode, useState } from "react";
-import { AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { AgentUILocaleProvider } from "../../locale.js";
+import { type AgentUITheme } from "../../presentation.js";
 import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge.js";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types.js";

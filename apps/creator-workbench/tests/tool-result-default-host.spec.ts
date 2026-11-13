@@ -14,7 +14,7 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       expect(model).toContain('"pluginId": "tool-result"');
       expect(model).not.toContain('"pluginId": "tool-fallback"');
       expect(await readFile(path.join(sourceRoot, "plugins/tool-result/index.tsx"), "utf8"))
-        .toContain('from "@za38.03/agent-ui-plugins/tool-result"');
+        .toMatch(/from ["']@za38\.03\/agent-ui-plugins\/tool-result["']/);
       const parts = [
         { type: "text", text: "The default template renders the report and its preview." },
         { type: "image", source: { type: "data", mimeType: "image/png", value: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=" }, metadata: { filename: "preview.png" } },

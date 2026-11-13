@@ -5,3 +5,9 @@ import {
 export function ConversationDataSourcePlugin(props: ConversationDataSourcePluginProps) {
   return <CanonicalConversationDataSourcePlugin {...props} />;
 }
+
+export {
+  createHttpConversationDataSource,
+  type HttpConversationDataSourceOptions,
+  type HttpConversationDataSourceRoutes,
+} from './adapters/http-data-source';

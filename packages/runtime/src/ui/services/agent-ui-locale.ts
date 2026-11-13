@@ -1,5 +1,5 @@
 import type { UIPluginObservableService } from "../framework/contracts/ui-plugin.js";
-import type { AgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
+import type { AgentUILocaleMessages } from "../../locale.js";
 import type {
   AgentUIDirection,
   AgentUILocaleCode,
@@ -16,9 +16,10 @@ export interface AgentUILocaleService
   extends UIPluginObservableService<AgentUILocaleSnapshot> {
   setLocale(locale: AgentUILocaleCode): void;
   getMessages?(): AgentUILocaleMessages;
+  setMessages?(messages: Partial<Record<AgentUILocaleCode, import("../../locale.js").AgentUILocaleOverrides>>): void;
 }
 
-declare module "@za38.03/agent-ui-plugins/contracts" {
+declare module "@za38.03/agent-ui-runtime/contracts" {
   interface UIPluginServiceMap {
     [AGENT_UI_LOCALE_SERVICE]: AgentUILocaleService;
   }

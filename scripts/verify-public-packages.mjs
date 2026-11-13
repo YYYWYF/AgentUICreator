@@ -184,13 +184,17 @@ assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assista
  await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: !process.argv.includes("--strict-types"), noEmit: true, esModuleInterop: true, resolveJsonModule: true, types: ["node", "react", "vite/client"], lib: ["DOM", "ES2022"] }, include: ["consumer.tsx", "app.tsx", "src"] }));
  run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
  // TypeScript 5.9 models existing CRA hosts independently of the workspace's
- // newer compiler and modern resolution settings.
- run([path.join(root, "node_modules/typescript-ui-audit/bin/tsc"), "--noEmit", "--moduleResolution", "node10"]);
+ // newer compiler and modern resolution settings. Upstream Vite/assistant-ui
+ // declarations use exports-only subpaths, so the legacy Host keeps its existing
+ // skipLibCheck behavior; --strict-types applies to the modern check above.
+ run([path.join(root, "node_modules/typescript-ui-audit/bin/tsc"), "--noEmit", "--moduleResolution", "node10", "--skipLibCheck"]);
  if (process.argv.includes("--takeover")) {
   // Exercise the public packaged Operator against the independently unpacked
   // target package, then ship the resulting frontend with no development tools.
   const hostPackagePath = path.join(consumer, "package.json");
   const hostPackage = JSON.parse(await readFile(hostPackagePath, "utf8"));
+  const takeoverCatalog = JSON.parse(await readFile(path.join(consumer,"node_modules/@za38.03/agent-ui-plugins/dist/catalog.json"),"utf8"));
+  Object.assign(hostPackage.dependencies,takeoverCatalog.plugins.find(plugin=>plugin.id==="composer").takeover.requiredDependencies);
   hostPackage.scripts = { typecheck: "node node_modules/typescript/bin/tsc --noEmit", build: "node validate-takeover.mjs" };
   await writeFile(hostPackagePath, JSON.stringify(hostPackage));
   await writeFile(path.join(consumer, "validate-takeover.mjs"), `
@@ -216,10 +220,10 @@ await request("takeover_plugin_source", { pluginId: "composer", planHash: plan.p
 assert((await readFile("src/agent-ui/app-ui.json")).equals(modelBefore));
 const inspected = await request("inspect_ui_plugin", { pluginId: "composer" });
 assert.equal(inspected.asset.ownership, "project_source");
-assert(inspected.files.some(file => file.path === "src/agent-ui/plugins/composer/adapters"));
+assert(inspected.files.some(file => file.path.startsWith("src/agent-ui/plugins/composer/source/")));
 assert(!inspected.files.some(file => file.path.startsWith("source-registry/")));
 
-const sourcePath = "src/agent-ui/plugins/composer/adapters/composer.tsx";
+const sourcePath = "src/agent-ui/plugins/composer/source/adapters/composer.tsx";
 await writeFile(sourcePath, (await readFile(sourcePath, "utf8")) + "\\n// Project customization preserved across npm replacement.\\n");
 const customized = await readFile(sourcePath);
 const ownership = await readFile(".agent-ui/plugin-ownership.json");
@@ -264,9 +268,9 @@ assert(![...inputs].some(file => file.replaceAll(String.fromCharCode(92), "/").i
 assert(![...inputs].some(file => ["creator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
 if (${process.argv.includes("--takeover")}) {
  const normalized = [...inputs].map(file => file.replaceAll(String.fromCharCode(92), "/"));
- assert(normalized.some(file => file.includes("/src/agent-ui/plugins/composer/adapters/composer.tsx")), "Production must include local Composer");
+ assert(normalized.some(file => file.includes("/src/agent-ui/plugins/composer/source/adapters/composer.tsx")), "Production must include local Composer");
  assert(!normalized.some(file => file.includes("/agent-ui-plugins/dist/composer/index.js")), "Production must not select npm Composer");
- assert.equal(normalized.filter(file => file.endsWith("/internal/composer-input-host-context.js")).length, 1, "Exactly one shared Composer context module");
+ assert.equal(normalized.filter(file => file.includes("/agent-ui-runtime/dist/conversation-support/composer-input-host-context.js")).length, 1, "Exactly one shared Composer context module");
 }
 console.log("Production module graph excludes development tooling.");
 `);

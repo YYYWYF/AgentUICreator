@@ -75,8 +75,9 @@ test("denying an interrupt resumes once with false and never fabricates an appro
   } });
   try {
     await page.goto(f.hostOrigin); await send(page, "Request a decision");
-    await page.getByRole("button", { name: "1 次工具调用", exact: true }).click();
-    await page.getByRole("button", { name: "拒绝", exact: true }).click();
+    const deny = page.getByRole("button", { name: "拒绝", exact: true });
+    if (!await deny.isVisible()) await page.getByRole("button", { name: "1 次工具调用", exact: true }).click();
+    await deny.click();
     await expect(page.locator(".aui-md")).toContainText("Denied; no files were changed");
     expect(f.requests).toHaveLength(2);
     expect(f.requests[1]!.resume).toEqual([{ interruptId: "deny-review", status: "resolved", payload: { approved: false } }]);
@@ -106,6 +107,7 @@ for (const malformed of [false, true]) test(`human question validates input and 
       await expect(page.getByRole("button", { name: "确认选择", exact: true })).toHaveCount(0);
       const invalidThread = f.requests[0]!.threadId;
       await page.getByRole("button", { name: "新建会话", exact: true }).click();
+      await expect(page.getByText("此问题暂时无法回答", { exact: true })).toHaveCount(0);
       await send(page, "Fresh thread after malformed question");
       await expect(page.locator(".aui-md")).toContainText("Question answer received");
       expect(f.requests).toHaveLength(2);

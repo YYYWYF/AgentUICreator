@@ -22,8 +22,8 @@ const groups = [
   ['示例与演示页面', ['examples', 'themeShowcase', 'composerTriggerDemo']],
 ];
 
-async function readDictionary(root, locale, exportName) {
-  const filename = path.join(root, 'packages', 'plugins', 'src', 'locales', `${locale}.ts`);
+async function readDictionary(root, locale, exportName, owner = "plugins") {
+  const filename = path.join(root, 'packages', owner, 'src', 'locales', `${locale}.ts`);
   const source = ts.createSourceFile(filename, await readFile(filename, 'utf8'), ts.ScriptTarget.Latest, true);
   assert.equal(source.parseDiagnostics.length, 0, `${locale}: invalid TypeScript dictionary`);
   const declaration = source.statements.filter(ts.isVariableStatement)
@@ -31,10 +31,12 @@ async function readDictionary(root, locale, exportName) {
     .find(node => ts.isIdentifier(node.name) && node.name.text === exportName);
   assert(declaration?.initializer, `${locale}: missing ${exportName}`);
 
+  const runtime = owner === "plugins" ? await readDictionary(root, locale, exportName, "runtime") : undefined;
   function readObject(node) {
     assert(ts.isObjectLiteralExpression(node), `${locale}: expected a literal dictionary object`);
     const result = Object.create(null);
     for (const property of node.properties) {
+      if(ts.isSpreadAssignment(property)){assert.equal(property.expression.getText(source),`AGENT_UI_RUNTIME_LOCALES["${locale}"]`);assert(runtime);Object.assign(result,runtime);continue;}
       assert(ts.isPropertyAssignment(property)
         && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)), `${locale}: unsupported dictionary property`);
       const key = property.name.text;

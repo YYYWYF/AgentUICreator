@@ -28,7 +28,7 @@ it("locates a missing export in the exact installed public entry without inventi
   ajv.addSchema(contract);
   const validate = ajv.getSchema(`${contract.$id}#/$defs/pluginSharedTypesInspection`)!;
   expect(validate(inspected), JSON.stringify(validate.errors)).toBe(true);
-}, 30_000);
+});
 
 it("makes composer configuration discoverable and queries the installed Runtime without implementation access", async () => {
   const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -44,14 +44,15 @@ it("makes composer configuration discoverable and queries the installed Runtime 
   const runtime: any = await inspectPluginSharedTypes(root, ["AgentProps.locales", "AgentProps.defaultLocale"], "@za38.03/agent-ui-runtime/ui");
   expect(runtime.queryResolution.status).toBe("complete");
   expect(runtime.symbols[1].type).toContain("AgentUILocaleCode");
-  const localized: any = await inspectPluginSharedTypes(root, ["AgentProps.locales.zh-CN.composer.placeholder"], "@za38.03/agent-ui-runtime/ui");
+  // Presentation namespaces belong to Plugins; Runtime accepts application-defined namespaces.
+  const localized: any = await inspectPluginSharedTypes(root, ["AgentUILocaleMessages.composer.placeholder"], "@za38.03/agent-ui-plugins");
   expect(localized.queryResolution.status).toBe("complete");
   const nativeLabel: any = await inspectPluginSharedTypes(root, ["ConversationCanonicalComposerProps.inputProps.aria-label"], "@za38.03/agent-ui-plugins");
   expect(nativeLabel.queryResolution.status).toBe("complete");
   const types: any = await inspectPluginSharedTypes(root, ["UIPluginRenderScope", "UIPluginRenderSlotOptions"]);
   expect(types.queryResolution.status).toBe("complete");
   expect(await inspectPluginSharedTypes(root, ["AgentProps"], "@za38.03/agent-ui-runtime/../../private")).toMatchObject({ status: "unavailable" });
-}, 30_000);
+});
 
 it("returns complete application prop names with relevant types before DOM event details", async () => {
   const root = await mkdtemp(fileURLToPath(new URL("../../../.public-api-", import.meta.url)));

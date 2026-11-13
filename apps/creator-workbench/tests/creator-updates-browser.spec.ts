@@ -62,7 +62,7 @@ for (const width of [420, 1000]) test(`package plan at ${width}px can be cancell
   await page.route("**/__creator/updates/**", async route => {
     const action = new URL(route.request().url()).pathname.split("/updates/")[1]!;
     const body = route.request().postDataJSON(); requests.push({ route: action, body });
-    if (action === "check") return route.fulfill({ json: installed ? { ...inspection, packageUpdates: { ...overview, packages: [] } } : inspection });
+    if (action === "check") return route.fulfill({ json: installed ? { ...inspection, packageUpdates: { ...overview, packages: overview.packages.map(pkg => ({ ...pkg, currentVersion: pkg.targetVersion, updateAvailable: false })) } } : inspection });
     if (action === "packages/plan") return route.fulfill({ json: { id: `review-${++sequence}`, manager: "npm", lockfile: "package-lock.json", packages: [{ name: packageName, current: "0.0.1", target: "0.0.2" }], checks: ["typecheck", "build"] } });
     if (action === "packages/execute") {
       if (body.planId === "review-2") return route.fulfill({ status: 409, json: { error: "PACKAGE_PLAN_STALE" } });
@@ -71,24 +71,24 @@ for (const width of [420, 1000]) test(`package plan at ${width}px can be cancell
     return route.fulfill({ status: 500, json: { error: "Unexpected update route" } });
   });
   await page.goto(origin);
-  await page.getByRole("button", { name: "准备升级", exact: true }).click();
+  await page.getByRole("button", { name: "更新官方插件", exact: true }).click();
   const plan = page.locator(".creator-package-plan");
   await expect(plan).toBeFocused();
-  await expect(plan).toContainText("你的应用层和已托管源码都会保留");
+  await expect(plan).toContainText("你接管的插件和项目修改会保留");
   expect(requests.filter(request => request.route === "packages/execute")).toEqual([]);
-  await plan.getByRole("button", { name: "暂不升级", exact: true }).click();
+  await plan.getByRole("button", { name: "稍后", exact: true }).click();
   await expect(plan).toHaveCount(0);
   expect(requests.filter(request => request.route === "packages/execute")).toEqual([]);
-  await page.getByRole("button", { name: "准备升级", exact: true }).click();
-  await plan.getByRole("button", { name: "确认升级", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "更新计划已过期" })).toBeVisible();
-  await expect(page.getByText("依赖已升级并通过验证", { exact: false })).toHaveCount(0);
-  await expect(plan.getByRole("button", { name: "暂不升级", exact: true })).toBeInViewport();
+  await page.getByRole("button", { name: "更新官方插件", exact: true }).click();
+  await plan.getByRole("button", { name: "确认更新", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "更新计划已过期" })).toBeVisible();
+  await expect(page.getByText("更新已完成。请重新打开工程预览", { exact: false })).toHaveCount(0);
+  await expect(plan.getByRole("button", { name: "稍后", exact: true })).toBeInViewport();
   await page.screenshot({ path: testInfo.outputPath(`stale-plan-${width}.png`) });
-  await plan.getByRole("button", { name: "暂不升级", exact: true }).click();
-  await page.getByRole("button", { name: "准备升级", exact: true }).click();
-  await plan.getByRole("button", { name: "确认升级", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "依赖已升级并通过验证" })).toBeVisible();
+  await plan.getByRole("button", { name: "稍后", exact: true }).click();
+  await page.getByRole("button", { name: "更新官方插件", exact: true }).click();
+  await plan.getByRole("button", { name: "确认更新", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "更新已完成。请重新打开工程预览" })).toBeVisible();
   expect(requests.filter(request => request.route === "packages/execute").map(request => request.body)).toEqual([
     { workspaceId: "extended-project", planId: "review-2", confirmed: true },
     { workspaceId: "extended-project", planId: "review-3", confirmed: true },
@@ -134,7 +134,7 @@ test("source conflicts keep the comparison until validation succeeds and never e
   await page.route("**/__creator/updates/**", async route => {
     const action = new URL(route.request().url()).pathname.split("/updates/")[1]!;
     requests.push({ route: action, body: route.request().postDataJSON() });
-    if (action === "check") return route.fulfill({ json: { ...inspection, packageUpdates: { ...overview, packages: [] }, plugins: complete ? [] : [{ pluginId: "composer", name: "Composer", delivery: "source-owned", currentVersion: "0.0.1", targetVersion: "0.0.2", status: "customized", updateAvailable: true, changelog: [] }] } });
+    if (action === "check") return route.fulfill({ json: { ...inspection, packageUpdates: { ...overview, packages: [] }, plugins: [{ pluginId: "composer", name: "Composer", delivery: "source-owned", currentVersion: "0.0.1", targetVersion: "0.0.2", status: "customized", updateAvailable: !complete, changelog: [] }] } });
     if (action === "plan") return route.fulfill({ json: { id: "source-reviewed", kind: "owned-source", compatibility: "compatible", requiresMerge: true, blocked: false, fileCount: 1, issues: [], items: [], requestedPlugins: ["composer"] } });
     if (action === "merge") return route.fulfill({ json: { files: [{ path: "plugins/composer/source/adapters/composer.tsx", base: "baseCode", local: "customCode", target: "targetCode" }] } });
     if (action === "adopt") {
@@ -144,7 +144,7 @@ test("source conflicts keep the comparison until validation succeeds and never e
     throw new Error(`Unexpected update route: ${action}`);
   });
   await page.goto(origin);
-  await page.getByRole("button", { name: "查看同步方案", exact: true }).click();
+  await page.getByRole("button", { name: "更新此插件", exact: true }).click();
   const plan = page.getByRole("region", { name: "更新方案", exact: true });
   await expect(plan).toBeFocused();
   await expect(plan).toContainText("不会直接覆盖");
@@ -156,7 +156,7 @@ test("source conflicts keep the comparison until validation succeeds and never e
   await expect(page.getByText("尚有源码冲突未合并", { exact: false })).toBeVisible();
   await expect(comparison).toHaveCount(1);
   await plan.getByRole("button", { name: "验证并完成同步", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "源码已同步，检查通过" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "工程检查通过" })).toBeVisible();
   await expect(comparison).toHaveCount(0);
   expect(requests.filter(request => request.route === "adopt").map(request => request.body)).toEqual([
     { workspaceId: "extended-project", planId: "source-reviewed", confirmed: true },

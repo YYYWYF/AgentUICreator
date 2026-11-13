@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from '@za38.03/agent-ui-runtime/ui';
 
-export const capabilityCatalogRevision = 'd330ed64b2a4707aca2b7eae7737eebb19f570fcd4c91bfb700f068b5dce0521';
+export const capabilityCatalogRevision = '6035d546b2926c24bd9b085059f77bf78c6f5ea6b3046a88b7146ffc3f3d7113';
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -188,7 +188,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
       capabilities: ['headless', 'conversation-service', 'plugin-service-provider'],
       authoring: { intents: ['provide shared conversation management state and history navigation'] },
     },
-    provides: ['agent-ui.conversations'],
+    provides: ['agent-ui.conversations', 'agent-ui.thread-binding'],
     inject: ['agent-ui.conversation-data-source'],
     optionalInject: [],
     loadDefinition: () => import('./conversation-service/definition').then(({ default: definition }) => definition),

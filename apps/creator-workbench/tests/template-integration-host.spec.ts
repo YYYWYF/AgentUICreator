@@ -80,10 +80,16 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
       const list = await openHistory(page, mode); await expect(list.getByRole("alert")).toContainText("加载会话失败"); await list.getByRole("button", { name: "重试", exact: true }).click();
       const row = (title: string) => list.locator('[data-slot="aui_thread-list-item"]').filter({ hasText: title });
       await expect(row("History A")).toBeVisible(); await row("History A").getByRole("button", { name: "History A", exact: true }).click();
+      await closeHistory(page); // Selection closes the popover after the active thread changes.
       await openHistory(page, mode); const detailError = list.locator('[data-slot="agent-ui-thread-detail-error"]'); await expect(detailError).toBeVisible(); await detailError.getByRole("button", { name: "重试", exact: true }).click();
       await closeHistory(page); await expect(page.locator(".aui-md")).toHaveText("Saved answer A"); expect(f.requests).toHaveLength(0); await inputFor(page).fill("Persisted draft");
       await openHistory(page, mode); const action = async (title: string, operation: string) => { await row(title).hover(); await row(title).getByRole("button", { name: "更多选项", exact: true }).click(); await page.locator(`[data-slot="agent-ui-thread-action-${operation}"]`).click(); };
-      await action("History A", "rename"); const editor = list.getByRole("textbox", { name: "重命名", exact: true }); await editor.fill("Saved renamed A"); await editor.press("Enter"); await expect.poll(() => calls.filter(call => call.method === "PATCH").length).toBe(1); await expect(editor).toBeVisible();
+      await action("History A", "rename"); const editor = list.getByRole("textbox", { name: "重命名", exact: true }); await editor.fill("Saved renamed A");
+      const rejectedRename = page.waitForResponse(response => response.request().method() === "PATCH" && response.status() === 403 && new URL(response.url()).pathname === "/history/conversations/A");
+      await editor.press("Enter"); await (await rejectedRename).finished();
+      // The editor releases its submission guard after the rejected request settles.
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      await expect.poll(() => calls.filter(call => call.method === "PATCH").length).toBe(1); await expect(editor).toBeVisible();
       await editor.press("Enter"); await expect(row("Saved renamed A")).toBeVisible(); await action("Saved renamed A", "archive");
       await expect(page.locator(".aui-md")).toHaveCount(0); await closeHistory(page); await openHistory(page, mode);
       const archived = list.locator('[data-slot="agent-ui-archived-threads"]'); await archived.locator("summary").click(); await expect(archived).toContainText("Saved renamed A");

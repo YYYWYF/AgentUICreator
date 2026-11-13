@@ -1,10 +1,6 @@
+import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const zhCN = {
-  "layout": {
-    "open": "打开业务面板",
-    "close": "关闭业务面板",
-    "collapse": "收起业务面板",
-    "restore": "恢复业务面板"
-  },
+  ...AGENT_UI_RUNTIME_LOCALES["zh-CN"],
   "toolResult": {
     "resolving": "正在加载文件…",
     "unavailable": "暂时无法预览，需要可用的媒体地址或文件解析服务。"
@@ -168,16 +164,6 @@ export const zhCN = {
     "today": "今天",
     "yesterday": "昨天",
     "earlier": "更早"
-  },
-  "serviceAdapters": {
-    "requestFailed": "服务请求失败。",
-    "invalidResponse": "服务返回的数据格式不正确。",
-    "invalidUploadUrl": "上传响应中需要包含有效的文件 URL。",
-    "invalidConfig": "附件配置不正确。",
-    "fileTypeRejected": "不支持选择此类型的文件。",
-    "fileTooLarge": "文件超过配置的大小限制。",
-    "dictationFailed": "语音识别失败。",
-    "recordingUnavailable": "当前浏览器不支持录音。"
   },
   "attachments": {
     "previewNamed": "预览 {name}",
@@ -379,22 +365,6 @@ export const zhCN = {
     "questionsToDiscuss": "待讨论的问题",
     "howCanTheAssistantHelpUsersExplore": "如何让助理在保留当前文档上下文的同时，协助用户探索不同方案？右侧的嵌入式助理可以与页面并排工作。",
     "embeddedAssistant": "嵌入式助理"
-  },
-  "runtime": {
-    "pluginRenderFailed": "无法显示插件“{plugin}”。",
-    "assistant": "助手",
-    "openAssistant": "打开助手",
-    "closeAssistant": "关闭助手",
-    "startupFailed": "应用启动失败",
-    "unknownGateError": "未知的应用启动错误。",
-    "gateCannotRender": "无法显示当前应用启动界面。",
-    "pluginNotifications": "插件错误通知",
-    "pluginFailed": "插件运行失败",
-    "dismissPluginError": "关闭 {plugin} 错误提示",
-    "pluginNotRegistered": "UI 插件“{plugin}”尚未注册。",
-    "pluginActivationFailed": "UI 插件“{plugin}”激活失败：{error}",
-    "waitingForService": "正在等待插件服务：{services}",
-    "missingInstance": "缺少 UI 插件实例“{instance}”。"
   },
   "themeShowcase": {
     "title": "Agent UI 主题",

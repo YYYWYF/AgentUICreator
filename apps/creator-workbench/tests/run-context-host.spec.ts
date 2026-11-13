@@ -28,7 +28,7 @@ createRoot(document.getElementById("root")!).render(<BusinessPage />);`);
 test("generated Agent reads current business context again when approving a run", async ({ page }) => {
   const preview = await createConnectionHostFixture({ prepareHost: prepareBusinessPage });
   const errors: string[] = [];
-  const requests: Array<{ threadId: string; runId: string; context: Array<{ description: string; value: string }>; resume?: unknown[] }> = [];
+  const requests: Array<{ threadId: string; runId: string; messages: unknown[]; context: Array<{ description: string; value: string }>; resume?: unknown[] }> = [];
   page.on("pageerror", error => errors.push(error.message));
   try {
     await page.route(`${preview.hostOrigin}run-context-acceptance`, async route => {
@@ -57,7 +57,7 @@ test("generated Agent reads current business context again when approving a run"
     await page.goto(preview.hostOrigin);
     await page.locator(".aui-composer-root").getByRole("textbox").fill("Analyze the selected order");
     await page.locator(".aui-composer-send").click();
-    await page.getByRole("button", { name: /1 次工具调用/ }).click();
+    if (!(await page.getByRole("button", { name: "允许", exact: true }).isVisible())) await page.getByRole("button", { name: /1 次工具调用/ }).click();
     await expect(page.getByRole("button", { name: "允许", exact: true })).toBeVisible();
     expect(requests).toHaveLength(1);
     expect(requests[0]!.context).toEqual([{ description: "selectedOrder", value: '{"id":"order-1","userMessages":1}' }]);
@@ -67,7 +67,9 @@ test("generated Agent reads current business context again when approving a run"
     await page.getByRole("button", { name: "允许", exact: true }).click();
     await expect(page.getByText("Context received: order-2", { exact: true })).toBeVisible();
     expect(requests).toHaveLength(2);
-    expect(requests[1]!.context).toEqual([{ description: "selectedOrder", value: '{"id":"order-2","userMessages":1}' }]);
+    expect(requests[1]!.context).toEqual([{ description: "selectedOrder", value: '{"id":"order-2","userMessages":0}' }]);
+    expect(requests[1]!.messages).toEqual([]);
+    await expect(page.locator('[data-role="user"]')).toContainText("Analyze the selected order");
     expect(requests[1]!.threadId).toBe(requests[0]!.threadId);
     expect(requests[1]!.resume).toEqual([{ interruptId: "confirm-order", status: "resolved", payload: { approved: true } }]);
     await mkdir(evidence, { recursive: true });

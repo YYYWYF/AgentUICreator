@@ -13,6 +13,8 @@ import { deliveries, portableSource, sourceEntries } from "../scripts/plugin-sou
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 
+// This exhaustive extraction formats every published Plugin source, rather than
+// exercising one unit. Use the same budget as installed-package integration cases.
 it("extracts every official Plugin against the public contract without a copied framework", async () => {
   for (const delivery of deliveries) for (const [target, origin] of sourceEntries(delivery)) {
     const source = await readFile(path.join(root, ...origin.split("/")), "utf8");
@@ -20,7 +22,7 @@ it("extracts every official Plugin against the public contract without a copied 
     expect(portable, `${delivery.id}/${target}`).not.toMatch(/from\s+["']\.\.\/\.\.\/framework\/contracts\/ui-plugin["']/u);
     if (/["']\.\.\/\.\.\/framework\/contracts\/ui-plugin["']/u.test(source)) expect(portable).toContain("'@za38.03/agent-ui-plugins/contracts'");
   }
-});
+}, 120_000);
 
 it("ships exact canonical plugin and shared source bytes with its own package version", async () => {
   const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
@@ -93,7 +95,7 @@ it("typechecks every extracted presentation with its declared direct dependencie
     const require = createRequire(path.join(root,"package.json"));
     const junction = process.platform === "win32" ? "junction" : "dir";
     for (const directory of ["node_modules/@za38.03", "node_modules/@types", "adapters"]) await mkdir(path.join(consumer,directory),{recursive:true});
-    await symlink(root,path.join(consumer,"node_modules/@za38.03/agent-ui-plugins"),junction);
+    for(const name of ["plugins","runtime","core","renderer"]) await symlink(path.join(root,"..",name),path.join(consumer,`node_modules/@za38.03/agent-ui-${name}`),junction);
     await symlink(path.dirname(require.resolve("react/package.json")),path.join(consumer,"node_modules/react"),junction);
     await symlink(path.dirname(require.resolve("@types/react/package.json")),path.join(consumer,"node_modules/@types/react"),junction);
     const catalog=JSON.parse(await readFile(path.join(root,"dist/catalog.json"),"utf8"));

@@ -29,10 +29,10 @@ test("consecutive approval and rejection resume their own interrupt exactly once
   } });
   try {
     await page.goto(f.hostOrigin); await send(page, "Two independent decisions");
-    await page.getByRole("button", { name: "1 次工具调用", exact: true }).last().click();
+    if (!(await page.getByRole("button", { name: "允许", exact: true }).isVisible())) await page.getByRole("button", { name: "1 次工具调用", exact: true }).last().click();
     await page.getByRole("button", { name: "允许", exact: true }).click();
     await expect.poll(() => f.requests.length).toBe(2);
-    await page.getByRole("button", { name: "1 次工具调用", exact: true }).last().click();
+    if (!(await page.getByRole("button", { name: "拒绝", exact: true }).isVisible())) await page.getByRole("button", { name: "1 次工具调用", exact: true }).last().click();
     await page.getByRole("button", { name: "拒绝", exact: true }).click();
     await expect(page.locator(".aui-md").last()).toContainText("First allowed, second rejected");
     expect(f.requests).toHaveLength(3);

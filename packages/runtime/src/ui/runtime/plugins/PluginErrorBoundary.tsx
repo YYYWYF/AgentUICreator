@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useAgentUILocale } from "../../../locale.js";
 import {
   Component,
   type ErrorInfo,

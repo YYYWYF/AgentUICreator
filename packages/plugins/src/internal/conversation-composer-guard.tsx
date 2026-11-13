@@ -1,34 +1,23 @@
 "use client";
 
-import { createContext, useCallback, useContext, useLayoutEffect, type ReactNode } from "react";
+import {useConversationComposerGuardState} from "@za38.03/agent-ui-runtime/plugin-api";
+export {ConversationComposerGuardProvider,useConversationComposerAwaitingReply} from "@za38.03/agent-ui-runtime/plugin-api";
+
+
+import { useCallback, useLayoutEffect } from "react";
 import { useAui } from "@assistant-ui/react";
 import { useAgentUILocale } from "../locale.js";
 import { useOptionalTransientMessageContext } from "./conversation-transient-messages.js";
 import { useThreadRootElementRef } from "./quote-thread-root.js";
 
-// Runtime supplies policy state; presentation never inspects AG-UI metadata.
-const ComposerGuardContext = createContext({ awaitingReply: false, interruptKey: "" });
 // Policy state follows the page-owned service across Composer remounts and thread switches.
 const reminders = new WeakMap<object, Map<string, { interruptKey: string; messageId: string }>>();
 
-export function ConversationComposerGuardProvider({ awaitingReply, interruptKey = "pending", children }: {
-  awaitingReply: boolean;
-  interruptKey?: string | undefined;
-  children: ReactNode;
-}) {
-  const context = useOptionalTransientMessageContext();
-  useLayoutEffect(() => {
-    if (context && !awaitingReply) reminders.get(context.service)?.delete(context.conversationId);
-  }, [context?.service, context?.conversationId, awaitingReply]);
-  return <ComposerGuardContext.Provider value={{ awaitingReply, interruptKey }}>{children}</ComposerGuardContext.Provider>;
-}
-
-export const useConversationComposerAwaitingReply = () => useContext(ComposerGuardContext).awaitingReply;
-
 /** Returns true when the attempted send was handled locally; never clears the draft. */
 export function useConversationComposerSendGuard() {
-  const { awaitingReply, interruptKey } = useContext(ComposerGuardContext);
+  const { awaitingReply, interruptKey } = useConversationComposerGuardState();
   const context = useOptionalTransientMessageContext();
+  useLayoutEffect(() => { if (context && !awaitingReply) reminders.get(context.service)?.delete(context.conversationId); }, [context?.service, context?.conversationId, awaitingReply]);
   const messages = useAgentUILocale("composer");
   const aui = useAui();
   const rootRef = useThreadRootElementRef();

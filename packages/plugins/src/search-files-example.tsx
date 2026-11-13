@@ -1,6 +1,7 @@
 import { useAgentUILocale, resolveAgentUILocaleMessages } from "./public.js";
 import { useState } from "react";
 import type {
+  ConversationToolkit,
   ConversationToolCallComponent,
   ConversationToolCallProps,
 } from "./public.js";
@@ -77,6 +78,6 @@ export const SearchFilesToolUI: ConversationToolCallComponent = (props) => {
 };
 
 import { createConversationToolkit } from "./public.js";
-export function createSearchFilesExampleToolkit() {
+export function createSearchFilesExampleToolkit(): ConversationToolkit {
   return createConversationToolkit({ search_files: { type: "backend", display: "standalone", render: SearchFilesToolUI } });
 }

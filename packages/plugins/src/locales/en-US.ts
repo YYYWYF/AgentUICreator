@@ -1,10 +1,6 @@
+import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const enUS = {
-  "layout": {
-    "open": "Open panel",
-    "close": "Close panel",
-    "collapse": "Collapse panel",
-    "restore": "Restore panel"
-  },
+  ...AGENT_UI_RUNTIME_LOCALES["en-US"],
   "toolResult": {
     "resolving": "Loading file…",
     "unavailable": "Preview unavailable. A supported media URL or file resolver is required."
@@ -168,16 +164,6 @@ export const enUS = {
     "today": "Today",
     "yesterday": "Yesterday",
     "earlier": "Earlier"
-  },
-  "serviceAdapters": {
-    "requestFailed": "The service request failed.",
-    "invalidResponse": "The service returned an invalid response.",
-    "invalidUploadUrl": "The upload response must contain a valid file URL.",
-    "invalidConfig": "The file settings are invalid.",
-    "fileTypeRejected": "This file type is not accepted.",
-    "fileTooLarge": "The file exceeds the configured size limit.",
-    "dictationFailed": "Speech recognition failed.",
-    "recordingUnavailable": "Audio recording is unavailable in this browser."
   },
   "attachments": {
     "previewNamed": "Preview {name}",
@@ -379,22 +365,6 @@ export const enUS = {
     "questionsToDiscuss": "Questions to discuss",
     "howCanTheAssistantHelpUsersExplore": "How can the assistant help users explore alternatives while preserving the current document context? The embedded assistant works beside the page.",
     "embeddedAssistant": "Embedded assistant"
-  },
-  "runtime": {
-    "pluginRenderFailed": "{plugin} could not be rendered.",
-    "assistant": "Assistant",
-    "openAssistant": "Open assistant",
-    "closeAssistant": "Close assistant",
-    "startupFailed": "Application startup failed",
-    "unknownGateError": "Unknown Application Gate error.",
-    "gateCannotRender": "The active Application Gate cannot be rendered.",
-    "pluginNotifications": "Plugin error notifications",
-    "pluginFailed": "Plugin failed",
-    "dismissPluginError": "Dismiss {plugin} error",
-    "pluginNotRegistered": "UI plugin \"{plugin}\" is not registered.",
-    "pluginActivationFailed": "UI plugin \"{plugin}\" failed to activate: {error}",
-    "waitingForService": "Waiting for plugin service: {services}",
-    "missingInstance": "UI plugin instance \"{instance}\" is missing."
   },
   "themeShowcase": {
     "title": "Agent UI themes",
