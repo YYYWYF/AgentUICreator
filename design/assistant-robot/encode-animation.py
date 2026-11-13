@@ -11,14 +11,14 @@ for file in files:
  data=file.read_bytes();key=hashlib.sha256(data).digest()
  if key not in lookup:lookup[key]=len(unique);unique.append(Image.open(file).convert('RGBA'))
  timeline.append(lookup[key])
-size=128;gutter=2;cell=size+gutter*2;columns=8
+size=192;gutter=2;cell=size+gutter*2;columns=8
 for per_page in [32,16,8]:
  pages=[];sizes=[]
  for start in range(0,len(unique),per_page):
   rows=math.ceil(min(per_page,len(unique)-start)/columns)
   atlas=Image.new('RGBA',(columns*cell,rows*cell))
   for slot,image in enumerate(unique[start:start+per_page]):atlas.paste(image.resize((size,size),Image.Resampling.LANCZOS),((slot%columns)*cell+gutter,(slot//columns)*cell+gutter))
-  target=args.output/f'assistant-robot-frames-{len(pages)}.webp';atlas.save(target,format='WEBP',quality=70,alpha_quality=100,method=6)
+  target=args.output/f'assistant-robot-frames-{len(pages)}.webp';atlas.save(target,format='WEBP',quality=85,alpha_quality=100,method=6)
   pages.append(target);sizes.append(target.stat().st_size)
  if max(sizes)<=250000:break
 else:raise RuntimeError('Atlas page exceeds template resource limit')

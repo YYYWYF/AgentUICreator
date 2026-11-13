@@ -239,6 +239,8 @@ export const enUS = {
     "invalidServiceAddressEnterACompleteHTTPOr": "Invalid service address. Enter an HTTP(S) URL or a relative path.",
     "relativeAddressRequiresBusinessPage": "The business page address is unavailable. Open the business page and retry, or enter a complete HTTP(S) URL.",
     "relativeAddressHelp": "Relative paths use the business page address. Saving shows the full URL and never uses the Creator service address.",
+    "assistantAgentId": "Agent ID",
+    "assistantAgentIdHelp": "For multiple assistants, enter the configured agentId. The temporary connection and preview evidence apply only to that Agent. Leave blank for a single assistant.",
     "useHTTPOrHTTPSWithoutAUsernamePassword": "Use HTTP or HTTPS without a username, password, or URL fragment.",
     "enterTheAgentServiceAddressFirst": "Enter the Agent service address first.",
     "chooseYourOwnAgentOrADemoAgent": "Choose your own Agent or a demo Agent.",

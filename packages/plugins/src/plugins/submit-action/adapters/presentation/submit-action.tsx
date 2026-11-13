@@ -1,5 +1,5 @@
 'use client';
-import type { ComponentProps } from 'react';
+import { useRef, useState, type ComponentProps } from 'react';
 import {
   ArrowUpIcon,
   AuiIf,
@@ -11,10 +11,19 @@ import {
   useAgentUILocale,
   useAuiState,
   useConversationComposerSendGuard,
+  useOptionalAgentUI,
 } from '../../../../plugin-support.js';
-export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
+export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
+  /** Use this URL for the current send and its continuations. */
+  endpoint?: string;
+  onSendError?: ((error: Error) => void) | undefined;
+};
 export type ConversationComposerCancelProps = ComponentProps<typeof Button>;
-export function ConversationComposerSend({
+export function ConversationComposerSend({ endpoint, onSendError, ...props }: ConversationComposerSendProps = {}) {
+  return endpoint === undefined ? <CurrentComposerSend {...props} />
+    : <WorkflowComposerSend {...props} endpoint={endpoint} onSendError={onSendError} />;
+}
+function CurrentComposerSend({
   children,
   className,
   disabled,
@@ -50,6 +59,33 @@ export function ConversationComposerSend({
       </ComposerActions.Send>
     </AuiIf>
   );
+}
+function WorkflowComposerSend({ endpoint, onSendError, children, disabled, onClick, ...props }: ConversationComposerSendProps) {
+  const host = useOptionalAgentUI();
+  const empty = useAuiState(state => state.composer.isEmpty);
+  const running = useAuiState(state => state.thread.isRunning);
+  const canSend = useAuiState(state => state.composer.canSend);
+  const guardSend = useConversationComposerSendGuard();
+  const unavailable = !host || running || !canSend;
+  const messages = useAgentUILocale('composer');
+  const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const busy = useRef(false);
+  return <>
+    <TooltipIconButton {...props} tooltip={messages.send} aria-label={props['aria-label'] ?? messages.send}
+      type='button' disabled={disabled || empty || sending || unavailable}
+      onClick={event => {
+        onClick?.(event);
+        if (event.defaultPrevented || busy.current || unavailable || guardSend()) return;
+        busy.current = true; setSending(true); setFailed(false);
+        void host!.sendComposer({ endpoint }).catch(cause => {
+          setFailed(true); onSendError?.(cause instanceof Error ? cause : new Error(String(cause)));
+        }).finally(() => { busy.current = false; setSending(false); });
+      }}>
+      {children ?? <ArrowUpIcon className='aui-composer-send-icon size-4' />}
+    </TooltipIconButton>
+    {failed && <span role='alert'>{messages.agentSendFailed}</span>}
+  </>;
 }
 export function ConversationComposerCancel({
   children,

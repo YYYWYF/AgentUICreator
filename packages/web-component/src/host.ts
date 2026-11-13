@@ -3,12 +3,13 @@ import { createElement, type ComponentType } from "react";
 import { configAttributes, resolveConfig, type AgentUIConfig, type AgentUIPresentationDefaults } from "./config";
 import { dispatchAgentUIEvent, type AgentUIEmit } from "./events";
 import { shadowPropertyDefaults, shadowMountStyles } from "./shadow-properties";
+import type { AgentUIAgents } from "@za38.03/agent-ui-runtime";
 
-export interface AgentUIHostElement extends HTMLElement { config: AgentUIConfig; connectedCallback(): void; disconnectedCallback(): void; attributeChangedCallback(): void }
+export interface AgentUIHostElement extends HTMLElement { config: AgentUIConfig; readonly agents: AgentUIAgents | null; connectedCallback(): void; disconnectedCallback(): void; attributeChangedCallback(): void }
 export interface AgentUIElementConstructor { new(): AgentUIHostElement; readonly observedAttributes: string[] }
 
 export function createAgentUIElement({ Root, styles, pluginStyles = "", defaults }: {
-  Root: ComponentType<{ config: ReturnType<typeof resolveConfig>; emit: AgentUIEmit }>;
+  Root: ComponentType<{ config: ReturnType<typeof resolveConfig>; emit: AgentUIEmit; onAgents?: ((agents: AgentUIAgents | null) => void) | undefined }>;
   styles: string;
   pluginStyles?: string;
   defaults?: AgentUIPresentationDefaults;
@@ -19,6 +20,9 @@ export function createAgentUIElement({ Root, styles, pluginStyles = "", defaults
     #root: Root | undefined;
     #mount: HTMLDivElement;
     #revision = 0;
+    #agents: AgentUIAgents | null = null;
+    get agents() { return this.#agents; }
+    #bindAgents = (agents: AgentUIAgents | null) => { this.#agents = agents; };
     constructor() {
       super();
       const shadow = this.attachShadow({ mode: "open" });
@@ -70,7 +74,7 @@ export function createAgentUIElement({ Root, styles, pluginStyles = "", defaults
           this.#root ??= createRoot(this.#mount, {
             onUncaughtError: error => this.#emit("agent-error", { code: "AGENT_UI_RUNTIME_ERROR", error: error instanceof Error ? error : new Error(String(error)) }),
           });
-          this.#root.render(createElement(Root, { config, emit: this.#emit }));
+          this.#root.render(createElement(Root, { config, emit: this.#emit, onAgents: this.#bindAgents }));
         } catch (error) {
           this.#emit("agent-error", { code: "AGENT_UI_CONFIG_ERROR", error: error instanceof Error ? error : new Error(String(error)) });
         }

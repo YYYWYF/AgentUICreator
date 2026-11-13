@@ -23,6 +23,7 @@ title: "React 页面参数与方法"
 | --- | --- | --- |
 | `frontendTools` | `AgentFrontendToolSource` | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。 |
 | `endpoint` | `string` | 指定 AG-UI 地址，默认 `/agent`。Creator 开发预览期间使用面板选择的连接。 |
+| `request` | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。 |
 | `getRunContext` | `ConversationRunContextGetter` | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options#传入业务上下文)。 |
 | `theme` | `AgentUITheme` | 可传 `light`、`dark`、`violet`；不传时使用内置紫色主题并允许内置切换。传入后由业务页面控制。 |
 | `onThemeChange` | `(theme: AgentUITheme) => void` | 可选。用户切换主题时调用；业务页面在回调中更新 `theme`。 |

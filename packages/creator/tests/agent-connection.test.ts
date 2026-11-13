@@ -37,6 +37,18 @@ async function setup(upstream: Server) {
   return { creator, origin, store, headers: { [CREATOR_WORKSPACE_ID_HEADER]: selected.id } };
 }
 describe("workspace Agent connection", () => {
+  it("retains a scoped preview target and supports explicitly clearing it", async () => {
+    const selected = await workspace();
+    const store = new ConnectionStore(selected.projectRoot);
+    await store.save({ activeSource: "mock", agentId: "writer" });
+    const state = await store.read();
+    expect(state.agentId).toBe("writer");
+    expect(resolvePreviewAgentSource(state)).toMatchObject({ agentId: "writer", runtimeEndpoint: "/__agent-ui/mock" });
+    await store.save({ activeSource: "mock", agentId: null });
+    expect((await store.read()).agentId).toBeUndefined();
+    expect(() => validateConnection({ activeSource: "mock", agentId: " " })).toThrow();
+    expect(() => validateConnection({ activeSource: "mock", agentId: 42 })).toThrow();
+  });
   it("migrates legacy connection and Mock data into .agent-ui without replacing project metadata", async () => {
     const projectRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-migration-工程 with spaces-"));
     directories.push(projectRoot);

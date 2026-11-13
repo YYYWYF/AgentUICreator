@@ -27,6 +27,27 @@ it("authenticates the first parent and reconnects after a Host-origin reload", (
   expect(connect("https://creator.test", "https://creator.test/").start).toHaveBeenCalled();
   expect(connect("https://creator.test", window.location.origin + "/?creator-preview").start).toHaveBeenCalled();
 });
+it("filters observations by assistant instance even when their model hashes match", () => {
+  const port = connect("https://creator.test", "https://creator.test/", parent, true, {
+    agentId: "b", identity: "mock-b", runtimeEndpoint: "/__agent-ui/mock",
+  });
+  expect((window as Window & { __agentUIPreviewEnvironment?: { agentId?: string } }).__agentUIPreviewEnvironment?.agentId).toBe("b");
+  const publish = (agentId: string) => window.dispatchEvent(new CustomEvent("agent-ui:observation", { detail: {
+    agentId, type: "runtime-composition", composition: { appUIModelHash: "a".repeat(64), observedAt: new Date().toISOString() },
+  } }));
+  publish("a");
+  expect(port.postMessage.mock.calls.filter(call => typeof call[0].body === "string")).toHaveLength(0);
+  publish("b");
+  expect(port.postMessage.mock.calls.filter(call => typeof call[0].body === "string")).toHaveLength(1);
+});
+it("keeps preview busy while any assistant is running", () => {
+  const port = connect("https://creator.test", "https://creator.test/");
+  const running = (agentId: string, value: boolean) => window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", { detail: { agentId, running: value } }));
+  running("a", true); running("b", false);
+  expect(port.postMessage).toHaveBeenLastCalledWith({ type: "preview-running", running: true });
+  running("a", false);
+  expect(port.postMessage).toHaveBeenLastCalledWith({ type: "preview-running", running: false });
+});
 it("reports the current business page URL only over its authenticated port", () => {
   const rejected = connect("https://other.test", window.location.origin + "/");
   expect(rejected.onmessage).toBeNull();

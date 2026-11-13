@@ -141,6 +141,7 @@ export class PluginServiceRuntime {
 
   constructor(
     applicationEvents = new AppEventRuntime(new AppEventRegistry({})),
+    private readonly application?: { readonly agentId: string } | undefined,
   ) {
     this.applicationEvents = applicationEvents;
   }
@@ -402,6 +403,7 @@ export class PluginServiceRuntime {
       });
 
       const cleanup = definition.setup?.({
+        application: this.application,
         instance,
         actions: createInstanceActions(instance, actions),
         events: eventScope,

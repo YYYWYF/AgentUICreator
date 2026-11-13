@@ -1,6 +1,6 @@
 import { createAttachmentAdapter, createDictationAdapter, createFeedbackAdapter } from "./service-adapters.js";
 import { useAgentUILocale } from "./locale.js";
-import type { AttachmentConfig, DictationConfig, FeedbackConfig } from "./service-config.js";
+import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
@@ -62,10 +62,15 @@ import { createConversationRemoteThreadListAdapter } from "./threads/conversatio
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
 import { createAssistantUiFrontendToolkit } from "./tools/assistant-ui-frontend-tool-adapter.js";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
+import { useAgentUIThreadRegistrar } from "./host/AgentUIProvider.js";
+import { ConversationRequestRouting } from "./compatibility/conversation-request-routing.js";
+import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
   threadId: string;
+  getRequestConfig?: (() => ServiceRequestConfig | undefined) | undefined;
+  getRequestEndpoint?: (() => string) | undefined;
 }
 
 export type ConversationAgentFactory = (
@@ -75,6 +80,9 @@ export type ConversationAgentFactory = (
 export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
+  request?: ServiceRequestConfig | undefined;
+  /** Internal Host preview override also applies to workflow requests. */
+  requestEndpointOverride?: string | undefined;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   frontendToolUIs?: ConversationFrontendToolUIRegistry | undefined;
@@ -100,12 +108,17 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   unstable_agentFactory?: ConversationAgentFactory | undefined;
 }
 
-const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =>
+const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId, getRequestConfig, getRequestEndpoint }) =>
   new HttpAgent({
     url: endpoint,
     threadId,
     headers: { Accept: "text/event-stream" },
-    fetch: fetchWithSseLineEndings,
+    fetch: (url, init) => {
+      const config = getRequestConfig?.();
+      const headers = new Headers(init?.headers);
+      for (const [name, value] of Object.entries(config?.headers ?? {})) headers.set(name, value);
+      return fetchWithSseLineEndings(getRequestEndpoint?.() ?? url, { ...init, headers, ...(config?.credentials === undefined ? {} : { credentials: config.credentials }) });
+    },
   });
 
 type ThreadOptions = Pick<ConversationRuntimeProviderProps, "onError" | "getRunContext" | "enableMessageQueue"> & {
@@ -127,6 +140,8 @@ function createThreadOptionsStore(initial: ThreadOptions) {
 export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
   endpoint,
+  request,
+  requestEndpointOverride,
   threadBinding,
   frontendTools: providedFrontendTools,
   frontendToolUIs,
@@ -145,6 +160,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
   unstable_agentFactory = defaultAgentFactory,
 }: Readonly<ConversationRuntimeProviderProps<TState>>) {
   const serviceMessages = useAgentUILocale("serviceAdapters");
+  const registerHostThread = useAgentUIThreadRegistrar();
+  const requestRef = useRef(request);
+  useLayoutEffect(() => { requestRef.current = request; }, [request]);
   const frontendTools = useFrontendToolSource(providedFrontendTools);
   // Concrete configuration is serializable; inline JSX objects must not replace adapters on every render.
   const attachmentKey = JSON.stringify(attachments);
@@ -209,10 +227,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const quoteMessagesRef = useRef(new Map<string, ThreadMessage>());
     const commandForwarderRef = useRef<ReturnType<typeof installConversationCommandForwarding> | undefined>(undefined);
     const agent = useMemo(() => {
-      const created = unstable_agentFactory({ endpoint, threadId: ownedId });
+      const routing = new ConversationRequestRouting(endpoint);
+      const created = unstable_agentFactory({ endpoint, threadId: ownedId, getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint() });
       commandForwarderRef.current = installConversationCommandForwarding(created);
+      created.use(routing);
       return installConversationQuoteContext(created, () => [...quoteMessagesRef.current.values()]);
-    }, [endpoint, ownedId, unstable_agentFactory]);
+    }, [endpoint, requestEndpointOverride, ownedId, unstable_agentFactory]);
     const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
     const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
       getThreadId: () => ownedId,
@@ -359,7 +379,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const commandForwarder = commandForwarderRef.current;
     const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
       runtime, threadBinding: ownedBinding, applicationEvents, commandForwarder, onAbort: () => toolContinuation.cancel(),
-      switchToNewThread: () => outerRuntime.current!.threads.switchToNewThread(),
+      switchToNewThread: async () => {
+        const threads = outerRuntime.current!.threads;
+        if (threads.mainItem.getState().status === "new") await threads.mainItem.initialize();
+        await threads.switchToNewThread();
+      },
     }), [runtime, ownedBinding, applicationEvents, commandForwarder, toolContinuation]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
@@ -371,14 +395,16 @@ export function ConversationRuntimeProvider<TState = unknown>({
       applicationEvents.start();
       agentRuntime.start();
       const unregister = sessions.register(item.id, bridge);
+      const unregisterHost = registerHostThread(agentRuntime);
       return () => {
+        unregisterHost?.();
         unregister();
         agentRuntime.stop();
         applicationEvents.stop();
       };
-    }, [agentRuntime, applicationEvents, bridge, item.id]);
+    }, [agentRuntime, applicationEvents, bridge, item.id, registerHostThread]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, optionsStore]);
+  }, [endpoint, requestEndpointOverride, unstable_agentFactory, threadBinding, persistence, sessions, optionsStore, registerHostThread]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,
@@ -397,6 +423,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   }, [assistantRuntime, threadBinding]);
   return (
     <AssistantRuntimeProvider runtime={assistantRuntime} {...(config === undefined ? {} : { config })}>
+      <HostThreadNavigation runtime={assistantRuntime} sessions={sessions} persistence={persistence} />
       <CurrentConversationBridge sessions={sessions} persistence={persistence} threadBinding={threadBinding} transientMessages={transientMessageService}>
         {children}
       </CurrentConversationBridge>
@@ -419,6 +446,7 @@ class ConversationThreadSessions<TState> {
   private readonly listeners = new Set<() => void>();
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   get = (id: string) => this.bridges.get(id);
+  getByIdentity = (id: string) => [...this.bridges.values()].find(bridge => bridge.agentRuntime.getSnapshot().conversation.id === id);
   register(id: string, bridge: ConversationRuntimeBridge<TState>) {
     this.bridges.set(id, bridge);
     this.listeners.forEach(listener => listener());

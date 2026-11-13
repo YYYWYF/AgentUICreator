@@ -159,7 +159,9 @@ Creator 通过工程的 npm registry 读取随包发布的 `agentUI.compatibilit
 
 每次发行使用 `scripts/prepare-compatibility-release.mjs` 从真实包版本、依赖与经审阅的变更记录生成组合，将结果保存到 `releases/compatibility.json`，保留既有组合 ID 和内容。随后运行正式构建和 pack；各包 build/prepack 执行 `scripts/sync-package-release-metadata.mjs` 生成元数据，不作为开发启动的兼容性审核。发布者构建后显式执行 `pnpm check:release-metadata`，拒绝缺少当前版本或依赖要求已漂移的清单；现有 `prepublishOnly` 继续执行发布审核。清单不是自动推断的兼容承诺，发布者仍须验证组合。npm 全部目标版本可获取之后客户端才展示该组合。Plugins 源码仍由现有 catalog、快照和哈希验证发布，不从 Creator 内嵌副本读取。
 
-首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行校验由发布者在本地显式执行，不接入 `prepublishOnly`，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog；其他包的现有发布钩子不变。
+六个公开包在构建开始时使旧构建记录失效，成功完成后生成 `dist/build-integrity.json`，记录各自的包身份、源码/构建输入与产物内容哈希。`prepack` 和 `prepublishOnly` 先执行只读一致性检查，拒绝缺少记录、升版后未重建、源码或依赖输入变化、产物缺失或被修改的包；Plugins 另检查 catalog 身份、源码与产物模板内容，以及模板中的官方包精确版本是否对应各包自己的版本。不要求各包版本相同，也不修改消费者的依赖。先准备版本和模板，再运行 `pnpm build:package`，可用 `pnpm check:package-integrity` 单独检查；检查失败不会自动修复或补建产物。
+
+首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行历史校验由发布者在本地显式执行，不接入 `prepublishOnly`；上述产物一致性检查独立于发行历史校验，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog。
 
 本地先编辑包版本、`resources/registry/release.json`、各 Plugin 的 canonical `plugin.json` / `CHANGELOG.json` 和经审阅的兼容清单，完成构建后运行 `pnpm --filter @za38.03/agent-ui-plugins release:verify`。命令只读校验当前 changelog、版本、兼容资料、catalog / source 快照和本地历史；`release:prepare` 是同一只读校验的兼容入口，不再自动递增 patch。校验失败由发布者修正后重跑。
 

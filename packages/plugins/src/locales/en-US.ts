@@ -122,6 +122,7 @@ export const enUS = {
     "stopVoice": "Stop voice input",
     "send": "Send message",
     "queueSend": "Queue message",
+    "agentSendFailed": "Could not send to this assistant. Your draft has been kept.",
     "stop": "Stop generating",
     "cancelSend": "Cancel sending",
     "queued": "Pending",

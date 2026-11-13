@@ -2,10 +2,10 @@ import { getPreviewAgentEnvironment } from "./preview-environment.js";
 
 export interface AgentBackendTransport { fetch: typeof fetch }
 /** Product adapters opt into this transport; paths remain product-owned. */
-export function createAgentBackendTransport(options: { fetch?: typeof fetch; development?: boolean } = {}): AgentBackendTransport {
+export function createAgentBackendTransport(options: { fetch?: typeof fetch; development?: boolean; agentId?: string | undefined } = {}): AgentBackendTransport {
   const request = options.fetch ?? globalThis.fetch.bind(globalThis);
   return { fetch: (input, init) => {
-    const prefix = getPreviewAgentEnvironment(options.development)?.backendProxyPrefix;
+    const prefix = getPreviewAgentEnvironment(options.development, options.agentId)?.backendProxyPrefix;
     if (!prefix) return request(input, init);
     // Only explicit root-relative business paths use the Agent backend origin.
     // Absolute URLs keep their product-defined destination.

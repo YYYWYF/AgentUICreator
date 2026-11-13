@@ -186,3 +186,7 @@ Tailwind CSS 4 使用模板 CSS 中的 `@theme`、`@source` 配置，不需要�
 运行工程自己的测试、类型检查和构建。
 
 参数接入见[Agent 参数与配置](/development/agent-options)，业务联动见[Host 控制](/development/react-host-control)。
+
+## 多助手组合
+
+不同页面各有助手、同页多助手、同助手多工作流 URL，以及后端统一编排的接法，见[多 Agent 与工作流入口](./multiple-agents.md)。只有显式新建会话才生成新 threadId；切换显示或工作流入口继续当前会话，后台运行使用原生会话生命周期。

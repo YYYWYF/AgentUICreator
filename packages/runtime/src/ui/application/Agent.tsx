@@ -1,3 +1,4 @@
+import { ConversationRuntimeProvider } from "../../ConversationRuntimeProvider.js";
 import { AgentUIProjectProvider, useAgentUIProject, type AgentUIProjectOptions } from "../project-context.js";
 import { mergeAgentUILocaleOverrides, resolveAgentUILocaleMessages, type AgentUILocaleOverrides } from "../../locale.js";
 import { type AgentUITheme } from "../../presentation.js";
@@ -8,7 +9,7 @@ import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode, type ComponentType } from "react";
 import { createPortal } from "react-dom";
 import {
-  ConversationRuntimeProvider, combineAgentFrontendToolSources,
+  combineAgentFrontendToolSources,
   AgentUIProvider as RuntimeAgentUIProvider, AgentUIConversationBinding, AgentUIConnectionState,
   AgentUIOutlet, AgentUIHostUserProvider, useAgentUIUser, useAgentUISurfaceTarget, useOptionalAgentUI,
 } from "@za38.03/agent-ui-runtime";
@@ -20,11 +21,12 @@ import { publishAgentUIObservation, type AgentObservability } from "./observabil
 import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding.js";
 import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary.js";
 import { AgentSurface, AgentEnvironment } from "./AgentSurface.js";
+import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
 import { type AgentUser } from "./host-user.js";
 
 
 export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
-  "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter"> {
+  "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter" | "request"> {
   appEventSchemas?: AppEventSchemas | undefined;
   locales?: Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>> | undefined;
   /** Initial language for uncontrolled internal switching. */
@@ -63,7 +65,8 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", request, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+  const application = useAgentUIAgentIdentity();
   const { presentation, defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? defaultLocale);
   const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
@@ -93,12 +96,12 @@ function AgentSession({ frontendTools, getRunContext, transientMessages, theme, 
         ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),
       };
       observability?.onRuntimeDiagnostic?.(diagnostic);
-      publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development);
+      publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development, application);
     };
     const unsubscribe = agentCompositionStore.subscribeDiagnostics(report);
     report();
     return unsubscribe;
-  }, [observability, agentCompositionStore, development]);
+  }, [observability, agentCompositionStore, development, application]);
   const candidate = useSyncExternalStore(agentCompositionStore.subscribeDiagnostics, agentCompositionStore.getCandidateDiagnostic, agentCompositionStore.getCandidateDiagnostic);
   useEffect(() => {
     if (candidate?.status === "error") onError?.(new Error(candidate.errorMessage ?? "AGENT_UI_COMPOSITION_ERROR"));
@@ -119,12 +122,12 @@ function AgentSession({ frontendTools, getRunContext, transientMessages, theme, 
   return (
     <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale} theme={theme} onThemeChange={onThemeChange}
       renderGate={(content, phase) => <><AgentUIConnectionState status={phase === "error" ? "error" : phase === "blocked" ? "blocked" : "initializing"} /><AgentSurfacePortal>{content}</AgentSurfacePortal></>}>
-    <AuthenticatedConversation {...{ frontendTools: combinedFrontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
+    <AuthenticatedConversation {...{ frontendTools: combinedFrontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, request, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
     </ApplicationSessionBoundary>
   );
 }
 
-function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, request, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
   endpoint: string;
   presentationLocale: AgentUILocaleCode;
   setPresentationLocale: (locale: AgentUILocaleCode) => void;
@@ -133,13 +136,16 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
   composition: NonNullable<ReturnType<AgentUIProjectOptions["compositionStore"]["getSnapshot"]>>;
   toolkit: import("../../plugin-api/index.js").ConversationToolkit;
 }) {
-  const { conversationMessageQueueEnabled, conversationServices, generatedFrontendToolUIs, Integrations: GeneratedConversationIntegrations } = useAgentUIProject();
+  const { conversationMessageQueueEnabled, conversationServices, generatedFrontendToolUIs, Integrations: GeneratedConversationIntegrations, development } = useAgentUIProject();
+  const preview = usePreviewAgentEnvironment(development);
   const epoch = useApplicationSessionEpoch();
   const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
   return (
     <ConversationRuntimeProvider<AppAgentState>
       transientMessages={transientMessages}
       endpoint={endpoint}
+      request={request}
+      requestEndpointOverride={preview?.runtimeEndpoint}
       enableMessageQueue={conversationMessageQueueEnabled}
       {...conversationServices}
       onError={onError}
@@ -172,7 +178,7 @@ function AgentContent({ user, ...props }: AgentProps) {
     <AgentUIOutlet />
     <AgentUIProjectProvider value={previewProject}>
       {previewPending ? null : <AgentSession key={JSON.stringify([preview?.identity ?? "product", props.endpoint ?? "/agent"])} {...props}
-        {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
+        {...(preview ? { endpoint: preview.runtimeEndpoint, request: undefined, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
     </AgentUIProjectProvider>
   </AgentUIHostUserProvider>;
 }

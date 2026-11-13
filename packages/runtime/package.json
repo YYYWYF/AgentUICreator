@@ -42,13 +42,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/clean-package-dist.mjs runtime && node ../../scripts/sync-package-release-metadata.mjs runtime && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs runtime",
+    "build": "node ../../scripts/package-build-integrity.mjs begin runtime && node ../../scripts/clean-package-dist.mjs runtime && node ../../scripts/sync-package-release-metadata.mjs runtime && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs runtime && node ../../scripts/package-build-integrity.mjs record runtime",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
     "check:consumer-types": "node scripts/check-consumer-types.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs runtime",
-    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs runtime --publish"
+    "prepack": "node ../../scripts/package-build-integrity.mjs check runtime && node ../../scripts/sync-package-release-metadata.mjs runtime",
+    "prepublishOnly": "node ../../scripts/package-build-integrity.mjs check runtime && node ../../scripts/sync-package-release-metadata.mjs runtime --publish"
   },
   "dependencies": {
     "@ag-ui/client": "1.0.3",

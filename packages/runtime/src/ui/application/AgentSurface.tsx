@@ -1,3 +1,5 @@
+import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
+import { useOptionalAgentUI, type AgentUIHost } from "../../host/AgentUIProvider.js";
 import { type AgentUIShellProps, useAgentUIProject } from "../project-context.js";
 import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext, type ReactNode, useState } from "react";
 import { AgentUILocaleProvider } from "../../locale.js";
@@ -26,30 +28,33 @@ interface AgentEnvironmentProps {
   presentationLocale: AgentUILocaleCode;
   children: ReactNode;
 }
-const AgentEnvironmentContext = createContext<{ actions: import("../runtime/plugins/PluginServiceRuntime.js").UIPluginRuntimeActions } | null>(null);
+const AgentEnvironmentContext = createContext<{ actions: import("../runtime/plugins/PluginServiceRuntime.js").UIPluginRuntimeActions; host: AgentUIHost | null } | null>(null);
 
 /** Nonvisual project binding. Services and history stay connected while the panel is closed. */
 export function AgentEnvironment(props: AgentEnvironmentProps) {
   const inherited = useContext(AgentEnvironmentContext);
-  return inherited ? <>{props.children}</> : <AgentEnvironmentOwner {...props} />;
+  const host = useOptionalAgentUI();
+  return inherited && inherited.host === host ? <>{props.children}</> : <AgentEnvironmentOwner {...props} />;
 }
 function AgentEnvironmentOwner({ composition, frontendToolRuntime, locale, presentationLocale, children }: AgentEnvironmentProps) {
+  const application = useAgentUIAgentIdentity();
   const { locales: AGENT_UI_LOCALES, appEventSchemas, development, serviceOverrides } = useAgentUIProject();
   const appEventRegistry = useMemo(() => new AppEventRegistry(appEventSchemas), [appEventSchemas]);
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
   useApplicationSessionConnection(agentRuntime);
+  const host = useOptionalAgentUI();
   const inheritedServices = useOptionalPluginServiceRuntime();
   useLayoutEffect(() => inheritedServices?.applicationEvents.connect(agentRuntime), [inheritedServices, agentRuntime]);
   useEffect(() => {
     if (!development) return;
     const publish = () => window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", {
-      detail: { running: ["running", "awaiting-input"].includes(agentRuntime.getSnapshot().run.status), threadId: agentRuntime.getSnapshot().conversation.id },
+      detail: { agentId: application?.agentId, running: host ? host.getThreads().some(thread => ["running", "awaiting-input"].includes(thread.run.status)) : ["running", "awaiting-input"].includes(agentRuntime.getSnapshot().run.status), threadId: agentRuntime.getSnapshot().conversation.id },
     }));
     publish();
-    const unsubscribe = agentRuntime.subscribe(publish);
+    const unsubscribe = host ? host.subscribeThreads(publish) : agentRuntime.subscribe(publish);
     window.addEventListener("agent-ui:preview-run-request", publish);
-    return () => { window.removeEventListener("agent-ui:preview-run-request", publish); unsubscribe(); window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", { detail: { running: false } })); };
-  }, [agentRuntime]);
+    return () => { window.removeEventListener("agent-ui:preview-run-request", publish); unsubscribe(); window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", { detail: { agentId: application?.agentId, running: false } })); };
+  }, [agentRuntime, application, host]);
   const activeAgentRuntime = useRef(agentRuntime);
   activeAgentRuntime.current = agentRuntime;
   // Thread switches replace the conversation bridge, not application services.
@@ -65,7 +70,7 @@ function AgentEnvironmentOwner({ composition, frontendToolRuntime, locale, prese
     <AgentRuntimeProvider runtime={agentRuntime}>
       <SurfaceServiceProvider actions={actions} applicationEventRegistry={appEventRegistry} applicationEventSource={agentRuntime}
         frontendTools={frontendToolRuntime} model={composition.runtimeModel} registry={composition.activeRegistry} serviceOverrides={serviceOverrides}>
-        <AgentEnvironmentContext.Provider value={{ actions }}>
+        <AgentEnvironmentContext.Provider value={{ actions, host }}>
           <PluginDataMessageUIHost model={composition.runtimeModel} registry={composition.activeRegistry} />
           <ConversationThreadBindingConnector />
           {children}
@@ -89,6 +94,7 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   observability?: AgentObservability | undefined;
 }) {
+  const application = useAgentUIAgentIdentity();
   const { locales: AGENT_UI_LOCALES, Shell = InlineSurface, shell: agentUIShellConfig, development } = useAgentUIProject();
   const environment = useContext(AgentEnvironmentContext);
   const actions = environment!.actions;
@@ -96,21 +102,22 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
   const observed = development || observability !== undefined;
   const onRuntimeDiagnostic = useCallback((diagnostic: RuntimeDiagnostic) => {
     observability?.onRuntimeDiagnostic?.(diagnostic);
-    publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development);
-  }, [observability, development]);
+    publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development, application);
+  }, [observability, development, application]);
   const onRuntimeComposition = useCallback((snapshot: ObservedComposition) => {
     observability?.onRuntimeComposition?.(snapshot);
-    publishAgentUIObservation({ type: "runtime-composition", composition: snapshot }, development);
-  }, [observability, development]);
+    publishAgentUIObservation({ type: "runtime-composition", composition: snapshot }, development, application);
+  }, [observability, development, application]);
   useEffect(() => {
     const root = surface;
     if (!observed || root == null) return;
     const previousHash = root.getAttribute("data-app-ui-model-hash");
     const hadPreviewMarker = root.hasAttribute("data-agent-ui-preview-root");
     root.setAttribute("data-agent-ui-preview-root", "");
+    if (application) root.setAttribute("data-agent-ui-agent", application.agentId);
     root.setAttribute("data-app-ui-model-hash", composition.appUIModelHash);
     observability?.onPreviewCommitted?.(composition.appUIModelHash, root);
-    publishAgentUIObservation({ type: "preview-committed", appUIModelHash: composition.appUIModelHash, root }, development);
+    publishAgentUIObservation({ type: "preview-committed", appUIModelHash: composition.appUIModelHash, root }, development, application);
     return () => {
       if (!hadPreviewMarker) root.removeAttribute("data-agent-ui-preview-root");
       if (previousHash === null) root.removeAttribute("data-app-ui-model-hash");

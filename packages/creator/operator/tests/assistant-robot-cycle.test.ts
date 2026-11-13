@@ -12,23 +12,25 @@ function rig() {
   } };
 }
 
-it('rests at 20 degrees but retains full 40-degree turns in both directions', () => {
+it('rests only at the left-facing 20-degree view and returns there after full turns', () => {
   const r = rig(); r.advance(11000);
-  expect(r.samples.every(p => Math.abs(p.yaw - .35) < .001)).toBe(true);
+  expect(r.samples.every(p => Math.abs(p.yaw + .35) < .001)).toBe(true);
   expect(Math.max(...r.samples.map(p => p.bob)) - Math.min(...r.samples.map(p => p.bob))).toBeGreaterThan(3);
-  r.advance(21000);
-  let moving = 0, crossings = 0;
+  r.advance(25000);
+  let rightRest = 0, longestRightRest = 0, crossings = 0;
   for (let i = 1; i < r.samples.length; i++) {
     const before = r.samples[i - 1]!.yaw, after = r.samples[i]!.yaw;
-    if (Math.abs(after - before) > .001) moving++;
+    rightRest = Math.abs(after - .35) < .01 ? rightRest + 1 : 0;
+    longestRightRest = Math.max(longestRightRest, rightRest);
     if (before * after < 0) crossings++;
+    expect(Math.abs(after - before)).toBeLessThan(.05);
   }
-  expect(moving / r.samples.length).toBeLessThan(.35);
-  expect(crossings).toBe(2);
-  expect(r.samples.filter(p => Math.abs(Math.abs(p.yaw) - .35) < .01).length / r.samples.length).toBeGreaterThan(.65);
+  expect(longestRightRest * 16).toBeLessThan(500);
+  expect(crossings).toBe(4);
+  expect(r.samples.filter(p => Math.abs(p.yaw + .35) < .01).length / r.samples.length).toBeGreaterThan(.6);
   expect(r.samples.some(p => p.yaw > .65)).toBe(true);
   expect(r.samples.some(p => p.yaw < -.65)).toBe(true);
-  r.advance(2000); expect(r.pose.yaw).toBeCloseTo(.35, 2);
+  r.advance(2000); expect(r.pose.yaw).toBeCloseTo(-.35, 2);
 });
 
 it('smoothly returns to the gentle default angle after work', () => {
@@ -36,8 +38,8 @@ it('smoothly returns to the gentle default angle after work', () => {
   expect(r.pose.yaw).toBeGreaterThan(.2);
   const before = r.pose.yaw; r.motion.setActivity('idle'); r.advance(16);
   expect(Math.abs(r.pose.yaw - before)).toBeLessThan(.05);
-  r.advance(2000); expect(r.pose.yaw).toBeCloseTo(.35, 2);
-  r.advance(7000); expect(r.pose.yaw).toBeCloseTo(.35, 2);
+  r.advance(2000); expect(r.pose.yaw).toBeCloseTo(-.35, 2);
+  r.advance(7000); expect(r.pose.yaw).toBeCloseTo(-.35, 2);
 });
 
 it('ignores a brief pass, then returns from its current angle, blinks and tilts on sustained hover', () => {
@@ -45,7 +47,7 @@ it('ignores a brief pass, then returns from its current angle, blinks and tilts 
   expect(r.pose.mode).toBe('idle'); r.motion.setHovered(false, r.now); r.advance(100);
   expect(r.pose.mode).toBe('idle');
   const from = r.pose.yaw; r.motion.setHovered(true, r.now); r.advance(166);
-  expect(r.pose.mode).toBe('hover'); expect(r.pose.yaw).toBeGreaterThan(from - .1);
+  expect(r.pose.mode).toBe('hover'); expect(r.pose.yaw).toBeLessThan(from + .1);
   r.advance(3000);
   expect(Math.abs(r.pose.yaw)).toBeLessThan(.01); expect(Math.abs(r.pose.roll)).toBeGreaterThan(.09);
   expect(r.samples.some(p => p.mode === 'hover' && p.blink < .1)).toBe(true);

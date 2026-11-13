@@ -310,7 +310,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "node ../../scripts/sync-package-release-metadata.mjs plugins && node scripts/clean-dist.mjs && node scripts/materialize-plugin-sources.mjs && tsc -p tsconfig.build.json && node scripts/build-optional-facades.mjs && node scripts/copy-assets.mjs && node scripts/prepare-source-distribution.mjs && node scripts/build-package-plugins.mjs && node ../../scripts/sync-package-release-metadata.mjs plugins",
+    "build": "node ../../scripts/package-build-integrity.mjs begin plugins && node ../../scripts/sync-package-release-metadata.mjs plugins && node scripts/clean-dist.mjs && node scripts/materialize-plugin-sources.mjs && tsc -p tsconfig.build.json && node scripts/build-optional-facades.mjs && node scripts/copy-assets.mjs && node scripts/prepare-source-distribution.mjs && node scripts/build-package-plugins.mjs && node ../../scripts/sync-package-release-metadata.mjs plugins && node ../../scripts/package-build-integrity.mjs record plugins",
     "check:build": "node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs && node scripts/verify-source-distribution.mjs && node --import tsx ../creator/operator/scripts/source-catalog/verify-package-services.mjs",
     "check:services": "node --import tsx ../creator/operator/scripts/source-catalog/verify-package-services.mjs",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
@@ -326,7 +326,8 @@
     "release:record": "node scripts/verify-source-distribution.mjs && node --import tsx ../creator/operator/scripts/source-catalog/prepare-release.mjs --record",
     "sync:generative-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node ../creator/operator/scripts/source-catalog/sync-generative-ui-upstream.mjs",
     "verify:sources": "node scripts/verify-source-distribution.mjs",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs plugins"
+    "prepack": "node ../../scripts/package-build-integrity.mjs check plugins && node ../../scripts/sync-package-release-metadata.mjs plugins",
+    "prepublishOnly": "node ../../scripts/package-build-integrity.mjs check plugins"
   },
   "dependencies": {
     "@assistant-ui/react": "0.15.31",

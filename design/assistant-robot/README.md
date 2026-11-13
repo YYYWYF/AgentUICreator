@@ -27,8 +27,9 @@ python3 design/assistant-robot/encode-animation.py <frames-directory> packages/p
 ```
 
 The encoder checks the per-resource size limit and splits atlas pages to fit. Model authoring files are not part of the Bootstrap runtime template.
-The shipping preset uses 128-pixel body views at WebP quality 70 for the 80-pixel
-launcher. Eyes and mouth are excluded from the body images. The complete 128-pixel
+The shipping preset uses 192-pixel body views at WebP quality 85 for the 80-pixel
+launcher, covering 2× density without enlarging the source images.
+Eyes and mouth are excluded from the body images. The complete 192-pixel
 PNG fallback retains its face in case atlas loading fails.
 The model is reconstructed from the supplied reference images, not the original
 artist's 3D source; visual likeness must be evaluated separately from mesh validity.

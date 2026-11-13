@@ -3,12 +3,13 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { AgentConnectionState } from "./types.js";
 import { migrateLegacyAgentUIMetadata } from "../project/legacy-agent-ui-metadata.js";
-export function validateConnection(value: unknown): Pick<AgentConnectionState, "activeSource" | "endpoint" | "connectionMode" | "enabled"> {
+export function validateConnection(value: unknown): Pick<AgentConnectionState, "activeSource" | "endpoint" | "connectionMode" | "enabled" | "agentId"> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid Agent connection.");
   const fields = value as Record<string, unknown>;
-  if (Object.keys(fields).some(key => key !== "activeSource" && key !== "endpoint" && key !== "connectionMode" && key !== "enabled") ||
+  if (Object.keys(fields).some(key => key !== "activeSource" && key !== "endpoint" && key !== "connectionMode" && key !== "enabled" && key !== "agentId") ||
     (fields.activeSource !== "mock" && fields.activeSource !== "connected")) throw new Error("Select Mock or Connected Agent.");
   if (fields.enabled !== undefined && typeof fields.enabled !== "boolean") throw new Error("Invalid Agent connection.");
+  if (fields.agentId !== undefined && fields.agentId !== null && (typeof fields.agentId !== "string" || !fields.agentId.trim() || fields.agentId.length > 100 || fields.agentId !== fields.agentId.trim())) throw new Error("Invalid Agent connection.");
   let endpoint: string | undefined;
   if (fields.connectionMode !== undefined && fields.connectionMode !== "direct" && fields.connectionMode !== "proxy") throw new Error("Invalid Agent connection mode.");
   const connectionMode = fields.connectionMode === "direct" ? "direct" : "proxy";
@@ -19,7 +20,7 @@ export function validateConnection(value: unknown): Pick<AgentConnectionState, "
     endpoint = url.href;
   }
   if (fields.activeSource === "connected" && !endpoint) throw new Error("Agent endpoint is required.");
-  return { activeSource: fields.activeSource, enabled: fields.enabled !== false, connectionMode, ...(endpoint ? { endpoint } : {}) };
+  return { activeSource: fields.activeSource, enabled: fields.enabled !== false, connectionMode, ...(endpoint ? { endpoint } : {}), ...(typeof fields.agentId === "string" ? { agentId: fields.agentId } : {}) };
 }
 export class ConnectionStore {
   readonly file: string;

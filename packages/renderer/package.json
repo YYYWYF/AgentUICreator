@@ -20,11 +20,11 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "node ../../scripts/clean-package-dist.mjs renderer && node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "build": "node ../../scripts/package-build-integrity.mjs begin renderer && node ../../scripts/clean-package-dist.mjs renderer && node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer && node ../../scripts/package-build-integrity.mjs record renderer",
     "typecheck": "node ../../scripts/run-plugin-source-views-check.mjs typecheck",
     "test": "node ../../scripts/run-plugin-source-views-check.mjs test",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs renderer",
-    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs renderer --publish"
+    "prepack": "node ../../scripts/package-build-integrity.mjs check renderer && node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "prepublishOnly": "node ../../scripts/package-build-integrity.mjs check renderer && node ../../scripts/sync-package-release-metadata.mjs renderer --publish"
   },
   "peerDependencies": {
     "react": ">=18 <20",

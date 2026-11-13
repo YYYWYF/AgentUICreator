@@ -4,21 +4,23 @@ import { createVisualObservationReporter } from "../visual-observation/VisualObs
 import { collectRuntimePresentation } from "./layoutPresentation.js";
 import { AGENT_UI_OBSERVATION_EVENT, AGENT_UI_OBSERVATION_REQUEST_EVENT, HOST_DOCK_CONNECT, HOST_PREVIEW_CONNECT, isHostPreviewSession, isRuntimeObservationRequest, type RuntimeObservationRequest, type PreviewUploadResult } from "./protocol.js";
 
-type Observation =
+type Observation = (
   | { type: "runtime-composition"; composition: object & { appUIModelHash?: string; observedAt?: string } }
   | { type: "runtime-diagnostic"; diagnostic: object & { appUIModelHash?: string; instanceId?: string; kind?: string; eventName?: string } }
-  | { type: "preview-committed"; appUIModelHash: string; root: HTMLElement };
+  | { type: "preview-committed"; appUIModelHash: string; root: HTMLElement }) & { agentId?: string };
 
 /** Dev client only. Standalone Hosts render without a Creator connection. */
 export function installCreatorHostPreviewBridge(): () => void {
   let disposeSession: () => void = () => undefined;
   let report: ((observation: Observation) => void) | undefined;
+  let selectedAgentId: string | undefined;
   let preview: Extract<Observation, { type: "preview-committed" }> | undefined;
   let composition: Extract<Observation, { type: "runtime-composition" }> | undefined;
   const diagnostics = new Map<string, Extract<Observation, { type: "runtime-diagnostic" }>>();
   const observe = (event: Event) => {
     const observation = (event as CustomEvent<Observation>).detail;
     if (!observation || typeof observation !== "object") return;
+    if (observation.agentId !== selectedAgentId) return;
     switch (observation.type) {
       case "preview-committed":
         if (!(observation.root instanceof HTMLElement) || !/^[a-f0-9]{64}$/.test(observation.appUIModelHash)) return;
@@ -59,15 +61,24 @@ export function installCreatorHostPreviewBridge(): () => void {
     if (fromPreview) { try { sessionStorage.setItem(parentKey, event.origin); } catch { /* The current port still works. */ } }
     disposeSession();
     let running = false;
+    const runStates = new Map<string, boolean>();
     const applySource = (source: unknown) => {
       if (running || !source || typeof source !== "object") return;
+      const candidate = source as { agentId?: unknown };
+      if (candidate.agentId !== undefined && (typeof candidate.agentId !== "string" || !candidate.agentId.trim() || candidate.agentId.length > 100)) return;
+      const nextAgentId = candidate.agentId as string | undefined;
+      const selectTarget = () => {
+        if (nextAgentId !== selectedAgentId) { preview = undefined; composition = undefined; diagnostics.clear(); }
+        selectedAgentId = nextAgentId;
+      };
       if ("type" in source && source.type === "application") {
+        selectTarget();
         delete (window as Window & { __agentUIPreviewEnvironment?: unknown }).__agentUIPreviewEnvironment;
         (window as Window & { __agentUIPreviewEnvironmentReady?: boolean }).__agentUIPreviewEnvironmentReady = true;
         window.dispatchEvent(new Event("agent-ui:preview-environment"));
         return;
       }
-      const value = source as { identity?: string; runtimeEndpoint?: string; conversationDataEndpointOverride?: string; backendProxyPrefix?: string };
+      const value = source as { identity?: string; runtimeEndpoint?: string; conversationDataEndpointOverride?: string; backendProxyPrefix?: string; agentId?: string };
       if (typeof value.identity !== "string" || typeof value.runtimeEndpoint !== "string") return;
       if (!["/__agent-ui/mock", "/__agent-ui/agent-proxy/run"].includes(value.runtimeEndpoint)) {
         try {
@@ -75,12 +86,15 @@ export function installCreatorHostPreviewBridge(): () => void {
           if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.username || endpoint.password || endpoint.hash || value.backendProxyPrefix !== endpoint.origin) return;
         } catch { return; }
       }
+      selectTarget();
       (window as Window & { __agentUIPreviewEnvironment?: unknown }).__agentUIPreviewEnvironment = value;
       (window as Window & { __agentUIPreviewEnvironmentReady?: boolean }).__agentUIPreviewEnvironmentReady = true;
       window.dispatchEvent(new Event("agent-ui:preview-environment"));
     };
     const runState = (event: Event) => {
-      running = Boolean((event as CustomEvent).detail?.running);
+      const detail = (event as CustomEvent).detail;
+      runStates.set(detail?.agentId ?? "", Boolean(detail?.running));
+      running = [...runStates.values()].some(Boolean);
       port.postMessage({ type: "preview-running", running });
     };
     window.addEventListener("agent-ui:preview-run-state", runState);
@@ -126,6 +140,7 @@ export function installCreatorHostPreviewBridge(): () => void {
     const runtimeComposition = createCreatorRuntimeCompositionReporter(options);
     const visual = createVisualObservationReporter({ workspaceId: session.workspaceId, fetch: upload });
     report = observation => {
+      if (observation.agentId !== selectedAgentId) return;
       if (observation.type === "runtime-diagnostic" && session.runtimeDiagnostics) diagnostic(observation.diagnostic);
       if (observation.type === "runtime-composition" && session.runtimeDiagnostics) {
         const observedAt = Date.parse(observation.composition.observedAt ?? "");

@@ -151,5 +151,6 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
       });
     },
   };
-  return { adapter, identity, initialId };
+  const localId = (remoteId: string) => [...identities].find(([, id]) => id === remoteId)?.[0] ?? remoteId;
+  return { adapter, identity, localId, initialId };
 }

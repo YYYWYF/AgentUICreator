@@ -1,7 +1,7 @@
 ---
 name: ag-ui-frontend
 description: Use for frontend consumption of AG-UI messages, shared state, run status, executions, interrupts, and controlled Application Events, Frontend Tools, Agent-controlled frontend capabilities, and browser/client tool execution through project Runtime hooks.
-compatibility: One AG-UI Agent Runtime per generated frontend; Phase 8 permits Plugin source writes while Runtime remains read-only.
+compatibility: One AG-UI Agent connection per Thread; multiple isolated frontend instances reuse canonical Conversation Runtime. Phase 8 permits Plugin source writes while Runtime remains read-only.
 allowed-tools: enable_creator_tools read_file ls glob grep edit_file
 ---
 
@@ -26,6 +26,9 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - `/agent-contract/agent-tools.ts` owns the explicit set of frontend capability operations advertised to the Agent.
 
 ## Boundaries
+
+- Multiple assistants belong in the application layer: use the installed Runtime's `AgentUIProvider` and `AgentUIApplication`, with stable `agentId`, endpoint and per-Agent services. Business components control visibility through `hidden`; keep inactive instances mounted for background runs. Each assistant sends only its own input in its current Thread; only explicit new-conversation actions create a new threadId. Workflow buttons may set `ConversationComposerSend.endpoint` for one send without changing assistant identity. Native continuations and retries retain the original URL. History navigation reopens an explicitly scoped `{ agentId, threadId }`. Use the installed public declarations; do not create a second message store or copy Runtime/Context into Plugins.
+- In a shared model, layout edits affect every assistant using it. Inspect application configuration and clarify the affected owner when the requested instance is ambiguous. Creator preview overrides require the specific instance ID and must not retarget other assistants.
 
 - Do not instantiate an AG-UI client or manage a second Agent Runtime inside a Plugin.
 - Do not invent a separate public message or state protocol when the Plugin Contract already exposes AG-UI data.

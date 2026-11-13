@@ -104,7 +104,7 @@ export function ComposerHint() {
 
 <!-- locale-reference:start -->
 
-以下 36 个命名空间、453 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
+以下 36 个命名空间、454 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
 
 默认值以字符串字面量展示，`""` 表示空字符串，`\n` 表示换行；引号不属于文案。这里只列出 npm 的默认值，项目和 Host 的已有覆盖可能使实际显示不同。字段是否显示取决于启用的插件、组件和当前状态。
 
@@ -181,6 +181,7 @@ export function ComposerHint() {
 | `composer.stopVoice` | <code>"停止语音输入"</code> | <code>"Stop voice input"</code> |
 | `composer.send` | <code>"发送消息"</code> | <code>"Send message"</code> |
 | `composer.queueSend` | <code>"加入发送队列"</code> | <code>"Queue message"</code> |
+| `composer.agentSendFailed` | <code>"未能发送给该助手，已保留你的草稿。"</code> | <code>"Could not send to this assistant. Your draft has been kept."</code> |
 | `composer.stop` | <code>"停止生成"</code> | <code>"Stop generating"</code> |
 | `composer.cancelSend` | <code>"取消发送"</code> | <code>"Cancel sending"</code> |
 | `composer.queued` | <code>"待发送"</code> | <code>"Pending"</code> |

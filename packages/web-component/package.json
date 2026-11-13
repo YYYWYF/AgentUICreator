@@ -29,13 +29,13 @@
   "sideEffects": true,
   "scripts": {
     "prepare:shell": "node scripts/prepare-shell.mjs",
-    "build": "node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "build": "node ../../scripts/package-build-integrity.mjs begin web-component && node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component && node ../../scripts/package-build-integrity.mjs record web-component",
     "typecheck": "node scripts/prepare-shell.mjs && tsc --noEmit",
     "test": "vitest run",
     "test:distribution": "node tests/distribution.test.mjs",
     "test:installation": "node tests/installation.test.mjs",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs web-component",
-    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs web-component --publish"
+    "prepack": "node ../../scripts/package-build-integrity.mjs check web-component && node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "prepublishOnly": "node ../../scripts/package-build-integrity.mjs check web-component && node ../../scripts/sync-package-release-metadata.mjs web-component --publish"
   },
   "dependencies": {
     "@za38.03/agent-ui-plugins": "workspace:*",

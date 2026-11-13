@@ -26,6 +26,8 @@ import {
   type OnInterruptCommandRequest,
 } from "./command-decision.js";
 import type { ConversationCommandForwarder } from "./conversation-command-forwarding-agent.js";
+import type { AgentUISendOptions } from "../host/threads.js";
+import { withConversationEndpoint } from "./conversation-request-routing.js";
 import {
   mapConversationInterrupt,
   mapConversationInterruptResponse,
@@ -151,13 +153,14 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     listener: AgentApplicationEventListener,
   ): (() => void) => this.options.applicationEvents.subscribe(listener);
 
-  async sendMessage(input: string | AgentUserInput): Promise<void> {
+  async sendMessage(input: string | AgentUserInput, options?: AgentUISendOptions): Promise<void> {
     this.assertAvailable();
     if (this.snapshot.interrupts.length > 0 || this.commandDecisionRequests.size > 0) {
       throw new Error("当前会话正在等待用户响应，请先处理 pending interrupts。");
     }
     const text = mapTextInput(input);
     if (text.length === 0) return;
+    const runConfig = withConversationEndpoint({}, options);
     this.actionInFlight = true;
     this.runtimeError = undefined;
     const settled = new Promise<void>((resolve, reject) => {
@@ -168,6 +171,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
         role: "user",
         content: [{ type: "text", text }],
         startRun: true,
+        runConfig,
       });
       this.sync();
     } catch (error) {

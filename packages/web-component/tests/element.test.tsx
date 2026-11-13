@@ -32,6 +32,16 @@ describe("host bridge lifecycle", () => {
     expect(preRegistered.config.endpoint).toBe("/pre-registered");
     expect(preRegistered.shadowRoot?.querySelector("[data-shell]")).not.toBeNull();
   });
+  it("accepts multiple explicit assistant endpoints and rejects ambiguous identities", () => {
+    const agents = [
+      { agentId: "a", endpoint: "/a", threadId: "same" },
+      { agentId: "b", endpoint: "/b", threadId: "same" },
+    ];
+    expect(resolveConfig({ agents: agents.map(agent => ({ ...agent, hidden: agent.agentId !== "b" })) }, {})).toMatchObject({ agents: [{ agentId: "a", hidden: true }, { agentId: "b", hidden: false }] });
+    expect(() => resolveConfig({ agents: [{ ...agents[0]!, hidden: "yes" as unknown as boolean }] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
+    expect(() => resolveConfig({ agents: [agents[0]!, agents[0]!] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
+    expect(() => resolveConfig({ agents: [] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
+  });
   it("initializes border and ring properties even with project-supplied styles", async () => {
     const { createAgentUIElement } = await import("../src/host");
     const Element = createAgentUIElement({ Root: () => null, styles: ".custom { color: red; }" });

@@ -52,6 +52,7 @@ function isConnectionState(value: unknown): value is AgentConnectionState {
     "running" in value && typeof value.running === "boolean" &&
     (!("enabled" in value) || typeof value.enabled === "boolean") &&
     (!("endpoint" in value) || typeof value.endpoint === "string") &&
+    (!("agentId" in value) || typeof value.agentId === "string") &&
     (!("connectionMode" in value) || value.connectionMode === "direct" || value.connectionMode === "proxy");
 }
 export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: string; visible: boolean }) {
@@ -60,6 +61,7 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
   localeMessagesRef.current = localeMessages;
   const [state, setState] = useState<AgentConnectionState>();
   const [endpoint, setEndpoint] = useState("");
+  const [agentId, setAgentId] = useState("");
   const [connectionMode, setConnectionMode] = useState<AgentConnectionMode>("proxy");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -70,12 +72,13 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
     const next = data.connection;
     if (!state || endpoint === (state.endpoint ?? "")) setEndpoint(next.endpoint ?? "");
     if (!state || connectionMode === (state.connectionMode ?? "proxy")) setConnectionMode(next.connectionMode ?? "proxy");
+    if (!state || agentId === (state.agentId ?? "")) setAgentId(next.agentId ?? "");
     setState(next); setError("");
   });
   useEffect(() => {
     let active = true;
-    setState(undefined); setError(""); setEndpoint(""); setConnectionMode("proxy");
-    void readAgentConnection(workspaceId, undefined, localeMessagesRef.current).then(value => { if (active) { setState(value); setEndpoint(value.endpoint ?? ""); setConnectionMode(value.connectionMode ?? "proxy"); } }).catch(error => { if (active) setError(error.message); });
+    setState(undefined); setError(""); setEndpoint(""); setAgentId(""); setConnectionMode("proxy");
+    void readAgentConnection(workspaceId, undefined, localeMessagesRef.current).then(value => { if (active) { setState(value); setAgentId(value.agentId ?? ""); setEndpoint(value.endpoint ?? ""); setConnectionMode(value.connectionMode ?? "proxy"); } }).catch(error => { if (active) setError(error.message); });
     const observe = (event: Event) => {
       const value = Boolean((event as CustomEvent).detail?.running);
       setRunning(value);
@@ -95,8 +98,8 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
           resolvedEndpoint = resolveAgentConnectionEndpoint(endpoint, await requestBusinessPageUrl(workspaceId));
         }
       }
-      const value = await readAgentConnection(workspaceId, { activeSource, enabled, connectionMode, ...(resolvedEndpoint === undefined ? {} : { endpoint: resolvedEndpoint }) }, localeMessages);
-      setState(value); setEndpoint(value.endpoint ?? ""); setConnectionMode(value.connectionMode ?? "proxy");
+      const value = await readAgentConnection(workspaceId, { activeSource, enabled, connectionMode, agentId: agentId.trim() || null, ...(resolvedEndpoint === undefined ? {} : { endpoint: resolvedEndpoint }) }, localeMessages);
+      setState(value); setAgentId(value.agentId ?? ""); setEndpoint(value.endpoint ?? ""); setConnectionMode(value.connectionMode ?? "proxy");
       window.dispatchEvent(new CustomEvent(CONNECTION_CHANGED, { detail: { workspaceId, state: value } }));
     } catch (error) { setError(error instanceof Error ? getConnectionErrors(localeMessages)[error.message] ?? error.message : localeMessages.agentConnection.settingsWereNotSavedTryAgainShortly); }
     finally { setSaving(false); }
@@ -106,7 +109,7 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
     const previousMode = state.connectionMode ?? "proxy";
     setConnectionMode(nextMode); setSaving(true); setError("");
     try {
-      const value = await readAgentConnection(workspaceId, { activeSource: state.activeSource, connectionMode: nextMode }, localeMessages);
+      const value = await readAgentConnection(workspaceId, { activeSource: state.activeSource, connectionMode: nextMode, ...(state.agentId ? { agentId: state.agentId } : {}) }, localeMessages);
       setState(value); setConnectionMode(value.connectionMode ?? "proxy");
       window.dispatchEvent(new CustomEvent(CONNECTION_CHANGED, { detail: { workspaceId, state: value } }));
     } catch (error) {
@@ -118,6 +121,8 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
   if (!visible) return null;
   return <section className="creator-agent-connection" aria-label={localeMessages.agentConnection.agentConnectionSettings} aria-busy={saving || (!state && !error)}>
     <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.connectAnAGUIAgentServiceOrExplore}</p>
+    <label className="cui:block cui:space-y-1">{localeMessages.agentConnection.assistantAgentId}<Input value={agentId} onChange={event => setAgentId(event.target.value)} disabled={!state || saving || sourceBusy} /></label>
+    <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.assistantAgentIdHelp}</p>
     <label className="cui:block cui:space-y-1">{localeMessages.agentConnection.agentServiceAddress}<Input value={endpoint} placeholder={localeMessages.agentConnection.forExampleHttpLocalhost8000Agent} onChange={event => setEndpoint(event.target.value)} disabled={!state || saving || sourceBusy} /></label>
     <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.relativeAddressHelp}</p>
     <p className="cui:text-xs cui:text-muted-foreground">{connectionMode === "direct" ? localeMessages.agentConnection.directConnectionHelp : localeMessages.agentConnection.forwardingHelp}</p>

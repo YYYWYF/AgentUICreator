@@ -10,25 +10,28 @@ export type AgentUIObservation =
   | { type: "runtime-diagnostic"; diagnostic: RuntimeDiagnostic }
   | { type: "runtime-composition"; composition: RuntimeCompositionSnapshot }
   | { type: "preview-committed"; appUIModelHash: string; root: HTMLElement };
+export type ScopedAgentUIObservation = AgentUIObservation & { agentId?: string };
 
 /** Dev adapters can attach after the Host has rendered, including after reload. */
 export const AGENT_UI_OBSERVATION_EVENT = "agent-ui:observation";
 const REQUEST_EVENT = "agent-ui:observation-request";
 const CACHE_KEY = Symbol.for("agent-ui.dev.observations");
-function observationCache(): Map<string, AgentUIObservation> {
-  const host = window as unknown as Record<symbol, Map<string, AgentUIObservation> | undefined>;
+function observationCache(): Map<string, ScopedAgentUIObservation> {
+  const host = window as unknown as Record<symbol, Map<string, ScopedAgentUIObservation> | undefined>;
   return host[CACHE_KEY] ??= new Map();
 }
-export function publishAgentUIObservation(detail: AgentUIObservation, development = false): void {
+export function publishAgentUIObservation(observation: AgentUIObservation, development = false, application?: { agentId: string }): void {
   if (!development) return;
+  const detail: ScopedAgentUIObservation = { ...observation, ...(application ? { agentId: application.agentId } : {}) };
   const cache = observationCache();
-  const key = detail.type === "runtime-diagnostic"
+  const suffix = detail.type === "runtime-diagnostic"
     ? `${detail.type}:${detail.diagnostic.appUIModelHash}:${detail.diagnostic.kind}:${detail.diagnostic.instanceId}:${detail.diagnostic.eventName}`
     : detail.type;
+  const key = JSON.stringify([application?.agentId, suffix]);
   cache.delete(key);
   cache.set(key, detail);
   if (cache.size > 130) {
-    const oldestDiagnostic = [...cache.keys()].find(key => key.startsWith("runtime-diagnostic:"));
+    const oldestDiagnostic = [...cache.keys()].find(key => key.includes("runtime-diagnostic:"));
     if (oldestDiagnostic !== undefined) cache.delete(oldestDiagnostic);
   }
   window.dispatchEvent(new CustomEvent(AGENT_UI_OBSERVATION_EVENT, { detail }));

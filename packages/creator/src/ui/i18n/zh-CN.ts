@@ -239,6 +239,8 @@ export const zhCN = {
     "invalidServiceAddressEnterACompleteHTTPOr": "服务地址无效，请填写 HTTP(S) 地址或相对路径。",
     "relativeAddressRequiresBusinessPage": "无法取得业务页面地址，请打开业务页面后重试，或填写完整的 HTTP(S) 地址。",
     "relativeAddressHelp": "相对路径按业务页面地址解析，保存后显示完整地址，不使用 Creator 服务地址。",
+    "assistantAgentId": "Agent ID",
+    "assistantAgentIdHelp": "多个助手时填写项目配置的 agentId，临时连接与预览证据仅作用于该 Agent。单助手可留空。",
     "useHTTPOrHTTPSWithoutAUsernamePassword": "请使用 HTTP 或 HTTPS 地址，且不要在地址中包含用户名、密码或 # 片段。",
     "enterTheAgentServiceAddressFirst": "请先填写 Agent 服务地址。",
     "chooseYourOwnAgentOrADemoAgent": "请选择接入自己的 Agent 或使用示例 Agent。",

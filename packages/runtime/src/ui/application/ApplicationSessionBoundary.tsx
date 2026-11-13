@@ -1,3 +1,4 @@
+import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
 import { useAgentUIProject } from "../project-context.js";
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
@@ -39,6 +40,7 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale:
   children: ReactNode;
   renderGate?: ((content: ReactNode, phase: string) => ReactNode) | undefined;
 }) {
+  const application = useAgentUIAgentIdentity();
   const { locales: AGENT_UI_LOCALES, appEventSchemas, defaultLocale, development, serviceOverrides } = useAgentUIProject();
   const locale = requestedLocale ?? defaultLocale;
   const current = useRef<AgentRuntime<AppAgentState> | null>(null);
@@ -59,12 +61,12 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale:
   const eventRegistry = useMemo(() => new AppEventRegistry(appEventSchemas), [appEventSchemas]);
   const onRuntimeDiagnostic = useMemo(() => (diagnostic: RuntimeDiagnostic) => {
     observability?.onRuntimeDiagnostic?.(diagnostic);
-    publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development);
-  }, [observability, development]);
+    publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic }, development, application);
+  }, [observability, development, application]);
   const onRuntimeComposition = useMemo(() => (snapshot: ObservedComposition) => {
     observability?.onRuntimeComposition?.(snapshot);
-    publishAgentUIObservation({ type: "runtime-composition", composition: snapshot }, development);
-  }, [observability, development]);
+    publishAgentUIObservation({ type: "runtime-composition", composition: snapshot }, development, application);
+  }, [observability, development, application]);
   const content = <AgentUILocaleProvider locale={locale} messages={AGENT_UI_LOCALES[locale]}>
     <PluginServiceProvider model={composition.runtimeModel} registry={composition.activeRegistry} actions={connection.actions} frontendTools={frontendTools} applicationEventRegistry={eventRegistry} serviceOverrides={serviceOverrides}>
       <ConnectionContext.Provider value={connection}>

@@ -73,22 +73,22 @@
           "sha256": "95f08f95ef961c514684910a522a12cc3886b3ca1a5cdcae1cb2799092fa2559"
         },
         "application/shell/assistant-robot-frames.ts": {
-          "sha256": "bcb0b093cac5835b2342c38e36fa5ac00ff3d90b60d7aec0d2a9acf4c182285d"
+          "sha256": "0ee04334a12e4960dcb5f6dbeac9479c811b3b4fd833fc84fa07ca9abcff31c9"
         },
         "application/shell/assistant-robot-still.png": {
-          "sha256": "b60442577a7cdf061f760dcf3b3672c07bc902634a721bc2c712cd415b652cc5"
+          "sha256": "3be9f5f4080d7a4ea6024b5db6c16db71185a9658a7e45c3e7f06acb96a55273"
         },
         "application/shell/assistant-robot-frames-0.webp": {
-          "sha256": "f4ae022d3bcb94ccfba5b1204c5910e76ad70d1c9f45e88cc30641e9c43184ef"
+          "sha256": "d47dc3eef92ea2b163a478f94b12b9221668bd52a26cb5d91f95abbfbf66b27e"
         },
         "application/shell/assistant-robot-frames-1.webp": {
-          "sha256": "a02b5942aab03f8c73a3079e0468674422cc1ee60cebe115d783ffac8330e958"
+          "sha256": "2fc553b6104c72c812a358c05afc82b3e045383ca61a474c2361caa88a80bdca"
         },
         "application/shell/assistant-robot-frames-2.webp": {
-          "sha256": "7eb86810a138a29236001002d9cc9604d79a2b9eece5fdf3ff68f2b2e548b929"
+          "sha256": "5e736b7f1f29d32aa8207637fe89e2cfb46a8d6b3f2b0ef74a54a4a26410dbbf"
         },
         "application/shell/assistant-robot-motion.ts": {
-          "sha256": "7fa29a8ef8b5c86df1ebced1dd2524f8915cd37a156a9c9f1d3586ad3f38f606"
+          "sha256": "30335a8728580b47207fa026ec9bb2b18c4f86d16b3eb19c000a3e8dc3f4a22a"
         }
       }
     }

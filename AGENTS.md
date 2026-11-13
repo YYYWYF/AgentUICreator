@@ -2,7 +2,7 @@
 
 Build an **Agent Frontend UI Plugin Creator**.
 
-Users modify the frontend through a Creator Agent. The final app connects to **one Agent Runtime through API** and consumes **AG-UI** data.
+Users modify the frontend through a Creator Agent. The final app consumes **AG-UI** data and may host isolated Agent instances. Each Thread belongs to one logical assistant. Workflow buttons may select different URLs within the same Thread; only explicit new-conversation actions create a new threadId. Business components control assistant visibility while mounted background Threads keep running.
 
 ## Architecture
 
@@ -88,7 +88,8 @@ Do not introduce:
 - Tool / Skill / Runtime / Model plugins
 - Agent backend logic
 - Multi-page concepts
-- Multiple Agent Runtimes
+
+Multiple frontend Agent instances reuse assistant-ui's canonical Thread/Runtime lifecycle. Do not multiplex independent Agent streams into one Thread or implement backend Agent orchestration. See `website/docs/development/multiple-agents.md` for application composition, history and preview boundaries.
 
 ## Rules
 

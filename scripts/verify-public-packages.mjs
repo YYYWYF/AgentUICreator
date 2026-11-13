@@ -9,7 +9,10 @@ import ts from "typescript-ui-audit";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
 import { publicTypeEntries } from "./public-package-types.mjs";
+import { checkPackageBuild } from "./package-build-integrity.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
+// This verifier packs with lifecycle scripts disabled below; enforce the same gate explicitly.
+for (const id of publicModules) await checkPackageBuild(id, root);
 const consumer = await realpath(await mkdtemp(path.join(tmpdir(), "agent-ui independent packages 中文 ")));
 const manifests = {};
 function run(args) {

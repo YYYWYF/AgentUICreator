@@ -32,6 +32,11 @@
       },
       {
         "type": "custom-link",
+        "label": "多 Agent 与工作流入口",
+        "link": "/development/multiple-agents"
+      },
+      {
+        "type": "custom-link",
         "label": "Agent 配置示例",
         "link": "/development/agent-options"
       }

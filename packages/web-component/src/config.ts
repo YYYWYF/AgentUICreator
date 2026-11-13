@@ -21,5 +21,16 @@ export function resolveConfig(config: AgentUIConfig, attributes: Record<string, 
   if (!["en-US", "zh-CN"].includes(resolved.locale)) throw new Error("Invalid Agent UI locale.");
   if (resolved.theme !== undefined && !isAgentUITheme(resolved.theme)) throw new Error("Invalid Agent UI theme.");
   if (resolved.threadId !== undefined && (typeof resolved.threadId !== "string" || !resolved.threadId.trim())) throw new Error("Invalid Agent UI thread identity.");
+  if (resolved.agents !== undefined) {
+    if (!Array.isArray(resolved.agents) || !resolved.agents.length) throw new Error("AGENT_UI_INVALID_AGENTS");
+    const ids = new Set<string>();
+    for (const instance of resolved.agents) {
+      if (!instance || typeof instance !== "object" || typeof instance.agentId !== "string" || !instance.agentId.trim() ||
+          instance.agentId !== instance.agentId.trim() || instance.agentId.length > 100 || typeof instance.endpoint !== "string" || !instance.endpoint.trim() || ids.has(instance.agentId) ||
+          (instance.hidden !== undefined && typeof instance.hidden !== "boolean") ||
+          (instance.threadId !== undefined && (typeof instance.threadId !== "string" || !instance.threadId.trim()))) throw new Error("AGENT_UI_INVALID_AGENTS");
+      ids.add(instance.agentId);
+    }
+  }
   return resolved as ResolvedAgentUIConfig;
 }

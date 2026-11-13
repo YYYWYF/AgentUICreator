@@ -3,9 +3,10 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 import type { AgentRuntime, AgentRuntimeSnapshot } from "@za38.03/agent-ui-core";
 import {
-  AgentUIProvider, AgentUIRuntimeBinding, AgentUIConnectionState,
+  AgentUIRuntimeBinding, AgentUIConnectionState,
   useAgentUI, useAgentUIState, useAgentUIEvent, useAgentUIUser, type AgentUIHost,
 } from "../src/host/AgentUIProvider.js";
+import { AgentUIProvider, AgentUIAgentProvider, useAgentUIAgents, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
 
 function source(id: string) {
   let snapshot: AgentRuntimeSnapshot = { conversation: { id }, messages: [], state: {}, run: { status: "idle" }, executions: [], interrupts: [] };
@@ -21,6 +22,20 @@ function source(id: string) {
 }
 
 describe("package-owned Host provider", () => {
+  it("preserves independent registrations across StrictMode replay", async () => {
+    let agents!: AgentUIAgents;
+    function Probe() { agents = useAgentUIAgents(); return null; }
+    let tree!: ReactTestRenderer;
+    await act(async () => {
+      tree = create(<StrictMode><AgentUIProvider><Probe />
+        <AgentUIAgentProvider agentId="a"><span /></AgentUIAgentProvider>
+        <AgentUIAgentProvider agentId="b"><span /></AgentUIAgentProvider>
+      </AgentUIProvider></StrictMode>);
+    });
+    expect(agents.getSnapshot().agents.map(instance => instance.agentId)).toEqual(["a", "b"]);
+    await act(async () => tree.unmount());
+    expect(agents.getSnapshot().agents).toEqual([]);
+  });
   it("keeps a stable Host facade, delegates actions and distinguishes run end from success", async () => {
     const active = source("A");
     let host!: AgentUIHost;

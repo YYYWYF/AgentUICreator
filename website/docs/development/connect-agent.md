@@ -20,6 +20,31 @@ React 工程在生成的 `Agent` 上传入业务 endpoint：
 
 `/api/agent` 应指向业务 AG-UI 服务或网关。**接口需返回当前客户端支持的 AG-UI 事件流**；**模型服务的 Chat Completions JSON 不能直接作为这个接口**。
 
+## 请求头与鉴权
+
+在业务页面通过 `Agent` 的 `request` 属性传入 AG-UI 请求的 headers 和 Cookie 策略。例如，`token` 和 `tenantId` 由业务页面当前的登录状态提供：
+
+```tsx
+<Agent
+  endpoint="/api/agent"
+  request={{
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-Tenant-Id': tenantId,
+    },
+    credentials: 'include',
+  }}
+/>
+```
+
+- `request.headers` 是 `Record<string, string>`，用于传入自定义请求头，不接受回调。登录凭据变化后，由页面更新 props；后续请求使用更新后的配置。
+- `request.credentials` 支持 `omit`、`same-origin`、`include`。不传时沿用浏览器 Fetch 的默认行为；需要跨域携带 Cookie 时使用 `include`，服务端同时需要允许对应来源、请求头和凭据。
+- 这里只传浏览器可持有的用户凭据；模型 API Key 等服务端密钥由业务网关保管。`Agent user` 只用于用户资料展示，不会自动生成鉴权头。
+
+`AgentApplication` 和 `AgentUIApplication` 也支持相同的 `request` 属性。此配置用于 AG-UI 请求；历史、上传、转写和评价接口的鉴权需在各自的服务配置中设置，见[会话服务](/development/history-backend#地址与鉴权配置)和[附件、语音与评价服务](/development/attachments-dictation-feedback)。
+
+**Creator 开发预览当前会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此预览请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请关闭临时连接并在普通业务页面测试。
+
 ## 验证实际响应
 
 1. 确认地址指向本次要接入的业务服务，停止当前助理运行后再切换。

@@ -15,6 +15,7 @@ export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, T
 export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export { Button } from "./internal/adapters-generated/assistant-ui/components/ui/button.js";
 export { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
+export { useOptionalAgentUI } from "@za38.03/agent-ui-runtime/plugin-api";
 export { ResponseActionBarRoot, ResponseBranchPicker } from "./internal/composable-thread.js";
 export { ToolTimeline } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
 export { ThinkingIndicator } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/thinking-indicator.js";

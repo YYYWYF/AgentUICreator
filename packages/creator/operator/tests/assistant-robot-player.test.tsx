@@ -84,13 +84,13 @@ it('blinks the SVG eyes continuously without switching or redrawing a stationary
     await act(async () => { root.render(<button><AssistantRobot hovered={false} clickSignal={0} completionSignal={0} activity='idle' conversationId='a' /></button>); });
     await vi.waitFor(() => expect(host.querySelector('canvas')?.hidden).toBe(false));
     const open = host.querySelector('[data-eye]')!.getAttribute('transform');
-    expect(host.querySelector('canvas')?.dataset.view).toBe('42');
+    expect(host.querySelector('canvas')?.dataset.view).toBe('14');
     for (let time = 16; time <= 2336; time += 16) act(() => frame?.(time));
     expect(host.querySelector('[data-eye]')?.getAttribute('transform')).not.toBe(open);
     const closed = host.querySelector('[data-eye]')!.getAttribute('transform')!;
     const matrix = closed.match(/matrix\(([^)]+)\)/)![1]!.split(' ').map(Number);
     expect(matrix[0]! * matrix[3]! - matrix[1]! * matrix[2]!).toBeCloseTo(.02, 4);
-    expect(host.querySelector('canvas')?.dataset.view).toBe('42');
+    expect(host.querySelector('canvas')?.dataset.view).toBe('14');
     expect(context.drawImage).toHaveBeenCalledTimes(1);
     for (let time = 2352; time <= 2704; time += 16) act(() => frame?.(time));
     expect(host.querySelector('[data-eye]')?.getAttribute('transform')).toBe(open);

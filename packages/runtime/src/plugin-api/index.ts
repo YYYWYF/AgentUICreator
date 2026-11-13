@@ -25,3 +25,7 @@ export * from "./portal.js";
 export * from "./composer.js";
 export * from "./thread-binding.js";
 export * from "../conversation-support/task-disclosure-context.js";
+export { useOptionalAgentUIAgents, useAgentUIAgents, useAgentUIAgentsState, useAgentUIAgentIdentity } from "../host/AgentUIAgentsProvider.js";
+export type { AgentUIAgents, AgentUIAgentsSnapshot, AgentUIAgentIdentity, AgentUIThreadRef } from "../host/AgentUIAgentsProvider.js";
+
+export { useOptionalAgentUI } from "../host/AgentUIProvider.js";

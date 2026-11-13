@@ -225,6 +225,8 @@ export interface UIPluginServiceRegistrar extends UIPluginServices {
 }
 
 export interface UIPluginSetupContext {
+  /** Host assistant identity; distinct from the Plugin instance below. */
+  application?: { readonly agentId: string } | undefined;
   instance: AppUIRuntimePluginInstance;
   actions: UIPluginActions;
   events: UIPluginEvents;

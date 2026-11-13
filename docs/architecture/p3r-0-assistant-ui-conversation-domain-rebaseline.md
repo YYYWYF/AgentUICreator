@@ -1,6 +1,6 @@
 # Conversation Domain 架构
 
-assistant-ui 是 Agent UI 的 canonical Conversation Domain 实现。一个 Agent 应用只连接一个业务 Agent Runtime，消息与生命周期只有一个 canonical owner。
+assistant-ui 是 Agent UI 的 canonical Conversation Domain 实现。一个应用可组合多个隔离的 Agent 实例；每个 Thread 归属一个逻辑助手，消息与生命周期只有一个 canonical owner。同一助手的工作流按钮可为每次发送指定 URL；只有显式新建会话才生成新的 threadId，打开历史恢复原 Thread。业务组件控制助手显示，后台运行由上游持有；工具续传、重试和审批恢复沿用原请求入口。具体接线见[多 Agent 接入](../../website/docs/development/multiple-agents.md)。
 
 ## 所有权
 

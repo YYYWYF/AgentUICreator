@@ -1,12 +1,14 @@
 export type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
-import type { AttachmentConfig, DictationConfig, FeedbackConfig } from "./service-config.js";
+import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 export {
-  AgentUIProvider, AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet,
+  AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet,
   AgentUIHostUserProvider, useAgentUIUser, useAgentUI, useOptionalAgentUI,
   useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, useAgentUISurfaceTarget, AgentUIHostError,
 } from "./host/AgentUIProvider.js";
 export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus, AgentUIAppEventListener } from "./host/AgentUIProvider.js";
+export * from "./host/AgentUIAgentsProvider.js";
+export type { AgentUIThread, AgentUISendOptions } from "./host/threads.js";
 export { createAgentUIFrontendTools, combineAgentFrontendToolSources } from "./host/frontend-tools.js";
 export type { AgentUIFrontendTool, AgentUIFrontendToolContext } from "./host/frontend-tools.js";
 export type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
@@ -49,6 +51,8 @@ export { projectLangChainHistory } from "./history/langchain-history-projector.j
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
   threadId: string;
+  getRequestConfig?: (() => ServiceRequestConfig | undefined) | undefined;
+  getRequestEndpoint?: (() => string) | undefined;
 }
 
 export type ConversationAgentFactory = (
@@ -59,6 +63,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   /** Page-memory presentation service; never enters Agent messages or persistence. */
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
+  request?: ServiceRequestConfig | undefined;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;

@@ -39,7 +39,7 @@ function spring(axis: Axis, target: number, dt: number, speed = 10) {
 
 /** Presentation-only controller. Never starts, cancels or simulates an Agent run. */
 export class AssistantRobotMotion {
-  private yaw: Axis = { value: .35, velocity: 0 };
+  private yaw: Axis = { value: -.35, velocity: 0 };
   private pitch: Axis = { value: 0, velocity: 0 };
   private roll: Axis = { value: 0, velocity: 0 };
   private height: Axis = { value: 0, velocity: 0 };
@@ -115,15 +115,14 @@ export class AssistantRobotMotion {
         this.idlePhase = 0;
         this.returning = false;
       }
-      const phase = this.idlePhase % 32;
-      const turn = phase % 16, side = phase < 16 ? 1 : -1;
-      // Rest at 20 degrees, but keep the original full 40-degree turning range.
-      if (turn < 11.4) yaw = side * .35;
-      else if (turn < 12) yaw = side * (.35 + .35 * ease((turn - 11.4) / .6));
-      else if (turn < 12.4) yaw = side * .7;
-      else if (turn < 15) yaw = side * .7 * (1 - 2 * ease((turn - 12.4) / 2.6));
-      else if (turn < 15.4) yaw = -side * .7;
-      else yaw = -side * (.7 - .35 * ease((turn - 15.4) / .6));
+      const turn = this.idlePhase % 18;
+      // Rest only at the left-facing 20-degree view; turn both ways, then return.
+      if (turn < 11.4) yaw = -.35;
+      else if (turn < 12) yaw = -(.35 + .35 * ease((turn - 11.4) / .6));
+      else if (turn < 12.4) yaw = -.7;
+      else if (turn < 15) yaw = -.7 * (1 - 2 * ease((turn - 12.4) / 2.6));
+      else if (turn < 15.4) yaw = .7;
+      else yaw = .7 - 1.05 * ease((turn - 15.4) / 2.6);
       this.idlePhase += dt;
     }
     // The two view banks meet at exactly the same frontal pose.

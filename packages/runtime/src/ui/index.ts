@@ -1,4 +1,5 @@
 export { AgentApplication, type AgentProps } from "./application/Agent.js";
+export { AgentUIApplication, type AgentUIApplicationProps } from "./application/AgentUIApplication.js";
 export { AgentUIProjectProvider, type AgentUIProjectOptions, type AgentUIShellProps } from "./project-context.js";
 export { AgentUICompatibilityRoot } from "./application/AgentUICompatibilityRoot.js";
 export { AgentSurface, AgentEnvironment } from "./application/AgentSurface.js";

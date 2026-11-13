@@ -57,7 +57,8 @@
     "docs:package": "node scripts/creator-documentation.mjs --generate",
     "test:documentation": "node --test scripts/creator-documentation.test.mjs",
     "docs:install": "pnpm --dir website install --frozen-lockfile",
-    "check:project-code": "node scripts/project-code-quality.mjs"
+    "check:project-code": "node scripts/project-code-quality.mjs",
+    "check:package-integrity": "node scripts/package-build-integrity.mjs check"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3",

@@ -36,7 +36,7 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
           if (current?.id !== workspace.id) throw new Error("Workspace changed.");
           const previous = await store.read();
           const input = JSON.parse(body);
-          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), enabled: previous.enabled !== false, connectionMode: previous.connectionMode ?? "proxy", ...input }));
+          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), ...(previous.agentId ? { agentId: previous.agentId } : {}), enabled: previous.enabled !== false, connectionMode: previous.connectionMode ?? "proxy", ...input }));
         } finally { status.saving = false; }
         return;
       }

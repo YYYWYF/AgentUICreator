@@ -122,6 +122,7 @@ export const zhCN = {
     "stopVoice": "停止语音输入",
     "send": "发送消息",
     "queueSend": "加入发送队列",
+    "agentSendFailed": "未能发送给该助手，已保留你的草稿。",
     "stop": "停止生成",
     "cancelSend": "取消发送",
     "queued": "待发送",

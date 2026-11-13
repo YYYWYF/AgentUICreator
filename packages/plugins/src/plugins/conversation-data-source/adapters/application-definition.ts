@@ -19,16 +19,16 @@ const development = process.env.NODE_ENV === 'development';
 export const conversationDataSourcePlugin: UIPluginDefinition = {
   manifest: implementation.manifest,
   provides: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
-  setup: implementation.bindSetup(({ services }: Parameters<NonNullable<UIPluginDefinition['setup']>>[0]) => {
+  setup: implementation.bindSetup(({ services, application }: Parameters<NonNullable<UIPluginDefinition['setup']>>[0]) => {
     const endpoint = resolveConversationDataEndpoint({
-      configuredEndpoint: getPreviewAgentEnvironment(development)?.conversationDataEndpointOverride,
+      configuredEndpoint: getPreviewAgentEnvironment(development, application?.agentId)?.conversationDataEndpointOverride,
     });
     const source =
       endpoint === undefined
         ? createEmptyConversationDataSource()
         : createHttpConversationDataSource({
             endpoint,
-            fetch: conversationDataSourceConfig.fetch ?? createAgentBackendTransport({ development: development }).fetch,
+            fetch: conversationDataSourceConfig.fetch ?? createAgentBackendTransport({ development, agentId: application?.agentId }).fetch,
           });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   }),
