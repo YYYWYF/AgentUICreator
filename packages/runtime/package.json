@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-runtime",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "description": "Canonical Conversation runtime adapter for Agent UI frontends",
   "type": "module",
   "engines": {
@@ -63,7 +63,7 @@
     "@za38.03/agent-ui-renderer": "workspace:*"
   },
   "peerDependencies": {
-    "@za38.03/agent-ui-core": "0.0.1",
+    "@za38.03/agent-ui-core": "0.0.9",
     "react": ">=18 <20",
     "react-dom": ">=18 <20"
   },

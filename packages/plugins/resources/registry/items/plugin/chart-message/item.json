@@ -25,6 +25,6 @@
   ],
   "packages": {
     "react": ">=18 <20",
-    "@za38.03/agent-ui-plugins": "0.0.1"
+    "@za38.03/agent-ui-plugins": "0.0.9"
   }
 }

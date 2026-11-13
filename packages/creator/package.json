@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-creator",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "description": "TypeScript Creator Agent, Operator tools and development workbench in one npm package",
   "type": "module",
   "engines": {

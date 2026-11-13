@@ -32,7 +32,7 @@
     }
   ],
   "packages": {
-    "@za38.03/agent-ui-web-component": "0.0.1",
+    "@za38.03/agent-ui-web-component": "0.0.9",
     "vite": "6.4.5",
     "@vitejs/plugin-react": "4.7.0",
     "@tailwindcss/vite": "4.3.3"

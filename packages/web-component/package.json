@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-web-component",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "description": "Standalone Web Component compatibility host for the React Agent UI",
   "type": "module",
   "files": [

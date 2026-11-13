@@ -5,7 +5,7 @@
   "files": [],
   "packages": {
     "zod": "4.5.4",
-    "@za38.03/agent-ui-renderer": "0.0.1",
-    "@za38.03/agent-ui-plugins": "0.0.1"
+    "@za38.03/agent-ui-renderer": "0.0.9",
+    "@za38.03/agent-ui-plugins": "0.0.9"
   }
 }

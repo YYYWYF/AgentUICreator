@@ -11,8 +11,8 @@
   "requires": [],
   "packages": {
     "react": ">=18 <20",
-    "@za38.03/agent-ui-plugins": "0.0.1",
-    "@za38.03/agent-ui-runtime": "0.0.1",
+    "@za38.03/agent-ui-plugins": "0.0.9",
+    "@za38.03/agent-ui-runtime": "0.0.9",
     "lucide-react": "1.41.0",
     "tailwindcss": "4.3.3"
   }

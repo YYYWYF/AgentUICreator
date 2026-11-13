@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-plugins",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "description": "Agent UI React components and official UI plugins",
   "type": "module",
   "engines": {
@@ -357,9 +357,9 @@
     "@lexical/utils": "0.51.0",
     "@lexical/history": "0.51.0",
     "@lexical/plain-text": "0.51.0",
-    "@za38.03/agent-ui-core": "0.0.1",
-    "@za38.03/agent-ui-renderer": "0.0.1",
-    "@za38.03/agent-ui-runtime": "0.0.1"
+    "@za38.03/agent-ui-core": "0.0.9",
+    "@za38.03/agent-ui-renderer": "0.0.9",
+    "@za38.03/agent-ui-runtime": "0.0.9"
   },
   "devDependencies": {
     "postcss": "8.5.28",

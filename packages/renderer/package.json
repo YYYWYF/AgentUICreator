@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-renderer",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "description": "Official deterministic React layout runtime for Agent UI frontends",
   "type": "module",
   "engines": {
