@@ -13,6 +13,24 @@ import { deliveries, portableSource, sourceEntries } from "../scripts/plugin-sou
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 
+it('publishes skills as an opt-in UI plugin without enabling it in any initialization preset', async () => {
+  const catalog = JSON.parse(await readFile(path.join(root, 'dist/catalog.json'), 'utf8'));
+  const skills = catalog.plugins.find(plugin => plugin.id === 'skills');
+  const selection = catalog.plugins.find(plugin => plugin.id === 'skills-selection');
+  expect(skills.application.component).toBe('SkillsPlugin');
+  expect(skills.application.services.provides).toContain('conversation.skills');
+  expect(selection.application.component).toBe('SkillsSelectionPlugin');
+  expect(skills.takeover.requiredDependencies).toHaveProperty('@base-ui/react');
+  expect(skills.takeover.requiredDependencies).toHaveProperty('lucide-react');
+  for (const mode of ['platform', 'assistant', 'embedded']) {
+    const presetPath = path.join(root, '../creator/operator/presets', mode, 'app-ui.json');
+    let model = JSON.parse(await readFile(presetPath, 'utf8'));
+    if (model.$ref) model = JSON.parse(await readFile(path.resolve(path.dirname(presetPath), model.$ref), 'utf8'));
+    expect(JSON.stringify(model)).not.toContain('"pluginId":"skills"');
+    expect(JSON.stringify(model)).not.toContain('"pluginId":"skills-selection"');
+  }
+});
+
 // This exhaustive extraction formats every published Plugin source, rather than
 // exercising one unit. Use the same budget as installed-package integration cases.
 it("extracts every official Plugin against the public contract without a copied framework", async () => {
@@ -32,7 +50,9 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   expect(catalog.plugins.some(plugin => plugin.id === "reasoning")).toBe(true);
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
-  expect(ids).toHaveLength(46);
+  expect(ids).toHaveLength(48);
+  expect(ids).toContain('skills');
+  expect(ids).toContain('skills-selection');
   expect(ids).not.toContain("conversation-history");
   expect(pkg.exports).not.toHaveProperty("./conversation-history");
   expect(catalog.plugins.map(plugin => plugin.id).sort()).toEqual(ids);
@@ -143,7 +163,7 @@ it("binds takeover integrity to final runtime entries including appended utility
 
 it("owns each Plugin's presentation closure while preserving upstream bytes and npm Context owners", async () => {
   const catalog = JSON.parse(await readFile(path.join(root, "dist/catalog.json"), "utf8"));
-  const forbiddenOwners = /src\/internal\/(?:composer-input-host-context|assistant-response-runtime|conversation-transient-messages|task-disclosure-context|tool-renderer-context|quote-thread-root)\.tsx?$/u;
+  const forbiddenOwners = /src\/internal\/(?:composer-input-host-context|composer-input-accessory-context|assistant-response-runtime|conversation-transient-messages|task-disclosure-context|tool-renderer-context|quote-thread-root)\.tsx?$/u;
   for (const plugin of catalog.plugins) {
     const files = plugin.takeover.files;
     expect(files.some(file => file.target === "presentation.css"), plugin.id).toBe(true);

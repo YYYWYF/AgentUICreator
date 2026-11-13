@@ -139,6 +139,12 @@
     },
     "tool-result": {
       "version": "0.0.1"
+    },
+    "skills": {
+      "version": "0.0.1"
+    },
+    "skills-selection": {
+      "version": "0.0.1"
     }
   }
 }

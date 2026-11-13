@@ -1,0 +1,31 @@
+{
+  "id": "plugin/skills-selection",
+  "kind": "agent-component",
+  "description": "Selected skill presentation in composer.beforeInput",
+  "files": [
+    {
+      "source": "files/plugins/skills-selection/definition.ts",
+      "target": "plugins/skills-selection/definition.ts"
+    },
+    {
+      "source": "files/plugins/skills-selection/index.tsx",
+      "target": "plugins/skills-selection/index.tsx"
+    },
+    {
+      "source": "files/plugins/skills-selection/manifest.json",
+      "target": "plugins/skills-selection/manifest.json"
+    },
+    {
+      "source": "files/plugins/skills-selection/styles.css",
+      "target": "plugins/skills-selection/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/skills"
+  ],
+  "packages": {
+    "react": ">=18 <20",
+    "lucide-react": "1.41.0"
+  }
+}

@@ -22,5 +22,6 @@ export {
   useInternalConversationQuoteLifecycle as useConversationQuoteLifecycle,
 } from "../conversation-support/quote-lifecycle.js";
 export * from "./portal.js";
+export * from "./composer.js";
 export * from "./thread-binding.js";
 export * from "../conversation-support/task-disclosure-context.js";

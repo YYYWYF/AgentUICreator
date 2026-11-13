@@ -1,5 +1,19 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const enUS = {
+  skills: {
+    title: "Skills and workflows",
+    more: "More",
+    search: "Search skills or workflows",
+    skills: "Skills",
+    workflows: "Workflows",
+    start: "Start",
+    starting: "Starting",
+    remove: "Remove skill",
+    empty: "No matching skills or workflows",
+    unavailable: "No skills or workflows available",
+    hint: "Choose a skill, then write your request. Workflows start when you click Start.",
+    startFailed: "Unable to start the workflow. Please try again.",
+  },
   ...AGENT_UI_RUNTIME_LOCALES["en-US"],
   "toolResult": {
     "resolving": "Loading file…",

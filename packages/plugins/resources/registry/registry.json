@@ -239,6 +239,14 @@
     {
       "id": "foundation/shell-platform",
       "path": "items/foundation/shell-platform/item.json"
+    },
+    {
+      "id": "plugin/skills",
+      "path": "items/plugin/skills/item.json"
+    },
+    {
+      "id": "plugin/skills-selection",
+      "path": "items/plugin/skills-selection/item.json"
     }
   ]
 }

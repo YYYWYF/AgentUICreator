@@ -1,0 +1,12 @@
+{
+  "id": "skills-selection",
+  "name": "Selected Skill",
+  "description": "Shows the current thread's selected skill through the Composer beforeInput Slot.",
+  "version": "0.0.1",
+  "capabilities": ["conversation-composer-before-input"],
+  "authoring": {
+    "intents": ["show the selected skill inside the composer", "pair with the skills bar", "显示已选技能标签"],
+    "visualRole": "selected skill preview inside the composer",
+    "defaultPlacement": {"type": "plugin_slot", "parentPluginId": "composer", "slot": "beforeInput"}
+  }
+}

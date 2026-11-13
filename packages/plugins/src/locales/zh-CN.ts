@@ -1,5 +1,19 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const zhCN = {
+  skills: {
+    title: "技能与工作流",
+    more: "更多",
+    search: "搜索技能或工作流",
+    skills: "技能",
+    workflows: "工作流",
+    start: "启动",
+    starting: "启动中",
+    remove: "移除技能",
+    empty: "没有匹配的技能或工作流",
+    unavailable: "暂无可用技能或工作流",
+    hint: "选择技能后输入需求，工作流点击启动",
+    startFailed: "工作流启动失败，请重试。",
+  },
   ...AGENT_UI_RUNTIME_LOCALES["zh-CN"],
   "toolResult": {
     "resolving": "正在加载文件…",

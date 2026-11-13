@@ -1405,3 +1405,16 @@ export function ConversationDefaultTool(props: ConversationToolCallProps & { res
 export { ConversationSurface, ConversationWelcome, ConversationEmptyState, type ConversationSurfaceProps, type ConversationTheme } from "./internal/conversation-surface.js";
 
 export { createDefaultAgentUIPresentation } from "./presentation.js";
+
+export { ConversationSkills } from "./plugins/skills/adapters/presentation/skills.js";
+export type { ConversationSkillsProps, ConversationSkillItem, ConversationSkill, ConversationWorkflow } from "./plugins/skills/adapters/presentation/skills.js";
+export { ConversationSkillsBar } from "./plugins/skills/adapters/presentation/bar.js";
+export { useConversationComposerRunConfig } from '@za38.03/agent-ui-runtime/plugin-api';
+export type { ConversationSkillsPluginProps } from "./plugins/skills/adapters/presentation/bar.js";
+export { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from "./plugins/skills/adapters/presentation/service.js";
+export type { ConversationSkillsService, ConversationSkillComposerBinding } from "./plugins/skills/adapters/presentation/service.js";
+export { useConversationSkillsState } from "./plugins/skills/adapters/presentation/use-skills.js";
+export { ConversationSkillSelection } from "./plugins/skills-selection/adapters/presentation/selection.js";
+export type { ConversationSkillSelectionProps } from "./plugins/skills-selection/adapters/presentation/selection.js";
+export { ConversationSkillsSelection } from "./plugins/skills-selection/adapters/presentation/binding.js";
+export type { ConversationSkillsSelectionPluginProps } from "./plugins/skills-selection/adapters/presentation/binding.js";

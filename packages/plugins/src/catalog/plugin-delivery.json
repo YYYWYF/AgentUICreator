@@ -1709,5 +1709,82 @@
     "publicPresentationTypes": true,
     "scopeKind": "conversation.tool-fallback",
     "componentSource": "adapters/component.tsx"
+  },
+  {
+    "id": "skills",
+    "component": "SkillsPlugin",
+    "symbol": "skillsPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "skills.tsx",
+      "service.ts",
+      "use-skills.ts",
+      "bar.tsx"
+    ],
+    "implementationExports": [
+      "ConversationSkillsBar",
+      "ConversationSkillsPluginProps"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "skills",
+    "implementationModule": "bar",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "conversation.skills"
+      ],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ]
+  },
+  {
+    "id": "skills-selection",
+    "component": "SkillsSelectionPlugin",
+    "symbol": "skillsSelectionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "selection.tsx",
+      "binding.tsx"
+    ],
+    "implementationExports": [
+      "ConversationSkillsSelection",
+      "ConversationSkillsSelectionPluginProps"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "skills-selection",
+    "implementationModule": "binding",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "conversation.skills"
+      ],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
   }
 ]

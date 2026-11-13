@@ -1792,6 +1792,66 @@
       "source": "src/plugins/tool-result/CHANGELOG.json",
       "kind": "changelog",
       "pluginId": "tool-result"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills/files/plugins/skills/definition.ts",
+      "source": "src/plugins/skills/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "skills"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills/files/plugins/skills/index.tsx",
+      "source": "src/plugins/skills/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "skills"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills/files/plugins/skills/manifest.json",
+      "source": "src/plugins/skills/plugin.json",
+      "kind": "project",
+      "pluginId": "skills"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills/files/plugins/skills/styles.css",
+      "source": "src/plugins/skills/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "skills"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills/changelog.json",
+      "source": "src/plugins/skills/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "skills"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills-selection/files/plugins/skills-selection/definition.ts",
+      "source": "src/plugins/skills-selection/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "skills-selection"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills-selection/files/plugins/skills-selection/index.tsx",
+      "source": "src/plugins/skills-selection/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "skills-selection"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills-selection/files/plugins/skills-selection/manifest.json",
+      "source": "src/plugins/skills-selection/plugin.json",
+      "kind": "project",
+      "pluginId": "skills-selection"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills-selection/files/plugins/skills-selection/styles.css",
+      "source": "src/plugins/skills-selection/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "skills-selection"
+    },
+    {
+      "view": "resources/registry/items/plugin/skills-selection/changelog.json",
+      "source": "src/plugins/skills-selection/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "skills-selection"
     }
   ]
 }
