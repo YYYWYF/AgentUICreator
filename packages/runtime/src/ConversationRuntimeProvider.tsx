@@ -4,9 +4,9 @@ import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestC
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
-import type { AbstractAgent } from "@ag-ui/client";
+import type { AbstractAgent, HttpAgentConfig } from "@ag-ui/client";
 import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "./plugin-api/index.js";
-import { fetchWithSseLineEndings } from "./compatibility/sse-line-endings.js";
+import { normalizeSseResponse } from "./compatibility/sse-line-endings.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import { useFrontendToolSource } from "./tools/use-frontend-tool-source.js";
 import { installCancelledToolContinuationGuard } from "./compatibility/cancelled-tool-continuation.js";
@@ -71,6 +71,7 @@ export interface ConversationAgentFactoryConfig {
   threadId: string;
   getRequestConfig?: (() => ServiceRequestConfig | undefined) | undefined;
   getRequestEndpoint?: (() => string) | undefined;
+  getFetch?: (() => HttpAgentConfig["fetch"]) | undefined;
 }
 
 export type ConversationAgentFactory = (
@@ -81,6 +82,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   request?: ServiceRequestConfig | undefined;
+  /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
+  fetch?: HttpAgentConfig["fetch"];
   /** Internal Host preview override also applies to workflow requests. */
   requestEndpointOverride?: string | undefined;
   threadBinding: ConversationThreadBinding<TState>;
@@ -108,16 +111,17 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   unstable_agentFactory?: ConversationAgentFactory | undefined;
 }
 
-const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId, getRequestConfig, getRequestEndpoint }) =>
+const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId, getRequestConfig, getRequestEndpoint, getFetch }) =>
   new HttpAgent({
     url: endpoint,
     threadId,
     headers: { Accept: "text/event-stream" },
-    fetch: (url, init) => {
+    fetch: async (url, init) => {
       const config = getRequestConfig?.();
       const headers = new Headers(init?.headers);
       for (const [name, value] of Object.entries(config?.headers ?? {})) headers.set(name, value);
-      return fetchWithSseLineEndings(getRequestEndpoint?.() ?? url, { ...init, headers, ...(config?.credentials === undefined ? {} : { credentials: config.credentials }) });
+      const send = getFetch?.() ?? ((url: string, init: RequestInit) => globalThis.fetch(url, init));
+      return normalizeSseResponse(await send(getRequestEndpoint?.() ?? url, { ...init, headers, ...(config?.credentials === undefined ? {} : { credentials: config.credentials }) }));
     },
   });
 
@@ -141,6 +145,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
   endpoint,
   request,
+  fetch: requestFetch,
   requestEndpointOverride,
   threadBinding,
   frontendTools: providedFrontendTools,
@@ -163,16 +168,21 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const registerHostThread = useAgentUIThreadRegistrar();
   const requestRef = useRef(request);
   useLayoutEffect(() => { requestRef.current = request; }, [request]);
+  const fetchRef = useRef(requestFetch);
+  useLayoutEffect(() => { fetchRef.current = requestFetch; }, [requestFetch]);
   const frontendTools = useFrontendToolSource(providedFrontendTools);
-  // Concrete configuration is serializable; inline JSX objects must not replace adapters on every render.
-  const attachmentKey = JSON.stringify(attachments);
-  const dictationKey = JSON.stringify(dictation);
-  const feedbackKey = JSON.stringify(feedbackConfig);
+  // Compare HTTP options by value, but keep custom implementations out of serialization.
+  const attachmentKey = JSON.stringify(attachments && { ...attachments, dataSource: undefined });
+  const dictationKey = JSON.stringify(dictation && { ...dictation, dataSource: undefined });
+  const feedbackKey = JSON.stringify(feedbackConfig && { ...feedbackConfig, dataSource: undefined });
+  const attachmentDataSource = attachments ? attachments.dataSource : undefined;
+  const dictationDataSource = dictation ? dictation.dataSource : undefined;
+  const feedbackDataSource = feedbackConfig ? feedbackConfig.dataSource : undefined;
   const attachmentTransfers = useRef(new Map<string, AbortController>());
   useEffect(() => () => { for (const controller of attachmentTransfers.current.values()) controller.abort(); attachmentTransfers.current.clear(); }, []);
-  const resolvedAttachments = useMemo(() => attachmentAdapter ?? (attachments === false ? undefined : createAttachmentAdapter(attachments ?? {}, serviceMessages, attachmentTransfers.current)), [attachmentAdapter, attachmentKey, serviceMessages]);
-  const resolvedDictation = useMemo(() => dictationAdapter ?? (dictation === false ? undefined : createDictationAdapter(dictation ?? {}, serviceMessages, onError)), [dictationAdapter, dictationKey, serviceMessages, onError]);
-  const resolvedFeedback = useMemo(() => feedbackAdapter ?? (feedbackConfig === false ? undefined : createFeedbackAdapter(feedbackConfig ?? {}, serviceMessages)), [feedbackAdapter, feedbackKey, serviceMessages]);
+  const resolvedAttachments = useMemo(() => attachmentAdapter ?? (attachments === false ? undefined : createAttachmentAdapter(attachments ?? {}, serviceMessages, attachmentTransfers.current)), [attachmentAdapter, attachmentKey, attachmentDataSource, serviceMessages]);
+  const resolvedDictation = useMemo(() => dictationAdapter ?? (dictation === false ? undefined : createDictationAdapter(dictation ?? {}, serviceMessages, onError)), [dictationAdapter, dictationKey, dictationDataSource, serviceMessages, onError]);
+  const resolvedFeedback = useMemo(() => feedbackAdapter ?? (feedbackConfig === false ? undefined : createFeedbackAdapter(feedbackConfig ?? {}, serviceMessages)), [feedbackAdapter, feedbackKey, feedbackDataSource, serviceMessages]);
   const [defaultTransientMessages] = useState(createConversationTransientMessageService);
   const transientMessageService = transientMessages ?? defaultTransientMessages;
   const toolRevision = useSyncExternalStore(
@@ -228,7 +238,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const commandForwarderRef = useRef<ReturnType<typeof installConversationCommandForwarding> | undefined>(undefined);
     const agent = useMemo(() => {
       const routing = new ConversationRequestRouting(endpoint);
-      const created = unstable_agentFactory({ endpoint, threadId: ownedId, getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint() });
+      const created = unstable_agentFactory({ endpoint, threadId: ownedId, getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint(), getFetch: () => fetchRef.current });
       commandForwarderRef.current = installConversationCommandForwarding(created);
       created.use(routing);
       return installConversationQuoteContext(created, () => [...quoteMessagesRef.current.values()]);

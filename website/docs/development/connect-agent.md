@@ -45,6 +45,27 @@ React 工程在生成的 `Agent` 上传入业务 endpoint：
 
 **Creator 开发预览当前会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此预览请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请关闭临时连接并在普通业务页面测试。
 
+## 自定义请求函数
+
+通过 `fetch` 属性传入自己的请求函数，参数和返回值沿用 HttpAgent 的 `fetch` 选项：
+
+```tsx
+<Agent
+  endpoint="/api/agent"
+  fetch={async (url, init) => {
+    const headers = new Headers(init.headers);
+    headers.set('Authorization', `Bearer ${await getToken()}`);
+    return myAgentRequest(url, { ...init, headers });
+  }}
+/>
+```
+
+`getToken` 和 `myAgentRequest` 是业务项目自己的函数。回调收到实际请求地址，以及已合并 `request.headers`、`request.credentials` 的请求参数；返回 `Promise<Response>`，其中 body 为客户端支持的 AG-UI 事件流，SSE 响应需带 `Content-Type: text/event-stream`。自己的接口使用其他格式时，在函数中转换后返回。
+
+保留请求的 `signal`，让停止生成能取消实际请求；转换 body 时保留会话标识、工具结果和中断恢复等协议字段。请求失败时抛出错误或返回相应 HTTP 失败响应。首次发送、重试、前端工具续传和中断恢复均经过此函数；它不接管历史查询、历史运行恢复流、附件上传等独立服务。
+
+`AgentApplication`、`AgentUIApplication` 和直接使用的 `ConversationRuntimeProvider` 均支持同名属性。省略时继续使用默认 fetch。更新函数后，后续请求使用新函数，已有会话保持。Creator 临时预览会绕过业务 `fetch`，使用预览连接；关闭临时连接后恢复。
+
 ## 验证实际响应
 
 1. 确认地址指向本次要接入的业务服务，停止当前助理运行后再切换。

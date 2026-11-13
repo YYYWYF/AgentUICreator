@@ -26,7 +26,7 @@ import { type AgentUser } from "./host-user.js";
 
 
 export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
-  "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter" | "request"> {
+  "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter" | "request" | "fetch"> {
   appEventSchemas?: AppEventSchemas | undefined;
   locales?: Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>> | undefined;
   /** Initial language for uncontrolled internal switching. */
@@ -65,7 +65,7 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", request, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", request, fetch, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const application = useAgentUIAgentIdentity();
   const { presentation, defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? defaultLocale);
@@ -122,12 +122,12 @@ function AgentSession({ frontendTools, getRunContext, transientMessages, theme, 
   return (
     <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale} theme={theme} onThemeChange={onThemeChange}
       renderGate={(content, phase) => <><AgentUIConnectionState status={phase === "error" ? "error" : phase === "blocked" ? "blocked" : "initializing"} /><AgentSurfacePortal>{content}</AgentSurfacePortal></>}>
-    <AuthenticatedConversation {...{ frontendTools: combinedFrontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, request, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
+    <AuthenticatedConversation {...{ frontendTools: combinedFrontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, request, fetch, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
     </ApplicationSessionBoundary>
   );
 }
 
-function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, request, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, request, fetch, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
   endpoint: string;
   presentationLocale: AgentUILocaleCode;
   setPresentationLocale: (locale: AgentUILocaleCode) => void;
@@ -145,6 +145,7 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
       transientMessages={transientMessages}
       endpoint={endpoint}
       request={request}
+      fetch={fetch}
       requestEndpointOverride={preview?.runtimeEndpoint}
       enableMessageQueue={conversationMessageQueueEnabled}
       {...conversationServices}
@@ -178,7 +179,7 @@ function AgentContent({ user, ...props }: AgentProps) {
     <AgentUIOutlet />
     <AgentUIProjectProvider value={previewProject}>
       {previewPending ? null : <AgentSession key={JSON.stringify([preview?.identity ?? "product", props.endpoint ?? "/agent"])} {...props}
-        {...(preview ? { endpoint: preview.runtimeEndpoint, request: undefined, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
+        {...(preview ? { endpoint: preview.runtimeEndpoint, request: undefined, fetch: undefined, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
     </AgentUIProjectProvider>
   </AgentUIHostUserProvider>;
 }

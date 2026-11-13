@@ -38,10 +38,11 @@ async function jsonRequest(url: string, init: RequestInit, messages: Messages) {
   try { return await response.json() as unknown; }
   catch { throw new Error(messages.invalidResponse); }
 }
-function fileUrl(value: unknown, endpoint: string, messages: Messages) {
+function fileUrl(value: unknown, endpoint: string | undefined, messages: Messages) {
   if (typeof value !== "string" || !value.trim()) throw new Error(messages.invalidUploadUrl);
   try {
-    const base = new URL(endpoint, typeof location === "undefined" ? undefined : location.href);
+    const page = typeof location === "undefined" ? undefined : location.href;
+    const base = endpoint === undefined ? page : new URL(endpoint, page);
     const url = new URL(value, base);
     if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
     return url.href;
@@ -89,7 +90,9 @@ export function createAttachmentAdapter(config: AttachmentConfig, messages: Mess
       try {
         checkAbort(controller.signal);
         let value: string;
-        if (config.uploadUrl) {
+        if (config.dataSource) {
+          value = fileUrl(await config.dataSource.upload(attachment.file, { signal: controller.signal }), undefined, messages);
+        } else if (config.uploadUrl) {
           const body = new FormData(); body.append(config.fieldName ?? "file", attachment.file, attachment.name);
           const json = await jsonRequest(config.uploadUrl, { method: "POST", body, headers: multipartHeaders(config),
             credentials: config.credentials ?? "same-origin", signal: controller.signal }, messages);
@@ -100,7 +103,7 @@ export function createAttachmentAdapter(config: AttachmentConfig, messages: Mess
         return { ...attachment, status: { type: "complete" as const }, content: mimeType.startsWith("image/")
           ? [{ type: "image" as const, image: value, filename: attachment.name }]
           : [{ type: "file" as const, data: value, mimeType, filename: attachment.name,
-            ...(config.uploadUrl ? { sourceType: "url" as const } : {}) }] };
+            ...(config.dataSource || config.uploadUrl ? { sourceType: "url" as const } : {}) }] };
       } finally { options?.signal?.removeEventListener("abort", abort); pending.delete(attachment.id); }
     },
   };
@@ -108,6 +111,7 @@ export function createAttachmentAdapter(config: AttachmentConfig, messages: Mess
 
 export function createFeedbackAdapter(config: FeedbackConfig, messages: Messages): ConversationFeedbackAdapter {
   return { async submit(feedback) {
+    if (config.dataSource) { await config.dataSource.submit(feedback); return; }
     if (!config.url) return; // assistant-ui owns the in-session selection.
     const headers = new Headers(config.headers); headers.set("Content-Type", "application/json");
     const response = await fetch(config.url, { method: "POST", headers, credentials: config.credentials ?? "same-origin", body: JSON.stringify(feedback) });
@@ -116,7 +120,7 @@ export function createFeedbackAdapter(config: FeedbackConfig, messages: Messages
 }
 
 export function createDictationAdapter(config: DictationConfig, messages: Messages, onError?: (error: Error) => void): DictationAdapter | undefined {
-  if (config.url) return { listen: () => startRecording(config, messages, onError) };
+  if (config.dataSource || config.url) return { listen: () => startRecording(config, messages, onError) };
   const browser = globalThis as typeof globalThis & { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
   if (!browser.SpeechRecognition && !browser.webkitSpeechRecognition) return undefined;
   return new WebSpeechDictationAdapter(config.language ? { language: config.language } : {});
@@ -172,12 +176,18 @@ function startRecording(config: DictationConfig, messages: Messages, onError?: (
           const mimeType = recorder?.mimeType || chunks[0]?.type || "audio/webm";
           const extension = ({ "audio/mp4": "m4a", "audio/ogg": "ogg", "audio/wav": "wav", "audio/mpeg": "mp3" } as Record<string, string>)[mimeType.split(";", 1)[0]!] ?? "webm";
           const blob = new Blob(chunks, { type: mimeType });
-          const body = new FormData(); body.append(config.fieldName ?? "file", blob, `recording.${extension}`);
-          if (config.language) body.append("language", config.language);
-          const json = await jsonRequest(config.url!, { method: "POST", body, headers: multipartHeaders(config),
-            credentials: config.credentials ?? "same-origin", signal: controller.signal }, messages);
+          let transcript: unknown;
+          if (config.dataSource) {
+            transcript = await config.dataSource.transcribe(new File([blob], `recording.${extension}`, { type: mimeType }),
+              { signal: controller.signal, language: config.language });
+          } else {
+            const body = new FormData(); body.append(config.fieldName ?? "file", blob, `recording.${extension}`);
+            if (config.language) body.append("language", config.language);
+            const json = await jsonRequest(config.url!, { method: "POST", body, headers: multipartHeaders(config),
+              credentials: config.credentials ?? "same-origin", signal: controller.signal }, messages);
+            transcript = field(json, config.textField ?? "text");
+          }
           checkAbort(controller.signal);
-          const transcript = field(json, config.textField ?? "text");
           if (typeof transcript !== "string") throw new Error(messages.invalidResponse);
           for (const listener of speechListeners) listener({ transcript, isFinal: true });
           finish("stopped", transcript);

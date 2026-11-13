@@ -55,6 +55,32 @@ function source(title:string):ConversationDataSource {
  return {list:vi.fn(async()=>[{id:title,title}]),get:async()=>{throw Error('NOT_USED');},delete:async()=>{}};
 }
 
+it('forwards the HttpAgent fetch option through AgentApplication and keeps the thread on updates', async()=>{
+ const fallback=vi.fn();vi.stubGlobal('fetch',fallback);
+ const requests:Record<string,any>[]=[];
+ const custom=vi.fn<NonNullable<AgentProps['fetch']>>(async(url,init)=>{
+  expect(url).toBe('/business/agent');
+  expect(new Headers(init.headers).get('X-Tenant')).toBe('tenant-1');
+  const input=JSON.parse(String(init.body));requests.push(input);
+  const frames=[{type:'RUN_STARTED',threadId:input.threadId,runId:input.runId},
+   {type:'CUSTOM',name:eventName,value:{ticket_id:`T-${requests.length}`}},
+   {type:'RUN_FINISHED',threadId:input.threadId,runId:input.runId}];
+  return new Response(frames.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(''),{headers:{'Content-Type':'text/event-stream'}});
+ });
+ const f=fixture();
+ const props:AgentProps={endpoint:'/business/agent',fetch:custom,request:{headers:{'X-Tenant':'tenant-1'}}};
+ await f.render(props);
+ await act(async()=>{f.container.querySelector('button')!.click();});
+ await act(async()=>{await vi.waitFor(()=>expect(f.container.querySelector('output')?.textContent).toBe('T-1'));});
+ const replacement=vi.fn<NonNullable<AgentProps['fetch']>>((url,init)=>custom(url,init));
+ await f.render({...props,fetch:replacement});
+ await act(async()=>{f.container.querySelector('button')!.click();});
+ await act(async()=>{await vi.waitFor(()=>expect(f.container.querySelector('output')?.textContent).toBe('T-2'));});
+ expect(replacement).toHaveBeenCalledOnce();
+ expect(requests[0]!.threadId).toBe(requests[1]!.threadId);
+ expect(fallback).not.toHaveBeenCalled();
+});
+
 it('accepts live event schemas, localized copy, welcome and history through Agent and preserves the draft on updates', async()=>{
  const requests:Record<string,any>[]=[];
  vi.stubGlobal('fetch',vi.fn(async(_url,init)=>{

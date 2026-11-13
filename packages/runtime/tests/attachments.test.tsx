@@ -127,6 +127,29 @@ describe("installed assistant-ui attachment integration", () => {
       ]);
     } finally { await f.dispose(); vi.unstubAllGlobals(); }
   });
+  it("uses replacement upload data sources without resetting the thread or draft", async () => {
+    const fallback = vi.fn(); vi.stubGlobal("fetch", fallback);
+    const first = { upload: vi.fn(async () => "https://files.test/first.pdf") };
+    const second = { upload: vi.fn(async () => "https://files.test/second.pdf") };
+    const f = await fixture(undefined, { dataSource: first });
+    try {
+      const threadId = f.runtime.thread.getState().threadId;
+      for (const [source, url] of [[first, "https://files.test/first.pdf"], [second, "https://files.test/second.pdf"]] as const) {
+        await act(async () => { f.runtime.thread.composer.setText("Keep this draft"); });
+        await f.configure({ dataSource: source });
+        expect(f.runtime.thread.composer.getState().text).toBe("Keep this draft");
+        expect(f.runtime.thread.getState().threadId).toBe(threadId);
+        const previous = f.requests.length;
+        await act(async () => { await f.runtime.thread.composer.addAttachment(pdf()); });
+        await act(async () => { f.runtime.thread.composer.send(); await until(() => f.requests.length === previous + 1 && !f.runtime.thread.getState().isRunning); });
+        expect(source.upload).toHaveBeenCalledOnce();
+        expect(f.requests.at(-1)!.messages.at(-1)!.content).toContainEqual(
+          { type: "document", source: { type: "url", value: url, mimeType: "application/pdf" }, metadata: { filename: "test.pdf" } },
+        );
+      }
+      expect(fallback).not.toHaveBeenCalled();
+    } finally { await f.dispose(); vi.unstubAllGlobals(); }
+  });
   it.each(cases)("$name reaches runAgent and the standard HTTP body", async ({ text, files, remove, expected }) => {
     const f = await fixture();
     try {

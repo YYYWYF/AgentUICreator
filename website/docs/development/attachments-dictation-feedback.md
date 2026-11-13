@@ -47,10 +47,49 @@ title: "附件、语音与评价服务"
 
 | 配置 | 常用字段 |
 | --- | --- |
-| `attachments` | `uploadUrl`、`fieldName`、`urlField`、`accept`、`maxSizeBytes` |
-| `dictation` | `url`、`fieldName`、`textField`、`language` |
-| `feedback` | `url` |
-| 三者共同支持 | `headers`、`credentials`，仅使用浏览器可持有的用户凭据 |
+| `attachments` | `dataSource`、`uploadUrl`、`fieldName`、`urlField`、`accept`、`maxSizeBytes` |
+| `dictation` | `dataSource`、`url`、`fieldName`、`textField`、`language` |
+| `feedback` | `dataSource`、`url` |
+| URL 请求共同支持 | `headers`、`credentials`，仅使用浏览器可持有的用户凭据 |
+
+## 复用已有业务 API / Axios 封装
+
+已有请求模块负责签名、鉴权、加解密或响应解包时，传入对应的 `dataSource`，不需要提供 URL。下面的 `businessApi` 代表项目已有的业务 API；返回字段按实际接口转换。
+
+```tsx
+<Agent
+  attachments={{
+    dataSource: {
+      async upload(file, { signal } = {}) {
+        const result = await businessApi.uploadFile(file, { signal });
+        return result.downloadUrl;
+      },
+    },
+  }}
+  dictation={{
+    language: 'zh-CN',
+    dataSource: {
+      async transcribe(audio, { signal, language } = {}) {
+        const result = await businessApi.transcribe(audio, { signal, language });
+        return result.text;
+      },
+    },
+  }}
+  feedback={{
+    dataSource: {
+      async submit(feedback) {
+        await businessApi.saveFeedback(feedback);
+      },
+    },
+  }}
+/>
+```
+
+`upload` 接收原始 `File` 并返回 HTTP(S) 文件 URL 字符串；相对 URL 按当前页面地址解析。文件类型和大小限制仍生效。`transcribe` 接收包含文件名与 MIME 类型的录音 `File` 并返回文字字符串；录音、麦克风释放和 Composer 草稿仍由内置实现处理。将 `signal` 传给业务请求模块以支持取消，取消后的上传和转写结果不会写回。`submit` 接收 `threadId`、`messageId`、`type` 和可选 `comment`，成功时无需返回数据。
+
+优先级为显式 `attachmentAdapter` / `dictationAdapter` / `feedbackAdapter`、配置中的 `dataSource`、URL 默认实现。`dataSource` 自行负责请求、鉴权和返回结构转换，URL、HTTP headers、credentials 和响应字段路径不会应用到它；业务方法失败时报告错误，不回退发送 URL 请求。省略 `dataSource` 保持原有行为。可从 `@za38.03/agent-ui-runtime` 导入 `AttachmentDataSource`、`DictationDataSource` 和 `FeedbackDataSource` 类型；建议在组件外定义或用 `useMemo` 保持对象稳定，替换对象会更新适配器。
+
+历史会话使用生成项目 `application/Agent.tsx` 的 `conversationDataSource`，提供 `list`、`get`、`delete` 和可选的重命名、归档方法。AG-UI 流式请求通过 `fetch` 接入，见[连接 Agent](/development/connect-agent)；上传、转写与反馈的 `dataSource` 不改变流式请求。
 
 特殊协议可以在项目服务文件中实现 `attachmentAdapter`、`dictationAdapter` 或 `feedbackAdapter`。通过 `ConversationRuntimeProviderProps` 的对应字段获取完整类型，再通过 `Agent` 的同名属性传入；不要修改 Runtime 或把服务端私密 Key 写入前端。
 

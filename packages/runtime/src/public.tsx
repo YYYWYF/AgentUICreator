@@ -1,4 +1,8 @@
-export type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
+export type {
+  AttachmentConfig, AttachmentDataSource, DictationConfig, DictationDataSource,
+  DictationDataSourceOptions, FeedbackConfig, FeedbackDataSource,
+  ServiceDataSourceOptions, ServiceRequestConfig,
+} from "./service-config.js";
 import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 export {
@@ -22,7 +26,7 @@ import type {
   AgentRuntimeSnapshot,
   AgentUserInput,
 } from "@za38.03/agent-ui-core";
-import type { AbstractAgent } from "@ag-ui/client";
+import type { AbstractAgent, HttpAgentConfig } from "@ag-ui/client";
 import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";
 import {
   ConversationRuntimeProvider as InternalConversationRuntimeProvider,
@@ -53,6 +57,7 @@ export interface ConversationAgentFactoryConfig {
   threadId: string;
   getRequestConfig?: (() => ServiceRequestConfig | undefined) | undefined;
   getRequestEndpoint?: (() => string) | undefined;
+  getFetch?: (() => HttpAgentConfig["fetch"]) | undefined;
 }
 
 export type ConversationAgentFactory = (
@@ -64,6 +69,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   request?: ServiceRequestConfig | undefined;
+  /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
+  fetch?: HttpAgentConfig["fetch"];
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;

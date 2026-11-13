@@ -24,6 +24,7 @@ title: "React 页面参数与方法"
 | `frontendTools` | `AgentFrontendToolSource` | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。 |
 | `endpoint` | `string` | 指定 AG-UI 地址，默认 `/agent`。Creator 开发预览期间使用面板选择的连接。 |
 | `request` | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。 |
+| `fetch` | `(url: string, init: RequestInit) => Promise<Response>` | 可选。透传 HttpAgent 的自定义请求函数，返回 AG-UI 流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent#自定义请求函数)。 |
 | `getRunContext` | `ConversationRunContextGetter` | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options#传入业务上下文)。 |
 | `theme` | `AgentUITheme` | 可传 `light`、`dark`、`violet`；不传时使用内置紫色主题并允许内置切换。传入后由业务页面控制。 |
 | `onThemeChange` | `(theme: AgentUITheme) => void` | 可选。用户切换主题时调用；业务页面在回调中更新 `theme`。 |
@@ -37,7 +38,7 @@ title: "React 页面参数与方法"
 | `locales` | `AgentProps['locales']` | 中英文文案覆盖。 |
 | `assistantPanelWidth` | `number` | 悬浮助理宽度，受视口限制。 |
 | `enableMessageQueue` | `boolean` | 默认 false；启用内存中的后续消息队列。 |
-| `attachments`、`dictation`、`feedback` | 对应 `ConversationRuntimeProviderProps` 字段 | 上传、转写、反馈接口配置；传 false 可关闭对应能力。 |
+| `attachments`、`dictation`、`feedback` | 对应 `ConversationRuntimeProviderProps` 字段 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。 |
 | `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段 | 自定义业务适配器，优先于对应通用配置。 |
 | `conversationDataSource` | `AgentProps['conversationDataSource']` | 历史数据源；保留对应插件启用，见[历史服务](./history-backend)。 |
 | `toolkit`、`frontendToolUIs` | 对应 `ConversationRuntimeProviderProps` 字段 | 项目额外的工具展示配置。 |
