@@ -84,10 +84,11 @@ const previousRoutes: Record<string, string> = {
   '/guide/mock/local-recordings': '/mock/local-recordings.html',
   '/guide/verify-results': '/guide/examples/verify-results.html#检查清单',
   '/guide/adjustments/command-source': '/guide/adjustments/mention-and-commands.html#助理快捷命令',
-  '/guide/adjustments/default-theme': '/development/styling-and-localization.html#默认主题',
+  '/guide/adjustments/default-theme': '/development/theme-and-styling.html#默认主题',
   '/integration/frontend-tools': '/development/frontend-tools.html',
   '/integration/react-host-control': '/development/react-host-control.html',
-  '/integration/attachments-dictation-feedback': '/development/attachments-dictation-feedback.html',
+  '/integration/attachments-dictation-feedback': '/development/service-integration.html#同时接入多项服务',
+  '/development/attachments-dictation-feedback': '/development/service-integration.html#同时接入多项服务',
   '/integration/vue': '/development/vue.html',
   '/integration/web-component': '/development/web-component.html',
   '/integration/web-component-api': '/development/web-component-api.html',
@@ -103,7 +104,8 @@ const previousRoutes: Record<string, string> = {
   '/customization/generative-ui': '/guide/adjustments/generative-ui.html',
   '/customization/custom-renderers': '/guide/adjustments/custom-renderers.html',
   '/customization/source-takeover': '/development/source-takeover.html',
-  '/customization/default-theme': '/development/styling-and-localization.html#默认主题',
+  '/customization/default-theme': '/development/theme-and-styling.html#默认主题',
+  '/development/styling-and-localization': '/development/theme-and-styling.html',
   '/customization/index': '/guide/adjustments/index.html',
   '/customization': '/guide/adjustments/index.html',
   '/customization/test-customizations': '/guide/examples/verify-results.html#检查清单',
@@ -136,9 +138,38 @@ const previousRoutes: Record<string, string> = {
   '/start/read-documentation': '/development/index.html',
 };
 
+// The former combined article split across three pages; preserve its section links.
+const previousStyleSections: Record<string, string> = {
+  '样式与文案开发': 'theme-and-styling',
+  '修改已有文案': 'localization',
+  '覆盖多个功能的文案': 'localization',
+  '在组件中读取文案': 'localization',
+  '可替换文案清单': 'locale-reference',
+  '会话欢迎内容与历史记录': 'locale-reference',
+  '输入附件与语音服务': 'locale-reference',
+  '工具任务与人工确认': 'locale-reference',
+  '搜索与检索': 'locale-reference',
+  '图片音视频与文件': 'locale-reference',
+  '主题语言与通用控件': 'locale-reference',
+  '登录与账号': 'locale-reference',
+  '运行状态与错误': 'locale-reference',
+  '示例与演示页面': 'locale-reference',
+};
+
 export function NotFoundLayout() {
   const location = useLocation();
   const key = location.pathname.replace(/\.html$/u, '').replace(/\/$/u, '');
+  if (key === '/development/styling-and-localization') {
+    const section = Object.keys(previousStyleSections).find(anchor =>
+      location.hash === `#${anchor}` || location.hash === `#${encodeURIComponent(anchor)}`);
+    if (section) {
+      return <Navigate replace to={{
+        pathname: `/development/${previousStyleSections[section]}.html`,
+        search: location.search,
+        hash: ['样式与文案开发', '可替换文案清单'].includes(section) ? '' : location.hash,
+      }} />;
+    }
+  }
   const destination = Object.hasOwn(previousRoutes, key) ? previousRoutes[key] : undefined;
   if (!destination) return <DefaultNotFoundLayout />;
 

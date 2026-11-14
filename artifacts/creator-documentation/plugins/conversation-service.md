@@ -2,6 +2,8 @@
 
 让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。
 
+这是一个提供共享会话管理能力的插件，负责会话状态、缓存和操作。它与[会话数据源](/plugins/conversation-data-source.md)配合，并供[会话列表](/plugins/conversation-thread-list.md)等界面插件使用，通常没有独立界面。
+
 ## 什么时候需要关心
 
 - 列表中有会话，但点击后没有打开对应记录。
@@ -9,6 +11,12 @@
 - 加载失败后没有提示，或无法重试。
 
 正常使用时，无需了解服务接口，也不需要另建一套会话管理。
+
+## 实现与项目配置
+
+本插件管理会话列表、详情加载与缓存、当前选中的会话，以及删除、重命名和归档等操作。会话数据源负责读取接口，本插件将这些数据和操作提供给界面，消息与运行继续由应用已有的 Runtime 管理。
+
+历史记录的持久化由业务后端完成。手动接入接口或调整操作时，按下方开发文档修改项目配置。
 
 ## 怎么让 Creator 修改
 
@@ -25,4 +33,8 @@
 
 ## 相关接口
 
-一般不需要为此单独编写接入代码。历史接口接入见[会话数据源](/plugins/conversation-data-source.md)；列表定制见[会话列表](/plugins/conversation-thread-list.md)；业务页面主动发送消息或新建会话见[业务页面与 Agent 联动](/development/react-host-control.md)。
+- 接入历史接口、数据格式和会话管理操作：[接入历史会话](/development/history-backend.md)。
+- 从业务页面发送消息、停止运行或新建会话：[用业务页面控制 Agent](/development/react-host-control.md)。
+- 编写需要读取或共享服务的自定义插件：[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。
+
+调整列表组件的外观与属性，见[会话列表](/plugins/conversation-thread-list.md)。

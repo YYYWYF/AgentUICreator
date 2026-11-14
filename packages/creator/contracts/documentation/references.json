@@ -16,7 +16,7 @@
     { "path": "docs/architecture/agent-connection-preview-source.md", "topic": "Host 与接入", "summary": "业务 Agent 连接、预览来源、Mock/recording 解析、身份与隔离。" },
     { "path": "docs/implementation/authentication/README.md", "topic": "Host 与接入", "summary": "可选认证与账号插件；Host 服务、登录状态和应用自有配置。" },
     { "path": "docs/architecture/frontend-tool-lifecycle.md", "topic": "会话与交互", "summary": "Frontend Tool 注册、执行、审批、中断恢复、取消与历史副作用隔离。" },
-    { "path": "docs/architecture/frontend-tool-form-demo.md", "topic": "会话与交互", "summary": "Dialog/Form 前端工具的声明与交互示例。" },
+    { "path": "docs/architecture/frontend-tool-form-demo.md", "topic": "会话与交互", "summary": "Dialog 能力示例与业务页面表单直接接入通用前端工具的边界。" },
     { "path": "docs/architecture/generative-ui-integration.md", "topic": "会话与交互", "summary": "可选 Generative UI 工厂与前端执行边界。" },
     { "path": "docs/architecture/authoritative-agent-plan-activity.md", "topic": "会话与交互", "summary": "Agent Plan Activity 的权威数据、计划状态与展示合同。" },
     { "path": "docs/architecture/assistant-response-footer.md", "topic": "会话与交互", "summary": "回复组与操作栏；多消息回复只在最终消息下呈现一次 footer。" },

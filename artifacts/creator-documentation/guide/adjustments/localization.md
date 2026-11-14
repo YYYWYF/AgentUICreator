@@ -32,4 +32,4 @@ Creator 在现有项目文案中补充这两个字段的双语覆盖，保留名
 
 这里核对了实际页面和可访问标签，没有使用真实屏幕阅读器检查朗读效果。界面语言切换不会改写录制中的演示回复内容。
 
-需要自己编写代码时，见[样式与文案开发](/development/styling-and-localization.md)。
+需要自己编写代码时，见[语言与文案](/development/localization.md)。

@@ -6,6 +6,8 @@ title: "会话服务（conversation-service）"
 
 让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。
 
+这是一个提供共享会话管理能力的插件，负责会话状态、缓存和操作。它与[会话数据源](./conversation-data-source)配合，并供[会话列表](./conversation-thread-list)等界面插件使用，通常没有独立界面。
+
 ## 什么时候需要关心
 
 - 列表中有会话，但点击后没有打开对应记录。
@@ -16,11 +18,9 @@ title: "会话服务（conversation-service）"
 
 ## 实现与项目配置
 
-本插件拥有会话列表、详情加载与缓存、选中会话，以及删除、重命名和归档等管理逻辑。`@za38.03/agent-ui-plugins/conversation-service` 同时提供 `ConversationDataSource`、会话数据类型及校验 Schema。
+本插件管理会话列表、详情加载与缓存、当前选中的会话，以及删除、重命名和归档等操作。会话数据源负责读取接口，本插件将这些数据和操作提供给界面，消息与运行继续由应用已有的 Runtime 管理。
 
-项目的 `plugins/conversation-service/definition.ts` 负责取得已配置的数据源，创建和注册服务，并在停用时清理。默认业务实现从 npm 加载；显式接管后，这个应用入口改为选择本地实现。
-
-历史数据先由[会话数据源](./conversation-data-source)转换后端字段。本插件再处理 `<think>` 等历史消息兼容，并把会话管理适配成通用 ThreadBinding；Runtime 封装 assistant-ui 官方转换器、装载消息并管理会话运行、恢复与取消。插件不创建另一套 Agent Runtime，数据库持久化仍由业务后端负责。
+历史记录的持久化由业务后端完成。手动接入接口或调整操作时，按下方开发文档修改项目配置。
 
 ## 怎么让 Creator 修改
 
@@ -37,5 +37,9 @@ title: "会话服务（conversation-service）"
 
 ## 相关接口
 
-一般不需要为此单独编写接入代码。历史接口接入见[会话数据源](./conversation-data-source)；列表定制见[会话列表](./conversation-thread-list)；业务页面主动发送消息或新建会话见[业务页面与 Agent 联动](/development/react-host-control)。
+- 接入历史接口、数据格式和会话管理操作：[接入历史会话](/development/history-backend)。
+- 从业务页面发送消息、停止运行或新建会话：[用业务页面控制 Agent](/development/react-host-control)。
+- 编写需要读取或共享服务的自定义插件：[服务共享与状态订阅](/development/plugin-api#服务共享与状态订阅)。
+
+调整列表组件的外观与属性，见[会话列表](./conversation-thread-list)。
 

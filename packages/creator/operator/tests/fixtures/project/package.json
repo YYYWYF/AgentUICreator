@@ -47,8 +47,6 @@
     "typescript": "7.0.2",
     "vite": "8.3.0",
     "vitest": "4.1.8",
-    "react-hook-form": "7.88.0",
-    "@assistant-ui/react-hook-form": "0.12.34",
     "react-markdown": "10.1.0",
     "@za38.03/agent-ui-creator": "workspace:*",
     "@assistant-ui/generative-ui": "0.0.7"

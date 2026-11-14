@@ -42,7 +42,7 @@ The selected Source configures the existing Conversation Runtime. It does not
 create a second runtime or alter AG-UI ownership. A changed source identity
 remounts the entire Agent session, including thread binding, services and
 frontend tool runtime. Preview does not inherit a product initial thread; Mock
-also does not inherit the product's durable run-resume provider. Runtime run
+uses its own conversation data. Runtime run
 state (including awaiting input) disables changes in the Creator UI. The Host
 additionally rejects changes while preview HTTP streams are active.
 

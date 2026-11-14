@@ -10,11 +10,33 @@
 
 ## 1. 通用基础设施与应用配置
 
-保持现有六个公开包，不新增包。Core 提供基础 Agent 契约，Renderer 保持纯布局语言与确定性渲染；Runtime 的独立 `/ui` 入口提供 AppUIModel 校验/编译、插件生命周期、服务注入、Slot 组合、前端工具协调、诊断、通用会话服务及应用组装。正式 Conversation Adapter 不导入生成项目，也不因同包交付而接管插件组合职责。Plugins 提供官方组件、公开扩展接口和工具资产；Web Component 提供嵌入；Creator 负责开发期生成与受控修改。
+保持现有六个公开包，不新增包。Core 提供基础 Agent 契约，Renderer 保持纯布局语言与确定性渲染；Runtime 的独立 `/ui` 入口提供 AppUIModel 校验/编译、插件生命周期、服务注入、Slot 组合、前端工具协调、诊断及应用组装。正式 Conversation Adapter 不导入生成项目，也不因同包交付而接管插件组合职责。Plugins 提供官方能力插件、公开扩展接口和工具资产；Web Component 提供嵌入；Creator 负责开发期生成与受控修改。
+
+Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runtime /contracts` 是 Plugin 契约的唯一实现；`/plugin-api` 拥有实例、服务、生命周期、共享会话 Context 和操作端口。旧 Plugins 契约及 Context 入口转导出同一实例，已有接管代码不会因此获得第二份 Context。纯展示组件的私有 Context 可随其完整实现交付。Runtime 自身的文案归 Runtime，其余插件文案归 Plugins；统一语言 Context 仍只有一份。
+
+项目 `application/project-config.tsx` 显式调用 Plugins 的 `createDefaultAgentUIPresentation()`，选择 Surface、欢迎/空状态、编辑器、工具兜底、主题根和 Sidebar 等默认展示。Runtime 只渲染传入的组件端口。`createAgentUIProject` 自身不引入这些默认产品实现。源码接管包含插件实际使用的展示、辅助函数、样式和语言表；共享 Runtime/Context 保留 npm 唯一实例。
+
+会话能力的当前边界如下。模板随 Plugins 包的资源交付，但初始化后复制到项目的文件属于项目，不等同于插件运行实现。
+
+| 归属 | 文件或入口 | 当前职责 |
+| --- | --- | --- |
+| 项目模板 | `application/Agent.tsx` | 包装 Runtime，接收 Host 的 `conversationDataSource` 并转换为服务覆盖。 |
+| 项目模板 | `services/conversations/http-data-source.ts`、`endpoint.ts` | 保存地址、动态用户鉴权、credentials、路由、fetch 与响应解码覆盖，解析所选地址并委托所选数据源实现。 |
+| 项目插件应用层 | `plugins/conversation-data-source/index.tsx`、`definition.ts` | 选择 npm 或接管后的数据源实现，传入项目配置并注册服务。 |
+| 项目插件应用层 | `plugins/conversation-service/definition.ts` | 取得数据源，创建和注册会话服务及 ThreadBinding 工厂，启动刷新并负责清理。 |
+| `conversation-data-source` 插件 | 默认 HTTP 实现 | 拥有请求、`returnCode/body`、`max_message_checkpoint`、`channel_values → values` 和业务字段映射。当前这些转换与 HTTP 请求同在 `adapters/presentation/http-data-source.ts`，尚未拆成独立后端适配文件。 |
+| `conversation-service` 插件 | 管理实现、契约与历史适配 | 拥有列表、详情缓存、刷新、选择及删除/重命名/归档管理，业务 DTO/DataSource 契约与 Schema，历史 `<think>` 兼容和空 assistant 过滤，以及通用 ThreadBinding 工厂。 |
+| Runtime | 会话运行与通用接口 | 封装 assistant-ui 官方历史转换器，装载标准消息，管理 AG-UI 接入、消息与运行状态、发送/流式/恢复/取消，以及通用 ThreadBinding 桥接。共享 Context、Slot 组合与插件生命周期也仍属于 Runtime。 |
+
+`conversation-service` 提供业务服务 `agent-ui.conversations` 和通用 `agent-ui.thread-binding` 工厂。Runtime 仅消费后者，不读取业务 DTO、不创建具体 ConversationService。直接调用 Runtime 的 `projectLangChainHistory()` 只执行官方转换；默认业务历史链先经过插件的兼容处理。接管后，会话管理工厂及数据源工厂分别随对应插件切到本地实现；项目 HTTP 委托经本地应用入口调用，因此 Host 直接创建的数据源也跟随所选实现。
+
+项目可以用 `decodeList`、`decodeDetail` 或完整的 `Agent.conversationDataSource` 接入不同的历史接口格式；自定义适配不要求修改 Runtime。项目配置和薄应用层不纳入插件实现 BASE，npm 升级不覆盖它们；已接管实现通过 BASE/LOCAL/TARGET 单独合并、验证与采用，保留用户定制不等于免除公共契约兼容检查。Runtime 的通用 `AgentProps.services` 承载服务覆盖。新初始化不复制完整的 `services/conversations/service.ts`、`contract.ts`、`data-source.ts`；保留的旧资源转导出入口不构成另一份实现。已有项目复制的完整 HTTP 实现不会自动迁移，需单独评审项目改动。
+
+这次边界调整需要既有项目单独迁移应用接线：绑定 presentation、将旧 Runtime 会话服务导入改到 Plugins 的 `conversation-service` 入口，并让该能力插件提供 Thread binding。新增服务属于应用合同变化；更新中心必须继续报告需要应用迁移，不能把旧应用代码或已接管实现静默替换。独立版本和受评审的兼容组合仍生效，Runtime 不再因自身 dependencies 精确指定 Plugins 版本而要求联动发布。
 
 新初始化不再复制 `runtime/`、`framework/`、默认会话展示组件、完整语言表、状态投影、默认 toolkit 或空事件/工具示例。Runtime `/ui` 的 `createAgentUIProject` 提供默认配置、资源绑定和最后有效组合的热更新保留；Plugins 提供共享会话 Surface、欢迎/空状态组件、完整默认语言和紧凑展示样式。默认 toolkit 为空；搜索文件示例仅通过 Plugins `/search-files-example` 显式启用，不会随初始化注册。前端工具和会话 integration 的生成文件在实际安装资源后才创建，生产构建通过显式 glob 导入这些确定的构建期输出，不进行运行时发现。
 
-用户工程不再生成 `config.ts` 或导出 `agentUIConfig`。主题、语言、文案覆盖、欢迎内容、推荐问题、面板宽度、事件 Schema、附件/听写/反馈与适配器、历史数据源及额外集成统一通过 React `Agent` props 传入；`styles.css` 提供本地样式覆盖，`app-ui.json` 继续拥有布局与语义组合，`plugins/*` 保留项目拥有的薄应用入口。`application/Agent.tsx` 和 `project-config.tsx` 只绑定 npm 应用组装与生成资源；业务协议、鉴权和请求转换仍由项目服务实现，再把实例或配置传给 Agent。Host 数据源仅替换已启用提供插件的服务值，不绕过 AppUIModel 启用关系；每个 Agent 的配置与服务保持隔离。Creator 的功能编辑目标指向项目 Agent 应用入口；旧项目文件不被 npm 安装或模板同步擅自清理。
+用户工程不再生成 `config.ts` 或导出 `agentUIConfig`。主题、语言、文案覆盖、欢迎内容、推荐问题、面板宽度、事件 Schema、附件/听写/反馈与适配器、历史数据源及额外集成可通过 React `Agent` props 传入；`styles.css` 提供本地样式覆盖，`app-ui.json` 继续拥有布局与语义组合，`plugins/*` 保留项目拥有的薄应用入口。`application/Agent.tsx` 和 `project-config.tsx` 绑定 npm 应用组装与生成资源。历史的默认请求和后端转换由数据源插件实现，项目服务保留地址、鉴权及自定义请求/解码覆盖；未显式传入数据源时，已启用的数据源插件也可按项目配置创建实例。其他业务服务继续按其公开适配接口接入。Host 数据源仅替换已启用提供插件的服务值，不绕过 AppUIModel 启用关系；每个 Agent 的配置与服务保持隔离。Creator 的功能编辑目标指向项目 Agent 应用入口；旧项目文件不被 npm 安装或模板同步擅自清理。
 
 此调整用于新生成工程。既有工程的应用层、本地实现和源码 BASE 不自动删除或迁移，npm 升级不授权清理旧文件。工具内的契约入口引用同一 Runtime 实现，避免编译规则分叉。包的浏览器入口不导入 Creator、Node 工具、源码快照或 catalog 读取器。
 
@@ -102,7 +124,13 @@ Creator 先用 AppUIModel 和应用层公开 props/组合。确需修改内部�
 <metadataRoot>/plugin-ownership.json
 ```
 
-实际 source 闭包由 catalog 指定，不能臆造所有插件都含相同目录。Composer 的主体、队列和 textarea 共用唯一 presentation owner；其共享 primitives、Context、附件/按钮与发送服务使用 `/composer-support`（API 1）。其他适用插件使用 `/plugin-support`（API 1）；共享 Runtime、主题、locale 与 Portal 仍由 npm 提供。
+实际 source 闭包由 catalog 指定，不能臆造所有插件都含相同目录。接管同时提取该插件实际消费的展示组件、展示辅助代码、局部交互与配套样式。`adapters/` 保留插件入口实现，`presentation/` 保存所需产品展示模块，`upstream/` 保存未修改的上游展示源码及其原有相对目录。所有文件位于该插件自己的 `source/` 子树；A、B 消费同一个官方按钮时，各自取得独立快照，修改或同步 A 不改写 B。官方仓库仍由 canonical owner 维护唯一实现，构建生成快照，不维护第二套官方组件源码。
+
+Composer 的主体、队列、textarea、附件和提示按钮，以及其他插件使用的折叠、推理、Markdown、图片、对话框等展示模块按实际依赖闭包提取。纯展示 props 类型随实现保存；组件内部私有的预览/折叠 Context 可以随完整组件一起提取。会话 Runtime、Host/Composer 共享 Context、消息/工具状态、发送和审批操作、共享 transient store 和 locale/Portal Context 仍从同一个 Runtime npm 实例读取。主题根的实际展示随 theme-provider 接管，Portal Context 不复制。只提取混合模块中所需的展示声明和局部辅助函数，不复制 facade 全部实现或 Runtime Provider。保留 `/composer-support` 和 `/plugin-support`（API 1）的旧导出以兼容已有接管项目；新快照根据实际导出身份将共享接口指向 Runtime，其余展示与辅助实现按闭包交付，不按 `use`、`create` 等名称前缀推断归属。
+
+`takeover.requiredDependencies` 来自实际源码 import 与安装包的依赖声明。计划列出需要新增或恢复的直接依赖，用户确认后通过原包管理器准备，不静默升级冲突依赖；React、assistant-ui 与可选编辑器的共享实例还需核对真实解析位置。同版本的另一份 Context 也不视为兼容。依赖准备与源码事务分阶段：准备完成后重新验证包身份和受保护源码，再在临时工程运行现有检查。源码验证失败会保留已准备依赖，但不会提交实现或推进 BASE；不得把源码事务失败说成依赖也已撤销。
+
+源码快照包含预编译展示 utility CSS、所需产品 CSS 与 CSS 声明，保持现有主题变量和 Portal 边界；提取的展示样式不因接管新增 Creator 或 Tailwind 编译器要求，工程既有样式构建流程保持。新的样式定制使用项目自己的样式工具。第三方 UI/Markdown 引擎继续是项目 npm 依赖，语言字典与主题基础仍共享，不承诺冻结所有第三方行为。
 
 机械切换 import 必须保留 CRLF、现有 JSX/props、Plugin/实例 ID、AppUIModel、服务与语义 Slot。包模式合同来自准确安装包；成功接管后本地 manifest 和服务声明是权威，同 ID 不得双重注册。本地实现丢失时明确报错，不自动切回 npm。
 
@@ -126,7 +154,7 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 
 不兼容应用合同要求单独迁移。失败、取消、冲突未解决或验证未通过保持原 BASE。定向特性移植只是 LOCAL 定制，不声称完整升级。采用失败恢复采用事务前状态，保留此前合并编辑；依赖安装恢复是独立阶段，不能互相替代。
 
-已有有效定制源码和 BASE 保留，不因重新初始化、npm 安装或发现同 ID 而自动变成 wrapper，也不能补记接管授权。未知或残缺路径冲突不覆盖。既有源码保持原结构，不自动迁移。
+已有有效定制源码和 BASE 保留，不因重新初始化、npm 安装或发现同 ID 而自动变成 wrapper，也不能补记接管授权。未知或残缺路径冲突不覆盖。既有源码保持原结构，不自动迁移。展示闭包扩充也只能通过显式实现同步纳入新增文件、依赖计划和三方合并；npm 升级不自动扩充或改写旧 BASE。
 
 ## 9. 默认组合与正式插件
 

@@ -20,7 +20,7 @@ pnpm add @za38.03/agent-ui-web-component
 | --- | --- | --- |
 | Vite、Webpack 等模块工程，导入后自动注册 `<agent-ui>` | `@za38.03/agent-ui-web-component/register` | `dist/agent-ui.es.js`（ESM） |
 | 提取独立脚本，交给静态服务器部署 | `@za38.03/agent-ui-web-component/agent-ui.js` | `dist/agent-ui.js`（classic script） |
-| 读取组件类型 | `@za38.03/agent-ui-web-component` | 自动解析声明文件，类型导入示例见 [Web Component 配置与事件](/development/web-component-api)。 |
+| 读取组件类型 | `@za38.03/agent-ui-web-component` | 自动解析声明文件，类型导入示例见 [Web Component API](/development/web-component-api)。 |
 
 模块工程在客户端入口导入一次即可，构建工具会将资源纳入业务产物：
 
@@ -66,19 +66,23 @@ node scripts/copy-agent-ui.mjs
 
 使用官方默认界面时，按[更新中心](/updates/)选择兼容版本并升级依赖。模块接入重新构建和部署业务工程；静态接入还需重新执行复制脚本，并按业务的资源版本或缓存策略发布新文件。**只升级 npm 包不会替换已部署的静态文件**。
 
-定制布局或组件后，按[React 工程产物接入](/development/vue#使用定制的-react-工程产物)构建并部署自己的 ESM 资源，使用 `type="module"` 或动态 import 加载。
+定制布局或组件后，按[React 工程产物接入](/development/vue#定制-react-产物接入)构建并部署自己的 ESM 资源，使用 `type="module"` 或动态 import 加载。
 
 ## 配置与事件
 
 ```js
-const element = document.querySelector('agent-ui');
-element.config = { endpoint: '/api/agent' };
+// 已加载上面的脚本；在宿主页面的空容器中挂载一份组件。
+const element = document.createElement('agent-ui');
 const onReady = event => console.log(event.detail.threadId);
 element.addEventListener('agent-ready', onReady);
+element.config = { endpoint: '/api/agent' };
+document.querySelector('#assistant-container').append(element);
 // Host 卸载时移除监听并 element.remove()。
 ```
 
-配置优先级、更新及卸载行为见[Web Component 配置与事件](/development/web-component-api#attributes-与优先级)。
+页面先准备 `<div id="assistant-container" style="height: 520px"></div>`，使用这段代码时替换前面的静态 `<agent-ui>` 标签，避免挂载两份。先绑定监听再插入元素，才能可靠收到首次就绪事件；对已显示的元素再绑定，不会补发过去的事件。TypeScript 类型见 [Web Component API](./web-component-api#配置与事件类型)。
+
+配置优先级、更新及卸载行为见[Web Component API](/development/web-component-api#attributes-与优先级)。
 
 ## 样式与定制
 

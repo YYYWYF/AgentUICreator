@@ -1,4 +1,6 @@
-# 业务页面与 Agent 联动
+# 用业务页面控制 Agent
+
+本页说明如何在已有业务页面中放置控制按钮，打开或隐藏助理、发送消息、停止运行及新建会话。这些操作由业务页面代码发起，复用已挂载的 Agent；修改插件内部外观与行为见[手动修改插件教程](/development/component-customization.md)。
 
 ## 接入位置
 
@@ -6,7 +8,7 @@
 
 面板开关由 React 状态控制；用 `hidden` 或 CSS 隐藏并保持 Agent 挂载，可保留会话。卸载 Agent 或 Provider 会结束会话。Provider 没有 `open()` / `close()` 方法，也不会自行启动会话；操作前需挂载 Agent 并等待就绪。
 
-## 示例：在编辑页面打开助理
+## 示例：编辑页面助理集成
 
 下面是仓库中 `examples/creator-embedded-host` 的实际运行截图，使用官方嵌入式模板、violet 主题和本地 Mock 服务。业务按钮位于页面右上角，助理显示在编辑区右侧。
 
@@ -177,6 +179,6 @@ function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
 }
 ```
 
-示例直接显示 `running` 等状态值，便于检查；实际页面应显示语言配置中的对应文案。Hook 的选择器与监听规则见[API 参考](/development/react-host-api.md#hooks-与界面组件)。
+示例直接显示 `running` 等状态值，便于检查；实际页面应显示语言配置中的对应文案。Hook 的选择器与监听规则见[API 参考](/development/react-host-api.md#hooks)。
 
 运行结果判断和 `AGENT_UI_SESSION_ENDED` 等错误见[状态与错误参考](/development/react-host-api.md#状态与事件)。**同一 Provider 内只放一个 `<Agent />`**。

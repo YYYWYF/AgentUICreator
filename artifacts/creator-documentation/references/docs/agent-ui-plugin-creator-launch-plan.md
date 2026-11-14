@@ -11,7 +11,7 @@
 | UI Plugin | 前端行为、展示和对公开能力的消费 |
 | UI Runtime | Plugin 激活、Service 生命周期、SlotRegistry 与确定性渲染 |
 | Conversation Runtime | 会话、消息、Composer、Tool、Reasoning、历史与运行交互 |
-| AG-UI | 单一业务 Agent 的消息、状态、工具和运行事件 |
+| AG-UI | 每个 Thread 所属业务 Agent 的消息、状态、工具和运行事件 |
 
 六个独立版本公开包为 Core、Renderer、Runtime、Plugins、Web Component 和 Creator，使用 `@za38.03/agent-ui-*` 包名。Operator 是 Creator 内部模块。Plugins 同时交付运行组件、catalog 和精确源码快照。
 
@@ -48,11 +48,11 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 - 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的接线。
 - 普通项目 Service 契约与实现修改不单独弹审批。可使用通用文件工具，或选择 preflight 工具检查拓扑、公共声明和文件版本，再以返回的 planId 应用；契约路径相对于实际 sourceRoot。保留只读、路径隔离、修改前新鲜读取和 hash 校验。
 
-可运行的提供、订阅和清理示例见 [插件开发接口](../../development/plugin-api.md)。
+可运行的提供、订阅和清理示例见 [插件 API](../../development/plugin-api.md)。
 
 ## 会话与 Agent 交互
 
-一个应用连接一个业务 Agent Runtime。AG-UI 由 canonical Conversation Runtime 处理，Plugin 消费公开 Hook、Service 和 render scope，不自行解析消息或创建 Client。
+一个应用可组合多个 Agent 实例，每个 Thread 固定归属一个逻辑助手。同一助手的工作流按钮可按次指定请求 URL；只有显式新建会话才生成新 threadId。业务组件控制显示切换，历史导航恢复既有 Thread，保留上游持有的后台运行。AG-UI 由 canonical Conversation Runtime 处理，Plugin 消费公开 Hook、Service 和 render scope，不自行解析消息或创建 Client。接线见[多 Agent 接入](../../development/multiple-agents.md)。
 
 标准消息、工具、状态、Activity 与中断保留各自语义。业务 Custom Event 是经过应用 Schema 校验的瞬时事件，不作为本地插件通信、持久状态或工具执行通道。
 

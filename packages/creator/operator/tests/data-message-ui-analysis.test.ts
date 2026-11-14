@@ -13,6 +13,18 @@ const roots: string[] = [];
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
 const definition = (name: string, extra = "") => `import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";\n${extra}\nconst definition = { manifest: {}, dataMessageUIs: [defineDataMessageUI({ name: ${name}, render: () => null })], Component: () => null }; export default definition;`;
 
+it("skips spread properties when inspecting a customized application definition", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "插件 spread ")); roots.push(root);
+  await writeFile(path.join(root, "definition.ts"), `
+    const implementation = { Component: () => null };
+    const definition = { ...implementation, dataMessageUIs: [] };
+    export default definition;
+  `);
+  const asset = { pluginId: "probe", definitionPath: "definition.ts", manifest: {} } as PluginAsset;
+  expect(await analyzeDataMessageUIs(root, [asset])).toEqual([]);
+  expect(asset.dataMessageUINames).toEqual([]);
+});
+
 it.each([
   ['"app.inspection.result"', "", true],
   ["NAME", 'const NAME = "app.inspection.result" as const;', true],

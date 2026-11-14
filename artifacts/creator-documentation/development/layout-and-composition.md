@@ -119,7 +119,7 @@ src/agent-ui/app-ui.json
 
 **会话状态与服务依赖**
 
-会话插件共享同一个 Agent 会话环境，读取消息、运行状态，并执行发送、停止等操作。`app-ui.json` 不保存聊天内容，也不实现业务接口；增加插件不会增加一个 Agent Runtime。
+会话插件共享同一个 Agent 会话环境，读取消息、运行状态，并执行发送、停止等操作。`app-ui.json` 保存布局与插件组合，聊天内容来自当前会话，业务接口在项目服务文件中配置。
 
 有些插件需要其他插件提供服务，例如主题切换需要主题服务，会话列表需要会话服务。停用应用级服务前，先检查是否还有插件依赖它。
 
@@ -225,6 +225,114 @@ src/agent-ui/app-ui.json
 输入区按钮空间不足时允许换行，不遮住发送按钮。
 ```
 
+## 高级布局字段与示例
+
+以下字段写在 **AppUIModel 的 authoring JSON** 中。布局节点不填写运行时派生的 `id`／`slotId`，`stack` 使用 `activeIndex`；插件实例已有的 `id` 保持原值。不要把 Renderer 的运行时结构复制回 `app-ui.json`。
+
+### Row、Column 与 Panel
+
+| 节点／字段                              | 用法                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `row.children` / `column.children` | 子布局数组，按顺序横向／纵向排列。                                                                                       |
+| `sizes`                            | 可选，与 children 等长；数字表示 `fr` 权重，字符串为 Grid 轨道，例如 `"280px"`、`"minmax(0, 1fr)"`。不传时各轨道等分。                    |
+| `gap`                              | 可选，非负数，单位 px；不传时没有额外间距。                                                                                 |
+| `panel.child`                      | 一个子布局；不是 `children` 数组。                                                                                 |
+| `panel.width` / `height`           | 可选，非负数按 px，字符串使用元素尺寸，如 `"100%"`、`"24rem"`、`"min(480px, 100%)"`；不能填 `"1fr"`、`"minmax(...)"` 等 Grid 轨道语法。 |
+| `panel.minWidth` / `maxWidth`      | 可选，非负数，单位 px；同时设置时最小值不能大于最大值。                                                                           |
+| `panel.resizable`                  | 可选，默认不启用；`true` 使用浏览器的横向尺寸调整和滚动，不提供纵向拖动，也不把拖动后的宽度保存回 JSON。                                              |
+
+父级轨道与 Panel 尺寸会共同影响最终宽度；Panel 拖动不能代替父级 `sizes` 配置。百分比高度还要求业务容器有可用高度。内层组件的边距与按钮换行仍在项目组件代码里调整。
+
+### 宽屏并排、窄屏抽屉
+
+假设现有 Row 的两个 children 依次为会话列表和聊天区。下面是 `root` 的结构示例；应用到现有工程时保留两项内部完整的 Plugin 配置与子插槽，不用简化示例覆盖它们：
+
+```json
+{
+  "type": "row",
+  "gap": 12,
+  "sizes": ["280px", "minmax(0, 1fr)"],
+  "responsive": {
+    "type": "drawer",
+    "primaryIndex": 1,
+    "drawerIndex": 0,
+    "minPrimaryWidth": 360
+  },
+  "children": [
+    { "type": "slot", "plugins": [{ "pluginId": "conversation-thread-list" }] },
+    { "type": "slot", "plugins": [{ "pluginId": "conversation-surface" }] }
+  ]
+}
+```
+
+`primaryIndex` 与 `drawerIndex` 从 0 开始，分别指向主区域和抽屉区域，不能相同。宽度不足时，列表进入左侧抽屉；宽屏下也有收起／恢复列表的入口。列表在右侧时，调整实际 children 顺序、sizes 和索引，抽屉会跟随到右侧，不用 CSS 反转布局。
+
+`minPrimaryWidth` 是主区域希望保留的最小宽度，不是整个窗口的断点。触发条件按 **Row 实际容器宽度、其他区域测量宽度和 gap** 计算；本例通常在约 `280 + 12 + 360` px 附近切换，悬浮或嵌入式容器也按自身宽度判断。
+
+新增布局使用 `responsive.type: "drawer"`，两个索引分别指向已存在的子区域。旧工程使用 `trailing-drawer` 时，要求主区域在抽屉区域之前；普通布局调整无需改动这类历史配置。
+
+生成工程自带抽屉打开、关闭及 Esc 交互，按钮使用当前界面语言。直接集成 `LayoutRenderer` 时，抽屉文案通过 `drawerLabels` 提供，sidebar 展示通过 `renderSidebar` 配置。
+
+### Stack：选择一个内容区域
+
+`stack.activeIndex` 指向 children 中从 0 开始的位置。省略时显示第一项；显式索引必须小于 children 长度。下面显示第二项：
+
+```json
+{
+  "type": "stack",
+  "activeIndex": 1,
+  "children": [
+    { "type": "slot", "plugins": [{ "pluginId": "project-summary" }] },
+    { "type": "slot", "plugins": [{ "pluginId": "project-details" }] }
+  ]
+}
+```
+
+`project-summary`、`project-details` 是示例中的项目自定义插件，需要先创建并注册。Stack 不生成切换按钮，也不保持未选中子区域的组件挂载。它适合互斥展示的内容，不用于保存多个助手的后台运行；这种需求使用[多助手的受控显示](/development/multiple-agents.md#多助手与受控显示)。
+
+### Sidebar：侧栏导航与主体
+
+Sidebar 提供一组可选择的侧栏内容，`content` 是始终独立排列的主体。下面同样只展示布局结构，现有插件内部组合应保留：
+
+```json
+{
+  "type": "sidebar",
+  "defaultActive": "conversations",
+  "header": {
+    "type": "slot",
+    "plugins": [{ "pluginId": "agent-identity" }]
+  },
+  "items": [
+    {
+      "id": "conversations",
+      "child": {
+        "type": "slot",
+        "plugins": [{ "pluginId": "conversation-thread-list" }]
+      }
+    }
+  ],
+  "content": {
+    "type": "slot",
+    "plugins": [{ "pluginId": "conversation-surface" }]
+  }
+}
+```
+
+| 字段                  | 约束与行为                                                                      |
+| ------------------- | -------------------------------------------------------------------------- |
+| `items`             | 数组；每项有唯一、非空的导航 `id`，与 Plugin 实例 ID 分开。每项 `child` 必须是恰好放一个 Plugin 的布局 Slot。 |
+| `defaultActive`     | 必填；写某个 item 的 id，或 `null` 表示初始收起。它设置初始选择，不是业务页面的受控选择属性。                    |
+| `header` / `footer` | 可选布局 Slot，各最多一个 Plugin；适合品牌区、账号区等。                                         |
+| `content`           | 必填，可以是任意受支持布局；聊天区应放在这里，而不是放进需要切换的侧栏 item。                                  |
+
+侧栏 item 的插件须有 `manifest.sidebar` 声明，包括 `icon` 和可选双语 `labels`；未声明或被停用的项不会成为可选导航。使用当前插件已有声明；自定义侧栏插件按 `UIPluginManifest['sidebar']` 的公开类型配置，按钮与导航文案仍归项目语言层。Plugin 的可选 `RailAction` 是快捷操作，不是另一个导航页面。
+
+默认 Sidebar 展示适配会按其容器宽度自动选择内联侧栏或抽屉，不通过 `row.responsive` 配置，也不会自动持久化当前选项。切换侧栏内容不等于新建 Thread；不要把需持续挂载的助手或服务放在会被切换移除的侧栏内容里。
+
+### 自定义外壳的入口
+
+改变整个助手的悬浮入口、固定位置、外框和收起动画时，编辑 `application/shell/`；改变外壳内的列表、聊天区和插件位置时，编辑本页的 AppUIModel。Shell 通过 `createAgentUIProject({ Shell })` 静态绑定，具体的组件、CSS、容器观察和保持后台运行示例见[自定义 Shell](/development/shell-customization.md)。
+
 ## 插槽扩展
 
 **插槽扩展的适用范围**
@@ -261,7 +369,7 @@ src/agent-ui/app-ui.json
 
 - 颜色、字号和圆角：见[品牌与样式](/guide/adjustments/themes.md)。
 - 提示、按钮和中英文：见[修改文案](/guide/adjustments/localization.md)。
-- 登录后进入聊天：见[登录插件](/plugins/auth-gate.md)，并接入业务认证服务。
+- 传入已有登录用户和请求凭据：见[外部登录接入](/development/auth-service.md#外部登录凭据与用户信息)。
 - 工具结果和消息卡片：见[调整结果展示](/guide/adjustments/custom-renderers.md)。
 
 ### 定制与更新

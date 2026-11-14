@@ -5,14 +5,23 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
 
 const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
-const documentPath = 'website/docs/development/styling-and-localization.md';
+const documentPath = 'website/docs/development/locale-reference.md';
 const startMarker = '<!-- locale-reference:start -->';
 const endMarker = '<!-- locale-reference:end -->';
 
-// Only presentation grouping is maintained here. Keys and defaults come from the dictionaries.
+// Presentation grouping and visibility are maintained here. Keys and defaults come from the dictionaries.
+// Internal experiments stay out of public documentation until their product scope is approved.
+const unpublishedFields = new Set([
+  'examples.durableRun',
+  'examples.agentPlanActivityRefreshRecovery',
+  'examples.productionBindingRefreshRecovery',
+  'examples.runResumeMock',
+  'examples.sendALongTaskAndRefreshAfter',
+]);
+
 const groups = [
   ['会话、欢迎内容与历史记录', ['agentIdentity', 'conversation', 'starterSuggestions', 'threadList', 'conversationQuote', 'quote', 'conversationFeedback', 'copyAction', 'transientMessages']],
-  ['输入、附件与语音服务', ['composer', 'conversationTriggers', 'triggers', 'attachments', 'serviceAdapters']],
+  ['输入、附件与语音服务', ['composer', 'conversationTriggers', 'triggers', 'attachments', 'serviceAdapters', 'skills']],
   ['工具、任务与人工确认', ['toolPresentation', 'toolTimeline', 'toolResult', 'tasks', 'humanQuestion', 'questionOptions', 'frontendTools']],
   ['搜索与检索', ['searchTools', 'search']],
   ['图片、音视频与文件', ['images', 'media', 'files']],
@@ -67,14 +76,15 @@ export function renderLocaleReference(english, chinese) {
       const en = english[namespace], zh = chinese[namespace];
       assert(en && typeof en === 'object' && zh && typeof zh === 'object', `Invalid namespace: ${namespace}`);
       assert.deepEqual(Object.keys(en).sort(), Object.keys(zh).sort(), `Locale key mismatch: ${namespace}`);
-      return Object.keys(en).map(key => {
+      return Object.keys(en).filter(key => !unpublishedFields.has(`${namespace}.${key}`)).map(key => {
         assert.equal(typeof en[key], 'string', `Invalid English message: ${namespace}.${key}`);
         assert.equal(typeof zh[key], 'string', `Invalid Chinese message: ${namespace}.${key}`);
         fields++;
         return `| \`${namespace}.${key}\` | ${defaultCell(zh[key])} | ${defaultCell(en[key])} |`;
       });
     });
-    return [`### ${title}`, '', '| 字段路径 | 默认中文（zh-CN） | 默认英文（en-US） |', '| --- | --- | --- |', ...rows].join('\n');
+    const heading = title === '示例与演示页面' ? '##' : '###';
+    return [`${heading} ${title}`, '', '| 字段路径 | 默认中文（zh-CN） | 默认英文（en-US） |', '| --- | --- | --- |', ...rows].join('\n');
   });
   return {
     namespaces: namespaces.length,

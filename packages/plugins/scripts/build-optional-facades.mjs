@@ -10,7 +10,6 @@ const provenance = [];
 // stay external; generated projects need only product public imports.
 for (const [entry, dependency] of [
   ["lexical.tsx", "@assistant-ui/react-lexical"],
-  ["form-tools.ts", "@assistant-ui/react-hook-form"],
 ]) {
   const output = await build({
     entryPoints: [path.join(root, "src", entry)],
@@ -23,7 +22,7 @@ for (const [entry, dependency] of [
         const relative = path.relative(path.join(root, "src"), args.importer);
         if (args.importer && !relative.startsWith("..") && !path.isAbsolute(relative)) return { path: args.path, external: true };
       });
-      builder.onResolve({ filter: /^@assistant-ui\/react-(?:lexical|hook-form)$/ }, args =>
+      builder.onResolve({ filter: /^@assistant-ui\/react-lexical$/ }, args =>
         args.path === dependency ? { path: require.resolve(dependency), external: false } : undefined);
     } }],
   });

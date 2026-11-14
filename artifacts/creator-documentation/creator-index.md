@@ -28,7 +28,7 @@
 ## 会话与交互
 
 - [Frontend Tool lifecycle](references/docs/architecture/frontend-tool-lifecycle.md)：Frontend Tool 注册、执行、审批、中断恢复、取消与历史副作用隔离。
-- [Dialog 与 Form Frontend Tool 示例](references/docs/architecture/frontend-tool-form-demo.md)：Dialog/Form 前端工具的声明与交互示例。
+- [Dialog 示例与业务表单 Frontend Tool 接入](references/docs/architecture/frontend-tool-form-demo.md)：Dialog 能力示例与业务页面表单直接接入通用前端工具的边界。
 - [可选 Generative UI](references/docs/architecture/generative-ui-integration.md)：可选 Generative UI 工厂与前端执行边界。
 - [Authoritative Agent Plan Activity](references/docs/architecture/authoritative-agent-plan-activity.md)：Agent Plan Activity 的权威数据、计划状态与展示合同。
 - [Assistant Response Group and Footer](references/docs/architecture/assistant-response-footer.md)：回复组与操作栏；多消息回复只在最终消息下呈现一次 footer。

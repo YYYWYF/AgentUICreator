@@ -34,10 +34,6 @@
       "import": "./dist/composer/index.js",
       "default": "./dist/composer/index.js"
     },
-    "./form-tools": {
-      "types": "./dist/form-tools.d.ts",
-      "import": "./dist/form-tools.js"
-    },
     "./catalog": {
       "types": "./dist/catalog/index.d.ts",
       "import": "./dist/catalog/index.js"
@@ -382,8 +378,6 @@
     "@ag-ui/client": "1.0.3",
     "@ag-ui/core": "1.0.3",
     "rxjs": "7.8.1",
-    "react-hook-form": "7.88.0",
-    "@assistant-ui/react-hook-form": "0.12.34",
     "@assistant-ui/react-lexical": "0.2.15",
     "lexical": "0.51.0",
     "@lexical/react": "0.51.0",
@@ -443,9 +437,6 @@
       ],
       "composer": [
         "./dist/composer/index.d.ts"
-      ],
-      "form-tools": [
-        "./dist/form-tools.d.ts"
       ],
       "catalog": [
         "./dist/catalog/index.d.ts"

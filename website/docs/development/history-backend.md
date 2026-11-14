@@ -8,7 +8,7 @@ title: "接入历史会话"
 
 ## 地址与鉴权配置
 
-历史接口的地址、鉴权和业务覆盖放在生成项目的 `services/conversations/http-data-source.ts` 中，由 Creator 接入或修改。这个文件保存 `conversationDataSourceConfig`，经项目的 `plugins/conversation-data-source` 入口调用所选插件实现；默认 HTTP 请求与响应转换由 `conversation-data-source` 插件提供。Web Component 的 React 生产工程使用相同边界。
+打开 `src/agent-ui/services/conversations/http-data-source.ts`，修改已有的 `conversationDataSourceConfig`，保留其余工厂委托代码。初始化选了其他源码目录时替换此前缀。配置经项目的 `plugins/conversation-data-source` 入口调用所选插件实现；默认 HTTP 请求与响应转换由插件提供。Web Component 在 React 生产工程中修改同一文件，再重新构建。
 
 | 内容 | 项目文件 |
 | --- | --- |
@@ -32,18 +32,9 @@ export const conversationDataSourceConfig: Partial<HttpConversationDataSourceOpt
 };
 ```
 
-`decodeList` 接收响应 JSON，返回 `ConversationSummary[]`；`decodeDetail` 返回 `ConversationDetailResponse`，其中消息位于 `state.values.messages`。两者均可异步返回，输出会按公共会话契约校验。自己的数据库可以使用不同的历史接口格式，通过这些项目覆盖转换，无需修改 Runtime。契约类型从 `@za38.03/agent-ui-plugins/conversation-service` 导入。
+`decodeList` 接收响应 JSON，返回 `ConversationSummary[]`；`decodeDetail` 返回 `ConversationDetailResponse`，其中消息位于 `state.values.messages`。两者均可异步返回，输出会按公共会话契约校验。自己的数据库可以使用不同的历史接口格式，通过这两个解码器完成转换。契约类型从 `@za38.03/agent-ui-plugins/conversation-service` 导入。
 
-Creator 优先修改并验证项目配置或自定义数据源，说明受影响的操作。单独修改删除路径通常只影响删除操作；修改基础地址或共享鉴权可能同时影响列表和详情。项目配置编辑不需要源码接管；确需修改官方插件实现时，仍需先确认接管。可选 Service preflight 工具检查拓扑、公共声明和文件版本。
-
-路径相对于生成的 Agent UI 源码目录。插件的默认请求已处理状态码、响应转换和取消；默认接口格式见下文的 HTTP 数据源说明。
-
-```text
-请接入或修改会话历史：
-列表：【URL】，详情：【URL】，删除：【URL】。
-鉴权：【沿用当前登录凭据】，请求和响应示例：【粘贴接口说明】。
-请配置项目里的历史数据源，保留现有会话交互。
-```
+单独修改删除路径只影响删除操作；修改基础地址或共享鉴权会同时影响多个操作。项目配置编辑无需源码接管。默认请求已处理 HTTP 状态码和取消；业务响应适配方式见下文。
 
 在使用 `Agent` 的页面中接入：
 
@@ -62,7 +53,41 @@ export function App() {
 
 ## HTTP 数据源
 
-按上述位置设置 API 地址。以 `/api` 为例，插件默认请求 `GET /api/conversations`（列表）、`GET /api/conversations/{key}`（详情）及 `DELETE /api/conversations/{key}`（删除）。其中 `key` 就是会话的 `threadId`。以下格式是默认适配器支持的协议，不要求用户修改自己的数据库或接口。
+以基础地址 `/api` 为例，完整默认请求如下。列表没有分页或关键词参数，当前数据源一次返回列表；需要业务筛选时在项目数据源内适配。
+
+| 操作 | 请求 | 请求体 | 成功响应 |
+| --- | --- | --- | --- |
+| 列表 | `GET /api/conversations` | 无 | 下方列表 JSON |
+| 详情 | `GET /api/conversations/{id}` | 无 | 下方详情 JSON |
+| 删除 | `DELETE /api/conversations/{id}` | 无 | 成功 HTTP 状态，包括 204；不解析正文 |
+| 重命名 | `PATCH /api/conversations/{id}` | JSON `{ "title": "新的会话名" }` | 成功 HTTP 状态，包括 204；不解析正文 |
+| 归档 | `POST /api/conversations/{id}/archive` | 无 | 同上 |
+| 取消归档 | `POST /api/conversations/{id}/unarchive` | 无 | 同上 |
+
+列表和详情的**直接格式**也可使用：
+
+```json
+{ "conversations": [{ "id": "thread-123", "title": "订单查询", "status": "regular" }] }
+```
+
+```json
+{
+  "id": "thread-123",
+  "title": "订单查询",
+  "state": {
+    "values": {
+      "messages": [
+        { "id": "user-1", "type": "human", "content": "订单到了吗？" },
+        { "id": "answer-1", "type": "ai", "content": "订单正在配送。" }
+      ]
+    }
+  }
+}
+```
+
+这些是 LangChain 历史消息，用户为 `type: 'human'`，助手为 `type: 'ai'`，不同于实时 AG-UI 的 `role` 消息。工具历史需保留 tool call 和结果的 ID 关系，不要全部压成文字。`id` 必须对应请求的 threadId；名称必需且非空。可选 `agentState` 是显式 AG-UI 状态，与历史 checkpoint 分开。
+
+上述路径的 `{id}` 就是会话的 `threadId`。默认适配器还支持下方的业务响应包装；已有接口不符合这些格式时，使用后面的[响应字段解码](#响应字段解码)，无需修改数据库。
 
 列表返回会话 ID 和展示信息；详情返回消息、状态及可用操作。默认适配或项目解码器的输出须符合 `conversation-service` 的公共契约，**不能只返回文本数组**。未接入服务时使用空数据源，刷新后不会自动恢复历史。
 
@@ -116,21 +141,150 @@ export function App() {
 
 `body.agentState` 可选，**必须由后端显式返回**，不会从 checkpoint 的业务字段推断。原有直接返回 `{ id, title, state, agentState? }` 的格式仍兼容。
 
-`conversation-service` 在调用 Runtime 封装的官方转换器前处理历史消息兼容：历史助手消息若以 `<think>…</think>` 开头，会将其中的内容恢复为思考部分，后面的内容作为回复正文；未闭合但有内容的思考也会保留。只有空 `<think>` 标记的助手记录不显示。用户消息、正文中的标签示例和已有结构化内容保持原有语义；工具调用与结果仍按 `tool_call_id` 关联，读取历史不会执行工具。直接调用 Runtime 的 `projectLangChainHistory()` 只执行官方转换，不包含这些插件兼容处理。
+历史助手消息若以 `<think>…</think>` 开头，插件会将其中的内容显示为思考过程，其后的内容作为回复正文；未闭合但有内容的思考也会保留，只有空标记的记录不显示。用户消息和正文中的标签示例保持原样。工具调用与结果按 `tool_call_id` 关联；读取历史不会重新执行工具。
 
-## 初始化时打开已有会话
+## 响应字段解码
+
+假设列表返回 `{ "code": 0, "data": { "items": [{ "sessionId": "thread-123", "name": "订单查询" }] } }`，详情返回以下业务结构：
+
+```json
+{
+  "code": 0,
+  "data": {
+    "sessionId": "thread-123",
+    "name": "订单查询",
+    "records": [
+      { "id": "user-1", "speaker": "user", "text": "订单到了吗？" },
+      { "id": "answer-1", "speaker": "assistant", "text": "订单正在配送。" }
+    ]
+  }
+}
+```
+
+在 `services/conversations/http-data-source.ts` 中添加 Schema，并修改原配置对象，保留下方已有 `createHttpConversationDataSource()` 函数。`HttpConversationDataSourceOptions` 沿用该文件已有导入：
+
+```ts
+import { z } from 'zod';
+
+const listSchema = z.object({
+  code: z.literal(0),
+  data: z.object({ items: z.array(z.object({
+    sessionId: z.string().min(1), name: z.string().min(1),
+  })) }),
+});
+const detailSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    sessionId: z.string().min(1), name: z.string().min(1),
+    records: z.array(z.object({
+      id: z.string().min(1),
+      speaker: z.enum(['user', 'assistant']),
+      text: z.string(),
+    })),
+  }),
+});
+
+export const conversationDataSourceConfig: Partial<HttpConversationDataSourceOptions> = {
+  endpoint: '/business',
+  credentials: 'include',
+  headers: () => ({}), // 改为读取业务项目当前的用户凭据。
+  routes: {
+    listUrl: base => `${base}/sessions`,
+    detailUrl: (base, id) => `${base}/sessions/${encodeURIComponent(id)}`,
+  },
+  decodeList(value) {
+    return listSchema.parse(value).data.items.map(item => ({
+      id: item.sessionId, title: item.name,
+    }));
+  },
+  decodeDetail(value) {
+    const item = detailSchema.parse(value).data;
+    return {
+      id: item.sessionId, title: item.name,
+      state: { values: { messages: item.records.map(record => ({
+        id: record.id,
+        type: record.speaker === 'user' ? 'human' : 'ai',
+        content: record.text,
+      })) } },
+    };
+  },
+};
+```
+
+示例只适配文字历史；工具、多模态等应扩展转换，保留结构和关联 ID。项目已有 `zod` 可直接复用。两个解码器接收已解析的 JSON，输出仍按公共契约校验；解析失败应报错，不能回退成空列表。示例只覆盖读取路由，其他操作仍使用默认路径，启用前补充其真实路由或隐藏不支持的操作。
+
+## 自定义会话数据源
+
+`routes` 只改 URL，`decodeList/decodeDetail` 只改响应，不会把 GET 改成 POST。需要不同方法、请求体、Axios 或业务成功码检查时，新建 `src/agent-ui/services/conversations/business-data-source.ts`。下面示例接口均用 POST JSON：
+
+| 接口 | 请求体 | 响应体 |
+| --- | --- | --- |
+| `/business/chat/list` | `{}` | `{ "code": 0, "data": { "items": [{ "sessionId": "thread-123", "name": "订单查询" }] } }` |
+| `/business/chat/detail` | `{ "sessionId": "thread-123" }` | `{ "code": 0, "data": { "sessionId": "thread-123", "name": "订单查询", "records": [...] } }`，records 同上一节 |
+| `/business/chat/remove` | `{ "sessionId": "thread-123" }` | `{ "code": 0 }` |
+
+将上一节的 `listSchema`、`detailSchema` 移至项目 `services/conversations/business-schema.ts` 并导出，然后编写：
+
+```ts
+import { z } from 'zod';
+import type { ConversationDataSource } from '@za38.03/agent-ui-plugins/conversation-service';
+import { listSchema, detailSchema } from './business-schema';
+
+async function post(url: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
+  const response = await fetch(url, {
+    method: 'POST', credentials: 'include', signal,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error('HISTORY_REQUEST_FAILED');
+  return response.json();
+}
+
+export const businessHistory: ConversationDataSource = {
+  async list({ signal } = {}) {
+    const result = listSchema.parse(await post('/business/chat/list', {}, signal));
+    return result.data.items.map(item => ({ id: item.sessionId, title: item.name }));
+  },
+  async get(id, { signal } = {}) {
+    const { data } = detailSchema.parse(await post('/business/chat/detail', { sessionId: id }, signal));
+    if (data.sessionId !== id) throw new Error('HISTORY_THREAD_MISMATCH');
+    return {
+      id: data.sessionId, title: data.name,
+      history: { format: 'langchain', messages: data.records.map(record => ({
+        id: record.id, type: record.speaker === 'user' ? 'human' : 'ai', content: record.text,
+      })) },
+    };
+  },
+  async delete(id, { signal } = {}) {
+    z.object({ code: z.literal(0) }).parse(
+      await post('/business/chat/remove', { sessionId: id }, signal),
+    );
+  },
+};
+```
+
+在 `src/AssistantPage.tsx` 注入：
+
+```tsx
+import { Agent } from './agent-ui';
+import { businessHistory } from './agent-ui/services/conversations/business-data-source';
+
+export function AssistantPage() {
+  return <Agent endpoint="/api/agent" conversationDataSource={businessHistory} />;
+}
+```
+
+**注意返回类型不同：**HTTP `decodeDetail` 返回 `state.values.messages`；完整数据源 `get()` 返回 `history: { format: 'langchain', messages }`。不要把两种对象互换。
+
+`list/get/delete` 必需，`rename/archive/unarchive` 可选；均可接收可选的 `{ signal }`。在函数内负责鉴权和业务失败判断，取消传给实际请求。需要额外操作时在这个对象中实现，签名见下一节；没有实现的操作应在列表应用层隐藏。这个数据源没有 `save/append` 写消息接口：对话持久化由业务 Agent 后端按 threadId 完成，前端读取历史不代替保存消息。
+
+## 初始化会话加载
 
 需要初始化时打开已有会话，在 `<Agent />` 上传入 `initialThreadId`。项目会按该 ID 请求已配置的历史详情接口并加载消息；此参数只在初始化时生效。示例见[打开已有会话](/development/agent-options#打开已有会话)。
 
 ## 重命名、归档与取消归档
 
-会话列表提供这些操作，是否接入由业务工程决定。插件的默认 HTTP 实现以 `/api` 为基础地址时，使用以下约定；它们不是对业务后端路由的要求。路径通过项目的 `routes` 覆盖；方法和请求内容可通过 `fetch` 或自定义数据源适配：
-
-| 操作 | 插件默认请求 | 请求内容 |
-| --- | --- | --- |
-| 重命名 | `PATCH /api/conversations/{id}` | JSON `{ "title": "新的会话名" }` |
-| 归档 | `POST /api/conversations/{id}/archive` | 无正文 |
-| 取消归档 | `POST /api/conversations/{id}/unarchive` | 无正文 |
+会话列表提供这些操作，是否接入由业务工程决定。默认请求见[HTTP 数据源表](#http-数据源)；路径通过项目的 `routes` 覆盖，方法和请求内容通过 `fetch` 或自定义数据源适配。
 
 以上操作默认只检查 HTTP 状态，接受成功状态（包括 `204`）；业务错误应使用失败 HTTP 状态。若接口以成功 HTTP 状态返回业务失败包装，需要在项目的 `fetch` 覆盖或自定义数据源中校验业务返回码并抛出失败。`decodeList`、`decodeDetail` 不处理这些操作的响应。请求沿用项目配置的鉴权和凭据设置。
 

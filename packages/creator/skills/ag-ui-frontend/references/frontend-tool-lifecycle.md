@@ -7,8 +7,10 @@ the generated application's chosen UI stack; no particular UI library is require
 ## Capability ownership and permission
 
 A Plugin provides an activation-scoped Service. The application explicitly permits
-selected operations in `agent-contract/agent-tools.ts`. A Service method is not
-an Agent Tool until the application authorizes it. Reuse existing Service seams;
+selected operations through project frontend-tool modules or the Host's
+`Agent.frontendTools` source. A Service method is not an Agent Tool until the
+application authorizes it. Existing Host page methods do not require a new Plugin
+or Service. For Plugin-shared capabilities, reuse existing Service seams and
 preserve Service ownership and public contracts. Plugins cannot self-register
 tools or own another Agent Runtime.
 
@@ -71,16 +73,17 @@ continuation, subsequent streaming frames, resolved cold history, thread revisit
 and StrictMode. A ToolMessage's standard error field marks failure; the runner
 must not infer success from a tool-specific receipt field such as opened.
 
-## Framework integrations
+## Business page and form integration
 
-When Agent UI offers a specialized integration (for example
-`@za38.03/agent-ui-plugins/form-tools`), first inspect its canonical product/tool semantics
-at the project's pinned upstream revision. Reuse `set_form_field`, `submit_form`
-and `reset_form` semantics and React Hook Form, while preserving application-owned
-permission and activation-scoped Service capability boundaries. Do not ignore the
-integration and invent another vocabulary; do not register tools directly through
-an upstream hook when that bypasses application permission. Use the packaged
-[official integration guidance](../SKILL.md#official-integrations) and inspect
-the installed integration/react-hook-form and demo/frontend-tool-form resources
-through inspect_agent_ui_sources before installing optional resources. Resource
-availability is not Agent exposure permission.
+An existing Host page exposes its methods through Runtime's public
+`createAgentUIFrontendTools()` and `<Agent frontendTools={tools} />`.
+The application owns field names, argument validation, form-library calls and
+business submission. No form-specific Integration, Provider Plugin or Service
+registration is required for this Host path. Plugin-shared capabilities retain
+the activation-scoped Service path described above. Both sources use the same
+canonical execution, result and continuation pipeline.
+
+Reuse the project's installed form library. Validate unknown input before field
+mutation; honor cancellation; return what actually happened. Only expose the
+operations requested by the application. Filling does not imply submission.
+History and renderer mounts never execute form operations.

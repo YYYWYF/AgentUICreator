@@ -61,6 +61,10 @@ Agent UI 与 Creator 编码目标始终是 React。Vue/HTML 等宿主通过 Web 
 
 源码同步默认以升级后实际安装的 Plugins 包为 TARGET；升级前可以展示官方变更供决策，但在线较新源码、缓存或 Creator 自身依赖不能越过工程安装状态直接变成同步 TARGET。
 
+普通 npm 插件的版本直接读取工程实际安装的包，不另记初始化版本或逐插件安装版本。初始化读取该工程 Plugins 包配套的资源，不以 Creator 自身依赖的精确版本限制项目。Creator-only 工程缺少生产依赖时复用已有依赖准备步骤；安装后重新读取项目资源。
+
+已接管源码的插件复用现有所有权与 BASE 记录，始终在独立区域展示，包括暂无更新的插件。各插件展示当前使用版本、可用的新功能及独立更新入口，Plugins 包的常规功能说明按 `pluginId` 排除这些插件。其他包和未关联插件的包级说明默认收起，必需的迁移要求保持可见。线上新版包的变化明确标为需先安装包，不能暗示已应用到本地实现。包升级不自动同步源码或采用 BASE。
+
 ## 4. 用户确认与 npm 升级计划
 
 检查和规划只读。点击“升级”先形成具体可审查计划，列出目标对象/工程、当前与目标版本、直接变更和依赖联动原因、必要第三方/peer 变化、安装位置、包管理器、验证与恢复范围。明确哪些托管源码保持不变、哪些后续同步可选，不能把 npm 升级同意当成源码接管或合并授权。
@@ -93,6 +97,8 @@ Operator 只在确认范围内执行：
 
 同步仍复用现有 Operator source-only 计划与 Creator 模型/手动合并入口。BASE 是上次采用的准确官方快照，LOCAL 是当前实现，TARGET 通过安装后的包身份、catalog 和摘要校验。只允许已托管实现子树参与新增/修改/删除；用户薄应用层、配置、AppUIModel、共享服务声明及其他插件的定制不进入合并或 BASE。不能通过 npm 升级偷偷完成新的源码接管。
 
+实现快照包含按插件独立拥有的共享展示依赖及样式；更新某个插件只处理其 `source/` 内的副本。源码同步计划单独显示所需直接依赖，确认后准备依赖再验证源码，不能把此前 npm 包升级的确认当成这一阶段的授权。依赖准备失败或随后源码验证失败时，源码/BASE 保持原状；已完成的依赖准备不由源码事务自动撤销。共享 Runtime、Host Context、主题、locale 和 Portal 仍使用 npm，同版本依赖也必须避免解析成另一份会话 Context。
+
 模型合并不授予推进基线的权限；用户审查并经 Host 验证后才采用 TARGET。缺失历史、冲突未解决、应用层变动、共享 API 不兼容或验证失败时保留原 BASE，并提供可重试结果。定向移植只形成 LOCAL 定制，不冒充整个 TARGET 已同步。必要的应用层 API 迁移要独立规划、解释和确认，不借源码同步覆盖用户代码。
 
 ## 7. 当前实现位置
@@ -116,6 +122,8 @@ Operator 只在确认范围内执行：
 - `NpmCompatibilityReleaseProvider` 在目标工程执行 npm 元数据查询，沿用 registry/凭据，验证组合内准确版本可用，隔离缓存及并发。无需额外 manifest 服务；显式 `CREATOR_UPDATE_MANIFEST_URL` 可选择 HTTP provider。元数据缺失、不可达或不可变 ID 被改写均不报告已最新。
 - `/__creator/updates/check` 返回源码状态与 `packageUpdates`，绑定实际工程，检查不顺带恢复或修改源码。待恢复 npm 事务优先返回恢复状态，不能依赖可能损坏的 node_modules。
 - 页面展示 npm 默认插件与托管插件，区分累计变更、逐版本记录、破坏性要求、不兼容原因和记录缺口。`installationSupported` 表示已有项目安装通道，不保证任意工程满足执行准入；工具区不执行工具升级。
+- 更新页以“官方插件”和“你接管的插件”组织功能变化。默认只展开目标版本，历史按版本倒序收起；一次更新仍包含中间版本的改进，累计破坏性要求保持可见。安装完成后保留已发布版本记录，接管插件只显示自己的功能、版本及独立更新入口。历史旧组合中的降级项不作为新版本警告，真正的前置要求提供可执行的说明。
+- 更新操作立即显示忙碌状态并禁用重复确认。包执行复用原 `/packages/execute` 路由，显式请求 NDJSON 时流式返回实际安装、工程检查和恢复阶段，普通 JSON 客户端保持兼容；中断的进度流不能被视为成功。页面只在完成回执后展示具体更新版本；这些是临时界面状态，不新增项目版本记录。
 - 发行准备脚本从六个真实 package.json 和审阅后的 notes 生成兼容资料。`historyFrom` 是发布者对变更记录完整性的声明，不按补丁号推断。清单准备不等于包已发布，真实产物在安装前再次核验。
 
 ### 确认安装与恢复
@@ -143,9 +151,17 @@ Operator 只在确认范围内执行：
 
 ## 随包发布流程
 
+插件功能说明的 canonical owner 是 `packages/plugins/src/plugins/<id>/CHANGELOG.json`，插件名称来自同目录 `plugin.json`。发布前由 AI 或维护者按既有格式编写说明，再经过发行校验；Creator 不在用户检查更新时根据代码差异猜测或生成说明。
+
+在线包级记录使用 `prepare-compatibility-release.mjs` 接收的 notes JSON：顶层键是准确的 npm 包名，每项 `changes` 包含 `id`、npm 包 `version`、`kind`、`summary`；属于插件的变化填写 `pluginId`，包自身的变化不填写。插件自身 CHANGELOG 的版本与 npm 包版本分别保持各自含义，不互相替代。准备脚本接收、校验并汇总已编写的记录，不自动从代码推断变更。
+
+Creator 通过工程的 npm registry 读取随包发布的 `agentUI.compatibility`。默认以版本、Plugin ID 归组展示插件功能，名称读取工程实际安装的 Plugins 中的 manifest；不得用操作按钮文案替代名称。其他包及未标记 `pluginId` 的包级说明默认收起，用户可在决定升级前展开阅读；必需的迁移/破坏性要求仍显式提示。接管插件继续使用工程实际安装快照中的独立 CHANGELOG，不将在线包记录当作源码同步目标。
+
 每次发行使用 `scripts/prepare-compatibility-release.mjs` 从真实包版本、依赖与经审阅的变更记录生成组合，将结果保存到 `releases/compatibility.json`，保留既有组合 ID 和内容。随后运行正式构建和 pack；各包 build/prepack 执行 `scripts/sync-package-release-metadata.mjs` 生成元数据，不作为开发启动的兼容性审核。发布者构建后显式执行 `pnpm check:release-metadata`，拒绝缺少当前版本或依赖要求已漂移的清单；现有 `prepublishOnly` 继续执行发布审核。清单不是自动推断的兼容承诺，发布者仍须验证组合。npm 全部目标版本可获取之后客户端才展示该组合。Plugins 源码仍由现有 catalog、快照和哈希验证发布，不从 Creator 内嵌副本读取。
 
-首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行校验由发布者在本地显式执行，不接入 `prepublishOnly`，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog；其他包的现有发布钩子不变。
+六个公开包在构建开始时使旧构建记录失效，成功完成后生成 `dist/build-integrity.json`，记录各自的包身份、源码/构建输入与产物内容哈希。`prepack` 和 `prepublishOnly` 先执行只读一致性检查，拒绝缺少记录、升版后未重建、源码或依赖输入变化、产物缺失或被修改的包；Plugins 另检查 catalog 身份、源码与产物模板内容，以及模板中的官方包精确版本是否对应各包自己的版本。不要求各包版本相同，也不修改消费者的依赖。先准备版本和模板，再运行 `pnpm build:package`，可用 `pnpm check:package-integrity` 单独检查；检查失败不会自动修复或补建产物。
+
+首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行历史校验由发布者在本地显式执行，不接入 `prepublishOnly`；上述产物一致性检查独立于发行历史校验，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog。
 
 本地先编辑包版本、`resources/registry/release.json`、各 Plugin 的 canonical `plugin.json` / `CHANGELOG.json` 和经审阅的兼容清单，完成构建后运行 `pnpm --filter @za38.03/agent-ui-plugins release:verify`。命令只读校验当前 changelog、版本、兼容资料、catalog / source 快照和本地历史；`release:prepare` 是同一只读校验的兼容入口，不再自动递增 patch。校验失败由发布者修正后重跑。
 

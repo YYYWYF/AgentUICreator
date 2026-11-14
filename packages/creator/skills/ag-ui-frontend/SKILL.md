@@ -23,7 +23,7 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntimeActions()` exposes only Agent Runtime commands. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel composition.
 - `usePluginEvents()` is the inbound, live-only Application Event channel. Subscribe only to names declared in the Plugin manifest and registered through the application's `Agent.appEventSchemas`.
 - `usePluginService()` remains the component API for named Plugin capabilities.
-- `/agent-contract/agent-tools.ts` owns the explicit set of frontend capability operations advertised to the Agent.
+- Project frontend-tool modules and the Host's explicit `Agent.frontendTools` source own the operations advertised to the Agent; providing a Plugin Service alone never exposes a tool.
 
 ## Boundaries
 
@@ -36,8 +36,9 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - Never expose or import AG-UI `CUSTOM`, `CustomEvent`, `BaseEvent`, `RawEvent`, `rawEvent`, or `@ag-ui/core` from Plugin code. Preserve an explicitly supplied backend business event name and payload; never guess an unknown payload shape. Distinguish its consumers: a chat message renderer uses `defineDataMessageUI`, `definition.dataMessageUIs` and `manifest.data.messageUI`, and validates its raw `data`; a live Application Event subscriber uses `Agent.appEventSchemas`, `manifest.data.events` and `usePluginEvents`. Do not add a duplicate subscriber merely to render a chat message. Application schema transforms do not rewrite message data.
 - For Application Event subscriptions, reuse an existing schema module; otherwise create an application-owned module relative to actual sourceRoot (for example `agent-contract/agent-events.ts`) and wire it through `Agent.appEventSchemas`. That directory is optional, not a preinstalled Runtime requirement. A Plugin-local schema wired through the application is also valid.
 - Frontend Tools use standard AG-UI `RunAgentInput.tools`, `TOOL_CALL_*`, `ToolMessage`, and a continuation Run. Never encode a frontend Tool call as `CUSTOM`, a new UserMessage, or a Plugin-specific protocol.
-- The Agent calls a capability adapter, never React or a Plugin. Reuse or define a stable Service seam, let a Provider Plugin declare and provide that Service, then expose only the product-authorized operations in `/agent-contract/agent-tools.ts`.
-- Tool names use `lower_snake_case`; schemas use `z.strictObject(...)` as the single validation and JSON Schema source; handlers resolve Services at execution time and return short serializable results.
+- For existing Host page operations, use `createAgentUIFrontendTools()` from Runtime and pass the stable source to `<Agent frontendTools={tools} />`. Validate input inside execute and call the existing page/form methods. This path does not require a Provider Plugin, Service registration or generated tool module.
+- When a capability is shared by Plugins, reuse or define a stable Service seam, let a Provider Plugin declare and provide it, and expose only the application-authorized operations through project frontend tools.
+- Tool names use `lower_snake_case`. Host tools declare JSON Schema and validate unknown input inside execute. Project tools may use `z.strictObject(...)` as the validation/JSON Schema source and resolve Services at execution time. Return short serializable results.
 - Do not infer that every Service method should be exposed. Capability ownership and Agent exposure permission are separate decisions.
 - Plugins must never self-register Frontend Tools or import AG-UI Tool types. They only provide capabilities through the existing Service lifecycle.
 - Do not invent Application Events to replace standard Activity/Tool/Run lifecycle, persistent shared state, local Plugin communication, or frontend commands. An explicitly supplied business-job CUSTOM notification can drive a live panel through the application channel; it does not become standard Runtime execution progress or gain history/replay. A single Plugin's private projection may use component state and update by the supplied business ID. Subscribe in `useEffect` and return the unsubscribe function. Use existing shared state/services when persistence or cross-Plugin sharing is actually required.
@@ -81,8 +82,9 @@ For capability or renderer integration details, read the packaged
    `{ opened: true, title: "Settings" }`; history does not require it to stay open.
 5. History restoration must never execute Frontend Tools. An execute on history
    load is a Runtime bug; do not patch it with renderer `isHistory` workarounds.
-6. Keep `Plugin -> Service`, `Application agent-tools -> allowed operation`,
-   `Runtime adapter -> Agent UI native frontend execute`. Plugins never
+6. Keep `Plugin -> Service` for Plugin-shared capabilities; existing Host page
+   methods can be exposed directly through `Agent.frontendTools`. Both use
+   `Application -> allowed operation` and `Runtime adapter -> Agent UI native frontend execute`. Plugins never
    register Tools. Preserve root-only execution scope until subagent attribution
    has its own contract. Do not add another TOOL_CALL executor or CUSTOM protocol.
 
@@ -95,15 +97,10 @@ When Agent UI provides a specialized integration:
 3. Do not bypass AgentUICreator application permission.
 4. Model reusable adaptation as an Integration, not as a Demo Plugin.
 
-React Hook Form: reuse `@za38.03/agent-ui-plugins/form-tools.formTools` through
-`integration/react-hook-form`. Use ordinary RHF `useForm()` plus an application
-Service and `createReactHookFormFrontendTools({ serviceName, fields, expose })`.
-`expose` is mandatory and has no default. Do not call `useAssistantForm()` or
-`aui.modelContext.register(...)`; combining those with the factory creates duplicate
-registration and bypasses application permission.
+Business forms use the existing Host frontend-tool API with the project's installed form library. Reuse its field setters, validation and business submit method. There is no form-specific factory or automatically exposed form operation. See the packaged public Frontend Tools guide for the AntD Form example.
 
-Integration installation != automatic Agent permission. Only application
-frontend-tool modules included in the generated allowlist expose operations.
+Integration installation != automatic Agent permission. Operations are exposed
+only by application frontend-tool modules or an explicitly supplied Host source.
 Integrations can be pluginless and tool-less. Demo consumers own UI, field names,
 Service lifecycle and replayable receipts; the Integration owns reusable contracts.
 

@@ -6,6 +6,8 @@ title: "会话命令源（conversation-command-source）"
 
 管理输入框 `/` 菜单中的命令，例如“新建会话”。你可以让 Creator 增加命令、修改名称，或调整选中后的行为。
 
+这是一个提供命令数据与操作的插件，菜单由[/ 快捷命令插件](./slash-command-trigger)展示。命令源维护可用命令及选择行为，通常没有独立界面。
+
 ## 可以调整什么
 
 | 你关心的内容 | 告诉 Creator 什么 |
@@ -37,4 +39,9 @@ title: "会话命令源（conversation-command-source）"
 命令通常在生成源码目录的 `plugins/conversation-command-source/definition.ts` 中配置；菜单展示在 `plugins/slash-command-trigger/index.tsx` 中调整。已有工程以实际文件为准。
 
 修改命令无需接管插件实现源码。更多菜单定制见[/ 快捷命令](./slash-command-trigger)，实际 Creator 操作记录见[自定义 @ 候选与 / 命令](/guide/adjustments/mention-and-commands)。
+
+## 开发文档
+
+- 加载业务命令、注册与清理、区分操作和指令行为：[搜索候选与命令来源](/development/composer-sources)。
+- 在自定义插件中提供或消费命令服务：[服务共享与状态订阅](/development/plugin-api#服务共享与状态订阅)。
 

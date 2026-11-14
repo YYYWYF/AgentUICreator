@@ -43,7 +43,7 @@ The source catalog and snapshots derive from canonical Plugin owners and `source
 
 The generated `application/project-config.tsx` binds `ProjectShell` and the project resources to Runtime `/ui`. Product shell code lives in the project's `application/shell/`; Runtime does not route by product Mode. Shell files are ordinary application code and are preserved during npm upgrades and implementation-only source synchronization.
 
-Brand styling belongs in the project's `styles.css` or public component props. For a brand palette, override the supported CSS variables on both `.agent-ui-root` and `.agent-ui-conversation` for the intended `data-theme`. Keep other themes usable and use `Agent.theme` to select the preset. Concrete examples are in [styling and localization](../../../../development/styling-and-localization.md).
+Brand styling belongs in the project's `styles.css` or public component props. For a brand palette, override the supported CSS variables on both `.agent-ui-root` and `.agent-ui-conversation` for the intended `data-theme`. Keep other themes usable and use `Agent.theme` to select the preset. Concrete examples are in [themes and styling](../../../../development/theme-and-styling.md).
 
 Semantic token families include background/foreground, card, popover, primary, secondary, muted, accent, destructive, border/input/ring, sidebar and chart colors. Agent UI adds success/warning/overlay and shared spacing/font/radius aliases. A preset does not make every active state use its brand color; components may deliberately use foreground alpha or semantic status colors.
 

@@ -20,8 +20,8 @@
 - [新建会话（conversation-new）](/plugins/conversation-new.md): 点击后进入空白对话，可以重新输入问题；之前的会话记录仍保留在历史列表中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [开场建议（conversation-suggestions）](/plugins/conversation-suggestions.md): 例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置填入输入框或直接发起提问。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [临时通知（transient-assistant-messages）](/plugins/transient-assistant-messages.md): 提示显示在对话的对应位置，但不作为用户问题发送给 Agent，也不写入后端聊天历史。它只保留在当前页面内存中，适合临时通知。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [消息输入（composer）](/plugins/composer.md): 用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [发送与停止（submit-action）](/plugins/submit-action.md): 输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
+- [消息输入（composer）](/plugins/composer.md): 需要在回复期间发送后续问题时，先按消息排队开启；该教程说明待发送列表、移除、停止和切换会话的行为。 用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
+- [发送与停止（submit-action）](/plugins/submit-action.md): 排队的启用方式和停止／审批时的行为见消息排队；带 endpoint 的工作流按钮在运行中不排队。 输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [附件添加（add-attachment-action）](/plugins/add-attachment-action.md): 点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [消息引用（conversation-quote）](/plugins/conversation-quote.md): 选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [消息与标签编辑（lexical-edit-composer）](/plugins/lexical-edit-composer.md): 将鼠标移到已发送的用户消息上，点击旁边的「编辑」按钮，原有 @ 对象和 / 指令标签会回填到编辑框。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。 原消息的位置会切换为编辑框，修改后可以「更新」或「取消」，下方仍保留已有回复。
@@ -57,11 +57,11 @@
 - [界面语言切换（locale-switch）](/plugins/locale-switch.md): 切换语言后，当前对话和输入草稿会保留。它控制界面语言，Agent 用什么语言回答由 Agent 和业务配置决定。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [账号信息与退出登录（auth-account）](/plugins/auth-account.md): 例如在侧栏底部显示用户名和头像，点击后打开账号菜单。直接传入业务用户资料时只显示身份；插件管理认证会话时，可提供退出登录。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [登录认证（开发中）](/plugins/auth-gate.md): 检查登录状态时显示等待；未登录时显示账号、密码和登录按钮。认证成功后，应用再显示允许访问的聊天内容。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [会话命令源（conversation-command-source）](/plugins/conversation-command-source.md): 管理输入框 / 菜单中的命令，例如“新建会话”。你可以让 Creator 增加命令、修改名称，或调整选中后的行为。
-- [会话数据源（conversation-data-source）](/plugins/conversation-data-source.md): 连接业务系统中的历史会话，让用户查看会话列表和之前的聊天记录。接入这项能力时，最重要的是提供实际接口资料。
-- [会话服务（conversation-service）](/plugins/conversation-service.md): 让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。
-- [语言服务（locale-provider）](/plugins/locale-provider.md): 统一管理助理界面的语言和文案。生成项目默认中文，支持中文和英文。
-- [主题服务（theme-provider）](/plugins/theme-provider.md): 统一管理助理界面的主题。内置浅色、深色和紫色，默认使用紫色主题。
+- [会话数据源（conversation-data-source）](/plugins/conversation-data-source.md): 连接业务系统中的历史会话，让用户查看会话列表和之前的聊天记录。接入这项能力时，最重要的是提供实际接口资料。 这是一个提供数据的插件，负责请求历史接口并转换返回格式。它与会话服务配合，数据由会话列表等界面插件展示，本身没有独立的列表界面。
+- [会话服务（conversation-service）](/plugins/conversation-service.md): 让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。 这是一个提供共享会话管理能力的插件，负责会话状态、缓存和操作。它与会话数据源配合，并供会话列表等界面插件使用，通常没有独立界面。
+- [语言服务（locale-provider）](/plugins/locale-provider.md): 统一管理助理界面的语言和文案。生成项目默认中文，支持中文和英文。 这是一个提供共享语言状态与文案的插件，其他插件从中读取当前语言和界面文字。可见的语言选择入口由界面语言切换插件提供，语言服务本身通常没有独立界面。
+- [主题服务（theme-provider）](/plugins/theme-provider.md): 统一管理助理界面的主题。内置浅色、深色和紫色，默认使用紫色主题。 这是一个提供共享主题状态的插件，供界面和其他插件使用。可见的切换按钮由主题切换插件提供；本页介绍主题服务的用途，手动配置见下方开发文档。
+- [会话命令源（conversation-command-source）](/plugins/conversation-command-source.md): 管理输入框 / 菜单中的命令，例如“新建会话”。你可以让 Creator 增加命令、修改名称，或调整选中后的行为。 这是一个提供命令数据与操作的插件，菜单由/ 快捷命令插件展示。命令源维护可用命令及选择行为，通常没有独立界面。
 
 ## Creator
 
@@ -78,7 +78,7 @@
 - [增加新的界面功能](/guide/add-function.md): 本页于 2026 年 11 月 6 日使用当前 Creator 和 deepseek-v4.1-flash，在准备好的招行 AI 工作台中重新执行。本轮已实际新增“当前工单”卡片。
 - [了解当前工程](/guide/examples/understand-project.md): 先了解当前助理的组成和可调整范围，再提出具体需求。
 - [检查修改结果](/guide/examples/verify-results.md): 检查实际页面、回复操作、工具失败提示以及审批后的继续回复。
-- [模型与工具配置](/guide/configuration.md): 配置模型服务以使用 Creator 的分析和编码能力，并按需调整服务端口。
+- [模型与工具配置](/guide/configuration.md): 配置 Creator 模型服务、长任务上下文预算和服务端口。
 - [Creator 快捷命令](/guide/commands.md): 在 Creator 输入框中输入 /，选择命令与选项。点击菜单中的具体选项即执行；手动输入完整命令时，点击「发送」。 运行中、等待回答或工程尚不可用时，先处理当前任务，再使用命令。 主题由业务页面通过 Agent 的 theme 属性传入，不使用 /theme 写入项目配置。接入方式见主题切换。
 - [Vite 开发面板接入](/guide/creator-dock-vite.md): Vite Dock 在开发页面中添加 Creator Agent 按钮，展开后即可对话修改工程。
 - [Rsbuild / Webpack / CRACO 开发面板接入](/guide/creator-dock-rsbuild-webpack.md): 在对应构建工具的开发配置中接入 Creator 面板，保留已有插件、代理和其他选项。Creator 面板自带样式。
@@ -94,23 +94,33 @@
 - [React 工程接入](/development/react.md): 先在现有 React 工程中完成初始化。以下假设源码位置为 src/agent-ui，实际导入路径以「查看接入方法」为准。 示例保存为 src/AssistantPage.tsx，再在业务页面（如 src/App.tsx）导入并渲染 <AssistantPage />： 把组件放入现有业务内容区域。已有顶部栏时，使用剩余内容区高度；flex/grid 父容器通常还需要 min-height: 0，以便消息区内部滚动。保留原有业务导航，不为嵌入助理额外引入页面体系。 上例适用于工作台占据完整内容区。嵌入式的宽高由宿主容器决定，助手则通过自带的悬浮入口展开。挂载前按各模板的说明分配空间并检查遮挡。
 - [Vue 工程接入](/development/vue.md): Vue 页面通过 Web Component 显示 Agent UI。Vue 工程负责放置组件、传入配置和监听事件；助理的组件实现和定制在提供该 Web Component 的 React 工程中维护。 按是否需要定制选择接入方式：
 - [HTML 与其他框架嵌入](/development/web-component.md): 独立 Web Component 将 React、Runtime 与所选 Plugin 构建到部署资源中。业务页面无需编译 TSX，但需要现代 Custom Elements、Shadow DOM 等浏览器能力。 接入自己生成的定制产物时，展示形态沿用 React 工程初始化时选择的模板。工作台和嵌入式需要宿主提供宽高，助手自带悬浮入口；尺寸和放置方式见各模板的说明。
-- [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 具体插件需要的事件名、数据字段和完整 SSE 格式，见插件显示条件与 AG-UI 数据。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
-- [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 React 页面参数与方法。
-- [布局与插件组合](/development/layout-and-composition.md): Agent UI 把会话列表、输入框、附件、复制等功能做成了插件。你可以按需启用、调整位置，也可以把多个插件组合起来。 本页说明如何手动修改布局配置。界面排列、插件实例及组合保存在 app-ui.json 中，组件属性和渲染代码放在项目插件入口。 日常调整可以直接把需求告诉 Creator，见布局调整示例。自己编辑时，先找到下文的配置文件，保留现有实例 ID，再按需修改位置、尺寸和组合。
-- [业务页面与 Agent 联动](/development/react-host-control.md)
+- [用业务页面控制 Agent](/development/react-host-control.md): 本页说明如何在已有业务页面中放置控制按钮，打开或隐藏助理、发送消息、停止运行及新建会话。这些操作由业务页面代码发起，复用已挂载的 Agent；修改插件内部外观与行为见手动修改插件教程。
+- [多 Agent 与工作流入口](/development/multiple-agents.md): 一个业务页面可以组合多个独立助手，也可以让同一个助手的多个工作流按钮调用不同 URL。本页按场景介绍对应的配置方式。
+- [消息排队](/development/message-queue.md): 启用 Composer 后续消息队列，理解发送、停止、审批和会话切换时的行为。
+- [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。
+- [业务服务接入总览](/development/service-integration.md): 找到接口配置文件，选择默认 HTTP 协议或项目适配器，接入自己的业务服务。
+- [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见插件显示条件与 AG-UI 数据。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
 - [接入历史会话](/development/history-backend.md): 历史服务提供会话列表和聊天记录。读取历史与继续对话是不同能力：要继续提问，还需相应的 Agent 数据和接口。相关参数见Agent 参数与配置。
-- [附件、语音与评价服务](/development/attachments-dictation-feedback.md): 通用能力已有默认实现。接入自己的服务时，通过 Agent 的 attachments、dictation、feedback 属性传入配置。也可以把接口说明交给 Creator 完成。
+- [附件上传服务](/development/attachment-upload.md): 默认在发送时将文件读为 Base64 随消息交给 Agent，每个文件默认最多 20 MiB。需要先上传到业务文件服务、再发送文件 URL 时，按本页配置。后端 Agent 仍需支持读取对应文件类型和 URL。
+- [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
+- [回复评价服务](/development/feedback-service.md): 默认点赞／点踩只保留当前会话界面的选择。需要保存到业务系统时，通过 feedback 配置。配置不会自动在历史加载时恢复服务端的评价选择。
+- [一号通登录（开发中）](/development/auth-service.md): 一号通登录接入开发中。当前只支持业务系统在外部自行完成登录，再将用户凭据和用户信息传给 Agent UI。
+- [搜索候选与命令来源](/development/composer-sources.md): @ 可以查询自己的员工、文档或业务对象；/ 可以显示项目命令。两者通过来源对象接入，没有内置的通用搜索 URL 或命令 URL 配置。 以下路径以 src/agent-ui/ 为源码目录。先在项目中启用 mention-trigger 或 slash-command-trigger；/ 的默认命令注册通常由 conversation-command-source 提供。已有同类来源时修改原实现，避免重复提供同名服务。
 - [前端工具与自定义工具 UI](/development/frontend-tools.md): 前端工具让 Agent 请求执行页面动作，例如打开弹窗或填写表单。业务应用决定哪些动作可用，并提供执行方法；工具 UI 只显示参数、状态和结果。
-- [自定义结果展示](/development/custom-renderers.md): 已有消息或工具结果需要不同的视觉结构时，在对应插件的项目入口中使用组件公开的渲染函数。保留原有消息名称、工具名称、运行状态，以及传给展示组件的当前消息或工具调用数据。 从自定义 AG-UI 事件开始接入新消息卡片时，见自定义 AG-UI 事件与消息渲染，其中包含事件格式、解析函数、插件注册与启用的完整示例。
+- [业务上下文与 Agent 通知](/development/business-context.md): 让 Agent 读取当前选中订单，或让页面在收到 Agent 通知后更新业务区，分别使用 getRunContext 与业务事件订阅。这些入口复用当前 AG-UI 连接，不需要另开一个接口轮询会话。
 - [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md): 按步骤将自定义 CUSTOM 事件解析并显示为消息卡片。
-- [样式与文案开发](/development/styling-and-localization.md): 样式和文案在项目中定制，沿用工程已有的 UI 库、样式方案和版本。需要 Creator 帮你修改时，见主题与样式需求和语言与文案需求。
+- [工程结构与修改入口](/development/project-structure.md): 初始化后，Agent UI 源码默认放在 src/agent-ui/。以下路径都相对于这个目录；初始化时选择了其他目录，就在实际目录中找同名文件。 不同版本或历史工程的目录可能不同，先检查已有组件的导入和导出。官方插件通常由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
+- [布局与插件组合](/development/layout-and-composition.md): Agent UI 把会话列表、输入框、附件、复制等功能做成了插件。你可以按需启用、调整位置，也可以把多个插件组合起来。 本页说明如何手动修改布局配置。界面排列、插件实例及组合保存在 app-ui.json 中，组件属性和渲染代码放在项目插件入口。 日常调整可以直接把需求告诉 Creator，见布局调整示例。自己编辑时，先找到下文的配置文件，保留现有实例 ID，再按需修改位置、尺寸和组合。
+- [自定义 Shell](/development/shell-customization.md): 在项目中修改助手外壳、容器与展开收起行为，保持会话和后台运行。
+- [手动修改插件：样式与业务逻辑](/development/component-customization.md): 从定位已有插件开始，完整修改样式、文案、组件结构和业务请求，并了解共享服务与本地实现的维护方式。
+- [主题与样式](/development/theme-and-styling.md): 选择助理的主题、修改品牌色或调整组件样式时，从这里开始。定制沿用生成工程已有的 UI 库、样式方案和版本。需要 Creator 帮你修改时，见品牌色与样式定制。 本页导航：选择主题 · 修改样式 · 检查效果。修改界面文字和中英文配置见语言与文案。
+- [语言与文案](/development/localization.md): 本页说明如何选择界面语言、修改欢迎语和按钮文字，以及新增业务文案。需要 Creator 帮你修改时，见语言与文案定制。 本页导航：选择语言 · 修改已有文案 · 读取文案 · 新增业务文案。查找可覆盖的字段和默认翻译，见文案字段参考。
+- [文案字段参考](/development/locale-reference.md): 查找可覆盖的界面文案字段及其中英文默认值。配置步骤和代码示例见语言与文案。 按功能查找下面的字段，再构造 Agent.locales 覆盖对象。当前项目安装版本的 AgentUILocaleOverrides 类型是可用字段的依据，编辑器可以补全字段并检查拼写；网站清单对应当前文档版本。
 - [创建自定义插件](/development/create-plugin.md): 已有插件的属性和组合无法满足需求时，可以在项目中编写新的 React 插件。先到插件检查可复用能力；只需让 Creator 帮你新增功能时，见增加新的界面功能。 以下路径相对于生成目录，默认为 src/agent-ui/。 开发时可以直接复用会话操作、状态 Hook、服务、事件、子插槽和消息展示接口。先查公共能力速查，各项提供使用前提和代码示例；插件组件和业务页面的接口入口也在其中区分。
-- [React 页面参数与方法](/development/react-host-api.md): AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见业务页面与 Agent 联动。
-- [Web Component 配置与事件](/development/web-component-api.md): 在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。
-- [插件开发接口](/development/plugin-api.md): 项目插件由能力声明、组件和可选的服务生命周期组成。创建文件与注册步骤见创建自定义插件。修改已有官方插件外观时，先使用组件公开属性。
-- [官方插件源码接管](/development/source-takeover.md): 大多数颜色、文案和排版调整可以直接让 Creator 完成。如果它提出“接管源码”，表示要把该插件的实现放入项目，由项目自行修改和维护。
-- [工程结构与修改入口](/development/project-structure.md): 初始化后，Agent UI 源码默认放在 src/agent-ui/。以下路径都相对于这个目录；初始化时选择了其他目录，就在实际目录中找同名文件。 不同版本或历史工程的目录可能不同，先检查已有组件的导入和导出。官方插件通常由项目入口导入 npm 实现；已经接管的插件则引用本地实现。 新工程只生成布局中选用的插件入口，以及读取服务、传入数据和显示子插件所需的代码，添加插件时再生成对应入口。已经存在的项目入口会保留。 服务相关 Hook 统一放在 services/hooks/ 下：useConversations.ts、useConversationActions.ts 和按需生成的 useAuthSession.ts，不再按领域拆分子目录。插件通过相对路径调用这些 Hook；服务契约和实现不反向依赖 Hook。已有工程的旧 hooks/ 目录不自动迁移。 主题和语言的公共服务标识、类型直接从 npm 导入，不生成 services/agent-ui-theme.ts、services/agent-ui-locale.ts 转导出文件。主题、语言和文案覆盖通过 Agent 属性配置；已有工程的同名文件保留。 可选弹窗、表单等示例按资源声明导入 plugins/、services/ 等位置，之后作为项目自己的业务代码修改。工具只保留已导入文件的位置记录，不为示例维护官方源码基线，也不在 npm 升级或官方源码同步时更新这些文件。
-- [组件属性与组合定制](/development/component-customization.md): 修改已有插件时，先打开项目中的 plugins/<插件名>/index.tsx。它是项目自己的定制入口，可以给公开组件传属性、替换子组件或自定义渲染函数。完成这些修改不需要接管官方源码。 各插件页面的“属性”列出完整属性、类型、默认行为与嵌套配置。页面会分别说明可修改的展示属性，以及会话自动传入的数据和方法。调整外观时，保留原有传参和函数调用。
+- [源码接管与更新参考](/development/source-takeover.md): 修改文件、组件和本地实现的连贯步骤，统一见手动修改插件：样式与业务逻辑。本页用于核对接管后的维护范围。
+- [Agent API](/development/react-host-api.md): 单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。
+- [Web Component API](/development/web-component-api.md): 在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。 本页导航：配置 · 事件。
+- [插件 API](/development/plugin-api.md): 项目插件由能力声明、组件和可选的服务生命周期组成。创建文件与注册步骤见创建自定义插件。修改已有官方插件外观时，先使用组件公开属性。 需要从定位文件一路完成样式、业务请求和服务修改时，按手动修改插件教程操作；本页提供各项 API 的签名和专题示例。 本页导航：能力速查 · 类型入口 · 插件定义 · 组件与子插槽 · 状态与操作 · 服务与订阅。
 
 ## 更新日志
 

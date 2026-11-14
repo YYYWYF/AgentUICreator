@@ -8,7 +8,7 @@ describe("Official Resource Catalog", () => {
     for (const id of ["conversation-quote"]) expect(resolveOfficialResource(id).implementation).toMatchObject({ type: "plugin", pluginId: id, runtime: { type: "package", package: "@za38.03/agent-ui-plugins", subpath: `./${id}` } });
     for (const id of ["chart-message", "source-citations-message", "retrieval-chunks", "web-search"]) expect(resolveOfficialResource(id).implementation).toMatchObject({ type: "plugin", pluginId: id, runtime: { type: "package", package: "@za38.03/agent-ui-plugins", subpath: `./${id}` } });
     expect(() => resolveOfficialResource("a2ui")).toThrow(/Unknown official/);
-    expect(resolveOfficialResource("frontend-tool-form-demo").implementation).toMatchObject({ type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo" });
+    expect(() => resolveOfficialResource("frontend-tool-form-demo")).toThrow(/Unknown official/);
     expect(resolveOfficialResource("ask-user-question").implementation).toMatchObject({ type: "plugin", pluginId: "ask-user-question" });
     expect(resolveOfficialResource("tool-approval").implementation).toMatchObject({ type: "plugin", pluginId: "tool-result", slot: "toolFallback" });
     expect(new Set(officialResourceRegistry.resources.map(resource => resource.id)).size).toBe(officialResourceRegistry.resources.length);

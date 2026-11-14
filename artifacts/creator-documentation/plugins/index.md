@@ -63,3 +63,19 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 通过会话列表查找历史记录，继续之前的问题，或开始新的对话。主题、界面语言、助理名称与头像，以及登录和账号入口，让对话界面与应用的整体体验保持一致。
 
 各项功能的效果与使用说明，见左侧对应的插件页面。
+
+## 提供服务与数据的插件
+
+有些插件主要为其他插件提供共享状态、操作或数据，通常没有单独的可见界面。例如，主题切换控件使用主题服务，会话列表通过会话服务和数据源读取历史记录。它们同样参与插件组合，使用时需要与依赖它们的功能一起配置。
+
+下表列出这类插件及其开发接入入口。各插件页面介绍用途和定制需求，配置文件、接入步骤与代码示例见对应的开发文档。
+
+| 插件                                               | 主要提供什么           | 开发文档                                                                                   |
+| ------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------- |
+| [主题服务](/plugins/theme-provider.md)               | 当前主题及主题切换状态      | [主题与样式](/development/theme-and-styling.md)                                             |
+| [语言服务](/plugins/locale-provider.md)              | 当前语言及界面文案        | [语言与文案](/development/localization.md)                                                  |
+| [会话数据源](/plugins/conversation-data-source.md)    | 历史会话接口的请求与数据转换   | [接入历史会话](/development/history-backend.md)                                              |
+| [会话服务](/plugins/conversation-service.md)         | 会话列表、缓存、选择和管理操作  | [历史会话接入](/development/history-backend.md)、[业务页面控制](/development/react-host-control.md) |
+| [会话命令源](/plugins/conversation-command-source.md) | `/` 菜单的命令列表与选择行为 | [搜索候选与命令来源](/development/composer-sources.md)                                          |
+
+需要自己编写提供服务的插件时，见[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。

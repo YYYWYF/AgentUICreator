@@ -119,4 +119,4 @@ import type { CanonicalChartMessage } from '@za38.03/agent-ui-plugins';
 type ImplementationProps = ComponentProps<typeof CanonicalChartMessage>;
 ```
 
-完整格式化与渲染示例见[自定义图表展示](/development/custom-renderers.md)。
+完整格式化与渲染示例见[手动修改插件：已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。

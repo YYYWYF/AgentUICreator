@@ -6,6 +6,8 @@ title: "会话数据源（conversation-data-source）"
 
 连接业务系统中的历史会话，让用户查看会话列表和之前的聊天记录。接入这项能力时，最重要的是提供实际接口资料。
 
+这是一个提供数据的插件，负责请求历史接口并转换返回格式。它与[会话服务](./conversation-service)配合，数据由[会话列表](./conversation-thread-list)等界面插件展示，本身没有独立的列表界面。
+
 ## 需要提供什么
 
 | 信息 | 说明 |
@@ -35,22 +37,10 @@ title: "会话数据源（conversation-data-source）"
 
 ## 手动接入
 
-假设生成目录为 `src/agent-ui/`，在 `src/App.tsx` 中传入项目已有的 HTTP 数据源：
+接入时保留数据源和会话服务插件启用，按自己的接口选择配置或适配方式：
 
-```tsx
-import { Agent } from './agent-ui';
-import { createHttpConversationDataSource } from './agent-ui/services/conversations';
-
-const history = createHttpConversationDataSource({ endpoint: '/api' });
-
-export function App() {
-  return <Agent endpoint="/agent" conversationDataSource={history} />;
-}
-```
-
-这里 `/api` 是历史接口基础地址，`/agent` 是实时 AG-UI 地址。数据源实例应保持稳定；保留数据源和会话服务插件启用。
-
-在生成目录的 `services/conversations/http-data-source.ts` 中配置 `conversationDataSourceConfig`：地址、动态鉴权、Cookie 凭据、路由，以及自定义 `fetch`、`decodeList`、`decodeDetail`。该文件经项目的插件入口调用所选实现；默认 HTTP 请求、响应包装、`max_message_checkpoint` 和 `channel_values → values` 等转换由本插件实现。
-
-自己的数据库和历史接口可以使用不同格式，通过项目解码器或自定义数据源转换为公共会话契约即可。项目配置由用户维护，npm 升级保留这些覆盖；若显式接管了插件实现，其更新走单独的源码同步。已有项目的完整 HTTP 实现不会自动迁移。完整格式及可选操作见[接入历史会话](/development/history-backend)。
+- 修改接口地址、鉴权和路由：[地址与鉴权配置](/development/history-backend#地址与鉴权配置)。
+- 核对默认请求、响应和历史消息格式：[HTTP 数据源](/development/history-backend#http-数据源)。
+- 转换不同的返回字段：[响应字段解码](/development/history-backend#响应字段解码)。
+- 使用其他请求方法或业务 API：[自定义会话数据源](/development/history-backend#自定义会话数据源)。
 

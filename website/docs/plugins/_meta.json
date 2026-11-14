@@ -238,10 +238,6 @@
     "collapsed": false,
     "items": [
       {
-        "label": "会话命令源",
-        "link": "/plugins/conversation-command-source"
-      },
-      {
         "label": "会话数据源",
         "link": "/plugins/conversation-data-source"
       },
@@ -256,6 +252,10 @@
       {
         "label": "主题服务",
         "link": "/plugins/theme-provider"
+      },
+      {
+        "label": "会话命令源",
+        "link": "/plugins/conversation-command-source"
       }
     ]
   }

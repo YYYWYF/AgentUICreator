@@ -191,8 +191,6 @@
     "@types/semver": "7.7.1",
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-react": "4.7.0",
-    "react-hook-form": "7.88.0",
-    "@assistant-ui/react-hook-form": "0.12.34",
     "typescript": "7.0.2",
     "@assistant-ui/generative-ui": "0.0.7"
   },

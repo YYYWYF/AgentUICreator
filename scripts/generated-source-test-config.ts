@@ -41,7 +41,6 @@ export function generatedSourceTestConfig(packageRoot: string) {
         find: `@za38.03/agent-ui-plugins/${delivery.id}`,
         replacement: path.join(root, "packages/plugins/dist", delivery.id, "index.js"),
       })),
-      { find: "@za38.03/agent-ui-plugins/form-tools", replacement: path.join(root, "packages/plugins/src/form-tools.ts") },
       { find: "@za38.03/agent-ui-plugins/theme", replacement: path.join(root, "packages/plugins/src/theme/theme-contract.ts") },
       { find: "@za38.03/agent-ui-plugins/generative-ui.css", replacement: path.join(root, "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui/generative-ui.css") },
       { find: "@za38.03/agent-ui-plugins/generative-ui", replacement: path.join(root, "packages/plugins/src/generative-ui.ts") },

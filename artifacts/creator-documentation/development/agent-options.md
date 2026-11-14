@@ -1,6 +1,6 @@
 # Agent 参数与配置
 
-通过 `Agent` 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 [React 接入](/development/react.md)，完整类型见 [React 页面参数与方法](/development/react-host-api.md)。
+通过 `Agent` 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 [React 接入](/development/react.md)，完整类型见 [Agent API](/development/react-host-api.md)。
 
 ## 页面参数
 
@@ -13,6 +13,8 @@ export function Chat() {
   return <Agent endpoint="/api/agent" locale="zh-CN" theme="violet" />;
 }
 ```
+
+Agent 接口需要鉴权时，通过 `request.headers` 传入请求头，通过 `request.credentials` 设置 Cookie 策略，完整示例及开发预览限制见[请求头与鉴权](/development/connect-agent.md#请求头与鉴权)。
 
 每次发送时，AG-UI 请求的 `messages` 默认只包含本次用户消息，不附带历史用户和 AI 消息。前端继续展示完整历史，后端按 `threadId` 维护会话上下文。前端工具续传只带本次工具结果；中断恢复通过 `resume` 传递，没有新消息时 `messages` 为空。
 
@@ -45,7 +47,7 @@ export const locales = {
 
 建议项的结构也由该回调组织：移除副标题时，保留 `title`、`prompt`，省略返回对象的 `label`，见[推荐问题结构示例](/plugins/conversation-suggestions.md#设置建议内容)。必需 locale 标签的空字符串会回退到默认值，不表示隐藏该字段。
 
-附件默认转 Base64，语音默认使用受支持的浏览器识别，评价默认保留当前会话选择。上传、转写、评价和历史服务的 URL、鉴权写在项目实现里，需要接入或修改时交给 Creator。见[附件、语音与评价服务](/development/attachments-dictation-feedback.md)及[历史服务地址](/development/history-backend.md#地址与鉴权配置)。临时提示见[临时通知](/plugins/transient-assistant-messages.md)。
+附件默认转 Base64，语音默认使用受支持的浏览器识别，评价默认保留当前会话选择。接自己的上传、评价、历史等接口时，按[业务服务接入](/development/service-integration.md)修改项目配置或数据源；业务语音转写服务标为[开发中](/development/speech-to-text.md)。临时提示见[临时通知](/plugins/transient-assistant-messages.md)。
 
 ## 传入业务上下文
 
@@ -129,11 +131,11 @@ export function Chat() {
 
 | 设置             | 当前入口                                                                                                              |
 | -------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 默认主题           | `Agent theme`，见[默认主题配置](/development/styling-and-localization.md#默认主题)。                                           |
+| 默认主题           | `Agent theme`，见[默认主题配置](/development/theme-and-styling.md#默认主题)。                                                  |
 | 默认语言           | `Agent locale`；由页面管理语言切换见[界面语言配置](#界面语言切换)。                                                                       |
 | 历史服务地址         | `Agent conversationDataSource`，见[地址配置](/development/history-backend.md#地址与鉴权配置)。                                  |
 | `/` 命令与 `@` 候选 | 项目的来源服务，见[命令来源配置](/guide/adjustments/mention-and-commands.md)与[提及扩展](/guide/adjustments/mention-and-commands.md)。 |
 
-路径相对于生成的 Agent UI 源码目录。
+表中的文件路径相对于生成的 Agent UI 源码目录；`Agent` 属性设置在实际挂载它的业务页面中。
 
 业务按钮的发送、停止和新建操作见[业务页面联动](/development/react-host-control.md)。

@@ -1,6 +1,8 @@
 # 自定义 AG-UI 事件与消息渲染
 
-下面以“工单摘要”为例。Runtime 会将 `CUSTOM` 事件自动转成消息，你只需编写解析函数，再注册对应的插件渲染器。
+下面以“工单摘要”为例。Agent 返回的 `CUSTOM` 事件会自动转成消息，按以下步骤编写解析函数并注册渲染组件，即可显示工单卡片。
+
+本页用于新增业务事件与消息卡片。已有图表或工具结果只需调整样式、属性或 renderer 时，见[手动修改插件：已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。
 
 文件路径均相对于生成目录，默认是 `src/agent-ui/`。示例使用项目已有的 React 和 `zod`。
 
@@ -14,7 +16,7 @@ plugins/ticket-summary-message/
   definition.ts   # 插件入口
 ```
 
-## 1. 让 Agent 返回事件
+## 1. Agent 事件输出
 
 在现有 AG-UI 运行流中返回：
 
@@ -31,7 +33,7 @@ plugins/ticket-summary-message/
 
 `name` 用于匹配渲染器，`value` 会作为渲染组件的 `data` 传入。
 
-## 2. 编写解析函数并配置事件
+## 2. 事件解析与配置
 
 新建 `plugins/ticket-summary-message/schema.ts`，校验数据并转换字段：
 
@@ -68,7 +70,7 @@ export function App() {
 
 消息组件仍需调用解析函数处理收到的原始数据。
 
-## 3. 编写消息组件
+## 3. 消息组件实现
 
 先在项目共享消息模块中添加 `ticketSummary` 领域，保留其他已有领域；组织方式见[主题与多语言](/development/plugin-api.md#主题与多语言)：
 
@@ -108,7 +110,7 @@ export const ticketSummaryUI = defineDataMessageUI<unknown>({
 
 这里的 `name` 必须与后端事件名一致。组件通过 `parseTicketSummary(data)` 取得解析结果后渲染。
 
-## 4. 注册并启用插件
+## 4. 插件注册与启用
 
 新建 `plugins/ticket-summary-message/manifest.json`：
 
@@ -152,9 +154,9 @@ export default definition;
 }
 ```
 
-按[注册步骤](/development/create-plugin.md#4-更新注册并检查)更新插件注册表，也可以让 Creator 完成注册。每个消息名只启用一个渲染器。
+按[注册步骤](/development/create-plugin.md#4-插件注册与验证)更新插件注册表，也可以让 Creator 完成注册。每个消息名只启用一个渲染器。
 
-## 5. 检查结果
+## 5. 渲染验证
 
 运行项目已有的类型检查和构建，再让 Agent 返回第 1 步的事件。会话中应显示：
 

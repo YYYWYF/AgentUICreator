@@ -58,7 +58,7 @@ import tailwindcss from '@tailwindcss/vite';
 const plugins: PluginOption[] = [react(), tailwindcss()];
 ```
 
-将样式插件放在开发条件分支之外，让开发和生产构建都能处理模板样式。保留已有插件和其他选项，然后按下方[确认样式入口与构建](#确认样式入口与构建)检查。
+将样式插件放在开发条件分支之外，让开发和生产构建都能处理模板样式。保留已有插件和其他选项，然后按下方[确认样式入口与构建](#样式入口与构建验证)检查。
 
 ### Rsbuild 样式配置
 
@@ -78,7 +78,7 @@ export default {
 };
 ```
 
-已有配置时沿用当前配置文件格式、插件顺序和其他插件，合并这一项。Rsbuild 已内置 PostCSS 支持，无需配置 Webpack loader。开发和生产均保留此配置，然后按下方[确认样式入口与构建](#确认样式入口与构建)检查。
+已有配置时沿用当前配置文件格式、插件顺序和其他插件，合并这一项。Rsbuild 已内置 PostCSS 支持，无需配置 Webpack loader。开发和生产均保留此配置，然后按下方[确认样式入口与构建](#样式入口与构建验证)检查。
 
 ### Webpack 5 样式配置
 
@@ -126,7 +126,7 @@ ESM 配置可在文件顶部使用 `import tailwindcss from '@tailwindcss/postcs
 
 工程可能还有 Less/Sass rule 中的 `postcss-loader`，不能仅按出现次数全部替换。生成的 Agent Tailwind 入口使用普通 `.css`，通过 CSS rule 处理；已有 Less/Sass 处理链按原用途保留，不把 Tailwind 入口改成 `.less` / `.scss`。
 
-生产构建已有 CSS 提取 loader 时保留它，开发和生产均配置上述 PostCSS 处理。缺少 loader 时，按当前 Webpack 版本安装兼容版本，然后按下方[确认样式入口与构建](#确认样式入口与构建)检查。
+生产构建已有 CSS 提取 loader 时保留它，开发和生产均配置上述 PostCSS 处理。缺少 loader 时，按当前 Webpack 版本安装兼容版本，然后按下方[确认样式入口与构建](#样式入口与构建验证)检查。
 
 ### CRACO / CRA 样式配置
 
@@ -165,7 +165,7 @@ CRA 的内置 PostCSS 配置通常关闭外部配置文件自动加载，因此�
 
 直接在 TypeScript 工程中导入当前 Agent 包时，还需单独验证编译器版本。当前消费端已验证 TypeScript 5.9.3；TypeScript 4.9.5 无法解析当前上游依赖声明中的新语法，即使设置 `skipLibCheck: true` 也会失败。CRA 5 工程还需处理其自身的 TypeScript 版本约束；上述样式配置不解决编译器兼容问题，不要把安装依赖成功当成类型检查通过。
 
-### 确认样式入口与构建
+### 样式入口与构建验证
 
 生成模板的 `Agent` 组件已导入项目样式入口。以当前模板为例，入口为 `src/agent-ui/styles.css`，其中导入 `@za38.03/agent-ui-plugins/styles-base.css`，并声明项目源码的扫描范围。实际路径以生成文件为准，保留这些导入和 `@source` 声明。
 

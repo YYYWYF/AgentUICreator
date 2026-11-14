@@ -2,6 +2,8 @@
 
 统一管理助理界面的语言和文案。生成项目默认中文，支持中文和英文。
 
+这是一个提供共享语言状态与文案的插件，其他插件从中读取当前语言和界面文字。可见的语言选择入口由[界面语言切换插件](/plugins/locale-switch.md)提供，语言服务本身通常没有独立界面。
+
 ## 可以调整什么
 
 | 你关心的内容  | 告诉 Creator 什么         |
@@ -28,31 +30,6 @@
 
 ## 手动接入
 
-在使用 `<Agent />` 的位置设置初始语言和文案覆盖：
-
-```tsx
-<Agent
-  defaultLocale="zh-CN"
-  locales={{
-    'zh-CN': { composer: { placeholder: '请输入你的业务问题' } },
-    'en-US': { composer: { placeholder: 'Ask a business question' } },
-  }}
-/>
-```
-
-`defaultLocale` 只设置初始语言，保留内置切换。业务页面需要控制当前语言时，使用 `locale` 和 `onLocaleChange`：
-
-```tsx
-import { useState } from 'react';
-import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-import { Agent } from './agent-ui';
-
-export function App() {
-  const [locale, setLocale] = useState<AgentUILocaleCode>('zh-CN');
-  return <Agent locale={locale} onLocaleChange={setLocale} />;
-}
-```
-
-以上导入假设代码位于 `src/App.tsx`、生成目录为 `src/agent-ui/`。只传固定 `locale` 而不更新它，界面会保持指定语言。
-
-文案覆盖保留中英文对应；已有覆盖按字段合并，避免丢失原文案。更多说明见[样式与文案开发](/development/styling-and-localization.md)。
+- 设置语言、覆盖已有文案及新增业务文案：[语言与文案](/development/localization.md)。
+- 由业务页面管理当前语言并接收切换：[界面语言切换配置](/development/agent-options.md#界面语言切换)。
+- 查找可覆盖的字段及中英文默认值：[文案字段参考](/development/locale-reference.md)。

@@ -14,7 +14,7 @@
 
 ## 使用前提
 
-默认仅保留当前会话中的评价选择。要保存到业务服务，让 Creator 修改项目的评价实现，详见[评价保存](/development/attachments-dictation-feedback.md#反馈)。
+默认仅保留当前会话中的评价选择。要保存到业务服务，让 Creator 修改项目的评价实现，详见[回复评价服务](/development/feedback-service.md)。
 
 ## 定制选项
 

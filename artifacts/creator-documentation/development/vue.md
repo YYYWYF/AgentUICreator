@@ -4,23 +4,23 @@ Vue 页面通过 Web Component 显示 Agent UI。Vue 工程负责放置组件、
 
 按是否需要定制选择接入方式：
 
-| 需求                        | 接入方式                                   |
-| ------------------------- | -------------------------------------- |
-| 用 Creator 创建并持续定制助理       | [创建关联的 Agent UI 工程](#通过-creator-创建并定制) |
-| 直接使用官方默认界面                | [安装官方默认界面](#安装官方默认界面)                  |
-| 已有自己维护的 React Agent UI 工程 | [构建并接入定制产物](#使用定制的-react-工程产物)         |
+| 需求                        | 接入方式                                  |
+| ------------------------- | ------------------------------------- |
+| 用 Creator 创建并持续定制助理       | [创建关联的 Agent UI 工程](#creator-工程创建与定制) |
+| 直接使用官方默认界面                | [安装官方默认界面](#安装官方默认界面)                 |
+| 已有自己维护的 React Agent UI 工程 | [构建并接入定制产物](#定制-react-产物接入)           |
 
-## 通过 Creator 创建并定制
+## Creator 工程创建与定制
 
-当前自动创建流程支持**独立的 npm/pnpm Vue 工程**，沿用工程现有的包管理器及锁文件。共享 workspace、其他包管理器和 Nuxt 暂不支持此流程；已有独立 React 工程时，可按下方[定制产物接入](#使用定制的-react-工程产物)自行构建和发布。
+当前自动创建流程支持**独立的 npm/pnpm Vue 工程**，沿用工程现有的包管理器及锁文件。共享 workspace、其他包管理器和 Nuxt 暂不支持此流程；已有独立 React 工程时，可按下方[定制产物接入](#定制-react-产物接入)自行构建和发布。
 
-### 1. 启动 Creator 并选择 Vue 工程
+### 1. Creator 启动与工程选择
 
 按[开始使用](/start/index.md#安装工具)安装 Creator、添加 `dev:creator` 脚本，并按 [Vite](/guide/creator-dock-vite.md#配置开发面板)或 [Rsbuild / Webpack](/guide/creator-dock-rsbuild-webpack.md#配置开发面板)接入开发面板。保留 Vue 工程已有的框架插件和其他配置；Vite 示例中的 `react()` 应沿用你工程现有的 Vue 插件。
 
 分别启动 Creator 和 Vue 工程的开发服务，在 Vue 页面展开 Creator，从顶部文件夹菜单选择 **Vue 工程根目录**。
 
-### 2. 创建关联的 Agent UI 工程
+### 2. 关联 Agent UI 工程创建
 
 Creator 检测到 Vue 后，会显示创建独立 React Agent UI 工程的说明：
 
@@ -33,7 +33,7 @@ Creator 会在该目录安装依赖、生成助理源码并完成首次构建，
 
 安装或构建失败时，已创建的目录会保留。按面板提示检查网络、registry、依赖或构建错误，再处理重试；失败提示不代表文件已自动回退。
 
-### 3. 将助理放入 Vue 页面
+### 3. Vue 页面挂载
 
 打开 **查看接入方法 → Vue / 其他框架**，将面板提供的接入需求复制到 Creator 输入框，补充要放置助理的页面和区域。Creator 会检查已有工程和产物，展示具体接入方案，确认后将助理组件添加到指定页面，并传入所需配置。
 
@@ -46,7 +46,7 @@ await import(/* @vite-ignore */ moduleUrl);
 
 保留示例中的挂载与卸载处理，把 `endpoint` 改为业务 AG-UI 地址。按[各模板的说明](/start/index.md#选择模板和源码位置)设置挂载区域尺寸；嵌入式会填满该区域，助手自带悬浮入口。部署到子目录时调整资源 URL；同一页面只加载所选的一份 Web Component 实现。
 
-### 4. 定制后更新到 Vue 页面
+### 4. 定制产物更新
 
 按[模型与工具配置](/guide/configuration.md)配置 Creator，再描述要修改的布局、组件或文案。Creator 的助理界面修改保存在关联的 React 工程中。
 
@@ -89,13 +89,24 @@ onBeforeUnmount(() => { disposed = true; element?.remove(); });
 <template><div ref="container" style="height: 100dvh" /></template>
 ```
 
-生产工程将错误接入本地化提示和日志，动态配置见[Web Component 配置与事件](/development/web-component-api.md)。Vue 2 使用对应销毁生命周期。示例通过普通容器挂载，无需修改 Custom Element 编译选项。
+生产工程将错误接入本地化提示和日志，动态配置见[Web Component API](/development/web-component-api.md)。Vue 2 使用对应销毁生命周期。示例通过普通容器挂载，无需修改 Custom Element 编译选项。
 
-## 使用定制的 React 工程产物
+## 定制 React 产物接入
 
-已有对应的 React 工程时，在其中安装官方 `web-component-bridge` 兼容资源，然后运行：
+已有对应的 React 工程时，先为它添加 `web-component-bridge` 构建入口。已有关联工程且能点击“构建并更新到宿主”时，入口已由工具生成，可以直接使用现有流程。
+
+手动添加时，在 **React 工程根目录**创建 `scripts/add-web-component.mjs`（需要已安装 Creator 开发依赖）：
+
+```js
+import { installOfficialAgentUIResource } from '@za38.03/agent-ui-creator/project/dev';
+
+console.log(await installOfficialAgentUIResource(process.cwd(), 'web-component-bridge'));
+```
+
+运行脚本会补充兼容资源及其所需依赖，保留已有项目代码。检查命令输出和文件差异，成功后构建：
 
 ```sh
+node scripts/add-web-component.mjs
 pnpm exec vite build --config src/agent-ui/integrations/web-component-bridge/vite.config.ts
 ```
 
@@ -110,6 +121,6 @@ await import(/* @vite-ignore */ moduleUrl);
 
 ## 更新与验证
 
-使用 npm 入口时，升级兼容版本后重新构建和部署 Vue 工程。通过 Creator 关联工程时，按上方[定制后的更新步骤](#4-定制后更新到-vue-页面)重新构建并更新宿主。自行维护 React 工程时，修改 AppUIModel 或组件后，**重新构建、复制并发布 Web Component 资源**，保留 Vue 页面的业务布局和配置。
+使用 npm 入口时，升级兼容版本后重新构建和部署 Vue 工程。通过 Creator 关联工程时，按上方[定制后的更新步骤](#4-定制产物更新)重新构建并更新宿主。自行维护 React 工程时，修改 AppUIModel 或组件后，**重新构建、复制并发布 Web Component 资源**，保留 Vue 页面的业务布局和配置。
 
-事件与重建规则见[Web Component 配置与事件](/development/web-component-api.md)。
+事件与重建规则见[Web Component API](/development/web-component-api.md)。

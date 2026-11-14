@@ -101,6 +101,7 @@ function definitionRenderers(
   }
   const member = definition.properties.find((candidate) =>
     "name" in candidate &&
+    candidate.name !== undefined &&
     (isIdentifier(candidate.name) || isStringLiteral(candidate.name)) &&
     candidate.name.text === "dataMessageUIs",
   );

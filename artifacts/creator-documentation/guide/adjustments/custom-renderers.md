@@ -66,4 +66,4 @@
 
 本轮演示历史服务未在工作台重新挂载后提供新回放会话，因此没有验收跨刷新持久化。接入自己的历史服务后，还需复核实际保存与读取，见[对接会话历史接口](/development/history-backend.md)。
 
-需要自己编写代码时，见[自定义渲染](/development/custom-renderers.md)。
+需要自己编写代码时，见[手动修改插件：已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。
