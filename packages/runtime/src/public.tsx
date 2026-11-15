@@ -13,6 +13,8 @@ export {
 export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus, AgentUIAppEventListener } from "./host/AgentUIProvider.js";
 export * from "./host/AgentUIAgentsProvider.js";
 export type { AgentUIThread, AgentUISendOptions } from "./host/threads.js";
+export type { AgentUIContext, AgentUIContextValue, AgentSendOptions } from "@za38.03/agent-ui-core";
+export { InvalidAgentUIContextError } from "@za38.03/agent-ui-core";
 export { createAgentUIFrontendTools, combineAgentFrontendToolSources } from "./host/frontend-tools.js";
 export type { AgentUIFrontendTool, AgentUIFrontendToolContext } from "./host/frontend-tools.js";
 export type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
@@ -25,6 +27,7 @@ import type {
   AgentRuntime,
   AgentRuntimeSnapshot,
   AgentUserInput,
+  AgentUIContext,
 } from "@za38.03/agent-ui-core";
 import type { AbstractAgent, HttpAgentConfig } from "@ag-ui/client";
 import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";
@@ -69,6 +72,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   request?: ServiceRequestConfig | undefined;
+  /** Default business parameters; per-send ctx shallowly overrides matching keys. */
+  ctx?: AgentUIContext | undefined;
   /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
   threadBinding: ConversationThreadBinding<TState>;
@@ -186,7 +191,7 @@ export type {
   ConversationToolCallObservation,
 } from "./observation/types.js";
 
-export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "./errors.js";
+export { AgentUiRuntimeBusyError, InvalidAgentInputError, UnsupportedAgentInputError } from "./errors.js";
 
 export type {
   AgentInterruptResponse,

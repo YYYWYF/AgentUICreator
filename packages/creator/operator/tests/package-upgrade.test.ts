@@ -17,11 +17,11 @@ const roots:string[]=[],servers:Server[]=[];
 afterEach(async()=>{for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));}for(const root of roots.splice(0))await rm(root,{recursive:true,force:true});},120_000);
 const coreName="@za38.03/agent-ui-core";
 const name=coreName;
-async function setup(manager:"npm"|"pnpm"="npm", plugins=false){
+async function setup(manager:"npm"|"pnpm"="npm", plugins=false, versions=["0.0.1","0.0.2"]){
   const name=plugins?"@za38.03/agent-ui-plugins":coreName;
   const root=await mkdtemp(path.join(tmpdir(),"npm升级 空格-"));roots.push(root);const project=path.join(root,"project"),tools=path.join(root,"tools");await mkdir(project);await mkdir(tools);
   const archives=new Map<string,Buffer>();
-  for(const version of ["0.0.1","0.0.2"]){const pkg=path.join(root,version);await mkdir(pkg);await writeFile(path.join(pkg,"package.json"),JSON.stringify({name,version,main:"index.cjs"}));await writeFile(path.join(pkg,"index.cjs"),`module.exports=${JSON.stringify(version)}`);if(plugins){
+  for(const version of versions){const pkg=path.join(root,version);await mkdir(pkg);await writeFile(path.join(pkg,"package.json"),JSON.stringify({name,version,main:"index.cjs"}));await writeFile(path.join(pkg,"index.cjs"),`module.exports=${JSON.stringify(version)}`);if(plugins){
       const repo=path.resolve(import.meta.dirname,"../../../..");const metadata=JSON.parse(await readFile(path.join(repo,"packages/plugins/package.json"),"utf8"));
       // Built official snapshot/runtime payload; dependency-free registry fixture isolates the transaction from unrelated public downloads.
       await writeFile(path.join(pkg,"package.json"),JSON.stringify({name,version,type:"module",exports:metadata.exports}));
@@ -63,6 +63,16 @@ async function setup(manager:"npm"|"pnpm"="npm", plugins=false){
   const provider=new HttpCompatibilityReleaseProvider(`${url}/feed`),overview=new PackageUpdateService(provider,{root:tools,creatorVersion:"0.0.1"});
   return {root:project,provider,overview,service:new PackageUpgradeService(provider,overview),bad(){badIntegrity=true;},release};
 }
+it("installs the explicitly selected published version beyond recommendations without forcing a Creator upgrade",async()=>{
+ const {root,service,release}=await setup("npm",false,["0.0.1","0.0.2","0.0.3"]);
+ Object.assign(release,{minimumCreatorVersion:"99.0.0",node:">=99",react:">=99"});
+ const plan=await service.plan(root,{[name]:"0.0.3"});
+ expect(plan.packages.find(pkg=>pkg.name===name)?.target).toBe("0.0.3");
+ expect(plan.advisories?.some(issue=>issue.code==="creator")).toBe(true);
+ expect(plan.advisories?.some(issue=>issue.code==="node")).toBe(true);
+ expect(await service.execute(root,plan.id)).toMatchObject({status:"installed"});
+ expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.3");
+},120000);
 for(const manager of ["npm","pnpm"] as const)it(`installs verified artifacts with real ${manager}, updates its lock and preserves local files`,async()=>{
  const {root,service}=await setup(manager),before=await readFile(path.join(root,"app-ui/composer.tsx"));
  const plan=await service.plan(root);expect(plan.manager).toBe(manager);expect(plan.packages[0]!.target).toBe("0.0.2");

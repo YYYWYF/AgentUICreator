@@ -21,7 +21,7 @@ const relative = "services/conversations/http-data-source.ts";
 const source = "src/应用";
 const target = `${source}/${relative}`;
 const canonical = fileURLToPath(new URL("../../plugins/resources/registry/items/foundation/core-application/files/services/conversations/", import.meta.url));
-const edit = { oldText: 'deleteUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`', newText: 'deleteUrl: (base: string, id: string) => `${base}/history/${encodeURIComponent(id)}`' };
+const edit = { oldText: 'url: ({ endpoint, id }) => `${endpoint}/conversations/${encodeURIComponent(id)}`', newText: 'url: ({ endpoint, id }) => `${endpoint}/history/${encodeURIComponent(id)}`' };
 const proposal = { implementationPath: relative, edits: [edit], impactSummary: "只修改删除单条历史会话的路径。所有使用此数据源的删除调用生效；保留列表、详情、鉴权和公共契约。" };
 
 beforeEach(() => { state.decision = undefined; state.resumeAnswers = undefined; state.prompts = []; state.topology = { services: [] }; });
@@ -35,7 +35,7 @@ async function fixture() {
   await writeFile(path.join(root, "package.json"), '{"type":"module"}');
   for (const name of ["http-data-source.ts", "contract.ts", "data-source.ts"]) await writeFile(path.join(root, source, "services/conversations", name), await readFile(path.join(canonical, name)));
   const httpFile = path.join(root, target);
-  await writeFile(httpFile, (await readFile(httpFile, "utf8")).replace("credentials: 'same-origin',", "credentials: 'same-origin',\n  routes: { deleteUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}` },"));
+  await writeFile(httpFile, (await readFile(httpFile, "utf8")).replace("credentials: 'same-origin',", "credentials: 'same-origin',\n  delete: { url: ({ endpoint, id }) => `${endpoint}/conversations/${encodeURIComponent(id)}` },"));
   await writeFile(path.join(root, source, "plugins/conversation-data-source/index.ts"), 'export { createHttpConversationDataSource } from "@za38.03/agent-ui-plugins/conversation-data-source";');
   await writeFile(path.join(root, source, "plugins/conversation-data-source/definition.ts"), 'import { createHttpConversationDataSource } from "../../services/conversations/http-data-source.js"; export default createHttpConversationDataSource;');
   const signal = new AbortController().signal;
@@ -69,12 +69,27 @@ it("preflights derived consumers without asking, then applies the exact deletion
       "@za38.03/agent-ui-plugins/conversation-service": fileURLToPath(new URL("../../plugins/src/plugins/conversation-service/adapters/presentation/contract.ts", import.meta.url)),
     } });
   const implementation = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString("base64")}`);
-  const fetch = vi.fn(async () => new Response(null, { status: 204 }));
+  const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(null, { status: 204 }));
   const dataSource = implementation.createHttpConversationDataSource({ endpoint: "https://business.test/api/", fetch });
   await dataSource.delete("会话/a b");
   expect(fetch).toHaveBeenCalledWith(`https://business.test/api/history/${encodeURIComponent("会话/a b")}`, expect.objectContaining({ method: "DELETE", credentials: "same-origin" }));
   fetch.mockResolvedValueOnce(new Response('{"error":"denied"}', { status: 403 }));
   await expect(dataSource.delete("other")).rejects.toThrow("403");
+
+  // Per-call overrides retain other fields and operations configured by the project.
+  implementation.conversationDataSourceConfig.list = {
+    url: "/business/list", method: "POST", body: { scope: "saved" }, decode: () => [],
+  };
+  implementation.conversationDataSourceConfig.delete.method = "POST";
+  const overridden = implementation.createHttpConversationDataSource({
+    endpoint: "https://business.test/api/", fetch, list: { method: "PUT" }, delete: { method: "PUT" },
+  });
+  fetch.mockResolvedValueOnce(Response.json({ custom: true }));
+  await expect(overridden.list()).resolves.toEqual([]);
+  await overridden.delete("会话/a b");
+  expect(fetch.mock.calls.slice(-2).map(([, init]) => init?.method)).toEqual(["PUT", "PUT"]);
+  expect(fetch.mock.calls.at(-2)).toEqual(["/business/list", expect.objectContaining({ method: "PUT", body: '{"scope":"saved"}' })]);
+  expect(fetch.mock.calls.at(-1)?.[0]).toBe(`https://business.test/api/history/${encodeURIComponent("会话/a b")}`);
 });
 
 it.each(["file", "consumer", "topology"])("requires replanning when %s changes after confirmation", async kind => {

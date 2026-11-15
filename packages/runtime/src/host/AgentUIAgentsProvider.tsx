@@ -26,7 +26,8 @@ class AgentsStore implements AgentUIAgents {
   private entries = new Map<string, Entry>();
   private listeners = new Set<() => void>();
   private snapshot: AgentUIAgentsSnapshot = { agents: [] };
-  private navigation: Promise<unknown> = Promise.resolve();
+  // Serialize only within one mounted assistant; replacements get a fresh queue.
+  private readonly navigation = new WeakMap<Entry, Promise<unknown>>();
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private publish = () => {
@@ -58,14 +59,14 @@ class AgentsStore implements AgentUIAgents {
     if (this.entries.get(entry.agentId) !== entry) throw new Error("AGENT_UI_SESSION_ENDED");
   }
   agent = (id: string) => this.entry(id).host;
-  private enqueue<T>(operation: () => Promise<T>): Promise<T> {
-    const task = this.navigation.then(operation);
-    this.navigation = task.catch(() => {});
+  private enqueue<T>(entry: Entry, operation: () => Promise<T>): Promise<T> {
+    const task = (this.navigation.get(entry) ?? Promise.resolve()).then(operation);
+    this.navigation.set(entry, task.catch(() => {}));
     return task;
   }
   createThread = async (id: string): Promise<AgentUIThreadRef> => {
     const entry = this.entry(id);
-    return this.enqueue(async () => {
+    return this.enqueue(entry, async () => {
       this.assertCurrent(entry);
       const threadId = await entry.host.createThread();
       this.assertCurrent(entry);
@@ -75,7 +76,7 @@ class AgentsStore implements AgentUIAgents {
   openThread = async (target: AgentUIThreadRef) => {
     const { agentId, threadId } = target;
     const entry = this.entry(agentId);
-    return this.enqueue(async () => {
+    return this.enqueue(entry, async () => {
       this.assertCurrent(entry);
       await entry.host.openThread(threadId);
       this.assertCurrent(entry);

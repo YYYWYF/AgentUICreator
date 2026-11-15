@@ -1164,6 +1164,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     if (open) { setMockPanelOpen(false); setAgentPanelOpen(false); }
   }, []);
   const [updateNotificationTarget, setUpdateNotificationTarget] = useState<HTMLDivElement | null>(null);
+  const [creatorNotificationTarget, setCreatorNotificationTarget] = useState<HTMLDivElement | null>(null);
   const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
@@ -2195,9 +2196,10 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             title={localeMessages.creatorWorkbench.dragToResizeDoubleClickToRestoreThe}
           />}
           <header className="creator-panel-header">
-            <div className="creator-panel-brand" title={localeMessages.creatorWorkbench.creatorDevelopmentOnly}>
+            <div className="creator-panel-brand">
               <div className="creator-panel-brand-icon"><PanelsTopLeft aria-hidden="true" /></div>
-              <h1>{localeMessages.creatorWorkbench.creator}</h1>
+              <h1 title={localeMessages.creatorWorkbench.creatorDevelopmentOnly}>{localeMessages.creatorWorkbench.creator}</h1>
+              <div className="creator-header-tool-update" ref={setCreatorNotificationTarget} />
             </div>
             <div className="creator-panel-header-actions creator-ui-scope">
             <div className="creator-header-quick-actions">
@@ -2309,7 +2311,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
           <div className="creator-panel-body">
             {refreshing || refreshMessage ? <p className="creator-refresh-status" role="status">{refreshing ? localeMessages.creatorWorkbench.reloadingProjectData : refreshMessage}</p> : null}
-            {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} notificationTarget={updateNotificationTarget} pageOpen={updatePageOpen} onPageChange={handleUpdatePageChange} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
+            {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} notificationTarget={updateNotificationTarget} creatorNotificationTarget={creatorNotificationTarget} pageOpen={updatePageOpen} onPageChange={handleUpdatePageChange} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
             {agentPanelOpen || mockPanelOpen ? <div className="creator-tool-header">
               <Button size="icon-sm" variant="ghost" aria-label={localeMessages.creatorWorkbench.backToConversation} onClick={() => { setAgentPanelOpen(false); setMockPanelOpen(false); }}><ArrowLeft aria-hidden="true" /></Button>
               <h2>{agentPanelOpen ? localeMessages.creatorWorkbench.connectAgent : localeMessages.creatorWorkbench.demosAndReplay}</h2>

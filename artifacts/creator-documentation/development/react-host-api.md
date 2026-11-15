@@ -19,6 +19,7 @@
 | `request`                                                | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent.md#请求头与鉴权)。                                   |
 | `fetch`                                                  | `(url: string, init: RequestInit) => Promise<Response>`                  | 可选。自定义 AG-UI 请求函数，返回流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent.md#自定义请求函数)。                                      |
 | `getRunContext`                                          | `ConversationRunContextGetter`                                           | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options.md#传入业务上下文)。                              |
+| `ctx`                                                    | `AgentUIContext`                                                         | 可选。每次发送携带的默认业务参数，后端从 `forwardedProps.ctx` 读取。见[使用示例](/development/business-context.md#业务参数-ctx)。                                |
 | `theme`                                                  | `AgentUITheme`                                                           | 可传 `light`、`dark`、`violet`；不传时使用内置紫色主题并允许内置切换。传入后由业务页面控制。                                                                       |
 | `onThemeChange`                                          | `(theme: AgentUITheme) => void`                                          | 可选。用户切换主题时调用；业务页面在回调中更新 `theme`。                                                                                                |
 | `locale`                                                 | `AgentUILocaleCode`                                                      | 默认中文；当前支持 `zh-CN`、`en-US`，不发给 AG-UI。                                                                                            |
@@ -72,24 +73,26 @@ type ConversationRunContextGetter = (input: {
 
 `const host = useAgentUI()` 返回 `AgentUIHost`，其中包含以下方法。`sendMessage()`、`abortRun()`、`startNewConversation()` 和 `resumeInterrupts()` **必须在 `host.getSnapshot().status === 'ready'` 时调用**。读取状态和添加监听不受此限制。
 
-| 方法                                            | 参数                                                                                        | 返回                            | 说明                                                             |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------- |
-| `sendMessage(input, options?)`                | `string` 或 `AgentUserInput`；可选 `{ endpoint?: string }`                                    | `Promise<void>`               | 向当前会话发送消息；可按次指定工作流 URL，运行中不自动排队。返回的 Promise 完成后，仍需检查运行状态以确认结果。 |
-| `abortRun()`                                  | 无                                                                                         | `void`                        | 请求停止当前运行，保留当前会话和面板。                                            |
-| `startNewConversation()`                      | 无                                                                                         | `Promise<void>`               | 创建并切换到新会话；后续发送需等待此调用完成。                                        |
-| `resumeInterrupts(responses)`                 | `AgentInterruptResponse[]`                                                                | `Promise<void>`               | Agent 暂停等待审批或补充信息时，提交用户的处理结果并继续执行。                             |
-| `getSnapshot()`                               | 无                                                                                         | `AgentUIHostSnapshot<TState>` | 读取当前是否就绪，以及会话、消息和运行状态；未就绪时 `runtime` 可能为 null。                 |
-| `subscribe(listener)`                         | `() => void`                                                                              | `() => void`                  | 状态变化时执行回调，回调中用 `getSnapshot()` 读取新状态。调用返回的函数可停止监听。             |
-| `on(event, listener)`                         | `K extends keyof AgentUIEventMap<TState>`、`(payload: AgentUIEventMap<TState>[K]) => void` | `() => void`                  | 指定事件发生时执行回调，事件与数据见下表。返回函数用于停止监听。                               |
-| `getThreads()` / `subscribeThreads(listener)` | 无／`() => void`                                                                            | Thread 快照数组／取消监听函数            | 观察本助手当前已挂载的 Thread，包括后台运行；不是完整后端历史列表。                          |
-| `thread(threadId)`                            | `string`                                                                                  | `AgentUIThread`               | 获取已挂载 Thread 的操作句柄，不导航也不自动加载历史。                                |
-| `createThread()`                              | 无                                                                                         | `Promise<string>`             | 显式新建并切换会话，返回 threadId；已挂载旧 Thread 可以继续运行。                      |
-| `openThread(threadId)`                        | `string`                                                                                  | `Promise<void>`               | 打开指定已有会话；按项目历史配置读取，不重新发送旧问题。                                   |
-| `sendComposer(options?)`                      | `{ endpoint?: string }`                                                                   | `Promise<void>`               | 提交当前原生草稿、附件和引用；运行或草稿准备中会拒绝，不用于运行中排队。                           |
+| 方法                                            | 参数                                                                                                | 返回                            | 说明                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `sendMessage(input, options?)`                | `string` 或 `AgentUserInput`；可选 `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }` | `Promise<void>`               | 发送文本、附件 URL 或两者混合；可按次指定工作流 URL 和业务参数，运行中不自动排队。返回的 Promise 完成后，仍需检查运行状态以确认结果。媒体约定见下方发送示例。 |
+| `abortRun()`                                  | 无                                                                                                 | `void`                        | 请求停止当前运行，保留当前会话和面板。                                                                      |
+| `startNewConversation()`                      | 无                                                                                                 | `Promise<void>`               | 创建并切换到新会话；后续发送需等待此调用完成。                                                                  |
+| `resumeInterrupts(responses)`                 | `AgentInterruptResponse[]`                                                                        | `Promise<void>`               | Agent 暂停等待审批或补充信息时，提交用户的处理结果并继续执行。                                                       |
+| `getSnapshot()`                               | 无                                                                                                 | `AgentUIHostSnapshot<TState>` | 读取当前是否就绪，以及会话、消息和运行状态；未就绪时 `runtime` 可能为 null。                                           |
+| `subscribe(listener)`                         | `() => void`                                                                                      | `() => void`                  | 状态变化时执行回调，回调中用 `getSnapshot()` 读取新状态。调用返回的函数可停止监听。                                       |
+| `on(event, listener)`                         | `K extends keyof AgentUIEventMap<TState>`、`(payload: AgentUIEventMap<TState>[K]) => void`         | `() => void`                  | 指定事件发生时执行回调，事件与数据见下表。返回函数用于停止监听。                                                         |
+| `getThreads()` / `subscribeThreads(listener)` | 无／`() => void`                                                                                    | Thread 快照数组／取消监听函数            | 观察本助手当前已挂载的 Thread，包括后台运行；不是完整后端历史列表。                                                    |
+| `thread(threadId)`                            | `string`                                                                                          | `AgentUIThread`               | 获取已挂载 Thread 的操作句柄，不导航也不自动加载历史。                                                          |
+| `createThread()`                              | 无                                                                                                 | `Promise<string>`             | 显式新建并切换会话，返回 threadId；已挂载旧 Thread 可以继续运行。                                                |
+| `openThread(threadId)`                        | `string`                                                                                          | `Promise<void>`               | 打开指定已有会话；按项目历史配置读取，不重新发送旧问题。                                                             |
+| `sendComposer(options?)`                      | `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }`                                | `Promise<void>`               | 提交当前原生草稿、附件和引用；运行或草稿准备中会拒绝，不用于运行中排队。                                                     |
 
 多助手页面从 `useAgentUIAgents().agent(agentId)` 获取指定 Host，集合 Hooks、Thread 句柄与后台操作示例见[多助手控制](/development/multiple-agents.md#从业务页面控制指定助手)。导航、草稿提交也应在目标助手就绪后调用，并处理异常；取得 Thread 句柄不等于该运行已成功结束。
 
 #### 输入参数结构
+
+`AgentUIContext` 和 `AgentUISendOptions` 可从 `@za38.03/agent-ui-runtime` 导入。`ctx` 的使用示例见[业务参数 ctx](/development/business-context.md#业务参数-ctx)。
 
 ```ts
 // 类型从 @za38.03/agent-ui-core 导入
@@ -104,7 +107,46 @@ interface AgentInterruptResponse {
 }
 ```
 
-`AgentInputPart` 支持文本及 image/audio/video/document 媒体。文本项为 `{ type: 'text', text: '...' }`；媒体项包含 `source`（data 或 url）和可选 `name`。实际可发送的媒体类型取决于 Agent 服务的支持情况。完整附件流程见[附件上传服务](/development/attachment-upload.md)。`payload` 用于填写审批结果或补充信息，字段必须符合当前请求的 `responseSchema` 和业务约定。
+`sendMessage()` 支持字符串、文本项以及 image/audio/video/document 的 URL 来源。文本项为 `{ type: 'text', text: '...' }`；纯文本数组保持直接拼接行为，混合数组保留各项的顺序和文本。空字符串或空 content 数组不发起请求，只有附件的数组也可以发送。`source.type: 'data'` 的内联媒体仍会抛出 `UnsupportedAgentInputError`（`code: 'AGENT_UI_UNSUPPORTED_INPUT'`）。
+
+用户选择文件后的附件流程由原生 Composer 管理，使用内置发送动作或 `sendComposer()` 提交当前草稿，见[附件上传服务](/development/attachment-upload.md)。`payload` 用于填写审批结果或补充信息，字段必须符合当前请求的 `responseSchema` 和业务约定。
+
+#### 发送已有附件 URL
+
+业务系统已有文件地址时，可以通过同一 Host 的 `sendMessage()` 发送。以下函数接收 `useAgentUI()` 返回的 Host，在业务操作回调中调用并处理异常：
+
+```ts
+import type { AgentUIHost } from '@za38.03/agent-ui-runtime';
+
+export async function analyzeReport(host: AgentUIHost, fileUrl: string) {
+  if (host.getSnapshot().status !== 'ready') throw new Error('AGENT_UI_NOT_READY');
+  await host.sendMessage({
+    content: [
+      { type: 'text', text: '请分析这份报告' },
+      {
+        type: 'document',
+        name: '报告.pdf',
+        source: { type: 'url', value: fileUrl, mimeType: 'application/pdf' },
+      },
+    ],
+  }, { ctx: { scene: 'report-analysis' } });
+}
+```
+
+`name` 是可选文件名，HTTP 请求会将它映射到标准 AG-UI 内容项的 `metadata.filename`。`host.thread(threadId).sendMessage()` 使用相同输入约定；它操作已挂载的目标 Thread。
+
+| 媒体类型       | `source.mimeType`                                                             |
+| ---------- | ----------------------------------------------------------------------------- |
+| `image`    | 可省略；填写时必须为实际的 `image/*` 类型，如 `image/png`                                      |
+| `document` | 可省略，默认 `application/octet-stream`；PDF 建议填 `application/pdf`，图片／音频／视频使用各自的媒体类型 |
+| `audio`    | 必填实际的 `audio/*` 类型，如 `audio/mpeg`                                             |
+| `video`    | 必填实际的 `video/*` 类型，如 `video/mp4`                                              |
+
+URL 必须是 HTTP(S)，相对地址按当前页面地址解析；建议提供完整 URL。空地址、其他协议、无效或不匹配的 MIME 类型及无效文件名会抛出 `InvalidAgentInputError`（`code: 'AGENT_UI_INVALID_INPUT'`）。校验在追加消息和发起请求之前完成，失败不会留下半条用户消息。
+
+该方法沿用现有 Thread 的发送、工作流路由、业务参数、停止、重试、前端工具续传及审批恢复。它直接引用文件地址，不会下载或重新上传文件，也不会提交或清空 Composer 中尚未发送的草稿。`attachments.accept/maxSizeBytes` 用于本地文件流程，不能据此校验远程 URL 的实际类型和大小；远程文件仍需业务服务校验。
+
+Agent 服务需支持对应媒体并有权限读取文件 URL；AG-UI 请求头和附件上传凭据不会自动用于下载文件。需要鉴权时，由业务提供 Agent 可访问的地址或签名 URL。请求成功携带附件后，文件读取和解析结果仍需在业务服务中确认。
 
 <span id="hooks-与界面组件" />
 

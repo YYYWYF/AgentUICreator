@@ -248,7 +248,7 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
     const after = await inspectAgentUISources(projectRoot, ctx.config, registry);
     if (operation === "apply") {
       const ids = new Set(resolveAgentUISourceItemClosure(registry, (input as ApplyAgentUISourceItemInput).itemId).map(item => item.id));
-      const invalid = after.items.filter(item => ids.has(item.id)).filter(item => (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
+      const invalid = after.items.filter(item => ids.has(item.id)).filter(item => (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => requirement.installed === undefined));
       if (invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "Installed source dependency closure is incomplete.", invalid);
     }
     const verification = await verifyUIProject(projectRoot, operatorConfigForPaths(ctx.paths, ctx.config), { projectConfigOverride: ctx.project.config });
@@ -294,7 +294,7 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
       const inspection = before.items.find(entry => entry.id === id)!;
       if ((!input.adoptOnly && !["managed", "not-installed"].includes(inspection.status)) ||
           (input.adoptOnly && !["managed", "customized", "not-installed", "partial"].includes(inspection.status)) ||
-          inspection.resolvedRequirements.some(requirement => !requirement.compatible) || ctx.config.agentUI.providedSourceItems?.includes(id)) throw new Error(`Unsafe upgrade item ${id}`);
+          inspection.resolvedRequirements.some(requirement => requirement.installed === undefined) || ctx.config.agentUI.providedSourceItems?.includes(id)) throw new Error(`Unsafe upgrade item ${id}`);
       return item;
     });
     const verify = async () => {
@@ -356,7 +356,7 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
         await regenerate();
         await verify();
         const after = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
-        const invalid = after.items.filter(item => input.itemIds.includes(item.id) && (item.status !== "managed" || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible)));
+        const invalid = after.items.filter(item => input.itemIds.includes(item.id) && (item.status !== "managed" || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => requirement.installed === undefined)));
         if (invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "升级后的源码闭包不完整。", invalid);
       }
       await removeOptional(ctx.journalPath);

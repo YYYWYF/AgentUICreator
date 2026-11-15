@@ -21,10 +21,11 @@ test.beforeAll(async () => {
     const noop = () => {};
     function Fixture() {
       const [checkRequest, refresh] = useState(0);
+      const [creatorNotificationTarget, setCreatorNotificationTarget] = useState(null);
       return <div className="creator-workbench" data-creator-layout="dock"><section className="creator-panel">
-        <header><button onClick={() => refresh(value => value + 1)}>Host refresh</button></header>
+        <header className="creator-panel-header creator-ui-scope"><div className="creator-panel-brand"><h1>Creator</h1><div className="creator-header-tool-update" ref={setCreatorNotificationTarget}/></div><button onClick={() => refresh(value => value + 1)}>Host refresh</button></header>
         <div className="creator-panel-body"><CreatorPluginUpdates workspaceId="extended-project" pageOpen busy={false}
-          modelReady checkRequest={checkRequest} onPageChange={noop} onModelMerge={noop}/></div>
+          modelReady creatorNotificationTarget={creatorNotificationTarget} checkRequest={checkRequest} onPageChange={noop} onModelMerge={noop}/></div>
       </section></div>;
     }
     createRoot(document.getElementById("root")).render(<Fixture/>);
@@ -43,7 +44,7 @@ test.afterAll(async () => { await server?.close(); if (fixture) await rm(fixture
 const packageName = "@za38.03/agent-ui-plugins";
 const overview = {
   status: "online", checkedAt: "2026-10-31T00:00:00Z", recommendedReleaseId: "next",
-  installationSupported: true, fingerprint: "npm-next", blockedReleases: [],
+  installationSupported: true, fingerprint: "npm-next", advisories: [],
   packages: [{ name: packageName, scope: "project", currentVersion: "0.0.1", targetVersion: "0.0.2",
     updateAvailable: true, summary: [{ id: "feature", summary: "Composer fixture update", kind: "feature", versions: ["0.0.2"] }], history: [] }],
 };
@@ -53,6 +54,44 @@ function captureErrors(page: Page) {
   page.on("pageerror", error => errors.push(error.message));
   return errors;
 }
+
+for (const width of [420, 1000]) test(`old Creator shows a manual stable upgrade notice without blocking project updates at ${width}px`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width, height: 900 });
+  const errors = captureErrors(page), requests: string[] = [];
+  // Synthetic versions verify presentation; they do not claim any npm release exists.
+  const packageUpdates = { ...overview, packages: [...overview.packages, {
+    name: "@za38.03/agent-ui-creator", scope: "tools", currentVersion: "0.0.1", targetVersion: "2.0.0",
+    updateAvailable: true, historyIncomplete: true, summary: [], history: [],
+  }] };
+  await page.route("**/__creator/updates/**", async route => {
+    const action = new URL(route.request().url()).pathname.split("/updates/")[1]!;
+    requests.push(action);
+    if (action === "check") return route.fulfill({ json: { ...inspection, packageUpdates } });
+    if (action === "packages/plan") return route.fulfill({ json: { id: "independent-project", packages: [{ name: packageName, current: "0.0.1", target: "0.0.2" }], checks: ["typecheck", "build"] } });
+    throw new Error(`Unexpected mutation: ${action}`);
+  });
+  await page.goto(origin);
+  const trigger = page.getByRole("button", { name: "Creator 有新稳定版 2.0.0", exact: true });
+  await expect(trigger).toBeEnabled();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  await trigger.focus();
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toContainText("Creator 只维护最新稳定版");
+  await expect(tooltip).toContainText("手动升级");
+  await expect(tooltip).toContainText("你可以继续使用当前版本");
+  await expect(tooltip).toContainText("项目包版本保持不变");
+  await expect(tooltip).toBeInViewport();
+  await expect(tooltip.getByRole("button")).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath(`creator-stable-notice-${width}.png`) });
+  await trigger.press("Escape");
+  await expect(tooltip).toHaveCount(0);
+  await page.getByRole("button", { name: "更新官方插件", exact: true }).click();
+  await expect(page.locator(".creator-package-plan")).toContainText("0.0.2");
+  await expect(page.getByRole("button", { name: "确认更新", exact: true })).toBeEnabled();
+  expect(requests).toContain("check");
+  expect(requests.filter(action => action !== "check")).toEqual(["packages/plan"]);
+  expect(errors).toEqual([]);
+});
 
 for (const width of [420, 1000]) test(`package plan at ${width}px can be cancelled; stale confirmation requires a fresh reviewed plan`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 900 });

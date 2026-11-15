@@ -2,6 +2,7 @@ import type {
   AgentApplicationEvent,
   AgentInterruptResponse,
   AgentUserInput,
+  AgentSendOptions,
 } from "@za38.03/agent-ui-core";
 import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 import { z } from "zod";
@@ -28,6 +29,9 @@ export type UIPluginElementProps = Pick<
 
 export type {
   AgentApplicationEvent,
+  AgentSendOptions,
+  AgentUIContext,
+  AgentUIContextValue,
   AgentConversation,
   AgentExecution,
   AgentInterrupt,
@@ -165,7 +169,7 @@ export type PluginDefaultPlacement =
     };
 
 export interface UIPluginActions {
-  sendMessage(input: string | AgentUserInput): Promise<void>;
+  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;

@@ -10,27 +10,27 @@
     "@za38.03/agent-ui-web-component": "0.0.9",
     "@za38.03/agent-ui-creator": "0.0.9"
   },
-  "sourceDigest": "821a63c0676958cbcc5880cbe9b3108dffe54d88f10c529c350590c496b94829",
+  "sourceDigest": "88372dbd55bb19b52b6ba903caac6adc0c66aae66395019e2cca55ae8794f6ff",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 238929,
-      "sha256": "4ea7a39f3d3320d31a859d4b5435ca9fd7e86b9e95e8497b34135e53883d8a4f"
+      "bytes": 238332,
+      "sha256": "1f28f3896b22858ad86f4b3a6fe476be7b72fd5b1ff1408e85c574d5546865c6"
     },
     {
       "path": "creator-index.md",
-      "bytes": 6848,
-      "sha256": "72a89a6fbcd01d80efe568d31768165ac519d6a4b3ada5fac633640716b24718"
+      "bytes": 6676,
+      "sha256": "e52a4f67d7e01e2cbbf035da9840539a5e67ec928b803bb7b2e68e6563d9be80"
     },
     {
       "path": "development/agent-options.md",
-      "bytes": 8052,
-      "sha256": "46057a2839e0af70867743bf2233bb63ce3baca37c520e4e49d5fd146acaa6af"
+      "bytes": 8339,
+      "sha256": "3ddcbb912b13b6ecedb855956e81f08019610e55ea2063267c64c28415574b7f"
     },
     {
       "path": "development/attachment-upload.md",
-      "bytes": 5457,
-      "sha256": "4fe20ce6927343bf172cbc21efe3cb16c532e3e10bfdd0cc05674df238ce6863"
+      "bytes": 6181,
+      "sha256": "f3497998903ff771890af9e69828945a8b5a1b62ab6b9a4d74bacf28c74097a9"
     },
     {
       "path": "development/auth-service.md",
@@ -39,8 +39,8 @@
     },
     {
       "path": "development/business-context.md",
-      "bytes": 5193,
-      "sha256": "31f4cea62c7e3cec9d8d6d7ca5d7d1b12eacfc858f477002260b2f49dd3f6a18"
+      "bytes": 3064,
+      "sha256": "7d8cdddcd0c986ff737d6623e87bb938916e82c2c831d9c1a5a45415c26315ea"
     },
     {
       "path": "development/component-customization.md",
@@ -54,8 +54,8 @@
     },
     {
       "path": "development/connect-agent.md",
-      "bytes": 10350,
-      "sha256": "85b684c9364eadfb07c84fb7c2a9e53c70c112402de3b1c21bff77d1102f159e"
+      "bytes": 10596,
+      "sha256": "b3a915636436968531d2c982e81fcd619c2547effd76f0175dd43fba933bfa4e"
     },
     {
       "path": "development/create-plugin.md",
@@ -74,18 +74,18 @@
     },
     {
       "path": "development/frontend-tools.md",
-      "bytes": 13079,
-      "sha256": "30676e3b9da4cc597980a41f2c64c92a7065632f8915beee38cf8125c2d33783"
+      "bytes": 19941,
+      "sha256": "9bc31462807a1f50f326388ac49e55cc4d9fd54d3925c319fbde7e282a58e2b7"
     },
     {
       "path": "development/history-backend.md",
-      "bytes": 17850,
-      "sha256": "607ff59e85964f47bab949ad8303889fa75afe11fa49f93c2b8d7fed1b32e7ea"
+      "bytes": 16321,
+      "sha256": "3573e43360952b8e0e3a31a9d9fe7d643265604ec451ea437c19611d6544f202"
     },
     {
       "path": "development/index.md",
-      "bytes": 7076,
-      "sha256": "085c7df04febc00bfebd634f6d3ccb15dc3b319fa008a0e6c56695ed0bb50e3e"
+      "bytes": 7118,
+      "sha256": "046a6f8852a5289b0ff01602e47e1d5180d89f720bf1441d1dcb5f0d451b73c8"
     },
     {
       "path": "development/layout-and-composition.md",
@@ -114,8 +114,8 @@
     },
     {
       "path": "development/plugin-api.md",
-      "bytes": 30655,
-      "sha256": "ce609a4314b1cd2ffb9543ef3ef933938a248b2df9beba02226bce4f95b2d2fa"
+      "bytes": 31211,
+      "sha256": "e0180815f399224dd59198f369fb9de53a5edae7167eefa6cd4ea2641b2e46e5"
     },
     {
       "path": "development/project-structure.md",
@@ -124,8 +124,8 @@
     },
     {
       "path": "development/react-host-api.md",
-      "bytes": 24400,
-      "sha256": "077b05434c585f7be1d360d741dfd789d5356d09401b39566d6c0ea1d927d5b5"
+      "bytes": 28457,
+      "sha256": "77a3807b4bf3d0742e5b0681800f45beab46f10d2d2e9e4979d2dabda08105ea"
     },
     {
       "path": "development/react-host-control.md",
@@ -139,8 +139,8 @@
     },
     {
       "path": "development/service-integration.md",
-      "bytes": 8367,
-      "sha256": "17a79e5a8f7ca8819692226beffbef000f64cdf062edeeba98c325d99f31dbc0"
+      "bytes": 12792,
+      "sha256": "3e8634e6a6cab08e24c096c8b781b450975a7f0fad3765314151ad013c6faae5"
     },
     {
       "path": "development/shell-customization.md",
@@ -154,8 +154,8 @@
     },
     {
       "path": "development/speech-to-text.md",
-      "bytes": 415,
-      "sha256": "d4a293828c4936c6268f2eefbe7a96c6037d0d1c63938f7fc1e535e7449bac29"
+      "bytes": 710,
+      "sha256": "aaabdb799d4c94e39cfd43cc9afec2d35a2260cd62e56cb3be54f2fb5c592522"
     },
     {
       "path": "development/theme-and-styling.md",
@@ -274,13 +274,13 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 851861,
-      "sha256": "6d19e61319bf2cd555b0dd4c9db8a5eb5cfafafea3f1744c6fe98696f097715b"
+      "bytes": 866505,
+      "sha256": "33e036f6868265af9eb605e8db3885fa619029fcaae82fe49e9345eb9bafe67b"
     },
     {
       "path": "llms.txt",
-      "bytes": 32233,
-      "sha256": "d6960e39e489487c422a4483da9e805c2daec870a85848bb71856b5ef61482e1"
+      "bytes": 32314,
+      "sha256": "13bcef13b79025e6898500672be5df26c8e4070a1bbedb78795bcfe9e8cf276c"
     },
     {
       "path": "mock/builtin-scenarios.md",
@@ -364,8 +364,8 @@
     },
     {
       "path": "plugins/conversation-data-source.md",
-      "bytes": 2450,
-      "sha256": "7418d0fc26201575e1fb4871e4402917e4e4e1ec9e3f7ed517999e24c6895c77"
+      "bytes": 2645,
+      "sha256": "460fbb7cdbd66683ce46facf027b9eecde2e02d0bfddb6b914105e5e0b2249bf"
     },
     {
       "path": "plugins/conversation-new.md",
@@ -558,11 +558,6 @@
       "sha256": "89409a1f45f222cc65b0ce29b95af9cf5627864f96fc6c287f97b7b8c293a48e"
     },
     {
-      "path": "references/docs/agent-ui-reference-guide.md",
-      "bytes": 2897,
-      "sha256": "4e0d8a7083b711922724e5ef5b4998efeb9ff149128a6bef496c48c922923262"
-    },
-    {
       "path": "references/docs/architecture/agent-connection-preview-source.md",
       "bytes": 10523,
       "sha256": "fcdb26c030d68172dde31d95e20c38242a2626ee060b98d7a7687b5544493f40"
@@ -629,13 +624,13 @@
     },
     {
       "path": "references/docs/architecture/npm-default-plugin-source-ownership.md",
-      "bytes": 31284,
-      "sha256": "b34acbe463c33ea2ba182cf7808a8e195dae98dede927891743c48bd90a1ccaa"
+      "bytes": 31582,
+      "sha256": "1d126bdfabc645bc20ebdc7d809d6963ed80d48bc068d7d71ad54d1f91d03d9f"
     },
     {
       "path": "references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md",
-      "bytes": 7518,
-      "sha256": "01634e8cbcec212766ac2330317be8744fbc342a783ae7e8bf9261ea2d8861b2"
+      "bytes": 7740,
+      "sha256": "4e8077c7854422824dd0b2c9eef36efd513012023a7c1154ca3d1db1af4d955c"
     },
     {
       "path": "references/docs/architecture/plugin-authoring-contract.md",
@@ -674,8 +669,8 @@
     },
     {
       "path": "references/docs/architecture/unified-update-center.md",
-      "bytes": 29811,
-      "sha256": "6de511303de2005b39766f035713286741a05a7118c6a4c26e09e2f338027279"
+      "bytes": 13373,
+      "sha256": "f30b44fdc816a23f0cd218ec3d924391ce3a535811bba68ed6c507575a979434"
     },
     {
       "path": "references/docs/architecture/web-search-retrieval-tool-ui-plugins.md",
@@ -739,8 +734,8 @@
     },
     {
       "path": "references/packages/creator/docs/typescript-distribution.md",
-      "bytes": 16398,
-      "sha256": "f266303f29441a9010454cb6d3defdd13c83a93e97705479583f57af06a6b1f5"
+      "bytes": 17261,
+      "sha256": "5dde1b196034d56d4bcf19afabd2089b975162a769fdb80905a6a8195d82e7ac"
     },
     {
       "path": "start/index.md",
@@ -759,8 +754,8 @@
     },
     {
       "path": "updates/release-notes.md",
-      "bytes": 3167,
-      "sha256": "38716a8c899d7c5c4d52c8513adf6d75ad4e9a8240a704d0ae1c04318d2c7b86"
+      "bytes": 3780,
+      "sha256": "26ab7a0f14257c7d1655918a1b3449df8ba131e1713bff3785fd27471870e817"
     },
     {
       "path": "what-is-agent-ui/index.md",

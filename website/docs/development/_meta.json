@@ -100,7 +100,7 @@
       },
       {
         "type": "custom-link",
-        "label": "业务上下文与 Agent 通知",
+        "label": "给 Agent 传递业务参数",
         "link": "/development/business-context"
       },
       {

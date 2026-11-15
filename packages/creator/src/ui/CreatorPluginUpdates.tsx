@@ -1,4 +1,5 @@
-import { PackageUpdatesOverview, actionableBlockedReleases, packageUpdateCount } from "./PackageUpdatesOverview.js";
+import { PackageUpdatesOverview, packageUpdateCount } from "./PackageUpdatesOverview.js";
+import { CreatorUpdateNotice } from "./CreatorUpdateNotice.js";
 import { UpdateReleaseNotes } from "./UpdateReleaseNotes.js";
 import { creatorDisplayText } from "./product-presentation.js";
 import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
@@ -40,7 +41,6 @@ async function updateRequest<T>(workspaceId: string, route: string, body: Record
       PACKAGE_SOURCE_RECOVERY_REQUIRED: localeMessages.pluginUpdates.sourceRecoveryRequired,
       PACKAGE_OPERATION_ACTIVE: localeMessages.pluginUpdates.packageOperationBusy,
       PACKAGE_ONLINE_METADATA_REQUIRED: localeMessages.pluginUpdates.metadataUnavailable,
-      PACKAGE_COMPATIBILITY_BLOCKED: localeMessages.pluginUpdates.compatibilityBlocked,
       PACKAGE_WORKSPACE_REQUIRES_SEPARATE_PLAN: localeMessages.pluginUpdates.packageSeparatePlan,
       PACKAGE_OVERRIDE_REQUIRES_SEPARATE_PLAN: localeMessages.pluginUpdates.packageSeparatePlan,
       PACKAGE_MANAGER_UNSUPPORTED: localeMessages.pluginUpdates.packageSeparatePlan,
@@ -49,15 +49,9 @@ async function updateRequest<T>(workspaceId: string, route: string, body: Record
       PACKAGE_DUPLICATE_DECLARATION: localeMessages.pluginUpdates.packageSeparatePlan,
       PACKAGE_LINKED_DECLARATION: localeMessages.pluginUpdates.packageSeparatePlan,
       PACKAGE_LINKED_INSTALLATION: localeMessages.pluginUpdates.packageSeparatePlan,
-      PACKAGE_APPLICATION_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
-      PACKAGE_SHARED_API_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
-      PACKAGE_PEER_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
-      PACKAGE_DEPENDENCY_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
-      PACKAGE_NODE_INCOMPATIBLE: localeMessages.pluginUpdates.packageMigrationRequired,
       PACKAGE_ARTIFACT_INVALID: localeMessages.pluginUpdates.packageArtifactRejected,
       PACKAGE_ARTIFACT_IDENTITY: localeMessages.pluginUpdates.packageArtifactRejected,
       PACKAGE_ARTIFACT_INTEGRITY: localeMessages.pluginUpdates.packageArtifactRejected,
-      PACKAGE_ARTIFACT_REQUIREMENTS: localeMessages.pluginUpdates.packageArtifactRejected,
       PACKAGE_CATALOG_IDENTITY: localeMessages.pluginUpdates.packageArtifactRejected,
       AGENT_UI_UPDATE_RECOVERY_REQUIRED: localeMessages.pluginUpdates.sourceRecoveryRequired,
       PLUGIN_SOURCE_PROTECTED_FILES_CHANGED: localeMessages.pluginUpdates.protectedFilesChanged,
@@ -74,7 +68,7 @@ async function updateRequest<T>(workspaceId: string, route: string, body: Record
   }
   return result;
 }
-export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkRequest, notificationTarget, pageOpen: controlledPageOpen, onPageChange, onModelMerge }: { workspaceId: string; busy: boolean; modelReady: boolean; checkRequest: number; notificationTarget?: HTMLElement | null; pageOpen?: boolean; onPageChange: (open: boolean) => void; onModelMerge: (prompt: string) => void }) {
+export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkRequest, notificationTarget, creatorNotificationTarget, pageOpen: controlledPageOpen, onPageChange, onModelMerge }: { workspaceId: string; busy: boolean; modelReady: boolean; checkRequest: number; notificationTarget?: HTMLElement | null; creatorNotificationTarget?: HTMLElement | null; pageOpen?: boolean; onPageChange: (open: boolean) => void; onModelMerge: (prompt: string) => void }) {
   const localeMessages = useAgentUILocale();
   const [packagePlan, setPackagePlan] = useState<PackageUpgradePlan | null>(null);
   const [inspection, setInspection] = useState<UpdateInspection | null>(null);
@@ -115,7 +109,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
       setInspection(result);
       setCheckError("");
       const count = availableCount(result);
-      if (manual) { if (count) setPageOpen(true); else setMessage(result.packageUpdates && result.packageUpdates.status !== "online" ? localeMessages.pluginUpdates.metadataUnavailable : result.packageUpdates && actionableBlockedReleases(result.packageUpdates).length ? localeMessages.pluginUpdates.compatibilityBlocked : result.packageUpdates && !result.packageUpdates.recommendedReleaseId ? result.packageUpdates.blockedReleases.length ? localeMessages.pluginUpdates.noNewerRelease : localeMessages.pluginUpdates.metadataUnavailable : localeMessages.pluginUpdates.alreadyUpToDate); }
+      if (manual) { if (count) setPageOpen(true); else setMessage(result.packageUpdates && result.packageUpdates.status !== "online" ? localeMessages.pluginUpdates.metadataUnavailable : localeMessages.pluginUpdates.alreadyUpToDate); }
       setBanner(count > 0 && !store.isDismissed(workspaceId, result.fingerprint));
     } catch (error) { if (generation.current === requestGeneration) {
       setInspection(null); setBanner(false);
@@ -129,12 +123,10 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   useEffect(() => { if (pageOpen && !operationActive.current) void check(false); }, [pageOpen]);
   const totalUpdates = inspection ? availableCount(inspection) : 0;
   const overview = inspection?.packageUpdates;
-  const updateStatus = !inspection || overview && overview.status !== "online"
+  const updateStatus = !inspection || overview && (overview.status !== "online" || overview.issue)
     ? working ? localeMessages.pluginUpdates.checkingUpdates : localeMessages.pluginUpdates.updateStatusUnavailable
     : totalUpdates ? formatLocaleMessage(localeMessages.pluginUpdates.availableUpdates, totalUpdates)
-    : overview && actionableBlockedReleases(overview).length ? localeMessages.pluginUpdates.compatibilityBlocked
-    : overview && !overview.recommendedReleaseId ? overview.blockedReleases.length ? localeMessages.pluginUpdates.noNewerRelease : localeMessages.pluginUpdates.updateStatusUnavailable
-    : localeMessages.pluginUpdates.alreadyUpToDate;
+    : inspection.sourceIssue ? localeMessages.pluginUpdates.updateStatusUnavailable : localeMessages.pluginUpdates.alreadyUpToDate;
   const updates = inspection?.plugins.filter(plugin => plugin.updateAvailable) ?? [];
   const sourcePlugins = inspection?.plugins.filter(plugin => plugin.delivery === "source-owned") ?? [];
   const visibleSourcePlugins = inspection?.plugins.filter(plugin => plugin.delivery === "source-owned" || plugin.updateAvailable) ?? [];
@@ -170,7 +162,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
           {plan.kind !== "owned-source" && plan.items.length ? <details className="creator-update-details"><summary>{localeMessages.pluginUpdates.sourceAffectedComponents}</summary><ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={creatorDisplayText(item.itemId)}>{creatorDisplayText(item.itemId)}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : null}</li>)}</ul></details> : null}
           <div className="creator-update-callout"><ShieldCheck aria-hidden="true"/><p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergePreservation : localeMessages.pluginUpdates.sourceSyncPreservation}</p></div>
           {plan.dependencyChanges?.length ? <div className="creator-update-callout"><div><p>{localeMessages.pluginUpdates.sourceDependenciesNotice}</p><ul>{plan.dependencyChanges.map(dependency => <li key={dependency}><code>{dependency}</code></li>)}</ul></div></div> : null}
-          {plan.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.upgradeCreatorFirst}</AlertDescription></Alert> : null}
+          {plan.compatibility !== "compatible" || plan.recommendations?.length ? <Alert><AlertDescription>{localeMessages.pluginUpdates.versionRecommendationsNotice}</AlertDescription></Alert> : null}
           {plan.issues.map((issue, index) => <Alert key={index} variant="destructive"><AlertDescription>{creatorDisplayText(issue)}</AlertDescription></Alert>)}
           {!merging ? <p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergeConfirmation : localeMessages.pluginUpdates.sourceSyncConfirmation}</p> : null}
           <div className="creator-update-actions" hidden={merging}>
@@ -209,6 +201,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   </div> : null;
   return <section className="creator-plugin-updates creator-ui-scope" aria-label={localeMessages.pluginUpdates.pluginUpdates} aria-busy={working}>
     {notificationTarget ? createPortal(notification, notificationTarget) : notification}
+    {creatorNotificationTarget && inspection?.packageUpdates ? createPortal(<CreatorUpdateNotice key={workspaceId} overview={inspection.packageUpdates}/>, creatorNotificationTarget) : null}
     {working && !pageOpen ? <p className="cui:flex cui:items-center cui:gap-2 cui:py-2 cui:text-xs cui:text-muted-foreground" role="status"><RefreshCw aria-hidden="true" className="cui:size-3.5 cui:animate-spin" />{localeMessages.pluginUpdates.checkingUpdates}</p> : null}
     {message && (planTarget === null || !pageOpen) ? <Alert className="cui:my-2" variant={failed ? "destructive" : "default"} role={failed ? "alert" : "status"}><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}
     {pageOpen ? <div className="creator-update-page cui:space-y-3" aria-busy={working}>
@@ -228,7 +221,8 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
         onExecute={()=>void operation(async()=>{setPackageStage("installing");const completed=packagePlan!.packages;const result=await updateRequest<PackageUpgradeResult>(workspaceId,"packages/execute",{planId:packagePlan!.id,confirmed:true},localeMessages,setPackageStage);setPackagePlan(null);if(result.status==="installed")setCompletedPackages(completed);else{setFailed(true);setMessage(localeMessages.pluginUpdates[result.status === "restored" ? "packagesRestored" : "packagesRecoveryRequired"]);}await check(false);})}
         onRecover={()=>void operation(async()=>{const result=await updateRequest<PackageUpgradeResult>(workspaceId,"packages/recover",{planId:inspection.packageUpdates!.recovery!.id,confirmed:true},localeMessages);await check(false);setMessage(localeMessages.pluginUpdates[result.status==="restored"?"packagesRestored":"packagesRecoveryRequired"]);})} /> : null}
       {checkError ? <Alert variant="destructive" role="alert"><AlertDescription>{checkError}</AlertDescription></Alert> : null}
-      {inspection && inspection.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.thisCreatorVersionCannotInstallTheUpdateUpgrade}</AlertDescription></Alert> : null}
+      {inspection?.sourceIssue ? <Alert role="status"><AlertDescription>{localeMessages.pluginUpdates.sourceInspectionUnavailable}</AlertDescription></Alert> : null}
+      {inspection && inspection.compatibility !== "compatible" ? <Alert><AlertDescription>{localeMessages.pluginUpdates.versionRecommendationsNotice}</AlertDescription></Alert> : null}
       {planTarget === "all" ? <>{planFeedback}{planContent}</> : null}
       {visibleSourcePlugins.length ? <div className="creator-update-source-heading"><div><h3><GitMerge aria-hidden="true"/>{localeMessages.pluginUpdates.sourceSection}</h3><p>{localeMessages.pluginUpdates.sourceSectionDescription}</p></div>{updates.length > 1 && !updates.some(plugin=>plugin.delivery === "source-owned") ? <Button size="sm" variant="outline" disabled={working || busy || !!plan} onClick={() => void createPlan(updates.map(plugin => plugin.pluginId), "all")}>{localeMessages.pluginUpdates.updateAll}</Button> : null}</div> : null}
       {visibleSourcePlugins.map(plugin => {

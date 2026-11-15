@@ -118,3 +118,9 @@ type ProjectAttachmentAdapter = NonNullable<ConversationRuntimeProviderProps['at
 - 超大文件、类型不符、HTTP 失败和业务失败均不作为成功附件发送。
 - 取消上传时实际请求收到 signal，不把迟到结果写回。
 - 图片与 PDF 分别测试，刷新后也能展示或打开；确认真实 Agent 能读取 URL。
+
+## 6. 已有文件 URL
+
+业务系统已经上传文件或用户选择已有业务文档时，调用 `host.sendMessage()`，将 `source: { type: 'url', value: 文件地址 }` 放入相应媒体内容项。支持文本和多个附件混合，也支持只发附件。完整代码、MIME 类型和错误约定见[发送已有附件 URL](./react-host-api#发送已有附件-url)。
+
+这条路径直接发送文件引用，不调用 `attachments.uploadUrl` 或 `dataSource.upload()`，保留 Composer 当前草稿。内置 `accept` 和 `maxSizeBytes` 限制只检查本地文件，远程文件校验与读取授权由业务服务处理；上传接口或 AG-UI 接口的凭据不会自动转发给文件读取方。

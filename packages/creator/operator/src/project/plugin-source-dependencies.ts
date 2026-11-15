@@ -4,7 +4,7 @@ import { validRange } from "semver";
 import path from "node:path";
 import { readPackageIdentity } from "../updates/package-identity";
 import { inspectAgentUIPackages } from "./source-registry/inspector";
-import { ensureResourcePackages, resourcePackageConflicts, type ResourcePackageRunner } from "./ensure-resource-packages";
+import { ensureResourcePackages, type ResourcePackageRunner } from "./ensure-resource-packages";
 import { AgentUISourceError } from "./source-registry/path-policy";
 
 const fields = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"] as const;
@@ -25,12 +25,7 @@ export async function inspectPluginSourceDependencies(root: string, installedRoo
   const requirements = requirementsSchema.parse(input);
   const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   const inspection = await inspectAgentUIPackages(root, [{ packages: requirements }]);
-  const requirementsWithDeclarations = inspection.packages.flatMap(item => {
-    const declarations = fields.flatMap(field => manifest[field]?.[item.name] === undefined ? [] : [manifest[field][item.name] as string]);
-    return declarations.length ? declarations.map(declared => ({ ...item, declared })) : [item];
-  });
-  if (resourcePackageConflicts(requirementsWithDeclarations).length) throw new AgentUISourceError("PLUGIN_SOURCE_DEPENDENCY_CONFLICT", "Source dependencies conflict with the project; prepare a separate dependency migration.", inspection.packages);
-  const changes = inspection.packages.filter(item => !item.declared || !item.compatible).map(item => `${item.name}@${item.required}`);
+  const changes = inspection.packages.filter(item => !item.declared || !item.installed).map(item => `${item.name}@${item.required}`);
   // Packages with the same version can still be separate Context instances.
   // Compare actual resolved locations, including the direct imports' peer trees.
   const identities: (string | null)[][] = [];

@@ -10,13 +10,22 @@ import {
 } from '@za38.03/agent-ui-plugins/conversation-service';
 import type { ConversationDataSource } from '@za38.03/agent-ui-plugins/conversation-service';
 
-export interface HttpConversationDataSourceRoutes {
-  listUrl: (base: string) => string;
-  detailUrl: (base: string, id: string) => string;
-  deleteUrl: (base: string, id: string) => string;
-  renameUrl: (base: string, id: string) => string;
-  archiveUrl: (base: string, id: string) => string;
-  unarchiveUrl: (base: string, id: string) => string;
+export type HttpConversationRequestBody = Record<string, unknown> | readonly unknown[] | string | number | boolean | null;
+
+export type HttpConversationRequestContext<TInput extends object = Record<never, never>> = TInput & {
+  /** Normalized base address; explicit URLs are passed to fetch without prefixing it. */
+  endpoint: string;
+  signal?: AbortSignal | undefined;
+};
+
+export interface HttpConversationRequestOptions<TInput extends object = Record<never, never>, TResult = unknown> {
+  url?: string | ((context: HttpConversationRequestContext<TInput>) => string) | undefined;
+  method?: string | undefined;
+  /** JSON data, or a builder. A builder returning undefined sends no body. */
+  body?: HttpConversationRequestBody | ((context: HttpConversationRequestContext<TInput>) =>
+    HttpConversationRequestBody | undefined | Promise<HttpConversationRequestBody | undefined>) | undefined;
+  /** Receives parsed JSON, or undefined for an empty mutation response. */
+  decode?: ((value: unknown, context: HttpConversationRequestContext<TInput>) => TResult | Promise<TResult>) | undefined;
 }
 
 export interface HttpConversationDataSourceOptions {
@@ -25,20 +34,13 @@ export interface HttpConversationDataSourceOptions {
   /** Read rotating user credentials on every request. */
   headers?: HeadersInit | (() => HeadersInit) | undefined;
   credentials?: RequestCredentials | undefined;
-  routes?: Partial<HttpConversationDataSourceRoutes> | undefined;
-  decodeList?: ((value: unknown) => ConversationSummary[] | Promise<ConversationSummary[]>) | undefined;
-  decodeDetail?: ((value: unknown) => ConversationDetailResponse | Promise<ConversationDetailResponse>) | undefined;
+  list?: HttpConversationRequestOptions<Record<never, never>, ConversationSummary[]> | undefined;
+  get?: HttpConversationRequestOptions<{ id: string }, ConversationDetailResponse> | undefined;
+  delete?: HttpConversationRequestOptions<{ id: string }> | undefined;
+  rename?: HttpConversationRequestOptions<{ id: string; title: string }> | undefined;
+  archive?: HttpConversationRequestOptions<{ id: string }> | undefined;
+  unarchive?: HttpConversationRequestOptions<{ id: string }> | undefined;
 }
-
-// Default protocol implementation belongs to this Plugin, including source takeover.
-const defaultRoutes: HttpConversationDataSourceRoutes = {
-  listUrl: (base: string) => `${base}/conversations`,
-  detailUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
-  deleteUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
-  renameUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}`,
-  archiveUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}/archive`,
-  unarchiveUrl: (base: string, id: string) => `${base}/conversations/${encodeURIComponent(id)}/unarchive`,
-};
 
 function normalizeEndpoint(endpoint: string): string {
   const normalized = endpoint.trim().replace(/\/+$/, '');
@@ -162,67 +164,78 @@ export function createHttpConversationDataSource({
   fetch: fetchImplementation = globalThis.fetch,
   headers: configuredHeaders,
   credentials = 'same-origin',
-  routes,
-  decodeList = normalizeConversationListResponse,
-  decodeDetail = normalizeConversationDetailResponse,
+  list,
+  get,
+  delete: deleteRequest,
+  rename,
+  archive,
+  unarchive,
 }: HttpConversationDataSourceOptions): ConversationDataSource {
   const baseEndpoint = normalizeEndpoint(endpoint);
-  const conversationRequests = { ...defaultRoutes, ...routes };
-  function requestInit(method: string, signal?: AbortSignal): RequestInit {
-    return {
-      method,
-      headers: typeof configuredHeaders === 'function' ? configuredHeaders() : configuredHeaders ?? {},
+  const detailUrl = (id: string) => `${baseEndpoint}/conversations/${encodeURIComponent(id)}`;
+
+  // Default protocol implementation belongs to this Plugin, including source takeover.
+  async function request<TInput extends object>(
+    operation: HttpConversationRequestOptions<TInput> | undefined,
+    context: HttpConversationRequestContext<TInput>,
+    defaults: { url: string; method: string; body?: HttpConversationRequestBody },
+  ): Promise<Response> {
+    const url = typeof operation?.url === 'function' ? operation.url(context) : operation?.url ?? defaults.url;
+    const configuredBody = operation?.body;
+    const body = typeof configuredBody === 'function' ? await configuredBody(context)
+      : configuredBody === undefined ? defaults.body : configuredBody;
+    const headers = new Headers(typeof configuredHeaders === 'function' ? configuredHeaders() : configuredHeaders);
+    if (body !== undefined) headers.set('Content-Type', 'application/json');
+    return fetchImplementation(url, {
+      method: operation?.method ?? defaults.method,
+      headers,
       credentials,
-      ...(signal === undefined ? {} : { signal }),
-    };
+      ...(context.signal === undefined ? {} : { signal: context.signal }),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  }
+
+  async function mutate<TInput extends object>(
+    operation: HttpConversationRequestOptions<TInput> | undefined,
+    context: HttpConversationRequestContext<TInput>,
+    defaults: { url: string; method: string; body?: HttpConversationRequestBody },
+  ): Promise<void> {
+    const response = await request(operation, context, defaults);
+    await assertResponseOk(response);
+    if (operation?.decode) {
+      const text = await response.text();
+      await operation.decode(text.trim() ? JSON.parse(text) : undefined, context);
+    }
   }
 
   return {
     async rename(id, title, options) {
-      const init = requestInit('PATCH', options?.signal);
-      const headers = new Headers(init.headers);
-      headers.set('Content-Type', 'application/json');
-      const response = await fetchImplementation(conversationRequests.renameUrl(baseEndpoint, id), {
-        ...init,
-        headers,
-        body: JSON.stringify({ title }),
-      });
-      await assertResponseOk(response);
+      await mutate(rename, { endpoint: baseEndpoint, id, title, signal: options?.signal },
+        { url: detailUrl(id), method: 'PATCH', body: { title } });
     },
     async archive(id, options) {
-      const response = await fetchImplementation(
-        conversationRequests.archiveUrl(baseEndpoint, id),
-        requestInit('POST', options?.signal),
-      );
-      await assertResponseOk(response);
+      await mutate(archive, { endpoint: baseEndpoint, id, signal: options?.signal },
+        { url: `${detailUrl(id)}/archive`, method: 'POST' });
     },
     async unarchive(id, options) {
-      const response = await fetchImplementation(
-        conversationRequests.unarchiveUrl(baseEndpoint, id),
-        requestInit('POST', options?.signal),
-      );
-      await assertResponseOk(response);
+      await mutate(unarchive, { endpoint: baseEndpoint, id, signal: options?.signal },
+        { url: `${detailUrl(id)}/unarchive`, method: 'POST' });
     },
     async delete(id, options) {
-      const response = await fetchImplementation(
-        conversationRequests.deleteUrl(baseEndpoint, id),
-        requestInit('DELETE', options?.signal),
-      );
-      await assertResponseOk(response);
+      await mutate(deleteRequest, { endpoint: baseEndpoint, id, signal: options?.signal },
+        { url: detailUrl(id), method: 'DELETE' });
     },
     async list(options) {
-      const response = await fetchImplementation(
-        conversationRequests.listUrl(baseEndpoint),
-        requestInit('GET', options?.signal),
-      );
-      return conversationListResponseSchema.parse({ conversations: await decodeList(await readResponseJson(response)) }).conversations;
+      const context = { endpoint: baseEndpoint, signal: options?.signal };
+      const response = await request(list, context, { url: `${baseEndpoint}/conversations`, method: 'GET' });
+      const decode = list?.decode ?? normalizeConversationListResponse;
+      return conversationListResponseSchema.parse({ conversations: await decode(await readResponseJson(response), context) }).conversations;
     },
     async get(threadId, options) {
-      const response = await fetchImplementation(
-        conversationRequests.detailUrl(baseEndpoint, threadId),
-        requestInit('GET', options?.signal),
-      );
-      return toConversationDetail(conversationDetailResponseSchema.parse(await decodeDetail(await readResponseJson(response))));
+      const context = { endpoint: baseEndpoint, id: threadId, signal: options?.signal };
+      const response = await request(get, context, { url: detailUrl(threadId), method: 'GET' });
+      const decode = get?.decode ?? normalizeConversationDetailResponse;
+      return toConversationDetail(conversationDetailResponseSchema.parse(await decode(await readResponseJson(response), context)));
     },
   };
 }

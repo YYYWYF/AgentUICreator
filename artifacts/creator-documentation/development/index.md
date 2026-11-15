@@ -26,29 +26,29 @@
 
 ## 开发任务索引
 
-| 我想做什么                    | 从这里开始                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------- |
-| 找到要修改的文件                 | [工程结构与修改入口](/development/project-structure.md)                                                        |
-| 把助理放进已有页面                | [React](/development/react.md)、[Vue](/development/vue.md)、[HTML 与其他框架](/development/web-component.md) |
-| 设置地址、主题、语言或打开已有会话        | [Agent 配置示例](/development/agent-options.md)、[完整属性表](/development/react-host-api.md)                   |
-| 让业务按钮打开助理、发送消息、停止运行或新建会话 | [用业务页面控制 Agent](/development/react-host-control.md)、[会话方法](/development/react-host-api.md#会话方法)       |
-| 指定助手发送、打开历史或控制后台 Thread  | [多助手与后台 Thread](/development/multiple-agents.md#从业务页面控制指定助手)                                          |
-| 在回复期间排队发送后续问题            | [消息排队](/development/message-queue.md)                                                                 |
-| 接收 Agent 通知、读取运行状态       | [状态与事件](/development/react-host-api.md#状态与事件)、[业务事件](/development/react-host-api.md#订阅-agent-业务事件)    |
-| 手动修改已有插件的样式、文案、结构或业务逻辑   | [完整插件修改教程](/development/component-customization.md)                                                   |
-| 选择主题、修改品牌色或组件样式          | [主题与样式](/development/theme-and-styling.md)                                                            |
-| 切换语言、修改欢迎语或按钮文字          | [语言与文案](/development/localization.md)                                                                 |
-| 查找可覆盖的文案键和默认翻译           | [文案字段参考](/development/locale-reference.md)                                                            |
-| 改变区域大小、位置与插件顺序           | [布局与插件组合](/development/layout-and-composition.md)                                                     |
-| 设置响应式抽屉、Stack 或 Sidebar  | [高级布局](/development/layout-and-composition.md#高级布局字段与示例)                                              |
-| 修改悬浮入口、外框、展开收起与容器        | [自定义 Shell](/development/shell-customization.md)                                                      |
-| 修改已有工具结果或图表的样式与展示结构      | [已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)                                        |
-| 将自定义 AG-UI 事件显示为消息卡片     | [自定义事件与消息渲染](/development/custom-ag-ui-events.md)                                                     |
-| 接入上传、语音或评价接口             | [业务服务接入](/development/service-integration.md)                                                         |
-| 接自己的历史、搜索候选或命令服务         | [服务接入总览](/development/service-integration.md)                                                         |
-| 把当前页面数据给 Agent，或接收业务通知   | [业务上下文与通知](/development/business-context.md)                                                          |
-| 让 Agent 调用页面已有方法         | [前端工具接入](/development/frontend-tools.md)                                                              |
-| 新增一个可独立启停的界面功能           | [创建自定义插件](/development/create-plugin.md)、[插件接口](/development/plugin-api.md)                           |
+| 我想做什么                      | 从这里开始                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 找到要修改的文件                   | [工程结构与修改入口](/development/project-structure.md)                                                        |
+| 把助理放进已有页面                  | [React](/development/react.md)、[Vue](/development/vue.md)、[HTML 与其他框架](/development/web-component.md) |
+| 设置地址、主题、语言或打开已有会话          | [Agent 配置示例](/development/agent-options.md)、[完整属性表](/development/react-host-api.md)                   |
+| 让业务按钮打开助理、发送消息、停止运行或新建会话   | [用业务页面控制 Agent](/development/react-host-control.md)、[会话方法](/development/react-host-api.md#会话方法)       |
+| 指定助手发送、打开历史或控制后台 Thread    | [多助手与后台 Thread](/development/multiple-agents.md#从业务页面控制指定助手)                                          |
+| 在回复期间排队发送后续问题              | [消息排队](/development/message-queue.md)                                                                 |
+| 接收 Agent 返回的事件、读取运行状态      | [状态与事件](/development/react-host-api.md#状态与事件)、[业务事件](/development/react-host-api.md#订阅-agent-业务事件)    |
+| 手动修改已有插件的样式、文案、结构或业务逻辑     | [完整插件修改教程](/development/component-customization.md)                                                   |
+| 选择主题、修改品牌色或组件样式            | [主题与样式](/development/theme-and-styling.md)                                                            |
+| 切换语言、修改欢迎语或按钮文字            | [语言与文案](/development/localization.md)                                                                 |
+| 查找可覆盖的文案键和默认翻译             | [文案字段参考](/development/locale-reference.md)                                                            |
+| 改变区域大小、位置与插件顺序             | [布局与插件组合](/development/layout-and-composition.md)                                                     |
+| 设置响应式抽屉、Stack 或 Sidebar    | [高级布局](/development/layout-and-composition.md#高级布局字段与示例)                                              |
+| 修改悬浮入口、外框、展开收起与容器          | [自定义 Shell](/development/shell-customization.md)                                                      |
+| 修改已有工具结果或图表的样式与展示结构        | [已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)                                        |
+| 处理自定义 AG-UI 事件，或将事件显示为消息卡片 | [自定义事件与消息渲染](/development/custom-ag-ui-events.md)                                                     |
+| 接入上传、语音或评价接口               | [业务服务接入](/development/service-integration.md)                                                         |
+| 接自己的历史、搜索候选或命令服务           | [服务接入总览](/development/service-integration.md)                                                         |
+| 给 Agent 传业务参数              | [给 Agent 传递业务参数](/development/business-context.md)                                                    |
+| 让 Agent 调用页面已有方法           | [前端工具接入](/development/frontend-tools.md)                                                              |
+| 新增一个可独立启停的界面功能             | [创建自定义插件](/development/create-plugin.md)、[插件接口](/development/plugin-api.md)                           |
 
 ## 常用 API
 

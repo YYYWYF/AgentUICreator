@@ -16,13 +16,13 @@ export async function installOptionalAgentUIResource(projectRoot: string, source
   const canonicalItemId = definition?.id ?? sourceItemId;
   const item = inspection.items.find(item => item.id === canonicalItemId);
   if (!item || !definition || !(isOptionalAgentUISourceItem(definition) || officialResourceRegistry.resources.some(resource => "sourceItemId" in resource.implementation && resource.implementation.sourceItemId === canonicalItemId))) throw new Error("Optional Agent UI resource is unavailable");
-  const missing = item.resolvedRequirements.filter(requirement => !requirement.compatible).map(({ name, required }) => ({ name, required }));
+  const missing = item.resolvedRequirements.filter(requirement => requirement.installed === undefined).map(({ name, required }) => ({ name, required }));
   if (missing.length) throw new AgentUISourceError("AGENT_UI_PACKAGE_REQUIREMENTS_UNMET", `缺少依赖：${missing.map(item => `${item.name} ${item.required}`).join(", ")}`, missing);
   await applyAgentUISourceProjectMutation(projectRoot, { itemId: canonicalItemId, expectedStateHash: inspection.stateHash }, { config });
   const after = await inspectAgentUISources(projectRoot, config);
   const resource = after.items.find(item => item.id === canonicalItemId);
   const closureIds = new Set([canonicalItemId, ...(resource?.dependencies ?? [])]);
   const invalid = after.items.filter(item => closureIds.has(item.id)).filter(item =>
-    (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
+    (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => requirement.installed === undefined));
   if (!resource || invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "Installed resource dependency closure is incomplete.", invalid);
 }

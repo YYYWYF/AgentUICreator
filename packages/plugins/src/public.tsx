@@ -261,7 +261,7 @@ export const AgentUIDialog: Readonly<{
 /** Styled centered Popup with its own themed Portal and Backdrop; requires package styles.css.
  * Render directly inside AgentUIDialog.Root, without an additional Portal. */
 export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
-import { useMemo } from "react";
+import { forwardRef, useMemo } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -760,16 +760,17 @@ export function ConversationThreadListItem(props: ConversationThreadListItemProp
   return <ConversationThreadListItemComposition {...props} />;
 }
 
-export function ConversationThreadListNew(
-  props: Readonly<React.ComponentProps<"button"> & { labelClassName?: string }>,
-) {
+export const ConversationThreadListNew = forwardRef<
+  HTMLButtonElement,
+  Readonly<React.ComponentPropsWithoutRef<"button"> & { labelClassName?: string }>
+>(function ConversationThreadListNew(props, ref) {
   const messages = useAgentUILocale("threadList");
   const label = props.children ?? messages.newThread;
-  return <InternalConversationThreadListNew {...props}>{typeof label === "string" || typeof label === "number" ? <>
+  return <InternalConversationThreadListNew {...props} ref={ref}>{typeof label === "string" || typeof label === "number" ? <>
     <PlusIcon data-slot="aui_thread-list-new-icon" className="size-4 shrink-0" />
     <span data-agent-ui-owned="" data-slot="aui_thread-list-new-label" className={cn("whitespace-nowrap", props.labelClassName)}>{label}</span>
   </> : label}</InternalConversationThreadListNew>;
-}
+});
 
 export function ConversationThreadListRoot(
   props: Readonly<React.ComponentProps<"div">>,
@@ -1037,22 +1038,22 @@ export type ConversationButtonSize =
   | "icon-sm"
   | "icon-lg";
 
-export function Button({
-  variant,
-  size,
-  ...props
-}: Readonly<React.ComponentProps<"button"> & {
-  variant?: ConversationButtonVariant;
-  size?: ConversationButtonSize;
-}>) {
+export const Button = forwardRef<
+  HTMLButtonElement,
+  Readonly<React.ComponentPropsWithoutRef<"button"> & {
+    variant?: ConversationButtonVariant;
+    size?: ConversationButtonSize;
+  }>
+>(function Button({ variant, size, ...props }, ref) {
   return (
     <InternalButton
       {...props}
+      ref={ref}
       {...(variant === undefined ? {} : { variant })}
       {...(size === undefined ? {} : { size })}
     />
   );
-}
+});
 
 export type ConversationBadgeVariant =
   | "default"
@@ -1077,9 +1078,11 @@ export function Badge({
   );
 }
 
-export function Input(props: Readonly<React.ComponentProps<"input">>) {
-  return <InternalInput {...props} data-agent-ui-owned="" />;
-}
+export const Input = forwardRef<HTMLInputElement, Readonly<React.ComponentPropsWithoutRef<"input">>>(
+  function Input(props, ref) {
+    return <InternalInput {...props} ref={ref} data-agent-ui-owned="" />;
+  },
+);
 
 export function Skeleton(props: Readonly<React.ComponentProps<"div">>) {
   return <InternalSkeleton {...props} />;

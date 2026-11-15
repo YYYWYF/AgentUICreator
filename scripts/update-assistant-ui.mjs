@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { execNpm } from "./npm-process.mjs";
+import { execPnpm } from "./pnpm-process.mjs";
 
 import { checkAssistantUiAgUiCompatibility } from "./check-assistant-ui-agui-compat.mjs";
 import {
@@ -37,7 +39,7 @@ async function git(repo, args, cwd) {
 }
 
 async function latest(repoRoot, name) {
-  const result = await execFile("npm", ["view", `${name}@latest`, "version", "--json"], {
+  const result = await execNpm(["view", `${name}@latest`, "version", "--json"], {
     cwd: repoRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024,
@@ -47,7 +49,7 @@ async function latest(repoRoot, name) {
 }
 
 async function publishedPeerVersions(repoRoot, name, range) {
-  const result = await execFile("npm", ["view", `${name}@${range}`, "version", "--json"], {
+  const result = await execNpm(["view", `${name}@${range}`, "version", "--json"], {
     cwd: repoRoot, encoding: "utf8", maxBuffer: 8 * 1024 * 1024,
   });
   return JSON.parse(result.stdout);
@@ -90,7 +92,7 @@ async function packageArtifact(name, version, packageRoot, source) {
 async function publishedPackageArtifact(repoRoot, name, version) {
   const destination = await mkdtemp(path.join(os.tmpdir(), "assistant-ui-npm-package-"));
   try {
-    const result = await execFile("npm", [
+    const result = await execNpm([
       "pack",
       `${name}@${version}`,
       "--json",
@@ -244,7 +246,7 @@ export async function main({
   langGraphPackageCompatibilityChecker = checkAssistantUiLangGraphPackageCompatibility,
   langGraphSourceCompatibilityChecker = checkAssistantUiLangGraphSourceCompatibility,
   lockfileChecker = checkAgUiLockfile,
-  commandRunner = execFile,
+  commandRunner = (command, args, options) => command === "pnpm" ? execPnpm(args, options) : execFile(command, args, options),
 } = {}) {
   const status = await git(repoRoot, ["status", "--porcelain=v1"], repoRoot);
   if (status.length > 0) {

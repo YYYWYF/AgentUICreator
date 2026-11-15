@@ -1,7 +1,7 @@
 ---
 name: ag-ui-frontend
 description: Use for frontend consumption of AG-UI messages, shared state, run status, executions, interrupts, and controlled Application Events, Frontend Tools, Agent-controlled frontend capabilities, and browser/client tool execution through project Runtime hooks.
-compatibility: One AG-UI Agent connection per Thread; multiple isolated frontend instances reuse canonical Conversation Runtime. Phase 8 permits Plugin source writes while Runtime remains read-only.
+compatibility: One AG-UI Agent connection per Thread; multiple isolated frontend instances reuse canonical Conversation Runtime. Project-owned application, Plugin and supporting Service source are editable; Runtime remains read-only.
 allowed-tools: enable_creator_tools read_file ls glob grep edit_file
 ---
 
@@ -43,9 +43,9 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - Plugins must never self-register Frontend Tools or import AG-UI Tool types. They only provide capabilities through the existing Service lifecycle.
 - Do not invent Application Events to replace standard Activity/Tool/Run lifecycle, persistent shared state, local Plugin communication, or frontend commands. An explicitly supplied business-job CUSTOM notification can drive a live panel through the application channel; it does not become standard Runtime execution progress or gain history/replay. A single Plugin's private projection may use component state and update by the supplied business ID. Subscribe in `useEffect` and return the unsubscribe function. Use existing shared state/services when persistence or cross-Plugin sharing is actually required.
 - A request for different layout or placement is not an AG-UI Runtime change.
-- During Phase 8, implement AG-UI presentation inside `/plugins/` while keeping Runtime and Framework source read-only.
+- Implement AG-UI presentation in the project's application/Plugin layer and supporting Service source, using the actual sourceRoot. Keep Runtime and Framework source read-only.
 
-For interaction semantics, reason from product needs and AG-UI first. Treat external Agent UI projects as references, not runtime dependencies or public contracts.
+For interaction semantics, use product needs, AG-UI, project contracts and the installed public APIs.
 
 ## History, attachments, speech and feedback services
 
@@ -136,3 +136,7 @@ state. See the packaged Plugin API's localization example. Preserve protocol IDs
 locale is a view concern. Prefer public props/composition, then owned adapters.
 If upstream lacks a seam, record a localization gap instead of modifying vendor.
 Include `pnpm check:i18n` where available and check new copy during upgrades.
+
+## 版本建议与工具更新
+
+版本清单、最低 Creator 版本及包兼容范围只作参考，不因版本差异拒绝用户升级、初始化、启用插件、规划源码接管或继续使用 Creator。检测到 Creator 新版时只提醒用户按原安装方式手动升级，不代装、不强制升级。保留文件/hash/快照/BASE、实际 API、确认和事务保护；实际安装或编译失败如实报告。详见 docs/architecture/unified-update-center.md。

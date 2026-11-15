@@ -100,14 +100,14 @@
 - [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。
 - [业务服务接入总览](/development/service-integration.md): 找到接口配置文件，选择默认 HTTP 协议或项目适配器，接入自己的业务服务。
 - [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见插件显示条件与 AG-UI 数据。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
-- [接入历史会话](/development/history-backend.md): 历史服务提供会话列表和聊天记录。读取历史与继续对话是不同能力：要继续提问，还需相应的 Agent 数据和接口。相关参数见Agent 参数与配置。
+- [接入历史会话](/development/history-backend.md): 接入自己的历史服务，让用户查看会话列表、打开聊天记录，以及删除、重命名或归档会话。
 - [附件上传服务](/development/attachment-upload.md): 默认在发送时将文件读为 Base64 随消息交给 Agent，每个文件默认最多 20 MiB。需要先上传到业务文件服务、再发送文件 URL 时，按本页配置。后端 Agent 仍需支持读取对应文件类型和 URL。
-- [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
+- [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 Runtime 已有 dictation.url、dictation.dataSource.transcribe() 和完整 dictationAdapter 的适配入口，并有录音、取消和返回文本的受控测试。真实业务服务、浏览器录音格式与麦克风权限仍需分别验证，当前接入文档保持开发中状态。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
 - [回复评价服务](/development/feedback-service.md): 默认点赞／点踩只保留当前会话界面的选择。需要保存到业务系统时，通过 feedback 配置。配置不会自动在历史加载时恢复服务端的评价选择。
 - [一号通登录（开发中）](/development/auth-service.md): 一号通登录接入开发中。当前只支持业务系统在外部自行完成登录，再将用户凭据和用户信息传给 Agent UI。
 - [搜索候选与命令来源](/development/composer-sources.md): @ 可以查询自己的员工、文档或业务对象；/ 可以显示项目命令。两者通过来源对象接入，没有内置的通用搜索 URL 或命令 URL 配置。 以下路径以 src/agent-ui/ 为源码目录。先在项目中启用 mention-trigger 或 slash-command-trigger；/ 的默认命令注册通常由 conversation-command-source 提供。已有同类来源时修改原实现，避免重复提供同名服务。
 - [前端工具与自定义工具 UI](/development/frontend-tools.md): 前端工具让 Agent 请求执行页面动作，例如打开弹窗或填写表单。业务应用决定哪些动作可用，并提供执行方法；工具 UI 只显示参数、状态和结果。
-- [业务上下文与 Agent 通知](/development/business-context.md): 让 Agent 读取当前选中订单，或让页面在收到 Agent 通知后更新业务区，分别使用 getRunContext 与业务事件订阅。这些入口复用当前 AG-UI 连接，不需要另开一个接口轮询会话。
+- [给 Agent 传递业务参数](/development/business-context.md): 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。
 - [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md): 按步骤将自定义 CUSTOM 事件解析并显示为消息卡片。
 - [工程结构与修改入口](/development/project-structure.md): 初始化后，Agent UI 源码默认放在 src/agent-ui/。以下路径都相对于这个目录；初始化时选择了其他目录，就在实际目录中找同名文件。 不同版本或历史工程的目录可能不同，先检查已有组件的导入和导出。官方插件通常由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
 - [布局与插件组合](/development/layout-and-composition.md): Agent UI 把会话列表、输入框、附件、复制等功能做成了插件。你可以按需启用、调整位置，也可以把多个插件组合起来。 本页说明如何手动修改布局配置。界面排列、插件实例及组合保存在 app-ui.json 中，组件属性和渲染代码放在项目插件入口。 日常调整可以直接把需求告诉 Creator，见布局调整示例。自己编辑时，先找到下文的配置文件，保留现有实例 ID，再按需修改位置、尺寸和组合。

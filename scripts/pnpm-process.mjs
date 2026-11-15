@@ -1,5 +1,8 @@
-import { spawn, spawnSync } from "node:child_process";
+import { execFile, spawn, spawnSync } from "node:child_process";
 import path from "node:path";
+import { promisify } from "node:util";
+
+const execute = promisify(execFile);
 
 // Reuse pnpm's JS entry when invoked by a package script. This avoids .cmd
 // execution and shell quoting of workspace paths on Windows.
@@ -24,4 +27,8 @@ export function spawnPnpm(args, options) {
 export function spawnPnpmSync(args, options) {
   const invocation = pnpmInvocation(args, options);
   return spawnSync(invocation.command, invocation.args, invocation.options);
+}
+export function execPnpm(args, options = {}) {
+  const invocation = pnpmInvocation(args, options, options.env ?? process.env);
+  return execute(invocation.command, invocation.args, invocation.options);
 }

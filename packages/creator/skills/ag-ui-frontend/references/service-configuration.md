@@ -15,22 +15,30 @@ Connect or change business services in project-owned implementation code:
 - Create a history data source in project code and pass it as Agent.conversationDataSource.
   In current projects, services/conversations/http-data-source.ts delegates through
   plugins/conversation-data-source and owns conversationDataSourceConfig: address,
-  per-request headers, credentials, route overrides, fetch and decodeList/decodeDetail.
+  per-request headers, credentials, fetch and per-operation request/response options.
   Default HTTP requests and backend field/envelope conversion belong to the
   conversation-data-source Plugin; persisted message quirks belong to
   conversation-service before Runtime's official assistant-ui converter. Configure
   project overrides first; the Plugin defaults are not a required backend protocol.
-  Use fetch overrides for custom methods/payloads and response decoders for custom DTOs.
-  decodeList returns ConversationSummary[]; decodeDetail returns
-  ConversationDetailResponse with state.values.messages. Both receive response JSON,
-  may be async and must satisfy the conversation-service public schemas. They do
-  not decode mutation responses; custom mutation envelopes need fetch validation
-  or a custom data source. Shared DTOs and contracts come from the Plugins
-  /conversation-service public entry, not the removed Runtime conversation-service paths.
-  Older projects may own a full HTTP implementation: preserve it unless a separate
-  project migration is requested. Custom data sources may implement optional
-  rename/archive/unarchive methods. Missing or
-  failed operations reject instead of claiming success. List items use optional
+  The current HTTP API configures list/get/delete/rename/archive/unarchive
+  independently with url, method, JSON body and decode. Use those options for
+  custom routes, methods, payloads and backend envelopes; fetch remains a transport
+  override, not a prerequisite for changing a request method or validating a
+  mutation response. list.decode returns ConversationSummary[]; get.decode returns
+  ConversationDetailResponse with state.values.messages. Their outputs must satisfy
+  the conversation-service public schemas. Mutation decoders can validate business
+  success codes and throw on failure; an empty mutation response supplies undefined.
+  url callbacks receive endpoint, optional signal and the operation's input (id
+  for single-conversation operations, plus title for rename). body callbacks and
+  decoders may be async. Explicit URLs are used as supplied; use a url callback
+  when the address must incorporate endpoint or an encoded id. Shared DTOs and
+  contracts come from the Plugins /conversation-service public entry, not the
+  removed Runtime conversation-service paths.
+  Inspect installed declarations before choosing this configuration shape. Older
+  projects may own a full HTTP implementation or an earlier configuration shape:
+  preserve it unless a separate project migration is requested. Custom data sources
+  may implement optional rename/archive/unarchive methods. Missing or failed
+  operations reject instead of claiming success. List items use optional
   status: "regular" | "archived" (omitted means regular); include archived items
   so users can find and unarchive them. Keep assistant-ui as the action lifecycle
   owner. The project list can hide individual actions through
@@ -47,11 +55,13 @@ Apply their single-use planId with the corresponding apply tool. Changed file or
 reference evidence requires refreshing the preflight, not a new user decision.
 
 For history deletion, inspect services/conversations/http-data-source.ts and
-existing transport/auth. Configure routes.deleteUrl and, when needed, the project
-fetch override while preserving list/detail behavior and the delete(id) public contract. Distinguish
-one operation's route from shared base URL, credentials, headers and response
-helpers. Explain which callers and operations change; static imports cannot
-prove all runtime callers. Use the contract preflight when changing public declarations to inspect affected consumers. Do not invent a public Service contract for a private helper,
+existing transport/auth. Configure the current delete operation's url, method,
+body and decode as needed while preserving list/detail behavior and the delete(id)
+public contract. Distinguish one operation's configuration from shared base URL,
+credentials, headers and response helpers. Explain which callers and operations
+change; static imports cannot prove all runtime callers. Use the contract preflight
+when changing public declarations to inspect affected consumers. Do not invent a
+public Service contract for a private helper,
 move unrelated code, or ask users to make supported edits externally.
 A confirmation of code changes does not authorize deleting actual business data.
 After applying, run validation and verify request method, encoded ID, URL,

@@ -23,11 +23,30 @@ async function project(){const root=await mkdtemp(path.join(tmpdir(),"兼容更�
  for(const [file,content] of [["plugins/composer/index.tsx","// custom app props\r\n"],["plugins/composer/source/adapters/composer.tsx","// local implementation\n"],[".agent-ui/plugin-ownership.json",'{"base":"preserved"}'],["pnpm-lock.yaml","lockfileVersion: '6.0'\n"]]){await mkdir(path.dirname(path.join(root,file!)),{recursive:true});await writeFile(path.join(root,file!),content!);}
  return {root,tools};}
 async function snapshot(root:string){const digest=createHash("sha256");async function walk(dir:string){for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){const file=path.join(dir,entry.name);if(entry.isDirectory())await walk(file);else digest.update(file).update(await readFile(file));}}await walk(root);return digest.digest("hex");}
-it("validates exact versions, package names, immutable identities, stable channels and dependency combinations",()=>{
+it("shows actual Creator latest independently of project recommendations and preserves newer project packages",async()=>{
+ const {root,tools}=await project();
+ await writeFile(path.join(root,"node_modules",name("core"),"package.json"),JSON.stringify({name:name("core"),version:"1.5.0"}));
+ const candidate=release("1.0.8","99.0.0");Object.assign(candidate,{react:">=99",node:">=99"});
+ const before=await snapshot(root);
+ const result=await new PackageUpdateService({check:async()=>({status:"online",checkedAt:new Date().toISOString(),manifest:{schemaVersion:1,releases:[candidate]},latestPackages:[{name:name("creator"),version:"3.0.0"}]})},{root:tools}).inspect(root);
+ expect(result.recommendedReleaseId).toBe(candidate.id);
+ expect(result.packages.find(pkg=>pkg.name===name("creator"))).toMatchObject({targetVersion:"3.0.0",updateAvailable:true});
+ expect(result.packages.find(pkg=>pkg.name===name("core"))).toMatchObject({currentVersion:"1.5.0",targetVersion:"1.5.0",updateAvailable:false});
+ expect(result.advisories[0]!.issues.map(issue=>issue.code)).toEqual(expect.arrayContaining(["creator","react","node"]));
+ expect(await snapshot(root)).toBe(before);
+});
+it("does not infer Creator latest from compatibility history when npm latest is unknown",async()=>{
+ const {root,tools}=await project();const before=await snapshot(root);
+ const result=await new PackageUpdateService({check:async()=>({status:"online",checkedAt:new Date().toISOString(),manifest:{schemaVersion:1,releases:[release()]}})},{root:tools}).inspect(root);
+ expect(result.packages.find(pkg=>pkg.name===name("creator"))).toMatchObject({targetVersion:null,updateAvailable:false});
+ expect(result.packages.find(pkg=>pkg.name===name("plugins"))).toMatchObject({currentVersion:"1.0.0",targetVersion:"1.0.8",updateAvailable:true});
+ expect(await snapshot(root)).toBe(before);
+});
+it("validates release identities and keeps dependency combinations advisory",()=>{
  const base={schemaVersion:1,releases:[release()]};expect(parseCompatibilityManifest(base).releases).toHaveLength(1);
  expect(()=>parseCompatibilityManifest({...base,releases:[release(),release()]})).toThrow("DUPLICATE_RELEASE");
  for(const value of ["latest","^1.0.8","1.0.8-beta.1"]){const r=release();r.packages[0]!.version=value;expect(()=>parseCompatibilityManifest({schemaVersion:1,releases:[r]})).toThrow();}
- const r=release();r.packages[0]!.requires={[name("plugins")]:">=2.0.0"};expect(()=>parseCompatibilityManifest({schemaVersion:1,releases:[r]})).toThrow("INCOMPATIBLE_COMBINATION");
+ const r=release();r.packages[0]!.requires={[name("plugins")]:">=2.0.0"};expect(parseCompatibilityManifest({schemaVersion:1,releases:[r]}).releases).toHaveLength(1);
  expect(()=>parseCompatibilityManifest({schemaVersion:1,releases:[{...release(),command:"npm install"}]})).toThrow();
 });
 it("uses real bounded HTTP, coalesces checks and keeps stale results explicitly cached after failure",async()=>{
@@ -46,12 +65,12 @@ it("does not report fresh success for unconfigured, malformed, oversized, redire
 it("bounds a stalled HTTP request and reports a missing resolved package without fallback",async()=>{
  const server=createServer(()=>undefined);servers.push(server);await new Promise<void>(resolve=>server.listen(0,"127.0.0.1",resolve));const url=`http://127.0.0.1:${(server.address() as {port:number}).port}/stalled`;
  expect((await new HttpCompatibilityReleaseProvider(url,{timeoutMs:30}).check()).status).toBe("unavailable");
- const f=await feed();const {root,tools}=await project();await rm(path.join(root,"node_modules/@za38.03/agent-ui-core"),{recursive:true});const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeUndefined();expect(result.blockedReleases[0]!.issues.some(issue=>issue.name===name("core")&&issue.code==="missing")).toBe(true);
+ const f=await feed();const {root,tools}=await project();await rm(path.join(root,"node_modules/@za38.03/agent-ui-core"),{recursive:true});const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeDefined();expect(result.advisories[0]!.issues.some(issue=>issue.name===name("core")&&issue.code==="missing")).toBe(true);
 });
-it("selects newest compatible stable combination, shows cumulative notes and does not mutate customization or source BASE",async()=>{
+it("recommends the newest stable release despite version differences, shows cumulative notes and does not mutate customization or source BASE",async()=>{
  const f=await feed();f.set({schemaVersion:1,releases:[release("1.0.9","2.0.0"),release()]});const {root,tools}=await project();const before=await snapshot(root);
  const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);
- expect(result.status).toBe("online");expect(result.recommendedReleaseId).toBe("official-1.0.8");expect(result.latestReleaseId).toBe("official-1.0.9");expect(result.blockedReleases[0]!.issues[0]!.code).toBe("creator");
+ expect(result.status).toBe("online");expect(result.recommendedReleaseId).toBe("official-1.0.9");expect(result.latestReleaseId).toBe("official-1.0.9");expect(result.advisories[0]!.issues[0]!.code).toBe("creator");
  expect(result.packages.map(pkg=>pkg.name)).not.toContain(name("web-component"));expect(result.packages.map(pkg=>pkg.name)).toContain(name("core"));
  const plugins=result.packages.find(pkg=>pkg.name===name("plugins"))!;expect(plugins.summary.find(change=>change.id==="counter")!.versions).toEqual(["1.0.8","1.0.1"]);expect(plugins.history).toHaveLength(3);expect(plugins.summary.some(change=>change.kind==="breaking")).toBe(true);expect(plugins.historyIncomplete).toBe(false);expect(result.installationSupported).toBe(false);
  expect(await snapshot(root)).toBe(before);
@@ -68,13 +87,15 @@ it("keeps published version history readable after installation without reportin
  expect(plugins.updateAvailable).toBe(false);expect(plugins.summary).toEqual([]);expect(plugins.history).toEqual([]);
  expect(plugins.versions).toEqual(["1.0.8","1.0.1"]);expect(plugins.versionHistory?.map(change=>change.version)).toEqual(["1.0.8","1.0.4","1.0.1"]);
 });
-it("fails compatibility closed for missing Node/React/tools, mismatched declarations and downgrade",async()=>{
- const f=await feed();const r=release();Object.assign(r,{node:">=99",react:">=99",minimumCreatorVersion:"99.0.0"});f.set({schemaVersion:1,releases:[r]});const {root,tools}=await project();const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeUndefined();expect(result.blockedReleases[0]!.issues.map(i=>i.code)).toEqual(expect.arrayContaining(["node","react","creator"]));
+it("reports Node, React and Creator differences without blocking recommendation",async()=>{
+ const f=await feed();const r=release();Object.assign(r,{node:">=99",react:">=99",minimumCreatorVersion:"99.0.0"});f.set({schemaVersion:1,releases:[r]});const {root,tools}=await project();const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeDefined();expect(result.advisories[0]!.issues.map(i=>i.code)).toEqual(expect.arrayContaining(["node","react","creator"]));
 });
-it("unknown Creator version cannot satisfy a minimum version in legacy source updates",()=>{
+it("keeps legacy source updates available for old or unknown Creator versions when the source contract is supported",()=>{
  const candidate={descriptor:{contractVersion:1,minimumCreatorVersion:"0.0.2"}} as ResolvedSourceRelease;
  const compatible=(service:AgentUIUpdateService)=>(service as unknown as {compatibility(release:ResolvedSourceRelease):string}).compatibility(candidate);
- expect(compatible(new AgentUIUpdateService())).toBe("creator-upgrade-required");expect(compatible(new AgentUIUpdateService(undefined,"0.0.1"))).toBe("creator-upgrade-required");expect(compatible(new AgentUIUpdateService(undefined,"0.0.2"))).toBe("compatible");
+ expect(compatible(new AgentUIUpdateService())).toBe("compatible");expect(compatible(new AgentUIUpdateService(undefined,"0.0.1"))).toBe("compatible");expect(compatible(new AgentUIUpdateService(undefined,"0.0.2"))).toBe("compatible");
+ candidate.descriptor.contractVersion=2;
+ expect(compatible(new AgentUIUpdateService(undefined,"99.0.0"))).toBe("creator-upgrade-required");
 });
 it("builds official npm dependency versions from package identity, separate from internal plugin versions",async()=>{
  const entry=path.join(repositoryRoot,"packages/plugins/src/catalog/package-plugins.ts");const pkg=path.join(repositoryRoot,"packages/plugins/package.json");const metadata=JSON.parse(await readFile(pkg,"utf8"));
@@ -82,12 +103,12 @@ it("builds official npm dependency versions from package identity, separate from
  const imported=await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles![0]!.text).toString("base64")}`);expect(imported.officialPackagePlugin("composer").runtime.version).toBe("1.2.3");expect(imported.officialPackagePlugin("composer").manifest.version).toBe("0.0.1");
 });
 
-it("blocks conflicting resolved dependency versions and does not downgrade newer local installs",async()=>{
+it("reports multiple resolved versions and preserves newer local installs",async()=>{
  const f=await feed();const {root,tools}=await project();
  const manifest=JSON.parse(await readFile(path.join(root,"package.json"),"utf8"));manifest.dependencies[name("core")]="2.0.0";await writeFile(path.join(root,"package.json"),JSON.stringify(manifest));
  await writeFile(path.join(root,"node_modules/@za38.03/agent-ui-core/package.json"),JSON.stringify({name:name("core"),version:"2.0.0"}));
  const nested=path.join(root,"node_modules/@za38.03/agent-ui-plugins/node_modules/@za38.03/agent-ui-core");await mkdir(nested,{recursive:true});await writeFile(path.join(nested,"package.json"),JSON.stringify({name:name("core"),version:"1.0.0"}));
- const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeUndefined();expect(result.blockedReleases[0]!.issues.some(issue=>issue.code==="multiple")).toBe(true);
+ const result=await new PackageUpdateService(new HttpCompatibilityReleaseProvider(f.url),{root:tools}).inspect(root);expect(result.recommendedReleaseId).toBeDefined();expect(result.advisories[0]!.issues.some(issue=>issue.code==="multiple")).toBe(true);
 });
 
 it("resolves actual pnpm-style peer envelopes through symlinks without assuming hoisted dependencies",async()=>{
@@ -99,7 +120,7 @@ it("keeps tool-owned project dependencies in the separate tool installation",()=
  const candidate=release("1.0.8");candidate.packages.find(p=>p.name===name("creator"))!.requires={[name("plugins")]:"1.0.0"};
  expect(parseCompatibilityManifest({schemaVersion:1,releases:[candidate]}).releases).toHaveLength(1);
  candidate.packages.find(p=>p.name===name("runtime"))!.requires={[name("plugins")]:"1.0.0"};
- expect(()=>parseCompatibilityManifest({schemaVersion:1,releases:[candidate]})).toThrow("UPDATE_MANIFEST_INCOMPATIBLE_COMBINATION");
+ expect(parseCompatibilityManifest({schemaVersion:1,releases:[candidate]}).releases).toHaveLength(1);
 });
 it("rejects a production package depending on development tools",()=>{
  const candidate=release("1.0.8");candidate.packages.find(p=>p.name===name("plugins"))!.requires={[name("creator")]:"1.0.8"};

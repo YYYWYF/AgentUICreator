@@ -39,7 +39,7 @@ description: 自己编写 Agent 前端时，查找工程入口、接入指南、
 | 让业务按钮打开助理、发送消息、停止运行或新建会话 | [用业务页面控制 Agent](./react-host-control)、[会话方法](./react-host-api#会话方法) |
 | 指定助手发送、打开历史或控制后台 Thread | [多助手与后台 Thread](./multiple-agents#从业务页面控制指定助手) |
 | 在回复期间排队发送后续问题 | [消息排队](./message-queue) |
-| 接收 Agent 通知、读取运行状态 | [状态与事件](./react-host-api#状态与事件)、[业务事件](./react-host-api#订阅-agent-业务事件) |
+| 接收 Agent 返回的事件、读取运行状态 | [状态与事件](./react-host-api#状态与事件)、[业务事件](./react-host-api#订阅-agent-业务事件) |
 | 手动修改已有插件的样式、文案、结构或业务逻辑 | [完整插件修改教程](./component-customization) |
 | 选择主题、修改品牌色或组件样式 | [主题与样式](./theme-and-styling) |
 | 切换语言、修改欢迎语或按钮文字 | [语言与文案](./localization) |
@@ -48,10 +48,10 @@ description: 自己编写 Agent 前端时，查找工程入口、接入指南、
 | 设置响应式抽屉、Stack 或 Sidebar | [高级布局](./layout-and-composition#高级布局字段与示例) |
 | 修改悬浮入口、外框、展开收起与容器 | [自定义 Shell](./shell-customization) |
 | 修改已有工具结果或图表的样式与展示结构 | [已有结果的渲染定制](./component-customization#已有结果的渲染定制) |
-| 将自定义 AG-UI 事件显示为消息卡片 | [自定义事件与消息渲染](./custom-ag-ui-events) |
+| 处理自定义 AG-UI 事件，或将事件显示为消息卡片 | [自定义事件与消息渲染](./custom-ag-ui-events) |
 | 接入上传、语音或评价接口 | [业务服务接入](./service-integration) |
 | 接自己的历史、搜索候选或命令服务 | [服务接入总览](./service-integration) |
-| 把当前页面数据给 Agent，或接收业务通知 | [业务上下文与通知](./business-context) |
+| 给 Agent 传业务参数 | [给 Agent 传递业务参数](./business-context) |
 | 让 Agent 调用页面已有方法 | [前端工具接入](./frontend-tools) |
 | 新增一个可独立启停的界面功能 | [创建自定义插件](./create-plugin)、[插件接口](./plugin-api) |
 

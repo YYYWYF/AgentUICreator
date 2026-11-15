@@ -108,7 +108,7 @@ export async function installAgentUISourceItems(
     if (status !== "not-installed") throw stateError(item.id, status ?? "unavailable");
   }
   const packageInspection = await inspectAgentUIPackages(projectRoot, items);
-  if (packageInspection.issues.length > 0) {
+  if (packageInspection.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_MISSING")) {
     throw new AgentUISourceError(
       "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
       "Agent UI package requirements are not installed or are incompatible.",
@@ -195,7 +195,7 @@ export async function preflightAgentUISourceApply(
     }
   }
   const packageInspection = await inspectAgentUIPackages(projectRoot, closure);
-  const packageIssue = packageInspection.issues[0];
+  const packageIssue = packageInspection.issues.find(issue => issue.code === "AGENT_UI_PACKAGE_MISSING");
   if (packageIssue !== undefined) {
     throw new AgentUISourceError(packageIssue.code, packageIssue.message, packageIssue);
   }

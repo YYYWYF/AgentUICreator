@@ -3549,35 +3549,35 @@
       "path": "plugins/conversation-data-source.md",
       "title": "会话数据源（conversation-data-source）",
       "summary": "连接业务系统中的历史会话，让用户查看会话列表和之前的聊天记录。接入这项能力时，最重要的是提供实际接口资料。 这是一个提供数据的插件，负责请求历史接口并转换返回格式。它与会话服务配合，数据由会话列表等界面插件展示，本身没有独立的列表界面。",
-      "sha256": "7418d0fc26201575e1fb4871e4402917e4e4e1ec9e3f7ed517999e24c6895c77",
+      "sha256": "460fbb7cdbd66683ce46facf027b9eecde2e02d0bfddb6b914105e5e0b2249bf",
       "sections": [
         {
           "id": "s1",
           "title": "会话数据源（conversation-data-source）",
           "level": 1,
           "start": 0,
-          "end": 1144
+          "end": 1255
         },
         {
           "id": "s7",
           "title": "需要提供什么",
           "level": 2,
           "start": 232,
-          "end": 559
+          "end": 601
         },
         {
-          "id": "s18",
+          "id": "s19",
           "title": "怎么让 Creator 修改",
           "level": 2,
-          "start": 559,
-          "end": 825
+          "start": 601,
+          "end": 867
         },
         {
-          "id": "s34",
+          "id": "s35",
           "title": "手动接入",
           "level": 2,
-          "start": 825,
-          "end": 1144
+          "start": 867,
+          "end": 1255
         }
       ]
     },
@@ -4847,14 +4847,14 @@
       "path": "development/index.md",
       "title": "开发文档",
       "summary": "自己编写 Agent 前端时，查找工程入口、接入指南、组件属性、方法与事件。",
-      "sha256": "085c7df04febc00bfebd634f6d3ccb15dc3b319fa008a0e6c56695ed0bb50e3e",
+      "sha256": "046a6f8852a5289b0ff01602e47e1d5180d89f720bf1441d1dcb5f0d451b73c8",
       "sections": [
         {
           "id": "s1",
           "title": "开发文档",
           "level": 1,
           "start": 0,
-          "end": 4660
+          "end": 4706
         },
         {
           "id": "s9",
@@ -4875,14 +4875,14 @@
           "title": "开发任务索引",
           "level": 2,
           "start": 1295,
-          "end": 4366
+          "end": 4412
         },
         {
           "id": "s53",
           "title": "常用 API",
           "level": 2,
-          "start": 4366,
-          "end": 4660
+          "start": 4412,
+          "end": 4706
         }
       ]
     },
@@ -5337,14 +5337,14 @@
       "path": "development/agent-options.md",
       "title": "Agent 参数与配置",
       "summary": "通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。",
-      "sha256": "46057a2839e0af70867743bf2233bb63ce3baca37c520e4e49d5fd146acaa6af",
+      "sha256": "3ddcbb912b13b6ecedb855956e81f08019610e55ea2063267c64c28415574b7f",
       "sections": [
         {
           "id": "s1",
           "title": "Agent 参数与配置",
           "level": 1,
           "start": 0,
-          "end": 5362
+          "end": 5599
         },
         {
           "id": "s5",
@@ -5358,35 +5358,35 @@
           "title": "传入业务上下文",
           "level": 2,
           "start": 2057,
-          "end": 3394
+          "end": 3631
         },
         {
-          "id": "s90",
+          "id": "s98",
           "title": "主题切换",
           "level": 2,
-          "start": 3394,
-          "end": 3844
+          "start": 3631,
+          "end": 4081
         },
         {
-          "id": "s104",
+          "id": "s112",
           "title": "界面语言切换",
           "level": 2,
-          "start": 3844,
-          "end": 4214
+          "start": 4081,
+          "end": 4451
         },
         {
-          "id": "s120",
+          "id": "s128",
           "title": "打开已有会话",
           "level": 2,
-          "start": 4214,
-          "end": 4423
+          "start": 4451,
+          "end": 4660
         },
         {
-          "id": "s130",
+          "id": "s138",
           "title": "其他配置入口",
           "level": 2,
-          "start": 4423,
-          "end": 5362
+          "start": 4660,
+          "end": 5599
         }
       ]
     },
@@ -5397,56 +5397,63 @@
       "path": "development/service-integration.md",
       "title": "业务服务接入总览",
       "summary": "找到接口配置文件，选择默认 HTTP 协议或项目适配器，接入自己的业务服务。",
-      "sha256": "17a79e5a8f7ca8819692226beffbef000f64cdf062edeeba98c325d99f31dbc0",
+      "sha256": "3e8634e6a6cab08e24c096c8b781b450975a7f0fad3765314151ad013c6faae5",
       "sections": [
         {
           "id": "s1",
           "title": "业务服务接入总览",
           "level": 1,
           "start": 0,
-          "end": 5611
+          "end": 8424
         },
         {
           "id": "s7",
           "title": "服务与修改位置",
           "level": 2,
           "start": 219,
-          "end": 3025
+          "end": 3241
         },
         {
           "id": "s26",
           "title": "同时接入多项服务",
           "level": 2,
-          "start": 3025,
-          "end": 3533
+          "start": 3241,
+          "end": 3749
         },
         {
           "id": "s44",
           "title": "适配方式选择",
           "level": 2,
-          "start": 3533,
-          "end": 4144
+          "start": 3749,
+          "end": 4525
         },
         {
-          "id": "s56",
+          "id": "s57",
+          "title": "当前能力与边界",
+          "level": 2,
+          "start": 4525,
+          "end": 6830
+        },
+        {
+          "id": "s74",
           "title": "服务鉴权配置",
           "level": 2,
-          "start": 4144,
-          "end": 4535
+          "start": 6830,
+          "end": 7348
         },
         {
-          "id": "s65",
+          "id": "s84",
           "title": "Vue / HTML 服务适配位置",
           "level": 2,
-          "start": 4535,
-          "end": 5411
+          "start": 7348,
+          "end": 8224
         },
         {
-          "id": "s86",
+          "id": "s105",
           "title": "接入验证",
           "level": 2,
-          "start": 5411,
-          "end": 5611
+          "start": 8224,
+          "end": 8424
         }
       ]
     },
@@ -5457,14 +5464,14 @@
       "path": "development/connect-agent.md",
       "title": "连接 AG-UI 服务",
       "summary": "生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见插件显示条件与 AG-UI 数据。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。",
-      "sha256": "85b684c9364eadfb07c84fb7c2a9e53c70c112402de3b1c21bff77d1102f159e",
+      "sha256": "b3a915636436968531d2c982e81fcd619c2547effd76f0175dd43fba933bfa4e",
       "sections": [
         {
           "id": "s1",
           "title": "连接 AG-UI 服务",
           "level": 1,
           "start": 0,
-          "end": 6342
+          "end": 6506
         },
         {
           "id": "s9",
@@ -5478,42 +5485,42 @@
           "title": "请求体与响应流",
           "level": 2,
           "start": 891,
-          "end": 2718
+          "end": 2882
         },
         {
-          "id": "s71",
+          "id": "s73",
           "title": "请求头与鉴权",
           "level": 2,
-          "start": 2718,
-          "end": 3685
+          "start": 2882,
+          "end": 3849
         },
         {
-          "id": "s96",
+          "id": "s98",
           "title": "自定义请求函数",
           "level": 2,
-          "start": 3685,
-          "end": 5172
+          "start": 3849,
+          "end": 5336
         },
         {
-          "id": "s132",
+          "id": "s134",
           "title": "同一会话调用不同工作流",
           "level": 2,
-          "start": 5172,
-          "end": 5484
+          "start": 5336,
+          "end": 5648
         },
         {
-          "id": "s136",
+          "id": "s138",
           "title": "验证实际响应",
           "level": 2,
-          "start": 5484,
-          "end": 5714
+          "start": 5648,
+          "end": 5878
         },
         {
-          "id": "s145",
+          "id": "s147",
           "title": "临时连接测试",
           "level": 2,
-          "start": 5714,
-          "end": 6342
+          "start": 5878,
+          "end": 6506
         }
       ]
     },
@@ -5523,64 +5530,71 @@
       "topic": "开发文档",
       "path": "development/history-backend.md",
       "title": "接入历史会话",
-      "summary": "历史服务提供会话列表和聊天记录。读取历史与继续对话是不同能力：要继续提问，还需相应的 Agent 数据和接口。相关参数见Agent 参数与配置。",
-      "sha256": "607ff59e85964f47bab949ad8303889fa75afe11fa49f93c2b8d7fed1b32e7ea",
+      "summary": "接入自己的历史服务，让用户查看会话列表、打开聊天记录，以及删除、重命名或归档会话。",
+      "sha256": "3573e43360952b8e0e3a31a9d9fe7d643265604ec451ea437c19611d6544f202",
       "sections": [
         {
           "id": "s1",
           "title": "接入历史会话",
           "level": 1,
           "start": 0,
-          "end": 12330
+          "end": 11731
         },
         {
           "id": "s5",
           "title": "地址与鉴权配置",
           "level": 2,
-          "start": 121,
-          "end": 2334
+          "start": 53,
+          "end": 873
         },
         {
-          "id": "s50",
+          "id": "s34",
+          "title": "按接口配置请求与响应",
+          "level": 2,
+          "start": 873,
+          "end": 2263
+        },
+        {
+          "id": "s90",
           "title": "HTTP 数据源",
           "level": 2,
-          "start": 2334,
-          "end": 5733
+          "start": 2263,
+          "end": 5744
         },
         {
-          "id": "s142",
+          "id": "s182",
           "title": "响应字段解码",
           "level": 2,
-          "start": 5733,
-          "end": 7689
+          "start": 5744,
+          "end": 7659
         },
         {
-          "id": "s212",
+          "id": "s254",
           "title": "自定义会话数据源",
           "level": 2,
-          "start": 7689,
-          "end": 10900
+          "start": 7659,
+          "end": 10833
         },
         {
-          "id": "s277",
+          "id": "s321",
           "title": "初始化会话加载",
           "level": 2,
-          "start": 10900,
-          "end": 11052
+          "start": 10833,
+          "end": 10985
         },
         {
-          "id": "s281",
+          "id": "s325",
           "title": "重命名、归档与取消归档",
           "level": 2,
-          "start": 11052,
-          "end": 12257
+          "start": 10985,
+          "end": 11658
         },
         {
-          "id": "s308",
+          "id": "s350",
           "title": "验证",
           "level": 2,
-          "start": 12257,
-          "end": 12330
+          "start": 11658,
+          "end": 11731
         }
       ]
     },
@@ -5591,14 +5605,14 @@
       "path": "development/attachment-upload.md",
       "title": "附件上传服务",
       "summary": "默认在发送时将文件读为 Base64 随消息交给 Agent，每个文件默认最多 20 MiB。需要先上传到业务文件服务、再发送文件 URL 时，按本页配置。后端 Agent 仍需支持读取对应文件类型和 URL。",
-      "sha256": "4fe20ce6927343bf172cbc21efe3cb16c532e3e10bfdd0cc05674df238ce6863",
+      "sha256": "f3497998903ff771890af9e69828945a8b5a1b62ab6b9a4d74bacf28c74097a9",
       "sections": [
         {
           "id": "s1",
           "title": "附件上传服务",
           "level": 1,
           "start": 0,
-          "end": 3837
+          "end": 4219
         },
         {
           "id": "s5",
@@ -5633,7 +5647,14 @@
           "title": "5. 验证",
           "level": 2,
           "start": 3680,
-          "end": 3837
+          "end": 3838
+        },
+        {
+          "id": "s118",
+          "title": "6. 已有文件 URL",
+          "level": 2,
+          "start": 3838,
+          "end": 4219
         }
       ]
     },
@@ -5643,15 +5664,15 @@
       "topic": "开发文档",
       "path": "development/speech-to-text.md",
       "title": "语音转写服务（开发中）",
-      "summary": "业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。",
-      "sha256": "d4a293828c4936c6268f2eefbe7a96c6037d0d1c63938f7fc1e535e7449bac29",
+      "summary": "业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 Runtime 已有 dictation.url、dictation.dataSource.transcribe() 和完整 dictationAdapter 的适配入口，并有录音、取消和返回文本的受控测试。真实业务服务、浏览器录音格式与麦克风权限仍需分别验证，当前接入文档保持开发中状态。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。",
+      "sha256": "aaabdb799d4c94e39cfd43cc9afec2d35a2260cd62e56cb3be54f2fb5c592522",
       "sections": [
         {
           "id": "s1",
           "title": "语音转写服务（开发中）",
           "level": 1,
           "start": 0,
-          "end": 167
+          "end": 320
         }
       ]
     },
@@ -5786,14 +5807,14 @@
       "path": "development/frontend-tools.md",
       "title": "前端工具与自定义工具 UI",
       "summary": "前端工具让 Agent 请求执行页面动作，例如打开弹窗或填写表单。业务应用决定哪些动作可用，并提供执行方法；工具 UI 只显示参数、状态和结果。",
-      "sha256": "30676e3b9da4cc597980a41f2c64c92a7065632f8915beee38cf8125c2d33783",
+      "sha256": "9bc31462807a1f50f326388ac49e55cc4d9fd54d3925c319fbde7e282a58e2b7",
       "sections": [
         {
           "id": "s1",
           "title": "前端工具与自定义工具 UI",
           "level": 1,
           "start": 0,
-          "end": 9011
+          "end": 14103
         },
         {
           "id": "s5",
@@ -5811,38 +5832,59 @@
         },
         {
           "id": "s66",
-          "title": "AntD Form 直接接入",
+          "title": "选中城市后，让后续消息携带城市",
           "level": 2,
           "start": 2765,
-          "end": 7298
+          "end": 4225
         },
         {
-          "id": "s173",
+          "id": "s106",
+          "title": "等待用户选完城市，再让 Agent 继续",
+          "level": 2,
+          "start": 4225,
+          "end": 5968
+        },
+        {
+          "id": "s158",
+          "title": "为选城工具显示专用结果卡片",
+          "level": 2,
+          "start": 5968,
+          "end": 7857
+        },
+        {
+          "id": "s210",
+          "title": "AntD Form 直接接入",
+          "level": 2,
+          "start": 7857,
+          "end": 12390
+        },
+        {
+          "id": "s317",
           "title": "检查 AntD 示例",
           "level": 3,
-          "start": 6871,
-          "end": 7298
+          "start": 11963,
+          "end": 12390
         },
         {
-          "id": "s184",
+          "id": "s328",
           "title": "工具调用与结果回传",
           "level": 2,
-          "start": 7298,
-          "end": 7801
+          "start": 12390,
+          "end": 12893
         },
         {
-          "id": "s199",
+          "id": "s343",
           "title": "业务接口调用",
           "level": 2,
-          "start": 7801,
-          "end": 8923
+          "start": 12893,
+          "end": 14015
         },
         {
-          "id": "s227",
+          "id": "s371",
           "title": "验证",
           "level": 2,
-          "start": 8923,
-          "end": 9011
+          "start": 14015,
+          "end": 14103
         }
       ]
     },
@@ -5851,44 +5893,30 @@
       "source": "public",
       "topic": "开发文档",
       "path": "development/business-context.md",
-      "title": "业务上下文与 Agent 通知",
-      "summary": "让 Agent 读取当前选中订单，或让页面在收到 Agent 通知后更新业务区，分别使用 getRunContext 与业务事件订阅。这些入口复用当前 AG-UI 连接，不需要另开一个接口轮询会话。",
-      "sha256": "31f4cea62c7e3cec9d8d6d7ca5d7d1b12eacfc858f477002260b2f49dd3f6a18",
+      "title": "给 Agent 传递业务参数",
+      "summary": "发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。",
+      "sha256": "7d8cdddcd0c986ff737d6623e87bb938916e82c2c831d9c1a5a45415c26315ea",
       "sections": [
         {
           "id": "s1",
-          "title": "业务上下文与 Agent 通知",
+          "title": "给 Agent 传递业务参数",
           "level": 1,
           "start": 0,
-          "end": 3615
+          "end": 1902
         },
         {
           "id": "s5",
-          "title": "1. 请求上下文注入",
+          "title": "业务参数 ctx",
           "level": 2,
-          "start": 122,
-          "end": 975
+          "start": 54,
+          "end": 942
         },
         {
-          "id": "s34",
-          "title": "2. Agent 业务通知",
+          "id": "s46",
+          "title": "通过 context 传递参数",
           "level": 2,
-          "start": 975,
-          "end": 2547
-        },
-        {
-          "id": "s81",
-          "title": "3. 数据接入方式选择",
-          "level": 2,
-          "start": 2547,
-          "end": 3495
-        },
-        {
-          "id": "s91",
-          "title": "4. 验证",
-          "level": 2,
-          "start": 3495,
-          "end": 3615
+          "start": 942,
+          "end": 1902
         }
       ]
     },
@@ -6709,112 +6737,119 @@
       "path": "development/react-host-api.md",
       "title": "Agent API",
       "summary": "单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。",
-      "sha256": "077b05434c585f7be1d360d741dfd789d5356d09401b39566d6c0ea1d927d5b5",
+      "sha256": "77a3807b4bf3d0742e5b0681800f45beab46f10d2d2e9e4979d2dabda08105ea",
       "sections": [
         {
           "id": "s1",
           "title": "Agent API",
           "level": 1,
           "start": 0,
-          "end": 18158
+          "end": 20995
         },
         {
           "id": "s7",
           "title": "属性",
           "level": 2,
           "start": 324,
-          "end": 8568
+          "end": 8834
         },
         {
           "id": "s11",
           "title": "Agent 属性表",
           "level": 3,
           "start": 413,
-          "end": 8052
+          "end": 8318
         },
         {
-          "id": "s45",
+          "id": "s46",
           "title": "运行上下文回调",
           "level": 4,
-          "start": 7302,
-          "end": 8052
+          "start": 7568,
+          "end": 8318
         },
         {
-          "id": "s60",
+          "id": "s61",
           "title": "Provider 属性表",
           "level": 3,
-          "start": 8052,
-          "end": 8568
+          "start": 8318,
+          "end": 8834
         },
         {
-          "id": "s69",
+          "id": "s70",
           "title": "方法",
           "level": 2,
-          "start": 8568,
-          "end": 12889
+          "start": 8834,
+          "end": 15726
         },
         {
-          "id": "s71",
+          "id": "s72",
           "title": "会话方法",
           "level": 3,
-          "start": 8575,
-          "end": 12889
+          "start": 8841,
+          "end": 15726
         },
         {
-          "id": "s92",
+          "id": "s93",
           "title": "输入参数结构",
           "level": 4,
-          "start": 12316,
-          "end": 12889
+          "start": 13058,
+          "end": 13914
         },
         {
-          "id": "s111",
+          "id": "s114",
+          "title": "发送已有附件 URL",
+          "level": 4,
+          "start": 13914,
+          "end": 15726
+        },
+        {
+          "id": "s153",
           "title": "Hooks",
           "level": 2,
-          "start": 12889,
-          "end": 14164
+          "start": 15726,
+          "end": 17001
         },
         {
-          "id": "s122",
+          "id": "s164",
           "title": "状态与事件",
           "level": 2,
-          "start": 14164,
-          "end": 16364
+          "start": 17001,
+          "end": 19201
         },
         {
-          "id": "s145",
+          "id": "s187",
           "title": "订阅 Agent 业务事件",
           "level": 3,
-          "start": 15341,
-          "end": 16364
+          "start": 18178,
+          "end": 19201
         },
         {
-          "id": "s172",
+          "id": "s214",
           "title": "错误处理",
           "level": 2,
-          "start": 16364,
-          "end": 17480
+          "start": 19201,
+          "end": 20317
         },
         {
-          "id": "s186",
+          "id": "s228",
           "title": "相关接入",
           "level": 2,
-          "start": 17480,
-          "end": 18158
+          "start": 20317,
+          "end": 20995
         },
         {
-          "id": "s188",
+          "id": "s230",
           "title": "提供宿主页面操作",
           "level": 3,
-          "start": 17489,
-          "end": 17707
+          "start": 20326,
+          "end": 20544
         },
         {
-          "id": "s192",
+          "id": "s234",
           "title": "外壳定制",
           "level": 3,
-          "start": 17707,
-          "end": 18158
+          "start": 20544,
+          "end": 20995
         }
       ]
     },
@@ -6885,14 +6920,14 @@
       "path": "development/plugin-api.md",
       "title": "插件 API",
       "summary": "项目插件由能力声明、组件和可选的服务生命周期组成。创建文件与注册步骤见创建自定义插件。修改已有官方插件外观时，先使用组件公开属性。 需要从定位文件一路完成样式、业务请求和服务修改时，按手动修改插件教程操作；本页提供各项 API 的签名和专题示例。 本页导航：能力速查 · 类型入口 · 插件定义 · 组件与子插槽 · 状态与操作 · 服务与订阅。",
-      "sha256": "ce609a4314b1cd2ffb9543ef3ef933938a248b2df9beba02226bce4f95b2d2fa",
+      "sha256": "e0180815f399224dd59198f369fb9de53a5edae7167eefa6cd4ea2641b2e46e5",
       "sections": [
         {
           "id": "s1",
           "title": "插件 API",
           "level": 1,
           "start": 0,
-          "end": 21978
+          "end": 22450
         },
         {
           "id": "s9",
@@ -6934,77 +6969,77 @@
           "title": "setup 上下文",
           "level": 2,
           "start": 6097,
-          "end": 7101
+          "end": 7411
         },
         {
           "id": "s129",
           "title": "会话操作与实例信息",
           "level": 2,
-          "start": 7101,
-          "end": 8684
+          "start": 7411,
+          "end": 9156
         },
         {
-          "id": "s174",
+          "id": "s176",
           "title": "读取会话状态",
           "level": 2,
-          "start": 8684,
-          "end": 9963
-        },
-        {
-          "id": "s202",
-          "title": "服务共享与状态订阅",
-          "level": 2,
-          "start": 9963,
-          "end": 14989
+          "start": 9156,
+          "end": 10435
         },
         {
           "id": "s204",
+          "title": "服务共享与状态订阅",
+          "level": 2,
+          "start": 10435,
+          "end": 15461
+        },
+        {
+          "id": "s206",
           "title": "内置领域 Hook",
           "level": 3,
-          "start": 9977,
-          "end": 11871
+          "start": 10449,
+          "end": 12343
         },
         {
-          "id": "s244",
+          "id": "s246",
           "title": "自定义服务",
           "level": 3,
-          "start": 11871,
-          "end": 14989
+          "start": 12343,
+          "end": 15461
         },
         {
-          "id": "s320",
+          "id": "s322",
           "title": "订阅业务事件",
           "level": 2,
-          "start": 14989,
-          "end": 17062
+          "start": 15461,
+          "end": 17534
         },
         {
-          "id": "s364",
+          "id": "s366",
           "title": "消息与工具结果展示",
           "level": 2,
-          "start": 17062,
-          "end": 18818
+          "start": 17534,
+          "end": 19290
         },
         {
-          "id": "s413",
+          "id": "s415",
           "title": "复用会话组件与输入能力",
           "level": 2,
-          "start": 18818,
-          "end": 20156
+          "start": 19290,
+          "end": 20628
         },
         {
-          "id": "s445",
+          "id": "s447",
           "title": "主题与多语言",
           "level": 2,
-          "start": 20156,
-          "end": 21540
+          "start": 20628,
+          "end": 22012
         },
         {
-          "id": "s488",
+          "id": "s490",
           "title": "前端工具与宿主页面联动",
           "level": 2,
-          "start": 21540,
-          "end": 21978
+          "start": 22012,
+          "end": 22450
         }
       ]
     },
@@ -7033,14 +7068,14 @@
       "path": "updates/release-notes.md",
       "title": "插件更新",
       "summary": "",
-      "sha256": "38716a8c899d7c5c4d52c8513adf6d75ad4e9a8240a704d0ae1c04318d2c7b86",
+      "sha256": "26ab7a0f14257c7d1655918a1b3449df8ba131e1713bff3785fd27471870e817",
       "sections": [
         {
           "id": "s1",
           "title": "插件更新",
           "level": 1,
           "start": 0,
-          "end": 1461
+          "end": 1700
         },
         {
           "id": "s3",
@@ -7054,14 +7089,21 @@
           "title": "如何更新插件",
           "level": 2,
           "start": 902,
-          "end": 1461
+          "end": 1700
         },
         {
           "id": "s36",
           "title": "已接管源码的插件",
           "level": 3,
           "start": 1235,
-          "end": 1461
+          "end": 1462
+        },
+        {
+          "id": "s46",
+          "title": "版本建议与 Creator 提醒",
+          "level": 3,
+          "start": 1462,
+          "end": 1700
         }
       ]
     },
@@ -7172,143 +7214,97 @@
       ]
     },
     {
-      "id": "internal:agent-ui-reference-guide",
-      "source": "internal",
-      "path": "references/docs/agent-ui-reference-guide.md",
-      "topic": "职责与所有权",
-      "summary": "按问题选择参考项目；目标工程 UI Stack、已安装 API 与证据边界。",
-      "title": "Agent UI 参考项目选择",
-      "sha256": "4e0d8a7083b711922724e5ef5b4998efeb9ff149128a6bef496c48c922923262",
-      "sections": [
-        {
-          "id": "s1",
-          "title": "Agent UI 参考项目选择",
-          "level": 1,
-          "start": 0,
-          "end": 1559
-        },
-        {
-          "id": "s5",
-          "title": "按问题选择",
-          "level": 2,
-          "start": 108,
-          "end": 613
-        },
-        {
-          "id": "s16",
-          "title": "Conversation Domain",
-          "level": 2,
-          "start": 613,
-          "end": 978
-        },
-        {
-          "id": "s22",
-          "title": "UI Stack 与组件 API",
-          "level": 2,
-          "start": 978,
-          "end": 1331
-        },
-        {
-          "id": "s28",
-          "title": "交互与证据",
-          "level": 2,
-          "start": 1331,
-          "end": 1559
-        }
-      ]
-    },
-    {
       "id": "internal:architecture/npm-default-plugin-source-ownership",
       "source": "internal",
       "path": "references/docs/architecture/npm-default-plugin-source-ownership.md",
       "topic": "职责与所有权",
       "summary": "npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。",
       "title": "统一 Plugins 包、内置源码目录与按需源码托管",
-      "sha256": "b34acbe463c33ea2ba182cf7808a8e195dae98dede927891743c48bd90a1ccaa",
+      "sha256": "1d126bdfabc645bc20ebdc7d809d6963ed80d48bc068d7d71ad54d1f91d03d9f",
       "sections": [
         {
           "id": "s1",
           "title": "统一 Plugins 包、内置源码目录与按需源码托管",
           "level": 1,
           "start": 0,
-          "end": 16322
+          "end": 16492
         },
         {
           "id": "s11",
           "title": "1. 通用基础设施与应用配置",
           "level": 2,
           "start": 745,
-          "end": 5512
+          "end": 5639
         },
         {
           "id": "s51",
           "title": "2. 项目外壳",
           "level": 2,
-          "start": 5512,
-          "end": 6985
+          "start": 5639,
+          "end": 7112
         },
         {
           "id": "s63",
           "title": "3. 项目应用层",
           "level": 2,
-          "start": 6985,
-          "end": 7461
+          "start": 7112,
+          "end": 7588
         },
         {
           "id": "s71",
           "title": "4. Canonical 实现、元数据与构建",
           "level": 2,
-          "start": 7461,
-          "end": 8625
+          "start": 7588,
+          "end": 8752
         },
         {
           "id": "s91",
           "title": "5. 薄应用层与语义接线",
           "level": 2,
-          "start": 8625,
-          "end": 10176
+          "start": 8752,
+          "end": 10303
         },
         {
           "id": "s109",
           "title": "6. 首次源码接管",
           "level": 2,
-          "start": 10176,
-          "end": 12404
+          "start": 10303,
+          "end": 12574
         },
         {
           "id": "s139",
           "title": "7. Ownership、BASE 与来源身份",
           "level": 2,
-          "start": 12404,
-          "end": 12936
+          "start": 12574,
+          "end": 13106
         },
         {
           "id": "s147",
           "title": "8. 实现同步与基线采用",
           "level": 2,
-          "start": 12936,
-          "end": 13612
+          "start": 13106,
+          "end": 13782
         },
         {
           "id": "s159",
           "title": "9. 默认组合与正式插件",
           "level": 2,
-          "start": 13612,
-          "end": 14674
+          "start": 13782,
+          "end": 14844
         },
         {
           "id": "s173",
           "title": "10. 模板与业务示例",
           "level": 2,
-          "start": 14674,
-          "end": 15820
+          "start": 14844,
+          "end": 15990
         },
         {
           "id": "s186",
           "title": "11. 验证与当前支持范围",
           "level": 2,
-          "start": 15820,
-          "end": 16322
+          "start": 15990,
+          "end": 16492
         }
       ]
     },
@@ -7319,14 +7315,14 @@
       "topic": "职责与所有权",
       "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。",
       "title": "Conversation Domain 架构",
-      "sha256": "01634e8cbcec212766ac2330317be8744fbc342a783ae7e8bf9261ea2d8861b2",
+      "sha256": "4e8077c7854422824dd0b2c9eef36efd513012023a7c1154ca3d1db1af4d955c",
       "sections": [
         {
           "id": "s1",
           "title": "Conversation Domain 架构",
           "level": 1,
           "start": 0,
-          "end": 4078
+          "end": 4230
         },
         {
           "id": "s5",
@@ -7354,28 +7350,28 @@
           "title": "Thread 与历史",
           "level": 2,
           "start": 1642,
-          "end": 2673
+          "end": 2825
         },
         {
-          "id": "s45",
+          "id": "s47",
           "title": "Frontend Tool 与 HITL",
           "level": 2,
-          "start": 2673,
-          "end": 2972
+          "start": 2825,
+          "end": 3124
         },
         {
-          "id": "s51",
+          "id": "s53",
           "title": "数据、事件与展示",
           "level": 2,
-          "start": 2972,
-          "end": 3956
+          "start": 3124,
+          "end": 4108
         },
         {
-          "id": "s61",
+          "id": "s63",
           "title": "验证边界",
           "level": 2,
-          "start": 3956,
-          "end": 4078
+          "start": 4108,
+          "end": 4230
         }
       ]
     },
@@ -8431,92 +8427,64 @@
       "path": "references/docs/architecture/unified-update-center.md",
       "topic": "更新与开发工具",
       "summary": "兼容清单、独立包版本、只读发现、具体升级确认、安装恢复与源码同步。",
-      "title": "统一更新中心与兼容版本清单",
-      "sha256": "6de511303de2005b39766f035713286741a05a7118c6a4c26e09e2f338027279",
+      "title": "统一更新中心与版本建议",
+      "sha256": "f30b44fdc816a23f0cd218ec3d924391ce3a535811bba68ed6c507575a979434",
       "sections": [
         {
           "id": "s1",
-          "title": "统一更新中心与兼容版本清单",
+          "title": "统一更新中心与版本建议",
           "level": 1,
           "start": 0,
-          "end": 13969
+          "end": 6081
         },
         {
-          "id": "s9",
-          "title": "1. 用户流程与范围",
+          "id": "s7",
+          "title": "1. 产品规则",
           "level": 2,
-          "start": 562,
-          "end": 1532
+          "start": 190,
+          "end": 800
         },
         {
-          "id": "s26",
-          "title": "2. 兼容版本清单",
+          "id": "s17",
+          "title": "2. 身份、建议与执行目标",
           "level": 2,
-          "start": 1532,
-          "end": 3282
+          "start": 800,
+          "end": 1199
         },
         {
-          "id": "s50",
-          "title": "3. 版本与变更展示",
+          "id": "s29",
+          "title": "3. 在线发现与展示",
           "level": 2,
-          "start": 3282,
-          "end": 4205
+          "start": 1199,
+          "end": 1838
         },
         {
-          "id": "s68",
-          "title": "4. 用户确认与 npm 升级计划",
+          "id": "s39",
+          "title": "4. 项目安装与执行保护",
           "level": 2,
-          "start": 4205,
-          "end": 5279
+          "start": 1838,
+          "end": 2538
         },
         {
-          "id": "s84",
-          "title": "5. 工具升级与恢复边界",
+          "id": "s53",
+          "title": "5. 安装恢复与源码同步",
           "level": 2,
-          "start": 5279,
-          "end": 5930
+          "start": 2538,
+          "end": 2856
         },
         {
-          "id": "s94",
-          "title": "6. 升级后的托管源码同步",
+          "id": "s59",
+          "title": "6. 实现与验证",
           "level": 2,
-          "start": 5930,
-          "end": 6665
+          "start": 2856,
+          "end": 3520
         },
         {
-          "id": "s104",
-          "title": "7. 当前实现位置",
-          "level": 2,
-          "start": 6665,
-          "end": 10536
-        },
-        {
-          "id": "s119",
-          "title": "只读发现与展示",
-          "level": 3,
-          "start": 7723,
-          "end": 8644
-        },
-        {
-          "id": "s129",
-          "title": "确认安装与恢复",
-          "level": 3,
-          "start": 8644,
-          "end": 10536
-        },
-        {
-          "id": "s141",
-          "title": "8. 验证要求",
-          "level": 2,
-          "start": 10536,
-          "end": 11408
-        },
-        {
-          "id": "s152",
+          "id": "s70",
           "title": "随包发布流程",
           "level": 2,
-          "start": 11408,
-          "end": 13969
+          "start": 3520,
+          "end": 6081
         }
       ]
     },
@@ -8778,14 +8746,21 @@
       "topic": "更新与开发工具",
       "summary": "Creator TypeScript 单包发行、离线文档交接、Node 与 Windows 安装和运行边界。",
       "title": "Creator TypeScript 发行",
-      "sha256": "f266303f29441a9010454cb6d3defdd13c83a93e97705479583f57af06a6b1f5",
+      "sha256": "5dde1b196034d56d4bcf19afabd2089b975162a769fdb80905a6a8195d82e7ac",
       "sections": [
         {
           "id": "s1",
           "title": "Creator TypeScript 发行",
           "level": 1,
           "start": 0,
-          "end": 7140
+          "end": 7515
+        },
+        {
+          "id": "s85",
+          "title": "版本建议与工具更新",
+          "level": 2,
+          "start": 7141,
+          "end": 7515
         }
       ]
     }

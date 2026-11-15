@@ -7,6 +7,8 @@ export interface ReleaseDiscovery {
   fetchedAt?: string;
   digest?: string;
   manifest?: CompatibilityManifest;
+  /** Actual npm dist-tag identities; recommendations never replace these facts. */
+  latestPackages?: { name: string; version: string }[];
   issue?: "UPDATE_SOURCE_UNCONFIGURED" | "UPDATE_SOURCE_UNAVAILABLE";
 }
 export interface CompatibilityReleaseProvider { check(refresh?: boolean, projectRoot?: string): Promise<ReleaseDiscovery> }

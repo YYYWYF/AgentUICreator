@@ -88,7 +88,7 @@ async function prepare(root: string, id: string, sync = false) {
   const dependencies = await inspectPluginSourceDependencies(root, path.dirname(installedRoot), plugin.takeover.requiredDependencies);
   require.resolve(`@za38.03/agent-ui-plugins/${id}`);
   const compatibility = z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9]*$/u).max(100), z.number().int().positive()).parse(plugin.takeover.compatibility);
-  if (!Object.keys(compatibility).length || Object.entries(compatibility).some(([api, version]) => catalog.sharedApis?.[api] !== version)) fail("PLUGIN_SOURCE_INCOMPATIBLE", "Installed package does not support the planned shared APIs.");
+  const recommendations = Object.entries(compatibility).filter(([api, version]) => catalog.sharedApis?.[api] !== version).map(([api, version]) => ({ api, required: version, installed: catalog.sharedApis?.[api] }));
   const sharedApi = z.string().regex(/^@za38\.03\/agent-ui-plugins\/[a-z][a-z-]*$/u).parse(plugin.takeover.sharedApi);
   require.resolve(sharedApi);
   for (const artifact of z.array(z.strictObject({ path: z.string(), sha256: z.string() })).min(1).parse(plugin.takeover.runtimeFiles)) {
@@ -124,7 +124,7 @@ async function prepare(root: string, id: string, sync = false) {
   const plan = { pluginId: id, package: { name: pkg.name as string, version: pkg.version as string }, pluginVersion: plugin.version as string,
     catalogHash, stateHash: digest(await stateHash(root) + JSON.stringify(dependencies.identities)), applicationChanges: [...applicationEdits.keys()], files: [...files.keys()].map(file => `${target}/${file}`).sort(), instances,
     sharedDependencies: plugin.takeover.sharedDependencies as string[], dependencyChanges: dependencies.changes,
-    compatibility, origins };
+    compatibility, recommendations, origins };
   return { context, ownership, files, model, application, applicationEdits, applicationContractHash, dependencies, plan: { ...plan, planHash: digest(JSON.stringify(plan)) } };
 }
 export async function planPluginSourceTakeover(root: string, input: {pluginId: string}) {

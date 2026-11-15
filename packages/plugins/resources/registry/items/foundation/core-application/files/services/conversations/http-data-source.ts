@@ -16,6 +16,11 @@ export function createHttpConversationDataSource(options: HttpConversationDataSo
   return createImplementation({
     ...conversationDataSourceConfig,
     ...options,
-    routes: { ...conversationDataSourceConfig.routes, ...options.routes },
+    list: { ...conversationDataSourceConfig.list, ...options.list },
+    get: { ...conversationDataSourceConfig.get, ...options.get },
+    delete: { ...conversationDataSourceConfig.delete, ...options.delete },
+    rename: { ...conversationDataSourceConfig.rename, ...options.rename },
+    archive: { ...conversationDataSourceConfig.archive, ...options.archive },
+    unarchive: { ...conversationDataSourceConfig.unarchive, ...options.unarchive },
   });
 }

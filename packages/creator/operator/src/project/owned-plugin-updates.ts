@@ -76,7 +76,8 @@ export class OwnedPluginUpdateService {
     const plan: UpgradePlan={id:randomUUID(),kind:"owned-source",releaseVersion,compatibility:"compatible",requestedPlugins:[id],
       items:[{itemId:`plugin/${id}`,reason:"requested",requiredBy:[id],status:snapshot.mergeFiles.some(file=>file.local!==file.base)?"customized":"managed",changed:true,provided:false,
         currentVersion:ownership.plugins[id]!.pluginVersion,targetVersion:snapshot.pluginVersion,paths:files.map(file=>`plugins/${id}/source/${file.path}`)}],
-      fileCount:files.length,requiresMerge:files.some(conflict),blocked:false,issues:[],dependencyChanges:snapshot.dependencyChanges};
+      fileCount:files.length,requiresMerge:files.some(conflict),blocked:false,issues:[],dependencyChanges:snapshot.dependencyChanges,
+      recommendations:snapshot.recommendations.map(({api,required,installed})=>`${api}: ${installed??"?"} → ${required}`)};
     for(const [key,value] of this.plans)if(Date.now()-value.createdAt>3600000)this.plans.delete(key);
     this.plans.set(plan.id,{root:path.resolve(root),snapshot,guard:await guard(root,id),baseline:hash(JSON.stringify(ownership.plugins[id])),createdAt:Date.now(),merging:false,plan});
     return plan;

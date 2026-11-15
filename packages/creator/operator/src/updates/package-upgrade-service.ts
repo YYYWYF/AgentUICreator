@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { lstat, readFile, readdir, realpath, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { satisfies, validRange } from "semver";
-import { PackageUpdateService } from "./package-update-service.js";
+import { satisfies, validRange, valid } from "semver";
+import { PackageUpdateService, type PackageCompatibilityIssue } from "./package-update-service.js";
 import { readPackageIdentity } from "./package-identity.js";
 import type { CompatibilityReleaseProvider } from "./release-provider.js";
 import { runUpdateCommand, verifyNpmArtifact, verifyInstalledArtifact, type UpdateCommand, type VerifiedArtifact } from "./npm-artifact.js";
@@ -17,7 +17,7 @@ const optional=async(file:string)=>readFile(file,"utf8").catch(error=>{if(error.
 export interface PackageUpgradePlan {
   id:string; releaseId:string; digest:string; manager:"npm"|"pnpm"; lockfile:string;
   packages:{name:string;current:string;target:string;integrity:string;field:string|null}[];
-  checks:string[]; expiresAt:string;
+  checks:string[]; advisories?:PackageCompatibilityIssue[]; expiresAt:string;
 }
 export interface PackageUpgradeResult { status:"installed"|"restored"|"recovery-required"; checks:string[]; failure?:string; recoveryId?:string }
 export type PackageUpgradeStage = "installing" | "checking" | "recovering";
@@ -53,7 +53,8 @@ async function standalone(root:string){
 }
 async function installedState(root:string,names:string[]){return JSON.stringify(await Promise.all(names.map(async name=>{const item=await readPackageIdentity(root,name);return [name,item?.version,item?.root];})));}
 async function checkPluginApis(root:string,artifact:VerifiedArtifact){
-  if(!artifact.name.endsWith("-plugins"))return;
+  const advisories:PackageCompatibilityIssue[]=[];
+  if(!artifact.name.endsWith("-plugins"))return advisories;
   const {paths}=await resourcePaths(root);
   const ownership=await readPluginSourceOwnership(paths.metadataRoot);
   const catalog=JSON.parse(artifact.files.get("package/dist/catalog.json")?.toString()??"null");
@@ -65,9 +66,10 @@ async function checkPluginApis(root:string,artifact:VerifiedArtifact){
     if(!entry.isDirectory()||!await optional(path.join(paths.pluginsRoot,entry.name,"application.json")))continue;
     const old=previous?.plugins.find((p:{id:string})=>p.id===entry.name),next=catalog.plugins.find((p:{id:string})=>p.id===entry.name);
     const contract=(p:any)=>[p?.application?.component??null,p?.application?.scopeKind??null,p?.application?.registration??null,p?.application?.runtimeContext===true,p?.application?.hostApplication===true,p?.application?.services??null,p?.application?.hostBindings??[],p?.application?.railAction??null];
-    if(!old||!next||JSON.stringify(contract(old))!==JSON.stringify(contract(next)))throw new Error("PACKAGE_APPLICATION_MIGRATION_REQUIRED");
+    if(!old||!next||JSON.stringify(contract(old))!==JSON.stringify(contract(next)))advisories.push({code:"application",name:entry.name,required:"",actual:null});
   }
-  for(const owner of Object.values(ownership.plugins))for(const [api,version] of Object.entries(owner.compatibility))if(catalog.sharedApis?.[api]!==version)throw new Error("PACKAGE_SHARED_API_MIGRATION_REQUIRED");
+  for(const owner of Object.values(ownership.plugins))for(const [api,version] of Object.entries(owner.compatibility))if(catalog.sharedApis?.[api]!==version)advisories.push({code:"shared-api",name:api,required:String(version),actual:String(catalog.sharedApis?.[api]??"")});
+  return advisories;
 }
 /** Project package installation is a separate transaction from implementation-source merging. */
 export class PackageUpgradeService {
@@ -77,7 +79,7 @@ export class PackageUpgradeService {
     const raw=await optional(path.join(root,journalName));if(!raw)return null;
     const journal=JSON.parse(raw);return {id:journal.id,state:journal.state};
   }
-  async plan(projectRoot:string):Promise<PackageUpgradePlan>{
+  async plan(projectRoot:string,targets?:Record<string,string>):Promise<PackageUpgradePlan>{
     const root=await realpath(projectRoot);await standalone(root);
     if(await this.recovery(root))throw new Error("PACKAGE_RECOVERY_REQUIRED");
     if(await optional(path.join(root,".agent-ui","creator","control","operator.lock")))throw new Error("PACKAGE_OPERATION_ACTIVE");
@@ -88,41 +90,43 @@ export class PackageUpgradeService {
     const before=await readFile(path.join(root,"package.json"),"utf8"),protectedBefore=await protectedHash(root);
     const current=await this.overview.inspect(root,true),discovery=await this.provider.check(false, root);
     if(current.status!=="online"||discovery.status!=="online"||!current.digest||current.digest!==discovery.digest)throw new Error("PACKAGE_ONLINE_METADATA_REQUIRED");
-    const release=discovery.manifest?.releases.find(r=>r.id===current.recommendedReleaseId);
-    if(!release)throw new Error("PACKAGE_COMPATIBILITY_BLOCKED");
+    const release=discovery.manifest?.releases.find(r=>r.id===current.recommendedReleaseId) ?? {id:"npm-metadata",publishedAt:discovery.checkedAt,channel:"stable" as const,packages:current.packages.filter(p=>p.targetVersion).map(p=>({name:p.name,version:p.targetVersion!,requires:{},changes:[]}))};
     const relevant=current.packages.filter(pkg=>pkg.scope==="project");
-    if(!relevant.some(pkg=>pkg.updateAvailable))throw new Error("PACKAGE_NO_UPDATE");
+    if(targets!==undefined&&(!targets||typeof targets!=="object"||Array.isArray(targets)))throw new Error("PACKAGE_TARGET_INVALID");
+    if(targets&&Object.entries(targets).some(([name,version])=>!relevant.some(p=>p.name===name)||typeof version!=="string"||!valid(version)))throw new Error("PACKAGE_TARGET_INVALID");
+    if(!relevant.some(pkg=>targets?.[pkg.name]?targets[pkg.name]!==pkg.currentVersion:!targets&&pkg.updateAvailable))throw new Error("PACKAGE_NO_UPDATE");
     const manager=await detectResourcePackageManager(root);
     if(manager!=="npm"&&manager!=="pnpm")throw new Error("PACKAGE_MANAGER_UNSUPPORTED");
     const lockfile=manager==="npm"?"package-lock.json":"pnpm-lock.yaml",lockBefore=await optional(path.join(root,lockfile));
     if(!lockBefore)throw new Error("PACKAGE_EXISTING_LOCK_REQUIRED");
     if(await optional(path.join(root,manager==="npm"?"pnpm-lock.yaml":"package-lock.json"))||await optional(path.join(root,"yarn.lock"))||await optional(path.join(root,"bun.lock")))throw new Error("PACKAGE_MULTIPLE_LOCKS");
-    const identities=await installedState(root,relevant.map(p=>p.name));const manifest=JSON.parse(before),artifacts:VerifiedArtifact[]=[],packages:PackageUpgradePlan["packages"]=[];
+    const identities=await installedState(root,relevant.map(p=>p.name));const advisories=current.advisories.flatMap(entry=>entry.issues);
+    const manifest=JSON.parse(before),artifacts:VerifiedArtifact[]=[],packages:PackageUpgradePlan["packages"]=[];
     for(const item of relevant){
-      const target=release.packages.find(p=>p.name===item.name)!;
+      const version=targets ? targets[item.name]??item.currentVersion : item.targetVersion??item.currentVersion;
+      if(!version)throw new Error("PACKAGE_INSTALLED_VERSION");
+      const target={name:item.name,version,requires:{},changes:[]};
       const declared=fields.filter(field=>manifest[field]?.[item.name]!==undefined);
       if(declared.length>1)throw new Error("PACKAGE_DUPLICATE_DECLARATION");
       const field=declared[0]??null;
       if(field&&!validRange(manifest[field][item.name]))throw new Error("PACKAGE_LINKED_DECLARATION");
       const identity=await readPackageIdentity(root,item.name);
       if(!identity||!path.relative(path.join(root,"node_modules"),identity.root)||path.relative(path.join(root,"node_modules"),identity.root).startsWith(".."))throw new Error("PACKAGE_LINKED_INSTALLATION");
-      const artifact=await verifyNpmArtifact(root,target,release,this.run);artifacts.push(artifact);await checkPluginApis(root,artifact);
-      if(artifact.manifest.engines?.node&&!satisfies(process.versions.node,artifact.manifest.engines.node))throw new Error("PACKAGE_NODE_INCOMPATIBLE");
+      const artifact=await verifyNpmArtifact(root,target,release,this.run);artifacts.push(artifact);advisories.push(...await checkPluginApis(root,artifact));
+      if(artifact.manifest.engines?.node&&!satisfies(process.versions.node,artifact.manifest.engines.node))advisories.push({code:"node",name:"node",required:artifact.manifest.engines.node,actual:process.versions.node});
       for(const [name,range] of Object.entries(artifact.manifest.peerDependencies??{}) as [string,string][]){
-        if(release.packages.some(p=>p.name===name))continue;
         const peer=await readPackageIdentity(root,name);
-        if((peer&&!satisfies(peer.version,range))||(!peer&&!artifact.manifest.peerDependenciesMeta?.[name]?.optional))throw new Error("PACKAGE_PEER_MIGRATION_REQUIRED");
+        if((peer&&!satisfies(peer.version,range))||(!peer&&!artifact.manifest.peerDependenciesMeta?.[name]?.optional))advisories.push({code:"dependency",name,required:range,actual:peer?.version??null});
       }
       for(const [name,range] of Object.entries(artifact.manifest.dependencies??{}) as [string,string][]){
-        if(release.packages.some(p=>p.name===name))continue;
         const dependency=await readPackageIdentity(identity.root,name);
-        if(!dependency||!satisfies(dependency.version,range))throw new Error("PACKAGE_DEPENDENCY_MIGRATION_REQUIRED");
+        if(!dependency||!satisfies(dependency.version,range))advisories.push({code:"dependency",name,required:range,actual:dependency?.version??null});
       }
       packages.push({name:item.name,current:identity.version,target:target.version,integrity:artifact.integrity,field});
-      if(field && item.updateAvailable)manifest[field][item.name]=target.version;
+      if(field && identity.version!==target.version)manifest[field][item.name]=target.version;
     }
     const checks=["typecheck","build"].filter(name=>typeof manifest.scripts?.[name]==="string");
-    const plan:PackageUpgradePlan={id:randomUUID(),releaseId:release.id,digest:current.digest,manager,lockfile,packages,checks,expiresAt:new Date(Date.now()+15*60_000).toISOString()};
+    const plan:PackageUpgradePlan={id:randomUUID(),releaseId:release.id,digest:current.digest,manager,lockfile,packages,checks,advisories,expiresAt:new Date(Date.now()+15*60_000).toISOString()};
     if(before!==await readFile(path.join(root,"package.json"),"utf8")||lockBefore!==await optional(path.join(root,lockfile))||protectedBefore!==await protectedHash(root))throw new Error("PACKAGE_PLAN_STALE");
     const newline=before.includes("\r\n")?"\r\n":"\n",indent=before.match(/\n([ \t]+)"/)?.[1]??"  ";
     const after=(JSON.stringify(manifest,null,indent)+"\n").replace(/\n/g,newline);
@@ -151,8 +155,6 @@ export class PackageUpgradeService {
         await this.run(root,stored.plan.manager,["install","--ignore-scripts",...(stored.plan.manager==="pnpm"?["--no-frozen-lockfile"]:[])]);
         progress("checking");
         await this.verify(root,stored.plan.packages.map(p=>({name:p.name,version:p.target})));
-        const resolved=await this.overview.inspect(root);
-        if(resolved.recommendedReleaseId!==stored.plan.releaseId||resolved.packages.some(pkg=>pkg.scope==="project"&&!stored.plan.packages.some(expected=>expected.name===pkg.name&&expected.target===pkg.currentVersion)))throw new Error("PACKAGE_INSTALLED_COMBINATION");
         const lock=await readFile(path.join(root,stored.plan.lockfile),"utf8");
         // Recovery may only restore the lock produced by this installation.
         // Keep it distinct from edits made while project checks are running.

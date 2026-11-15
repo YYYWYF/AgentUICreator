@@ -1,3 +1,12 @@
+export class InvalidAgentInputError extends Error {
+  readonly code = "AGENT_UI_INVALID_INPUT";
+
+  constructor(reason: string) {
+    super(`Invalid Agent input: ${reason}`);
+    this.name = "InvalidAgentInputError";
+  }
+}
+
 export class UnsupportedAgentInputError extends Error {
   readonly code = "AGENT_UI_UNSUPPORTED_INPUT";
 

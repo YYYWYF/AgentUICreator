@@ -3192,3 +3192,23 @@
 
 .creator-command-category { padding: 10px 8px 4px; font-size: 12px; opacity: .7; }
 
+
+.creator-header-tool-update:empty { display: none; }
+.creator-panel-brand { flex-shrink: 1; }
+.creator-panel-brand h1, .creator-panel-brand-icon { flex-shrink: 0; }
+.creator-header-tool-update { min-width: 0; }
+.creator-tool-update-notice { display: flex; align-items: center; min-width: 0; }
+.creator-tool-update-trigger[data-creator-ui-button] { position: relative; max-width: 100%; min-width: 0; height: 24px; padding: 0 6px; border-radius: 5px; color: #2563eb; background: #eff6ff; font-size: 11px; font-weight: 500; }
+.creator-panel-header .creator-tool-update-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: inherit; font: inherit; letter-spacing: normal; }
+.creator-tool-update-trigger[data-creator-ui-button]:hover { color: #1d4ed8; background: #dbeafe; }
+/* Bridge the pointer path from the trigger to the details beneath the header. */
+.creator-tool-update-trigger::after { content: ""; position: absolute; top: 100%; left: 0; right: 0; height: 20px; }
+.creator-tool-update-tooltip { position: absolute; top: calc(100% - 5px); left: 16px; z-index: 60; width: min(300px, calc(100cqw - 32px)); padding: 12px 14px; border: 1px solid #dbe4f0; border-radius: 8px; background: #fff; box-shadow: 0 6px 20px #0f172a14; color: #475569; font-size: 12px; line-height: 1.7; white-space: normal; }
+.creator-tool-update-tooltip strong { display: block; color: #0f172a; font-size: 12px; font-weight: 600; }
+.creator-tool-update-tooltip p { margin: 4px 0 0; }
+@container creator-panel (max-width: 320px) {
+  .creator-panel-brand { gap: 6px; }
+  .creator-header-quick-actions, .creator-panel-header-actions { gap: 2px; }
+  .creator-update-banner .creator-update-entry { padding: 0 4px; }
+  .creator-update-banner .creator-update-entry span[aria-hidden="true"] { display: none; }
+}

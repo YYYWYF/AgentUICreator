@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
@@ -31,11 +31,15 @@ function hashPaths(root, paths, accept = () => true) {
   function visit(file) {
     if (!accept(file)) return;
     const target = path.join(root, ...file.split("/"));
-    let entries;
-    try { entries = readdirSync(target, { withFileTypes: true }); }
+    let entry;
+    try { entry = statSync(target); }
     catch (error) {
       if (error.code === "ENOENT") return;
-      if (error.code !== "ENOTDIR") throw error;
+      throw error;
+    }
+    // On Windows, enumerating an open regular file can fail with EBUSY rather
+    // than ENOTDIR. Determine its type before choosing the filesystem operation.
+    if (!entry.isDirectory()) {
       let data = readFileSync(target);
       if (file === "package.json") {
         const pkg = JSON.parse(data.toString());
@@ -45,6 +49,7 @@ function hashPaths(root, paths, accept = () => true) {
       add(file); add(data);
       return;
     }
+    const entries = readdirSync(target, { withFileTypes: true });
     for (const entry of entries.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) {
       visit(path.posix.join(file, entry.name));
     }

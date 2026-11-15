@@ -53,6 +53,8 @@ export function AssistantPage() {
 | `context` | 当前业务上下文条目，见[上下文接入](./business-context) |
 | `forwardedProps` | 当前运行传递的扩展配置；适配请求时保留 |
 
+通过 `<Agent ctx={...} />` 设置每次携带的默认参数，通过 `sendMessage(input, { ctx })` 添加本次参数，后端从 `forwardedProps.ctx` 读取。示例见[业务参数 ctx](./business-context#业务参数-ctx)。
+
 审批恢复还会使用 `resume` 等协议字段，不能用固定的 `{ prompt: ... }` 替代所有请求。媒体、工具和审批请求应按实际请求保留完整结构。
 
 响应为 `Content-Type: text/event-stream`，每条事件以 `data: JSON` 加空行分隔。例如本次文字回复：

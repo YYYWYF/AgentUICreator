@@ -7,7 +7,7 @@ import { Button } from "./components/button.js";
 import { UpdateReleaseNotes } from "./UpdateReleaseNotes.js";
 
 const shortName = (name: string) => name.replace(/^@za38\.03\/agent-ui-/, "");
-export const actionableBlockedReleases = (overview: PackageUpdateOverview) => overview.blockedReleases.filter(release => !release.issues.some(issue => issue.code === "downgrade"));
+export const updateAdvisories = (overview: PackageUpdateOverview) => overview.advisories;
 export const packageUpdateCount = (overview: PackageUpdateOverview) => Number(overview.packages.some(pkg => pkg.scope === "project" && pkg.updateAvailable)) + overview.packages.filter(pkg => pkg.scope === "tools" && pkg.updateAvailable).length;
 
 export function PackageUpdatesOverview({ overview, sourcePlugins = [], pluginNames = {}, refresh, working, stage, plan, completed = [], toolsOnly = false, onPlan, onCancel, onExecute, onRecover }: {
@@ -22,14 +22,17 @@ export function PackageUpdatesOverview({ overview, sourcePlugins = [], pluginNam
   const planRegion = useRef<HTMLElement>(null);
   useEffect(() => { if (plan) { planRegion.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" }); planRegion.current?.focus({ preventScroll: true }); } }, [plan?.id]);
   const label = (name: string) => ({ plugins: messages.componentsLabel, runtime: messages.runtimeLabel, core: messages.coreLabel, renderer: messages.rendererLabel, creator: "Creator", "web-component": messages.embedLabel }[shortName(name)] ?? shortName(name));
+  const advice = (issue: PackageUpdateOverview["advisories"][number]["issues"][number]) =>
+    issue.code === "application" || issue.code === "shared-api"
+      ? formatLocaleMessage(messages.versionApplicationNotice, label(issue.name))
+      : formatLocaleMessage(messages.versionRecommendationDetail, label(issue.name), issue.actual ?? messages.notInstalled, issue.required);
   const ownedIds = new Set(sourcePlugins.map(plugin => plugin.pluginId));
   const packages = overview.packages.filter(pkg => pkg.scope === "project");
   const updates = packages.filter(pkg => pkg.updateAvailable);
   const main = packages.find(pkg => pkg.name === "@za38.03/agent-ui-plugins") ?? updates[0] ?? packages[0];
   const pluginChange = plan?.packages.find(pkg => pkg.name.endsWith("-plugins") && pkg.current !== pkg.target);
-  const blocked = actionableBlockedReleases(overview);
-  const obsoleteOnly = overview.blockedReleases.length > 0 && blocked.length === 0 && !overview.recommendedReleaseId;
-  const status = { online: messages.online, cached: messages.cached, unavailable: messages.onlineUnavailable, unconfigured: messages.onlineUnconfigured }[overview.status];
+  const advisories = updateAdvisories(overview);
+  const status = overview.status === "online" && overview.issue ? messages.partialDiscovery : { online: messages.online, cached: messages.cached, unavailable: messages.onlineUnavailable, unconfigured: messages.onlineUnconfigured }[overview.status];
   const history = (pkg: PackageUpdateOverview["packages"][number]) => pkg.versionHistory ?? pkg.history;
   const otherPackages = packages.filter(pkg => pkg === main ? history(pkg).some(change => !change.pluginId) : pkg.updateAvailable || history(pkg).length > 0);
   const notes = (pkg: PackageUpdateOverview["packages"][number], historyOnly = false, pluginsOnly = false) => <UpdateReleaseNotes
@@ -65,6 +68,7 @@ export function PackageUpdatesOverview({ overview, sourcePlugins = [], pluginNam
       <div className="creator-update-plan-heading"><ShieldCheck aria-hidden="true"/><h3>{pluginChange ? messages.confirmPackageUpgrade : messages.confirmUpdate}</h3></div>
       <div className="creator-plan-packages">{pluginChange ? <div className="creator-package-heading"><strong>{messages.componentsLabel}</strong><span className="creator-package-version">{pluginChange.current}<ArrowRight aria-hidden="true"/>{pluginChange.target}</span></div> : <p>{messages.dependenciesOnly}</p>}</div>
       <p>{messages.linkedDependenciesNotice}</p><p className="creator-update-muted">{messages.packageUpgradeNotice}</p>
+      {plan.advisories?.length ? <details className="creator-update-details"><summary>{messages.versionRecommendations}</summary><p>{messages.versionRecommendationsNotice}</p><ul>{plan.advisories.map((issue,index)=><li key={index}>{advice(issue)}</li>)}</ul></details> : null}
       <details className="creator-update-details creator-dependency-details"><summary>{messages.viewLinkedDependencies}</summary>{plan.packages.filter(pkg => pkg.current !== pkg.target).map(pkg => {
         const changes = packages.find(item => item.name === pkg.name)?.summary.filter(change => !change.pluginId || !ownedIds.has(change.pluginId)) ?? [];
         return <section key={pkg.name}><p className="creator-update-muted"><code>{pkg.name}</code> · {pkg.current} → {pkg.target}</p>{changes.length ? <ul className="creator-release-notes">{changes.map((change, index) => <li key={`${change.id}:${index}`}>{creatorDisplayText(change.summary)}</li>)}</ul> : null}</section>;
@@ -73,7 +77,6 @@ export function PackageUpdatesOverview({ overview, sourcePlugins = [], pluginNam
       {stage && stage !== "planning" ? <div className="creator-package-progress" role="status" aria-live="polite"><p><RefreshCw className="cui:animate-spin" aria-hidden="true"/>{messages[stage === "installing" ? "installingUpdate" : stage === "checking" ? "checkingProject" : "recoveringUpdate"]}</p><ol>{[messages.installDependencies, messages.checkProject, messages.finishUpdate].map((step, index) => <li key={step} data-active={index === (stage === "checking" ? 1 : 0)} data-done={stage === "checking" && index === 0}>{step}</li>)}</ol></div> : null}
       <div className="creator-update-actions"><Button size="sm" variant="outline" disabled={working} onClick={onCancel}>{messages.skipUpdateCancel}</Button><Button size="sm" disabled={working} onClick={onExecute}>{working ? <><RefreshCw aria-hidden="true" className="cui:animate-spin"/>{messages.updating}</> : messages.confirmUpdate}</Button></div>
     </section> : null}
-    {obsoleteOnly ? <p className="creator-update-muted">{messages.noNewerRelease}</p> : null}
-    {blocked.length ? <details className="creator-update-details creator-update-blocked"><summary>{messages.updatePreparationRequired}</summary>{blocked.map(release => <ul key={release.id} className="creator-release-notes">{release.issues.map((issue, index) => <li key={index}>{formatLocaleMessage(messages[({ creator: "updateCreatorRequired", node: "updateNodeRequired", react: "updateReactRequired", missing: "updateMissingPackage", multiple: "updateMultipleVersions", declaration: "updateDeclarationMismatch", downgrade: "noNewerRelease" } as const)[issue.code]], issue.required, label(issue.name))}</li>)}</ul>)}</details> : null}
+    {advisories.length ? <details className="creator-update-details"><summary>{messages.versionRecommendations}</summary><p>{messages.versionRecommendationsNotice}</p>{advisories.map(release => <ul key={release.id} className="creator-release-notes">{release.issues.map((issue, index) => <li key={index}>{advice(issue)}</li>)}</ul>)}</details> : null}
   </section>;
 }

@@ -8,18 +8,18 @@
 
 本组文档假设 Agent UI 源码目录是 `src/agent-ui/`。表中相对路径均在该目录下；初始化选择了其他目录时，替换此前缀。`src/AssistantPage.tsx` 是下面约定的**业务页面文件名**，可以换成项目实际挂载 `<Agent />` 的文件。
 
-| 要接入的能力                                                   | 修改入口                                                                                                | 接入方式与协议                                         |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| [Agent 对话与工作流](/development/connect-agent.md)            | `src/AssistantPage.tsx` 的 `Agent endpoint/request/fetch`；工作流按钮在项目插件应用层                              | POST AG-UI 请求，返回事件流；自定义 `fetch` 适配传输            |
-| [历史会话](/development/history-backend.md)                  | `services/conversations/http-data-source.ts`                                                        | 默认 HTTP 路由、响应解码；也可注入完整 `ConversationDataSource` |
-| [附件上传](/development/attachment-upload.md)                | 页面 `Agent attachments`；可新建 `services/attachments.ts`                                                | multipart 上传，返回文件 URL；或 `dataSource.upload()`   |
-| [语音转写服务（开发中）](/development/speech-to-text.md)            | 开发中                                                                                                 | 暂不提供业务转写服务接入教程                                  |
-| [回复评价](/development/feedback-service.md)                 | 页面 `Agent feedback`；可新建 `services/feedback.ts`                                                      | JSON 提交评价；或 `dataSource.submit()`               |
-| [一号通登录（开发中）](/development/auth-service.md)               | 业务页面 `Agent request.headers/user`                                                                   | 当前由外部系统自行登录，再传入凭据和展示资料                          |
-| [搜索候选与命令](/development/composer-sources.md)              | `plugins/mention-trigger/index.tsx`、`plugins/conversation-command-source/definition.ts`，以及项目自己的来源实现 | `@` 使用异步搜索来源；`/` 使用命令来源／注册器                     |
-| [前端工具与页面操作](/development/frontend-tools.md)              | 业务页面 `Agent frontendTools`，工具实现可放 `services/frontend-tools.ts`                                      | 声明参数 Schema，在 `execute()` 中调用现有业务方法或接口          |
-| [业务上下文与通知](/development/business-context.md)             | 页面 `Agent getRunContext/appEventSchemas` 与 Provider 内的订阅组件                                          | 每次运行携带 `context`；接收 `CUSTOM` 业务通知               |
-| [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md) | 项目消息插件的 `schema.ts`、`index.tsx`、`definition.ts` 与页面事件配置                                             | 约定业务事件数据，校验并注册新的消息卡片                            |
+| 要接入的能力                                                   | 修改入口                                                                                                | 接入方式与协议                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Agent 对话与工作流](/development/connect-agent.md)            | `src/AssistantPage.tsx` 的 `Agent endpoint/request/fetch`；工作流按钮在项目插件应用层                              | POST AG-UI 请求，返回事件流；自定义 `fetch` 适配传输                              |
+| [历史会话](/development/history-backend.md)                  | `services/conversations/http-data-source.ts`                                                        | 每个接口对象配置 `url/method/body/decode`；也可注入完整 `ConversationDataSource` |
+| [附件上传](/development/attachment-upload.md)                | 页面 `Agent attachments`；可新建 `services/attachments.ts`                                                | multipart 上传，返回文件 URL；或 `dataSource.upload()`                     |
+| [语音转写服务（开发中）](/development/speech-to-text.md)            | 开发中                                                                                                 | 暂不提供业务转写服务接入教程                                                    |
+| [回复评价](/development/feedback-service.md)                 | 页面 `Agent feedback`；可新建 `services/feedback.ts`                                                      | JSON 提交评价；或 `dataSource.submit()`                                 |
+| [一号通登录（开发中）](/development/auth-service.md)               | 业务页面 `Agent request.headers/user`                                                                   | 当前由外部系统自行登录，再传入凭据和展示资料                                            |
+| [搜索候选与命令](/development/composer-sources.md)              | `plugins/mention-trigger/index.tsx`、`plugins/conversation-command-source/definition.ts`，以及项目自己的来源实现 | `@` 使用异步搜索来源；`/` 使用命令来源／注册器                                       |
+| [前端工具与页面操作](/development/frontend-tools.md)              | 业务页面 `Agent frontendTools`，工具实现可放 `services/frontend-tools.ts`                                      | 声明参数 Schema，在 `execute()` 中调用现有业务方法或接口                            |
+| [给 Agent 传递业务参数](/development/business-context.md)       | 页面 `Agent ctx/getRunContext` 与 `sendMessage` 参数                                                     | 发送消息时附带业务参数                                                       |
+| [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md) | 项目消息插件的 `schema.ts`、`index.tsx`、`definition.ts` 与页面事件配置                                             | 约定业务事件数据，校验并注册新的消息卡片                                              |
 
 上表建议新建的 `services/*.ts` 是项目自己的代码组织方式，不是工具自动生成的固定文件。已有请求模块时直接复用它。新建服务文件后仍需按各篇示例导入并接线，只有文件不会自动生效。
 
@@ -43,15 +43,33 @@ export function AssistantPage() {
 
 ## 适配方式选择
 
-| 业务接口与默认协议的差异            | 应该改哪里                                  |
-| ----------------------- | -------------------------------------- |
-| 仅 URL、用户凭据不同            | 修改对应服务的 URL、headers、credentials        |
-| 上传的返回数据多包了一层            | 使用 `urlField: 'data.url'` 等字段路径        |
-| 历史列表或详情的字段不同            | 在历史配置中提供 `decodeList` / `decodeDetail` |
-| 已有 Axios、签名、业务错误码或不同请求体 | 编写项目 `dataSource`；AG-UI 使用专用 `fetch`   |
-| 文件选择交互本身需要更换            | 提供 `attachmentAdapter`，类型与入口见附件教程      |
+| 业务接口与默认协议的差异           | 应该改哪里                                               |
+| ---------------------- | --------------------------------------------------- |
+| 仅 URL、用户凭据不同           | 修改对应服务的 URL、headers、credentials                     |
+| 历史接口的地址、方法或 JSON 请求体不同 | 在对应接口对象中设置 `url`、`method`、`body`                    |
+| 上传的返回数据多包了一层           | 使用 `urlField: 'data.url'` 等字段路径                     |
+| 历史响应字段或业务返回码不同         | 配置对应接口的 `decode`；列表用 `list.decode`，详情用 `get.decode` |
+| 已有 Axios、签名或特殊传输       | 复用项目请求模块或编写 `dataSource`；AG-UI 使用专用 `fetch`         |
+| 文件选择交互本身需要更换           | 提供 `attachmentAdapter`，类型与入口见附件教程                   |
 
 这些适配代码属于项目应用层，通常无需接管官方 Plugin 源码。布局仍放在 `app-ui.json`；URL、函数、鉴权和 React props 放在代码中。项目使用自己的请求库和 UI 栈，生产运行无需 Creator。
+
+## 当前能力与边界
+
+自定义地址、鉴权和字段转换可通过上述配置或项目适配器完成。接入前还需确认所需交互是否有对应的运行入口：
+
+| 能力           | 当前支持                                                                              | 需要另行处理的需求                                                                                                  |
+| ------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| AG-UI 对话与工作流 | 自定义 `fetch`、用户凭据、流式响应、工具续传和审批恢复                                                   | 自有协议需转换为 AG-UI；请求封装需保留流和取消信号                                                                               |
+| 历史会话         | 列表、详情、删除、重命名、归档；可逐接口配置请求与解码，或提供完整数据源                                              | 当前列表契约一次返回完整数组，没有分页游标、关键词或加载更多入口；消息保存由业务后端负责                                                               |
+| 附件           | 默认 Base64、HTTP 上传或自定义数据源；支持取消和类型／大小限制                                             | 分片、断点续传、上传进度及文件读取权限需业务适配；通用上传接口只返回最终 URL                                                                   |
+| 评价           | 提交赞／踩和可选说明，自定义鉴权与业务返回码                                                            | 没有评价回读、撤回或取消请求接口；保存失败不自动恢复按钮选择                                                                             |
+| 搜索候选与命令      | 异步提及搜索；远程命令加载后注册，本地 action 可调用业务接口                                                | 账号／权限变化需更新来源或缓存标识；服务端 JSON 中的命令需由项目代码绑定允许的动作                                                               |
+| 业务参数         | `ctx` 传 JSON 参数，`getRunContext` 同步读取页面文本上下文                                       | 异步数据需先加载；上下文读取失败仍继续请求，不能用作必须成功的权限校验                                                                        |
+| 程序化媒体发送      | `sendMessage()` 支持文本和 image/audio/video/document 附件 URL，原生草稿用 `sendComposer()` 提交 | 只接受 HTTP(S) URL 来源；音频／视频需 MIME 类型，远程文件类型／大小与读取权限由业务服务校验，见[发送示例](/development/react-host-api.md#发送已有附件-url) |
+| 语音与登录        | 浏览器听写、外部登录凭据和用户资料接入                                                               | 业务转写与一号通接入仍标为开发中；底层适配入口和受控测试需与真实业务服务分别验收                                                                   |
+
+各接口没有统一的 Token 刷新、超时或重试策略。需要这些行为时，复用项目请求模块：AG-UI 使用 `fetch`，历史使用 `fetch` 或完整数据源，附件和评价使用各自的数据源。流式回复已开始后、业务写入或前端工具产生副作用后，重试策略需由业务确认，避免重复执行。
 
 ## 服务鉴权配置
 
@@ -60,6 +78,7 @@ export function AssistantPage() {
 - URL 配置中的 headers 使用浏览器当前可持有的用户凭据；模型或服务端私有密钥放在业务网关。
 - AG-UI、上传、转写、评价的 headers 为普通对象，凭据变化后更新配置。历史 headers 另外支持每次请求读取凭据的函数。
 - 使用自定义数据源时，请在数据源内部处理鉴权、业务返回码和字段转换。URL 配置的 headers 不会自动应用到这些方法。
+- 需要先调用鉴权接口、异步刷新 Token 或获取上传签名时，在对应请求函数／数据源方法中等待这些步骤完成，再发起业务请求，并传递可用的 `signal`。历史 `headers()` 是同步回调，异步鉴权应放入自定义 `fetch` 或完整数据源。
 - 跨域 Cookie 需要 `credentials: 'include'` 及服务端配套的 CORS 配置。multipart 的 `Content-Type` 由浏览器添加 boundary。
 
 ## Vue / HTML 服务适配位置

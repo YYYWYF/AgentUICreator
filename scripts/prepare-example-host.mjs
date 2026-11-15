@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { access } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 export const exampleHosts = {
@@ -42,4 +43,13 @@ export async function checkExampleHost(mode, { root = workspaceRoot, inspectProj
     throw new Error(`Example requires repair; existing files were preserved: ${JSON.stringify(state)}`);
   }
   return host;
+}
+
+const main = import.meta.main ?? (process.argv[1] !== undefined && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)));
+if (main) {
+  if (process.argv.length !== 3 || process.argv[2] !== "--check") {
+    throw new Error("Usage: node scripts/prepare-example-host.mjs --check");
+  }
+  for (const mode of Object.keys(exampleHosts)) await checkExampleHost(mode);
+  console.log("Example Host project inspections: OK");
 }

@@ -20,7 +20,7 @@ function fixture(work) {
   }
   put("packages/plugins/source-layout.json", JSON.stringify({ files: [{ view: "resources/registry/items/plugin/copy/files/generated.ts" }] }));
   const calls = [];
-  const emit = name => { put(`packages/${name}/dist/index.js`); if (name === "creator") { put("packages/creator/dist/cli.js"); put("packages/creator/operator/dist/runtime/operator-runtime.mjs"); } };
+  const emit = name => { put(`packages/${name}/dist/index.js`); put(`packages/${name}/dist/types/界面/panel.d.ts`, "export interface Panel {}"); if (name === "creator") { put("packages/creator/dist/cli.js"); put("packages/creator/operator/dist/runtime/operator-runtime.mjs"); } };
   const run = args => { const name = args[1].replace("@za38.03/agent-ui-", ""); calls.push(name); emit(name); return { status: 0 }; };
   const build = options => prepareWorkspacePackages(packages, { root, run, ...options });
   const context = { root, put, calls, emit, run, build };
@@ -54,6 +54,7 @@ test("deleted/modified outputs, Operator outputs and damaged receipts cannot be 
   for (const [file, expected] of [
     ["packages/plugins/dist/index.js", "plugins"],
     ["packages/creator/operator/dist/runtime/operator-runtime.mjs", "creator"],
+    ["packages/creator/dist/types/界面/panel.d.ts", "creator"],
     ["node_modules/.cache/agent-ui-build/runtime.json", "runtime"],
   ]) {
     rmSync(path.join(root, ...file.split("/"))); calls.length = 0;

@@ -1,7 +1,7 @@
 import { readFile, realpath, writeFile, rename, unlink } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
-import { satisfies, valid, validRange, intersects } from "semver";
+import { satisfies, valid } from "semver";
 import { createDefaultAgentUIPresetRegistry, agentUIModeRegistry, initializeAgentUIProject, validateAgentUIProjectSetup, type InitializeAgentUIProjectInput } from "../bootstrap/index.js";
 import { loadProjectAgentUISourceRegistry } from "../source-catalog/index.js";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
@@ -38,6 +38,7 @@ export interface ReactInitializationDependencyPlan {
   readonly installCommand: string;
   readonly packages: readonly { name: string; required: readonly string[]; version: string; action: "install" | "reuse" }[];
   readonly installRequired: boolean;
+  readonly recommendations?: { name: string; required: readonly string[]; installed?: string }[];
 }
 
 /** Planning is read-only. Template/catalog requirements, not model guesses, select packages. */
@@ -73,6 +74,7 @@ export async function planReactAgentUIProject(input: InitializeAgentUIProjectInp
   const devDependencies: Record<string, string> = {};
   const packages: ReactInitializationDependencyPlan["packages"][number][] = [];
   const identities: unknown[] = [];
+  const recommendations: { name: string; required: readonly string[]; installed?: string }[] = [];
   let installRequired = false;
   let reactVersion: string | undefined;
   for (const [name, ranges] of required) {
@@ -82,26 +84,25 @@ export async function planReactAgentUIProject(input: InitializeAgentUIProjectInp
     const current = direct ? installed : undefined;
     const declarations = FIELDS.flatMap(field => manifest[field]?.[name] === undefined ? [] : [manifest[field][name] as string]);
     const fits = (version: string) => [...ranges].every(range => satisfies(version, range));
-    if (declarations.length > 1 || declarations.some(value => validRange(value) && [...ranges].some(range => !intersects(value, range))) || (current && !fits(current.version))) {
+    if (declarations.length > 1) {
       fail("AGENT_UI_SETUP_DEPENDENCY_CONFLICT", [{ code: "AGENT_UI_SETUP_PACKAGE_VERSION", message: `${name}: ${declarations.join(", ") || current?.version} → ${[...ranges].join(", ")}` }]);
     }
     let version = current?.version;
     if (!version) {
-      if (declarations.some(value => !validRange(value))) fail("AGENT_UI_SETUP_DEPENDENCY_CONFLICT");
-      const exact = [...ranges].find(range => valid(range));
+      const exact = declarations.find(value => valid(value)) ?? [...ranges].find(range => valid(range));
       const baseline = await readPackageIdentity(creator.root, name);
       version = name === "react-dom" && reactVersion ? reactVersion : exact ?? baseline?.version;
-      if (!version || !fits(version) || declarations.some(value => !satisfies(version!, value))) fail("AGENT_UI_SETUP_DEPENDENCY_CONFLICT");
+      if (!version) fail("AGENT_UI_SETUP_PACKAGE_UNAVAILABLE");
     }
     if (name === "react") reactVersion = version;
-    if (name === "react-dom" && reactVersion !== version) fail("AGENT_UI_SETUP_DEPENDENCY_CONFLICT");
+    if (!fits(version) || (name === "react-dom" && reactVersion !== version)) recommendations.push({ name, required: [...ranges], installed: version });
     if (!declarations.length) (name === "tailwindcss" ? devDependencies : dependencies)[name] = version;
     const action = !current || !declarations.length ? "install" : "reuse";
     if (action === "install") installRequired = true;
     packages.push({ name, required: [...ranges], version, action });
     identities.push([name, current?.root, direct]);
   }
-  const plan = { projectRoot, packageJsonPath: path.join(projectRoot, "package.json"), manager, dependencies, devDependencies, installCommand: `${manager} install`, packages, installRequired };
+  const plan = { projectRoot, packageJsonPath: path.join(projectRoot, "package.json"), manager, dependencies, devDependencies, installCommand: `${manager} install`, packages, installRequired, recommendations };
   // Bind consent to the exact project, lockfiles, registry config, source templates and resolved identities.
   const context = { original, locks, npmrc: await optional(path.join(projectRoot, ".npmrc")), pending,
     sourceRoot: validation.sourceRoot, mode: input.mode, creator,

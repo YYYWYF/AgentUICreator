@@ -44,7 +44,7 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       return surface !== "bridge" ? <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage: () => null }} /> : null;
     }
     await act(async () => {
-      renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" threadBinding={binding}
+      renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" ctx={{ tenant: "command" }} threadBinding={binding}
         {...(surface === "registered" ? { toolkit: { confirm_take_leave_policy: {
           type: "human" as const, display: "standalone" as const,
           interaction: { type: "interrupt" as const }, render: ConversationToolFallback,
@@ -89,7 +89,7 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
     try {
       await until(() => !runtime.thread.getState().isLoading);
       let sent!: Promise<void>;
-      await act(async () => { sent = bridge.sendMessage("Delete the draft"); });
+      await act(async () => { sent = bridge.sendMessage("Delete the draft", { ctx: { reviewId: "draft-1" } }); });
       await until(() => bridge.getCommandDecisionRequest("delete-1") !== undefined);
       if (stop) {
         await act(async () => { bridge.abort(); });
@@ -130,6 +130,9 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       }
       expect(JSON.stringify(inputs[1]!.messages)).not.toMatch(/Approved by user|User denied tool execution/u);
       expect(inputs[1]!.threadId).toBe(inputs[0]!.threadId);
+      expect(inputs.map(input => input.forwardedProps.ctx)).toEqual([
+        { tenant: "command", reviewId: "draft-1" }, { tenant: "command", reviewId: "draft-1" },
+      ]);
       expect(bridge.getCommandDecisionRequest("delete-1")).toBeUndefined();
     } finally {
       await act(async () => { renderer.unmount(); });

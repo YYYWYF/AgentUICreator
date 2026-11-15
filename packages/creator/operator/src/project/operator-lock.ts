@@ -19,27 +19,33 @@ function alive(pid: number): boolean {
     throw error;
   }
 }
-async function remove(file: string): Promise<void> {
+async function retrySharing<T>(operation: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
-    try { await unlink(file); return; }
+    try { return await operation(); }
     catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
-      if (code === "ENOENT") return;
-      // Concurrent readers/deleters can temporarily hold a Windows ticket open.
+      // Pending deletion can also make a concurrent Windows open fail.
       // Retry only transient sharing errors; permanent failures still surface.
       if (process.platform !== "win32" || !["EPERM", "EBUSY", "EACCES"].includes(code ?? "") || attempt >= 5) throw error;
       await delay(10 * (attempt + 1));
     }
   }
 }
+async function remove(file: string): Promise<void> {
+  await retrySharing(() => unlink(file)).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+}
 async function tickets(root: string): Promise<Ticket[]> {
   const values: Ticket[] = [];
   for (const name of await readdir(path.join(root, DIRECTORY))) {
     if (!/^\d+\.[0-9a-f-]{36}\.json$/.test(name)) continue; // Atomic-write temporary files are not tickets.
     const logical = `${DIRECTORY}/${name}`;
-    await assertNoSymbolicLinkTraversal(root, logical);
     const file = path.join(root, DIRECTORY, name);
-    const source = await readOptionalBuffer(file);
+    const source = await retrySharing(async () => {
+      await assertNoSymbolicLinkTraversal(root, logical);
+      return readOptionalBuffer(file);
+    });
     if (!source) continue;
     const ticket = JSON.parse(source.toString()) as Ticket;
     if (!Number.isSafeInteger(ticket.pid) || ticket.pid <= 0 ||

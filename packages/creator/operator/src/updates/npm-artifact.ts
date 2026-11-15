@@ -4,10 +4,9 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
-import { satisfies } from "semver";
 import { resourcePackageInvocation } from "../project/ensure-resource-packages.js";
 import { assertNoSymbolicLinkTraversal } from "../project/source-registry/path-policy.js";
-import { officialPackageNames, type CompatibilityRelease } from "./compatibility-release.js";
+import type { CompatibilityRelease } from "./compatibility-release.js";
 
 export type UpdateCommand = (root: string, command: string, args: string[]) => Promise<string>;
 /** Never expose package-manager output: it can contain registry credentials. */
@@ -70,7 +69,7 @@ export async function verifyInstalledArtifact(installedRoot:string,artifact:Veri
   }
 }
 
-export async function verifyNpmArtifact(root:string,target:CompatibilityRelease["packages"][number],release:CompatibilityRelease,run:UpdateCommand=runUpdateCommand):Promise<VerifiedArtifact>{
+export async function verifyNpmArtifact(root:string,target:CompatibilityRelease["packages"][number],_release:CompatibilityRelease,run:UpdateCommand=runUpdateCommand):Promise<VerifiedArtifact>{
   const directory=await mkdtemp(path.join(tmpdir(),"agent-ui-artifact-"));
   try{
     // npm inherits the target project's registry/.npmrc authentication; never assume public npm.
@@ -84,13 +83,8 @@ export async function verifyNpmArtifact(root:string,target:CompatibilityRelease[
     if(bytes.length>128*1024*1024||`sha512-${createHash("sha512").update(bytes).digest("base64")}`!==expected)throw new Error("PACKAGE_ARTIFACT_INTEGRITY");
     const files=readNpmArchive(bytes),manifest=parseJson(files.get("package/package.json")?.toString()??"null");
     if(manifest?.name!==target.name||manifest.version!==target.version)throw new Error("PACKAGE_ARTIFACT_IDENTITY");
-    const actual={...manifest.peerDependencies,...manifest.dependencies};
-    for(const name of officialPackageNames){
-      if(actual[name]!==undefined&&actual[name]!==target.requires[name])throw new Error("PACKAGE_ARTIFACT_REQUIREMENTS");
-      if(target.requires[name]!==undefined&&actual[name]!==target.requires[name])throw new Error("PACKAGE_ARTIFACT_REQUIREMENTS");
-      const required=actual[name],selected=release.packages.find(pkg=>pkg.name===name);
-      if(required&&(!selected||!satisfies(selected.version,required)))throw new Error("PACKAGE_ARTIFACT_REQUIREMENTS");
-    }
+    // Published dependency recommendations do not authorize or veto installation.
+    // The exact requested identity, tarball integrity and installed bytes still do.
     return {name:target.name,version:target.version,integrity:expected,manifest,files};
   }finally{await rm(directory,{recursive:true,force:true});}
 }

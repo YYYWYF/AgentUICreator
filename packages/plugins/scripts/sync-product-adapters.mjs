@@ -9,6 +9,7 @@ import { formatProjectCode } from "../../creator/operator/src/project/generated-
 const localizationRecipes = JSON.parse(await readFile(new URL("./product-localization-recipes.json", import.meta.url), "utf8"));
 
 export function applyProductLocalization(source, localPath) {
+  source = source.replace(/\r\n/g, "\n");
   const recipe = localizationRecipes[localPath];
   if (!recipe) return source;
   for (const { before, after, expectedCount } of recipe.replacements) {
@@ -109,8 +110,30 @@ function applyThreadListGroupIdentity(source, localPath) {
   return source;
 }
 
+// The upstream presentation uses React 19 ref-as-prop. Our adapters also
+// support React 18, where every component between a primitive and its DOM
+// anchor must explicitly forward the ref. Keep the clean vendor unchanged.
+function applyReactRefForwarding(source, localPath) {
+  if (localPath === "components/ui/button.tsx") {
+    return 'import * as React from "react";\n' + source
+      .replace('function Button({', 'const Button = React.forwardRef<\n  React.ComponentRef<typeof ButtonPrimitive>,\n  ButtonPrimitive.Props & VariantProps<typeof buttonVariants>\n>(function Button({')
+      .replace('}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {', '}, ref) {')
+      .replace('    <ButtonPrimitive\n', '    <ButtonPrimitive\n      ref={ref}\n')
+      .replace('\n}\n\nexport { Button, buttonVariants };', '\n});\n\nexport { Button, buttonVariants };');
+  }
+  if (localPath === "components/ui/input.tsx") {
+    return source
+      .replace('function Input({ className, type, ...props }: React.ComponentProps<"input">) {',
+        'const Input = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<"input">>(function Input({ className, type, ...props }, ref) {')
+      .replace('    <InputPrimitive\n', '    <InputPrimitive\n      ref={ref}\n')
+      .replace('\n}\n\nexport { Input };', '\n});\n\nexport { Input };');
+  }
+  return source;
+}
+
 export function applyProductAdaptations(source, localPath) {
-  let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  source = source.replace(/\r\n/g, "\n");
+  let installed = applyReactRefForwarding(applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath), localPath);
   if (localPath === "components/assistant-ui/elements/image.tsx") {
     // Keep the loading placeholder, but let loaded auto-ratio thumbnails use
     // their actual height. Fixed-ratio previews retain their requested ratio.
@@ -149,6 +172,23 @@ export function applyProductAdaptations(source, localPath) {
       '          controls\n          controlsList={controlsList}\n          playsInline', localPath);
   }
   if (localPath === "components/assistant-ui/elements/attachment.aui.tsx") {
+    // Preserve the maintained preview's failure message, per-image loading
+    // state and dialog height when regenerating the product adapter.
+    installed = installed
+      .replace('  const [isLoaded, setIsLoaded] = useState(false);',
+        '  const [imageState, setImageState] = useState<{ src: string; status: "loaded" | "error" }>();\n' +
+        '  const isLoaded = imageState?.src === src && imageState.status === "loaded";\n' +
+        '  if (imageState?.src === src && imageState.status === "error") {\n' +
+        '    return (\n' +
+        '      <div role="alert" className="text-muted-foreground p-4">\n' +
+        '        {localeMessages.attachments.previewFailed}\n' +
+        '      </div>\n' +
+        '    );\n' +
+        '  }')
+      .replace('      onLoad={() => setIsLoaded(true)}',
+        '      onLoad={() => setImageState({ src, status: "loaded" })}\n' +
+        '      onError={() => setImageState({ src, status: "error" })}')
+      .replace('aui-attachment-preview-dialog-content ', 'aui-attachment-preview-dialog-content min-h-12 ');
     // A size override lets cn discard Avatar's default size-8. Separate h/w
     // overrides leave size-8 present and depend on split CSS loading order.
     installed = replaceExactlyOnce(installed,
@@ -363,7 +403,9 @@ export function cleanProductAdapter(source, filename) {
 
 export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot) {
   const provenance = JSON.parse(await readFile(path.join(vendorDirectory, "UPSTREAM.json"), "utf8"));
-  const sources = new Map(await Promise.all(provenance.files.map(async entry => [entry.localPath, await readFile(path.join(vendorDirectory, entry.localPath), "utf8")])));
+  // Canonical source/provenance uses LF. Normalize only the in-memory input;
+  // a Windows checkout with CRLF must not change vendor bytes or adaptation hashes.
+  const sources = new Map(await Promise.all(provenance.files.map(async entry => [entry.localPath, (await readFile(path.join(vendorDirectory, entry.localPath), "utf8")).replace(/\r\n/g, "\n")])));
   const selected = new Set(seeded);
   let changed = true;
   while (changed) {
@@ -384,7 +426,12 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
     installed = installed.replace(/((?:from\s+|import\s+))["']([^"']+)["']/gu, (match, prefix, specifier) => {
       const target = dependency(specifier, filename, sources);
       if (!target || selected.has(target)) return match;
-      const relative = path.posix.relative(path.posix.dirname(filename), `../../vendor-generated/assistant-ui/${target}`).replace(/\.tsx?$/u, ".js");
+      // Use absolute logical roots: posix.relative on relative inputs otherwise
+      // resolves against the native cwd and truncates .. segments on Windows.
+      const relative = path.posix.relative(
+        path.posix.join("/adapters-generated/assistant-ui", path.posix.dirname(filename)),
+        path.posix.join("/vendor-generated/assistant-ui", target),
+      ).replace(/\.tsx?$/u, ".js");
       return `${prefix}"${relative.startsWith(".") ? relative : `./${relative}`}"`;
     });
     installed = applyProductStyleOwnership(applyProductLocalization(installed, filename));

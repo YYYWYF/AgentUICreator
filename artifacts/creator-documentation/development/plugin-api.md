@@ -14,7 +14,7 @@
 | 获取当前插件实例          | `usePluginInstance()`、`setup.instance`                                                | 读取实例 ID、插件 ID、启用状态              |
 | 读取消息、共享状态、运行与审批状态 | [会话状态](#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()` 等              | 已有 `AgentRuntimeProvider` 下的组件  |
 | 复用或提供业务服务         | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`usePluginServiceSnapshot()`、`setup.services` | 在插件定义中声明提供或消费的服务                |
-| 接收 Agent 业务通知     | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                        | 项目注册事件 Schema，插件声明消费权限          |
+| 接收 Agent 返回的业务事件  | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                        | 项目注册事件 Schema，插件声明消费权限          |
 | 组合子插件或替换消息展示      | [子插槽](#组件与子插槽)：`renderSlot()`、`renderScopedSlot()`                                    | 在 manifest 中声明对应子插件的显示位置和接受的能力  |
 | 自定义消息卡片和工具结果      | [展示注册](#消息与工具结果展示)：`dataMessageUIs`、`toolkit`                                         | 注册到现有会话，保留数据名称和工具名称             |
 | 复用输入框、附件与语音按钮     | [会话组件](#复用会话组件与输入能力)：公开组件、`useConversationComposer()`                                 | 当前 Conversation 的上下文中           |
@@ -113,22 +113,24 @@ export function TicketCard({ renderSlot }: UIPluginComponentProps) {
 
 ## setup 上下文
 
-| 成员                                    | 用途                                         |
-| ------------------------------------- | ------------------------------------------ |
-| `instance`                            | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息    |
-| `actions.sendMessage(input)`          | 发送字符串或 `AgentUserInput`，返回 `Promise<void>` |
-| `actions.abortRun()`                  | 请求停止当前运行                                   |
-| `actions.startNewConversation()`      | 新建并切换会话，返回 `Promise<void>`                 |
-| `actions.resumeInterrupts(responses)` | 提交审批或补充信息，返回 `Promise<void>`               |
-| `services.get(name)`                  | 获取服务，缺失时返回 undefined                       |
-| `services.provide(name, value)`       | 注册服务，返回取消注册函数                              |
-| `events.subscribe(name, listener)`    | 订阅业务事件，返回取消订阅函数                            |
+| 成员                                     | 用途                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `instance`                             | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息                                  |
+| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ ctx: { ... } }` 附带业务参数，返回 `Promise<void>` |
+| `actions.abortRun()`                   | 请求停止当前运行                                                                 |
+| `actions.startNewConversation()`       | 新建并切换会话，返回 `Promise<void>`                                               |
+| `actions.resumeInterrupts(responses)`  | 提交审批或补充信息，返回 `Promise<void>`                                             |
+| `services.get(name)`                   | 获取服务，缺失时返回 undefined                                                     |
+| `services.provide(name, value)`        | 注册服务，返回取消注册函数                                                            |
+| `events.subscribe(name, listener)`     | 订阅业务事件，返回取消订阅函数                                                          |
 
 `setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` / `usePluginServiceSnapshot` 接口。
 
 ## 会话操作与实例信息
 
 React 组件从 `@za38.03/agent-ui-plugins` 使用 `usePluginActions()` 和 `usePluginInstance()`，分别取得上表中的 `actions` 和 `instance`。它们由现有插件实例上下文提供；不作为 `Component` 的额外参数传入。
+
+例如 `await actions.sendMessage('分析订单', { ctx: { orderId: 'O-1042' } })`，后端从 `forwardedProps.ctx` 读取参数。更多示例见[业务参数 ctx](/development/business-context.md#业务参数-ctx)。
 
 以下示例放在 `plugins/ticket-actions/index.tsx`，发送一条项目文案中配置的工单分析请求：
 

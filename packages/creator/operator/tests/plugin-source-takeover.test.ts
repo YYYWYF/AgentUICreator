@@ -95,7 +95,7 @@ it("routes Host-created HTTP sources through the selected npm or owned Plugin wi
   await takeoverPluginSource(root, { pluginId: "conversation-data-source", planHash: plan.planHash }, pass);
   const local = path.join(root, "src/ui/plugins/conversation-data-source/source/adapters/http-data-source.ts");
   const localCode = await readFile(local, "utf8");
-  await writeFile(local, localCode.replace('`${base}/conversations`', '`${base}/owned-conversations`'));
+  await writeFile(local, localCode.replace('`${baseEndpoint}/conversations`', '`${baseEndpoint}/owned-conversations`'));
   expect(await requestUrl("owned")).toBe("/api/owned-conversations");
   expect(await readFile(serviceFile, "utf8")).toBe(projectCode);
   expect(await readFile(path.join(root, "src/ui/plugins/conversation-data-source/index.tsx"), "utf8")).toMatch(/from ['"]\.\/source\/index['"]/u);
@@ -135,13 +135,13 @@ it("plans direct presentation dependencies without mutation and installs only af
   expect((await readPluginSourceOwnership(paths.metadataRoot)).plugins.composer?.approvedPlanHash).toBe(plan.planHash);
 });
 
-it("refuses conflicting source dependencies and separate copies of the same runtime Context", async () => {
+it("preserves chosen dependency versions but refuses duplicate runtime Context instances", async () => {
   const root = await fixture("composer");
   const manifestFile = path.join(root, "package.json");
   const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
   manifest.dependencies["@base-ui/react"] = "99.0.0";
   await writeFile(manifestFile, JSON.stringify(manifest));
-  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).rejects.toMatchObject({ code: "PLUGIN_SOURCE_DEPENDENCY_CONFLICT" });
+  expect((await planPluginSourceTakeover(root, { pluginId: "composer" })).pluginId).toBe("composer");
   manifest.dependencies["@base-ui/react"] = "1.8.0";
   await writeFile(manifestFile, JSON.stringify(manifest));
   const duplicate = path.join(root, "node_modules/@assistant-ui/react");
@@ -512,7 +512,8 @@ it("validates takeover compatibility as installed shared API requirements, not C
   expect(()=>validateOperatorResult("plan_plugin_source_takeover",plan)).not.toThrow();
   expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility:{composerSupport:1}})).not.toThrow();
   expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility:{futureSharedApi:2}})).not.toThrow();
-  for(const compatibility of [{},{pluginSupport:0},{pluginSupport:-1},{pluginSupport:1.5},{pluginSupport:"1"},{"../pluginSupport":1},Object.fromEntries(Array.from({length:65},(_,n)=>[`api${n}`,1]))]) {
+  expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility:{}})).not.toThrow();
+  for(const compatibility of [{pluginSupport:0},{pluginSupport:-1},{pluginSupport:1.5},{pluginSupport:"1"},{"../pluginSupport":1},Object.fromEntries(Array.from({length:65},(_,n)=>[`api${n}`,1]))]) {
     expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility})).toThrow();
   }
   expect(await readFile(index,"utf8")).toBe(before);
@@ -521,10 +522,10 @@ it("validates takeover compatibility as installed shared API requirements, not C
   const catalog=JSON.parse(await readFile(catalogPath,"utf8"));
   catalog.sharedApis.pluginSupport=2;
   await writeFile(catalogPath,JSON.stringify(catalog));
-  await expect(planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).rejects.toMatchObject({code:"PLUGIN_SOURCE_INCOMPATIBLE"});
+  expect((await planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).recommendations.length).toBeGreaterThan(0);
   expect(await readFile(index,"utf8")).toBe(before);
   catalog.sharedApis.pluginSupport=1;
   catalog.plugins.find((plugin: {id:string})=>plugin.id==="tool-timeline").takeover.compatibility={unknownSupport:1};
   await writeFile(catalogPath,JSON.stringify(catalog));
-  await expect(planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).rejects.toMatchObject({code:"PLUGIN_SOURCE_INCOMPATIBLE"});
+  expect((await planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).recommendations).toContainEqual({api:"unknownSupport",required:1,installed:undefined});
 });

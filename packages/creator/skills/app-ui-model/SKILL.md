@@ -388,8 +388,9 @@ enabled navigation item uses a single column without a duplicate history icon.
 
 ### Attachment, dictation and feedback service configuration
 
-Use built-in defaults and project-owned business service implementations; only
-the AG-UI endpoint is an external connection prop.
+Use built-in defaults and project-owned business service implementations. Agent
+props expose the AG-UI endpoint and supported attachment, dictation, feedback
+configuration or custom adapters; inspect the installed public API before wiring them.
 For business-service wiring, read [service configuration](../ag-ui-frontend/references/service-configuration.md).
 Do not ask users to implement adapters or copy Runtime code.
 
@@ -418,12 +419,15 @@ and put its unique owner in `applicationPlugins`; optionally prepare
 for plugin-managed login; source installation never installs model instances
 automatically. Hiding the
 account leaves authentication enabled. Configure the Host adapter explicitly;
-never enable the demo by default or overwrite existing authentication. Confirm
-owner, adapter and layout scope once, honoring authorization already supplied.
-Use existing service-contract authorization and model/source recovery facilities.
+never enable the demo by default or overwrite existing authentication. Reuse the
+requested owner, adapter and layout scope and authorization already supplied;
+clarify only unresolved Host business details that materially change the wiring.
+Use the existing model/source recovery facilities when their diagnostics require them.
 The generated services/auth/adapter.ts fails closed until a real Host adapter is
-configured. Use the confirmed private service implementation change tools for this adapter.
+configured. Edit project-owned Service contracts and implementations with ordinary
+project tools; optional Service preflight tools check topology, declarations and
+current references without separate user confirmation.
 Read [service configuration](../ag-ui-frontend/references/service-configuration.md),
-explain authentication and shared caller impact, apply the exact confirmed edits
+explain authentication and shared caller impact, apply the requested wiring
 and verify the implementation before claiming login is usable.
 Never enable a demo adapter as a substitute for the Host's authentication.

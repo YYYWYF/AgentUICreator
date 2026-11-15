@@ -9,6 +9,7 @@
 | 信息      | 说明                          |
 | ------- | --------------------------- |
 | 接口地址    | 列表、详情、删除；需要重命名或归档时，再提供相应接口。 |
+| HTTP 方法 | 各接口使用的 GET、POST 等方法。        |
 | 鉴权方式    | 如何沿用现有登录态、请求头或 Cookie。      |
 | 请求和响应示例 | 包括成功结果、错误结果、会话 ID 和消息结构。    |
 | 需要开放的操作 | 是否允许删除、重命名、归档及取消归档。         |
@@ -35,7 +36,8 @@
 
 接入时保留数据源和会话服务插件启用，按自己的接口选择配置或适配方式：
 
-- 修改接口地址、鉴权和路由：[地址与鉴权配置](/development/history-backend.md#地址与鉴权配置)。
+- 修改共用基础地址和鉴权：[地址与鉴权配置](/development/history-backend.md#地址与鉴权配置)。
+- 配置各接口的请求与响应：[接口对象配置](/development/history-backend.md#按接口配置请求与响应)。
 - 核对默认请求、响应和历史消息格式：[HTTP 数据源](/development/history-backend.md#http-数据源)。
 - 转换不同的返回字段：[响应字段解码](/development/history-backend.md#响应字段解码)。
-- 使用其他请求方法或业务 API：[自定义会话数据源](/development/history-backend.md#自定义会话数据源)。
+- 复用已有 SDK 或独立业务数据源：[自定义会话数据源](/development/history-backend.md#自定义会话数据源)。

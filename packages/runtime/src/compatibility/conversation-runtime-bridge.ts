@@ -9,10 +9,7 @@ import type { ConversationCommandDecisionRequest } from "../plugin-api/index.js"
 import type { AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 
 import type { ConversationApplicationEventSource } from "../events/conversation-application-event-source.js";
-import {
-  AgentUiRuntimeBusyError,
-  UnsupportedAgentInputError,
-} from "../errors.js";
+import { AgentUiRuntimeBusyError } from "../errors.js";
 import { ConversationObservationSourceImpl } from "../observation/conversation-observation-source.js";
 import type { ConversationObservationSource } from "../observation/types.js";
 import type { ConversationThreadBinding } from "../threads/types.js";
@@ -27,12 +24,13 @@ import {
 } from "./command-decision.js";
 import type { ConversationCommandForwarder } from "./conversation-command-forwarding-agent.js";
 import type { AgentUISendOptions } from "../host/threads.js";
-import { withConversationEndpoint } from "./conversation-request-routing.js";
+import { withConversationSendOptions } from "./conversation-request-routing.js";
 import {
   mapConversationInterrupt,
   mapConversationInterruptResponse,
 } from "./conversation-interrupt-mapper.js";
 import { projectConversationMessages } from "./conversation-message-projector.js";
+import { mapConversationUserInput } from "./conversation-user-input.js";
 
 export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "../errors.js";
 
@@ -55,17 +53,6 @@ export class UnsupportedInterruptResponseMetadataError extends Error {
     );
     this.name = "UnsupportedInterruptResponseMetadataError";
   }
-}
-
-function mapTextInput(input: string | AgentUserInput): string {
-  if (typeof input === "string") return input;
-  if (typeof input.content === "string") return input.content;
-  const text: string[] = [];
-  for (const part of input.content) {
-    if (part.type !== "text") throw new UnsupportedAgentInputError(part.type);
-    text.push(part.text);
-  }
-  return text.join("");
 }
 
 function validateInterruptResponses<TState>(
@@ -158,9 +145,9 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     if (this.snapshot.interrupts.length > 0 || this.commandDecisionRequests.size > 0) {
       throw new Error("当前会话正在等待用户响应，请先处理 pending interrupts。");
     }
-    const text = mapTextInput(input);
-    if (text.length === 0) return;
-    const runConfig = withConversationEndpoint({}, options);
+    const message = mapConversationUserInput(input);
+    if (message === undefined) return;
+    const runConfig = withConversationSendOptions({}, options);
     this.actionInFlight = true;
     this.runtimeError = undefined;
     const settled = new Promise<void>((resolve, reject) => {
@@ -168,8 +155,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     });
     try {
       this.options.runtime.thread.append({
-        role: "user",
-        content: [{ type: "text", text }],
+        ...message,
         startRun: true,
         runConfig,
       });

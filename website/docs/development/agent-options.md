@@ -55,7 +55,15 @@ export const locales = {
 
 ## 传入业务上下文
 
-在业务页面给 `<Agent />` 传入 `getRunContext`，将当前选中记录、筛选条件等数据放进每次 AG-UI 请求的 `context`。业务系统继续维护自己的状态，回调只负责读取当前快照；无需把这些数据改成 AG-UI 共享 `state`。
+通过 `ctx` 向 Agent 传递业务参数：
+
+```tsx
+<Agent endpoint="/api/agent" ctx={{ orderId: selectedOrder.id, scene: 'order-detail' }} />
+```
+
+参数会放在请求体的 `forwardedProps.ctx` 中。发送消息时也可通过 `sendMessage(text, { ctx: { ... } })` 附加本次参数，同名参数以本次发送的值为准。示例见[业务参数 ctx](./business-context#业务参数-ctx)。
+
+在业务页面给 `<Agent />` 传入 `getRunContext`，将当前选中记录、筛选条件等数据放进每次 AG-UI 请求的 `context`。
 
 ```tsx
 import { Agent } from './agent-ui';

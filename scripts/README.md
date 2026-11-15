@@ -5,13 +5,13 @@
 | 用途 | 入口或共用模块 |
 | --- | --- |
 | 日常开发 | `dev-workbench.mjs`、`../apps/creator-workbench/dev.ts`、`prepare-workbench.mjs`、`start-creator-workbench.mjs`、`ensure-workspace-dependencies.mjs` |
-| 构建与准备 | `build-workspace.mjs`、`build-public-packages.mjs`、`prepare-host-packages.mjs`、`preparation-state.mjs` |
-| 跨平台进程 | `pnpm-process.mjs`；新增 pnpm 调用复用此模块，避免自行调用 Windows `.cmd` |
+| 构建与准备 | `build-workspace.mjs`、`build-public-packages.mjs`、`prepare-host-packages.mjs`、`workspace-build-cache.mjs`、`clean-package-dist.mjs` |
+| 跨平台进程 | `pnpm-process.mjs`、`npm-process.mjs`；按实际包管理器复用启动器，避免自行调用 Windows `.cmd` |
 | 测试与类型检查 | `test-workspace-ts.mjs`、`typecheck-workspace.mjs`、`generated-source-test-config.ts`、同名 `.test.*` |
 | 示例 Host | `host-examples/`：初始化、检查、重置和维护示例项目绑定 |
 | 包发行 | `version-packages.mjs`、`sync-package-release-metadata.mjs`、`prepare-compatibility-release.mjs`、`verify-public-packages.mjs`、`creator-documentation.mjs` |
 | assistant-ui 维护 | `update-assistant-ui.mjs`、`assistant-ui-workspace-packages.mjs`、`generate-assistant-ui-upgrade-report.mjs`、`check-assistant-ui-*.mjs`、`check-ag-ui-lockfile.mjs`、`check-generative-ui-resource.mjs` |
-| 其他检查 | `check-dependency-pins.mjs`、`check-operator-contract.mjs`、`check-react-compat.mjs`、`verify-dev-startup.mjs` |
+| 其他检查 | `check-dependency-pins.mjs`、`check-operator-contract.mjs`、`../packages/runtime/scripts/check-consumer-types.mjs --react-matrix`、`prepare-example-host.mjs --check`、`verify-dev-startup.mjs` |
 | 国际化 | `audit-ui-copy.mjs`；语言与主题行为由主流程测试和 Web Component 嵌入测试覆盖 |
 | 手动维护 | `audit-packed-plugin-sources.mts`（包内容审计）、`package-repository.mjs`（仓库与静态文档 ZIP 打包） |
 
@@ -41,6 +41,8 @@ website 相关 `.mjs` 只用于外网源码环境。内网安装、启动、构�
 
 `pnpm dev` 只准备依赖、生成资源、编译并启动服务，不执行额外审计。构建后的依赖版本、发布兼容元数据、Plugin 服务声明和边界检查通过 `pnpm check:build` 手动运行；`pnpm check:dependency-pins`、`pnpm check:release-metadata` 和 `pnpm check:examples` 提供独立入口。依赖精确版本审计不再接入 `preinstall`。发布元数据生成保留在构建/prepack 中，发布审核仍由显式检查和 `prepublishOnly` 执行。`pnpm test`、`pnpm typecheck` 和其他 `check:*` / `verify:*` 按修改范围运行。
 
+Core、Renderer、Runtime、Plugins 和 Creator 的 `dist` 清理统一使用 `clean-package-dist.mjs <owner>`，只删除白名单包的顶层发行目录，保留 Creator 的内部 `operator/dist`。`pnpm check:examples` 和 `pnpm check:react-compat` 保留原命令，分别由示例准备模块的 `--check` 和消费者检查的 `--react-matrix` 执行；导入这些 helper 不会触发示例检查或资源构建。
+
 根入口 `pnpm dev` 会持续监听上述五个开发包（Core、Renderer、Plugins、Runtime、Creator，含 Operator）的源码、资源及构建配置，合并保存后按依赖顺序重建受影响包并重启开发服务，保留原来选中的工程。运行或等待确认中的 Creator 任务结束/停止后才重启；编译失败后继续监听，修复保存会重试。普通应用文件继续使用 Vite 热更新；不会自动重写已有工程或推进源码 BASE。监听与重启逻辑位于 Workbench 的 TypeScript 模块，不新增 `.mjs` 入口。
 
 `pnpm verify:package` 检查包归属、真实 tarball 的公开入口、消费者类型和生产应用独立构建。`packages/creator/tests/creator-node-process.test.ts` 验证 Node Agent 的认证握手与启动/退出；浏览器功能验收单独记录，不能用这些检查替代。
@@ -51,7 +53,7 @@ website 相关 `.mjs` 只用于外网源码环境。内网安装、启动、构�
 
 2026 年 10 月的 22 个历史验收入口及其专用 registry helper 已删除，不保留归档副本。它们没有接入当前 package 命令或 CI。
 
-旧升级夹具、一次性生产包准备、按需加载浏览器控制和工具结果截图脚本也已移除。当前升级与工具结果行为由现有主流程测试覆盖；完整按需生产构建比较仍使用 `verify-plugin-demand-build.mjs`。截图来源记录保留当时的历史脚本路径。
+旧升级夹具、一次性生产包准备、按需加载浏览器控制和工具结果截图脚本也已移除。当前升级与工具结果行为由现有主流程测试覆盖；完整按需生产构建比较使用 `pnpm verify:plugin-demand-build`。它准备当前工作区包，通过公开 Bootstrap 在临时目录初始化独立工程，比较完整样式、按需样式、禁用和旧样式入口禁用/重新启用五种构建；校验真实模块图、CSS/JS 大小和 Creator/工具资源隔离，不读取或修改维护示例。结果写入忽略的 `artifacts/plugin-demand-build/`，临时工程和依赖链接在结束时清理。截图来源记录保留当时的历史脚本路径。
 
 Python 构建、启动和验证入口已移除；直接使用 `pnpm creator` 或 `pnpm dev`。
 

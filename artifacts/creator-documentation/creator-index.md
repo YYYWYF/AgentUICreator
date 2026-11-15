@@ -5,7 +5,6 @@
 ## 职责与所有权
 
 - [Agent UI Plugin Creator 架构与执行边界](references/docs/agent-ui-plugin-creator-launch-plan.md)：当前架构：Creator、AppUIModel、Plugin、Runtime、AG-UI、Service 和交付边界。
-- [Agent UI 参考项目选择](references/docs/agent-ui-reference-guide.md)：按问题选择参考项目；目标工程 UI Stack、已安装 API 与证据边界。
 - [统一 Plugins 包、内置源码目录与按需源码托管](references/docs/architecture/npm-default-plugin-source-ownership.md)：npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。
 - [Conversation Domain 架构](references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md)：Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。
 
@@ -50,7 +49,7 @@
 
 ## 更新与开发工具
 
-- [统一更新中心与兼容版本清单](references/docs/architecture/unified-update-center.md)：兼容清单、独立包版本、只读发现、具体升级确认、安装恢复与源码同步。
+- [统一更新中心与版本建议](references/docs/architecture/unified-update-center.md)：兼容清单、独立包版本、只读发现、具体升级确认、安装恢复与源码同步。
 - [Creator 开发控制面实现](references/docs/creator-control-plane-implementation-plan.md)：Creator 工具控制面、命令、Host guards、上下文及 Mock 管理。
 - [Source 资源与项目事务](references/docs/architecture/source-registry-project-mutation.md)：Source 资源安装、项目事务与受控修改。
 - [Transactional Preview Composition](references/docs/architecture/transactional-preview-composition.md)：预览组合的事务、revision、校验与恢复。

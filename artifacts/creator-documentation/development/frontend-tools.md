@@ -63,6 +63,150 @@ export function TicketPage({ openTicket }: {
 
 同名宿主工具与项目工具会明确报错，**不会覆盖已有工具**。只执行主会话的调用；历史展示不会触发页面操作。需要动态改变可用工具时，可自行实现 npm Core 导出的 `AgentFrontendToolSource`，通过 `subscribe` 和 `getRevision` 通知变化；仍使用相同的 `frontendTools` 属性接入。
 
+## 选中城市后，让后续消息携带城市
+
+用户让 Agent 打开选城工具，选中杭州后，再输入“明天天气怎么样”。把选中的城市保存到页面 state，并传给 `Agent.ctx`；发送按钮和回车发送都会使用更新后的值。
+
+将下面代码放在 `src/CityPage.tsx`。`openCityPicker` 的完整实现见下一节；`./agent-ui` 换成项目实际入口。
+
+```tsx
+import { useMemo, useState } from 'react';
+import { createAgentUIFrontendTools } from '@za38.03/agent-ui-runtime';
+import { Agent } from './agent-ui';
+import { openCityPicker } from './city-picker';
+
+export function CityPage() {
+  const [city, setCity] = useState<string | null>(null);
+  const tools = useMemo(() => createAgentUIFrontendTools([
+    {
+      name: 'select_city',
+      description: '打开选城界面，等待用户选择城市',
+      inputSchema: {
+        type: 'object', properties: {}, additionalProperties: false,
+      },
+      async execute(_input, { signal }) {
+        const selected = await openCityPicker(signal);
+        signal.throwIfAborted();
+        if (selected === null) return { cancelled: true };
+
+        setCity(selected);
+        return { city: selected, cancelled: false };
+      },
+    },
+  ]), []);
+
+  return <Agent endpoint="/api/agent" frontendTools={tools} ctx={{ city }} />;
+}
+```
+
+用户选中杭州后，下一次发送的请求包含 `"forwardedProps": { "ctx": { "city": "杭州" } }`，后端从 `input.forwardedProps.ctx.city` 读取。工具返回的 `{ city: '杭州' }` 是本次调用结果；`setCity()` 和 `Agent.ctx` 负责后续消息的参数，不需要修改 `submit-action/index.tsx`。
+
+已有业务 store 时，工具更新 store，挂载 Agent 的页面订阅同一个值即可。这份 state 属于当前页面，切换 Thread 不会自动清空，刷新也不会自动恢复；按业务需要决定共享范围和持久化方式。更多参数用法见[传递业务参数](/development/business-context.md)。
+
+## 等待用户选完城市，再让 Agent 继续
+
+`execute()` 返回的 Promise 完成后，工具结果才会回传。把现有选城弹窗包装成 `Promise<string | null>`：确认时返回城市，用户取消时返回 `null`；运行被停止时通过 `AbortSignal` 关闭弹窗并拒绝 Promise。
+
+下面是可直接配合上一节使用的 `src/city-picker.ts`，使用浏览器原生 `<dialog>`，无需新增 UI 依赖。已有弹窗组件时，可保留这个异步接口，用项目现有组件替换弹窗实现。
+
+```ts
+export function openCityPicker(signal: AbortSignal): Promise<string | null> {
+  signal.throwIfAborted();
+  return new Promise((resolve, reject) => {
+    const dialog = document.createElement('dialog');
+    dialog.innerHTML = `
+      <form method="dialog">
+        <label>城市
+          <select name="city">
+            <option>杭州</option><option>上海</option><option>北京</option>
+          </select>
+        </label>
+        <button value="confirm">确定</button>
+        <button value="cancel">取消</button>
+      </form>`;
+
+    const cleanup = () => {
+      signal.removeEventListener('abort', abort);
+      dialog.remove();
+    };
+    const abort = () => {
+      cleanup();
+      reject(new DOMException('City selection aborted', 'AbortError'));
+    };
+    dialog.addEventListener('close', () => {
+      const city = dialog.returnValue === 'confirm'
+        ? dialog.querySelector<HTMLSelectElement>('select')!.value : null;
+      cleanup();
+      resolve(city);
+    }, { once: true });
+    signal.addEventListener('abort', abort, { once: true });
+    document.body.append(dialog);
+    try {
+      dialog.showModal();
+    } catch (error) {
+      cleanup();
+      reject(error);
+    }
+  });
+}
+```
+
+这段示例的城市名和按钮文字属于业务界面，实际使用时接入项目现有文案方案。弹窗打开后不要立即返回 `{ opened: true }`：那会让 Agent 只收到“已打开”，无法等待本次选择。
+
+在上一节中，点击取消或按 Esc 会返回 `{ cancelled: true }`，保留之前选中的城市，Agent 可据此继续回复；点击停止则中止当前工具调用。关闭业务弹窗与停止 Agent 运行是两个独立动作，按业务约定处理即可。这里等待的是普通异步工具结果，后端审批或暂停恢复另见[人机交互与操作确认](/plugins/human-interaction.md)。
+
+## 为选城工具显示专用结果卡片
+
+如果希望在对话里显示选中的城市，可以通过 `frontendToolUIs` 按工具名配置展示组件。新建 `src/city-tool-ui.tsx`：
+
+```tsx
+import {
+  useAgentUILocale,
+  type ConversationToolCallProps,
+} from '@za38.03/agent-ui-plugins';
+import type { ConversationFrontendToolUIRegistry } from '@za38.03/agent-ui-runtime';
+
+function CityToolUI({ result, status, isError }: ConversationToolCallProps) {
+  const labels = useAgentUILocale('toolTimeline');
+  const value = result && typeof result === 'object'
+    ? result as Record<string, unknown> : {};
+  const label = isError || status.type === 'incomplete' ? labels.failed
+    : value.cancelled === true ? labels.cancelled
+    : status.type === 'complete' ? labels.complete
+    : status.type === 'requires-action' ? labels.waiting : labels.running;
+
+  return <div>
+    <span>{label}</span>
+    {typeof value.city === 'string' && <strong> {value.city}</strong>}
+  </div>;
+}
+
+export const cityToolUIs = {
+  select_city: { display: 'standalone', render: CityToolUI },
+} satisfies ConversationFrontendToolUIRegistry;
+```
+
+在上一节的 `CityPage.tsx` 导入它，并更新原来的 `<Agent />`。保留项目已有的工具展示注册，合并新增条目：
+
+```tsx
+import { cityToolUIs } from './city-tool-ui';
+import { agentUIProject } from './agent-ui/application/project-config';
+
+// CityPage 内，保留前面的 city 和 tools：
+return <Agent
+  endpoint="/api/agent"
+  frontendTools={tools}
+  ctx={{ city }}
+  frontendToolUIs={{ ...agentUIProject.generatedFrontendToolUIs, ...cityToolUIs }}
+/>;
+```
+
+已有额外的 Host 工具展示配置时，也合并进同一个对象；传入 `frontendToolUIs` 会替换项目默认配置，不会自动合并。`select_city` 必须与工具定义的 `name` 一致。
+
+`display: 'standalone'` 使用独立展示位置，`'inline'` 使用行内展示；不设置时保留默认行为。组件可读取 `args`、`result`、`status`、`isError` 等[工具调用属性](/plugins/ask-user-question.md#当前工具调用的数据与操作)，示例状态文字复用 Agent UI locale。
+
+`frontendTools` 决定工具能否执行，`frontendToolUIs` 负责展示。只注册 UI 不会把工具开放给 Agent；没有专用 UI 时使用默认工具展示。卡片只读取本次 `result`，历史里仍显示当时选中的城市；不要在渲染或挂载时调用 `openCityPicker()`、`setCity()` 或重新执行工具。
+
 ## AntD Form 直接接入
 
 已有 AntD 表单可以直接把业务方法包装成前端工具。本例只开放填写姓名和邮箱；校验规则、用户点击保存及业务保存方法仍由原表单负责。无需安装表单专用集成、新增服务插件或修改布局 JSON。
