@@ -17,7 +17,7 @@ export async function packageRepository(root, output, { websiteOnly = false } = 
     await (websiteOnly ? buildStaticWebsite(root) : generateDocumentation(root));
   }
   const website = path.join(root, sourceWebsite ? "website/doc_build" : "website");
-  const excluded = new Set([".git", ".github", ".venv", ".vscode", ".pnpm-store", ".pytest_cache", "node_modules", "tests", "dist", "coverage", "test-results", "playwright-report", "doc_build", ".rspress", ".vite"]);
+  const excluded = new Set([".git", ".github", ".agent-ui", ".superpowers", ".venv", ".vscode", ".pnpm-store", ".pytest_cache", "node_modules", "tests", "dist", "coverage", "test-results", "playwright-report", "doc_build", ".rspress", ".vite"]);
   const files = [];
   async function visit(relative = "") {
     for (const entry of (await readdir(path.join(root, relative), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {

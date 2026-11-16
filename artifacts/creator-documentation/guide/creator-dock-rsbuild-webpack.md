@@ -102,7 +102,7 @@ module.exports = async function () {
 
 CRACO / CRA 会单独创建开发服务器配置，因此需要同时接入 `webpack.plugins.add` 和 `devServer`。前者注入页面入口，后者配置携带工程身份的开发代理。若已有 `devServer` 配置函数，先应用原有修改，再将结果传给 `createCreatorDockWebpackDevServerOptions`。
 
-宿主继续使用已有的 `craco start` / `craco build` 脚本。生产构建不加载 Creator 适配器。安装模板后的样式配置见 [Webpack 样式配置](/development/react.md#webpack-5-样式配置)。
+宿主继续使用已有的 `craco start` / `craco build` 脚本。生产构建不加载 Creator 适配器。安装模板后，按 [CRACO 样式配置](/development/react.md#craco--cra-样式配置)将 Tailwind 显式加入内置 PostCSS 处理链；仅新建 `postcss.config.*` 不足以接入。
 
 ## 启动与验证
 

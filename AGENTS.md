@@ -112,6 +112,7 @@ Multiple frontend Agent instances reuse assistant-ui's canonical Thread/Runtime 
 - Do not couple the generated project to Creator packages, build tooling, runtime services, or UI dependencies.
 - Treat `runtime/*` and `framework/*` as read-only unless explicitly working on the framework.
 - Inspect existing project conventions before editing.
+- 项目自有 TypeScript 代码禁止使用 `any`，包括显式类型、隐式 `any`、`as any`、泛型参数和声明文件；使用准确类型，未知输入用 `unknown` 并收窄。仅保持原样的 vendor/upstream 第三方源码豁免，项目自有 adapters、应用层、模板、脚本和测试不豁免；不得为消除第三方 `any` 修改 vendor 源码。
 - Keep the maintained example Hosts (`examples/creator-host-sandbox`, `examples/creator-assistant-host`, and `examples/creator-embedded-host`) derived from the canonical Bootstrap presets and Plugin application templates. Run exploratory Creator/customization tests in a separate project, never in these maintained examples. Change an example only for an explicitly requested example change or a reviewed template synchronization.
 - New user-visible or screen-reader UI copy in Agent UI Plugins must use the Agent UI locale layer. Add a namespace when the UI domain needs one; use an existing namespace instead of hard-coding its presentation copy. Protocol IDs, service IDs, capability names, slots, event names, tool names, error codes, and test identifiers are not presentation copy.
 - Prefer the smallest correct change.
@@ -131,6 +132,12 @@ Multiple frontend Agent instances reuse assistant-ui's canonical Thread/Runtime 
 - An npm upgrade must preserve application files, local implementations, reference selection, config/AppUIModel and BASE. Check shared API compatibility first; an incompatible target requires a separate approved migration or compatible alternative, not silent code rewriting. After successful installation and identity checks, offer optional source-only sync against the project's actually installed Plugins snapshot; do not use online latest or tool dependencies as TARGET. Reuse BASE/LOCAL/TARGET merging and explicit validated adoption; npm confirmation does not authorize new source takeover, source merging or BASE adoption.
 - Agent UI implementation and Creator-generated UI code are React only. Vue/HTML Hosts embed Web Component; provide embedding and Creator startup guidance, not native Vue component generation or Host business-code modification. Project customization/update targets the React producer, not a precompiled consumer bundle. Production code must remain independent of Creator, Operator and update/discovery services.
 - See `docs/architecture/unified-update-center.md` for current support, implementation owners, install failure/tool restart boundaries and Windows acceptance requirements. An accepted documentation decision is not proof of implementation. Old fixture repair remains outside this update work.
+
+### 发布备忘录
+
+- 升版交付必须同时准备 `releases/compatibility.json`：使用 `scripts/prepare-compatibility-release.mjs` 按各包实际版本、依赖要求和经审阅的变更说明追加记录，保留已有历史；不能只改版本号，也不能为通过检查强行统一各包版本。
+- 源码交付必须带齐兼容清单和对应 `package.json` 中的 `agentUI.compatibility`。当前环境具备构建条件时，运行 `pnpm build:package`、`pnpm check:release-metadata` 和 `pnpm check:package-integrity`，如实报告已执行的检查及未验证项；内网重新构建时生成 `dist/compatibility.json` 和构建收据。
+- 实际发布由用户在内网环境执行 `pnpm publish -r --no-git-checks`。当前环境按需进行的本地模拟仓库 dry-run 只能验证发布钩子流程，不能代表内网仓库、凭据或实际发布已验证，也不作为每次源码交付的强制前提。遇到 `Review compatibility metadata before publishing` 时检查兼容记录，不要误判成 npm 仓库缺包，也不要删除或绕过发布检查。
 
 ## Windows compatibility
 

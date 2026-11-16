@@ -95,6 +95,7 @@
 - [Vue 工程接入](/development/vue.md): Vue 页面通过 Web Component 显示 Agent UI。Vue 工程负责放置组件、传入配置和监听事件；助理的组件实现和定制在提供该 Web Component 的 React 工程中维护。 按是否需要定制选择接入方式：
 - [HTML 与其他框架嵌入](/development/web-component.md): 独立 Web Component 将 React、Runtime 与所选 Plugin 构建到部署资源中。业务页面无需编译 TSX，但需要现代 Custom Elements、Shadow DOM 等浏览器能力。 接入自己生成的定制产物时，展示形态沿用 React 工程初始化时选择的模板。工作台和嵌入式需要宿主提供宽高，助手自带悬浮入口；尺寸和放置方式见各模板的说明。
 - [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 具体插件需要的事件名、数据字段和完整 SSE 格式，见插件显示条件与 AG-UI 数据。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
+- [多 Agent 与工作流入口](/development/multiple-agents.md): 一个业务页面可以组合多个独立助手，也可以让同一个助手的多个工作流按钮调用不同 URL。本页按场景介绍对应的配置方式。
 - [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 React 页面参数与方法。
 - [布局与插件组合](/development/layout-and-composition.md): Agent UI 把会话列表、输入框、附件、复制等功能做成了插件。你可以按需启用、调整位置，也可以把多个插件组合起来。 本页说明如何手动修改布局配置。界面排列、插件实例及组合保存在 app-ui.json 中，组件属性和渲染代码放在项目插件入口。 日常调整可以直接把需求告诉 Creator，见布局调整示例。自己编辑时，先找到下文的配置文件，保留现有实例 ID，再按需修改位置、尺寸和组合。
 - [业务页面与 Agent 联动](/development/react-host-control.md)

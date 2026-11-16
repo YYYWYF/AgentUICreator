@@ -161,6 +161,10 @@ test('static-only ZIP preserves Creator identity and repackages without website 
   assert.deepEqual(await documentationIdentity(root), identity);
   await prepareDocumentation(root);
   const localOnly = [
+    '.agent-ui/project.json',
+    '.superpowers/session.json',
+    'examples/host/.agent-ui/project.json',
+    'examples/host/.superpowers/session.json',
     'artifacts/old-acceptance/report.md',
     'artifacts/old-website.zip',
     'artifacts/extracted/package/index.js',
