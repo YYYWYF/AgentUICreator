@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-plugins",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Agent UI React components and official UI plugins",
   "type": "module",
   "engines": {
@@ -367,9 +367,9 @@
     "@lexical/utils": "0.51.0",
     "@lexical/history": "0.51.0",
     "@lexical/plain-text": "0.51.0",
-    "@za38.03/agent-ui-core": "0.0.10",
-    "@za38.03/agent-ui-renderer": "0.0.10",
-    "@za38.03/agent-ui-runtime": "0.0.10"
+    "@za38.03/agent-ui-core": "0.0.11",
+    "@za38.03/agent-ui-renderer": "0.0.11",
+    "@za38.03/agent-ui-runtime": "0.0.11"
   },
   "devDependencies": {
     "postcss": "8.5.28",
@@ -701,6 +701,89 @@
                   "kind": "breaking"
                 }
               ]
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-16-0.0.11",
+          "publishedAt": "2026-11-16T14:12:52.908Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.11",
+              "requires": {},
+              "historyFrom": "0.0.10",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.11",
+              "requires": {},
+              "historyFrom": "0.0.10",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
+              "historyFrom": "0.0.10",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "historyFrom": "0.0.10",
+              "changes": [
+                {
+                  "id": "conversation-scrollbar-on-overflow",
+                  "version": "0.0.11",
+                  "summary": "会话区域仅在内容溢出时显示纵向滚动条，修复 Windows 空会话仍显示滚动条的问题，保留长对话滚动。",
+                  "kind": "fix",
+                  "pluginId": "conversation-surface"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-web-component": "0.0.11",
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "historyFrom": "0.0.10",
+              "changes": [
+                {
+                  "id": "workbench-panel-offline-documentation",
+                  "version": "0.0.11",
+                  "summary": "同步工作台侧栏报告交互示例与 Creator 随包离线文档。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11",
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
+              "historyFrom": "0.0.10",
+              "changes": []
             }
           ]
         }
