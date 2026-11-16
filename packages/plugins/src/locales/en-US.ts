@@ -5,11 +5,7 @@ export const enUS = {
   "tabs": "Panel contents",
   "collapse": "Collapse",
   "closeItem": "Close {name}",
-  "open": "Open side panel",
-  "notes": "Notes",
-  "details": "Details",
-  "notesDraft": "Notes draft",
-  "detailsDraft": "Details draft"
+  "open": "Open side panel"
 },
   skills: {
     title: "Skills and workflows",

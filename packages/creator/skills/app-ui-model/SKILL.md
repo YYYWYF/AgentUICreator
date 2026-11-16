@@ -162,6 +162,35 @@ Hide disables the child instance and preserves the parent Slot declaration.
 Permanent deletion uses the Host purge tool and removes all instances of the
 chosen pluginId. Clarify when the destructive outcome is uncertain.
 
+### Remove the workbench-panel side panel while retaining chat
+
+This is the tabbed content panel beside the conversation, not conversation
+history or a Layout `sidebar`. Distinguish removing this feature from merely
+collapsing it: `collapse()`, `open={false}`, and closing every tab retain the
+48px rail and restore button. There is no public prop to hide the entire feature.
+
+For a request to remove this side panel while keeping the conversation:
+
+- Start with a fresh Composition Snapshot and the installed Plugin's public
+  presentation contract. Use one `mutate_app_ui_model` batch with its hash.
+- First `move_plugin` the existing `conversation-surface` subtree from
+  `workbench-panel.main` to the ordinary Layout Slot containing the wrapper.
+  Preserve its instance ID, enabled state and all child Slots and instances,
+  including composer, actions, renderers and suggestions. Do not recreate it.
+- Then disable the wrapper with `set_plugin_enabled(false)` for an unspecified
+  “去掉/不要了” request, retaining its source and remaining child configuration.
+  Remove the wrapper's composition instance only when explicitly requested;
+  source deletion still requires the separate purge flow. Never disable or
+  remove the parent while the conversation remains inside it.
+- Disable the dedicated `workbench-panel-actions` openers, including external
+  entries targeting this panel. Preserve unrelated `mainActions` by moving
+  them into suitable ordinary Layout Slots before disabling/removing the parent.
+- Preserve conversation Services, other regions, source and Source Lock. Do not
+  edit Runtime, take over Plugin source, or hide internal DOM elements with CSS.
+- Verify the conversation fills the available region with its original child
+  Plugins, and that the side panel, 48px rail and dedicated openers are absent.
+  A successful mutation or a collapsed panel alone does not prove completion.
+
 ### Reuse an optional capability
 
 Use the Composition Snapshot capability summaries to find an existing

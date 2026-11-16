@@ -1,11 +1,89 @@
 import { expect, test } from '@playwright/test';
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { ensurePluginApplication, synchronizeAgentUIPluginRegistry } from '@za38.03/agent-ui-creator/project/dev';
 import { createConnectionHostFixture } from './support/agent-connection-host.js';
+
+// Content exists only in this disposable project, never in the platform template.
+async function configureProjectContent(hostRoot: string) {
+  const source = path.join(hostRoot, 'src/agent-ui');
+  await ensurePluginApplication(hostRoot, 'workbench-panel-actions');
+  await writeFile(path.join(source, 'application/panel-messages.ts'), `
+import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+const messages = { 'zh-CN': { a: '内容 A', b: '内容 B' }, 'en-US': { a: 'Content A', b: 'Content B' } };
+export function panelMessages(locale: AgentUILocaleCode) { return messages[locale]; }
+`);
+  await writeFile(path.join(source, 'plugins/workbench-panel/definition.ts'), `
+import type { UIPluginDefinition } from '@za38.03/agent-ui-plugins/contracts';
+import implementation, {createWorkbenchPanelService, WORKBENCH_PANEL_SERVICE} from '@za38.03/agent-ui-plugins/workbench-panel';
+import {WorkbenchPanelPlugin} from './index';
+const definition: UIPluginDefinition = {
+  manifest: implementation.manifest, provides: [WORKBENCH_PANEL_SERVICE], Component: WorkbenchPanelPlugin,
+  setup: ({services}) => services.provide(WORKBENCH_PANEL_SERVICE, createWorkbenchPanelService(['content-a', 'content-b'])),
+};
+export default definition;
+`);
+  await writeFile(path.join(source, 'plugins/workbench-panel/index.tsx'), `
+import {useState, type ComponentProps} from 'react';
+import {useAgentUILocaleCode} from '@za38.03/agent-ui-plugins';
+import {WorkbenchPanelPlugin as Implementation} from '@za38.03/agent-ui-plugins/workbench-panel';
+import {panelMessages} from '../../application/panel-messages';
+function Content({label}: {label: string}) {
+  const [value, setValue] = useState('');
+  return <label>{label}<textarea value={value} onChange={event => setValue(event.target.value)} /></label>;
+}
+export function WorkbenchPanelPlugin(props: ComponentProps<typeof Implementation>) {
+  const labels = panelMessages(useAgentUILocaleCode());
+  return <Implementation {...props} items={[
+    {id:'content-a',label:labels.a,content:<Content label={labels.a}/>},
+    {id:'content-b',label:labels.b,content:<Content label={labels.b}/>},
+  ]}/>;
+}
+`);
+  await writeFile(path.join(source, 'plugins/workbench-panel-actions/index.tsx'), `
+import type {ComponentProps} from 'react';
+import {useAgentUILocaleCode} from '@za38.03/agent-ui-plugins';
+import {WorkbenchPanelActionsPlugin as Implementation} from '@za38.03/agent-ui-plugins/workbench-panel-actions';
+import {panelMessages} from '../../application/panel-messages';
+export function WorkbenchPanelActionsPlugin(props: ComponentProps<typeof Implementation>) {
+  const labels = panelMessages(useAgentUILocaleCode());
+  return <Implementation {...props} items={[{id:'content-a',label:labels.a},{id:'content-b',label:labels.b}]}/>;
+}
+`);
+  const modelFile = path.join(source, 'app-ui.json');
+  const model: unknown = JSON.parse(await readFile(modelFile, 'utf8'), (_key: string, value: unknown): unknown => {
+    if (value && typeof value === 'object' && 'pluginId' in value && value.pluginId === 'workbench-panel') {
+      if (!('slots' in value) || !value.slots || typeof value.slots !== 'object') throw new Error('PANEL_SLOTS_MISSING');
+      return { ...value, slots: { ...value.slots, mainActions: [{ pluginId: 'workbench-panel-actions' }] } };
+    }
+    return value;
+  });
+  await writeFile(modelFile, JSON.stringify(model, null, 2));
+  await synchronizeAgentUIPluginRegistry(hostRoot);
+}
+
+test('platform template contains no built-in panel content or opener buttons', async ({ page }, testInfo) => {
+  const fixture = await createConnectionHostFixture({ mode: 'platform' });
+  try {
+    await page.goto(fixture.hostOrigin);
+    const panel = page.locator('[data-ui-plugin="workbench-panel"]');
+    await expect(page.locator('[data-ui-plugin="composer"]').getByRole('textbox')).toBeEditable();
+    await expect(panel).toHaveAttribute('data-open', 'false');
+    await expect(panel.locator('.workbench-panel-toggle')).toBeDisabled();
+    await expect(panel.locator('[role="tab"], .workbench-panel-content')).toHaveCount(0);
+    await expect(page.locator('[data-ui-plugin="workbench-panel-actions"]')).toHaveCount(0);
+    const model = await readFile(path.join(fixture.hostRoot, 'src/agent-ui/app-ui.json'), 'utf8');
+    expect(model).not.toMatch(/notes|details|workbench-panel-actions/);
+    await page.screenshot({ path: testInfo.outputPath('empty-platform.png'), fullPage: true });
+  } finally { await fixture.close(); }
+});
 
 test('platform panel tabs and external callers preserve content and an in-flight conversation', async ({ page }, testInfo) => {
   const fixture = await createConnectionHostFixture({ mode: 'platform' });
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
+    await configureProjectContent(fixture.hostRoot);
     await page.setViewportSize({ width: 1440, height: 1000 });
     // Keep the draggable development launcher clear of the product tabs.
     await page.addInitScript(() => localStorage.setItem('agent-ui-creator-dock:left', '460'));
@@ -37,7 +115,7 @@ test('platform panel tabs and external callers preserve content and an in-flight
     const conversationNode = await conversation.elementHandle();
     const composerNode = await composer.elementHandle();
     await composer.fill('未发送的对话草稿');
-    await actions.getByRole('button', { name: '笔记', exact: true }).click();
+    await actions.getByRole('button', { name: '内容 A', exact: true }).click();
     await expect(panel).toHaveAttribute('data-open', 'true');
     expect(await toggle.boundingBox()).toEqual(toggleBounds);
     const region = panel.locator('.workbench-panel-side');
@@ -49,21 +127,21 @@ test('platform panel tabs and external callers preserve content and an in-flight
     expect(sideBounds.y).toBeCloseTo((await main.boundingBox())!.y, 0);
     expect(panelBounds.y).toBeCloseTo(0, 0);
     await expect(main.locator('[data-ui-plugin="workbench-panel-actions"]')).toBeVisible();
-    const notes = panel.getByRole('textbox', { name: '笔记草稿', exact: true });
-    await notes.fill('笔记里的草稿');
-    await panel.getByRole('tab', { name: '详情', exact: true }).click();
-    const details = panel.getByRole('textbox', { name: '详情草稿', exact: true });
-    await details.fill('详情里的草稿');
-    await panel.getByRole('button', { name: '关闭详情', exact: true }).click();
-    await expect(panel.getByRole('tab', { name: '详情', exact: true })).toHaveCount(0);
-    await expect(notes).toHaveValue('笔记里的草稿');
-    await panel.getByRole('button', { name: '关闭笔记', exact: true }).click();
+    const notes = panel.getByRole('textbox', { name: '内容 A', exact: true });
+    await notes.fill('内容 A 的输入');
+    await panel.getByRole('tab', { name: '内容 B', exact: true }).click();
+    const details = panel.getByRole('textbox', { name: '内容 B', exact: true });
+    await details.fill('内容 B 的输入');
+    await panel.getByRole('button', { name: '关闭内容 B', exact: true }).click();
+    await expect(panel.getByRole('tab', { name: '内容 B', exact: true })).toHaveCount(0);
+    await expect(notes).toHaveValue('内容 A 的输入');
+    await panel.getByRole('button', { name: '关闭内容 A', exact: true }).click();
     await expect(panel).toHaveAttribute('data-open', 'false');
     expect((await conversation.boundingBox())!.width).toBeCloseTo(fullWidth, 0);
-    await actions.getByRole('button', { name: '笔记', exact: true }).click();
-    await expect(notes).toHaveValue('笔记里的草稿');
-    await actions.getByRole('button', { name: '详情', exact: true }).click();
-    await expect(details).toHaveValue('详情里的草稿');
+    await actions.getByRole('button', { name: '内容 A', exact: true }).click();
+    await expect(notes).toHaveValue('内容 A 的输入');
+    await actions.getByRole('button', { name: '内容 B', exact: true }).click();
+    await expect(details).toHaveValue('内容 B 的输入');
     expect(fixture.runCount()).toBe(1);
     expect(fixture.pendingCount()).toBe(1);
     for (let i = 0; i < 4; i++) {
@@ -88,21 +166,21 @@ test('platform panel tabs and external callers preserve content and an in-flight
         return samples;
       });
       for (const sample of frames) expect(sample).toEqual({ ...toggleBounds, scrollX: 0, scrollY: 0 });
-      await expect(details).toHaveValue('详情里的草稿');
+      await expect(details).toHaveValue('内容 B 的输入');
       await panel.getByRole('button', { name: '收起', exact: true }).click();
-      await actions.getByRole('button', { name: '笔记', exact: true }).click();
-      await expect(notes).toHaveValue('笔记里的草稿');
-      await actions.getByRole('button', { name: '详情', exact: true }).click();
-      await expect(details).toHaveValue('详情里的草稿');
+      await actions.getByRole('button', { name: '内容 A', exact: true }).click();
+      await expect(notes).toHaveValue('内容 A 的输入');
+      await actions.getByRole('button', { name: '内容 B', exact: true }).click();
+      await expect(details).toHaveValue('内容 B 的输入');
       await expect(composer).toHaveValue('未发送的对话草稿');
       expect(await conversationNode!.evaluate(element => element.isConnected)).toBe(true);
       expect(await composerNode!.evaluate(element => element.isConnected)).toBe(true);
       expect(fixture.runCount()).toBe(1);
       expect(fixture.pendingCount()).toBe(1);
     }
-    await panel.getByRole('tab', { name: '详情', exact: true }).press('ArrowLeft');
-    await expect(panel.getByRole('tab', { name: '笔记', exact: true })).toBeFocused();
-    await expect(notes).toHaveValue('笔记里的草稿');
+    await panel.getByRole('tab', { name: '内容 B', exact: true }).press('ArrowLeft');
+    await expect(panel.getByRole('tab', { name: '内容 A', exact: true })).toBeFocused();
+    await expect(notes).toHaveValue('内容 A 的输入');
     fixture.finishRun();
     await expect(conversation).toContainText('wire:finished');
     await expect(composer).toHaveValue('未发送的对话草稿');
@@ -111,8 +189,8 @@ test('platform panel tabs and external callers preserve content and an in-flight
     await page.screenshot({ path: testInfo.outputPath('workbench-panel.png'), fullPage: true });
     for (const theme of ['violet', 'light', 'dark']) {
       await page.goto(`${fixture.hostOrigin}?theme=${theme}`);
-      await actions.getByRole('button', { name: '笔记', exact: true }).click();
-      await expect(panel.getByRole('tab', { name: '笔记', exact: true })).toHaveAttribute('aria-selected', 'true');
+      await actions.getByRole('button', { name: '内容 A', exact: true }).click();
+      await expect(panel.getByRole('tab', { name: '内容 A', exact: true })).toHaveAttribute('aria-selected', 'true');
       const selectedConversation = page.locator('[data-slot="aui_thread-list-item"][data-active="true"]').first();
       await expect(selectedConversation).toBeVisible();
       const conversationColor = await selectedConversation.evaluate(element => getComputedStyle(element).backgroundColor);

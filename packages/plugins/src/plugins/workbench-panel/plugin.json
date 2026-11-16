@@ -21,16 +21,6 @@
             "conversation-surface"
           ]
         }
-      },
-      "notes": {
-        "description": "Notes content",
-        "cardinality": "one",
-        "optional": true
-      },
-      "details": {
-        "description": "Details content",
-        "cardinality": "one",
-        "optional": true
       }
     }
   }

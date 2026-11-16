@@ -7,7 +7,8 @@ export interface WorkbenchPanelActionsProps extends Partial<UIPluginComponentPro
 }
 export function WorkbenchPanelActions({ service, items }: WorkbenchPanelActionsProps) {
   const messages = useAgentUILocale('workbenchPanel');
-  const choices = items ?? [{ id: 'notes', label: messages.notes }, { id: 'details', label: messages.details }];
+  const choices = items ?? [];
+  if (choices.length === 0) return null;
   return <nav data-ui-plugin="workbench-panel-actions" className="workbench-panel-actions" aria-label={messages.open}>
     {choices.map(item => <button key={item.id} type="button" disabled={!service}
       onClick={() => service?.open(item.id)}>{item.label}</button>)}

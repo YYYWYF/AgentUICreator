@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from '@za38.03/agent-ui-runtime/ui';
 
-export const capabilityCatalogRevision = '1f3a9915bed5ec3cc85f8f6c0defed5b8787ec120c7d9f155dde8ff5f7f34d73';
+export const capabilityCatalogRevision = 'cb00c75c4fdba9b997f8f4fbfc48c42504d854a8e22eb4d24bedec21cfcd7fe2';
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -606,8 +606,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
             cardinality: 'one',
             accepts: { anyOfCapabilities: ['conversation-surface'] },
           },
-          notes: { description: 'Notes content', cardinality: 'one', optional: true },
-          details: { description: 'Details content', cardinality: 'one', optional: true },
         },
       },
     },
@@ -615,18 +613,5 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () => import('./workbench-panel/definition').then(({ default: definition }) => definition),
-  },
-  {
-    manifest: {
-      id: 'workbench-panel-actions',
-      name: 'Workbench Panel Actions',
-      description: 'Opens configured workbench panel content from other Plugin instances',
-      version: '0.0.1',
-      capabilities: ['workbench-panel-action'],
-    },
-    provides: [],
-    inject: ['agent-ui.workbench-panel'],
-    optionalInject: [],
-    loadDefinition: () => import('./workbench-panel-actions/definition').then(({ default: definition }) => definition),
   },
 ]);

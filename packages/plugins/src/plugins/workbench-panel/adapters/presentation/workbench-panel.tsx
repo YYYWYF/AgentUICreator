@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { FileTextIcon, InfoIcon, PanelRightIcon, XIcon } from 'lucide-react';
+import { FileTextIcon, PanelRightIcon, XIcon } from 'lucide-react';
 import { useAgentUILocale, usePluginServiceSnapshot } from '../../../../public.js';
 import type { UIPluginComponentProps } from '@za38.03/agent-ui-plugins/contracts';
 import type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './service.js';
@@ -25,15 +25,7 @@ export interface WorkbenchPanelProps extends Partial<UIPluginComponentProps> {
   className?: string | undefined;
   style?: CSSProperties | undefined;
 }
-const CLOSED: WorkbenchPanelSnapshot = { open: false, activeItemId: 'notes', visibleItemIds: ['notes', 'details'] };
-function Draft({ kind }: { kind: 'notes' | 'details' }) {
-  const messages = useAgentUILocale('workbenchPanel');
-  const [value, setValue] = useState('');
-  return <label className="workbench-panel-draft">
-    <span>{kind === 'notes' ? messages.notesDraft : messages.detailsDraft}</span>
-    <textarea value={value} onChange={event => setValue(event.target.value)} />
-  </label>;
-}
+const CLOSED: WorkbenchPanelSnapshot = { open: false, activeItemId: '', visibleItemIds: [] };
 export function WorkbenchPanel({
   service, items: suppliedItems, renderSlot, children, mainActions, open: controlledOpen,
   activeItemId: controlledActive, visibleItemIds: controlledVisible,
@@ -48,10 +40,7 @@ export function WorkbenchPanel({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
   const [closedItemIds, setClosedItemIds] = useState<readonly string[]>([]);
-  const items = suppliedItems ?? [
-    { id: 'notes', label: messages.notes, icon: <FileTextIcon />, content: renderSlot?.('notes', <Draft kind="notes" />) ?? <Draft kind="notes" /> },
-    { id: 'details', label: messages.details, icon: <InfoIcon />, content: renderSlot?.('details', <Draft kind="details" />) ?? <Draft kind="details" /> },
-  ];
+  const items = suppliedItems ?? [];
   const visibleItemIds = controlledVisible ?? (service ? snapshot.visibleItemIds : items.filter(item => !closedItemIds.includes(item.id)).map(item => item.id));
   const visibleItems = visibleItemIds.flatMap(itemId => {
     const item = items.find(candidate => candidate.id === itemId);

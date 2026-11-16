@@ -5,11 +5,7 @@ export const zhCN = {
   "tabs": "侧栏内容",
   "collapse": "收起",
   "closeItem": "关闭{name}",
-  "open": "打开侧栏",
-  "notes": "笔记",
-  "details": "详情",
-  "notesDraft": "笔记草稿",
-  "detailsDraft": "详情草稿"
+  "open": "打开侧栏"
 },
   skills: {
     title: "技能与工作流",

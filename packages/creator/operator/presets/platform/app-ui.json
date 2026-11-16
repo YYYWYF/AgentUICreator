@@ -151,12 +151,6 @@
                       ]
                     }
                   }
-                ],
-                "mainActions": [
-                  {
-                    "pluginId": "workbench-panel-actions",
-                    "id": "workbench-panel-actions-main"
-                  }
                 ]
               }
             }

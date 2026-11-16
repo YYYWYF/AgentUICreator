@@ -1,7 +1,7 @@
 import type { UIPluginObservableService } from '@za38.03/agent-ui-plugins/contracts';
 
 export const WORKBENCH_PANEL_SERVICE = 'agent-ui.workbench-panel';
-export const DEFAULT_WORKBENCH_PANEL_IDS = ['notes', 'details'] as const;
+export const DEFAULT_WORKBENCH_PANEL_IDS = [] as const;
 export interface WorkbenchPanelSnapshot {
   readonly open: boolean;
   readonly activeItemId: string;
@@ -17,26 +17,31 @@ export interface WorkbenchPanelService extends UIPluginObservableService<Workben
 export function createWorkbenchPanelService(
   itemIds: readonly string[] = DEFAULT_WORKBENCH_PANEL_IDS,
 ): WorkbenchPanelService {
-  const first = itemIds[0];
-  if (!first || itemIds.some(id => !id.trim()) || new Set(itemIds).size !== itemIds.length) {
+  const first = itemIds[0] ?? '';
+  if (itemIds.some(id => !id.trim()) || new Set(itemIds).size !== itemIds.length) {
     throw new Error('WORKBENCH_PANEL_ITEMS_INVALID');
   }
   const allowed = new Set(itemIds);
   let snapshot: WorkbenchPanelSnapshot = { open: false, activeItemId: first, visibleItemIds: [...itemIds] };
   const listeners = new Set<() => void>();
   function update(open: boolean, activeItemId: string, visibleItemIds = snapshot.visibleItemIds) {
-    if (!allowed.has(activeItemId)) throw new Error('WORKBENCH_PANEL_ITEM_NOT_FOUND');
+    if (activeItemId && !allowed.has(activeItemId)) throw new Error('WORKBENCH_PANEL_ITEM_NOT_FOUND');
     if (snapshot.open === open && snapshot.activeItemId === activeItemId && snapshot.visibleItemIds === visibleItemIds) return;
     snapshot = { open, activeItemId, visibleItemIds };
     for (const listener of listeners) listener();
   }
   function show(open: boolean, id: string) {
+    if (!allowed.has(id)) throw new Error('WORKBENCH_PANEL_ITEM_NOT_FOUND');
     update(open, id, snapshot.visibleItemIds.includes(id) ? snapshot.visibleItemIds : [...snapshot.visibleItemIds, id]);
   }
   return {
     getSnapshot: () => snapshot,
     subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
-    open: (id = snapshot.activeItemId) => show(true, id),
+    open(id) {
+      const target = id ?? snapshot.activeItemId;
+      if (id === undefined && !target) return;
+      show(true, target);
+    },
     activate: id => show(snapshot.open, id),
     close(id) {
       if (!allowed.has(id)) throw new Error('WORKBENCH_PANEL_ITEM_NOT_FOUND');
