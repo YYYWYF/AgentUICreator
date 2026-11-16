@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
   "packageName": "@za38.03/agent-ui-creator",
-  "packageVersion": "0.0.9",
+  "packageVersion": "0.0.10",
   "versions": {
-    "@za38.03/agent-ui-core": "0.0.9",
-    "@za38.03/agent-ui-renderer": "0.0.9",
-    "@za38.03/agent-ui-runtime": "0.0.9",
-    "@za38.03/agent-ui-plugins": "0.0.9",
-    "@za38.03/agent-ui-web-component": "0.0.9",
-    "@za38.03/agent-ui-creator": "0.0.9"
+    "@za38.03/agent-ui-core": "0.0.10",
+    "@za38.03/agent-ui-renderer": "0.0.10",
+    "@za38.03/agent-ui-runtime": "0.0.10",
+    "@za38.03/agent-ui-plugins": "0.0.10",
+    "@za38.03/agent-ui-web-component": "0.0.10",
+    "@za38.03/agent-ui-creator": "0.0.10"
   },
-  "sourceDigest": "dac24a906aac5456cdbc0babad6c720d800b9cbaaefef9eb2c56bbf63bae1907",
+  "sourceDigest": "cdd9149d8d2d5a344d1b71f20fd58e7d932788ce7053a7490f90bd428e1f8411",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 242935,
-      "sha256": "0583636dad6b5119699cefb51b62d329ff3e22658e68ea50f326e7eda78f33c4"
+      "bytes": 243022,
+      "sha256": "67ac5f5bdc76050fef8a37418c37d2c45d3097b7ccc55f09616e35a0089c09e9"
     },
     {
       "path": "creator-index.md",
@@ -94,8 +94,8 @@
     },
     {
       "path": "development/locale-reference.md",
-      "bytes": 121513,
-      "sha256": "655e9f83f5323ae9dea82663f9355cad0dc68d2c5220f5c1ff73cef404e5c6dc"
+      "bytes": 121072,
+      "sha256": "f73f5e98afc37a296b0c69c7cd6d48109073ec1b80cb162914f286c213fa14e0"
     },
     {
       "path": "development/localization.md",
@@ -274,13 +274,13 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 868975,
-      "sha256": "ebd7e4c20afe13e57dee74199054214abe712193674a9ab79bd93fa0ce023df2"
+      "bytes": 868654,
+      "sha256": "21f30595c65134728f0f8a8ba458c5f9cf6a74889b04b4deda6c68d1b5cf16da"
     },
     {
       "path": "llms.txt",
-      "bytes": 33021,
-      "sha256": "8229ccc581ae98ecc6939ff3660df48f61bc3b9723d858bbcccbc3d6781d50a9"
+      "bytes": 33108,
+      "sha256": "bb67b990cad3f41fbf33f10d11c4d5b0069af3a5aad8357972c89c3ed9a090e4"
     },
     {
       "path": "mock/builtin-scenarios.md",
@@ -404,8 +404,8 @@
     },
     {
       "path": "plugins/default-plugins.md",
-      "bytes": 10755,
-      "sha256": "5603bae0fc554c5a4e93e3b57798f6c2b57e907ca94a45e5336814a1aba5c33c"
+      "bytes": 10794,
+      "sha256": "13f8d586e6fe7b01746b6a6df152632e2c35179d664539c864c6273df8c49604"
     },
     {
       "path": "plugins/dictation-action.md",
@@ -554,8 +554,8 @@
     },
     {
       "path": "plugins/workbench-panel.md",
-      "bytes": 3967,
-      "sha256": "7176087768e51d39727ace61fb0a1c4f4a3cd4cc7ecae57184c5dc88eeeb4d57"
+      "bytes": 4048,
+      "sha256": "c26beff207430ae87a43d561dc45a1b07069e5a30adc91dc055c7b47440afa2e"
     },
     {
       "path": "references/docs/agent-ui-plugin-creator-launch-plan.md",

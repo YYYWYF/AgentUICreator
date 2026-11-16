@@ -559,12 +559,12 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 
 ## 工作台侧栏
 
-以下两项只在工作台（platform）默认启用，悬浮助手与嵌入式助手暂不支持。内容开发、跨插件打开和新增标签见[多内容侧栏](/plugins/workbench-panel.md)。
+工作台（platform）默认启用侧栏容器，不内置内容和打开按钮。悬浮助手与嵌入式助手暂不支持。内容开发、跨插件打开和新增标签见[多内容侧栏](/plugins/workbench-panel.md)。
 
 | 插件                                                                   | 用途                       | 默认状态    |
 | -------------------------------------------------------------------- | ------------------------ | ------- |
 | [`workbench-panel`](/plugins/workbench-panel.md)                     | 在对话旁切换多个内容，关闭和收起时保留内容状态。 | 工作台默认启用 |
-| [`workbench-panel-actions`](/plugins/workbench-panel.md#让其他插件打开指定内容) | 通过共享服务打开指定侧栏内容。          | 工作台默认启用 |
+| [`workbench-panel-actions`](/plugins/workbench-panel.md#让其他插件打开指定内容) | 配置自己的按钮列表，通过共享服务打开指定内容。  | 默认未启用   |
 
 ## 消息输入与编辑
 
@@ -1224,9 +1224,9 @@ url: /plugins/workbench-panel.md
 
 `workbench-panel` 提供右侧多标签面板，其他插件通过 `open(内容ID)` 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。
 
-![多内容侧栏：在对话右侧展示内容，顶部可切换标签、关闭内容或收起面板](/images/plugins/workbench-panel.png)
+![用户配置内容后的多内容侧栏：顶部可切换标签、关闭内容或收起面板](/images/plugins/workbench-panel.png)
 
-以下路径相对于生成目录，默认为 `src/agent-ui/`。新工作台已有侧栏容器。
+以下路径相对于生成目录，默认为 `src/agent-ui/`。新工作台已有侧栏容器，默认不配置内容、标签或打开按钮；用户接入自己的内容后使用。
 
 ## 把插件加入多内容侧栏
 
@@ -11099,7 +11099,7 @@ url: /development/locale-reference.md
 
 <!-- locale-reference:start -->
 
-以下 38 个命名空间、470 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
+以下 38 个命名空间、466 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
 
 默认值以字符串字面量展示，`""` 表示空字符串，`\n` 表示换行；引号不属于文案。这里只列出 npm 的默认值，项目和 Host 的已有覆盖可能使实际显示不同。字段是否显示取决于启用的插件、组件和当前状态。
 
@@ -11433,17 +11433,13 @@ url: /development/locale-reference.md
 
 ### 工作台侧栏
 
-| 字段路径                          | 默认中文（zh-CN）              | 默认英文（en-US）                         |
-| ----------------------------- | ------------------------ | ----------------------------------- |
-| `workbenchPanel.region`       | <code>"工作台侧栏"</code>     | <code>"Workbench side panel"</code> |
-| `workbenchPanel.tabs`         | <code>"侧栏内容"</code>      | <code>"Panel contents"</code>       |
-| `workbenchPanel.collapse`     | <code>"收起"</code>        | <code>"Collapse"</code>             |
-| `workbenchPanel.closeItem`    | <code>"关闭\{name}"</code> | <code>"Close \{name}"</code>        |
-| `workbenchPanel.open`         | <code>"打开侧栏"</code>      | <code>"Open side panel"</code>      |
-| `workbenchPanel.notes`        | <code>"笔记"</code>        | <code>"Notes"</code>                |
-| `workbenchPanel.details`      | <code>"详情"</code>        | <code>"Details"</code>              |
-| `workbenchPanel.notesDraft`   | <code>"笔记草稿"</code>      | <code>"Notes draft"</code>          |
-| `workbenchPanel.detailsDraft` | <code>"详情草稿"</code>      | <code>"Details draft"</code>        |
+| 字段路径                       | 默认中文（zh-CN）              | 默认英文（en-US）                         |
+| -------------------------- | ------------------------ | ----------------------------------- |
+| `workbenchPanel.region`    | <code>"工作台侧栏"</code>     | <code>"Workbench side panel"</code> |
+| `workbenchPanel.tabs`      | <code>"侧栏内容"</code>      | <code>"Panel contents"</code>       |
+| `workbenchPanel.collapse`  | <code>"收起"</code>        | <code>"Collapse"</code>             |
+| `workbenchPanel.closeItem` | <code>"关闭\{name}"</code> | <code>"Close \{name}"</code>        |
+| `workbenchPanel.open`      | <code>"打开侧栏"</code>      | <code>"Open side panel"</code>      |
 
 ### 登录与账号
 

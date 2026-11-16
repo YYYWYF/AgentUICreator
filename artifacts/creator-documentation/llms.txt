@@ -20,7 +20,7 @@
 - [新建会话（conversation-new）](/plugins/conversation-new.md): 点击后进入空白对话，可以重新输入问题；之前的会话记录仍保留在历史列表中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [开场建议（conversation-suggestions）](/plugins/conversation-suggestions.md): 例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置填入输入框或直接发起提问。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [临时通知（transient-assistant-messages）](/plugins/transient-assistant-messages.md): 提示显示在对话的对应位置，但不作为用户问题发送给 Agent，也不写入后端聊天历史。它只保留在当前页面内存中，适合临时通知。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [多内容侧栏](/plugins/workbench-panel.md): workbench-panel 提供右侧多标签面板，其他插件通过 open(内容ID) 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。 以下路径相对于生成目录，默认为 src/agent-ui/。新工作台已有侧栏容器。
+- [多内容侧栏](/plugins/workbench-panel.md): workbench-panel 提供右侧多标签面板，其他插件通过 open(内容ID) 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。 以下路径相对于生成目录，默认为 src/agent-ui/。新工作台已有侧栏容器，默认不配置内容、标签或打开按钮；用户接入自己的内容后使用。
 - [消息输入（composer）](/plugins/composer.md): 需要在回复期间发送后续问题时，先按消息排队开启；该教程说明待发送列表、移除、停止和切换会话的行为。 用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [发送与停止（submit-action）](/plugins/submit-action.md): 排队的启用方式和停止／审批时的行为见消息排队；带 endpoint 的工作流按钮在运行中不排队。 输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
 - [附件添加（add-attachment-action）](/plugins/add-attachment-action.md): 点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。

@@ -293,14 +293,14 @@
       "path": "plugins/default-plugins.md",
       "title": "插件默认启用情况",
       "summary": "查看三种模板中默认启用和按需启用的官方插件。",
-      "sha256": "5603bae0fc554c5a4e93e3b57798f6c2b57e907ca94a45e5336814a1aba5c33c",
+      "sha256": "13f8d586e6fe7b01746b6a6df152632e2c35179d664539c864c6273df8c49604",
       "sections": [
         {
           "id": "s1",
           "title": "插件默认启用情况",
           "level": 1,
           "start": 0,
-          "end": 7507
+          "end": 7516
         },
         {
           "id": "s11",
@@ -314,49 +314,49 @@
           "title": "工作台侧栏",
           "level": 2,
           "start": 1328,
-          "end": 1873
+          "end": 1882
         },
         {
           "id": "s30",
           "title": "消息输入与编辑",
           "level": 2,
-          "start": 1873,
-          "end": 3008
+          "start": 1882,
+          "end": 3017
         },
         {
           "id": "s44",
           "title": "回复操作",
           "level": 2,
-          "start": 3008,
-          "end": 3739
+          "start": 3017,
+          "end": 3748
         },
         {
           "id": "s54",
           "title": "思考、工具与任务",
           "level": 2,
-          "start": 3739,
-          "end": 5222
+          "start": 3748,
+          "end": 5231
         },
         {
           "id": "s70",
           "title": "结果、来源与检索",
           "level": 2,
-          "start": 5222,
-          "end": 6100
+          "start": 5231,
+          "end": 6109
         },
         {
           "id": "s81",
           "title": "外观、语言与账号",
           "level": 2,
-          "start": 6100,
-          "end": 6702
+          "start": 6109,
+          "end": 6711
         },
         {
           "id": "s91",
           "title": "配置与服务",
           "level": 2,
-          "start": 6702,
-          "end": 7507
+          "start": 6711,
+          "end": 7516
         }
       ]
     },
@@ -754,36 +754,36 @@
       "topic": "插件",
       "path": "plugins/workbench-panel.md",
       "title": "多内容侧栏",
-      "summary": "workbench-panel 提供右侧多标签面板，其他插件通过 open(内容ID) 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。 以下路径相对于生成目录，默认为 src/agent-ui/。新工作台已有侧栏容器。",
-      "sha256": "7176087768e51d39727ace61fb0a1c4f4a3cd4cc7ecae57184c5dc88eeeb4d57",
+      "summary": "workbench-panel 提供右侧多标签面板，其他插件通过 open(内容ID) 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。 以下路径相对于生成目录，默认为 src/agent-ui/。新工作台已有侧栏容器，默认不配置内容、标签或打开按钮；用户接入自己的内容后使用。",
+      "sha256": "c26beff207430ae87a43d561dc45a1b07069e5a30adc91dc055c7b47440afa2e",
       "sections": [
         {
           "id": "s1",
           "title": "多内容侧栏",
           "level": 1,
           "start": 0,
-          "end": 2537
+          "end": 2564
         },
         {
           "id": "s9",
           "title": "把插件加入多内容侧栏",
           "level": 2,
-          "start": 226,
-          "end": 1713
+          "start": 253,
+          "end": 1740
         },
         {
           "id": "s52",
           "title": "让其他插件打开指定内容",
           "level": 2,
-          "start": 1713,
-          "end": 2537
+          "start": 1740,
+          "end": 2564
         },
         {
           "id": "s74",
           "title": "服务方法与状态",
           "level": 3,
-          "start": 2250,
-          "end": 2537
+          "start": 2277,
+          "end": 2564
         }
       ]
     },
@@ -6708,21 +6708,21 @@
       "path": "development/locale-reference.md",
       "title": "文案字段参考",
       "summary": "查找可覆盖的界面文案字段及其中英文默认值。配置步骤和代码示例见语言与文案。 按功能查找下面的字段，再构造 Agent.locales 覆盖对象。当前项目安装版本的 AgentUILocaleOverrides 类型是可用字段的依据，编辑器可以补全字段并检查拼写；网站清单对应当前文档版本。",
-      "sha256": "655e9f83f5323ae9dea82663f9355cad0dc68d2c5220f5c1ff73cef404e5c6dc",
+      "sha256": "f73f5e98afc37a296b0c69c7cd6d48109073ec1b80cb162914f286c213fa14e0",
       "sections": [
         {
           "id": "s1",
           "title": "文案字段参考",
           "level": 1,
           "start": 0,
-          "end": 115139
+          "end": 114722
         },
         {
           "id": "s7",
           "title": "界面文案",
           "level": 2,
           "start": 193,
-          "end": 62518
+          "end": 62101
         },
         {
           "id": "s17",
@@ -6771,28 +6771,28 @@
           "title": "工作台侧栏",
           "level": 3,
           "start": 56880,
-          "end": 57981
+          "end": 57564
         },
         {
-          "id": "s359",
+          "id": "s355",
           "title": "登录与账号",
           "level": 3,
-          "start": 57981,
-          "end": 59696
+          "start": 57564,
+          "end": 59279
         },
         {
-          "id": "s375",
+          "id": "s371",
           "title": "运行状态与错误",
           "level": 3,
-          "start": 59696,
-          "end": 62518
+          "start": 59279,
+          "end": 62101
         },
         {
-          "id": "s396",
+          "id": "s392",
           "title": "示例与演示页面",
           "level": 2,
-          "start": 62518,
-          "end": 115139
+          "start": 62101,
+          "end": 114722
         }
       ]
     },
