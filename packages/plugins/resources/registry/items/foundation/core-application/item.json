@@ -20,6 +20,6 @@
     "foundation/core-adapters"
   ],
   "packages": {
-    "@za38.03/agent-ui-runtime": "0.0.9"
+    "@za38.03/agent-ui-runtime": "0.0.10"
   }
 }

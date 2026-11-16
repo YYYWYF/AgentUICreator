@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-runtime",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Canonical Conversation runtime adapter for Agent UI frontends",
   "type": "module",
   "engines": {
@@ -63,7 +63,7 @@
     "@za38.03/agent-ui-renderer": "workspace:*"
   },
   "peerDependencies": {
-    "@za38.03/agent-ui-core": "0.0.9",
+    "@za38.03/agent-ui-core": "0.0.10",
     "react": ">=18 <20",
     "react-dom": ">=18 <20"
   },
@@ -186,6 +186,174 @@
                   "version": "0.0.9",
                   "summary": "补齐 0.0.9 的包版本与依赖兼容记录，修复发布前兼容元数据检查失败。",
                   "kind": "fix"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-16-0.0.10",
+          "publishedAt": "2026-11-16T12:36:08.935Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.10",
+              "requires": {},
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "request-business-context",
+                  "version": "0.0.10",
+                  "summary": "新增 AgentUIContext 和发送选项，校验并快照业务参数，供 AG-UI forwardedProps.ctx 使用。",
+                  "kind": "feature"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.10",
+              "requires": {},
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "owned-drawer-controls",
+                  "version": "0.0.10",
+                  "summary": "为响应式布局抽屉按钮标记产品样式归属，修正控件样式隔离。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.10",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.10",
+                "@za38.03/agent-ui-renderer": "0.0.10"
+              },
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "request-context-and-routing",
+                  "version": "0.0.10",
+                  "summary": "支持默认及单次发送 ctx，保留重试与续跑上下文；自定义 fetch 可独立决定请求目标。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "frontend-toolkit-presentation",
+                  "version": "0.0.10",
+                  "summary": "移除 frontendToolUIs / generatedFrontendToolUIs 与 ConversationFrontendToolUIRegistry；工具展示迁移至 toolkit 的 render，Host 操作继续通过 frontendTools 提供。",
+                  "kind": "breaking"
+                },
+                {
+                  "id": "explicit-agent-endpoint",
+                  "version": "0.0.10",
+                  "summary": "不再默认请求 /agent；使用浏览器 fetch 的应用须显式配置 endpoint，自定义 fetch 可自行提供目标地址。",
+                  "kind": "breaking"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.10",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.10",
+                "@za38.03/agent-ui-renderer": "0.0.10",
+                "@za38.03/agent-ui-runtime": "0.0.10"
+              },
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "workbench-panel",
+                  "version": "0.0.10",
+                  "summary": "新增工作台侧栏容器与服务，支持受控开关、标签切换和状态保留；模板不内置内容、标签或示例入口，由项目配置。",
+                  "kind": "feature",
+                  "pluginId": "workbench-panel"
+                },
+                {
+                  "id": "workbench-panel-actions",
+                  "version": "0.0.10",
+                  "summary": "提供项目可配置的侧栏入口，使用同一工作台面板服务控制打开操作。",
+                  "kind": "feature",
+                  "pluginId": "workbench-panel-actions"
+                },
+                {
+                  "id": "application-owned-conversation-history",
+                  "version": "0.0.10",
+                  "summary": "历史请求由项目 services/conversations/data-source.ts 直接实现，移除包内 HTTP 历史工厂与配置层；旧应用如需采用新接线，须单独迁移并保留业务认证和响应映射。",
+                  "kind": "breaking",
+                  "pluginId": "conversation-data-source"
+                },
+                {
+                  "id": "conversation-date-groups",
+                  "version": "0.0.10",
+                  "summary": "完善历史会话日期分组及项目自有数据源接入。",
+                  "kind": "fix",
+                  "pluginId": "conversation-thread-list"
+                },
+                {
+                  "id": "project-composer-triggers",
+                  "version": "0.0.10",
+                  "summary": "完善项目命令源、输入触发器注册和展示契约。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.10",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.10",
+                "@za38.03/agent-ui-web-component": "0.0.10",
+                "@za38.03/agent-ui-plugins": "0.0.10",
+                "@za38.03/agent-ui-runtime": "0.0.10"
+              },
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "direct-official-plugin-enable",
+                  "version": "0.0.10",
+                  "summary": "通过确定性工具流程启用官方插件，不依赖模型调用。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "workspace-refresh-recovery",
+                  "version": "0.0.10",
+                  "summary": "恢复工作区刷新后的项目绑定与交互状态，完善等待用户响应时的操作处理。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "advisory-update-installation",
+                  "version": "0.0.10",
+                  "summary": "更新中心按现有包管理器流程安装所选版本；兼容建议保持非阻断，保留应用层、Shell 和已接管源码。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "project-services-and-panel-guidance",
+                  "version": "0.0.10",
+                  "summary": "同步项目自有历史服务、前端工具与工作台模板；补充保留完整对话子树的侧栏移除说明和相关开发文档。",
+                  "kind": "feature"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.10",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.10",
+                "@za38.03/agent-ui-runtime": "0.0.10",
+                "@za38.03/agent-ui-core": "0.0.10",
+                "@za38.03/agent-ui-renderer": "0.0.10"
+              },
+              "historyFrom": "0.0.9",
+              "changes": [
+                {
+                  "id": "explicit-agent-endpoint",
+                  "version": "0.0.10",
+                  "summary": "Web Component 不再隐式使用 /agent；浏览器请求需显式 endpoint，自定义 fetch 可独立提供目标，多 Agent 配置遵循同一规则。",
+                  "kind": "breaking"
                 }
               ]
             }
