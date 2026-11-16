@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { realpathSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { getAgentUIAvailablePluginIds, getAgentUIPluginInstances, setAgentUIPluginEnabled, synchronizeAgentUIPluginRegistry, preparePluginEnablement, completePluginEnablement, type PluginEnablementPreparation } from "@za38.03/agent-ui-creator/project/commands";
+import { getAgentUIAvailablePluginIds, getAgentUIPluginInstances, setAgentUIPluginEnabled, addAgentUIPlugin, getAgentUIPluginPlacementGuide, synchronizeAgentUIPluginRegistry, preparePluginEnablement, completePluginEnablement, type PluginEnablementPreparation } from "@za38.03/agent-ui-creator/project/commands";
 import type { CreatorWorkspaceManager } from "../workspace/CreatorWorkspaceManager.js";
 import type { CreatorProcessManager } from "../CreatorProcessManager.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
@@ -9,6 +9,7 @@ import { inspectIntegrationHost } from "@za38.03/agent-ui-creator/project/resour
 import type { CreatorCommandExecuteRequest } from "./types.js";
 import { pluginCategory } from "./plugin-categories.js";
 import { creatorCommandRegistry } from "./registry.js";
+import { pluginPlacementIssue } from "./plugin-placement-issue.js";
 
 export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager | undefined, root: string | undefined, legacy: CreatorProcessManager | undefined) {
   const preparations = new Map<string, { root: string; workspaceId: string; target: string; expires: number; preparation: PluginEnablementPreparation }>();
@@ -38,6 +39,23 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
       const run = async (projectRoot: string) => {
         let prepared = false;
         let preparationFiles: string[] = [];
+        // Fixed commands share Creator's write guard, without starting an Agent run.
+        const withMutationGuard = async <T>(operation: () => Promise<T>): Promise<T> => {
+          const manager = workspaces?.ensureCreatorRuntime() ?? legacy;
+          if (!manager) throw new Error("CREATOR_RUNTIME_UNAVAILABLE");
+          const endpoint = await manager.ensureStarted();
+          const guard = async (body: object) => {
+            const response = await fetch(`http://${endpoint.host}:${endpoint.port}/creator-command-mutation`, {
+              method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${endpoint.authToken}` }, body: JSON.stringify(body),
+            });
+            const result = await response.json() as { token: string; code?: string };
+            if (!response.ok) throw new Error(result.code ?? "CREATOR_COMMAND_BUSY");
+            return result;
+          };
+          const { token } = await guard({ action: "acquire" });
+          try { return await operation(); }
+          finally { await guard({ action: "release", token }); }
+        };
         if (catalog) {
           const host = await inspectIntegrationHost(projectRoot);
           const plugins = host.framework === "react" ? await getAgentUIPluginInstances(projectRoot) : [];
@@ -57,6 +75,7 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
         }
         if (workspaces?.hasActiveCreatorRequests()) throw new Error("CREATOR_COMMAND_BUSY");
         if (input?.id === "enable") {
+          if ("pluginId" in input.args && (await inspectIntegrationHost(projectRoot)).framework !== "react") throw new Error("PLUGIN_REACT_PRODUCER_REQUIRED");
           const instances = await getAgentUIPluginInstances(projectRoot);
           const target = "pluginId" in input.args ? input.args.pluginId : input.args.instanceId;
           const pluginId = "pluginId" in input.args ? input.args.pluginId : instances.find(instance => instance.id === target)?.pluginId;
@@ -72,23 +91,11 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
               const saved = preparations.get(preparationId);
               preparations.delete(preparationId);
               if (!saved || saved.root !== projectRoot || saved.workspaceId !== workspaceId || saved.target !== target || saved.preparation.pluginId !== pluginId || saved.expires < Date.now() || saved.preparation.stateHash !== preparation.stateHash) throw new Error("PLUGIN_ENABLEMENT_PREPARATION_STALE");
-              const manager = workspaces?.ensureCreatorRuntime() ?? legacy;
-              if (!manager) throw new Error("CREATOR_RUNTIME_UNAVAILABLE");
-              const endpoint = await manager.ensureStarted();
-              const guard = async (body: object) => {
-                const response = await fetch(`http://${endpoint.host}:${endpoint.port}/creator-command-mutation`, {
-                  method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${endpoint.authToken}` }, body: JSON.stringify(body),
-                });
-                if (!response.ok) throw new Error("CREATOR_COMMAND_BUSY");
-                return await response.json() as { token: string };
-              };
-              const { token } = await guard({ action: "acquire" });
-              try {
+              await withMutationGuard(async () => {
                 const result = await completePluginEnablement(projectRoot, saved.preparation);
                 prepared = result.changed || saved.preparation.packages.length > 0;
                 preparationFiles = result.createdPaths;
-              }
-              finally { await guard({ action: "release", token }); }
+              });
             } else if (preparation.files.length || preparation.packages.length) {
               const id = randomUUID();
               for (const [key, value] of preparations) if (value.expires < Date.now()) preparations.delete(key);
@@ -103,40 +110,44 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
         }
         if (input?.id === "enable" && "pluginId" in input.args) {
           const pluginId = input.args.pluginId;
-          if ((await inspectIntegrationHost(projectRoot)).framework !== "react") throw new Error("PLUGIN_REACT_PRODUCER_REQUIRED");
-          const available = await getAgentUIAvailablePluginIds(projectRoot);
-          if (!available.includes(pluginId)) throw new Error("PLUGIN_UNAVAILABLE");
-          const instances = await getAgentUIPluginInstances(projectRoot);
-          if (instances.some(plugin => plugin.pluginId === pluginId)) throw new Error("PLUGIN_COMMAND_STALE");
-          return { status: "agent-required", addPluginId: pluginId, value: pluginId, changed: prepared,
-            receipt: { files: preparationFiles.map(file => ({ path: file, status: "created", diff: "", truncated: false })), validations: [], verification: { status: prepared ? "changed-unverified" : "no-project-change", projectRevision: prepared ? 1 : 0,
-              auditAttempts: 0, checks: [], runtimeStatus: "not-run" } } };
+          let result: Awaited<ReturnType<typeof addAgentUIPlugin>>;
+          try {
+            result = await withMutationGuard(() => addAgentUIPlugin(projectRoot, pluginId));
+          } catch (error) {
+            const issue = pluginPlacementIssue(error);
+            if (!issue) throw error;
+            const placementGuide = await getAgentUIPluginPlacementGuide(projectRoot, pluginId);
+            return { status: "placement-required" as const, value: pluginId, changed: prepared, placementGuide,
+              receipt: {
+                files: preparationFiles.map(path => ({ path, status: "created", diff: "", truncated: false })),
+                validations: [],
+                verification: { status: prepared ? "changed-unverified" : "no-project-change", projectRevision: prepared ? 1 : 0,
+                  auditAttempts: 0, checks: [{ id: "default-placement", status: "unavailable", evidence: JSON.stringify(issue) }], runtimeStatus: "not-run" },
+              } };
+          }
+          return { value: pluginId, changed: result.changed || prepared,
+            receipt: {
+              files: [...preparationFiles.map(path => ({ path, status: "created", diff: "", truncated: false })),
+                ...result.changedPaths.map(path => ({ path, status: "modified", diff: "", truncated: false }))],
+              validations: [{ command: "mutate_app_ui_model", status: "passed", exitCode: 0, output: JSON.stringify(result), truncated: false }],
+              verification: { status: "changed-and-statically-verified", projectRevision: 1, auditAttempts: 0,
+                checks: [{ id: "composition-validation", status: "passed", evidence: JSON.stringify(result) }], verificationMode: "static_only", runtimeStatus: "not-run" },
+            } };
         }
-        const manager = workspaces?.ensureCreatorRuntime() ?? legacy;
-        if (!manager) throw new Error("CREATOR_RUNTIME_UNAVAILABLE");
-        const endpoint = await manager.ensureStarted();
         if (!input) throw new Error("CREATOR_COMMAND_REQUEST_INVALID");
         if (input.id === "sync") {
-          // Creator owns pending questions and the writing lock. Hold it for the entire
-          // deterministic Host mutation; no Creator run or model invocation occurs.
-          const guard = async (body: object) => {
-            const response = await fetch(`http://${endpoint.host}:${endpoint.port}/creator-command-mutation`, {
-              method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${endpoint.authToken}` }, body: JSON.stringify(body),
-            });
-            const result = await response.json() as { token: string; code?: string };
-            if (!response.ok) throw new Error(result.code ?? "CREATOR_COMMAND_BUSY");
-            return result;
-          };
-          const { token } = await guard({ action: "acquire" });
-          try {
+          return withMutationGuard(async () => {
             const result = await synchronizeAgentUIPluginRegistry(projectRoot);
             return { changed: result.changed, receipt: { files: [],
               validations: [{ command: "synchronize_plugin_registry", status: "passed", exitCode: 0, output: JSON.stringify(result), truncated: false }],
               verification: { status: result.changed ? "changed-unverified" : "no-project-change", projectRevision: result.changed ? 1 : 0,
                 auditAttempts: 0, checks: [], runtimeStatus: "not-run" },
             } };
-          } finally { await guard({ action: "release", token }); }
+          });
         }
+        const manager = workspaces?.ensureCreatorRuntime() ?? legacy;
+        if (!manager) throw new Error("CREATOR_RUNTIME_UNAVAILABLE");
+        const endpoint = await manager.ensureStarted();
         let diff = "";
         let committedReceipt: import("../receiptTypes.js").CreatorRunReceipt | undefined;
         const commit = async (change: import("@za38.03/agent-ui-creator/project/commands").ThemeChange) => {

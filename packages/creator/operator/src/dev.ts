@@ -15,7 +15,8 @@ export { AgentUIUpdateService } from "./project/source-registry/updates";
 export type { UpdateInspection, PluginUpdate, UpgradePlan, UpdateCompatibility } from "./project/source-registry/updates";
 export { InstalledUpdateSourceProvider, MockUpdateSourceProvider } from "./source-catalog/index.js";
 export type { UpdateSourceProvider, ReleaseDescriptor, ResolvedSourceRelease } from "./source-catalog/index.js";
-export { getAgentUIAvailablePluginIds, getAgentUIPluginInstances, setAgentUIPluginEnabled, planAgentUIPluginRegistry } from "./project/plugin-commands";
+export { getAgentUIAvailablePluginIds, getAgentUIPluginInstances, setAgentUIPluginEnabled, addAgentUIPlugin, getAgentUIPluginPlacementGuide, planAgentUIPluginRegistry } from "./project/plugin-commands";
+export type { AgentUIPluginPlacementGuide } from "./project/plugin-commands";
 export type { ThemeChange } from "./project/agent-ui-theme";
 
 export { synchronizeAgentUIPluginRegistry } from "./project/synchronize-plugin-registry";

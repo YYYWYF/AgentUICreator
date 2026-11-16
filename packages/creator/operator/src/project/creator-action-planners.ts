@@ -436,7 +436,7 @@ export function planDefaultPluginInsertion(
     semanticPlacementError(
       "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
       `UI Plugin "${asset.pluginId}" does not declare an authoring-default placement.`,
-      { pluginId: asset.pluginId },
+      { pluginId: asset.pluginId, reason: "default-placement-not-declared" },
     );
   }
   const readiness = serviceReadinessForAsset(asset, generation);
@@ -467,7 +467,7 @@ function planPluginSlotInsertion(
     semanticPlacementError(
       parents.length === 0 ? "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE" : "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
       `Authoring-default parent "${placement.parentPluginId}" does not resolve to exactly one enabled instance.`,
-      { parentPluginId: placement.parentPluginId, matchingInstanceIds: parents.map(({ plugin }) => plugin.id) },
+      { parentPluginId: placement.parentPluginId, matchingInstanceIds: parents.map(({ plugin }) => plugin.id), reason: "default-parent-unavailable" },
     );
   }
   const parent = parents[0]!.plugin;
@@ -507,6 +507,7 @@ function planRelativeInsertion(
       {
         anchorPluginId: placement.anchorPluginId,
         matchingInstanceIds: anchorMatches.map(({ plugin }) => plugin.id),
+        reason: "default-anchor-unavailable",
       },
     );
   }

@@ -11,6 +11,9 @@ export function planAgentUIPluginRegistry(root: string, modelSource: string): Pr
 export function setAgentUIPluginEnabled(root: string, instanceId: string, enabled: boolean, commit: (change: ThemeChange) => Promise<{ runId?: string; verification: ThemeVerification }>): Promise<CommandMutationResult>;
 
 export function getAgentUIAvailablePluginIds(root: string): Promise<string[]>;
+export function addAgentUIPlugin(root: string, pluginId: string): Promise<import("./project/app-ui-transaction.js").AppUITransactionResult>;
+export type { AgentUIPluginPlacementGuide } from "./project/plugin-commands.js";
+export function getAgentUIPluginPlacementGuide(root: string, pluginId: string): Promise<import("./project/plugin-commands.js").AgentUIPluginPlacementGuide>;
 
 export interface PluginEnablementPreparation {
   pluginId: string; stateHash: string; files: string[];

@@ -6,6 +6,7 @@ import { buildCompatibilityProjectRequest, executeCreatorCommand } from "./works
 import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { confirmPluginEnablement } from "./commands/confirmPluginEnablement.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
+import { CreatorPluginPlacementNotice, parsePluginPlacementGuide } from "./commands/CreatorPluginPlacementNotice.js";
 import { useRef as useLocaleMessagesRef } from "react";
 import { localizeCreatorPresentation, CreatorLocaleProvider, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { creatorRunOutcomeText } from "./run-outcome.js";
@@ -263,6 +264,7 @@ function getVerificationCheckStatusLabels(localeMessages: CreatorLocaleMessages 
 }; }
 
 function verificationCheckStatusLabel(check: CreatorVerificationCheck, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): string {
+  if (check.id === "default-placement" && check.status === "unavailable") return localeMessages.commands.pendingManualPlacement;
   if (check.id === "operation-postcondition") {
     if (check.status === "unavailable") return localeMessages.creatorWorkbench.requestOutcomeUnconfirmed;
     if (check.status === "failed") return localeMessages.creatorWorkbench.requestTargetNotSatisfied;
@@ -424,10 +426,12 @@ function storedItem(value: unknown, localeMessages: CreatorLocaleMessages = DEFA
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
   }
-  if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed", "integration-required", "agent-required", "cancelled"].includes(String(value.status))) {
+  if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed", "integration-required", "agent-required", "placement-required", "cancelled"].includes(String(value.status))) {
+    const placementGuide = parsePluginPlacementGuide(value.placementGuide);
     return { kind: "command", id: value.id, commandId: value.commandId,
+      ...(placementGuide ? { placementGuide } : {}),
       ...(value.reenabled === true ? { reenabled: true } : {}),
-      status: value.status === "agent-required" ? "agent-required" : value.status === "integration-required" ? "integration-required" : value.status === "completed" ? "completed" : "failed",
+      status: value.status === "placement-required" ? "placement-required" : value.status === "agent-required" ? "agent-required" : value.status === "integration-required" ? "integration-required" : value.status === "completed" ? "completed" : "failed",
       ...(typeof value.value === "string" ? { value: value.value } : {}),
       ...(typeof value.error === "string" ? { error: value.error } : value.status === "running" ? { error: localeMessages.commands.interrupted } : {}),
       ...(isCreatorRunReceipt(value.receipt) ? { receipt: value.receipt } : {}) };
@@ -1453,14 +1457,8 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       if (session !== sessionRef.current) return;
       if (result.status === "confirmation-required") throw new Error("PLUGIN_ENABLEMENT_PREPARATION_STALE");
       const commandStatus: CreatorCommandActivity["status"] = result.status ?? "completed";
-      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: commandStatus, receipt: result.receipt } : item));
+      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: commandStatus, receipt: result.receipt, ...(result.placementGuide ? { placementGuide: result.placementGuide } : {}) } : item));
       setInput("");
-      if (result.addPluginId) {
-        if (!agentRef.current || workspaceState.runtime.status !== "ready") throw new Error("CREATOR_RUNTIME_UNAVAILABLE");
-        commandInFlight.current = false;
-        setCommandBusy(false);
-        await submit(undefined, undefined, formatLocaleMessage(localeMessages.commands.addPluginRequest, JSON.stringify(result.addPluginId)));
-      }
       if (result.integrationPlan) {
         commandInFlight.current = false;
         setCommandBusy(false);
@@ -2360,7 +2358,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 presentConversationItems(items, creatorDebug).map((item) =>
                   item.kind === "command" ? (
                     <article className="creator-panel-message creator-command-activity" key={item.id} role="status">
-                      <p>{item.status === "cancelled" ? localeMessages.commands.preparationCancelled : item.status === "agent-required" ? formatLocaleMessage(localeMessages.commands.addPluginRequested, commandState.optionLabel("enable", item.value ?? "")) : item.status === "integration-required" ? localeMessages.commands.integrationRequired : item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "enable" || item.commandId === "disable" ? formatLocaleMessage(item.status === "running" ? localeMessages.commands.toggling : item.commandId === "enable" ? localeMessages.commands.reenabled : localeMessages.commands.disabledPlugin, item.value ?? "") : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>
+                      {item.status === "placement-required" ? <CreatorPluginPlacementNotice pluginId={item.value ?? ""} pluginName={commandState.optionLabel("enable", item.value ?? "")} guide={item.placementGuide} /> : <p>{item.status === "cancelled" ? localeMessages.commands.preparationCancelled : item.status === "agent-required" ? formatLocaleMessage(localeMessages.commands.addPluginRequested, commandState.optionLabel("enable", item.value ?? "")) : item.status === "integration-required" ? localeMessages.commands.integrationRequired : item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "enable" || item.commandId === "disable" ? formatLocaleMessage(item.status === "running" ? localeMessages.commands.toggling : item.commandId === "enable" ? localeMessages.commands.reenabled : localeMessages.commands.disabledPlugin, item.value ?? "") : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>}
                       {item.receipt ? <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                         onUndo={!commandBusy && !isRunning && !questionPending ? runId => { void undoCreatorRun(runId); } : undefined}
                         onReapply={!commandBusy && !isRunning && !questionPending ? runId => { void reapplyCreatorRun(runId); } : undefined}

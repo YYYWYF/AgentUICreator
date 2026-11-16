@@ -2,6 +2,7 @@ import { expect, test as base, type Locator, type Page } from "@playwright/test"
 import { readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { createConnectionHostFixture } from "./support/agent-connection-host.js";
+import { collectAppUIPluginLocations, parseAppUIModelJson } from "../../../packages/creator/operator/src/framework/contracts/app-ui-model";
 const test = base.extend<{ preview: Awaited<ReturnType<typeof createConnectionHostFixture>> }>({
   preview: async ({}, use) => {
     const fixture = await createConnectionHostFixture({ themeCommands: true, webSearchCommands: true });
@@ -68,14 +69,13 @@ test.beforeEach(async ({ page, preview }) => {
   await page.goto(preview.creatorOrigin);
   await expect(page.frameLocator('iframe[title="Host Application"]').locator(".aui-composer-root").getByRole("textbox")).toBeVisible({ timeout: 15000 });
 });
-test("enable prepares missing application files only after confirmation and delegates composition to Creator", async ({ page, preview }) => {
+test("enable confirms missing application files and adds the official Plugin without a model request", async ({ page, preview }) => {
   const definition = path.join(preview.hostRoot, "src/agent-ui/plugins/web-search/definition.ts");
   const beforeModel = await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8");
   await expect(readFile(definition, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   const modelRequests: unknown[] = [];
   await page.route("**/__creator/run", async route => {
     modelRequests.push(route.request().postDataJSON());
-    // This test verifies the handoff, without calling a configured external model.
     await route.fulfill({ status: 409, json: { error: "CREATOR_MODEL_CONFIGURATION_MISSING" } });
   });
   const catalogResponse = await page.request.get(`${preview.creatorOrigin}__creator/commands`, { headers: { "x-agent-ui-workspace-id": preview.workspaceId } });
@@ -99,11 +99,81 @@ test("enable prepares missing application files only after confirmation and dele
   await expectOptionHitTarget(search);
   page.once("dialog", async dialog => { expect(dialog.message()).toContain("web-search"); await dialog.accept(); });
   await search.click();
-  await expect.poll(() => modelRequests.length).toBe(1);
-  expect(JSON.stringify(modelRequests[0])).toContain("web-search");
+  await expect(page.locator(".creator-command-activity").last()).toContainText("已启用");
   expect(await readFile(definition, "utf8")).toContain("web_search");
-  expect(await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8")).toBe(beforeModel);
-  await expect(page.locator(".creator-command-activity").last()).toContainText("Creator");
+  const model = parseAppUIModelJson(await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8"));
+  expect(model.root).toEqual(parseAppUIModelJson(beforeModel).root);
+  expect(collectAppUIPluginLocations(model).find(({ plugin }) => plugin.pluginId === "web-search")?.target).toEqual({ type: "application" });
+  expect(modelRequests).toEqual([]);
+});
+test("Creator enables slash and its command source with default composition and no model requests", async ({ page, preview }) => {
+  const modelRequests: unknown[] = [];
+  await page.route("**/__creator/run", async route => {
+    modelRequests.push(route.request().postDataJSON());
+    await route.fulfill({ status: 409, json: { error: "CREATOR_MODEL_CONFIGURATION_MISSING" } });
+  });
+  const input = page.locator("#creator-request");
+  for (const label of [/快捷命令来源/, /输入 \/ 使用命令/]) {
+    await input.fill("/enable ");
+    const option = page.getByRole("option", { name: label });
+    await expectOptionHitTarget(option);
+    page.once("dialog", dialog => dialog.accept());
+    await option.click();
+    await expect(page.locator(".creator-command-activity").last()).toContainText("已启用");
+  }
+  const model = parseAppUIModelJson(await readFile(path.join(preview.hostRoot, "src/agent-ui/app-ui.json"), "utf8"));
+  const locations = collectAppUIPluginLocations(model);
+  const composer = locations.find(({ plugin }) => plugin.pluginId === "composer")!.plugin;
+  expect(locations.find(({ plugin }) => plugin.pluginId === "slash-command-trigger")?.target)
+    .toEqual({ type: "plugin_slot", parentInstanceId: composer.id, slot: "triggers" });
+  expect(locations.find(({ plugin }) => plugin.pluginId === "conversation-command-source")?.target).toEqual({ type: "application" });
+  await expect(page.frameLocator('iframe[title="Host Application"]').locator(".aui-composer-root").getByRole("textbox")).toBeVisible();
+  expect(modelRequests).toEqual([]);
+});
+test("an occupied default Slot keeps prepared files and shows a persistent notice without blocking commands", async ({ page, preview }) => {
+  const modelPath = path.join(preview.hostRoot, "src/agent-ui/app-ui.json");
+  const beforeModel = await readFile(modelPath, "utf8");
+  const registryPath = path.join(preview.hostRoot, "src/agent-ui/plugins/registry.generated.ts");
+  const beforeRegistry = await readFile(registryPath, "utf8");
+  const modelRequests: unknown[] = [];
+  await page.route("**/__creator/run", async route => {
+    modelRequests.push(route.request().postDataJSON());
+    await route.fulfill({ status: 409, json: { error: "CREATOR_MODEL_CONFIGURATION_MISSING" } });
+  });
+  const input = page.locator("#creator-request");
+  await input.fill("/enable tool-fallback");
+  const option = page.getByRole("option", { name: /tool-fallback/ });
+  await expectOptionHitTarget(option);
+  page.once("dialog", async dialog => { expect(dialog.message()).toContain("tool-fallback"); await dialog.accept(); });
+  await option.click();
+  const activity = page.locator(".creator-command-activity").last();
+  await expect(activity).toContainText("已准备好");
+  await expect(activity).toContainText("尚未放入界面，也未启用");
+  await expect(activity).toContainText("查看工具调用详情");
+  await expect(activity).toContainText("tool-fallback");
+  await expect(activity).toContainText("src/agent-ui/app-ui.json");
+  await expect(activity).toContainText("slots.toolFallback");
+  await expect(activity).toContainText("不要同时保留两项");
+  await expect(activity.locator('pre[aria-label="app-ui.json 放置示例"] code')).toContainText('"pluginId": "tool-fallback"');
+  await expect(activity).toContainText("待手动放置");
+  await expect(activity).not.toContainText("Runtime 暂不可用");
+  await expect(activity).not.toContainText("修改已通过静态验证");
+  const entry = path.join(preview.hostRoot, "src/agent-ui/plugins/tool-fallback/index.tsx");
+  expect(await readFile(entry, "utf8")).toContain("ToolFallback");
+  expect(await readFile(modelPath, "utf8")).toBe(beforeModel);
+  expect(await readFile(registryPath, "utf8")).toBe(beforeRegistry);
+  await page.reload();
+  await expect(activity).toContainText("已准备好");
+  await expect(activity).toContainText("src/agent-ui/app-ui.json");
+  await expect(activity.locator('pre[aria-label="app-ui.json 放置示例"] code')).toContainText('"toolFallback"');
+  await expect(input).toBeEnabled();
+  const syncResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/__creator/commands/execute");
+  await input.fill("/sync");
+  await input.press("Enter");
+  const synced = await syncResponse;
+  expect(synced.status(), await synced.text()).toBe(200);
+  await expect(page.locator(".creator-command-activity").last()).toContainText("插件列表已是最新");
+  expect(modelRequests).toEqual([]);
 });
 test("sync repairs stale and missing registry and returns a no-op for fresh output without model requests", async ({ page, preview }) => {
   let modelRequests = 0;

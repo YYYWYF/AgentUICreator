@@ -13,13 +13,13 @@ it("declining does not send a mutation or continue to the Agent", async () => {
   expect(confirm.mock.calls[0]?.[0]).toContain("example-library (1.2.3)");
 });
 it("confirmation sends the exact preparation and original instance target", async () => {
-  const done = { status: "agent-required", changed: true } as CreatorCommandResult;
+  const done = { changed: true } as CreatorCommandResult;
   const execute = vi.fn(async () => done);
   expect(await confirmPluginEnablement({ id: "enable", args: { instanceId: "chart-secondary" } }, pending, DEFAULT_CREATOR_MESSAGES.commands, id => id, () => true, execute)).toBe(done);
   expect(execute).toHaveBeenCalledWith({ id: "enable", args: { instanceId: "chart-secondary", preparationId: "host-preparation" } });
 });
 it("ready Plugins bypass the confirmation and make no extra requests", async () => {
-  const done = { status: "agent-required", changed: false } as CreatorCommandResult;
+  const done = { changed: false } as CreatorCommandResult;
   const confirm = vi.fn(); const execute = vi.fn();
   expect(await confirmPluginEnablement(request, done, DEFAULT_CREATOR_MESSAGES.commands, id => id, confirm, execute)).toBe(done);
   expect(confirm).not.toHaveBeenCalled(); expect(execute).not.toHaveBeenCalled();
