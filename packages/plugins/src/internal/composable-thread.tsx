@@ -249,7 +249,7 @@ const ThreadRoot: FC<{
       <ThreadPrimitive.Viewport
         turnAnchor="bottom"
         data-slot="aui_thread-viewport"
-        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
+        className="relative flex flex-1 flex-col overflow-x-auto overflow-y-auto scroll-smooth"
       >
         <div
           data-slot="agent-ui-thread-content"
