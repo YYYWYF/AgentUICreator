@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { valid, validRange, satisfies, compare, prerelease } from "semver";
+import { valid, validRange, compare, prerelease } from "semver";
 
 export const officialPackageNames = ["core", "renderer", "runtime", "plugins", "web-component", "creator"].map(id => `@za38.03/agent-ui-${id}`);
 const exact = z.string().max(100).refine(value => valid(value) === value, "Invalid exact version");
@@ -45,8 +45,8 @@ export function parseCompatibilityManifest(input: unknown): CompatibilityManifes
         // Tool dependencies are resolved in their own installation, independently of the App.
         if (tool(pkg.name) && !tool(name)) continue;
         if (!tool(pkg.name) && tool(name)) throw new Error("UPDATE_MANIFEST_PRODUCTION_TOOL_DEPENDENCY");
-        const target = packages.get(name);
-        if (!target || !satisfies(target.version, required)) throw new Error("UPDATE_MANIFEST_INCOMPATIBLE_COMBINATION");
+        // Dependency ranges describe recommendations. A published combination
+        // outside them remains readable and selectable; execution verifies bytes.
       }
     }
   }

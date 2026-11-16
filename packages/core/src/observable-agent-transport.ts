@@ -1,4 +1,5 @@
 import type { AgentUserInput } from "./agent-input.js";
+import type { AgentSendOptions } from "./agent-context.js";
 import type { AgentInterruptResponse } from "./agent-interrupt.js";
 import type {
   AgentApplicationEvent,
@@ -55,7 +56,7 @@ export abstract class ObservableAgentTransport<TState = unknown>
     this.abort();
   }
 
-  abstract sendMessage(input: AgentUserInput): Promise<void>;
+  abstract sendMessage(input: AgentUserInput, options?: AgentSendOptions): Promise<void>;
   abstract resumeInterrupts(
     responses: AgentInterruptResponse[],
   ): Promise<void>;

@@ -55,6 +55,8 @@ export type {
   CreateAgentRuntimeOptions,
 } from "./agent-runtime.js";
 export type { AgentConversation } from "./agent-conversation.js";
+export type { AgentUIContext, AgentUIContextValue, AgentSendOptions } from "./agent-context.js";
+export { snapshotAgentUIContext, InvalidAgentUIContextError } from "./agent-context.js";
 export type {
   AgentInputPart,
   AgentInputSource,

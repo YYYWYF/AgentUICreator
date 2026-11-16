@@ -1,18 +1,16 @@
-import { execFile as execFileCallback } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { execNpm } from "../../../scripts/npm-process.mjs";
 import { packageManifestMismatches } from "../../../scripts/assistant-ui-workspace-packages.mjs";
 import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
 
-const execFile = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(packageRoot, "../..");
 const target = JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
 
 async function npmLatest(name, version = "latest") {
-  const result = await execFile("npm", ["view", `${name}@${version}`, "version", "--json"], {
+  const result = await execNpm(["view", `${name}@${version}`, "version", "--json"], {
     cwd: repoRoot,
     encoding: "utf8",
     maxBuffer: 1024 * 1024,

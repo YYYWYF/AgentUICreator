@@ -83,9 +83,9 @@ title: "SubAgent 任务与结果（task-group）"
 ]
 ```
 
-`delegate_specialist` 是示例业务工具名，本插件不要求这个固定名称。Runtime 将带归属的子消息投影到父工具的嵌套会话，`task-group` 消费这些已有数据。只发 `SUBAGENT_STARTED/FINISHED` 而没有父工具与归属内容，不能代替完整的任务展示数据。
+`delegate_specialist` 是示例业务工具名，可换成业务实际使用的名称。界面按父工具和子任务的 ID 关联消息，将子任务内容显示在对应的任务分组中。完整展示需要父工具调用、子任务生命周期及带归属的消息内容。
 
-多个同级任务分别使用各自的父工具 ID 与 SubAgent 运行 ID。失败时使用 `SUBAGENT_ERROR`（含 `subagentRunId`、`message`），保留已经产生的子消息；父工具结果和终态仍需由后端如实提供。这里展示同一个 Agent 连接中的子任务事件，不创建第二个 Agent Runtime。
+多个同级任务分别使用各自的父工具 ID 与 SubAgent 运行 ID。失败时使用 `SUBAGENT_ERROR`（含 `subagentRunId`、`message`），保留已经产生的子消息；父工具结果和终态仍需由后端如实提供。这些事件通过当前会话的 AG-UI 连接发送。
 
 ## 定制选项
 

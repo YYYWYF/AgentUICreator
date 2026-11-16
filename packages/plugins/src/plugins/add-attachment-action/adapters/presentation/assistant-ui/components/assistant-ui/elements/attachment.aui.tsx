@@ -26,9 +26,11 @@ const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
   const [imageState, setImageState] = useState<{ src: string; status: 'loaded' | 'error' }>();
   const isLoaded = imageState?.src === src && imageState.status === 'loaded';
   if (imageState?.src === src && imageState.status === 'error') {
-    return <div data-agent-ui-owned='' role='alert' className='text-muted-foreground p-4'>
-      {localeMessages.attachments.previewFailed}
-    </div>;
+    return (
+      <div data-agent-ui-owned='' role='alert' className='text-muted-foreground p-4'>
+        {localeMessages.attachments.previewFailed}
+      </div>
+    );
   }
   return (
     <img

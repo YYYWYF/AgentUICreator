@@ -7,11 +7,12 @@ import type { PackageUpdateOverview } from "@za38.03/agent-ui-creator/project/up
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root;
 afterEach(() => { if (root) act(() => root.unmount()); document.body.replaceChildren(); localStorage.clear(); vi.unstubAllGlobals(); });
-const packageOverview = (): PackageUpdateOverview => ({status:"online",checkedAt:"2026-11-11T00:00:00Z",recommendedReleaseId:"next",installationSupported:true,fingerprint:"versions",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.3",updateAvailable:true,historyIncomplete:false,summary:[],history:[{id:"new",version:"0.0.3",kind:"feature",pluginId:"reload-action",summary:"最新功能"},{id:"old",version:"0.0.2",kind:"fix",pluginId:"copy-action",summary:"之前的修复"}],versions:["0.0.3","0.0.2"]}],blockedReleases:[]});
+const packageOverview = (): PackageUpdateOverview => ({status:"online",checkedAt:"2026-11-11T00:00:00Z",recommendedReleaseId:"next",installationSupported:true,fingerprint:"versions",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.3",updateAvailable:true,historyIncomplete:false,summary:[],history:[{id:"new",version:"0.0.3",kind:"feature",pluginId:"reload-action",summary:"最新功能"},{id:"old",version:"0.0.2",kind:"fix",pluginId:"copy-action",summary:"之前的修复"}],versions:["0.0.3","0.0.2"]}],advisories:[]});
 const inspection = { releaseVersion: "0.0.2", compatibility: "compatible", fingerprint: "surface@0.0.2", plugins: [{ pluginId: "conversation-surface", name: "Conversation Surface", currentVersion: "0.0.1", targetVersion: "0.0.2", sourceRelease: "0.0.1", status: "managed", updateAvailable: true, changelog: [{ version: "0.0.2", entry: { summary: "更新", changes: ["修复显示"] } }] }] };
 async function mount(counter = 0) {
-  const container = document.createElement("div"); document.body.append(container); root = createRoot(container);
-  const props = { workspaceId: "project", busy: false, modelReady: true, onPageChange: vi.fn(), onModelMerge: vi.fn() };
+  const container = document.createElement("div"); document.body.append(container);
+  const creatorNotificationTarget = document.createElement("header"), body = document.createElement("main"); container.append(creatorNotificationTarget, body); root = createRoot(body);
+  const props = { workspaceId: "project", busy: false, modelReady: true, creatorNotificationTarget, onPageChange: vi.fn(), onModelMerge: vi.fn() };
   await act(async () => root.render(<CreatorPluginUpdates {...props} checkRequest={counter} />));
   return { container, props };
 }
@@ -19,6 +20,63 @@ async function click(container: HTMLElement, text: string) {
   const button = [...container.querySelectorAll("button")].find(button => (button.getAttribute("aria-label") ?? button.textContent) === text)!;
   await act(async () => button.click());
 }
+it("shows only a header label until hovered or focused and never requests tool installation",async()=>{
+ const overview=packageOverview();
+ overview.packages=[{...overview.packages[0]!,name:"@za38.03/agent-ui-creator",scope:"tools",currentVersion:"0.0.9",targetVersion:"0.0.10",history:[],summary:[]}];
+ const fetcher=vi.fn(async(_url:string)=>Response.json({...inspection,compatibility:"creator-upgrade-required",plugins:[],packageUpdates:overview}));vi.stubGlobal("fetch",fetcher);
+ const {container,props}=await mount();
+ const notice=props.creatorNotificationTarget.querySelector('.creator-tool-update-notice')!;
+ expect(notice.textContent).toBe("发现新版本");expect(container.querySelector('main .creator-tool-update-notice')).toBeNull();
+ expect(container.querySelector('[role="tooltip"]')).toBeNull();
+ await act(async()=>notice.dispatchEvent(new MouseEvent("mouseover",{bubbles:true})));
+ expect(container.querySelector('[role="tooltip"]')?.textContent).toContain("Creator 有新稳定版 0.0.10");
+ expect(container.textContent).toContain("手动升级");expect(container.textContent).toContain("你可以继续使用当前版本");
+ expect(container.textContent).toContain("Creator 只维护最新稳定版");expect(container.textContent).toContain("项目包版本保持不变");
+ expect(container.querySelector('[role="tooltip"] button')).toBeNull();
+ await act(async()=>notice.dispatchEvent(new MouseEvent("mouseout",{bubbles:true,relatedTarget:document.body})));
+ expect(container.querySelector('[role="tooltip"]')).toBeNull();
+ const trigger=notice.querySelector('button')!;await act(async()=>trigger.focus());
+ expect(trigger.getAttribute('aria-describedby')).toBe(container.querySelector('[role="tooltip"]')?.id);
+ await act(async()=>trigger.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})));
+ expect(container.querySelector('[role="tooltip"]')).toBeNull();
+ await click(container,"查看更新");
+ expect(props.creatorNotificationTarget.querySelectorAll('.creator-tool-update-notice')).toHaveLength(1);
+ expect(container.querySelector('main .creator-tool-update-notice')).toBeNull();
+ await act(async()=>root.render(<CreatorPluginUpdates {...props} busy checkRequest={0}/>));
+ expect(container.querySelector('.creator-tool-update-notice')).not.toBeNull();
+ expect(fetcher.mock.calls.every(call=>!String(call[0]).includes('/execute'))).toBe(true);
+});
+it("does not add a header label when Creator has no newer version",async()=>{
+ const packageUpdates=packageOverview();packageUpdates.packages=[{...packageUpdates.packages[0]!,scope:"tools",name:"@za38.03/agent-ui-creator",updateAvailable:false}];
+ vi.stubGlobal("fetch",vi.fn(async()=>Response.json({...inspection,plugins:[],packageUpdates})));
+ const {props}=await mount();expect(props.creatorNotificationTarget.textContent).toBe("");
+});
+it("keeps package planning and confirmation available despite version recommendations",async()=>{
+ const packageUpdates=packageOverview();
+ packageUpdates.advisories=[{id:"next",issues:[{code:"creator",name:"@za38.03/agent-ui-creator",required:">=99.0.0",actual:"0.0.9"}]}];
+ const routes:string[]=[];
+ vi.stubGlobal("fetch",vi.fn(async(url:string)=>{
+  routes.push(url);
+  return Response.json(url.endsWith('/packages/plan')?{id:"recommended",packages:[{name:"@za38.03/agent-ui-plugins",current:"0.0.1",target:"0.0.3"}],advisories:packageUpdates.advisories[0]!.issues,checks:[]}:url.endsWith('/packages/execute')?{status:"installed",checks:[]}:{...inspection,compatibility:"creator-upgrade-required",plugins:[],packageUpdates});
+ }));
+ const {container}=await mount();await click(container,"查看更新");
+ expect(container.textContent).toContain("仅供参考");
+ await click(container,"更新官方插件");
+ expect(container.querySelector('.creator-package-plan')).not.toBeNull();
+ expect(routes.some(route=>route.endsWith('/execute'))).toBe(false);
+ await click(container,"确认更新");
+ expect(routes.filter(route=>route.endsWith('/packages/execute'))).toHaveLength(1);
+});
+it("keeps Creator discovery visible when source inspection is unavailable without claiming sources are current",async()=>{
+ const packageUpdates=packageOverview();packageUpdates.packages=[{...packageUpdates.packages[0]!,scope:"tools",name:"@za38.03/agent-ui-creator"}];
+ packageUpdates.issue="UPDATE_SOURCE_UNAVAILABLE";
+ vi.stubGlobal("fetch",vi.fn(async()=>Response.json({...inspection,plugins:[],sourceIssue:"UPDATE_SOURCE_INSPECTION_UNAVAILABLE",packageUpdates})));
+ const {container}=await mount();expect(container.querySelector('.creator-tool-update-notice')).not.toBeNull();
+ await click(container,"查看更新");
+ expect(container.textContent).toContain("源码更新状态未知");
+ expect(container.textContent).toContain("部分更新资料暂时不可用");
+ expect(container.textContent).not.toContain("当前已是最新版本");
+});
 it("shows failed discovery as unknown, never zero updates or a compatibility decision, and recovers on retry", async () => {
   const fetcher = vi.fn(async () => Response.json({ error: "Release plugin inventory mismatch" }, { status: 409 }));
   vi.stubGlobal("fetch", fetcher);
@@ -85,7 +143,7 @@ it("shows source ownership, preserves the application boundary and hands model m
 });
 
 it("shows cumulative npm changes alongside source sync without offering npm execution", async () => {
-  const packageUpdates = {status:"online",checkedAt:"2026-10-18T00:00:00Z",recommendedReleaseId:"official-1.0.8",latestReleaseId:"official-1.0.8",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"1.0.0",targetVersion:"1.0.8",declared:"^1.0.0",updateAvailable:true,historyIncomplete:true,summary:[{id:"counter",summary:"输入统计",kind:"feature",pluginId:"composer",versions:["1.0.8","1.0.1"]}],history:[{id:"counter",version:"1.0.8",kind:"feature",summary:"输入统计"},{id:"repair",version:"1.0.2",kind:"fix",summary:"修复历史问题"}]}],blockedReleases:[],installationSupported:false,fingerprint:"packages"};
+  const packageUpdates = {status:"online",checkedAt:"2026-10-18T00:00:00Z",recommendedReleaseId:"official-1.0.8",latestReleaseId:"official-1.0.8",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"1.0.0",targetVersion:"1.0.8",declared:"^1.0.0",updateAvailable:true,historyIncomplete:true,summary:[{id:"counter",summary:"输入统计",kind:"feature",pluginId:"composer",versions:["1.0.8","1.0.1"]}],history:[{id:"counter",version:"1.0.8",kind:"feature",summary:"输入统计"},{id:"repair",version:"1.0.2",kind:"fix",summary:"修复历史问题"}]}],advisories:[],installationSupported:false,fingerprint:"packages"};
   const routes:string[]=[];
   vi.stubGlobal("fetch",vi.fn(async(url:string)=>{routes.push(url);return new Response(JSON.stringify({...inspection,packageUpdates}));}));
   const {container}=await mount();await click(container,"查看更新");
@@ -98,7 +156,7 @@ it("separates owned-plugin changes from package notes and keeps unchanged owned 
   const normalChange = { id: "copy", summary: "Default copy improvement", kind: "fix", pluginId: "copy-action", version: "1.0.8" };
   const commonChange = { id: "api", summary: "Shared API migration", kind: "breaking", version: "1.0.8" };
   const packageUpdates = { status: "online", checkedAt: "2026-10-18T00:00:00Z", recommendedReleaseId: "next", packages: [{ name: "@za38.03/agent-ui-plugins", scope: "project", currentVersion: "1.0.0", targetVersion: "1.0.8", updateAvailable: true, historyIncomplete: false,
-    summary: [ownedChange, normalChange, commonChange].map(change => ({ ...change, versions: [change.version] })), history: [ownedChange, normalChange, commonChange] }], blockedReleases: [], installationSupported: true, fingerprint: "owned-separate" };
+    summary: [ownedChange, normalChange, commonChange].map(change => ({ ...change, versions: [change.version] })), history: [ownedChange, normalChange, commonChange] }], advisories: [], installationSupported: true, fingerprint: "owned-separate" };
   const routes: string[] = [];
   vi.stubGlobal("fetch", vi.fn(async (url: string) => { routes.push(url); return Response.json({ ...inspection, plugins: [plugin], packageUpdates }); }));
   const { container } = await mount(); await click(container, "查看更新");
@@ -118,7 +176,7 @@ it("separates owned-plugin changes from package notes and keeps unchanged owned 
 
 it("keeps adopted and installed official plugin versions visible after the npm package is up to date", async () => {
   const plugin = { ...inspection.plugins[0], name: "Composer", pluginId: "composer", delivery: "source-owned", packageVersion: "1.0.8", currentVersion: "0.2.0", targetVersion: "0.3.0" };
-  const packageUpdates = { status: "online", checkedAt: "2026-10-18T00:00:00Z", recommendedReleaseId: "next", packages: [{ name: "@za38.03/agent-ui-plugins", scope: "project", currentVersion: "1.0.8", targetVersion: "1.0.8", updateAvailable: false, historyIncomplete: false, summary: [], history: [] }], blockedReleases: [], installationSupported: true, fingerprint: "installed" };
+  const packageUpdates = { status: "online", checkedAt: "2026-10-18T00:00:00Z", recommendedReleaseId: "next", packages: [{ name: "@za38.03/agent-ui-plugins", scope: "project", currentVersion: "1.0.8", targetVersion: "1.0.8", updateAvailable: false, historyIncomplete: false, summary: [], history: [] }], advisories: [], installationSupported: true, fingerprint: "installed" };
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ ...inspection, plugins: [plugin], packageUpdates })));
   const { container } = await mount(); await click(container, "查看更新");
   expect(container.querySelector('.creator-package-overview')?.textContent).toContain("已是最新");
@@ -129,7 +187,7 @@ it("keeps adopted and installed official plugin versions visible after the npm p
 });
 
 it.each(["cached","unavailable","unconfigured"])("does not claim already up to date with %s online discovery",async(status)=>{
-  vi.stubGlobal("fetch",vi.fn(async()=>new Response(JSON.stringify({...inspection,plugins:[],packageUpdates:{status,checkedAt:"2026-10-18T00:00:00Z",packages:[],blockedReleases:[],installationSupported:false,fingerprint:"unknown"}}))));
+  vi.stubGlobal("fetch",vi.fn(async()=>new Response(JSON.stringify({...inspection,plugins:[],packageUpdates:{status,checkedAt:"2026-10-18T00:00:00Z",packages:[],advisories:[],installationSupported:false,fingerprint:"unknown"}}))));
   const {container,props}=await mount();await act(async()=>root.render(<CreatorPluginUpdates {...props} checkRequest={1}/>));expect(container.textContent).not.toContain("当前已是最新版本");expect(container.textContent).toContain("未能确认最新兼容版本");
   await act(async()=>root.render(<CreatorPluginUpdates {...props} pageOpen checkRequest={1}/>));
   expect(container.querySelector(".creator-update-page-meta")?.textContent).toContain("暂时无法确认更新状态");
@@ -137,7 +195,7 @@ it.each(["cached","unavailable","unconfigured"])("does not claim already up to d
 });
 it("shows a bound npm plan and installs only after separate user confirmation, then refreshes source updates",async()=>{
  const routes:{url:string;body:any}[]=[];
- const packageUpdates={status:"online",checkedAt:"2026-10-18T00:00:00Z",installationSupported:true,fingerprint:"npm",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.2",updateAvailable:true,summary:[],history:[]}],blockedReleases:[]};
+ const packageUpdates={status:"online",checkedAt:"2026-10-18T00:00:00Z",installationSupported:true,fingerprint:"npm",packages:[{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.2",updateAvailable:true,summary:[],history:[]}],advisories:[]};
  vi.stubGlobal("fetch",vi.fn(async(url:string,init:RequestInit)=>{
    routes.push({url,body:JSON.parse(init.body as string)});
    return new Response(JSON.stringify(url.endsWith("/packages/plan")?{id:"npm-bound",releaseId:"next",manager:"npm",lockfile:"package-lock.json",packages:[{name:"@za38.03/agent-ui-plugins",current:"0.0.1",target:"0.0.2"}],checks:["typecheck","build"]}:url.endsWith("/packages/execute")?{status:"installed",checks:["typecheck","build"]}:{...inspection,packageUpdates}));
@@ -148,12 +206,12 @@ it("shows a bound npm plan and installs only after separate user confirmation, t
  expect(routes.some(r=>/\/(merge|adopt|execute)$/.test(r.url)&&!r.url.includes("/packages/"))).toBe(false);expect(container.textContent).toContain("官方插件已更新至 0.0.2");
 });
 it("offers explicit recovery when an interrupted install prevents normal dependency inspection",async()=>{
- const routes:string[]=[];vi.stubGlobal("fetch",vi.fn(async(url:string)=>{routes.push(url);return new Response(JSON.stringify(url.endsWith("/packages/recover")?{status:"restored",checks:[]}:{...inspection,plugins:[],packageUpdates:{status:"unavailable",checkedAt:"now",packages:[],blockedReleases:[],installationSupported:true,fingerprint:"recovery",recovery:{id:"pending",state:"recovery-required"}}}));}));
+ const routes:string[]=[];vi.stubGlobal("fetch",vi.fn(async(url:string)=>{routes.push(url);return new Response(JSON.stringify(url.endsWith("/packages/recover")?{status:"restored",checks:[]}:{...inspection,plugins:[],packageUpdates:{status:"unavailable",checkedAt:"now",packages:[],advisories:[],installationSupported:true,fingerprint:"recovery",recovery:{id:"pending",state:"recovery-required"}}}));}));
  const {container}=await mount();await click(container,"查看更新");await click(container,"重试恢复原依赖");expect(routes.some(r=>r.endsWith("/packages/recover"))).toBe(true);expect(container.textContent).toContain("原依赖文件和实际安装版本已恢复");
 });
 
 it("keeps unchanged packages secondary and focuses the separately confirmed npm plan", async () => {
- const packageUpdates={status:"online",checkedAt:"2026-10-18T00:00:00Z",recommendedReleaseId:"next",installationSupported:true,fingerprint:"compact",packages:[{name:"@za38.03/agent-ui-core",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.1",updateAvailable:false,summary:[],history:[]},{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.2",updateAvailable:true,summary:[],history:[]}],blockedReleases:[]};
+ const packageUpdates={status:"online",checkedAt:"2026-10-18T00:00:00Z",recommendedReleaseId:"next",installationSupported:true,fingerprint:"compact",packages:[{name:"@za38.03/agent-ui-core",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.1",updateAvailable:false,summary:[],history:[]},{name:"@za38.03/agent-ui-plugins",scope:"project",currentVersion:"0.0.1",targetVersion:"0.0.2",updateAvailable:true,summary:[],history:[]}],advisories:[]};
  const routes:string[]=[];
  vi.stubGlobal("fetch",vi.fn(async(url:string)=>{routes.push(url);return new Response(JSON.stringify(url.endsWith("/packages/plan")?{id:"review",manager:"npm",lockfile:"package-lock.json",packages:[{name:"@za38.03/agent-ui-core",current:"0.0.1",target:"0.0.1"},{name:"@za38.03/agent-ui-plugins",current:"0.0.1",target:"0.0.2"}],checks:[]}:{...inspection,plugins:[],packageUpdates}));}));
  const {container}=await mount();await click(container,"查看更新");
@@ -191,7 +249,7 @@ it("keeps code comparison optional and requires validation before finishing a so
 });
 
 it("opens only the latest release and groups previous changes by version without downgrade warnings", async () => {
- const packages={...packageOverview(),blockedReleases:[{id:"old-combination",issues:[{code:"downgrade",name:"@za38.03/agent-ui-plugins",actual:"0.0.1",required:"0.0.0"}]}]};
+ const packages={...packageOverview(),advisories:[{id:"old-combination",issues:[{code:"downgrade",name:"@za38.03/agent-ui-plugins",actual:"0.0.1",required:"0.0.0"}]}]};
  vi.stubGlobal("fetch",vi.fn(async()=>Response.json({...inspection,plugins:[],packageUpdates:packages})));
  const {container}=await mount();await click(container,"查看更新");
  const latest=container.querySelector('.creator-official-plugins .creator-release-list > .creator-release')!;

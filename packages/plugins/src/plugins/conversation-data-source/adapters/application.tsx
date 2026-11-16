@@ -7,5 +7,7 @@ export function ConversationDataSourcePlugin(props: ComponentProps<typeof Implem
 export {
   createHttpConversationDataSource,
   type HttpConversationDataSourceOptions,
-  type HttpConversationDataSourceRoutes,
+  type HttpConversationRequestOptions,
+  type HttpConversationRequestContext,
+  type HttpConversationRequestBody,
 } from '@za38.03/agent-ui-plugins/conversation-data-source';

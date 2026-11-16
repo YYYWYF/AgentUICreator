@@ -26,6 +26,18 @@ it("rejects a changed upstream localization anchor instead of silently skipping 
   expect(() => applyProductLocalization(clean.replace('`${count} tool ${count === 1 ? "call" : "calls"}`', '"new upstream label"'), path)).toThrow("Product localization anchor changed");
 });
 
+it.each(["button", "input"])("regenerates the React 18 %s ref adapter without changing upstream source", async name => {
+  const localPath = `components/ui/${name}.tsx`;
+  const owner = new URL(`../src/shared/upstream/assistant-ui/${localPath}`, import.meta.url);
+  const clean = await readFile(owner, "utf8");
+  const generated = (await prepareProductAdapters()).files.find(file => file.localPath === localPath);
+  const maintained = await readFile(new URL(`../src/shared/adapters/presentation/assistant-ui/${localPath}`, import.meta.url), "utf8");
+  expect(generated.source).toBe(maintained);
+  expect(await readFile(owner, "utf8")).toBe(clean);
+  const { applyProductAdaptations } = await import("../scripts/sync-product-adapters.mjs");
+  expect(applyProductAdaptations(clean.replace(/\r?\n/g, "\r\n"), localPath)).toBe(applyProductAdaptations(clean.replace(/\r\n/g, "\n"), localPath));
+});
+
 it("preserves JSX elements, icons, slots and styles when localizing generated adapters", async () => {
   const { default: ts } = await import("typescript-ui-audit");
   const { applyProductAdaptations } = await import("../scripts/sync-product-adapters.mjs");

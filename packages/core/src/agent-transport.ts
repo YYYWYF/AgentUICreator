@@ -6,6 +6,7 @@ import type {
   AgentInterruptResponse,
 } from "./agent-interrupt.js";
 import type { AgentUserInput } from "./agent-input.js";
+import type { AgentSendOptions } from "./agent-context.js";
 import type { AgentMessage } from "./agent-message.js";
 import type { AgentRunState } from "./agent-run.js";
 
@@ -25,7 +26,7 @@ export interface AgentTransport<TState = unknown> {
   getSnapshot(): AgentTransportSnapshot<TState>;
   subscribe(listener: () => void): () => void;
   subscribeApplicationEvents(listener: AgentApplicationEventListener): () => void;
-  sendMessage(input: AgentUserInput): Promise<void>;
+  sendMessage(input: AgentUserInput, options?: AgentSendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abort(): void;

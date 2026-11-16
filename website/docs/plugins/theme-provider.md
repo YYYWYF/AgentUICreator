@@ -6,6 +6,8 @@ title: "主题服务（theme-provider）"
 
 统一管理助理界面的主题。内置浅色、深色和紫色，默认使用紫色主题。
 
+这是一个提供共享主题状态的插件，供界面和其他插件使用。可见的切换按钮由[主题切换插件](./theme-switch)提供；本页介绍主题服务的用途，手动配置见下方开发文档。
+
 ## 可以调整什么
 
 | 你关心的内容 | 告诉 Creator 什么 |
@@ -32,22 +34,7 @@ title: "主题服务（theme-provider）"
 
 ## 手动接入
 
-不传 `theme` 时，默认紫色，并允许已启用的主题控件自行切换。固定深色时可传 `<Agent theme="dark" />`。
-
-希望初始深色且允许用户切换时，由业务页面保存当前值并接收变化：
-
-```tsx
-import { useState } from 'react';
-import type { AgentUITheme } from '@za38.03/agent-ui-plugins';
-import { Agent } from './agent-ui';
-
-export function App() {
-  const [theme, setTheme] = useState<AgentUITheme>('dark');
-  return <Agent theme={theme} onThemeChange={setTheme} />;
-}
-```
-
-以上导入假设代码位于 `src/App.tsx`、生成目录为 `src/agent-ui/`。只传固定 `theme` 而不更新它，界面会保持指定主题。内置值为 `light`、`dark`、`violet`。
-
-品牌色等修改放在生成目录的 `styles.css`，沿用项目已有样式方案。具体示例见[样式与文案开发](/development/styling-and-localization)。
+- 设置默认主题、修改品牌色与样式：[主题与样式](/development/theme-and-styling)。
+- 由业务页面控制主题并接收切换：[主题切换配置](/development/agent-options#主题切换)。
+- 在自定义插件中读取主题或使用主题服务：[内置领域 Hook](/development/plugin-api#内置领域-hook)。
 

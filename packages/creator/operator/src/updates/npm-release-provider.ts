@@ -1,6 +1,6 @@
 import {createHash} from "node:crypto";
 import path from "node:path";
-import {valid} from "semver";
+import {prerelease,valid} from "semver";
 import {officialPackageNames,parseCompatibilityManifest,type CompatibilityRelease} from "./compatibility-release.js";
 import {runUpdateCommand,type UpdateCommand} from "./npm-artifact.js";
 import type {CompatibilityReleaseProvider,ReleaseDiscovery} from "./release-provider.js";
@@ -22,27 +22,32 @@ export class NpmCompatibilityReleaseProvider implements CompatibilityReleaseProv
  }
  private async read(root:string,now:number):Promise<ReleaseDiscovery>{
   const checkedAt=new Date(now).toISOString(),run=this.options.run??runUpdateCommand;
+  const previous=this.cache.get(root);
+  let latestPackages: ReleaseDiscovery["latestPackages"];
   try{
    const metadata=new Map<string,any>();
    const checks=await Promise.allSettled(officialPackageNames.map(async name=>{
     const value=JSON.parse(await run(root,"npm",["view",`${name}@latest`,"--json","--fetch-retries=0","--fetch-timeout=15000"]));
     if(value?.name!==name||!valid(value.version))throw new Error("NPM_UPDATE_IDENTITY");
+    if(name==="@za38.03/agent-ui-creator"&&prerelease(value.version))throw new Error("NPM_UPDATE_CREATOR_NOT_STABLE");
     metadata.set(name,value);
    }));
-   if(checks.some(result=>result.status==="rejected"))throw new Error("NPM_UPDATE_SOURCE_UNAVAILABLE");
+   if(!metadata.size)throw new Error("NPM_UPDATE_SOURCE_UNAVAILABLE");
+   latestPackages=[...metadata.values()].map(pkg=>({name:pkg.name,version:pkg.version})).sort((a,b)=>a.name.localeCompare(b.name));
+   const cachedCreator=!metadata.has("@za38.03/agent-ui-creator")&&previous?.latestPackages?.find(pkg=>pkg.name==="@za38.03/agent-ui-creator");
+   if(cachedCreator)latestPackages=[...latestPackages,cachedCreator].sort((a,b)=>a.name.localeCompare(b.name));
    const releases=new Map<string,CompatibilityRelease>();
    for(const [name,pkg]of metadata){
     if(pkg.agentUI===undefined)continue; // Old npm versions can coexist with newer metadata publishers.
     if(pkg.agentUI.schemaVersion!==1)throw new Error("NPM_UPDATE_SCHEMA");
     const manifest=parseCompatibilityManifest(pkg.agentUI.compatibility);
-    if(!manifest.releases.some(release=>release.packages.some(entry=>entry.name===name&&entry.version===pkg.version)))throw new Error("NPM_UPDATE_METADATA_IDENTITY");
+    if(!manifest.releases.some(release=>release.packages.some(entry=>entry.name===name&&entry.version===pkg.version)))continue;
     for(const release of manifest.releases){
      const previous=releases.get(release.id);
      if(previous&&JSON.stringify(previous)!==JSON.stringify(release))throw new Error("NPM_UPDATE_RELEASE_CONFLICT");
      releases.set(release.id,release);
     }
    }
-   if(!releases.size)throw new Error("NPM_UPDATE_METADATA_MISSING");
    const published=new Map<string,Promise<boolean>>();
    const exists=(name:string,version:string)=>{
     const key=`${name}@${version}`;let result=published.get(key);if(result)return result;
@@ -54,15 +59,14 @@ export class NpmCompatibilityReleaseProvider implements CompatibilityReleaseProv
    // Partial publication must never advertise a combination that cannot yet be installed.
    const available:CompatibilityRelease[]=[];
    for(const release of releases.values())if((await Promise.all(release.packages.map(pkg=>exists(pkg.name,pkg.version)))).every(Boolean))available.push(release);
-   if(!available.length)throw new Error("NPM_UPDATE_RELEASE_NOT_PUBLISHED");
    const manifest=parseCompatibilityManifest({schemaVersion:1,releases:available.sort((a,b)=>a.id.localeCompare(b.id))});
    const identities=new Map(this.identities.get(root));
    for(const release of manifest.releases){const digest=createHash("sha256").update(JSON.stringify(release)).digest("hex");if(identities.has(release.id)&&identities.get(release.id)!==digest)throw new Error("NPM_UPDATE_IMMUTABLE_RELEASE");identities.set(release.id,digest);}
    this.identities.set(root,identities);
-   const result:ReleaseDiscovery={status:"online",checkedAt,fetchedAt:checkedAt,manifest,digest:createHash("sha256").update(JSON.stringify(manifest)).digest("hex")};this.cache.set(root,result);return result;
+   const result:ReleaseDiscovery={status:cachedCreator?"cached":"online",checkedAt,fetchedAt:cachedCreator?previous!.fetchedAt??checkedAt:checkedAt,manifest,latestPackages,...(checks.some(check=>check.status==="rejected")?{issue:"UPDATE_SOURCE_UNAVAILABLE" as const}:{}),digest:createHash("sha256").update(JSON.stringify({manifest,latestPackages})).digest("hex")};this.cache.set(root,result);return result;
   }catch{
-   const previous=this.cache.get(root);if(previous){const result:ReleaseDiscovery={...previous,status:"cached",checkedAt,issue:"UPDATE_SOURCE_UNAVAILABLE"};this.cache.set(root,result);return result;}
-   return {status:"unavailable",checkedAt,issue:"UPDATE_SOURCE_UNAVAILABLE"};
+   const previous=this.cache.get(root);if(previous){const result:ReleaseDiscovery={...previous,status:"cached",checkedAt,...(latestPackages?{latestPackages}:{}),issue:"UPDATE_SOURCE_UNAVAILABLE"};this.cache.set(root,result);return result;}
+   return {status:latestPackages?.length?"online":"unavailable",checkedAt,...(latestPackages?{latestPackages,fetchedAt:checkedAt,digest:createHash("sha256").update(JSON.stringify(latestPackages)).digest("hex")}:{}),issue:"UPDATE_SOURCE_UNAVAILABLE"};
   }
  }
 }

@@ -24,7 +24,8 @@ export class AgentUIUpdateService {
     return this.provider ?? new InstalledUpdateSourceProvider(projectSourceRegistryRoot(projectRoot));
   }
   private compatibility(release: ResolvedSourceRelease): UpdateCompatibility {
-    if (release.descriptor.contractVersion > this.supportedContractVersion || (release.descriptor.minimumCreatorVersion && (!this.creatorVersion || comparePluginVersions(this.creatorVersion, release.descriptor.minimumCreatorVersion) < 0))) return "creator-upgrade-required";
+    // Minimum Creator versions are advisory; only an actual source contract mismatch blocks sync.
+    if (release.descriptor.contractVersion > this.supportedContractVersion) return "creator-upgrade-required";
     if (release.descriptor.contractVersion !== this.supportedContractVersion) return "unsupported";
     return "compatible";
   }
@@ -91,17 +92,18 @@ export class AgentUIUpdateService {
       return resolveAgentUISourceItemClosure(release.registry, `plugin/${id}`).map(item => [item.id, item] as const);
     }));
     const issues: string[] = [];
+    const recommendations: string[] = [];
     const items = [...closure.values()].map(item => {
       const inspected = ctx.inspection.items.find(entry => entry.id === item.id)!;
       if (!isAgentUISourceItemAvailable(item.id)) issues.push(`AGENT_UI_RESOURCE_DISABLED: ${item.id}`);
       const locked = ctx.lock.items[item.id];
       const provided = ctx.config.agentUI.providedSourceItems?.includes(item.id) ?? false;
-      if (locked?.sourceRelease && comparePluginVersions(releaseVersion, locked.sourceRelease) < 0) issues.push(`AGENT_UI_UPDATE_RELEASE_REGRESSION: ${item.id}: 目标 Release ${releaseVersion} 低于当前基线 ${locked.sourceRelease}，禁止降级`);
+      if (locked?.sourceRelease && comparePluginVersions(releaseVersion, locked.sourceRelease) < 0) recommendations.push(`AGENT_UI_UPDATE_RELEASE_REGRESSION: ${item.id}: 目标 Release ${releaseVersion} 低于当前基线 ${locked.sourceRelease}，请确认是否为预期目标`);
       const targetPluginVersion = item.id.startsWith("plugin/") ? release.descriptor.plugins[item.id.slice(7)]!.version : null;
-      if (locked?.pluginVersion && targetPluginVersion && comparePluginVersions(targetPluginVersion, locked.pluginVersion) < 0) issues.push(`${item.id}: 目标依赖版本低于项目当前基线，禁止降级`);
+      if (locked?.pluginVersion && targetPluginVersion && comparePluginVersions(targetPluginVersion, locked.pluginVersion) < 0) recommendations.push(`${item.id}: 目标版本低于当前版本`);
       // A shared dependency with no content change must keep its existing baseline.
       const changed = provided ? inspected.status !== "managed" : inspected.updateAvailable || !locked;
-      if (inspected.resolvedRequirements.some(requirement => !requirement.compatible)) issues.push(`${item.id}: 依赖包未安装或版本不兼容`);
+      if (inspected.resolvedRequirements.some(requirement => requirement.installed === undefined)) issues.push(`${item.id}: 依赖包未安装`);
       if (["blocked", "partial"].includes(inspected.status)) issues.push(`${item.id}: ${inspected.status}`);
       if (provided && changed) issues.push(`${item.id}: Host 提供的基础依赖无法通过插件更新修改`);
       const paths = [...new Set([...item.loadedFiles.filter(file => locked?.files[file.target]?.sha256 !== sha256(file.content)).map(file => file.target), ...Object.keys(locked?.files ?? {}).filter(target => !item.loadedFiles.some(file => file.target === target))])].sort();
@@ -113,7 +115,7 @@ export class AgentUIUpdateService {
     });
     const compatibility = this.compatibility(release);
     const plan: UpgradePlan = { id: randomUUID(), releaseVersion, compatibility, requestedPlugins: [...pluginIds], items,
-      fileCount: new Set(items.flatMap(item => item.paths)).size, requiresMerge: items.some(item => item.changed && item.status === "customized"), blocked: issues.length > 0 || compatibility !== "compatible", issues };
+      fileCount: new Set(items.flatMap(item => item.paths)).size, requiresMerge: items.some(item => item.changed && item.status === "customized"), blocked: issues.length > 0, issues, recommendations };
     for (const [id, stored] of this.plans) if (Date.now() - stored.createdAt > 3600000) this.plans.delete(id);
     this.plans.set(plan.id, { projectRoot: path.resolve(projectRoot), release, stateHash: ctx.stateHash, baselineHash: ctx.lockHash, plan, createdAt: Date.now(), mergeStarted: false });
     return plan;

@@ -7,9 +7,9 @@
 | Creator | 工程选择与初始化、切换工程、Agent 持续执行与取消/确认、应用层编辑、开发入口与进程生命周期 |
 | Plugin 与布局 | 默认 npm 交付、启停与缺失文件准备、AppUIModel 事务、Slot 与服务组合、显式源码接管及实现同步 |
 | 更新 | 官方兼容信息、具体计划确认、真实 npm/pnpm 安装与版本核对、保留应用定制及源码 BASE |
-| 对话 | 消息发送与流式展示、停止、多会话、审批与信息收集、前端工具与业务事件、历史与运行恢复 |
+| 对话 | 消息发送与流式展示、停止、多会话、审批与信息收集、前端工具与业务事件、历史读取 |
 | 组件 | 已交付包的公开 props/组合入口、Composer 与引用、语言/主题切换、Portal 与宿主隔离 |
-| Mock | 官方场景、当前工程本地 JSONL、独立服务和预览入口、项目切换与运行恢复 |
+| Mock | 官方场景、当前工程本地 JSONL、独立服务和预览入口、项目切换 |
 | 发行与平台 | 包入口、消费者类型、生产独立构建、Web Component、Windows 路径/进程/锁文件处理 |
 
 ## 日常检查
@@ -40,7 +40,7 @@ pnpm typecheck
 - `pnpm verify:package`：实际 tarball、公开入口与独立消费者。
 - `pnpm test:web-component`：Web Component 发行、安装、类型和浏览器嵌入。
 - `pnpm verify:assistant-ui-upgrade`：上游升级契约及宿主隔离。
-- `pnpm --filter @za38.03/agent-ui-creator-workbench test:e2e`：Creator 命令与生产运行刷新恢复。
+- `pnpm --filter @za38.03/agent-ui-creator-workbench test:e2e`：Creator 命令与独立生成工程。
 - 同包的 `test:e2e:agent-connection` 和 `test:e2e:theme-commands`：独立生成工程的连接、插件启用/同步与主题操作。
 
 ## 保留与删除标准

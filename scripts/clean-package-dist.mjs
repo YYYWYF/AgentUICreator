@@ -2,7 +2,7 @@ import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { realpathSync } from 'node:fs';
 
-const owners = new Set(['core', 'renderer', 'runtime']);
+const owners = new Set(['core', 'renderer', 'runtime', 'plugins', 'creator']);
 export function packageDistUrl(owner, repository = new URL('../', import.meta.url)) {
   if (!owners.has(owner)) throw new Error(`Unsupported distribution owner: ${owner}`);
   return new URL(`packages/${owner}/dist`, repository);

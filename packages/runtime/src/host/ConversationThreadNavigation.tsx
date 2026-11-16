@@ -4,7 +4,8 @@ import type { ConversationRuntimeBridge } from "../ConversationRuntimeBridgeCont
 import type { createConversationRemoteThreadListAdapter } from "../threads/conversation-remote-thread-list-adapter.js";
 import { useAgentUIThreadNavigation } from "./AgentUIProvider.js";
 import { AgentUiRuntimeBusyError } from "../errors.js";
-import { withConversationEndpoint } from "../compatibility/conversation-request-routing.js";
+import { withConversationSendOptions } from "../compatibility/conversation-request-routing.js";
+import { snapshotAgentUIContext } from "@za38.03/agent-ui-core";
 import type { AgentUIThreadNavigation, AgentUISendOptions } from "./threads.js";
 
 function abortable<T>(task: Promise<T>, signals: readonly AbortSignal[]): Promise<T> {
@@ -62,7 +63,7 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
       if (!draft.text.trim() && !draft.attachments.length) throw new Error("AGENT_UI_EMPTY_DRAFT");
       if (!draft.canSend) throw new AgentUiRuntimeBusyError();
       const originalConfig = draft.runConfig;
-      const runConfig = withConversationEndpoint(originalConfig, options);
+      const runConfig = withConversationSendOptions(originalConfig, options);
       composer.setRunConfig(runConfig);
       try {
         const previousMessages = new Set(target.getState().messages.map(message => message.id));
@@ -115,12 +116,13 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
         await ready(runtime.threads.getState().mainThreadId);
       },
       async sendComposer(options) {
+        const snapshot = options === undefined ? undefined : { ...options, ctx: snapshotAgentUIContext(options.ctx) };
         const localId = runtime.threads.getState().mainThreadId;
         const id = await ready(localId);
         if (sessions.getByIdentity(id)?.agentRuntime.getSnapshot().run.status === "awaiting-input") {
           throw new Error("AGENT_UI_PENDING_INTERRUPTS");
         }
-        await submit(runtime.threads.getById(localId), options, [lifetime.current.signal]);
+        await submit(runtime.threads.getById(localId), snapshot, [lifetime.current.signal]);
       },
     };
   }, [runtime, sessions, persistence]);

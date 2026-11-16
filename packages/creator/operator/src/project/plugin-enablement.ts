@@ -6,7 +6,7 @@ import { ensurePluginApplication, installedPackagePluginIds } from "./plugin-app
 import { resourcePaths } from "./optional-resource-paths";
 import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "../source-catalog/index.js";
 import { inspectAgentUIPackages } from "./source-registry/inspector";
-import { ensureResourcePackages, resourcePackageConflicts, type ResourcePackageRunner } from "./ensure-resource-packages";
+import { ensureResourcePackages, type ResourcePackageRunner } from "./ensure-resource-packages";
 import { readPluginSourceOwnership } from "./plugin-source-ownership";
 import { assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 
@@ -30,9 +30,8 @@ async function inspect(root: string, pluginId: string) {
     ...item, packages: { ...item.packages, ...(item.id.startsWith("plugin/") ? { [catalog.package.name]: catalog.package.version } : {}) },
   }));
   const dependencies = await inspectAgentUIPackages(root, closure);
-  if (resourcePackageConflicts(dependencies.packages).length || dependencies.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_INCOMPATIBLE")) throw new Error("PLUGIN_ENABLEMENT_DEPENDENCY_CONFLICT");
   const preview = owned ? { createdPaths: [] } : await ensurePluginApplication(root, pluginId, undefined, { preview: true, repair: true });
-  const packages = dependencies.packages.filter(item => !item.declared || !item.compatible)
+  const packages = dependencies.packages.filter(item => !item.declared || !item.installed)
     .map(({ name, required, declared, installed }) => ({ name, required, ...(declared ? { declared } : {}), ...(installed ? { installed } : {}) }));
   const records: unknown[] = [await realpath(root), catalogBytes.toString(), dependencies.packages];
   const capture = async (file: string) => {

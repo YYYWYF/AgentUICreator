@@ -22,4 +22,4 @@ auth-gate 是 Application Gate，加入 AppUIModel.applicationPlugins，不放�
 
 验证已有 Host 登录、空 profile、登录/退出、会话恢复、失败、Gate 阻止进入、服务停用与账号展示，以及主题、语言和用户信息隔离。业务认证必须使用真实服务或明确的测试 Adapter；Mock 登录和静态构建不证明真实权限正确。
 
-应用层与共享服务保护见 [源码所有权](../../architecture/npm-default-plugin-source-ownership.md)，Gate 与 Service 的公开合同见 [插件开发接口](../../../website/docs/development/plugin-api.md)。
+应用层与共享服务保护见 [源码所有权](../../architecture/npm-default-plugin-source-ownership.md)，Gate 与 Service 的公开合同见 [插件 API](../../../website/docs/development/plugin-api.md)。

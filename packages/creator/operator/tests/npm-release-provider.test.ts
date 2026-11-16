@@ -20,6 +20,45 @@ it('queries npm latest using each project registry context, coalesces checks, an
  await provider.check(false,'/project with spaces');expect(r.calls).toHaveLength(officialPackageNames.length);
  await provider.check(false,'/another-project');expect(r.calls).toHaveLength(officialPackageNames.length * 2);
 });
+it('still reports Creator latest when an unrelated package or source history is unavailable',async()=>{
+ const r=registry();r.metadata.delete('@za38.03/agent-ui-web-component');
+ for(const pkg of r.metadata.values())delete (pkg as any).agentUI;
+ const result=await new NpmCompatibilityReleaseProvider({run:r.run}).check();
+ expect(result.status).toBe('online');
+ expect(result.issue).toBe('UPDATE_SOURCE_UNAVAILABLE');
+ expect(result.latestPackages).toContainEqual({name:'@za38.03/agent-ui-creator',version:'0.0.1'});
+ expect(result.manifest?.releases).toEqual([]);
+});
+it('does not advertise a prerelease Creator as the maintained stable release',async()=>{
+ const r=registry();r.metadata.get('@za38.03/agent-ui-creator')!.version='1.0.0-beta.1';
+ const result=await new NpmCompatibilityReleaseProvider({run:r.run}).check();
+ expect(result.issue).toBe('UPDATE_SOURCE_UNAVAILABLE');
+ expect(result.latestPackages?.some(pkg=>pkg.name==='@za38.03/agent-ui-creator')).toBe(false);
+});
+it('keeps the known Creator version explicitly cached when only its latest query fails',async()=>{
+ let now=Date.parse('2026-11-15T00:00:00Z');
+ const r=registry(),provider=new NpmCompatibilityReleaseProvider({run:r.run,now:()=>now});
+ const initial=await provider.check();r.metadata.delete('@za38.03/agent-ui-creator');now+=60_000;
+ const result=await provider.check(true);
+ expect(result.status).toBe('cached');expect(result.fetchedAt).toBe(initial.fetchedAt);
+ expect(result.checkedAt).not.toBe(initial.checkedAt);
+ expect(result.latestPackages).toContainEqual({name:'@za38.03/agent-ui-creator',version:'0.0.1'});
+ expect(result.issue).toBe('UPDATE_SOURCE_UNAVAILABLE');
+ r.metadata.set('@za38.03/agent-ui-creator',{name:'@za38.03/agent-ui-creator',version:'0.0.2',agentUI:{schemaVersion:1,compatibility:structuredClone(manifest)}});
+ const recovered=await provider.check(true);
+ expect(recovered.status).toBe('online');expect(recovered.fetchedAt).toBe(recovered.checkedAt);
+ expect(recovered.latestPackages).toContainEqual({name:'@za38.03/agent-ui-creator',version:'0.0.2'});
+});
+it('keeps the plan digest stable when independent npm requests finish in a different order',async()=>{
+ const r=registry();let reverse=false;
+ const run:UpdateCommand=async(root,command,args)=>{
+  const index=officialPackageNames.findIndex(name=>args[1]===`${name}@latest`);
+  await new Promise(resolve=>setTimeout(resolve,reverse?officialPackageNames.length-index:index));
+  return r.run(root,command,args);
+ };
+ const provider=new NpmCompatibilityReleaseProvider({run});const first=await provider.check();reverse=true;
+ expect((await provider.check(true)).digest).toBe(first.digest);
+});
 it('retains known history as cached on network failure without leaking command errors',async()=>{
  const r=registry(),provider=new NpmCompatibilityReleaseProvider({run:r.run});const initial=await provider.check();r.offline();const result=await provider.check(true);
  expect(result.status).toBe('cached');expect(result.fetchedAt).toBe(initial.fetchedAt);expect(result.manifest).toEqual(initial.manifest);expect(JSON.stringify(result)).not.toContain('credential');
@@ -36,7 +75,7 @@ it('omits a partially published combination and keeps the installable release',a
  }
  const result=await new NpmCompatibilityReleaseProvider({run:r.run}).check();expect(result.status).toBe('online');expect(result.manifest?.releases.map(release=>release.id)).toEqual([manifest.releases[0]!.id]);expect(r.calls.some(call=>call.args[2]==='version')).toBe(true);
 });
-it('requires real package identity and publisher-owned compatibility metadata',async()=>{
- const r=registry();for(const pkg of r.metadata.values())delete (pkg as any).agentUI;expect((await new NpmCompatibilityReleaseProvider({run:r.run}).check()).status).toBe('unavailable');
- const wrong=registry();wrong.metadata.values().next().value!.version='0.0.9';expect((await new NpmCompatibilityReleaseProvider({run:wrong.run}).check()).status).toBe('unavailable');
+it('keeps actual npm latest identities usable when recommendation history is absent',async()=>{
+ const r=registry();for(const pkg of r.metadata.values())delete (pkg as any).agentUI;expect((await new NpmCompatibilityReleaseProvider({run:r.run}).check()).status).toBe('online');
+ const wrong=registry();wrong.metadata.values().next().value!.version='0.0.9';expect((await new NpmCompatibilityReleaseProvider({run:wrong.run}).check()).latestPackages).toContainEqual({name:officialPackageNames[0],version:'0.0.9'});
 });

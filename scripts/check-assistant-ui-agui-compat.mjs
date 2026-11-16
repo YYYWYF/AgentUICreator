@@ -1,11 +1,9 @@
-import { execFile as execFileCallback } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { execNpm } from "./npm-process.mjs";
 import { collectResolvedAgUiClientVersions } from "./check-ag-ui-lockfile.mjs";
 
-const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGE_NAME = "@assistant-ui/react-ag-ui";
 const AG_UI_CLIENT = "@ag-ui/client";
@@ -130,7 +128,7 @@ async function readInstalledPackageManifest(repoRoot, expectedVersion, packageJs
 
 async function readRegistryPackageManifest(repoRoot, version) {
   if (version === undefined) return undefined;
-  const result = await execFile("npm", ["view", `${PACKAGE_NAME}@${version}`, "--json"], {
+  const result = await execNpm(["view", `${PACKAGE_NAME}@${version}`, "--json"], {
     cwd: repoRoot,
     encoding: "utf8",
     maxBuffer: 4 * 1024 * 1024,

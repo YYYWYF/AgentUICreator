@@ -1,5 +1,5 @@
-import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse } from "@za38.03/agent-ui-core";
-export interface AgentUISendOptions {
+import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse, AgentSendOptions } from "@za38.03/agent-ui-core";
+export interface AgentUISendOptions extends AgentSendOptions {
   /** Override the default endpoint for this send and its continuations. */
   endpoint?: string | undefined;
 }

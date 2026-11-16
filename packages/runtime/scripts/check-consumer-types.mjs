@@ -6,6 +6,23 @@ import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { spawnPnpm } from "../../../scripts/pnpm-process.mjs";
 
+// Keep each React version in its own isolated consumer and process.
+if (process.argv.includes("--react-matrix")) {
+  for (const version of ["18.2.0", "18.3.1", "19.1.1", "19.2.0"]) {
+    console.log(`Checking React ${version} consumer`);
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
+      stdio: "inherit",
+      env: { ...process.env, AGENT_UI_CONSUMER_REACT_VERSION: version },
+    });
+    const code = await new Promise((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", resolve);
+    });
+    if (code !== 0) throw new Error(`React ${version} consumer failed (${code})`);
+  }
+  process.exit(0);
+}
+
 // The default remains the pinned development baseline; CI can exercise real host versions.
 const checkReactCompatibility = process.env.AGENT_UI_CONSUMER_REACT_VERSION !== undefined;
 const reactVersion = process.env.AGENT_UI_CONSUMER_REACT_VERSION ?? "19.1.1";
@@ -131,6 +148,18 @@ const plugin: UIPluginDefinition={manifest:parseUIPluginManifest({id:"custom",na
 const factory:ConversationThreadBindingFactory=()=>createEphemeralConversationThreadBinding();void [plugin,factory];
 const optionalUser: AgentUIUser = {};
 const hostHook: () => AgentUIHost = useAgentUI;
+interface OrderContext { id: string; status: string }
+const orderContext: OrderContext = { id: "O-1042", status: "pending" };
+const ctx: import("@za38.03/agent-ui-runtime").AgentUIContext = { order: orderContext, nested: { values: [null, true, 1] } };
+const sendOptions: import("@za38.03/agent-ui-runtime").AgentUISendOptions = { endpoint: "/workflow", ctx };
+async function sendCtx(host: AgentUIHost) {
+  await host.sendMessage("analyze", sendOptions);
+  await host.thread("thread").sendMessage({ content: "analyze" }, { ctx });
+  await host.sendComposer({ ctx });
+}
+const agentCtx: import("@za38.03/agent-ui-runtime/ui").AgentProps = { ctx };
+const pluginCtx: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions["sendMessage"] = async (_input, options) => { void options?.ctx; };
+void [sendCtx, agentCtx, pluginCtx];
 void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, optionalUser];
 const hostTools = createAgentUIFrontendTools([{
   name: "open_record", description: "Open record", inputSchema: { type: "object" },
@@ -174,6 +203,7 @@ const dictationAdapter: NonNullable<ConversationRuntimeProviderProps["dictationA
 };
 const props: ConversationRuntimeProviderProps = {
   endpoint: "https://example.test/agent", threadBinding: binding,
+  ctx,
   attachments: { uploadUrl: "/api/files", urlField: "body.url", maxSizeBytes: 1024 },
   dictation: { url: "/api/transcribe", textField: "body.text" },
   feedback: { url: "/api/feedback", headers: { Authorization: "Bearer user-token" } },

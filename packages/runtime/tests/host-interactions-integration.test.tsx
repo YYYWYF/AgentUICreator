@@ -35,7 +35,7 @@ describe("public Host interactions through the canonical Agent runtime", () => {
     function Page() { host = useAgentUI(); useAgentUIAppEvent("app.ticket.selected", events); return null; }
     function Native() { nativeClient = useAui(); native = nativeClient.threads.__internal_getAssistantRuntime!(); return <AgentUIConversationBinding />; }
     await act(async () => { tree = create(<AgentUIProvider><Page />
-      <ConversationRuntimeProvider endpoint="https://example.test/agent" threadBinding={createEphemeralConversationThreadBinding()} frontendTools={tools}
+      <ConversationRuntimeProvider endpoint="https://example.test/agent" ctx={{ tenant: "host" }} threadBinding={createEphemeralConversationThreadBinding()} frontendTools={tools}
         onError={error => errors.push(error)} unstable_agentFactory={({ threadId }) => new HttpAgent({
           url: "https://example.test/agent", threadId,
           fetch: async (_url, init) => {
@@ -62,7 +62,7 @@ describe("public Host interactions through the canonical Agent runtime", () => {
     try {
       await until(() => host.getSnapshot().status === "ready" && !native.thread.getState().isLoading);
       let sent!: Promise<void>;
-      await act(async () => { sent = host.sendMessage("Open ticket T-1"); });
+      await act(async () => { sent = host.sendMessage("Open ticket T-1", { ctx: { ticketId: "T-1" } }); });
       const settled = sent.catch(error => error);
       if (cancel) {
         await until(() => activeSignal !== undefined);
@@ -83,6 +83,8 @@ describe("public Host interactions through the canonical Agent runtime", () => {
         await next;
         expect(requests[1]!.messages).toMatchObject([{ role: "user", content: "A fresh request after cancelling" }]);
         expect(requests[1]!.messages).toHaveLength(1);
+        expect(requests[0]!.forwardedProps.ctx).toEqual({ tenant: "host", ticketId: "T-1" });
+        expect(requests[1]!.forwardedProps.ctx).toEqual({ tenant: "host" });
         expect(errors).toEqual([]);
         return;
       }
@@ -96,6 +98,9 @@ describe("public Host interactions through the canonical Agent runtime", () => {
       expect(requests[1]!.messages.filter((message: any) => message.role === "user" || message.role === "assistant")).toEqual([]);
       expect(requests[1]!.messages.filter((message: any) => message.role === "tool")).toMatchObject([{ toolCallId: "open-1", content: '{"opened":"T-1"}' }]);
       expect(requests[1]!.resume).toBeUndefined();
+      expect(requests.map(request => request.forwardedProps.ctx)).toEqual([
+        { tenant: "host", ticketId: "T-1" }, { tenant: "host", ticketId: "T-1" },
+      ]);
     } finally { await act(async () => tree.unmount()); }
   });
 });

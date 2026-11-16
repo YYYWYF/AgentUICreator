@@ -48,7 +48,7 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 - 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的接线。
 - 普通项目 Service 契约与实现修改不单独弹审批。可使用通用文件工具，或选择 preflight 工具检查拓扑、公共声明和文件版本，再以返回的 planId 应用；契约路径相对于实际 sourceRoot。保留只读、路径隔离、修改前新鲜读取和 hash 校验。
 
-可运行的提供、订阅和清理示例见 [插件开发接口](../website/docs/development/plugin-api.md)。
+可运行的提供、订阅和清理示例见 [插件 API](../website/docs/development/plugin-api.md)。
 
 ## 会话与 Agent 交互
 

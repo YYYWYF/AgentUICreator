@@ -3881,9 +3881,8 @@
           }
         },
         "compatibility": {
-          "description": "Non-empty shared API version requirements from the target project installed Plugin takeover catalog. Operator checks every declared version against that same installed catalog sharedApis before planning or execution.",
+          "description": "Shared API version recommendations from the installed catalog. Differences are advisory and never reject planning or execution.",
           "type": "object",
-          "minProperties": 1,
           "maxProperties": 64,
           "propertyNames": {
             "type": "string",
@@ -3905,6 +3904,30 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "recommendations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "api": {
+                "type": "string"
+              },
+              "required": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "installed": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "api",
+              "required"
+            ],
+            "additionalProperties": false
           }
         }
       },

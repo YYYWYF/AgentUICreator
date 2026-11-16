@@ -13,7 +13,7 @@ export function inspectOfficialResourceImplementation(resource: OfficialAgentUIR
   const packages = closure.flatMap(item => item?.resolvedRequirements ?? []);
   const conflicts = resourcePackageConflicts(packages);
   const packageOwned = "pluginId" in implementation && officialPackagePlugin(implementation.pluginId) !== undefined;
-  const blocked = !packageOwned && closure.some(item => (!item || !packageSourceDependency(item.id)) && (item?.status === "partial" || item?.status === "blocked") || item?.issues?.some(issue => issue.code === "AGENT_UI_PACKAGE_INCOMPATIBLE"));
+  const blocked = !packageOwned && closure.some(item => (!item || !packageSourceDependency(item.id)) && (item?.status === "partial" || item?.status === "blocked"));
   const duplicateProvider = implementation.type !== "source" && composition.pluginInstances.filter(instance => instance.pluginId === implementation.pluginId).length > 1;
   const parentById = new Map(composition.pluginInstances.map(instance => [instance.id, instance]));
   const pluginId = "pluginId" in implementation ? implementation.pluginId : undefined;
@@ -26,11 +26,11 @@ export function inspectOfficialResourceImplementation(resource: OfficialAgentUIR
     parentById.get(instance.target.parentInstanceId ?? "")?.pluginId === "conversation-surface" &&
     instance.pluginId !== pluginId) && !pluginAlreadyInTargetSlot;
   let status: "ready" | "missing" | "disabled" | "conflict";
-  if (conflicts.length || blocked || duplicateProvider || targetPluginSlotOccupied) status = "conflict";
+  if (blocked || duplicateProvider || targetPluginSlotOccupied) status = "conflict";
   else {
     const sourceReady = packageOwned || (implementation.type !== "source" || sources.integrationRegistryReady !== false) &&
       closure.every(item => item && (packageSourceDependency(item.id) || ["managed", "customized"].includes(item.status)) && !item.dependencyIssues?.length &&
-        !(item.resolvedRequirements ?? []).some(requirement => !requirement.compatible));
+        !(item.resolvedRequirements ?? []).some(requirement => requirement.installed === undefined));
     const source = composition.pluginSources.find(source => source.pluginId === pluginId);
     const pluginReady = !pluginId || (source?.status === "available" &&
       (!("dataMessageUIName" in implementation) || implementation.dataMessageUIName === undefined || source.dataMessageUINames.includes(implementation.dataMessageUIName)));

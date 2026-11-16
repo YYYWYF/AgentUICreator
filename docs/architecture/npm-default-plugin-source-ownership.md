@@ -30,7 +30,7 @@ Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runt
 
 `conversation-service` 提供业务服务 `agent-ui.conversations` 和通用 `agent-ui.thread-binding` 工厂。Runtime 仅消费后者，不读取业务 DTO、不创建具体 ConversationService。直接调用 Runtime 的 `projectLangChainHistory()` 只执行官方转换；默认业务历史链先经过插件的兼容处理。接管后，会话管理工厂及数据源工厂分别随对应插件切到本地实现；项目 HTTP 委托经本地应用入口调用，因此 Host 直接创建的数据源也跟随所选实现。
 
-项目可以用 `decodeList`、`decodeDetail` 或完整的 `Agent.conversationDataSource` 接入不同的历史接口格式；自定义适配不要求修改 Runtime。项目配置和薄应用层不纳入插件实现 BASE，npm 升级不覆盖它们；已接管实现通过 BASE/LOCAL/TARGET 单独合并、验证与采用，保留用户定制不等于免除公共契约兼容检查。Runtime 的通用 `AgentProps.services` 承载服务覆盖。新初始化不复制完整的 `services/conversations/service.ts`、`contract.ts`、`data-source.ts`；保留的旧资源转导出入口不构成另一份实现。已有项目复制的完整 HTTP 实现不会自动迁移，需单独评审项目改动。
+项目可以用 HTTP 数据源的 `list/get/delete/rename/archive/unarchive` 接口对象分别配置 `url`、`method`、JSON `body` 与响应 `decode`，或用完整的 `Agent.conversationDataSource` 接入不同的历史接口格式；自定义适配不要求修改 Runtime。项目配置和薄应用层不纳入插件实现 BASE，npm 升级不覆盖它们；已接管实现通过 BASE/LOCAL/TARGET 单独合并、验证与采用，保留用户定制不等于免除公共契约兼容检查。Runtime 的通用 `AgentProps.services` 承载服务覆盖。新初始化不复制完整的 `services/conversations/service.ts`、`contract.ts`、`data-source.ts`；保留的旧资源转导出入口不构成另一份实现。已有项目复制的完整 HTTP 实现或分散的 `routes`、`methods`、`decodeList/decodeDetail` 配置不会自动迁移，需单独评审项目改动。
 
 这次边界调整需要既有项目单独迁移应用接线：绑定 presentation、将旧 Runtime 会话服务导入改到 Plugins 的 `conversation-service` 入口，并让该能力插件提供 Thread binding。新增服务属于应用合同变化；更新中心必须继续报告需要应用迁移，不能把旧应用代码或已接管实现静默替换。独立版本和受评审的兼容组合仍生效，Runtime 不再因自身 dependencies 精确指定 Plugins 版本而要求联动发布。
 
@@ -110,7 +110,7 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 
 Creator 先用 AppUIModel 和应用层公开 props/组合。确需修改内部实现时，`takeover_plugin_source` 通过 Operator 的 `plan_plugin_source_takeover` 读取工程实际 Plugins 包，展示指定插件的维护责任与切换范围，并通过真实 human-input 中断取得同意。内部计划绑定实际版本、catalog 摘要、源码/运行文件、受影响实例和工程状态；模型不能自行传入 approval 作为授权。
 
-拒绝或未答复时零实现写入。答案绑定计划 hash，恢复后包或工程变化使决定失效。内部 apply 再次检查计划，在临时工程生成注册并运行已有 typecheck/build/test（build 必须存在），成功后才事务提交。缺失依赖、快照、运行摘要或共享 API 不兼容时阻止执行。
+拒绝或未答复时零实现写入。答案绑定计划 hash，恢复后包或工程变化使决定失效。内部 apply 再次检查计划，在临时工程生成注册并运行已有 typecheck/build/test（build 必须存在），成功后才事务提交。缺失依赖文件、快照或运行摘要时报告具体错误。共享 API 的数字版本差异仅提供参考，不拒绝规划或执行；实际缺失 API 和源码检查失败分别报告。
 
 ```text
 <sourceRoot>/plugins/<id>/

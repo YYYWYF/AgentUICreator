@@ -60,7 +60,7 @@ function AgentEnvironmentOwner({ composition, frontendToolRuntime, locale, prese
   // Thread switches replace the conversation bridge, not application services.
   // Keep Plugin setup actions stable while dispatching to the active thread.
   const actions = useMemo(() => ({
-    sendMessage: (input: Parameters<typeof agentRuntime.sendMessage>[0]) => activeAgentRuntime.current.sendMessage(input),
+    sendMessage: (...args: Parameters<typeof agentRuntime.sendMessage>) => activeAgentRuntime.current.sendMessage(...args),
     resumeInterrupts: (responses: Parameters<typeof agentRuntime.resumeInterrupts>[0]) => activeAgentRuntime.current.resumeInterrupts(responses),
     startNewConversation: () => activeAgentRuntime.current.startNewConversation(),
     abortRun: () => activeAgentRuntime.current.abort(),

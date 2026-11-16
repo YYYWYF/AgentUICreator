@@ -11,7 +11,7 @@ import { generateLocaleReference, replaceLocaleReference } from './generate-loca
 
 const repositoryRoot = fileURLToPath(new URL('../../', import.meta.url));
 const dictionaries = path.join('packages', 'plugins', 'src', 'locales');
-const document = path.join('website', 'docs', 'development', 'styling-and-localization.md');
+const document = path.join('website', 'docs', 'development', 'locale-reference.md');
 
 async function fixture(t, newline = '\n') {
   const root = await mkdtemp(path.join(os.tmpdir(), 'locale reference 文案 '));
@@ -53,13 +53,22 @@ test('includes every public field exactly once and preserves manually maintained
   const f = await fixture(t);
   await generateLocaleReference({ root: f.root });
   const generated = await f.read();
-  const expected = Object.entries(f.messages['en-US']).flatMap(([namespace, values]) => Object.keys(values).map(key => `${namespace}.${key}`));
+  const unpublished = [
+    'examples.durableRun',
+    'examples.agentPlanActivityRefreshRecovery',
+    'examples.productionBindingRefreshRecovery',
+    'examples.runResumeMock',
+    'examples.sendALongTaskAndRefreshAfter',
+  ];
+  const expected = Object.entries(f.messages['en-US']).flatMap(([namespace, values]) => Object.keys(values).map(key => `${namespace}.${key}`))
+    .filter(key => !unpublished.includes(key));
   const actual = [...generated.matchAll(/^\| `([^`]+)` \|/gmu)].map(match => match[1]);
   assert.deepEqual(actual.sort(), expected.sort());
+  for (const key of unpublished) assert(!generated.includes(key), `Unpublished field exposed: ${key}`);
   assert(generated.startsWith('用户维护的开头\n'));
   assert(generated.endsWith('用户维护的结尾\n'));
   assert.match(generated, /### 会话、欢迎内容与历史记录/u);
-  assert.match(generated, /### 示例与演示页面/u);
+  assert.match(generated, /^## 示例与演示页面$/mu);
   await generateLocaleReference({ root: f.root, check: true });
 });
 

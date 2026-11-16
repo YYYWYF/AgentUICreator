@@ -1,6 +1,10 @@
-# 插件开发接口
+# 插件 API
 
 项目插件由能力声明、组件和可选的服务生命周期组成。创建文件与注册步骤见[创建自定义插件](/development/create-plugin.md)。修改已有官方插件外观时，先使用[组件公开属性](/development/component-customization.md)。
+
+需要从定位文件一路完成样式、业务请求和服务修改时，按[手动修改插件教程](/development/component-customization.md)操作；本页提供各项 API 的签名和专题示例。
+
+本页导航：[能力速查](#公共能力速查) · [类型入口](#类型入口) · [插件定义](#插件定义) · [组件与子插槽](#组件与子插槽) · [状态与操作](#会话操作与实例信息) · [服务与订阅](#服务共享与状态订阅)。
 
 ## 公共能力速查
 
@@ -10,7 +14,7 @@
 | 获取当前插件实例          | `usePluginInstance()`、`setup.instance`                                                | 读取实例 ID、插件 ID、启用状态              |
 | 读取消息、共享状态、运行与审批状态 | [会话状态](#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()` 等              | 已有 `AgentRuntimeProvider` 下的组件  |
 | 复用或提供业务服务         | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`usePluginServiceSnapshot()`、`setup.services` | 在插件定义中声明提供或消费的服务                |
-| 接收 Agent 业务通知     | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                        | 项目注册事件 Schema，插件声明消费权限          |
+| 接收 Agent 返回的业务事件  | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                        | 项目注册事件 Schema，插件声明消费权限          |
 | 组合子插件或替换消息展示      | [子插槽](#组件与子插槽)：`renderSlot()`、`renderScopedSlot()`                                    | 在 manifest 中声明对应子插件的显示位置和接受的能力  |
 | 自定义消息卡片和工具结果      | [展示注册](#消息与工具结果展示)：`dataMessageUIs`、`toolkit`                                         | 注册到现有会话，保留数据名称和工具名称             |
 | 复用输入框、附件与语音按钮     | [会话组件](#复用会话组件与输入能力)：公开组件、`useConversationComposer()`                                 | 当前 Conversation 的上下文中           |
@@ -109,16 +113,16 @@ export function TicketCard({ renderSlot }: UIPluginComponentProps) {
 
 ## setup 上下文
 
-| 成员                                    | 用途                                         |
-| ------------------------------------- | ------------------------------------------ |
-| `instance`                            | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息    |
-| `actions.sendMessage(input)`          | 发送字符串或 `AgentUserInput`，返回 `Promise<void>` |
-| `actions.abortRun()`                  | 请求停止当前运行                                   |
-| `actions.startNewConversation()`      | 新建并切换会话，返回 `Promise<void>`                 |
-| `actions.resumeInterrupts(responses)` | 提交审批或补充信息，返回 `Promise<void>`               |
-| `services.get(name)`                  | 获取服务，缺失时返回 undefined                       |
-| `services.provide(name, value)`       | 注册服务，返回取消注册函数                              |
-| `events.subscribe(name, listener)`    | 订阅业务事件，返回取消订阅函数                            |
+| 成员                                     | 用途                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `instance`                             | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息                                  |
+| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ ctx: { ... } }` 附带业务参数，返回 `Promise<void>` |
+| `actions.abortRun()`                   | 请求停止当前运行                                                                 |
+| `actions.startNewConversation()`       | 新建并切换会话，返回 `Promise<void>`                                               |
+| `actions.resumeInterrupts(responses)`  | 提交审批或补充信息，返回 `Promise<void>`                                             |
+| `services.get(name)`                   | 获取服务，缺失时返回 undefined                                                     |
+| `services.provide(name, value)`        | 注册服务，返回取消注册函数                                                            |
+| `events.subscribe(name, listener)`     | 订阅业务事件，返回取消订阅函数                                                          |
 
 `setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` / `usePluginServiceSnapshot` 接口。
 
@@ -126,19 +130,21 @@ export function TicketCard({ renderSlot }: UIPluginComponentProps) {
 
 React 组件从 `@za38.03/agent-ui-plugins` 使用 `usePluginActions()` 和 `usePluginInstance()`，分别取得上表中的 `actions` 和 `instance`。它们由现有插件实例上下文提供；不作为 `Component` 的额外参数传入。
 
+例如 `await actions.sendMessage('分析订单', { ctx: { orderId: 'O-1042' } })`，后端从 `forwardedProps.ctx` 读取参数。更多示例见[业务参数 ctx](/development/business-context.md#业务参数-ctx)。
+
 以下示例放在 `plugins/ticket-actions/index.tsx`，发送一条项目文案中配置的工单分析请求：
 
 ```tsx
 import { useState } from 'react';
-import { usePluginActions, usePluginInstance } from '@za38.03/agent-ui-plugins';
+import { usePluginActions, usePluginInstance, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 import { useAgentRun } from '@za38.03/agent-ui-runtime';
-import { useTicketActionsMessages } from '../../services/ticket-messages';
+import { getProjectMessages } from '../../application/i18n/messages';
 
 export function TicketActions() {
   const actions = usePluginActions();
   const instance = usePluginInstance();
   const run = useAgentRun();
-  const labels = useTicketActionsMessages();
+  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -165,7 +171,7 @@ export function TicketActions() {
 }
 ```
 
-先按[主题与多语言](#主题与多语言)加入示例的 `ticketActions` 文案，并在插件定义中声明 locale 服务依赖。异步操作需处理失败，并在运行或等待审批时控制按钮可用性。`resumeInterrupts()` 接收 `AgentInterruptResponse[]`；沿用项目已有的审批数据与表单校验，不用普通消息替代审批回复。
+先按[主题与多语言](#主题与多语言)创建 `application/i18n/messages.ts`，加入示例的 `ticketActions` 文案；已有文件时合并该领域。`useAgentUILocaleCode()` 读取应用已有的语言上下文。异步操作需处理失败，并在运行或等待审批时控制按钮可用性。`resumeInterrupts()` 接收 `AgentInterruptResponse[]`；沿用项目已有的审批数据与表单校验，不用普通消息替代审批回复。
 
 ## 读取会话状态
 
@@ -404,7 +410,7 @@ export const ticketToolkit = createConversationToolkit({
 });
 ```
 
-将 `ticketToolkit` 赋给插件定义的 `toolkit`；工具名称与后端约定一致。该入口只注册展示，不注册或执行后端工具。修改已有工具 UI 时，保留已有的 `interaction` 配置、审批回调和运行状态参数。完整示例及验证场景见[自定义结果展示](/development/custom-renderers.md)。
+将 `ticketToolkit` 赋给插件定义的 `toolkit`；工具名称与后端约定一致。该入口只注册展示，不注册或执行后端工具。修改已有工具 UI 时，保留已有的 `interaction` 配置、审批回调和运行状态参数。完整示例及验证场景见[已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。
 
 ## 复用会话组件与输入能力
 
@@ -436,7 +442,7 @@ export function ComposerActions() {
 | `attachments`、`attachmentAccept`、`attachmentsEnabled` | 读取附件与可选文件类型              |
 | `addAttachment(file)`、`removeAttachment(id)`          | 操作附件，返回 Promise，调用方需处理失败 |
 
-附件默认转 Base64，听写默认依赖受支持的浏览器语音识别，评价默认保留当前界面的选择。上传、服务端转写、反馈保存通过项目配置的 `conversationServices` 接入，复杂协议可按需创建自己的服务文件，见[附件、语音与评价服务](/development/attachments-dictation-feedback.md)。
+附件默认转 Base64，听写默认依赖受支持的浏览器语音识别，评价默认保留当前界面的选择。上传和反馈保存分别通过 `Agent attachments`、`Agent feedback` 接入，见[附件上传服务](/development/attachment-upload.md)和[回复评价服务](/development/feedback-service.md)；业务语音转写服务仍标为开发中。
 
 ## 主题与多语言
 
@@ -479,10 +485,10 @@ export function TicketActionLabel() {
 }
 ```
 
-业务文案由项目维护，不扩展或改写 npm 字典，不增加独立语言状态。复用已有领域时保留原有键；协议名、服务名、插件 ID 和消息名保持原值。主题变量与检查方式见[样式与文案开发](/development/styling-and-localization.md)。
+业务文案在项目共享消息模块中维护，跟随当前界面语言切换。复用已有领域时保留原有键；协议名、服务名、插件 ID 和消息名保持原值。样式覆盖见[主题与样式](/development/theme-and-styling.md)，文案配置与检查方式见[语言与文案](/development/localization.md)。
 
 ## 前端工具与宿主页面联动
 
 让 Agent 调用页面现有方法时，使用 Runtime 公开的 `createAgentUIFrontendTools()`，通过项目 `<Agent frontendTools={tools} />` 接入。它与 `toolkit` 展示注册分开，具体参数校验、权限和取消处理见[前端工具与页面操作](/development/frontend-tools.md#宿主页面操作接入)。
 
-需要在插件外的业务页面发送消息或读取状态时，使用同一个 `AgentUIProvider` 下的 `useAgentUI()`、`useAgentUIState()` 和 `useAgentUIEvent()`，见 [Host 会话方法与 Hooks](/development/react-host-api.md#会话方法)。Host 操作要求 `status === 'ready'`；业务事件使用 `useAgentUIAppEvent()`。复用已有 Provider 与连接，不要为插件创建另一套 Runtime 或 AG-UI 连接。
+需要在插件外的业务页面发送消息或读取状态时，使用同一个 `AgentUIProvider` 下的 `useAgentUI()`、`useAgentUIState()` 和 `useAgentUIEvent()`，见 [Host 会话方法与 Hooks](/development/react-host-api.md#会话方法)。Host 操作要求 `status === 'ready'`；业务事件使用 `useAgentUIAppEvent()`。

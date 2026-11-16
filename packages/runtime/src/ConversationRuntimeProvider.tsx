@@ -62,6 +62,7 @@ import { createConversationRemoteThreadListAdapter } from "./threads/conversatio
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
 import { createAssistantUiFrontendToolkit } from "./tools/assistant-ui-frontend-tool-adapter.js";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
+import type { AgentUIContext } from "@za38.03/agent-ui-core";
 import { useAgentUIThreadRegistrar } from "./host/AgentUIProvider.js";
 import { ConversationRequestRouting } from "./compatibility/conversation-request-routing.js";
 import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
@@ -82,6 +83,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   request?: ServiceRequestConfig | undefined;
+  /** Default business parameters merged into forwardedProps.ctx on every request. */
+  ctx?: AgentUIContext | undefined;
   /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
   /** Internal Host preview override also applies to workflow requests. */
@@ -145,6 +148,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
   endpoint,
   request,
+  ctx,
   fetch: requestFetch,
   requestEndpointOverride,
   threadBinding,
@@ -168,6 +172,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const registerHostThread = useAgentUIThreadRegistrar();
   const requestRef = useRef(request);
   useLayoutEffect(() => { requestRef.current = request; }, [request]);
+  const ctxRef = useRef(ctx);
+  useLayoutEffect(() => { ctxRef.current = ctx; }, [ctx]);
   const fetchRef = useRef(requestFetch);
   useLayoutEffect(() => { fetchRef.current = requestFetch; }, [requestFetch]);
   const frontendTools = useFrontendToolSource(providedFrontendTools);
@@ -237,7 +243,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const quoteMessagesRef = useRef(new Map<string, ThreadMessage>());
     const commandForwarderRef = useRef<ReturnType<typeof installConversationCommandForwarding> | undefined>(undefined);
     const agent = useMemo(() => {
-      const routing = new ConversationRequestRouting(endpoint);
+      const routing = new ConversationRequestRouting(endpoint, () => ctxRef.current);
       const created = unstable_agentFactory({ endpoint, threadId: ownedId, getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint(), getFetch: () => fetchRef.current });
       commandForwarderRef.current = installConversationCommandForwarding(created);
       created.use(routing);

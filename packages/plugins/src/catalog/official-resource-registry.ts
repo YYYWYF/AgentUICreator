@@ -52,7 +52,6 @@ const productResourceRegistry = createOfficialResourceRegistry([
   { id: "retrieval-chunks", discoverable: true, label: "文档检索", implementation: { type: "plugin", pluginId: "retrieval-chunks" } },
   { id: "ask-user-question", discoverable: true, label: "询问用户", implementation: { type: "plugin", pluginId: "ask-user-question" } },
   { id: "human-form-demo", label: "会话内信息收集表单 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/human-form", pluginId: "human-form-demo", placement: "application" } },
-  { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", placement: "layout", layoutSize: "0px" } },
   { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", placement: "layout", layoutSize: "0px" } },
   { id: "source-citations-message", discoverable: true, label: "来源引用", implementation: { type: "plugin", pluginId: "source-citations-message" } },
   { id: "generated-file-message", discoverable: true, label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },

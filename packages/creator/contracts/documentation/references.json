@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "documents": [
     { "path": "docs/agent-ui-plugin-creator-launch-plan.md", "topic": "职责与所有权", "summary": "当前架构：Creator、AppUIModel、Plugin、Runtime、AG-UI、Service 和交付边界。" },
-    { "path": "docs/agent-ui-reference-guide.md", "topic": "职责与所有权", "summary": "按问题选择参考项目；目标工程 UI Stack、已安装 API 与证据边界。" },
     { "path": "docs/architecture/npm-default-plugin-source-ownership.md", "topic": "职责与所有权", "summary": "npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。" },
     { "path": "docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md", "topic": "职责与所有权", "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。" },
     { "path": "docs/architecture/plugin-authoring-contract.md", "topic": "插件开发与组合", "summary": "自定义插件 authoring、默认放置、容器子插槽、renderer、样式隔离和校验合同。" },
@@ -16,7 +15,7 @@
     { "path": "docs/architecture/agent-connection-preview-source.md", "topic": "Host 与接入", "summary": "业务 Agent 连接、预览来源、Mock/recording 解析、身份与隔离。" },
     { "path": "docs/implementation/authentication/README.md", "topic": "Host 与接入", "summary": "可选认证与账号插件；Host 服务、登录状态和应用自有配置。" },
     { "path": "docs/architecture/frontend-tool-lifecycle.md", "topic": "会话与交互", "summary": "Frontend Tool 注册、执行、审批、中断恢复、取消与历史副作用隔离。" },
-    { "path": "docs/architecture/frontend-tool-form-demo.md", "topic": "会话与交互", "summary": "Dialog/Form 前端工具的声明与交互示例。" },
+    { "path": "docs/architecture/frontend-tool-form-demo.md", "topic": "会话与交互", "summary": "Dialog 能力示例与业务页面表单直接接入通用前端工具的边界。" },
     { "path": "docs/architecture/generative-ui-integration.md", "topic": "会话与交互", "summary": "可选 Generative UI 工厂与前端执行边界。" },
     { "path": "docs/architecture/authoritative-agent-plan-activity.md", "topic": "会话与交互", "summary": "Agent Plan Activity 的权威数据、计划状态与展示合同。" },
     { "path": "docs/architecture/assistant-response-footer.md", "topic": "会话与交互", "summary": "回复组与操作栏；多消息回复只在最终消息下呈现一次 footer。" },

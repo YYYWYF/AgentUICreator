@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { cssAssetImport } from "../scripts/ui-assets.mjs";
+import { cssAssetImport } from "../scripts/copy-assets.mjs";
 import { buildPublicDeclarationGraph } from "../scripts/declaration-graph.mjs";
 
 it("emits logical CSS imports for Windows drive paths with spaces and Unicode", () => {

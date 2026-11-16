@@ -9,5 +9,7 @@ export function ConversationDataSourcePlugin(props: ConversationDataSourcePlugin
 export {
   createHttpConversationDataSource,
   type HttpConversationDataSourceOptions,
-  type HttpConversationDataSourceRoutes,
+  type HttpConversationRequestOptions,
+  type HttpConversationRequestContext,
+  type HttpConversationRequestBody,
 } from './adapters/http-data-source';

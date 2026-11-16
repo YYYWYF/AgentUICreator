@@ -42,6 +42,8 @@ Thread 绑定在一次挂载期间保持稳定。项目配置历史地址、鉴�
 
 AG-UI 请求的 `messages` 默认只发送本次用户消息，不附带历史用户或 assistant 消息；完整历史仍由本地 Conversation Runtime 展示，后端按 `threadId` 维护上下文。前端工具续传只发送本次工具结果；中断恢复使用原生 `resume`，`messages` 只携带中断后追加的消息，没有新消息时为空。
 
+Host 通过 `Agent.ctx` 设置默认业务参数，通过 `sendMessage(input, { ctx })` 添加本次参数，后端从 `forwardedProps.ctx` 读取。用法见[业务上下文](../../../development/business-context.md)。
+
 ## Frontend Tool 与 HITL
 
 应用决定允许向 Agent 暴露的前端工具，Plugin 提供 activation-scoped Service，Tool UI 显示参数、状态与结果。执行、取消和标准 continuation 使用原生工具链路，详见 [Frontend Tool 生命周期](frontend-tool-lifecycle.md)。

@@ -115,8 +115,7 @@ import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@z
 import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/project/dev";
 import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-creator/source-registry";
 import composer from "@za38.03/agent-ui-plugins/composer";
-import { formTools } from "@za38.03/agent-ui-plugins/form-tools";
-void [createAgentUIGenerativeUI, Button, DemoAttachmentAdapter, LayoutRenderer, useConversationRuntimeBridge, createCreatorClient, createMockAgentHttpHandler, createDefaultAgentUIPresetRegistry, initializeAgentUIProject, handleUIOperatorRequest, loadAgentUISourceRegistry, composer, formTools];
+void [createAgentUIGenerativeUI, Button, DemoAttachmentAdapter, LayoutRenderer, useConversationRuntimeBridge, createCreatorClient, createMockAgentHttpHandler, createDefaultAgentUIPresetRegistry, initializeAgentUIProject, handleUIOperatorRequest, loadAgentUISourceRegistry, composer];
 let theme: AgentUITheme | undefined; void theme;
 `);
  await writeFile(path.join(consumer, "smoke.mjs"), `
@@ -179,11 +178,11 @@ assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assista
  await rm(path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/documentation"), { recursive: true, force: true });
  run(["smoke.mjs"]);
  // Product facades must work without downstream installs of upstream adapters.
- for (const name of ["@assistant-ui/react-lexical", "@assistant-ui/react-hook-form"]) {
+ for (const name of ["@assistant-ui/react-lexical"]) {
   await rm(path.join(consumer, "node_modules", name), { recursive: true, force: true });
  }
  run([path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/cli.js"), "--help"]);
- await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\nexport { formTools } from "@za38.03/agent-ui-plugins/form-tools";\n');
+ await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\n');
  await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: !process.argv.includes("--strict-types"), noEmit: true, esModuleInterop: true, resolveJsonModule: true, types: ["node", "react", "vite/client"], lib: ["DOM", "ES2022"] }, include: ["consumer.tsx", "app.tsx", "src"] }));
  run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
  // TypeScript 5.9 models existing CRA hosts independently of the workspace's

@@ -24,15 +24,33 @@
 
 ## 2. 编写组件
 
-新建 `plugins/ticket-actions/index.tsx`。先用一个不含业务文案的空容器确认注册，之后在此组件中接入已有业务组件：
+先新建 `application/i18n/messages.ts`，提供本例的双语文案。已有这个文件时，合并 `ticketActions` 领域并保留原来的读取函数：
+
+```ts
+import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+
+const zhCN = { ticketActions: { ready: '工单插件已接入' } };
+const enUS: typeof zhCN = { ticketActions: { ready: 'Ticket plugin is ready' } };
+const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US': enUS };
+export function getProjectMessages(locale: AgentUILocaleCode) { return messages[locale]; }
+```
+
+新建 `plugins/ticket-actions/index.tsx`，先显示一行文字，便于确认注册和布局生效：
 
 ```tsx
+import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { getProjectMessages } from '../../application/i18n/messages';
+
 export function TicketActions() {
-  return <div data-ui-plugin="ticket-actions" />;
+  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  return <p data-ui-plugin="ticket-actions"
+    style={{ margin: 0, padding: 12, background: 'var(--background)', color: 'var(--foreground)' }}>
+    {labels.ready}
+  </p>;
 }
 ```
 
-沿用工程安装的 UI 库和版本。需要按钮文字时，在项目文案类型和中英文文件中增加对应业务命名空间，按[样式与文案开发](/development/styling-and-localization.md)读取。需要数据时复用项目服务或现有运行状态，接口见[插件开发接口](/development/plugin-api.md)。
+沿用工程安装的 UI 库和版本。需要按钮文字时，在项目文案类型和中英文文件中增加对应业务命名空间，按[语言与文案](/development/localization.md#新增业务文案)读取。需要数据时复用项目服务或现有运行状态，接口见[插件 API](/development/plugin-api.md)。
 
 新建 `plugins/ticket-actions/definition.ts`：
 
@@ -49,7 +67,7 @@ export const ticketActionsPlugin: UIPluginDefinition = {
 export default ticketActionsPlugin;
 ```
 
-## 3. 放入布局或已有子插槽
+## 3. 布局与子插槽配置
 
 在 `app-ui.json` 的已有布局中新增一个插件实例。例如，在一个允许普通内容的布局插槽的 `plugins` 数组中添加：
 
@@ -59,7 +77,7 @@ export default ticketActionsPlugin;
 
 这是数组元素，不能用来覆盖整个文件。已有实例 ID 保持不变；也可以放入接受 `ticket-action` 能力的父插件子插槽。布局示例见[布局与插件组合](/development/layout-and-composition.md)。
 
-## 4. 更新注册并检查
+## 4. 插件注册与验证
 
 新增目录后，需要重新生成插件注册表。可以让 Creator 执行注册与检查，或在项目根目录保存开发脚本 `scripts/sync-agent-ui.mjs`：
 
@@ -78,4 +96,4 @@ node scripts/sync-agent-ui.mjs
 
 此命令属于开发工具，会更新生成的注册表并初始化缺少的官方项目入口；已有入口会保留。提交前检查实际文件差异。不要把这个开发脚本导入生产组件，也不要手工编辑 `registry.generated.ts`。
 
-运行项目已有的类型检查、测试和构建，然后在页面确认新功能出现、停用可隐藏、恢复后可用。空容器不会产生可见内容；接入业务组件后再验证真实交互。
+运行项目已有的类型检查、测试和构建。页面应显示“工单插件已接入”，切到英文后显示“Ticket plugin is ready”；将实例设为 `enabled: false` 后文字消失，恢复后重新出现。确认这些步骤后，再用自己的业务组件替换这行文字，并验证真实交互。

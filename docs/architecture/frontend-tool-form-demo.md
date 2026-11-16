@@ -1,6 +1,6 @@
-# Dialog 与 Form Frontend Tool 示例
+# Dialog 示例与业务表单 Frontend Tool 接入
 
-Dialog 和 Form 是显式选择的业务示例，生产默认模板不包含这些示例业务代码。Mock 只发送确定的 AG-UI 事件，不理解自然语言或代替真实业务服务。
+Dialog 是显式选择的业务示例，生产默认模板不包含其业务代码。业务页面上的表单直接通过通用 Frontend Tool 接入，不再交付表单专用 Integration、工具工厂或填表 Demo。Mock 只发送确定的 AG-UI 事件，不理解自然语言或代替真实业务服务。
 
 ## 执行与展示
 
@@ -8,11 +8,15 @@ Plugin 在现有 activation 生命周期提供 Service，应用在 agent-contrac
 
 Dialog 的关闭、焦点、输入与当前业务状态属于实际 UI；历史 receipt 描述当时执行结果，不从当前页面反推历史状态。history、Thread 切换、StrictMode 和重挂载不得重放 execute。
 
-## React Hook Form
+## 业务页面已有表单
 
-可选 integration/react-hook-form 提供 ReactHookFormCapability、reactHookFormToolContracts 和 createReactHookFormFrontendTools。Factory 的 expose 列表明确选择工具；安装 Integration 本身不生成执行权限。
+Host 从 Runtime 公开入口调用 `createAgentUIFrontendTools()`，再将稳定的来源传给 `<Agent frontendTools={tools} />`。工具定义声明业务参数，在 `execute` 中校验 unknown 输入并调用已有表单的方法。此路径不要求额外的 Plugin、Service 注册或 AppUIModel 修改，与项目原有前端工具合并后进入同一条 canonical 执行、结果回传与 continuation 链路。
 
-业务表单拥有字段、controller、验证和 submit handler。字段修改调用现有 controller API；提交走原生 submit 与相同的业务验证；清理属于当前表单生命周期。依赖来自目标项目实际安装的 resource requirements，不复制第三方实现或绕过现有 Tool allowlist。
+业务工程拥有字段类型、表单库、验证和 submit handler。AntD、React Hook Form 等均复用项目实际安装版本的公开接口。填值和提交分别授权，填入字段的结果不能标成已保存；如开放提交，应等待校验与业务保存实际完成后返回结果。程序化赋值涉及业务联动时，显式复用已有业务方法，不假设它与人工输入触发完全相同的回调。
+
+跨 Plugin 共享的能力仍可使用声明式 Service 生命周期，但普通 Host 表单不为调用工具而新增 Service。多表单使用明确的业务工具名及对应实例，避免注册同名工具或将调用路由到错误的表单。取消不自动撤销已经完成的字段修改或业务保存。
+
+AntD Form 的完整代码与检查步骤见[前端工具接入](../../website/docs/development/frontend-tools.md#antd-form-直接接入)。该示例仅填表，保留用户点击保存的原有校验和业务流程。
 
 ## 资源与用户输入
 

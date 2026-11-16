@@ -81,3 +81,9 @@ Plugins 构建从 canonical 源码生成 `catalog.json.presentationUsage`，索�
 原始 checkpoint 的生命周期仍由 Runner 管理：中断等待答案时保留，正常结束或异常退出后按现有策略清理。运行日志及工具流继续保留。快照句柄只在当前运行及其进程内中断恢复期间有效。
 
 摘要可能缩写历史快照 ID；使用 `read_creator_context({ artifactId: "list" })` 可按同一字符分页规则重新发现本次运行的完整 ID，再按 JSON 路径读取。目录同样是历史数据，不授予新文件读取或修改权限。
+
+## 版本建议与工具更新
+
+Creator 只维护最新稳定版，修复和新能力不向旧版分支回移。旧安装仍可用于离线工作、回退或暂缓升级，遇到旧版问题优先建议升级后复现。新版提醒只依据 npm latest 的实际稳定版身份，不从项目兼容历史推导 Creator 目标。项目包继续独立版本，升级 Creator 不连带升级或降级项目依赖。
+
+版本清单、最低 Creator 版本及包兼容范围只作参考，不因版本差异拒绝用户升级、初始化、启用插件、规划源码接管或继续使用 Creator。检测到 Creator 新版时只提醒用户按原安装方式手动升级，不代装、不强制升级。保留文件/hash/快照/BASE、实际 API、确认和事务保护；实际安装或编译失败如实报告。详见 docs/architecture/unified-update-center.md。

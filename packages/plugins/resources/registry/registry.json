@@ -81,16 +81,8 @@
       "path": "items/demo/frontend-tool-dialog/item.json"
     },
     {
-      "id": "demo/frontend-tool-form",
-      "path": "items/demo/frontend-tool-form/item.json"
-    },
-    {
       "id": "demo/human-form",
       "path": "items/demo/human-form/item.json"
-    },
-    {
-      "id": "integration/react-hook-form",
-      "path": "items/integration/react-hook-form/item.json"
     },
     {
       "id": "integration/a2ui",

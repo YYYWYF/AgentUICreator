@@ -32,6 +32,18 @@ it("previews missing application files without writing; confirmed preparation le
   const after = await preparePluginEnablement(root, "composer");
   expect(after.files).toEqual([]);
 });
+it("preserves an existing version pin outside recommendations without preparing an installation", async () => {
+  const root = await fixture();
+  const file = path.join(root, "package.json");
+  const manifest = JSON.parse(await readFile(file, "utf8"));
+  manifest.dependencies["@za38.03/agent-ui-plugins"] = "99.0.0";
+  const before = JSON.stringify(manifest); await writeFile(file, before);
+  const plan = await preparePluginEnablement(root, "composer");
+  expect(plan.packages).toEqual([]);
+  const run = vi.fn(); await completePluginEnablement(root, plan, run);
+  expect(run).not.toHaveBeenCalled();
+  expect(await readFile(file, "utf8")).toBe(before);
+});
 it("restores only missing files and preserves customized application code", async () => {
   const root = await fixture();
   await completePluginEnablement(root, await preparePluginEnablement(root, "composer"), vi.fn());

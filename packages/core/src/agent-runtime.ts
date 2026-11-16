@@ -1,4 +1,5 @@
 import type { AgentUserInput } from "./agent-input.js";
+import { snapshotAgentUIContext, type AgentSendOptions } from "./agent-context.js";
 import type { AgentInterruptResponse } from "./agent-interrupt.js";
 import type { AgentApplicationEventListener } from "./agent-application-event.js";
 import type {
@@ -14,7 +15,7 @@ export interface AgentRuntime<TState = unknown> {
   getSnapshot(): AgentRuntimeSnapshot<TState>;
   subscribe(listener: () => void): () => void;
   subscribeApplicationEvents(listener: AgentApplicationEventListener): () => void;
-  sendMessage(input: string | AgentUserInput): Promise<void>;
+  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abort(): void;
@@ -69,15 +70,17 @@ export function createAgentRuntime<TState = unknown>({
     subscribe: (listener) => transport.subscribe(listener),
     subscribeApplicationEvents: (listener) =>
       transport.subscribeApplicationEvents(listener),
-    sendMessage: (input) => {
+    sendMessage: (input, options) => {
       if (transport.getSnapshot().interrupts.length > 0) {
         return Promise.reject(new Error(
           "当前会话正在等待用户响应，请先处理 pending interrupts。",
         ));
       }
-      return transport.sendMessage(
-        typeof input === "string" ? { content: input } : input,
-      );
+      const message = typeof input === "string" ? { content: input } : input;
+      if (options === undefined) return transport.sendMessage(message);
+      try {
+        return transport.sendMessage(message, { ...options, ctx: snapshotAgentUIContext(options.ctx) });
+      } catch (error) { return Promise.reject(error); }
     },
     resumeInterrupts: async (responses) => {
       validateInterruptResponses(transport.getSnapshot(), responses);

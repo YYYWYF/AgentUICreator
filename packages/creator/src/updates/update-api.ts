@@ -32,12 +32,14 @@ export function createCreatorUpdateHandler(workspaceManager?: CreatorWorkspaceMa
         if (route !== "/check" && route !== "/plan" && workspaceManager?.hasActiveCreatorRequests()) throw new Error("请等待当前 Creator 请求完成后再更新插件。");
         if (route === "/check") {
           const recovery = await upgrades.recovery(root);
-          if (recovery) return { releaseVersion: "", compatibility: "compatible", plugins: [], fingerprint: "recovery:" + recovery.id,
-            packageUpdates: { status: "unavailable", checkedAt: new Date().toISOString(), packages: [], blockedReleases: [], installationSupported: true, recovery, fingerprint: recovery.id } };
-          const [sources, packageUpdates] = await Promise.all([service.inspect(root, { readOnly: true }), packages.inspect(root, input.refresh === true)]);
+          const [sourceResult, packageUpdates] = await Promise.all([
+            recovery ? Promise.resolve(null) : service.inspect(root, { readOnly: true }).catch(() => null),
+            packages.inspect(root, input.refresh === true),
+          ]);
+          const sources = sourceResult ?? { releaseVersion: "", compatibility: "compatible", plugins: [], sourceIssue: "UPDATE_SOURCE_INSPECTION_UNAVAILABLE", fingerprint: recovery ? "recovery:" + recovery.id : "source-unavailable" };
           return { ...sources, packageUpdates: { ...packageUpdates, installationSupported: true, recovery: await upgrades.recovery(root) }, fingerprint: sources.fingerprint + ":" + packageUpdates.fingerprint };
         }
-        if (route === "/packages/plan") return upgrades.plan(root);
+        if (route === "/packages/plan") return upgrades.plan(root, input.targets);
         if (route === "/packages/execute" && input.confirmed === true && typeof input.planId === "string") return upgrades.execute(root, input.planId, request.headers.accept === "application/x-ndjson" ? stage => {
           if (response.destroyed) return;
           if (!response.headersSent) response.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");

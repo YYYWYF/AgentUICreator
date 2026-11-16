@@ -9,6 +9,7 @@ import type {
   AgentRunState,
   AgentRuntimeSnapshot,
   AgentUserInput,
+  AgentSendOptions,
 } from "@za38.03/agent-ui-core";
 
 import { useRequiredAgentRuntime } from "./AgentRuntimeContext.js";
@@ -62,7 +63,7 @@ export function useAgentInterrupts(): AgentInterrupt[] {
 }
 
 export interface AgentRuntimeActions {
-  sendMessage(input: string | AgentUserInput): Promise<void>;
+  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;
@@ -72,7 +73,7 @@ export function useAgentRuntimeActions(): AgentRuntimeActions {
   const runtime = useRequiredAgentRuntime();
   return useMemo(
     () => ({
-      sendMessage: (input: string | AgentUserInput) => runtime.sendMessage(input),
+      sendMessage: (input, options) => options === undefined ? runtime.sendMessage(input) : runtime.sendMessage(input, options),
       resumeInterrupts: (responses: AgentInterruptResponse[]) =>
         runtime.resumeInterrupts(responses),
       startNewConversation: () => runtime.startNewConversation(),

@@ -50,7 +50,7 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale:
       attach(runtime) { current.current = runtime; return () => { if (current.current === runtime) current.current = null; }; },
       revoke() { const previous = current.current; current.current = null; previous?.abort(); previous?.dispose(); },
       actions: {
-        sendMessage: input => required().sendMessage(input),
+        sendMessage: (input, options) => options === undefined ? required().sendMessage(input) : required().sendMessage(input, options),
         resumeInterrupts: responses => required().resumeInterrupts(responses),
         startNewConversation: () => required().startNewConversation(),
         abortRun: () => current.current?.abort(),

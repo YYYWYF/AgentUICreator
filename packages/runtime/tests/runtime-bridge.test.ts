@@ -176,12 +176,12 @@ describe("ConversationAgentRuntimeBridge", () => {
     });
   });
 
-  it("rejects unsupported media without silently dropping it", async () => {
+  it("rejects unsupported inline media without silently dropping it", async () => {
     const { bridge } = createFixture();
     await expect(bridge.sendMessage({
       content: [{
         type: "image",
-        source: { type: "url", value: "https://example.invalid/image.png" },
+        source: { type: "data", value: "aW1hZ2U=", mimeType: "image/png" },
       }],
     })).rejects.toBeInstanceOf(UnsupportedAgentInputError);
   });

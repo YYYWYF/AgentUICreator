@@ -122,7 +122,9 @@ test("reuses the host React major and preserves incompatible declarations for re
   expect(result.dependencyPlan!.dependencies).not.toHaveProperty("react");
   expect(result.dependencyPlan!.packages.find(item => item.name === "react")).toMatchObject({ action: "reuse", version: "18.3.1" });
   await installed(input.projectRoot, "react", "20.0.0");
-  await expect(planReactAgentUIProject(input)).rejects.toMatchObject({ code: "AGENT_UI_SETUP_DEPENDENCY_CONFLICT" });
+  const newer = await planReactAgentUIProject(input);
+  expect(newer.dependencyPlan!.packages.find(item=>item.name==="react")).toMatchObject({action:"reuse",version:"20.0.0"});
+  expect(newer.dependencyPlan!.recommendations).toContainEqual(expect.objectContaining({name:"react",installed:"20.0.0"}));
 });
 test("rejects unconfirmed and stale manifest/lock/registry plans before preparing declarations", async () => {
   const input = await host();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { pnpmInvocation } from "./pnpm-process.mjs";
+import { execPnpm, pnpmInvocation } from "./pnpm-process.mjs";
 
 test("Windows uses the existing pnpm JS entry without a shell, preserving paths with spaces", () => {
   const args = ["--dir", "C:\\Company Projects\\Agent UI", "build"];
@@ -24,4 +24,11 @@ test("Windows standalone pnpm.exe runs directly instead of being passed to Node"
   assert.equal(result.command, "C:/Program Files/pnpm/pnpm.exe");
   assert.deepEqual(result.args, ["dev"]);
   assert.equal(result.options.shell, false);
+});
+
+test("async pnpm execution resolves the installed Windows command shim", async () => {
+  const { stdout } = await execPnpm(["--version"], {
+    encoding: "utf8", timeout: 30_000, env: { ...process.env, npm_execpath: "" },
+  });
+  assert.match(stdout.trim(), /^\d+\.\d+\.\d+$/u);
 });

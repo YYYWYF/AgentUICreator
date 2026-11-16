@@ -371,34 +371,19 @@
 }
 
 /* Optional frontend plugins own these hooks; their service lifecycles stay intact. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="frontend-tool-form"], [data-slot="frontend-tool-dialog-content"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-dialog-content"] {
   background-color: var(--card);
   color: var(--card-foreground);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-input"] {
-  background-color: var(--card);
-  border-color: var(--input);
-}
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-input"]:focus-visible {
-  border-color: var(--agent-brand-focus-border);
-}
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"]) {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-dialog-close"] {
   background-color: var(--agent-brand-solid);
   color: var(--primary-foreground);
   border: 1px solid var(--agent-brand-solid);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form-reset"] {
-  background-color: var(--card);
-  color: var(--foreground);
-  border: 1px solid var(--border);
-}
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="frontend-tool-form"] [role="alert"] {
-  color: var(--destructive);
-}
 
 /* A solid outline remains legible even where upstream uses a half-opacity ring.
  * These existing slots cover actual keyboard controls, without changing events. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="button"], [data-slot="popover-trigger"], [data-slot="tooltip-trigger"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="composer-trigger-popover-back"], [data-slot="frontend-tool-form-input"], [data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"], [data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]):focus-visible {
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme] :is([data-slot="button"], [data-slot="popover-trigger"], [data-slot="tooltip-trigger"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="composer-trigger-popover-back"], [data-slot="frontend-tool-dialog-close"], [data-slot="agent-ui-composer-tool"], [data-slot="agent-ui-composer-recording-stop"]):focus-visible {
   outline: 2px solid var(--agent-brand-focus-border);
   outline-offset: 2px;
 }

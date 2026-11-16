@@ -288,11 +288,11 @@
 }
 
 /* Host reference signatures must wrap so the explanation column stays visible. */
-.rp-doc:has(h1:is(#react-host-api, #从业务页面控制-agent)) table {
+.rp-doc:has(h1:is(#agent-api, #从业务页面控制-agent)) table {
   table-layout: fixed;
   width: 100%;
 }
-.rp-doc:has(h1:is(#react-host-api, #从业务页面控制-agent)) :is(th, td) {
+.rp-doc:has(h1:is(#agent-api, #从业务页面控制-agent)) :is(th, td) {
   overflow-wrap: anywhere;
 }
 

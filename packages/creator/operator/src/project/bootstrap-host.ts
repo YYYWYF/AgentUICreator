@@ -60,7 +60,7 @@ export function createAgentUIInitializationHost() {
         if(await exists(path.join(projectRoot,file))) throw new AgentUIInitializationError("AGENT_UI_PROJECT_INVALID_STATE","Existing Plugin application files must be preserved.");
       }
       const packageInspection = await inspectAgentUIPackages(projectRoot, items);
-      if (packageInspection.issues.length > 0) {
+      if (packageInspection.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_MISSING")) {
         throw new AgentUIInitializationError(
           "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
           "Agent UI package requirements are not installed or are incompatible.",

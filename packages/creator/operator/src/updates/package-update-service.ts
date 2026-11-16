@@ -6,7 +6,7 @@ import { officialPackageNames, type CompatibilityRelease } from "./compatibility
 import { ownPackageIdentity, readPackageIdentity, type InstalledPackageIdentity } from "./package-identity.js";
 import type { CompatibilityReleaseProvider, ReleaseDiscovery } from "./release-provider.js";
 
-export interface PackageCompatibilityIssue { code: "creator" | "node" | "react" | "missing" | "downgrade" | "declaration" | "multiple"; name: string; required: string; actual: string | null }
+export interface PackageCompatibilityIssue { code: "creator" | "node" | "react" | "missing" | "downgrade" | "declaration" | "multiple" | "dependency" | "application" | "shared-api"; name: string; required: string; actual: string | null }
 export interface PackageVersionUpdate {
   name: string; scope: "project" | "tools"; currentVersion: string | null; targetVersion: string | null;
   declared?: string; updateAvailable: boolean; historyIncomplete: boolean;
@@ -19,7 +19,7 @@ export interface PackageUpdateOverview {
   status: ReleaseDiscovery["status"]; checkedAt: string; fetchedAt?: string; digest?: string;
   issue?: ReleaseDiscovery["issue"]; recommendedReleaseId?: string; latestReleaseId?: string;
   packages: PackageVersionUpdate[];
-  blockedReleases: { id: string; issues: PackageCompatibilityIssue[] }[];
+  advisories: { id: string; issues: PackageCompatibilityIssue[] }[];
   installationSupported: boolean;
   recovery?: {id:string;state:string}|null;
   fingerprint: string;
@@ -65,7 +65,7 @@ export class PackageUpdateService {
       const identity=installed.get(name);
       return {name,scope:isTool(name)?"tools":"project",currentVersion:identity?.version ?? null,targetVersion:null,...(identity?.declared ?? declarations[name] ? {declared:identity?.declared ?? declarations[name]}:{}),updateAvailable:false,historyIncomplete:false,summary:[],history:[]};
     });
-    const overview: PackageUpdateOverview={status:discovery.status,checkedAt:discovery.checkedAt,...(discovery.fetchedAt?{fetchedAt:discovery.fetchedAt}:{}),...(discovery.digest?{digest:discovery.digest}:{}),...(discovery.issue?{issue:discovery.issue}:{}),packages:packages(),blockedReleases:[],installationSupported:false,fingerprint:""};
+    const overview: PackageUpdateOverview={status:discovery.status,checkedAt:discovery.checkedAt,...(discovery.fetchedAt?{fetchedAt:discovery.fetchedAt}:{}),...(discovery.digest?{digest:discovery.digest}:{}),...(discovery.issue?{issue:discovery.issue}:{}),packages:packages(),advisories:[],installationSupported:false,fingerprint:""};
     const releases=[...(discovery.manifest?.releases ?? [])].filter(release=>release.channel==="stable").sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt)||b.id.localeCompare(a.id));
     if(releases[0])overview.latestReleaseId=releases[0].id;
     const issuesFor=(release:CompatibilityRelease):PackageCompatibilityIssue[]=>{
@@ -77,33 +77,45 @@ export class PackageUpdateService {
       for(const name of relevant){
         const target=release.packages.find(pkg=>pkg.name===name);const current=installed.get(name);
         if(!target||!current){issues.push({code:"missing",name,required:target?.version??"",actual:current?.version??null});continue;}
-        if(compare(target.version,current.version)<0)issues.push({code:"downgrade",name,required:target.version,actual:current.version});
+        // Newer installed versions are retained, never rejected as a downgrade.
         // Non-registry declarations are reported as facts; this stage never rewrites them.
         const declared=current.declared;
         if(declared && /^[~^<>=*\d]/.test(declared))check("declaration",name,declared,current.version);
+        if(!isTool(name))for(const [dependency,range] of Object.entries(target.requires)){
+          const present=installed.get(dependency)?.version;
+          const recommended=release.packages.find(pkg=>pkg.name===dependency)?.version;
+          const proposed=present&&recommended&&compare(present,recommended)>0?present:recommended??present;
+          check("dependency",dependency,range,proposed);
+        }
       }
       return issues;
     };
     let selected:CompatibilityRelease|undefined;
-    for(const release of releases){const issues=issuesFor(release);if(issues.length)overview.blockedReleases.push({id:release.id,issues});else if(!selected)selected=release;}
-    if(selected){
-      overview.recommendedReleaseId=selected.id;
-      overview.packages=overview.packages.map(pkg=>{
-        const target=selected!.packages.find(entry=>entry.name===pkg.name)!;
-        const historicalChanges = releases.filter(release=>Date.parse(release.publishedAt)<=Date.parse(selected!.publishedAt)).flatMap(release=>release.packages.find(entry=>entry.name===pkg.name)?.changes ?? []);
-        const unique = new Map(historicalChanges.map(change=>[JSON.stringify([change.version,change.id,change.pluginId,change.kind,change.summary]),change]));
-        const versionHistory=[...unique.values()].filter(change=>compare(change.version,target.version)<=0).sort((a,b)=>compare(b.version,a.version));
-        const versions=[...new Set(releases.filter(release=>Date.parse(release.publishedAt)<=Date.parse(selected!.publishedAt)).flatMap(release=>release.packages.filter(entry=>entry.name===pkg.name&&compare(entry.version,target.version)<=0).map(entry=>entry.version)))].sort((a,b)=>compare(b,a));
-        const history=versionHistory.filter(change=>pkg.currentVersion&&compare(change.version,pkg.currentVersion)>0);
-        const summary=new Map<string,PackageVersionUpdate["summary"][number]>();
-        for(const change of history){
-          const key=JSON.stringify([change.id,change.pluginId,change.kind,change.summary]);const entry=summary.get(key);
-          if(entry){if(!entry.versions.includes(change.version))entry.versions.push(change.version);}
-          else summary.set(key,{id:change.id,summary:change.summary,kind:change.kind,...(change.pluginId?{pluginId:change.pluginId}:{}),versions:[change.version]});
-        }
-        return {...pkg,targetVersion:target.version,updateAvailable:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0,historyIncomplete:!!pkg.currentVersion&&compare(target.version,pkg.currentVersion)>0&&(!target.historyFrom||compare(target.historyFrom,pkg.currentVersion)>0||history.length===0),history,versionHistory,versions,summary:[...summary.values()]};
-      });
-    }
+    for(const release of releases){const issues=issuesFor(release);if(issues.length)overview.advisories.push({id:release.id,issues});if(!selected)selected=release;}
+    if(selected) overview.recommendedReleaseId=selected.id;
+    overview.packages=overview.packages.map(pkg=>{
+      const records=releases.flatMap(release=>release.packages.filter(entry=>entry.name===pkg.name));
+      const observed=discovery.latestPackages?.find(entry=>entry.name===pkg.name)?.version;
+      const recommendation=selected?.packages.find(entry=>entry.name===pkg.name);
+      // Creator has one maintained stable release, independent of project release history.
+      // Missing npm latest evidence remains unknown rather than selecting a historical tool.
+      const candidate=isTool(pkg.name) ? observed : recommendation?.version ?? observed;
+      if(!candidate) return pkg;
+      const target=candidate && (!pkg.currentVersion || compare(candidate,pkg.currentVersion)>0) ? candidate : pkg.currentVersion;
+      if(!target) return pkg;
+      const unique=new Map(records.flatMap(entry=>entry.changes).map(change=>[JSON.stringify([change.version,change.id,change.pluginId,change.kind,change.summary]),change]));
+      const versionHistory=[...unique.values()].filter(change=>compare(change.version,target)<=0).sort((a,b)=>compare(b.version,a.version));
+      const versions=[...new Set(records.filter(entry=>compare(entry.version,target)<=0).map(entry=>entry.version))].sort((a,b)=>compare(b,a));
+      const history=versionHistory.filter(change=>pkg.currentVersion&&compare(change.version,pkg.currentVersion)>0);
+      const summary=new Map<string,PackageVersionUpdate["summary"][number]>();
+      for(const change of history){
+        const key=JSON.stringify([change.id,change.pluginId,change.kind,change.summary]);const entry=summary.get(key);
+        if(entry){if(!entry.versions.includes(change.version))entry.versions.push(change.version);}
+        else summary.set(key,{id:change.id,summary:change.summary,kind:change.kind,...(change.pluginId?{pluginId:change.pluginId}:{}),versions:[change.version]});
+      }
+      const updateAvailable=!!pkg.currentVersion&&compare(target,pkg.currentVersion)>0;
+      return {...pkg,targetVersion:target,updateAvailable,historyIncomplete:updateAvailable&&(!recommendation?.historyFrom||compare(recommendation.historyFrom,pkg.currentVersion!)>0||history.length===0),history,versionHistory,versions,summary:[...summary.values()]};
+    });
     overview.fingerprint=createHash("sha256").update(JSON.stringify([overview.digest,overview.recommendedReleaseId,overview.packages.map(pkg=>[pkg.name,pkg.currentVersion,pkg.targetVersion])])).digest("hex");
     return overview;
   }

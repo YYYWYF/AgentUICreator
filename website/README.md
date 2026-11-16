@@ -16,6 +16,15 @@ shared instructions in their owning guide, and verify APIs against current publi
 exports. Keep internal design history, provenance and release authoring out of the
 public site. Preserve the generated frontend's independence from development tools.
 
+Cross-refresh run resumption is an internal experiment pending a product decision.
+Keep its guides, API entries and demo labels out of the public site and generated
+documentation until its product scope is explicitly approved.
+
+Write public instructions around the project files, settings and actions the reader
+uses. Keep package-internal ownership rules and implementation editing restrictions
+in internal architecture or agent instructions. Give the concrete customization
+entry point and steps instead of warning readers about hidden package internals.
+
 From the repository root:
 
 ```sh
@@ -31,11 +40,11 @@ menu ownership, orphan pages, duplicate entries, navigation depth and local
 links. After building, run `pnpm --dir website check:docs --built` to check
 generated pages, sidebar entries and link anchors as well.
 
-The locale reference in `docs/development/styling-and-localization.md` is generated
+The locale reference in `docs/development/locale-reference.md` is generated
 from `packages/plugins/src/locales/{zh-CN,en-US}.ts`. Run `pnpm docs:locales` from
 the repository root after dictionary changes; the explicit `pnpm docs:locales:check`
 and `check:docs` commands reject stale tables. Site builds compile without this
-freshness check. Maintain only functional grouping in
+freshness check. Maintain functional grouping and public field visibility in
 `website/scripts/generate-locale-reference.mjs`, never the generated rows.
 Run `pnpm test:locale-reference` for generator validation. These commands use the
 website's existing TypeScript dependency installed by `docs:install`.

@@ -23,7 +23,7 @@
     {
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
       "upstreamInstalledSha256": "b682a8cd3aa4c4c5ebfb49410c1a4cecf229d798842dbcac983f8d9723916ea5",
-      "installedSha256": "0b7e0ee21eb8fd489552351b77994e501dd2ff0449ce9bcbda204ec46348c4e9"
+      "installedSha256": "32441733af12ade7fe0e45e3941f48fd3c3cbd55337ce018299bb75ed8889e78"
     },
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
@@ -163,7 +163,7 @@
     {
       "localPath": "components/ui/button.tsx",
       "upstreamInstalledSha256": "c8ab60aed434efb2ad25c9cf42cdf5102d6fc28f92a4e84d9db9564e14d54f9c",
-      "installedSha256": "1c843510acf732e6567c4d9a1761fad077127603cb104bb1b4208e38a24fa8f2"
+      "installedSha256": "2b4f501b7074c8c3bfeca4143e868b2885578c2d02640c02b870605945264536"
     },
     {
       "localPath": "components/ui/collapsible.tsx",
@@ -178,7 +178,7 @@
     {
       "localPath": "components/ui/input.tsx",
       "upstreamInstalledSha256": "5bf9f599d8955a7b865b470dc54f444af3bf6835a1406483b6d8a3bd2efea282",
-      "installedSha256": "249c484bb3f310e8423db16c454b2eb7c6c5e2083c3c49867aa0f879bbc7ffe5"
+      "installedSha256": "677d6630e928bb32902867f1cf75411411ef94bbdbea4bbea968428d28048706"
     },
     {
       "localPath": "components/ui/popover.tsx",

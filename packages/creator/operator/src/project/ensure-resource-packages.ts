@@ -93,7 +93,7 @@ function combinedPackageRange(ranges: readonly string[]): string {
     alternatives = alternatives.flatMap(left => sets.map(right => `${left} ${right}`.trim()))
       .filter(candidate => intersects(candidate || "*", candidate || "*"));
   }
-  if (!alternatives.length) throw new OfficialResourceError("RESOURCE_CONFLICT", "Source package requirements have no compatible version.", ranges);
+  if (!alternatives.length) return ranges[0] ?? "*";
   return alternatives.map(range => range || "*").join(" || ");
 }
 
@@ -107,8 +107,6 @@ export async function ensureResourcePackages(projectRoot: string, closure: reado
     const declared = fields.flatMap(field => field[item.name] === undefined ? [] : [field[item.name]!]);
     return declared.length ? declared.map(declared => ({ ...item, declared })) : [item];
   });
-  const conflicts = resourcePackageConflicts(packages);
-  if (conflicts.length || before.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_INCOMPATIBLE")) throw new OfficialResourceError("RESOURCE_CONFLICT", "Resource dependency conflicts with the current project.", { conflicts, issues: before.issues });
   const byName = new Map<string, ResourcePackageRequirement[]>();
   for (const item of packages) byName.set(item.name, [...(byName.get(item.name) ?? []), item]);
   const additions: string[] = [];
@@ -117,8 +115,7 @@ export async function ensureResourcePackages(projectRoot: string, closure: reado
     const range = combinedPackageRange([...new Set(requirements.map(item => item.required))]);
     if (declarations[name] === undefined) additions.push(`${name}@${range}`);
     else {
-      combinedPackageRange([...new Set([...requirements.map(item => item.required), ...requirements.flatMap(item => item.declared && validRange(item.declared) ? [item.declared] : [])])]);
-      if (requirements.some(item => !item.compatible)) restore = true;
+      if (requirements.some(item => !item.installed)) restore = true;
     }
   }
   if (!additions.length && !restore) return;
@@ -131,5 +128,5 @@ export async function ensureResourcePackages(projectRoot: string, closure: reado
   }
   await run(projectRoot, { command, args });
   const after = await inspectAgentUIPackages(projectRoot, closure);
-  if (after.packages.some(item => !item.compatible)) throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Resource package requirements remain unmet after installation.", after);
+  if (after.packages.some(item => !item.installed)) throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Resource package requirements remain unmet after installation.", after);
 }

@@ -8,6 +8,8 @@ import type {
   ThreadUserMessagePart,
   ToolCallMessagePart,
 } from "@assistant-ui/react";
+import type { ContentPart } from "@ag-ui/client";
+import { toAgUiMessages } from "@assistant-ui/react-ag-ui";
 
 function stringify(value: unknown): string {
   if (typeof value === "string") return value;
@@ -50,6 +52,17 @@ function projectUserPart(part: ThreadUserMessagePart): AgentMessagePart {
     case "data":
       return { type: "data", metadata: structuredClone(part.data) };
   }
+}
+
+function projectUserContentPart(part: ContentPart): AgentMessagePart {
+  if (part.type === "text") return { type: "text", text: part.text };
+  const filename = part.metadata?.filename;
+  const name = typeof filename === "string" ? { filename } : {};
+  if (part.type === "image" && part.source.type !== "file") {
+    return { type: "image", ...name, url: part.source.type === "url" ? part.source.value
+      : `data:${part.source.mimeType};base64,${part.source.value}` };
+  }
+  return { type: part.type, ...name, source: { ...part.source } };
 }
 
 function projectToolCall(part: ToolCallMessagePart): AgentToolCall {
@@ -121,7 +134,11 @@ export function projectConversationMessages(
         content: message.content[0].text,
       }];
     }
-    const content = message.content.map(projectUserPart);
+    // The native converter restores interleaved text/attachment order from its metadata.
+    const wire = message.attachments?.length ? toAgUiMessages([message])[0] : undefined;
+    const content = wire?.role === "user" && Array.isArray(wire.content)
+      ? wire.content.map(projectUserContentPart)
+      : message.content.map(projectUserPart);
     return [{
       id: message.id,
       role: "user",

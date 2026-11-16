@@ -22,5 +22,7 @@ export default conversationDataSourcePlugin;
 export {
   createHttpConversationDataSource,
   type HttpConversationDataSourceOptions,
-  type HttpConversationDataSourceRoutes,
+  type HttpConversationRequestOptions,
+  type HttpConversationRequestContext,
+  type HttpConversationRequestBody,
 } from './adapters/http-data-source';
