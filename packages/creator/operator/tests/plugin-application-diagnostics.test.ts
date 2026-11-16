@@ -60,11 +60,11 @@ it("continues to discover custom implementations without npm application markers
   expect(result.assets.some(asset => asset.pluginId === "custom-card" && !asset.application)).toBe(true);
 });
 
-it("keeps strict source inspection broken but provides a validated repair context", async () => {
+it("reports source diagnostics as warnings without disabling Creator", async () => {
   const f = await fixture(JSON.stringify({ schemaVersion: 1, pluginId: "custom-card" }));
-  expect(await inspectCreatorProject(f.root)).toMatchObject({ status: "broken",
-    repairContext: { projectConfig: { sourceRoot: "src/ui" }, paths: { sourceRoot: f.paths.sourceRoot } },
-    issues: expect.arrayContaining([expect.objectContaining({ code: "plugin-application-read", severity: "error" })]),
+  expect(await inspectCreatorProject(f.root)).toMatchObject({ status: "ready",
+    projectConfig: { sourceRoot: "src/ui" }, paths: { sourceRoot: f.paths.sourceRoot },
+    warnings: expect.arrayContaining([expect.objectContaining({ code: "plugin-application-read", severity: "warning" })]),
   });
 });
 

@@ -16,31 +16,12 @@ Agent 提供思考内容时，对话中会出现「思考」区域，并随返�
 
 **Agent 服务接入：**&#x53D1;送专用 reasoning 事件，普通 `TEXT_MESSAGE_CONTENT` 中的文字不会自动变成思考区域。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "REASONING_START",
-    "messageId": "reasoning-1"
-  },
-  {
-    "type": "REASONING_MESSAGE_START",
-    "messageId": "reasoning-text-1",
-    "role": "reasoning"
-  },
-  {
-    "type": "REASONING_MESSAGE_CONTENT",
-    "messageId": "reasoning-text-1",
-    "delta": "正在核对用户提供的资料。"
-  },
-  {
-    "type": "REASONING_MESSAGE_END",
-    "messageId": "reasoning-text-1"
-  },
-  {
-    "type": "REASONING_END",
-    "messageId": "reasoning-1"
-  }
-]
+```jsonl
+{"type":"REASONING_START","messageId":"reasoning-1"}
+{"type":"REASONING_MESSAGE_START","messageId":"reasoning-text-1","role":"reasoning"}
+{"type":"REASONING_MESSAGE_CONTENT","messageId":"reasoning-text-1","delta":"正在核对用户提供的资料。"}
+{"type":"REASONING_MESSAGE_END","messageId":"reasoning-text-1"}
+{"type":"REASONING_END","messageId":"reasoning-1"}
 ```
 
 外层 reasoning 和其中的文本各自保持 ID 一致。内容可分多条 `REASONING_MESSAGE_CONTENT` 逐步发送；结束后仍可发送正式回答。插件须启用并组合到会话的思考展示位置；没有思考内容时不会凭空生成文字。

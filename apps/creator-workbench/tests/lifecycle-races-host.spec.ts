@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test, type Page } from "@playwright/test";
 import type { ServerResponse } from "node:http";
 import { createControlledAgentHost, startRun, finishRun, writeEvent, type ControlledRunInput } from "./support/controlled-agent.js";
@@ -84,12 +85,12 @@ test("background replies and drafts stay isolated and stopping the foreground le
   const errors = await watch(page);
   let oldStream: ServerResponse | undefined, oldInput: ControlledRunInput | undefined, closed = false, foregroundClosed = false;
   const f = await createControlledAgentHost({
-    application: origin => ({ imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="thread-a"' }),
+    application: origin => ({ imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="thread-a"' }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: ["a", "b"].map(id => ({ id: `thread-${id}`, title: `History ${id}` })) }));
+      if (request.url === "/history/conversations") response.end(JSON.stringify(historyListResponse(["a", "b"].map(id => ({ id: `thread-${id}`, title: `History ${id}` })))));
       else if (request.url?.startsWith("/history/conversations/thread-")) {
-        const id = request.url.slice(-1); response.end(JSON.stringify({ id: `thread-${id}`, title: `History ${id}`, state: { values: { messages: [{ id: `saved-${id}`, type: "human", content: `Saved message ${id}` }] } } }));
+        const id = request.url.slice(-1); response.end(JSON.stringify(historyDetailResponse({ id: `thread-${id}`, title: `History ${id}`, history: { format: "langchain", messages: [{ id: `saved-${id}`, type: "human", content: `Saved message ${id}` }] } })));
       } else { response.writeHead(404); response.end(); }
     },
     run(input, response, index) {

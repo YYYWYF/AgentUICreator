@@ -16,6 +16,23 @@ title: "消息引用（conversation-quote）"
 
 ![Creator 启用菜单：点击「引用消息」，插件 ID 为 conversation-quote](/images/plugins/enable/conversation-quote.jpg)
 
+### 发送格式
+
+引用默认以 Markdown 引用格式拼在当前用户消息的 `messages[].content` 前面，不放入 `ctx` 或 `context`。例如引用「这段说明」后输入「是什么意思？」，请求体片段为：
+
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "> 这段说明\n\n是什么意思？"
+    }
+  ]
+}
+```
+
+含附件等多模态内容时，引用作为 content 数组最前面的文本项。后续普通提问不会自动再次携带这段引用。
+
 ## 定制选项
 
 | 可以改什么 | 效果 |

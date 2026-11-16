@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test } from "@playwright/test";
 import { createServer, type ServerResponse } from "node:http";
 import { readFile, writeFile } from "node:fs/promises";
@@ -19,13 +20,13 @@ test("formal generated binding reopens its initial thread and resumes after prod
     if (request.method === "OPTIONS") { response.writeHead(204).end(); return; }
     const route = new URL(request.url!, "http://backend.test").pathname;
     const json = (value: unknown) => { response.setHeader("Content-Type", "application/json"); response.end(JSON.stringify(value)); };
-    if (route === "/conversations") { json({ conversations: [{ id: threadId, title: "Durable task" }] }); return; }
+    if (route === "/conversations") { json(historyListResponse([{ id: threadId, title: "Durable task" }])); return; }
     if (route === `/conversations/${threadId}`) {
       historyLoads++;
-      json({ id: threadId, title: "Durable task", state: { values: { messages: runs ? [
+      json(historyDetailResponse({ id: threadId, title: "Durable task", history: { format: "langchain", messages: runs ? [
         { id: "user-1", type: "human", content: "Complete durable task" },
         { id: "assistant-1", type: "ai", content: "正在分析第一部分……" },
-      ] : [] } } }); return;
+      ] : [] } })); return;
     }
     if (route === "/status") { json({ running: runs > 0 && resumes === 0 }); return; }
     if (route === "/resume") {
@@ -57,10 +58,10 @@ test("formal generated binding reopens its initial thread and resumes after prod
     await writeFile(path.join(root, "src/main.tsx"), `
       import { createRoot } from "react-dom/client";
       import { Agent } from "./agent-ui";
-      import { createHttpConversationDataSource } from "./agent-ui/services/conversations";
+      import { createConversationDataSource } from "./agent-ui/services/conversations";
       import "./host.css";
       const endpoint = ${JSON.stringify(endpoint)};
-      const history = createHttpConversationDataSource({ endpoint });
+      const history = createConversationDataSource({ endpoint });
       async function runResumeProvider() {
         const status = await (await fetch(endpoint + "/status")).json();
         if (!status.running) return;

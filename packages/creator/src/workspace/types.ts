@@ -33,14 +33,21 @@ export interface CreatorProjectSetupValidation {
     readonly id: string;
     readonly projectRoot: string;
     readonly packageJsonPath: string;
-    readonly manager: "npm" | "pnpm";
+    readonly manager: "npm" | "pnpm" | "yarn" | "bun";
     readonly dependencies: Record<string, string>;
     readonly devDependencies: Record<string, string>;
     readonly installCommand: string;
     readonly installRequired: boolean;
     readonly packages: readonly { readonly name: string; readonly required: readonly string[]; readonly version: string; readonly action: "install" | "reuse" }[];
   } | undefined;
-  readonly compatibilityPlan?: { readonly id: string; readonly manager: "npm" | "pnpm"; readonly producerRoot: string; readonly dependencies: Record<string,string>; readonly devDependencies: Record<string,string> } | undefined;
+  readonly compatibilityPlan?: {
+    readonly id: string;
+    readonly manager: "npm" | "pnpm" | "yarn" | "bun";
+    readonly producerRoot: string;
+    readonly dependencies: Record<string,string>;
+    readonly devDependencies: Record<string,string>;
+    readonly advisories?: readonly { readonly name: string; readonly version: string; readonly required: string }[];
+  } | undefined;
   readonly valid: boolean;
   readonly sourceRoot: {
     readonly normalized: string;

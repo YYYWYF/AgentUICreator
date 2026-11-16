@@ -35,13 +35,18 @@ test.beforeAll(async () => {
     import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
     import "./identity.css";
     const params = new URLSearchParams(location.search);
+    const right = params.get("side") === "right";
     const root = { id:"root", type:"row", gap:0, sizes:["280px", "minmax(0, 1fr)"],
       responsive:{type:"drawer",primaryIndex:1,drawerIndex:0,minPrimaryWidth:320}, children:[
         {id:"side",type:"panel",child:{id:"column",type:"column",gap:0,sizes:["52px","minmax(0, 1fr)"],children:[
           {id:"title",type:"slot",slotId:"title"},{id:"list",type:"slot",slotId:"list"}]}},
         {id:"main",type:"slot",slotId:"main"}
       ]};
-    createRoot(document.getElementById("root")).render(<AgentUILocaleProvider locale="en-US"><div className="identity-shell"><AgentUIRoot theme={params.get("theme") || "violet"}><main className="agent-ui-platform-shell">
+    if (right) {
+      root.children.reverse(); root.sizes.reverse();
+      root.responsive.drawerIndex = 1; root.responsive.primaryIndex = 0;
+    }
+    createRoot(document.getElementById("root")).render(<AgentUILocaleProvider locale="en-US"><div className="identity-shell" style={{width: Number(params.get("width") || 900)}}><AgentUIRoot theme={params.get("theme") || "violet"}><main className="agent-ui-platform-shell">
       <LayoutRenderer root={root} drawerLabels={{open:"Open",close:"Close",collapse:"Collapse",restore:"Restore"}}
         renderSlot={slot => slot.slotId === "title" ? <AgentIdentityPlugin name={params.get("name") || undefined} /> : <div>{slot.slotId}</div>} />
     </main></AgentUIRoot></div></AgentUILocaleProvider>);
@@ -98,7 +103,7 @@ test("narrow container traps focus, restores it after Escape and closes on navig
 });
 
 for (const theme of ['violet', 'light', 'dark']) {
-  test(`${theme} platform title fits its track, aligns with collapse and retains a themed background`, async ({ page }) => {
+  test(`${theme} platform title fits its track, aligns with collapse and uses a quiet header with a soft brand tile`, async ({ page }) => {
     await page.goto(url + "identity.html?theme=" + theme);
     const title = page.locator('.agent-identity-plugin');
     const track = page.locator('[data-slot-id="title"]');
@@ -113,7 +118,8 @@ for (const theme of ['violet', 'light', 'dark']) {
     expect(Math.abs(logoBox.y + logoBox.height / 2 - toggleBox.y - toggleBox.height / 2)).toBeLessThan(1);
     const background = await title.evaluate(element => getComputedStyle(element).backgroundColor);
     expect(background).not.toBe('rgba(0, 0, 0, 0)');
-    expect(background).not.toBe('rgb(255, 255, 255)');
+    const logoBackground = await page.locator('.agent-identity-logo').evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(background).not.toBe(logoBackground);
     await toggle.click();
     await expect(title).not.toBeVisible();
     await page.getByRole('button', { name: 'Restore', exact: true }).click();
@@ -131,3 +137,40 @@ test("long platform title leaves space for the collapse button", async ({ page }
   expect(nameBox.x + nameBox.width).toBeLessThanOrEqual(toggleBox.x);
   expect(await name.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
 });
+
+// The unlayered Ant Design reset that caused the CMB Host's 10px offset.
+const hostButtonReset = `input, button, select, optgroup, textarea {
+  margin: 0; color: inherit; font-size: inherit; font-family: inherit; line-height: inherit;
+}`;
+
+for (const side of ['left', 'right']) {
+  test(`${side} platform controls retain alignment under the Host button reset`, async ({ page }) => {
+    await page.goto(url + "identity.html?side=" + side);
+    await page.addStyleTag({ content: hostButtonReset });
+    const logo = page.locator('.agent-identity-logo');
+    const toggle = page.getByRole('button', { name: 'Collapse', exact: true });
+    const logoBox = (await logo.boundingBox())!;
+    const toggleBox = (await toggle.boundingBox())!;
+    const trackBox = (await page.locator('[data-slot-id="title"]').boundingBox())!;
+    expect(Math.abs(logoBox.y + logoBox.height / 2 - toggleBox.y - toggleBox.height / 2)).toBeLessThan(1);
+    expect(trackBox.x + trackBox.width - toggleBox.x - toggleBox.width).toBe(8);
+    await toggle.click();
+    await expect(logo).not.toBeVisible();
+    await page.getByRole('button', { name: 'Restore', exact: true }).click();
+    await expect(logo).toBeVisible();
+  });
+
+  test(`${side} narrow drawer retains its close control under the Host button reset`, async ({ page }) => {
+    await page.goto(url + "identity.html?side=" + side + "&width=400");
+    await page.addStyleTag({ content: hostButtonReset });
+    await page.getByRole('button', { name: 'Open', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    const close = dialog.getByRole('button', { name: 'Close', exact: true });
+    await expect(close).toBeVisible();
+    await expect(close).toHaveCSS('margin', '0px');
+    await expect(close).toHaveCSS('border-width', '0px');
+    await close.click();
+    await expect(dialog).not.toBeVisible();
+  });
+}

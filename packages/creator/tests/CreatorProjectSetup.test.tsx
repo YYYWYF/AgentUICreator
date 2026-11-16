@@ -6,7 +6,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupInfoState } from "../src/ui/setup/CreatorProjectSetup.js";
-import { createEmptyCreatorSetupDraft } from "../src/ui/setup/creatorSetupState.js";
+import { createEmptyCreatorSetupDraft, canInitializeCreatorProject } from "../src/ui/setup/creatorSetupState.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -29,13 +29,13 @@ function draft(targetState: "missing" | "empty" | "occupied" = "missing"): Creat
     } } };
 }
 
-async function renderSetup(input: { draft?: CreatorSetupDraft; canInitialize?: boolean; debug?: boolean } = {}) {
+async function renderSetup(input: { draft?: CreatorSetupDraft; canInitialize?: boolean; debug?: boolean; infoState?: CreatorSetupInfoState } = {}) {
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
   roots.push(root);
   const onModeChange = vi.fn();
-  const props = { infoState, draft: input.draft ?? createEmptyCreatorSetupDraft(),
+  const props = { infoState: input.infoState ?? infoState, draft: input.draft ?? createEmptyCreatorSetupDraft(),
     canInitialize: input.canInitialize ?? false, debug: input.debug ?? false,
     onModeChange, onSourceRootChange: vi.fn(), onInitialize: vi.fn(), onRetryInfo: vi.fn() };
   await act(async () => root.render(<CreatorProjectSetup {...props} />));
@@ -132,7 +132,7 @@ describe("CreatorProjectSetup", () => {
     expect(props.onInitialize).toHaveBeenCalledTimes(1);
   });
 
-  it("asks the user to install and recheck after declarations are prepared", async () => {
+  it("keeps initialization available when dependency installation is pending", async () => {
     const setupDraft = draft();
     if (setupDraft.validation.status !== "valid") throw new Error("Invalid fixture");
     setupDraft.validation.result = { ...setupDraft.validation.result, dependencyPlan: {
@@ -144,11 +144,10 @@ describe("CreatorProjectSetup", () => {
     const { container } = await renderSetup({ draft: setupDraft, canInitialize: true });
     expect(container.textContent).toContain("pnpm install");
     expect(container.textContent).toContain("依赖声明已添加");
-    expect(container.querySelector(".creator-install-step-command code")?.textContent).toBe("pnpm install");
-    expect(container.querySelector(".creator-install-step .creator-dependency-file-path")?.textContent).toBe("C:\\用户\\My Project");
-    expect(container.querySelector(".creator-project-setup-fields")?.hasAttribute("hidden")).toBe(true);
-    expect(container.textContent).toContain("下一步");
-    expect(button(container, "重新检查依赖").disabled).toBe(false);
+    expect(container.querySelector(".creator-dependency-manual code")?.textContent).toBe("pnpm install");
+    expect(container.querySelector(".creator-project-setup-fields")?.hasAttribute("hidden")).toBe(false);
+    expect(container.textContent).toContain("不作为初始化门槛");
+    expect(button(container, "初始化 Agent UI").disabled).toBe(false);
     expect(container.textContent).not.toContain("确认添加依赖");
   });
 });
@@ -182,4 +181,28 @@ it.each([
     sourceRoot: { ...setupDraft.validation.result.sourceRoot, absolutePath } };
   const { container } = await renderSetup({ draft: setupDraft, canInitialize: true });
   expect(container.querySelector(".creator-setup-target-path")?.textContent).toBe(absolutePath);
+});
+
+it("shows Vue version advisories without disabling initialization", async () => {
+  const setupDraft = draft();
+  if (setupDraft.validation.status !== "valid") throw new Error("Invalid fixture");
+  setupDraft.sourceRoot = "agent-ui";
+  setupDraft.validation.result = { ...setupDraft.validation.result,
+    sourceRoot: { normalized: "agent-ui", parentExists: true, targetState: "missing" },
+    compatibilityPlan: { id: "vue-advisory", producerRoot: "agent-ui", manager: "pnpm",
+      dependencies: { react: "20.0.0", "react-dom": "21.0.0" }, devDependencies: { tailwindcss: "99.0.0" },
+      advisories: [{ name: "react", version: "20.0.0", required: ">=18 <20" }],
+    },
+  };
+  const usable = canInitializeCreatorProject({ workspaceStatus: "uninitialized", draft: setupDraft, workspaceBusy: false, setupNeedsRefresh: false });
+  expect(usable).toBe(true);
+  const { container, props } = await renderSetup({ draft: setupDraft, canInitialize: usable,
+    infoState: { status: "ready", info: { ...infoState.info!, hostFramework: "vue" } },
+  });
+  expect(container.textContent).toContain("react：当前声明或版本 20.0.0，参考要求 >=18 <20");
+  expect(container.textContent).toContain("此提示不影响继续初始化");
+  const action = container.querySelector<HTMLButtonElement>(".creator-project-setup-actions button");
+  expect(action?.disabled).toBe(false);
+  await act(async () => action?.click());
+  expect(props.onInitialize).toHaveBeenCalledOnce();
 });

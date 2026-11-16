@@ -122,7 +122,7 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
   return (
     <div className="app-ui-layout-responsive-row" ref={shellRef} data-layout-responsive={narrow ? "drawer" : "grid"}>
       <div className="app-ui-layout-drawer-controls" style={{ gridTemplateColumns: toGridTemplate(sizes, node.children.length - (drawerVisibleInGrid ? 0 : 1)) }}>
-        <button type="button" aria-label={toggleLabel} title={toggleLabel}
+        <button data-agent-ui-owned="" type="button" aria-label={toggleLabel} title={toggleLabel}
           aria-expanded={narrow ? drawerOpen : !collapsed} aria-controls={drawerId}
           style={{ gridColumn: drawerVisibleInGrid ? policy.drawerIndex + 1 : side === "left" ? 1 : node.children.length - 1, justifySelf: drawerVisibleInGrid || side === "right" ? "end" : "start" }}
           onClick={() => narrow ? setDrawerOpen(true) : setCollapsed(!collapsed)}>
@@ -147,7 +147,7 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
             ref={drawerRef}
             onClose={() => setDrawerOpen(false)}
           >
-            <button className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close} title={labels.close}>
+            <button data-agent-ui-owned="" className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close} title={labels.close}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
             </button>
             <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />

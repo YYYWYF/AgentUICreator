@@ -31,7 +31,7 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 
 官方 Plugin 默认由项目薄应用层导入 npm 公开组件。先修改该层的 props、children、renderers、组合和局部样式。新增语义子插槽需同步本地 manifest、definition 和实际 renderSlot 出口；保留包原有插槽。
 
-实现内部确需本地维护时，先展示指定 Plugin、实际安装版本、文件闭包和影响范围，取得明确源码接管同意，再从准确快照提取。接管保持同一 Plugin ID、实例、应用层 props 和服务接线。vendor、共享 Context 和 Runtime 不作为插件定制目标。源码同步只合并实现子树，验证并明确采用后才推进 BASE。
+实现内部确需本地维护时，先展示指定 Plugin、实际安装版本、文件闭包和影响范围，取得明确源码接管同意，再从准确快照提取。接管保持同一 Plugin ID、实例、应用层 props，以及已有服务的注册和使用方式。vendor、共享 Context 和 Runtime 不作为插件定制目标。源码同步只合并实现子树，验证并明确采用后才推进 BASE。
 
 产品 Shell 位于项目 `application/shell/`，初始化只交付选定形态的组件和 CSS，通过 `createAgentUIProject({ Shell })` 静态绑定。关闭面板隐藏子树而不销毁会话和服务。Runtime 通过 `surfaceRef` 观察容器，不根据产品 Mode 选择路由或推断 DOM。
 
@@ -45,14 +45,14 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 - Consumer 使用 `usePluginService`；持续观察状态时使用 `usePluginServiceSnapshot` 和稳定的 getSnapshot/subscribe 合同。
 - Provider 停用、替换或移除时清理 Service；硬依赖 Consumer 随服务可用性失效和重新激活，不能持有已卸载 Provider。
 - 同名服务重复提供确定性失败，依赖顺序不取决于 AppUIModel 对象顺序。
-- 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的接线。
+- 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的导入、注册与调用。
 - 普通项目 Service 契约与实现修改不单独弹审批。可使用通用文件工具，或选择 preflight 工具检查拓扑、公共声明和文件版本，再以返回的 planId 应用；契约路径相对于实际 sourceRoot。保留只读、路径隔离、修改前新鲜读取和 hash 校验。
 
 可运行的提供、订阅和清理示例见 [插件 API](../website/docs/development/plugin-api.md)。
 
 ## 会话与 Agent 交互
 
-一个应用可组合多个 Agent 实例，每个 Thread 固定归属一个逻辑助手。同一助手的工作流按钮可按次指定请求 URL；只有显式新建会话才生成新 threadId。业务组件控制显示切换，历史导航恢复既有 Thread，保留上游持有的后台运行。AG-UI 由 canonical Conversation Runtime 处理，Plugin 消费公开 Hook、Service 和 render scope，不自行解析消息或创建 Client。接线见[多 Agent 接入](../website/docs/development/multiple-agents.md)。
+一个应用可组合多个 Agent 实例，每个 Thread 固定归属一个逻辑助手。同一助手的工作流按钮可按次指定请求 URL；只有显式新建会话才生成新 threadId。业务组件控制显示切换，历史导航恢复既有 Thread，保留上游持有的后台运行。AG-UI 由 canonical Conversation Runtime 处理，Plugin 消费公开 Hook、Service 和 render scope，不自行解析消息或创建 Client。配置方法见[多 Agent 接入](../website/docs/development/multiple-agents.md)。
 
 标准消息、工具、状态、Activity 与中断保留各自语义。业务 Custom Event 是经过应用 Schema 校验的瞬时事件，不作为本地插件通信、持久状态或工具执行通道。
 

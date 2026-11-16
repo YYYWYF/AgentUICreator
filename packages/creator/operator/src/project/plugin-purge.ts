@@ -168,7 +168,7 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
       return before === next ? [] : [{ path: relative, before, after: next }];
     });
     const disappearingFiles = new Set(files.filter(file => file.after === null).map(file => file.path));
-    const generatedFiles = new Set(["plugins/registry.generated.ts", "application/resources.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"].map(target => projectRelativePath(root, path.join(ctx.paths.sourceRoot, target))));
+    const generatedFiles = new Set(["plugins/registry.generated.ts", "application/resources.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/toolkit.generated.ts", "agent-ui/conversation/integrations.generated.tsx"].map(target => projectRelativePath(root, path.join(ctx.paths.sourceRoot, target))));
     for (const asset of inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId) && asset.ownership !== "official_package")) {
       const references = await inspectPluginSourceReferences(root, ctx.paths, asset.pluginId, asset.directory);
       if (references.truncated || references.references.some(reference => !disappearingFiles.has(reference.path) && !generatedFiles.has(reference.path)))

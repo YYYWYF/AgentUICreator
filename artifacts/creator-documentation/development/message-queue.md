@@ -18,7 +18,7 @@ export function AssistantPage() {
 
 配置通过 `<Agent />` 传入；外层有 `AgentUIProvider` 时也一样。多助手使用 `<AgentUIApplication ... enableMessageQueue />`，每个助手分别配置。省略时继承项目的 `conversationMessageQueueEnabled`；新建项目默认关闭。传 `enableMessageQueue={false}` 可显式关闭。
 
-需要修改项目默认值时，在现有 `application/project-config.tsx` 的 `createAgentUIProject({ ... })` 参数中增加 `conversationMessageQueueEnabled: true`，保留其他参数和接线。直接使用 `ConversationRuntimeProvider` 的集成方可传同名的 `enableMessageQueue`，默认关闭。
+需要修改项目默认值时，在现有 `application/project-config.tsx` 的 `createAgentUIProject({ ... })` 参数中增加 `conversationMessageQueueEnabled: true`，其他配置继续沿用。直接使用 `ConversationRuntimeProvider` 的集成方可传同名的 `enableMessageQueue`，默认关闭。
 
 默认 Composer 已包含待发送列表与移除按钮，普通发送按钮在运行中显示“加入发送队列”。这项能力不需要额外安装一个队列插件。自定义输入区时，保留已有 Composer 和发送动作；手写另一个请求函数不会自动获得队列行为。
 

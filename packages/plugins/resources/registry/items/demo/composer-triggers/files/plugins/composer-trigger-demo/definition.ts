@@ -1,7 +1,7 @@
 import { AGENT_UI_PRESENTATION_LOCALES as AGENT_UI_LOCALES } from '@za38.03/agent-ui-plugins';
 import { parseUIPluginManifest, type UIPluginDefinition } from '@za38.03/agent-ui-plugins/contracts';
 import { AGENT_UI_LOCALE_SERVICE } from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';
-import { CONVERSATION_COMMAND_SOURCE, CONVERSATION_MENTION_SOURCE } from '../../services/composer-triggers';
+import { CONVERSATION_COMMAND_SOURCE, CONVERSATION_MENTION_SOURCE } from '@za38.03/agent-ui-plugins/composer-triggers';
 import { ComposerTriggerDemoPlugin } from './index';
 import manifestJson from './manifest.json';
 import { createDemoMentionSource } from './source';

@@ -7,7 +7,7 @@ import { loadProjectAgentUISourceRegistry } from "../source-catalog/index.js";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { resolveAgentUISourceItems } from "./source-registry/installer";
 import { createAgentUIInitializationHost } from "./bootstrap-host";
-import { detectResourcePackageManager } from "./ensure-resource-packages";
+import { detectResourcePackageManager, type ResourcePackageManager } from "./ensure-resource-packages";
 import { ownPackageIdentity, readPackageIdentity } from "../updates/package-identity";
 import { acquireOperatorLock } from "./operator-lock";
 import { assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
@@ -32,7 +32,7 @@ export interface ReactInitializationDependencyPlan {
   readonly id: string;
   readonly projectRoot: string;
   readonly packageJsonPath: string;
-  readonly manager: "npm" | "pnpm";
+  readonly manager: ResourcePackageManager;
   readonly dependencies: Record<string, string>;
   readonly devDependencies: Record<string, string>;
   readonly installCommand: string;
@@ -46,18 +46,10 @@ export async function planReactAgentUIProject(input: InitializeAgentUIProjectInp
   const projectRoot = await realpath(input.projectRoot);
   const validation = await validateAgentUIProjectSetup({ ...input, projectRoot });
   if (!validation.valid) return { ...validation, dependencyPlan: undefined };
-  for (let directory = projectRoot; ; directory = path.dirname(directory)) {
-    const text = await optional(path.join(directory, "package.json"));
-    if (await optional(path.join(directory, "pnpm-workspace.yaml")) !== undefined || (text && "workspaces" in JSON.parse(text))) fail("AGENT_UI_SETUP_WORKSPACE_UNSUPPORTED");
-    if (directory === path.dirname(directory)) break;
-  }
   for (const name of ["package.json", ".npmrc", ...LOCKS, JOURNAL]) await assertNoSymbolicLinkTraversal(projectRoot, name);
   const pending = await optional(path.join(projectRoot, JOURNAL));
-  if (pending && JSON.parse(pending).stage === "installing") fail("AGENT_UI_SETUP_INSTALL_REVIEW_REQUIRED");
   const manager = await detectResourcePackageManager(projectRoot);
-  if (manager !== "npm" && manager !== "pnpm") fail("AGENT_UI_SETUP_MANAGER_UNSUPPORTED");
   const locks = Object.fromEntries(await Promise.all(LOCKS.map(async name => [name, await optional(path.join(projectRoot, name))])));
-  if (Object.entries(locks).some(([name, text]) => text !== undefined && name !== (manager === "npm" ? "package-lock.json" : "pnpm-lock.yaml"))) fail("AGENT_UI_SETUP_MANAGER_UNSUPPORTED");
   const original = await readFile(path.join(projectRoot, "package.json"), "utf8");
   const manifest = JSON.parse(original);
   const registry = await loadProjectAgentUISourceRegistry(projectRoot);
@@ -79,28 +71,23 @@ export async function planReactAgentUIProject(input: InitializeAgentUIProjectInp
   let reactVersion: string | undefined;
   for (const [name, ranges] of required) {
     const installed = await readPackageIdentity(projectRoot, name);
-    // Only project-root resolution satisfies a direct generated-source import.
-    const direct = await optional(path.join(projectRoot, "node_modules", ...name.split("/"), "package.json"));
-    const current = direct ? installed : undefined;
+    const current = installed;
     const declarations = FIELDS.flatMap(field => manifest[field]?.[name] === undefined ? [] : [manifest[field][name] as string]);
     const fits = (version: string) => [...ranges].every(range => satisfies(version, range));
-    if (declarations.length > 1) {
-      fail("AGENT_UI_SETUP_DEPENDENCY_CONFLICT", [{ code: "AGENT_UI_SETUP_PACKAGE_VERSION", message: `${name}: ${declarations.join(", ") || current?.version} → ${[...ranges].join(", ")}` }]);
-    }
     let version = current?.version;
     if (!version) {
       const exact = declarations.find(value => valid(value)) ?? [...ranges].find(range => valid(range));
       const baseline = await readPackageIdentity(creator.root, name);
       version = name === "react-dom" && reactVersion ? reactVersion : exact ?? baseline?.version;
-      if (!version) fail("AGENT_UI_SETUP_PACKAGE_UNAVAILABLE");
+      version ??= declarations[0] ?? [...ranges][0] ?? "latest";
     }
     if (name === "react") reactVersion = version;
-    if (!fits(version) || (name === "react-dom" && reactVersion !== version)) recommendations.push({ name, required: [...ranges], installed: version });
+    if (!valid(version) || !fits(version) || declarations.length > 1 || (name === "react-dom" && reactVersion !== version)) recommendations.push({ name, required: [...ranges], installed: version });
     if (!declarations.length) (name === "tailwindcss" ? devDependencies : dependencies)[name] = version;
     const action = !current || !declarations.length ? "install" : "reuse";
     if (action === "install") installRequired = true;
     packages.push({ name, required: [...ranges], version, action });
-    identities.push([name, current?.root, direct]);
+    identities.push([name, current?.root, current?.version]);
   }
   const plan = { projectRoot, packageJsonPath: path.join(projectRoot, "package.json"), manager, dependencies, devDependencies, installCommand: `${manager} install`, packages, installRequired, recommendations };
   // Bind consent to the exact project, lockfiles, registry config, source templates and resolved identities.
@@ -136,7 +123,6 @@ export async function initializeReactAgentUIProject(input: InitializeAgentUIProj
       issuedPlans.delete(plan.id);
       return { status: "dependencies-prepared" as const, projectRoot: plan.projectRoot, installCommand: plan.installCommand };
     }
-    if (plan.installRequired) fail("AGENT_UI_SETUP_INSTALL_REQUIRED");
     issuedPlans.delete(plan.id);
     return await initializeAgentUIProject({ ...input, projectRoot: plan.projectRoot }, createAgentUIInitializationHost());
   } finally { await release(); }

@@ -4,10 +4,6 @@
   "description": "Managed Agent UI foundation-core-application source",
   "files": [
     {
-      "source": "files/services/composer-triggers.ts",
-      "target": "services/composer-triggers.ts"
-    },
-    {
       "source": "files/services/conversations.ts",
       "target": "services/conversations.ts"
     },
@@ -16,15 +12,14 @@
       "target": "services/conversations/endpoint.ts"
     },
     {
-      "source": "files/services/conversations/http-data-source.ts",
-      "target": "services/conversations/http-data-source.ts"
+      "source": "files/services/conversations/data-source.ts",
+      "target": "services/conversations/data-source.ts"
     }
   ],
   "requires": [
     "foundation/core-adapters"
   ],
   "packages": {
-    "@za38.03/agent-ui-runtime": "0.0.9",
-    "zod": "4.5.4"
+    "@za38.03/agent-ui-runtime": "0.0.9"
   }
 }

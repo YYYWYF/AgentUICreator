@@ -16,30 +16,11 @@
 
 **Agent 服务接入：**&#x5F53;前默认注册工具名为 `generate_file`，成功结果使用本工具的 `{ filename, mimeType, url }` 业务结构。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "generate_file"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"filename\":\"报告.pdf\",\"format\":\"pdf\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "call-1",
-    "role": "tool",
-    "content": "{\"filename\":\"报告.pdf\",\"mimeType\":\"application/pdf\",\"url\":\"https://example.com/report.pdf\"}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"generate_file"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"filename\":\"报告.pdf\",\"format\":\"pdf\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"filename\":\"报告.pdf\",\"mimeType\":\"application/pdf\",\"url\":\"https://example.com/report.pdf\"}"}
 ```
 
 `filename`、`mimeType`、`url` 都是非空字符串，URL 必须是有效的 HTTP(S) 地址。仅工具已完成、非错误且结果有效时显示文件卡片，运行中或数据无效时使用工具详情回退。该对象是 `generate_file` 的业务结果，不是 AG-UI 通用文件事件；通用文档内容数组见[工具结果](/plugins/tool-result.md)。示例网址需换成可访问的真实文件地址。

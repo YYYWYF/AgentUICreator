@@ -16,26 +16,8 @@
 
 **Agent 服务接入：**&#x542F;用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "CUSTOM",
-    "name": "chart",
-    "value": {
-      "title": "季度销售额",
-      "items": [
-        {
-          "label": "第一季度",
-          "value": 120
-        },
-        {
-          "label": "第二季度",
-          "value": 180
-        }
-      ]
-    }
-  }
-]
+```jsonl
+{"type":"CUSTOM","name":"chart","value":{"title":"季度销售额","items":[{"label":"第一季度","value":120},{"label":"第二季度","value":180}]}}
 ```
 
 `title` 为字符串；`items` 为数组，每项包含字符串 `label` 和有限数值 `value`。字段或类型无效时不渲染图表。注册在 `dataMessageUIs` 的名称是 `chart`，不是插件 ID `chart-message`；不要把这段 JSON 填进普通文字消息。

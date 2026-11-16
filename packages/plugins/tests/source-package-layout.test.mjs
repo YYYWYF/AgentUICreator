@@ -50,7 +50,7 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   expect(catalog.plugins.some(plugin => plugin.id === "reasoning")).toBe(true);
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
-  expect(ids).toHaveLength(48);
+  expect(ids).toHaveLength(50);
   expect(ids).toContain('skills');
   expect(ids).toContain('skills-selection');
   expect(ids).not.toContain("conversation-history");
@@ -137,6 +137,12 @@ it("typechecks every extracted presentation with its declared direct dependencie
     }
     await writeFile(path.join(consumer,"probe.tsx"), `import type { ConversationCanonicalComposerProps } from "./composer/adapters/composer";
 import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "@za38.03/agent-ui-plugins/composer-support";
+import { CONVERSATION_COMMAND_SOURCE, CONVERSATION_MENTION_SOURCE, createConversationCommandRegistry, type ConversationMentionSource } from "@za38.03/agent-ui-plugins/composer-triggers";
+import type { UIPluginServiceMap } from "@za38.03/agent-ui-runtime/contracts";
+const registry: UIPluginServiceMap[typeof CONVERSATION_COMMAND_SOURCE] = createConversationCommandRegistry();
+const mentions: UIPluginServiceMap[typeof CONVERSATION_MENTION_SOURCE] = { search: async () => [] } satisfies ConversationMentionSource;
+registry.register({ id: "custom", label: "Custom", mode: "directive" });
+void mentions;
 const input: ConversationComposerInputProps = { submitMode: "ctrlEnter" };
 const root: ConversationComposerRootProps = { style: { padding: 12 } };
 const dropzone: ConversationComposerDropzoneProps = { className: "custom" };

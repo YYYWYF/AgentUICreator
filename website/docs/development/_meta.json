@@ -90,7 +90,7 @@
       },
       {
         "type": "custom-link",
-        "label": "搜索候选与命令来源",
+        "label": "提及搜索与快捷命令",
         "link": "/development/composer-sources"
       },
       {

@@ -154,8 +154,14 @@ describe("workspace Agent connection", () => {
     expect((await fetch(history)).status).toBe(409);
     const list = await fetch(history, { headers });
     expect(list.headers.get("cache-control")).toBe("no-store");
-    expect(await list.json()).toMatchObject({ conversations: expect.arrayContaining([expect.objectContaining({ id: "mock-history-basic" })]) });
-    expect(await (await fetch(`${history}/mock-history-basic`, { headers })).json()).toMatchObject({ id: "mock-history-basic", state: { values: { messages: expect.any(Array) } } });
+    expect(await list.json()).toMatchObject({ returnCode: 'SUC0000', body: {
+      conversations: expect.arrayContaining([expect.objectContaining({ thread_id: 'mock-history-basic' })]),
+    } });
+    expect(await (await fetch(`${history}/mock-history-basic`, { headers })).json()).toMatchObject({
+      returnCode: 'SUC0000', body: {
+        thread_id: 'mock-history-basic', max_message_checkpoint: { values: { messages: expect.any(Array) } },
+      },
+    });
     await store.save({ activeSource: "connected", endpoint: "http://localhost:8000/agent" });
     expect((await fetch(history, { headers })).status).toBe(409);
   });

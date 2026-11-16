@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test, type Page } from "@playwright/test";
 import type { ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -42,18 +43,18 @@ for (const submitted of [false, true]) test(`persisted forms retain their receip
   const f = await createControlledAgentHost({
     prepareHost: root => installOfficialAgentUIResource(root, "human-form-demo", { runPackages: async () => { throw new Error("Fixture must use prepared dependencies"); } }).then(() => undefined),
     application: origin => ({
-      imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";',
-      declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
+      imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";',
+      declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
       props: 'conversationDataSource={history} initialThreadId="saved-form"',
     }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: [{ id: "saved-form", title: "已保存的表单" }] }));
-      else if (request.url === "/history/conversations/saved-form") response.end(JSON.stringify({ id: "saved-form", title: "已保存的表单", state: { values: { messages: [
+      if (request.url === "/history/conversations") response.end(JSON.stringify(historyListResponse([{ id: "saved-form", title: "已保存的表单" }])));
+      else if (request.url === "/history/conversations/saved-form") response.end(JSON.stringify(historyDetailResponse({ id: "saved-form", title: "已保存的表单", history: { format: "langchain", messages: [
         { id: "saved-user", type: "human", content: "Saved form request" },
         { id: "saved-call", type: "ai", content: "", tool_calls: [{ id: "saved-form-tool", name: "collect_user_details", args: {}, type: "tool_call" }] },
         ...(submitted ? [{ id: "saved-tool-result", type: "tool", tool_call_id: "saved-form-tool", content: JSON.stringify({ values }) }] : []),
-      ] } } }));
+      ] } })));
       else { response.writeHead(404); response.end(); }
     },
     run(input, response) { startRun(response, input); finishRun(response, input, "New thread remains usable"); },
@@ -123,11 +124,11 @@ test("cancelling parallel Host tools closes both requests and suppresses their c
 test("failed history deletion retains the selected thread and a successful retry stays deleted after reload", async ({ page }) => {
   const errors = await watch(page); let deletes = 0, removed = false;
   const f = await createControlledAgentHost({
-    application: origin => ({ imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="deletable"' }),
+    application: origin => ({ imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="deletable"' }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations" && request.method === "GET") response.end(JSON.stringify({ conversations: removed ? [] : [{ id: "deletable", title: "删除测试工单" }] }));
-      else if (request.url === "/history/conversations/deletable" && request.method === "GET") response.end(JSON.stringify({ id: "deletable", title: "删除测试工单", state: { values: { messages: [{ id: "saved-delete-user", type: "human", content: "Keep history on failed delete" }] } } }));
+      if (request.url === "/history/conversations" && request.method === "GET") response.end(JSON.stringify(historyListResponse(removed ? [] : [{ id: "deletable", title: "删除测试工单" }])));
+      else if (request.url === "/history/conversations/deletable" && request.method === "GET") response.end(JSON.stringify(historyDetailResponse({ id: "deletable", title: "删除测试工单", history: { format: "langchain", messages: [{ id: "saved-delete-user", type: "human", content: "Keep history on failed delete" }] } })));
       else if (request.url === "/history/conversations/deletable" && request.method === "DELETE") { deletes++; if (deletes === 1) { response.writeHead(503); response.end('{"error":"fixture deletion outage"}'); } else { removed = true; response.writeHead(204); response.end(); } }
       else { response.writeHead(404); response.end(); }
     },

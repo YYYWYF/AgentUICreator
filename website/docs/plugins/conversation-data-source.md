@@ -8,6 +8,8 @@ title: "会话数据源（conversation-data-source）"
 
 这是一个提供数据的插件，负责请求历史接口并转换返回格式。它与[会话服务](./conversation-service)配合，数据由[会话列表](./conversation-thread-list)等界面插件展示，本身没有独立的列表界面。
 
+请求和业务响应转换位于项目的 `services/conversations/data-source.ts`。默认后端使用 `returnCode/errorMsg/body`，详情消息位于 `max_message_checkpoint.values.messages`；项目方法将其转换为会话服务使用的 `history`，后端无需改成前端内部格式。
+
 ## 需要提供什么
 
 | 信息 | 说明 |
@@ -40,9 +42,8 @@ title: "会话数据源（conversation-data-source）"
 
 接入时保留数据源和会话服务插件启用，按自己的接口选择配置或适配方式：
 
-- 修改共用基础地址和鉴权：[地址与鉴权配置](/development/history-backend#地址与鉴权配置)。
-- 配置各接口的请求与响应：[接口对象配置](/development/history-backend#按接口配置请求与响应)。
-- 核对默认请求、响应和历史消息格式：[HTTP 数据源](/development/history-backend#http-数据源)。
-- 转换不同的返回字段：[响应字段解码](/development/history-backend#响应字段解码)。
-- 复用已有 SDK 或独立业务数据源：[自定义会话数据源](/development/history-backend#自定义会话数据源)。
-
+- 修改基础地址和鉴权：[地址与鉴权配置](/development/history-backend#地址与鉴权配置)。
+- 核对方法返回格式：[方法需要返回什么](/development/history-backend#方法需要返回什么)。
+- 修改 URL、请求参数和响应字段：[编辑项目方法](/development/history-backend#修改-url参数和响应转换)。
+- 调用已有业务函数：[在各方法中委托业务函数](/development/history-backend#使用自己的业务函数)。
+- 使用已有 Axios 或 SDK：[替换请求代码](/development/history-backend#使用自己的-axios-或-sdk)。

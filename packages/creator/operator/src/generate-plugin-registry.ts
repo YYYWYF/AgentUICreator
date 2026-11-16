@@ -57,9 +57,6 @@ export async function writeGeneratedPluginRegistry(
   const generation = await generatePluginRegistry(projectRoot, model, {
     config: operatorConfigForPaths(paths), paths,
   });
-  if (generation.errors.length > 0) {
-    throw new Error(JSON.stringify({ errors: generation.errors }, null, 2));
-  }
 
   const registryPath = paths.generatedPluginRegistryPath;
   const relativePath = projectRelativePath(projectRoot, registryPath);

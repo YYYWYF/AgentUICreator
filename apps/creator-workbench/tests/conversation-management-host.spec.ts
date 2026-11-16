@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createConnectionHostFixture } from "./support/agent-connection-host.js";
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 
 for (const mode of ["platform", "assistant", "embedded"] as const) {
   test(`${mode} Host persists rename, archive and unarchive through project HTTP APIs`, async ({ page }, testInfo) => {
     const fixture = await createConnectionHostFixture({ mode, prepareHost: async root => {
-      await writeFile(path.join(root, "src/main.tsx"), `import {createRoot} from "react-dom/client"; import {Agent} from "./agent-ui"; import {createHttpConversationDataSource} from "./agent-ui/services/conversations"; import "./host.css";
-        const history=createHttpConversationDataSource({endpoint:"/history"}); createRoot(document.getElementById("root")!).render(<Agent conversationDataSource={history}/>);`);
+      await writeFile(path.join(root, "src/main.tsx"), `import {createRoot} from "react-dom/client"; import {Agent} from "./agent-ui"; import {createConversationDataSource} from "./agent-ui/services/conversations"; import "./host.css";
+        const history=createConversationDataSource({endpoint:"/history"}); createRoot(document.getElementById("root")!).render(<Agent conversationDataSource={history}/>);`);
     } });
     const records = [
       { id: "first", title: "待处理工单", status: "regular" },
@@ -22,9 +23,9 @@ for (const mode of ["platform", "assistant", "embedded"] as const) {
         const request = route.request();
         const url = new URL(request.url());
         if (request.method() === "GET") {
-          if (url.pathname === "/history/conversations") return route.fulfill({ json: { conversations: records } });
+          if (url.pathname === "/history/conversations") return route.fulfill({ json: historyListResponse(records) });
           const id = url.pathname.split("/").at(-1)!;
-          return route.fulfill({ json: { id, title: records.find(item => item.id === id)?.title ?? id, state: { values: { messages: [] } } } });
+          return route.fulfill({ json: historyDetailResponse({ id, title: records.find(item => item.id === id)?.title ?? id, history: { messages: [] } }) });
         }
         mutations.push({ url: url.pathname, method: request.method(), body: request.postData() ? request.postDataJSON() : null });
         if (fail) return route.fulfill({ status: 403, json: { error: "denied" } });

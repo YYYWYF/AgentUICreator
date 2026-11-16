@@ -8,17 +8,8 @@
 
 这次提供了已有查询、选择和详情接口，以及实际可回放的数据。正常的 AG-UI 事件为：
 
-```json
-{
-  "type": "CUSTOM",
-  "name": "app.ticket.filter",
-  "value": {
-    "formId": "ticket-filter-1",
-    "keyword": "",
-    "status": "all",
-    "statuses": ["all", "pending", "processing", "resolved"]
-  }
-}
+```jsonl
+{"type":"CUSTOM","name":"app.ticket.filter","value":{"formId":"ticket-filter-1","keyword":"","status":"all","statuses":["all","pending","processing","resolved"]}}
 ```
 
 `all` 表示全部状态，其余分别对应待受理、处理中、已完成。已有服务接受关键词、状态和取消信号，返回工单数组；本轮使用工作台中的虚构数据，不连接银行业务系统。
@@ -29,7 +20,7 @@
 
 完整实现曾因单次模型输出达到上限而中断，因此拆成数轮小步写入。浏览器又发现“选中工单”触发业务页面更新后会重置表单；随后由 Creator 稳定应用层事件 schema 的合并引用，并复测输入和结果保留。最终类型检查、构建和装配校验通过。
 
-![插件接线和启用后的实际修改回执。](/images/guide/examples/20261106/dynamic-reply.jpg)
+![Creator 完成插件注册和启用后，列出的实际修改内容。](/images/guide/examples/20261106/dynamic-reply.jpg)
 
 ## 收到事件后显示表单
 

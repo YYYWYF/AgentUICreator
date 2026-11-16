@@ -11,6 +11,8 @@ import {ConversationMentionTrigger as NpmMention} from "../dist/mention-trigger/
 import {ConversationSlashCommandTrigger as NpmCommand} from "../dist/slash-command-trigger/index.js";
 import {ConversationMentionTrigger as SourceMention} from "../dist/sources/takeover/mention-trigger/index";
 import {ConversationSlashCommandTrigger as SourceCommand} from "../dist/sources/takeover/slash-command-trigger/index";
+import { ConversationMentionTrigger as ProjectMention, source as projectMentionSource } from "../src/plugins/mention-trigger/adapters/application";
+import { createConversationCommandRegistry } from "@za38.03/agent-ui-plugins/composer-triggers";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const labels: import("../src/locale").AgentUILocaleMessages["conversationTriggers"] = { suggestions: "Suggestions", back: "Back", empty: "No matches", loading: "Loading", searchFailed: "Search failed", retry: "Retry", commandFailed: "Command failed", invalidItem: "Invalid item", newConversation: "New conversation" };
 let root: Root | undefined;
@@ -19,14 +21,15 @@ async function until(predicate: () => boolean) {
   for (let i = 0; i < 100; i++) { if (predicate()) return; await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); }); }
   throw new Error("Timed out waiting for Composer trigger UI");
 }
-describe.each([{name:"native",Mention:NativeMention,Command:NativeCommand},{name:"npm",Mention:NpmMention,Command:NpmCommand},{name:"portable",Mention:SourceMention,Command:SourceCommand}])("$name", ({Mention:ConversationComposerMentionTrigger,Command:ConversationComposerCommandTrigger}) => {
+describe.each([{name:"native",Mention:NativeMention,Command:NativeCommand},{name:"npm",Mention:NpmMention,Command:NpmCommand},{name:"portable",Mention:SourceMention,Command:SourceCommand},{name:"project",Mention:ProjectMention,Command:NpmCommand}])("$name", ({Mention:ConversationComposerMentionTrigger,Command:ConversationComposerCommandTrigger}) => {
 async function mount(source?: ConversationMentionSource, commands: readonly ConversationSlashCommand[] = [], disabled = false) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
   let runtime!: AssistantRuntime;
   const requests: RunAgentInput[] = [];
   let mention = true, slash = true;
-  const commandSource = { getSnapshot: () => commands, subscribe: () => () => {} };
+  const commandSource = createConversationCommandRegistry();
+  commands.forEach(command => commandSource.register(command));
   const agentFactory = () => new HttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
     const input = JSON.parse(String(init.body)) as RunAgentInput; requests.push(input);
     return new Response([{ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId }, { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
@@ -54,11 +57,52 @@ async function mount(source?: ConversationMentionSource, commands: readonly Conv
   };
   const remove = async (feature: "mention" | "slash") => { if (feature === "mention") mention = false; else slash = false; await act(async () => render()); };
   const replaceSource = async (next: ConversationMentionSource) => { source = next; await act(async () => render()); };
-  return { host, runtime, requests, type, choose, remove, replaceSource };
+  return { host, runtime, requests, type, choose, remove, replaceSource, commandSource };
+}
+it("updates the open command menu when the packaged registry registers and removes commands", async () => {
+  const execute = vi.fn();
+  const { host, runtime, requests, type, choose, commandSource } = await mount(undefined, [
+    { id: "keep", label: "Keep command", mode: "directive" },
+  ]);
+  await type("/");
+  await until(() => host.textContent!.includes("Keep command"));
+  let unregister = () => {};
+  await act(async () => {
+    unregister = commandSource.register({ id: "custom", label: "Custom action", mode: "action", execute });
+  });
+  await choose("Custom action");
+  expect(execute).toHaveBeenCalledOnce();
+  expect(requests).toHaveLength(0);
+  await type("/");
+  await until(() => host.textContent!.includes("Custom action"));
+  await act(async () => unregister());
+  await until(() => !host.textContent!.includes("Custom action"));
+  await choose("Keep command");
+  expect(runtime.thread.composer.getState().text).toContain(":command[Keep command]{name=keep}");
+});
+if (ConversationComposerMentionTrigger === ProjectMention) {
+  it("uses the preconfigured project search without manually passing a source", async () => {
+    const search = vi.spyOn(projectMentionSource, "search").mockResolvedValue([
+      { id: "employee_project", type: "user", label: "Project person" },
+    ]);
+    const { runtime, type, choose } = await mount();
+    await type("@Project");
+    await choose("Project person");
+    expect(search).toHaveBeenCalledWith({ query: "Project", signal: expect.objectContaining({ aborted: false }) });
+    expect(runtime.thread.composer.getState().text).toContain("employee_project");
+  });
+
+  it("starts with an empty result when the project request has not been configured", async () => {
+    const search = vi.spyOn(projectMentionSource, "search");
+    const { host, type } = await mount();
+    await type("@Nobody");
+    await until(() => search.mock.calls.length > 0 && host.textContent!.includes("No matches"));
+    expect(host.querySelectorAll('[role="option"]')).toHaveLength(0);
+  });
 }
 it("searches Mention asynchronously, sends the stable ID through HttpAgent and retains historical chips after removal", async () => {
   const search = vi.fn(async () => [{ id: "employee_84721", type: "user", label: "Zhang San" }]);
-  const { host, runtime, requests, type, choose, remove } = await mount({ cacheKey: "roster", search });
+  const { host, runtime, requests, type, choose, remove } = await mount({ search });
   await type("@Zhang"); await choose("Zhang San");
   expect(search.mock.calls.length).toBeGreaterThan(0);
   expect(runtime.thread.composer.getState().text.trim()).toBe(":user[Zhang San]{name=employee_84721}");
@@ -107,17 +151,20 @@ it("does not register actionable triggers in readonly threads or when Mention ha
   await type("/new"); expect(host.querySelector('[role="listbox"]')).toBeNull();
 });
 
-it("invalidates Mention results when a different source reuses the same cache key", async () => {
-  const first = { cacheKey: "same", search: async () => [{ id: "old", type: "user", label: "Old person" }] };
+it.each([
+  { name: "without a cache key", identity: {} },
+  { name: "with the same cache key", identity: { cacheKey: "same" } },
+])("invalidates Mention results when a different source is provided $name", async ({ identity }) => {
+  const first = { ...identity, search: async () => [{ id: "old", type: "user", label: "Old person" }] };
   const { host, type, replaceSource } = await mount(first);
   await type("@person"); await until(() => host.textContent!.includes("Old person"));
-  await replaceSource({ cacheKey: "same", search: async () => [{ id: "new", type: "user", label: "New person" }] });
+  await replaceSource({ ...identity, search: async () => [{ id: "new", type: "user", label: "New person" }] });
   await until(() => host.textContent!.includes("New person"));
   expect(host.textContent).not.toContain("Old person");
 });
 it("reports a failed Mention source and retries without changing the draft", async () => {
   const search = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue([{ id: "one", type: "user", label: "Person" }]);
-  const { host, type, runtime } = await mount({ cacheKey: "one", search });
+  const { host, type, runtime } = await mount({ search });
   await type("@Person"); await until(() => host.textContent!.includes("Search failed"));
   const retry = [...host.querySelectorAll("button")].find(button => button.textContent === "Retry")!;
   await act(async () => retry.click()); await until(() => host.querySelector('[role="option"]') !== null);
@@ -144,9 +191,14 @@ it("uses upstream keyboard selection, Escape, Tab, and composition Enter without
   expect(requests).toHaveLength(0);
   expect(host.querySelector('[data-directive-id]')).toBeNull();
 });
-it("leaves unsupported historical directive text intact and has no Mention UI without a source", async () => {
+it("leaves unsupported historical directive text intact when no explicit Mention source is passed", async () => {
   const { host, type, runtime, requests } = await mount();
-  await type("@person"); expect(host.querySelector('[role="listbox"]')).toBeNull();
+  await type("@person");
+  if (ConversationComposerMentionTrigger === ProjectMention) {
+    await until(() => host.textContent!.includes("No matches"));
+  } else {
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
+  }
   await type(":custom[Raw]{name=id}"); await act(async () => runtime.thread.composer.send());
   await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
   expect(host.textContent).toContain(":custom[Raw]{name=id}"); expect(host.querySelector('[data-directive-id]')).toBeNull();

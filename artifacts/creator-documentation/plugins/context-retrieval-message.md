@@ -16,24 +16,8 @@
 
 **Agent 服务接入：**&#x53D1;送 `CUSTOM`，名称必须是 `CONTEXT_CONTENT`，`value` 为检索上下文。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "CUSTOM",
-    "name": "CONTEXT_CONTENT",
-    "value": {
-      "source": "rag",
-      "content": [
-        {
-          "query": "退款期限是多少？",
-          "context": [
-            "退款申请需在 30 天内提交。"
-          ]
-        }
-      ]
-    }
-  }
-]
+```jsonl
+{"type":"CUSTOM","name":"CONTEXT_CONTENT","value":{"source":"rag","content":[{"query":"退款期限是多少？","context":["退款申请需在 30 天内提交。"]}]}}
 ```
 
 `source` 是字符串；`content` 是数组，每组包含字符串 `query` 和字符串数组 `context`。`rag`、`long_term_memory` 使用内置来源名称，其他来源显示原字符串。数据无效时不渲染。Mock 中的 `CONTEXT_STARTED`、`CONTEXT_FINISHED` 不提供本插件的卡片内容，不能替代 `CONTEXT_CONTENT`。

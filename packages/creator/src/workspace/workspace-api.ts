@@ -65,7 +65,7 @@ export async function handleCreatorWorkspaceRequest(
   const route = request.url?.split("?", 1)[0] ?? "/";
   try {
     if (request.method === "GET" && (route === "/" || route === "")) {
-      sendJson(response, 200, publicWorkspaceState(manager.getState()));
+      sendJson(response, 200, publicWorkspaceState(await manager.readSettledState()));
       return;
     }
     if (request.method === "GET" && route === "/setup") {

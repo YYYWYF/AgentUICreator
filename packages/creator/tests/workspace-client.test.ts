@@ -42,3 +42,14 @@ it("preserves cancellation while reading a response", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
   await expect(getWorkspaceState()).rejects.toMatchObject({ name: "AbortError" });
 });
+
+it("bypasses cached startup snapshots and forwards recovery cancellation", async () => {
+  const fetcher = vi.fn<typeof fetch>(async () => Response.json({ status: "none" }));
+  vi.stubGlobal("fetch", fetcher);
+  const controller = new AbortController();
+  await getWorkspaceState(CREATOR_LOCALES["zh-CN"], controller.signal);
+  await selectWorkspaceProject("C:\\work\\项目 alpha", CREATOR_LOCALES["zh-CN"], controller.signal);
+  for (const [, options] of fetcher.mock.calls) {
+    expect(options).toMatchObject({ cache: "no-store", signal: controller.signal });
+  }
+});

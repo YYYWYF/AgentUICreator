@@ -70,15 +70,15 @@ export type ConversationAgentFactory = (
 export interface ConversationRuntimeProviderProps<TState = unknown> {
   /** Page-memory presentation service; never enters Agent messages or persistence. */
   transientMessages?: ConversationTransientMessageService | undefined;
-  endpoint: string;
+  /** Optional when custom fetch owns the destination; no default service URL. */
+  endpoint?: string | undefined;
   request?: ServiceRequestConfig | undefined;
   /** Default business parameters; per-send ctx shallowly overrides matching keys. */
   ctx?: AgentUIContext | undefined;
-  /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
+  /** Custom AG-UI transport; receives an empty URL when endpoint is omitted, plus merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
-  frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   /** Read current Host context for each request. Errors report through onError; the run continues without these entries. */
@@ -149,7 +149,7 @@ export interface ConversationObservationSource {
 }
 
 export { createConversationFrontendToolPort } from "./tools/types.js";
-export type { ConversationFrontendToolPort, ConversationFrontendToolUIEntry, ConversationFrontendToolUIRegistry } from "./tools/types.js";
+export type { ConversationFrontendToolPort } from "./tools/types.js";
 import type { ConversationFrontendToolPort } from "./tools/types.js";
 
 export function createEphemeralConversationThreadBinding(initialThreadId?: string): ConversationThreadBinding {

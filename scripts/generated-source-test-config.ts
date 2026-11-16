@@ -36,6 +36,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
       { find: "@za38.03/agent-ui-creator/source-registry", replacement: path.join(root, "packages/creator/operator/src/source-catalog/index.ts") },
       { find: "@za38.03/agent-ui-creator/source-registry", replacement: path.join(root, "packages/creator/operator/src/source-catalog/index.ts") },
       { find: "@za38.03/agent-ui-plugins/composer-support", replacement: path.join(root, "packages/plugins/src/composer-support.ts") },
+      { find: "@za38.03/agent-ui-plugins/composer-triggers", replacement: path.join(root, "packages/plugins/dist/composer-triggers.js") },
       { find: "@za38.03/agent-ui-plugins/plugin-support", replacement: path.join(root, "packages/plugins/src/plugin-support.ts") },
       ...pluginDeliveries.map(delivery => ({
         find: `@za38.03/agent-ui-plugins/${delivery.id}`,

@@ -14,6 +14,8 @@ export function Chat() {
 }
 ```
 
+`endpoint` 可选，没有内置默认地址。使用自定义 `fetch` 自行决定请求地址时可以省略；使用浏览器默认 fetch 时，由项目提供 `endpoint` 或按次指定工作流地址。
+
 Agent 接口需要鉴权时，通过 `request.headers` 传入请求头，通过 `request.credentials` 设置 Cookie 策略，完整示例及开发预览限制见[请求头与鉴权](/development/connect-agent.md#请求头与鉴权)。
 
 每次发送时，AG-UI 请求的 `messages` 默认只包含本次用户消息，不附带历史用户和 AI 消息。前端继续展示完整历史，后端按 `threadId` 维护会话上下文。前端工具续传只带本次工具结果；中断恢复通过 `resume` 传递，没有新消息时 `messages` 为空。
@@ -24,7 +26,7 @@ Agent 接口需要鉴权时，通过 `request.headers` 传入请求头，通过 
 <Agent user={{ userId: 'u-1', userName: '张三', avatar: '/avatar.png' }} />
 ```
 
-新模板的欢迎语、示例问题与按钮文案统一在 `application/locales.ts` 覆盖，不再通过 `Agent welcome` / `suggestions` 属性传入。例如：
+欢迎语、示例问题与按钮文案在 `application/locales.ts` 中覆盖。例如：
 
 ```ts
 export const locales = {

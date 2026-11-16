@@ -33,7 +33,7 @@ export function createCreatorUpdateHandler(workspaceManager?: CreatorWorkspaceMa
         if (route === "/check") {
           const recovery = await upgrades.recovery(root);
           const [sourceResult, packageUpdates] = await Promise.all([
-            recovery ? Promise.resolve(null) : service.inspect(root, { readOnly: true }).catch(() => null),
+            service.inspect(root, { readOnly: true }).catch(() => null),
             packages.inspect(root, input.refresh === true),
           ]);
           const sources = sourceResult ?? { releaseVersion: "", compatibility: "compatible", plugins: [], sourceIssue: "UPDATE_SOURCE_INSPECTION_UNAVAILABLE", fingerprint: recovery ? "recovery:" + recovery.id : "source-unavailable" };

@@ -55,11 +55,11 @@ function source(title:string):ConversationDataSource {
  return {list:vi.fn(async()=>[{id:title,title}]),get:async()=>{throw Error('NOT_USED');},delete:async()=>{}};
 }
 
-it('forwards the HttpAgent fetch option through AgentApplication and keeps the thread on updates', async()=>{
+it.each(['/business/agent', undefined])('forwards custom fetch with endpoint %s and keeps the thread on updates', async endpoint=>{
  const fallback=vi.fn();vi.stubGlobal('fetch',fallback);
  const requests:Record<string,any>[]=[];
  const custom=vi.fn<NonNullable<AgentProps['fetch']>>(async(url,init)=>{
-  expect(url).toBe('/business/agent');
+  expect(url).toBe(endpoint ?? '');
   expect(new Headers(init.headers).get('X-Tenant')).toBe('tenant-1');
   const input=JSON.parse(String(init.body));requests.push(input);
   const frames=[{type:'RUN_STARTED',threadId:input.threadId,runId:input.runId},
@@ -68,7 +68,7 @@ it('forwards the HttpAgent fetch option through AgentApplication and keeps the t
   return new Response(frames.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(''),{headers:{'Content-Type':'text/event-stream'}});
  });
  const f=fixture();
- const props:AgentProps={endpoint:'/business/agent',fetch:custom,request:{headers:{'X-Tenant':'tenant-1'}}};
+ const props:AgentProps={...(endpoint === undefined ? {} : {endpoint}),fetch:custom,request:{headers:{'X-Tenant':'tenant-1'}}};
  await f.render(props);
  await act(async()=>{f.container.querySelector('button')!.click();});
  await act(async()=>{await vi.waitFor(()=>expect(f.container.querySelector('output')?.textContent).toBe('T-1'));});
@@ -91,7 +91,7 @@ it('accepts live event schemas, localized copy, welcome and history through Agen
   return new Response(frames.map(event=>`data: ${JSON.stringify(event)}\n\n`).join(''),{headers:{'Content-Type':'text/event-stream'}});
  }));
  const f=fixture(), history=source('My history');
- const props:AgentProps={services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history},locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'},conversation:{welcome:'My assistant',welcomeDescription:'Project introduction'}}}};
+ const props:AgentProps={endpoint:'/business/agent',services:{[AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history},locale:'en-US',locales:{'en-US':{composer:{placeholder:'Business input'},conversation:{welcome:'My assistant',welcomeDescription:'Project introduction'}}}};
  await f.render(props);
  expect(f.container.querySelector('input')?.placeholder).toBe('Business input');
  expect(f.container.querySelector('h1')?.textContent).toBe('My assistant');

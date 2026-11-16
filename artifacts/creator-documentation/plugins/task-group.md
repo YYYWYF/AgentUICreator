@@ -20,63 +20,16 @@
 
 **Agent 服务接入：**&#x5148;创建父工具调用，再通过 `parentToolCallId` 关联 SubAgent。子消息使用同一个 `subagentRunId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "delegate-1",
-    "toolCallName": "delegate_specialist"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "delegate-1",
-    "delta": "{\"task\":\"检索政策\",\"subagent_type\":\"researcher\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "delegate-1"
-  },
-  {
-    "type": "SUBAGENT_STARTED",
-    "subagentRunId": "research-1",
-    "parentToolCallId": "delegate-1",
-    "name": "资料研究员"
-  },
-  {
-    "type": "TEXT_MESSAGE_START",
-    "messageId": "child-answer-1",
-    "role": "assistant",
-    "subagentRunId": "research-1"
-  },
-  {
-    "type": "TEXT_MESSAGE_CONTENT",
-    "messageId": "child-answer-1",
-    "delta": "已找到相关政策。",
-    "subagentRunId": "research-1"
-  },
-  {
-    "type": "TEXT_MESSAGE_END",
-    "messageId": "child-answer-1",
-    "subagentRunId": "research-1"
-  },
-  {
-    "type": "SUBAGENT_FINISHED",
-    "subagentRunId": "research-1",
-    "outcome": {
-      "type": "success"
-    },
-    "result": {
-      "summary": "检索完成"
-    }
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "delegate-1",
-    "role": "tool",
-    "content": "{\"summary\":\"检索完成\"}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"delegate-1","toolCallName":"delegate_specialist"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"delegate-1","delta":"{\"task\":\"检索政策\",\"subagent_type\":\"researcher\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"delegate-1"}
+{"type":"SUBAGENT_STARTED","subagentRunId":"research-1","parentToolCallId":"delegate-1","name":"资料研究员"}
+{"type":"TEXT_MESSAGE_START","messageId":"child-answer-1","role":"assistant","subagentRunId":"research-1"}
+{"type":"TEXT_MESSAGE_CONTENT","messageId":"child-answer-1","delta":"已找到相关政策。","subagentRunId":"research-1"}
+{"type":"TEXT_MESSAGE_END","messageId":"child-answer-1","subagentRunId":"research-1"}
+{"type":"SUBAGENT_FINISHED","subagentRunId":"research-1","outcome":{"type":"success"},"result":{"summary":"检索完成"}}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"delegate-1","role":"tool","content":"{\"summary\":\"检索完成\"}"}
 ```
 
 `delegate_specialist` 是示例业务工具名，可换成业务实际使用的名称。界面按父工具和子任务的 ID 关联消息，将子任务内容显示在对应的任务分组中。完整展示需要父工具调用、子任务生命周期及带归属的消息内容。

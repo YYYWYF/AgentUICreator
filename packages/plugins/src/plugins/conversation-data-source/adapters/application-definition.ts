@@ -6,8 +6,7 @@ import { getPreviewAgentEnvironment } from '@za38.03/agent-ui-runtime/ui/applica
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   createEmptyConversationDataSource,
-  createHttpConversationDataSource,
-  conversationDataSourceConfig,
+  createConversationDataSource,
   resolveConversationDataEndpoint,
 } from '../../services/conversations';
 import { ConversationDataSourcePlugin } from './index';
@@ -26,9 +25,9 @@ export const conversationDataSourcePlugin: UIPluginDefinition = {
     const source =
       endpoint === undefined
         ? createEmptyConversationDataSource()
-        : createHttpConversationDataSource({
+        : createConversationDataSource({
             endpoint,
-            fetch: conversationDataSourceConfig.fetch ?? createAgentBackendTransport({ development, agentId: application?.agentId }).fetch,
+            fetch: createAgentBackendTransport({ development, agentId: application?.agentId }).fetch,
           });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   }),

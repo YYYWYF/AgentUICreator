@@ -36,7 +36,7 @@ title: "主题与样式"
 
 修改具体组件时，在项目入口设置 `className`、`style` 或对应的 `…Props`；布局区域大小见[布局与插件组合](./layout-and-composition)。
 
-从已有插件开始手动修改时，见[手动修改插件：样式与业务逻辑](./component-customization#3-插件样式定制)，其中包含文件定位、局部 CSS 和接线示例。外框、悬浮入口和面板行为见[自定义 Shell](./shell-customization)。
+从已有插件开始手动修改时，见[手动修改插件：样式与业务逻辑](./component-customization#3-插件样式定制)，其中说明如何找到组件文件、添加局部 CSS 并在组件中使用。外框、悬浮入口和面板行为见[自定义 Shell](./shell-customization)。
 
 ## 验证
 

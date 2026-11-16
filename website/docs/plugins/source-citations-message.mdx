@@ -20,30 +20,11 @@ title: "引用来源（source-citations-message）"
 
 **Agent 服务接入：**当前默认注册工具名为 `search_sources`，从工具结果的 `sources` 数组显示来源。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "search_sources"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"query\":\"退款政策\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "call-1",
-    "role": "tool",
-    "content": "{\"sources\":[{\"sourceType\":\"url\",\"id\":\"policy-web\",\"url\":\"https://example.com/policy\",\"title\":\"退款政策\"},{\"sourceType\":\"document\",\"id\":\"policy-doc\",\"title\":\"内部政策\",\"mediaType\":\"application/pdf\",\"filename\":\"政策.pdf\"}]}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"search_sources"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"query\":\"退款政策\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"sources\":[{\"sourceType\":\"url\",\"id\":\"policy-web\",\"url\":\"https://example.com/policy\",\"title\":\"退款政策\"},{\"sourceType\":\"document\",\"id\":\"policy-doc\",\"title\":\"内部政策\",\"mediaType\":\"application/pdf\",\"filename\":\"政策.pdf\"}]}"}
 ```
 
 每个来源需要唯一且非空的 `id`。`sourceType: "url"` 需要有效 HTTP(S) `url`，`title` 可省略，提供时不能为空；`sourceType: "document"` 需要非空 `title`、`mediaType`，`filename` 可省略，提供时不能为空。文档来源描述引用资料，不自动提供下载地址。

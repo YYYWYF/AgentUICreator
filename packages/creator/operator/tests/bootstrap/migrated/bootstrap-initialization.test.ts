@@ -109,12 +109,11 @@ describe("bootstrap initialization commit boundary", () => {
     expect(await exists(journalPath(root))).toBe(false);
   });
 
-  it("classifies runtime config, registry, and prospective verification failures before commit", async () => {
-    for (const failure of ["runtime-config", "registry", "verification"] as const) {
+  it("classifies runtime config and registry write failures before commit", async () => {
+    for (const failure of ["runtime-config", "registry"] as const) {
       const { root, host } = await fixture();
       if (failure === "runtime-config") host.writeGeneratedRuntimeConfig = vi.fn().mockRejectedValue(new Error("runtime config"));
-      else if (failure === "registry") host.writeGeneratedRegistry = vi.fn().mockRejectedValue(new Error("registry"));
-      else host.verifyProject = vi.fn().mockResolvedValue({ status: "failed", errors: [{ code: "BAD", message: "bad" }] });
+      else host.writeGeneratedRegistry = vi.fn().mockRejectedValue(new Error("registry"));
       await expect(initializeAgentUIProject(input(root), host)).rejects.toMatchObject({
         code: "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
       });
@@ -126,9 +125,11 @@ describe("bootstrap initialization commit boundary", () => {
 
   it("preserves an external project.json created at the commit race", async () => {
     const { root, host } = await fixture();
-    host.verifyProject = vi.fn(async () => {
+    const install = host.installOperatorEntry;
+    host.installOperatorEntry = vi.fn(async projectRoot => {
+      const paths = await install(projectRoot);
       await writeFile(configPath(root), "external\n", { flag: "wx" });
-      return { status: "passed" as const, errors: [] };
+      return paths;
     });
     await expect(initializeAgentUIProject(input(root), host)).rejects.toMatchObject({
       code: "AGENT_UI_PROJECT_ALREADY_INITIALIZED",
@@ -138,19 +139,15 @@ describe("bootstrap initialization commit boundary", () => {
     expect(host.rollbackCreatedPaths).toHaveBeenCalledOnce();
   });
 
-  it.each(["broken", "throw"])("preserves committed files when final inspect %s", async (outcome) => {
+  it("does not run project verification or require a post-write inspection", async () => {
     const { root, host } = await fixture();
-    host.inspectProject = vi.fn().mockResolvedValueOnce({ status: "uninitialized" });
-    if (outcome === "throw") vi.mocked(host.inspectProject).mockRejectedValueOnce(new Error("inspect failed"));
-    else vi.mocked(host.inspectProject).mockResolvedValueOnce({ status: "broken" });
-    await expect(initializeAgentUIProject(input(root), host)).rejects.toMatchObject({
-      code: "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
-    });
+    host.inspectProject = vi.fn().mockResolvedValueOnce({ status: "uninitialized" }).mockRejectedValue(new Error("diagnostics unavailable"));
+    host.verifyProject = vi.fn().mockRejectedValue(new Error("build failed"));
+    await expect(initializeAgentUIProject(input(root), host)).resolves.toBeDefined();
+    expect(host.inspectProject).toHaveBeenCalledOnce();
+    expect(host.verifyProject).not.toHaveBeenCalled();
     expect(await exists(configPath(root))).toBe(true);
-    expect(await exists(managedPath(root))).toBe(true);
-    expect(await exists(journalPath(root))).toBe(true);
-    expect(JSON.parse(await readFile(journalPath(root), "utf8"))).toMatchObject({ phase: "postcondition-failed" });
-    expect(host.rollbackCreatedPaths).not.toHaveBeenCalled();
+    expect(await exists(journalPath(root))).toBe(false);
   });
 
   it("does not roll back when the committed journal update fails", async () => {
@@ -164,11 +161,11 @@ describe("bootstrap initialization commit boundary", () => {
     });
     expect(await exists(configPath(root))).toBe(true);
     expect(await exists(managedPath(root))).toBe(true);
-    expect(JSON.parse(await readFile(journalPath(root), "utf8"))).toMatchObject({ phase: "verified" });
+    expect(JSON.parse(await readFile(journalPath(root), "utf8"))).toMatchObject({ phase: "prepared" });
     expect(host.rollbackCreatedPaths).not.toHaveBeenCalled();
   });
 
-  it("removes the journal only after a ready final inspection", async () => {
+  it("removes the journal after writing the initialized project", async () => {
     const { root, host } = await fixture();
     const result = await initializeAgentUIProject(input(root), host);
     expect(result.installedSourceItems).toEqual(["foundation/core"]);

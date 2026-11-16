@@ -36,20 +36,20 @@ type ErrorDetail = AgentUIEventDetails['agent-error'];
 
 运行时先在客户端通过 `import '@za38.03/agent-ui-web-component/register'` 或独立脚本注册元素，见[嵌入教程](/development/web-component)。**`import type` 只用于类型检查，不执行注册**。
 
-`AgentUIConfig` 还支持 `threadId`、`appUIModel` 和 `agents`（多助手配置）。`threadId` 用于打开持久会话，需要接好历史服务。复杂服务的函数适配器写在 React 生产工程中，通过包装入口的 `agentProps` 接线，再重新构建；具体文件和示例见[业务服务接入](./service-integration#vue--html-服务适配位置)。它们不是任意可添加的 config 字段。
+`AgentUIConfig` 还支持 `threadId`、`appUIModel` 和 `agents`（多助手配置）。`threadId` 用于打开已保存的会话，需要先配置历史服务。如果服务需要通过函数转换请求或响应，在 React 生产工程中编写该函数，通过包装入口的 `agentProps` 传给 `Agent`，再重新构建；具体文件和示例见[业务服务接入](./service-integration#vue--html-服务适配位置)。这些函数不能直接添加到 Web Component 的 config 中。
 
 ### Attributes 与优先级
 
 | Attribute | 对应字段 | 默认 |
 | --- | --- | --- |
-| `endpoint` | endpoint | `/agent` |
+| `endpoint` | endpoint | 无，可省略，由 React 生产工程的自定义 fetch 决定请求地址 |
 | `locale` | locale | React 工程的默认值，官方为 zh-CN |
 | `theme` | theme | React 工程的默认值，官方为 violet |
 | `thread-id` | threadId | 未指定则使用新会话 |
 
 `config` 中已设置的字段优先于同名 HTML 属性。**每次更新时给 `config` 赋一个新对象**；直接修改读取到的对象不会更新界面。需要保留其他配置时使用 `element.config = { ...element.config, theme: 'dark' }`。只有 config 没有设置对应字段时，HTML 属性才参与配置。`appUIModel` 只能通过 `config` 设置。
 
-表中的主题默认值指首次挂载。移除 `theme` 属性且 config 也没有 theme 时，组件转为内部管理主题，会保留当前选择；要立即显示紫色，请显式设置 `theme: 'violet'`。`endpoint`、`locale` 移除后按表中默认值处理。
+表中的主题默认值指首次挂载。移除 `theme` 属性且 config 也没有 theme 时，组件转为内部管理主题，会保留当前选择；要立即显示紫色，请显式设置 `theme: 'violet'`。`locale` 移除后使用表中的默认值。省略 `endpoint` 不会回退到内置地址；React 生产工程可通过 `agentProps.fetch` 自行发送请求。使用浏览器默认 fetch 时，需要由项目提供请求地址。
 
 ### 配置更新行为
 

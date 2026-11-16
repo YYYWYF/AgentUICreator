@@ -11,7 +11,7 @@
     { "path": "docs/architecture/plugin-hide-purge.md", "topic": "插件开发与组合", "summary": "插件隐藏、停用与永久删除的区别；实例、子插槽及清理边界。" },
     { "path": "docs/creator-plugin-development-decision-contract.md", "topic": "插件开发与组合", "summary": "复用与新开发决策、真实用户授权、方案范围、UI 库选择和依赖安装。" },
     { "path": "docs/creator-plugin-delivery.md", "topic": "插件开发与组合", "summary": "插件开发交付、静态验证与浏览器验收的证据要求。" },
-    { "path": "docs/architecture/host-integration-recipe.md", "topic": "Host 与接入", "summary": "Host 拥有服务与业务接线；官方应用模板、Provider 生命周期和清理。" },
+    { "path": "docs/architecture/host-integration-recipe.md", "topic": "Host 与接入", "summary": "Host 负责服务实现与业务调用；官方应用模板、Provider 生命周期和清理。" },
     { "path": "docs/architecture/agent-connection-preview-source.md", "topic": "Host 与接入", "summary": "业务 Agent 连接、预览来源、Mock/recording 解析、身份与隔离。" },
     { "path": "docs/implementation/authentication/README.md", "topic": "Host 与接入", "summary": "可选认证与账号插件；Host 服务、登录状态和应用自有配置。" },
     { "path": "docs/architecture/frontend-tool-lifecycle.md", "topic": "会话与交互", "summary": "Frontend Tool 注册、执行、审批、中断恢复、取消与历史副作用隔离。" },

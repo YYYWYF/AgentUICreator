@@ -159,7 +159,7 @@ test("a compiled project producer with its history service loads and switches pe
     } catch (error) { throw new Error(JSON.stringify((error as { technicalDetails?: unknown }).technicalDetails), { cause: error }); }
     const config = path.join(fixture.hostRoot, "src/agent-ui/application/AgentUICompatibilityRoot.tsx");
     const source = await readFile(config, "utf8");
-    await writeFile(config, 'import { createHttpConversationDataSource, AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE } from "../services/conversations";\nconst history = createHttpConversationDataSource({ endpoint: "/api" });\n' + source.replace('<CompatibilityRoot {...props}', '<CompatibilityRoot {...props} agentProps={{...props.agentProps, services:{...props.agentProps?.services, [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history}}}'));
+    await writeFile(config, 'import { createConversationDataSource, AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE } from "../services/conversations";\nconst history = createConversationDataSource({ endpoint: "/api" });\n' + source.replace('<CompatibilityRoot {...props}', '<CompatibilityRoot {...props} agentProps={{...props.agentProps, services:{...props.agentProps?.services, [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE]:history}}}'));
     // Playwright runs with NODE_ENV=test. Build the delivered producer under
     // its real production environment, independently from the test process.
     await promisify(execFile)(process.execPath, [path.join(fixture.hostRoot, "node_modules/vite/bin/vite.js"), "build", "--config", "src/agent-ui/integrations/web-component-bridge/vite.config.ts"], {

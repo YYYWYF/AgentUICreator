@@ -23,7 +23,7 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntimeActions()` exposes only Agent Runtime commands. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel composition.
 - `usePluginEvents()` is the inbound, live-only Application Event channel. Subscribe only to names declared in the Plugin manifest and registered through the application's `Agent.appEventSchemas`.
 - `usePluginService()` remains the component API for named Plugin capabilities.
-- Project frontend-tool modules and the Host's explicit `Agent.frontendTools` source own the operations advertised to the Agent; providing a Plugin Service alone never exposes a tool.
+- Explicit application/Host `toolkit` frontend entries or project frontend-tool sources own the operations advertised to the Agent; providing a Plugin Service alone never exposes a tool.
 
 ## Boundaries
 
@@ -36,7 +36,7 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 - Never expose or import AG-UI `CUSTOM`, `CustomEvent`, `BaseEvent`, `RawEvent`, `rawEvent`, or `@ag-ui/core` from Plugin code. Preserve an explicitly supplied backend business event name and payload; never guess an unknown payload shape. Distinguish its consumers: a chat message renderer uses `defineDataMessageUI`, `definition.dataMessageUIs` and `manifest.data.messageUI`, and validates its raw `data`; a live Application Event subscriber uses `Agent.appEventSchemas`, `manifest.data.events` and `usePluginEvents`. Do not add a duplicate subscriber merely to render a chat message. Application schema transforms do not rewrite message data.
 - For Application Event subscriptions, reuse an existing schema module; otherwise create an application-owned module relative to actual sourceRoot (for example `agent-contract/agent-events.ts`) and wire it through `Agent.appEventSchemas`. That directory is optional, not a preinstalled Runtime requirement. A Plugin-local schema wired through the application is also valid.
 - Frontend Tools use standard AG-UI `RunAgentInput.tools`, `TOOL_CALL_*`, `ToolMessage`, and a continuation Run. Never encode a frontend Tool call as `CUSTOM`, a new UserMessage, or a Plugin-specific protocol.
-- For existing Host page operations, use `createAgentUIFrontendTools()` from Runtime and pass the stable source to `<Agent frontendTools={tools} />`. Validate input inside execute and call the existing page/form methods. This path does not require a Provider Plugin, Service registration or generated tool module.
+- For Host page operations, use `<Agent toolkit={toolkit} />` with `type: "frontend"`, `parameters`, `execute` and optional `render`. For component-driven interaction, use `type: "human"` and `render`, then submit `addResult` from the component. Existing frontendTools sources remain valid; configure their render/display as same-name backend toolkit entries. Keep permissions, cancellation and historical rendering; do not introduce a separate UI registry. These Host paths require no Provider Plugin, Service registration or generated tool module.
 - When a capability is shared by Plugins, reuse or define a stable Service seam, let a Provider Plugin declare and provide it, and expose only the application-authorized operations through project frontend tools.
 - Tool names use `lower_snake_case`. Host tools declare JSON Schema and validate unknown input inside execute. Project tools may use `z.strictObject(...)` as the validation/JSON Schema source and resolve Services at execution time. Return short serializable results.
 - Do not infer that every Service method should be exposed. Capability ownership and Agent exposure permission are separate decisions.
@@ -83,7 +83,7 @@ For capability or renderer integration details, read the packaged
 5. History restoration must never execute Frontend Tools. An execute on history
    load is a Runtime bug; do not patch it with renderer `isHistory` workarounds.
 6. Keep `Plugin -> Service` for Plugin-shared capabilities; existing Host page
-   methods can be exposed directly through `Agent.frontendTools`. Both use
+   methods can be exposed through explicit `toolkit` frontend entries or existing `Agent.frontendTools` sources. Both use
    `Application -> allowed operation` and `Runtime adapter -> Agent UI native frontend execute`. Plugins never
    register Tools. Preserve root-only execution scope until subagent attribution
    has its own contract. Do not add another TOOL_CALL executor or CUSTOM protocol.

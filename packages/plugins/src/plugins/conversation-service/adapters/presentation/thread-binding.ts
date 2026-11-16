@@ -56,6 +56,7 @@ function sameItem<TStatus extends "regular" | "archived">(
     left.id === right.id &&
     left.status === right.status &&
     left.title === right.title &&
+    left.lastMessageAt?.getTime() === right.lastMessageAt?.getTime() &&
     sameCustom(left.custom, right.custom)
   );
 }
@@ -98,10 +99,13 @@ function historyItem<TStatus extends "regular" | "archived">(
   item: ConversationSummary,
   status: TStatus,
 ): ConversationThreadListItem<TStatus> {
+  const updatedAt = item.updatedAt === undefined ? undefined : new Date(item.updatedAt);
+  const lastMessageAt = updatedAt !== undefined && Number.isFinite(updatedAt.getTime()) ? updatedAt : undefined;
   return {
     id: item.id,
     status,
     title: item.title,
+    ...(lastMessageAt === undefined ? {} : { lastMessageAt }),
     custom: conversationCustom(item),
   };
 }

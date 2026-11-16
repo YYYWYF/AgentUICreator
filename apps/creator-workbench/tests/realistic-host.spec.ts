@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test, type Page } from "@playwright/test";
 import type { ServerResponse } from "node:http";
 import { readFile, writeFile } from "node:fs/promises";
@@ -20,14 +21,14 @@ for (const failBackground of [false, true]) test(`background conversation stays 
   const streams = new Map<string, { input: ControlledRunInput; response: ServerResponse; closed: boolean }>();
   const f = await createControlledAgentHost({
     application: origin => ({
-      imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";',
-      declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
+      imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";',
+      declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
       props: 'conversationDataSource={history} initialThreadId="A" enableMessageQueue',
     }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: [{ id: "A", title: "工单 A", status: "regular" }, { id: "B", title: "工单 B", status: "regular" }] }));
-      else if (request.url?.startsWith("/history/conversations/")) { const id = request.url.split("/").at(-1); response.end(JSON.stringify({ id, title: `工单 ${id}`, state: { values: { messages: [] } } })); }
+      if (request.url === "/history/conversations") response.end(JSON.stringify(historyListResponse([{ id: "A", title: "工单 A", status: "regular" }, { id: "B", title: "工单 B", status: "regular" }])));
+      else if (request.url?.startsWith("/history/conversations/")) { const id = request.url.split("/").at(-1); response.end(JSON.stringify(historyDetailResponse({ id, title: `工单 ${id}`, history: { format: "langchain", messages: [] } }))); }
       else { response.writeHead(404); response.end(); }
     },
     run(input, response) {

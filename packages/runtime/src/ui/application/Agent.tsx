@@ -36,7 +36,6 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   /** Project-owned history implementation; its enabled Plugin remains the service owner. */
   services?: Readonly<Record<string,unknown>> | undefined;
   toolkit?: ConversationRuntimeProviderProps["toolkit"];
-  frontendToolUIs?: ConversationRuntimeProviderProps["frontendToolUIs"];
   integrations?: ComponentType<{ children: ReactNode }> | undefined;
   /** Explicit Host-owned page operations, combined with the project tool allowlist. */
   frontendTools?: ConversationRuntimeProviderProps["frontendTools"];
@@ -54,8 +53,8 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   locale?: AgentUILocaleCode;
   /** Reports language changes initiated by the UI, including locale-switch. */
   onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined;
-  /** The Host application's AG-UI endpoint. Defaults to /agent. */
-  endpoint?: string;
+  /** Optional Host-owned AG-UI endpoint; custom fetch may choose its own destination. */
+  endpoint?: string | undefined;
   observability?: AgentObservability;
   /** Application errors and Agent run errors reported by the conversation provider. */
   onError?: ConversationRuntimeProviderProps["onError"];
@@ -65,7 +64,7 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint = "/agent", request, fetch, ctx, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, request, fetch, ctx, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const application = useAgentUIAgentIdentity();
   const { presentation, defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? defaultLocale);
@@ -128,7 +127,6 @@ function AgentSession({ frontendTools, getRunContext, transientMessages, theme, 
 }
 
 function AuthenticatedConversation({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, endpoint, request, fetch, ctx, observability, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
-  endpoint: string;
   presentationLocale: AgentUILocaleCode;
   setPresentationLocale: (locale: AgentUILocaleCode) => void;
   suggestions: ReturnType<AgentUIProjectOptions["getConversationStarterSuggestions"]>;
@@ -136,7 +134,7 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
   composition: NonNullable<ReturnType<AgentUIProjectOptions["compositionStore"]["getSnapshot"]>>;
   toolkit: import("../../plugin-api/index.js").ConversationToolkit;
 }) {
-  const { conversationMessageQueueEnabled, conversationServices, generatedFrontendToolUIs, Integrations: GeneratedConversationIntegrations, development } = useAgentUIProject();
+  const { conversationMessageQueueEnabled, conversationServices, Integrations: GeneratedConversationIntegrations, development } = useAgentUIProject();
   const preview = usePreviewAgentEnvironment(development);
   const epoch = useApplicationSessionEpoch();
   const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
@@ -153,7 +151,6 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
       onError={onError}
       frontendTools={frontendTools}
       getRunContext={getRunContext}
-      frontendToolUIs={generatedFrontendToolUIs}
       suggestions={suggestions}
       threadBinding={threadBinding}
       toolkit={toolkit}
@@ -179,7 +176,7 @@ function AgentContent({ user, ...props }: AgentProps) {
   return <AgentUIHostUserProvider user={user === undefined ? inheritedUser : user}>
     <AgentUIOutlet />
     <AgentUIProjectProvider value={previewProject}>
-      {previewPending ? null : <AgentSession key={JSON.stringify([preview?.identity ?? "product", props.endpoint ?? "/agent"])} {...props}
+      {previewPending ? null : <AgentSession key={JSON.stringify([preview?.identity ?? "product", props.endpoint])} {...props}
         {...(preview ? { endpoint: preview.runtimeEndpoint, request: undefined, fetch: undefined, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />}
     </AgentUIProjectProvider>
   </AgentUIHostUserProvider>;
@@ -223,11 +220,10 @@ export function AgentApplication({ project, ...props }: AgentProps & { project: 
       shell: props.assistantPanelWidth === undefined ? project.shell : { assistantPanelWidth: props.assistantPanelWidth },
       conversationMessageQueueEnabled: props.enableMessageQueue ?? project.conversationMessageQueueEnabled,
       baseConversationToolkit: props.toolkit ?? project.baseConversationToolkit,
-      generatedFrontendToolUIs: props.frontendToolUIs ?? project.generatedFrontendToolUIs,
     };
   }, [project, locales, serviceOverrides, Integrations, props.appEventSchemas, props.assistantPanelWidth,
     props.enableMessageQueue, props.locale, props.defaultLocale, props.services, props.toolkit,
-    props.frontendToolUIs, props.attachments, props.dictation, props.feedback,
+    props.attachments, props.dictation, props.feedback,
     props.attachmentAdapter, props.dictationAdapter, props.feedbackAdapter]);
   return <AgentUIProjectProvider value={resolved}><Agent {...props} /></AgentUIProjectProvider>;
 }

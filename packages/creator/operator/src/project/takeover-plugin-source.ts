@@ -15,7 +15,7 @@ import { generatePluginRegistry } from "./registry-generator";
 import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
 import { isCreatorMetadataPath } from "./creator-metadata-path";
 import { projectRelativePath } from "./agent-ui-project-paths";
-import { detectResourcePackageManager, runResourcePackageCommand, type ResourcePackageRunner } from "./ensure-resource-packages";
+import { runResourcePackageCommand, type ResourcePackageRunner } from "./ensure-resource-packages";
 import { inspectPluginSourceDependencies, installPluginSourceDependencies } from "./plugin-source-dependencies";
 
 const pluginId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u);
@@ -153,7 +153,6 @@ async function prepareDependencies(root: string, id: string, sync: boolean, prep
 export async function preparePluginSourceSyncDependencies(root: string, input: { pluginId: string; planHash: string }, run: ResourcePackageRunner = runResourcePackageCommand) {
   const prepared = await prepare(root, input.pluginId, true);
   if (prepared.plan.planHash !== input.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Package or project changed since confirmation; request a new plan and confirmation.");
-  if (!prepared.dependencies.manifest.scripts?.build) fail("PLUGIN_SOURCE_BUILD_REQUIRED", "Source synchronization requires the Host build script.");
   await prepareDependencies(root, input.pluginId, true, prepared, run);
 }
 
@@ -162,7 +161,6 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
   const input = takeoverPluginSourceInputSchema.parse(raw);
   let prepared = await prepare(root, input.pluginId, sync);
   if (prepared.plan.planHash !== input.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Package or project changed since confirmation; request a new plan and confirmation.");
-  if (!prepared.dependencies.manifest.scripts?.build) fail("PLUGIN_SOURCE_BUILD_REQUIRED", "Source takeover requires the Host build script.");
   const { context: { paths, config }, ownership, files, model, application, applicationEdits, applicationContractHash } = prepared;
   let plan = prepared.plan;
   const changes = new Map<string, Buffer | undefined>(files);
@@ -191,7 +189,6 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
     prepared = await prepareDependencies(root, input.pluginId, sync, prepared, run);
     plan = prepared.plan;
   }
-  const protectedApplication = application ? await applicationFiles(path.join(paths.pluginsRoot, input.pluginId)) : new Map<string, Buffer>();
   const originalLock = await readAgentUISourceLock(root, config);
   ownership.plugins[input.pluginId] = { pluginId: input.pluginId, directory: input.pluginId,
     ...(application ? { implementationRoot: "source" as const, applicationContractHash } : {}),
@@ -216,29 +213,12 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
     }
     await writeFile(path.join(stage.paths.metadataRoot, PLUGIN_OWNERSHIP_FILE), ownershipBytes);
     const generated = await generatePluginRegistry(staged, model, stage);
-    if (generated.errors.length) throw new AgentUISourceError("PLUGIN_SOURCE_COMPOSITION_INVALID", "Source-owned composition failed validation.", generated.errors);
     const registry = { target: path.relative(paths.sourceRoot, paths.generatedPluginRegistryPath).split(path.sep).join("/"), content: Buffer.from(generated.capabilityCatalog.source) };
     mutations.push(registry);
     await writeFile(stage.paths.generatedPluginRegistryPath, registry.content);
-    const pkg = JSON.parse(await readFile(path.join(staged, "package.json"), "utf8"));
-    if (!pkg.scripts?.build) fail("PLUGIN_SOURCE_BUILD_REQUIRED", "Source takeover requires the Host build script.");
-    const manager = await detectResourcePackageManager(root);
     const checks: string[] = [];
-    for (const name of ["typecheck", "build", "test"]) if (pkg.scripts?.[name]) { await run(staged, { command: manager, args: ["run", name] }); checks.push(name); }
-    if (!(await readFile(stage.paths.appUIModelPath)).equals(await readFile(paths.appUIModelPath))) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Host validation changed AppUIModel.");
-    // Host scripts must not alter the plan, source closure, manifest or registry.
-    for (const mutation of mutations) {
-      const actual = await readFile(path.join(stage.paths.sourceRoot, ...mutation.target.split("/"))).catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
-      if (mutation.content === undefined ? actual !== undefined : !actual?.equals(mutation.content)) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Host validation changed the staged Plugin or registry.");
-    }
-    if (!(await readFile(path.join(stage.paths.metadataRoot, PLUGIN_OWNERSHIP_FILE))).equals(ownershipBytes)) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Host validation changed source ownership.");
-    if (application) {
-      const stagedApplication = await applicationFiles(path.join(stage.paths.pluginsRoot, input.pluginId));
-      if (stagedApplication.size !== protectedApplication.size) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Validation changed application files.");
-      for (const [file, bytes] of protectedApplication) if (!stagedApplication.get(file)?.equals(applicationEdits.get(file) ?? bytes)) fail("PLUGIN_SOURCE_STAGED_DRIFT", "Validation changed application customization.");
-    }
     await assertCreatorCommitAllowed(root, input.cancelMarker);
-    if ((await prepare(root, input.pluginId, sync)).plan.planHash !== plan.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Project changed during validation; request confirmation again.");
+    if ((await prepare(root, input.pluginId, sync)).plan.planHash !== plan.planHash) fail("PLUGIN_SOURCE_PLAN_STALE", "Project changed before writing; request confirmation again.");
     await commitAgentUISourceTransaction(root, config, sync ? "sync_plugin_source" : "takeover_plugin_source", mutations.map(({ target, content }) => ({ target, ...(content === undefined ? {} : { content }) })), serializeAgentUISourceLock(originalLock.lock), { nextOwnership: ownershipBytes, cancelMarker: input.cancelMarker });
     return { pluginId: input.pluginId, ownership: "project_source" as const, packageVersion: plan.package.version,
       changedPaths: [...mutations.map(mutation => path.relative(root, path.join(paths.sourceRoot, ...mutation.target.split("/"))).split(path.sep).join("/")), path.relative(root, path.join(paths.metadataRoot, PLUGIN_OWNERSHIP_FILE)).split(path.sep).join("/")], checks };

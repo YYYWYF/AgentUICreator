@@ -62,43 +62,21 @@ async function fixture(id = "composer", ownPackage = false) {
   return root;
 }
 const pass = async () => {};
-it("routes Host-created HTTP sources through the selected npm or owned Plugin without rewriting project configuration", async () => {
+it("preserves project data-source methods when taking over the capability Plugin", async () => {
   const root = await fixture("conversation-data-source");
   await writeFile(path.join(root, "src/ui/app-ui/app-ui.json"), JSON.stringify({
     applicationPlugins: [{ pluginId: "conversation-data-source" }], root: { type: "slot", plugins: [] },
   }));
   await ensurePluginApplication(root, "conversation-data-source");
-  const serviceFile = path.join(root, "src/ui/services/conversations/http-data-source.ts");
+  const serviceFile = path.join(root, "src/ui/services/conversations/data-source.ts");
   await mkdir(path.dirname(serviceFile), { recursive: true });
-  const template = await readFile(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation/core-application/files/services/conversations/http-data-source.ts"), "utf8");
-  const serviceTemplates = path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation/core-application/files/services");
-  await cp(path.join(serviceTemplates, "conversations.ts"), path.join(root, "src/ui/services/conversations.ts"));
-  await cp(path.join(serviceTemplates, "conversations/endpoint.ts"), path.join(root, "src/ui/services/conversations/endpoint.ts"));
-  const projectCode = template.replace("headers: () => ({}),", 'headers: () => ({ "X-Project": "kept" }),');
+  const projectCode = await readFile(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation/core-application/files/services/conversations/data-source.ts"), "utf8");
   await writeFile(serviceFile, projectCode);
-  const { build: bundle } = await import("esbuild");
-  const { createRequire } = await import("node:module");
-  async function requestUrl(mode: string) {
-    const output = path.join(root, `${mode}.cjs`);
-    await bundle({ entryPoints: [serviceFile], outfile: output, bundle: true, format: "cjs", platform: "node", loader: { ".css": "empty" }, logLevel: "silent" });
-    const implementation = createRequire(import.meta.url)(output);
-    let calledUrl: unknown;
-    await implementation.createHttpConversationDataSource({ endpoint: "/api", fetch: async (url: unknown, init: RequestInit) => {
-      calledUrl = url;
-      expect(new Headers(init.headers).get("X-Project")).toBe("kept");
-      return Response.json({ conversations: [] });
-    } }).list();
-    return calledUrl;
-  }
-  expect(await requestUrl("npm")).toBe("/api/conversations");
   const plan = await planPluginSourceTakeover(root, { pluginId: "conversation-data-source" });
   await takeoverPluginSource(root, { pluginId: "conversation-data-source", planHash: plan.planHash }, pass);
-  const local = path.join(root, "src/ui/plugins/conversation-data-source/source/adapters/http-data-source.ts");
-  const localCode = await readFile(local, "utf8");
-  await writeFile(local, localCode.replace('`${baseEndpoint}/conversations`', '`${baseEndpoint}/owned-conversations`'));
-  expect(await requestUrl("owned")).toBe("/api/owned-conversations");
   expect(await readFile(serviceFile, "utf8")).toBe(projectCode);
-  expect(await readFile(path.join(root, "src/ui/plugins/conversation-data-source/index.tsx"), "utf8")).toMatch(/from ['"]\.\/source\/index['"]/u);
+  expect(await access(path.join(root, "src/ui/plugins/conversation-data-source/source/adapters/http-data-source.ts")).then(() => true, () => false)).toBe(false);
+  expect(await readFile(path.join(root, "src/ui/plugins/conversation-data-source/definition.ts"), "utf8")).toContain("createConversationDataSource");
 });
 it("compares resolved Context locations with Windows drive, case and namespaced paths", () => {
   expect(samePackageLocation("C:\\项目\\node_modules\\react", "c:\\项目\\NODE_MODULES\\react", path.win32)).toBe(true);
@@ -135,7 +113,7 @@ it("plans direct presentation dependencies without mutation and installs only af
   expect((await readPluginSourceOwnership(paths.metadataRoot)).plugins.composer?.approvedPlanHash).toBe(plan.planHash);
 });
 
-it("preserves chosen dependency versions but refuses duplicate runtime Context instances", async () => {
+it("preserves chosen dependency versions and leaves runtime Context review to the user", async () => {
   const root = await fixture("composer");
   const manifestFile = path.join(root, "package.json");
   const manifest = JSON.parse(await readFile(manifestFile, "utf8"));
@@ -149,17 +127,17 @@ it("preserves chosen dependency versions but refuses duplicate runtime Context i
   await rm(duplicate, { recursive: true, force: true });
   await mkdir(duplicate, { recursive: true });
   await writeFile(path.join(duplicate, "package.json"), metadata);
-  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).rejects.toMatchObject({ code: "PLUGIN_SOURCE_CONTEXT_DUPLICATED" });
+  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).resolves.toMatchObject({ pluginId: "composer" });
 });
 
-it("rejects a second canonical Runtime even when its version matches", async () => {
+it("allows the user to review a second canonical Runtime without blocking the plan", async () => {
   const root = await fixture("composer");
   const duplicate = path.join(root, "node_modules/@za38.03/agent-ui-runtime");
   const metadata = await readFile(path.join(duplicate, "package.json"));
   await rm(duplicate, { recursive: true, force: true });
   await mkdir(duplicate, { recursive: true });
   await writeFile(path.join(duplicate, "package.json"), metadata);
-  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).rejects.toMatchObject({ code: "PLUGIN_SOURCE_CONTEXT_DUPLICATED", details: expect.objectContaining({ name: "@za38.03/agent-ui-runtime" }) });
+  await expect(planPluginSourceTakeover(root, { pluginId: "composer" })).resolves.toMatchObject({ pluginId: "composer" });
 });
 
 it("ignores an unrelated type dependency outside the shared React context path", async () => {
@@ -257,7 +235,7 @@ it.each(["composer"])("takes over %s with exact IDs/config/model bytes and one l
   expect(plan.instances).toEqual(["input-primary","input-secondary"]);
   await expect(readFile(path.join(context.paths.metadataRoot,"plugin-ownership.json"))).rejects.toMatchObject({code:"ENOENT"});
   const result = await takeoverPluginSource(root,{pluginId:id,planHash:plan.planHash},pass);
-  expect(result.checks).toEqual(["typecheck","build","test"]);
+  expect(result.checks).toEqual([]);
   expect(await readFile(context.paths.appUIModelPath)).toEqual(before);
   const facts = await collectPluginProjectFacts(root,context.config,context.paths);
   expect(facts.inventoryIssues).toEqual([]);
@@ -286,11 +264,20 @@ it("does not mutate on stale model/package plans, existing targets, corrupt snap
   await expect(takeoverPluginSource(root,{pluginId:"composer",planHash:plan.planHash},pass)).rejects.toMatchObject({code:"PLUGIN_SOURCE_PLAN_STALE"});
   await writeFile(pkgPath,pkgBytes); await writeFile(catalogPath,catalogBytes);
 
-  await expect(takeoverPluginSource(root,{pluginId:"composer",planHash:plan.planHash},async () => {throw Error("build failed");})).rejects.toThrow("build failed");
-  await expect(readFile(path.join(paths.pluginsRoot,"composer/manifest.json"))).rejects.toMatchObject({code:"ENOENT"});
-  await expect(readFile(path.join(paths.metadataRoot,"plugin-ownership.json"))).rejects.toMatchObject({code:"ENOENT"});
   await writeFile(path.join(root,"node_modules/@za38.03/agent-ui-plugins/dist/sources/takeover/composer/adapters/composer.tsx"),"corrupt");
   await expect(planPluginSourceTakeover(root,{pluginId:"composer"})).rejects.toMatchObject({code:"PLUGIN_SOURCE_INTEGRITY"});
+});
+it("does not require build scripts or run Host validation before takeover", async () => {
+  const root = await fixture("composer", true);
+  const manifestFile = path.join(root, "package.json");
+  const manifest = JSON.parse(await readFile(manifestFile, "utf8")) as Record<string, unknown>;
+  delete manifest.scripts;
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  const plan = await planPluginSourceTakeover(root, { pluginId: "composer" });
+  let called = false;
+  const result = await takeoverPluginSource(root, { pluginId: "composer", planHash: plan.planHash }, async () => { called = true; throw new Error("build failed"); });
+  expect(called).toBe(false);
+  expect(result.checks).toEqual([]);
 });
 it("npm upgrade and legacy migration retain edited local source, local contracts and the original BASE", async () => {
   const root = await fixture("composer",true); const ctx = await resourcePaths(root);
@@ -457,12 +444,9 @@ it("keeps application props and composition through npm upgrade, takeover and im
   const conflict = await planPluginSourceSync(root,{pluginId:"composer"});
   await expect(syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash},pass)).rejects.toMatchObject({code:"PLUGIN_SOURCE_MERGE_REQUIRED"});
   const merged = nextTarget + "\n// conflicting LOCAL\n";
-  await expect(syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash,resolutions:{"adapters/composer.tsx":merged}},async (staged) => {
-    const stage = await resourcePaths(staged);
-    await writeFile(path.join(stage.paths.pluginsRoot,"composer/index.tsx"),"modified by build");
-  })).rejects.toMatchObject({code:"PLUGIN_SOURCE_STAGED_DRIFT"});
-  expect(await readFile(index)).toEqual(after);
-  await syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash,resolutions:{"adapters/composer.tsx":merged}},pass);
+  let validationRan = false;
+  await syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash,resolutions:{"adapters/composer.tsx":merged}},async () => { validationRan = true; throw new Error("user build failed"); });
+  expect(validationRan).toBe(false);
   expect(await readFile(composerPath,"utf8")).toBe(merged);
   expect(await readFile(index)).toEqual(after);
   const uiTarget = nextTarget + "\n// UI target update\n";

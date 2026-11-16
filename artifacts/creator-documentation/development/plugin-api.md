@@ -8,18 +8,19 @@
 
 ## 公共能力速查
 
-| 开发需求              | 公共接口                                                                                  | 使用位置与前提                         |
-| ----------------- | ------------------------------------------------------------------------------------- | ------------------------------- |
-| 发送消息、停止、新建会话、提交审批 | [插件操作](#会话操作与实例信息)：`usePluginActions()`、`setup.actions`                               | 已启用插件的组件或 `setup`               |
-| 获取当前插件实例          | `usePluginInstance()`、`setup.instance`                                                | 读取实例 ID、插件 ID、启用状态              |
-| 读取消息、共享状态、运行与审批状态 | [会话状态](#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()` 等              | 已有 `AgentRuntimeProvider` 下的组件  |
-| 复用或提供业务服务         | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`usePluginServiceSnapshot()`、`setup.services` | 在插件定义中声明提供或消费的服务                |
-| 接收 Agent 返回的业务事件  | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                        | 项目注册事件 Schema，插件声明消费权限          |
-| 组合子插件或替换消息展示      | [子插槽](#组件与子插槽)：`renderSlot()`、`renderScopedSlot()`                                    | 在 manifest 中声明对应子插件的显示位置和接受的能力  |
-| 自定义消息卡片和工具结果      | [展示注册](#消息与工具结果展示)：`dataMessageUIs`、`toolkit`                                         | 注册到现有会话，保留数据名称和工具名称             |
-| 复用输入框、附件与语音按钮     | [会话组件](#复用会话组件与输入能力)：公开组件、`useConversationComposer()`                                 | 当前 Conversation 的上下文中           |
-| 跟随主题与语言           | [样式与文案](#主题与多语言)：项目主题变量、`useAgentUILocale()`                                          | 使用项目统一主题和 locale                |
-| 让 Agent 调用页面方法    | [前端工具](#前端工具与宿主页面联动)：`createAgentUIFrontendTools()`                                   | 通过项目或宿主组件的 `frontendTools` 属性传入 |
+| 开发需求                | 公共接口                                                                                              | 使用位置与前提                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 发送消息、停止、新建会话、提交审批   | [插件操作](#会话操作与实例信息)：`usePluginActions()`、`setup.actions`                                           | 已启用插件的组件或 `setup`                                            |
+| 获取当前插件实例            | `usePluginInstance()`、`setup.instance`                                                            | 读取实例 ID、插件 ID、启用状态                                           |
+| 读取消息、共享状态、运行与审批状态   | [会话状态](#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()` 等                          | 已有 `AgentRuntimeProvider` 下的组件                               |
+| 复用或提供业务服务           | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`usePluginServiceSnapshot()`、`setup.services`             | 在插件定义中声明提供或消费的服务                                             |
+| 打开工作台侧栏、切换或关闭内容     | [工作台侧栏服务](/plugins/workbench-panel.md#服务方法与状态)：`open(id)`、`activate(id)`、`close(id)`、`collapse()` | 工作台中启用 `workbench-panel`；调用方声明 `agent-ui.workbench-panel` 依赖 |
+| 接收 Agent 返回的业务事件    | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()`                                    | 项目注册事件 Schema，插件声明消费权限                                       |
+| 组合子插件或替换消息展示        | [子插槽](#组件与子插槽)：`renderSlot()`、`renderScopedSlot()`                                                | 在 manifest 中声明对应子插件的显示位置和接受的能力                               |
+| 自定义消息卡片和工具结果        | [展示注册](#消息与工具结果展示)：`dataMessageUIs`、`toolkit`                                                     | 注册到现有会话，保留数据名称和工具名称                                          |
+| 复用输入框、附件与语音按钮       | [会话组件](#复用会话组件与输入能力)：公开组件、`useConversationComposer()`                                             | 当前 Conversation 的上下文中                                        |
+| 跟随主题与语言             | [样式与文案](#主题与多语言)：项目主题变量、`useAgentUILocale()`                                                      | 使用项目统一主题和 locale                                             |
+| 让 Agent 调用页面方法或交互组件 | [前端工具](#前端工具与宿主页面联动)：`toolkit`                                                                    | 注册 `frontend + execute` 或 `human + render`                   |
 
 这些能力复用应用已有的 Runtime 和 AG-UI 连接。生成工程已经提供所需上下文；把组件移到普通业务页面时，要检查该位置是否仍在对应 Provider 内。服务依赖声明不会自动创建服务，附件等业务服务也需要沿用项目配置。
 
@@ -33,7 +34,7 @@ import type {
 } from '@za38.03/agent-ui-plugins/contracts';
 ```
 
-新工程直接从 npm 公开入口导入这些类型。历史工程可能仍通过本地 `framework/contracts/ui-plugin` 转发；先检查现有导入。
+从上述 npm 公开入口导入插件类型。
 
 运行时函数从以下公开入口导入；不要从包内部目录导入：
 
@@ -241,7 +242,7 @@ const { refresh } = useConversationActions();
 
 `useConversations()` 只需要已有的 Plugin 服务上下文，不读取 assistant-ui 操作上下文。会话操作 Hook 通过现有会话运行环境完成切换和数据保存，不会创建另一个会话。主题、语言服务缺失时，`usePluginService()` 返回 `undefined`，切换组件自行降级。
 
-这些项目 Hook 仅在文件缺失时初始化。已有用户工程的定制文件和旧 `hooks/` 路径保持原样，不自动搬迁或删除；迁移时需一并修改应用层引用。
+这些项目 Hook 仅在文件缺失时初始化，已有定制文件会保留。自行调整文件位置时，同时更新组件中的相对导入路径。
 
 ### 自定义服务
 
@@ -321,10 +322,9 @@ export function setupTicketSelection({ services }: UIPluginSetupContext) {
 
 ## 订阅业务事件
 
-插件组件使用 `usePluginEvents()`，非 React 生命周期使用 `setup.events`。订阅前完成两处声明：
+插件组件使用 `usePluginEvents()`，非 React 生命周期使用 `setup.events`。本节消费项目已通过 `Agent.appEventSchemas` 配置的业务事件，沿用现有配置即可。在消费插件的 manifest 中，将该事件名加入 `data.events`，例如 `"data": { "events": ["app.ticket.selected"] }`，保留其他已有字段。
 
-1. 通过 `<Agent appEventSchemas={schemas} />` 按需声明事件名和 payload Schema，例如 `'app.ticket.selected': z.object({ ticketId: z.string().min(1) })`，并从 `zod` 导入 `z`。保留已有事件。
-2. 在消费插件的 manifest 中，将该事件名加入 `data.events`，例如 `"data": { "events": ["app.ticket.selected"] }`。保留其他已有字段。
+下面假定项目已配置 `app.ticket.selected`，payload 为 `{ ticketId: string }`。当前实时订阅入口依赖项目已有的事件 Schema；仅在 manifest 中声明事件名不会完成配置。只需显示 `CUSTOM` 消息卡片时，直接使用[消息渲染](/development/custom-ag-ui-events.md)，无需配置此订阅入口。
 
 以下生命周期示例复用上节的工单选择服务；消费插件定义还需加入 `inject: ['tickets.selection']`：
 
@@ -361,7 +361,7 @@ export function SelectedTickets() {
 }
 ```
 
-Schema 模块属于项目代码；沿用已有位置，缺少时按实际生成目录新建并接入 `Agent.appEventSchemas`。`agent-contract/agent-events.ts` 是可选组织方式，目录不存在不代表能力缺失。保留用户明确给定的业务通知协议；业务任务的实时通知与标准 Activity、Tool、Run 进度不同，不能互相冒充，也不能据此承诺历史恢复。
+保留项目已有的事件配置和业务通知协议；业务任务的实时通知与标准 Activity、Tool、Run 进度不同，不能互相冒充，也不能据此承诺历史恢复。
 
 ## 消息与工具结果展示
 
@@ -489,6 +489,6 @@ export function TicketActionLabel() {
 
 ## 前端工具与宿主页面联动
 
-让 Agent 调用页面现有方法时，使用 Runtime 公开的 `createAgentUIFrontendTools()`，通过项目 `<Agent frontendTools={tools} />` 接入。它与 `toolkit` 展示注册分开，具体参数校验、权限和取消处理见[前端工具与页面操作](/development/frontend-tools.md#宿主页面操作接入)。
+让 Agent 调用页面方法时，在 `<Agent toolkit={toolkit} />` 中注册 `type: 'frontend'`、`execute` 和可选 `render`；让组件收集用户输入时，注册 `type: 'human'` 和 `render`。已有项目工具来源仍保留执行许可，展示也通过 `toolkit` 配置。示例见[前端工具与页面操作](/development/frontend-tools.md#宿主页面操作接入)。
 
 需要在插件外的业务页面发送消息或读取状态时，使用同一个 `AgentUIProvider` 下的 `useAgentUI()`、`useAgentUIState()` 和 `useAgentUIEvent()`，见 [Host 会话方法与 Hooks](/development/react-host-api.md#会话方法)。Host 操作要求 `status === 'ready'`；业务事件使用 `useAgentUIAppEvent()`。

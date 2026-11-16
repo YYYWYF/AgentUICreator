@@ -132,7 +132,7 @@ export function developmentCachePlugin(root: string, role: "workbench" | "host-p
       return { cacheDir: prepareDevelopmentCache(root, role) };
     },
     configResolved(config) {
-      config.logger.info(`[Creator] ${role} dependency cache: clean startup directory`);
+      config.logger.info(`[Creator] ${role} dependency cache: ${config.cacheDir}`);
     },
   };
 }

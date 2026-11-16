@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createHttpConversationDataSource } from "../src/plugins/conversation-data-source/adapters/presentation/http-data-source";
+import { createConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/data-source";
 import { createConversationService } from "../resources/registry/items/foundation/core-application/files/services/conversations/service";
-import type { ConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/data-source";
+import type { ConversationDataSource } from "@za38.03/agent-ui-plugins/conversation-service";
 import { createConversationServiceThreadBinding } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 
 function dataSource(): ConversationDataSource {
@@ -133,7 +133,7 @@ describe("project conversation management", () => {
 describe("project conversation HTTP operations", () => {
   it("uses encoded identities, JSON rename, POST archive/unarchive, and accepts 204", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(null, { status: 204 }));
-    const source = createHttpConversationDataSource({ endpoint: "https://business.test/api/", fetch });
+    const source = createConversationDataSource({ endpoint: "https://business.test/api/", fetch });
     const signal = new AbortController().signal;
     await source.rename!("中文/id", "New title", { signal });
     await source.archive!("中文/id", { signal });
@@ -145,15 +145,13 @@ describe("project conversation HTTP operations", () => {
     expect(fetch.mock.calls.every(([, init]) => init?.signal === signal && init.credentials === "same-origin")).toBe(true);
   });
 
-  it.each([false, true])("preserves archive status in list responses (envelope: %s)", async envelope => {
-    const body = envelope ? { returnCode: "SUC0000", body: { conversations: [{ thread_id: "saved", title: "Saved", status: "archived" }] } }
-      : { conversations: [{ id: "saved", title: "Saved", status: "archived" }] };
-    const source = createHttpConversationDataSource({ endpoint: "/api", fetch: async () => Response.json(body) });
+  it("preserves archive status in the project list method", async () => {
+    const source = createConversationDataSource({ endpoint: "/api", fetch: async () => Response.json([{ id: "saved", title: "Saved", status: "archived" }]) });
     expect(await source.list()).toEqual([{ id: "saved", title: "Saved", status: "archived" }]);
   });
 
   it("propagates backend mutation failures", async () => {
-    const source = createHttpConversationDataSource({ endpoint: "/api", fetch: async () => new Response(null, { status: 403 }) });
+    const source = createConversationDataSource({ endpoint: "/api", fetch: async () => new Response(null, { status: 403 }) });
     await expect(source.archive!("id")).rejects.toThrow("403");
   });
 });

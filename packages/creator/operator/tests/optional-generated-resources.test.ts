@@ -30,7 +30,7 @@ it("wires installed resources and retires their imports after the last removal",
   const source = path.join(root, "src/agent-ui");
   const files = {
     "agent-contract/frontend-tools/business.ts": "export const frontendTools = [] as const;\n",
-    "agent-ui/conversation/frontend-tool-uis/business.tsx": "export const frontendToolUIs = {};\n",
+    "agent-ui/conversation/toolkit/business.tsx": "export const toolkit = {};\n",
     "agent-ui/conversation/integrations/business.tsx": "export function ConversationIntegration({ children }: { children: unknown }) { return children; }\n",
   };
   for (const [name, contents] of Object.entries(files)) {
@@ -41,11 +41,15 @@ it("wires installed resources and retires their imports after the last removal",
   expect((await writeGeneratedFrontendToolRegistries(root)).changedPaths).toHaveLength(2);
   expect((await writeGeneratedConversationIntegrationRegistry(root)).changedPaths).toHaveLength(1);
   expect((await inspectScenarioResources(root)).integrationRegistryReady).toBe(true);
+  const generatedToolkit = await readFile(path.join(source, "agent-ui/conversation/toolkit.generated.ts"), "utf8");
+  expect(generatedToolkit).toContain('export const generatedToolkit: ConversationToolkit');
+  expect(generatedToolkit).toContain('import { toolkit as resource0 } from "./toolkit/business"');
+  expect(generatedToolkit).toContain('@za38.03/agent-ui-runtime/plugin-api');
   expect(await readFile(path.join(source, "agent-ui/conversation/integrations.generated.tsx"), "utf8")).toContain("<Integration0>{children}</Integration0>");
   for (const name of Object.keys(files)) await rm(path.join(source, name));
   await writeGeneratedFrontendToolRegistries(root);
   await writeGeneratedConversationIntegrationRegistry(root);
-  for (const name of ["agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"]) {
+  for (const name of ["agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/toolkit.generated.ts", "agent-ui/conversation/integrations.generated.tsx"]) {
     expect(await readFile(path.join(source, name), "utf8")).not.toContain('from "./');
   }
 });
@@ -64,7 +68,7 @@ it("maintains portable explicit imports without requiring absent optional module
   const result = await writeGeneratedFrontendToolRegistries(root);
   expect(result.changedPaths).toContain(`src/agent-ui/${projectResourcesTarget}`);
   expect(await readFile(entry, "utf8")).toContain("from '../agent-contract/frontend-tools.generated'");
-  expect(await readFile(entry, "utf8")).not.toContain("frontend-tool-uis.generated");
+  expect(await readFile(entry, "utf8")).not.toContain("toolkit.generated");
   await rm(tool);
   await writeGeneratedFrontendToolRegistries(root);
   expect(await readFile(path.join(source, "agent-contract/frontend-tools.generated.ts"), "utf8")).not.toContain("business");

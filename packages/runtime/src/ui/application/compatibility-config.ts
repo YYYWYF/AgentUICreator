@@ -5,7 +5,7 @@ import type { ServiceRequestConfig } from "../../service-config.js";
 
 export interface AgentUIEmbeddedAgent {
   agentId: string;
-  endpoint: string;
+  endpoint?: string | undefined;
   hidden?: boolean;
   threadId?: string;
   request?: ServiceRequestConfig;
@@ -15,7 +15,7 @@ export interface AgentUIEmbeddedAgent {
 /** Host configuration; composition uses the existing AppUIModel unchanged. */
 export interface AgentUICompatibilityConfig {
   agents?: readonly AgentUIEmbeddedAgent[];
-  endpoint?: string;
+  endpoint?: string | undefined;
   locale?: AgentUILocaleCode;
   theme?: AgentUITheme;
   /** Persisted conversation identity; requires the project history service. */
@@ -23,7 +23,7 @@ export interface AgentUICompatibilityConfig {
   appUIModel?: AppUIModel;
 }
 
-export type ResolvedAgentUICompatibilityConfig = AgentUICompatibilityConfig & { endpoint: string; locale: AgentUILocaleCode };
+export type ResolvedAgentUICompatibilityConfig = AgentUICompatibilityConfig & { locale: AgentUILocaleCode };
 export interface AgentUIEventDetails {
   "agent-ready": { threadId: string; agentId?: string };
   "thread-change": { threadId: string; agentId?: string };

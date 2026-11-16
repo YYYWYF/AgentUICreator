@@ -10,6 +10,6 @@ export function isPublicPluginDeclaration(relativePath, publicPresentations) {
   return logicalPath.startsWith("catalog/") || logicalPath.startsWith("plugin-api/") ||
     publicPresentations.has(logicalPath) || sourceRuntimeDeclarations.has(logicalPath) || [
       "internal/conversation-surface.d.ts", "search-files-example.d.ts", "index.d.ts", "contracts.d.ts", "locale.d.ts", "presentation.d.ts", "public.d.ts",
-      "lexical.d.ts", "generative-ui.d.ts", "demo-attachments.d.ts", "theme/theme-contract.d.ts",
+      "composer-triggers.d.ts", "lexical.d.ts", "generative-ui.d.ts", "demo-attachments.d.ts", "theme/theme-contract.d.ts",
     ].includes(logicalPath) || logicalPath.startsWith("locales/");
 }

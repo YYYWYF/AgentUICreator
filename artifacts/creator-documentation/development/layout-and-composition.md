@@ -213,6 +213,12 @@ src/agent-ui/app-ui.json
 
 整个悬浮助理外框的宽度通过 `<Agent assistantPanelWidth={480} />` 调整；悬浮球、外框样式与交互由用户工程的 `application/shell/` 组件和 CSS 拥有，可直接修改。AppUIModel 继续控制壳内布局。嵌入业务页面时，外部空间由业务页面容器决定。
 
+### 工作台右侧动态面板
+
+需要在对话右侧打开多个内容、顶部标签切换并保留状态时，使用官方 [多内容侧栏](/plugins/workbench-panel.md)。AppUIModel 将原有完整对话实例放入容器的 `main`，通过内容子插槽放入自己的插件；标签与可打开的内容 ID 在项目侧栏入口中配置，具体接入与外部调用见该教程。
+
+展开、收起与关闭标签由侧栏服务控制，容器随状态调整分栏宽度，无需运行时修改 `row.sizes` 或重新生成 `app-ui.json`。本页下方的 `sidebar` 是侧栏导航布局节点；工作台右侧多标签面板由 `workbench-panel` 插件实现，两者使用各自的配置与状态。
+
 ### 窄屏交互适配
 
 列表在窄屏是否收起、如何打开和关闭，需要单独的响应式安排。已有 `row.responsive` 的布局可以调整相应抽屉配置；`sidebar` 用于切换侧栏内容，`stack` 用于切换子区域，它们本身不等于自动适配窄屏。
@@ -269,7 +275,7 @@ src/agent-ui/app-ui.json
 
 `minPrimaryWidth` 是主区域希望保留的最小宽度，不是整个窗口的断点。触发条件按 **Row 实际容器宽度、其他区域测量宽度和 gap** 计算；本例通常在约 `280 + 12 + 360` px 附近切换，悬浮或嵌入式容器也按自身宽度判断。
 
-新增布局使用 `responsive.type: "drawer"`，两个索引分别指向已存在的子区域。旧工程使用 `trailing-drawer` 时，要求主区域在抽屉区域之前；普通布局调整无需改动这类历史配置。
+抽屉布局使用 `responsive.type: "drawer"`，两个索引分别指向已存在的子区域。
 
 生成工程自带抽屉打开、关闭及 Esc 交互，按钮使用当前界面语言。直接集成 `LayoutRenderer` 时，抽屉文案通过 `drawerLabels` 提供，sidebar 展示通过 `renderSidebar` 配置。
 

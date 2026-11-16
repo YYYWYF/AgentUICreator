@@ -32,11 +32,12 @@ describe("official package metadata authority", () => {
   it("detects reference service changes including imported constants", async () => {
     const registry = await loadAgentUISourceRegistry();
     const byId = new Map(registry.byId);
-    const item = byId.get("foundation/core-application");
+    const item = byId.get("plugin/conversation-command-source");
     expect(item).toBeDefined();
-    byId.set(item.id, { ...item, loadedFiles: item.loadedFiles.map(file => file.target === "services/composer-triggers.ts"
-      ? { ...file, content: Buffer.from(file.content.toString().replace(/(['"])conversation\.slash-command-source\1/u, '"changed.command-source"')) } : file) });
-    expect(byId.get(item.id).loadedFiles.find(file => file.target === "services/composer-triggers.ts").content.toString()).toContain("changed.command-source");
+    const definition = "plugins/conversation-command-source/definition.ts";
+    byId.set(item.id, { ...item, loadedFiles: item.loadedFiles.map(file => file.target === definition
+      ? { ...file, content: Buffer.from(file.content.toString().replaceAll("CONVERSATION_COMMAND_SOURCE", "CONVERSATION_MENTION_SOURCE")) } : file) });
+    expect(byId.get(item.id).loadedFiles.find(file => file.target === definition).content.toString()).toContain("CONVERSATION_MENTION_SOURCE");
     await expect(validateOfficialPackageServices({ ...registry, byId })).rejects.toMatchObject({ code: "OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT" });
   });
 });

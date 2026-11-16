@@ -29,10 +29,15 @@ standard continuation run -> assistant response
 `AgentFrontendToolSource` remains protocol independent. Its schema, allowlist,
 validation, Service availability and error conversion are application concerns.
 The small adapter in `packages/runtime/src/tools` converts definitions
-into native frontend Toolkit entries. Backend `ConversationToolkit` remains a
-render-only input. The independent `ConversationFrontendToolUIRegistry` cannot
-supply execute functions or grant permissions. Duplicate tool names fail
-predictably. A missing specialized UI uses the locale-aware generic
+into native frontend Toolkit entries. `ConversationToolkit` is the single public
+registration surface for human components, explicit frontend execute callbacks,
+and backend renderers. Host/application frontend entries explicitly grant
+execution permission; Plugin capability contributions still do not self-authorize
+browser tools. A same-name backend entry may supply render/display for a permitted
+source, but never supplies its schema or execution permission. Human/frontend
+entries colliding with an existing source fail rather than replacing its executor.
+Disabled frontend entries become backend render-only entries. No separate frontend
+UI registry is exposed. A missing specialized UI uses the locale-aware generic
 `ConversationToolFallback` from the React facade.
 
 assistant-ui owns detection, invocation identity, single-fire execution, status,
@@ -43,10 +48,12 @@ so a later backend result or interrupt can prevent execution.
 
 ## Execute versus render
 
-Product actions only occur inside execute: opening dialogs, navigation, selecting
-items, editor changes, storage writes, clipboard, downloads, mutations and host
-commands. Tool UI renders args/result/status. It must not mutate services or invoke
-Agent actions on mount. Legitimate UI effects include measurement, ResizeObserver,
+For automatically executed frontend tools, product actions occur inside execute:
+opening dialogs, navigation, selecting items, editor changes, storage writes,
+clipboard, downloads, mutations and host commands. Tool UI renders args/result/status.
+Human tools instead collect user input in a TSX component and submit with addResult;
+they need no execute callback. Neither kind may mutate services or invoke Agent
+actions on mount. Legitimate UI effects include measurement, ResizeObserver,
 subscriptions, focus, animation and cleanup; there is no blanket useEffect ban.
 
 Results must describe what happened independently of current application state.
@@ -59,7 +66,7 @@ Resolved stored calls and results are loaded into the existing assistant-ui thre
 history adapter. History loading, thread/branch switching, remounts, StrictMode and
 renderer remounts must not invoke execute. If restoration executes a tool,
 repair the runtime boundary rather than adding an isHistory renderer workaround.
-Frontend UI registrations remain available for history even when their Service is
+Backend entries in toolkit remain available for history even when their Service is
 absent. They become backend render-only Toolkit entries, with no description,
 parameters or execute, and are filtered from the model tools. Both live and historical renderers use Tools({ toolkit }). Display is forwarded only when the application explicitly chooses it,
 preserving the upstream default otherwise.
@@ -71,7 +78,9 @@ activation, removal and disconnection recompute available names. Its revision on
 changes when the advertised set changes. The provider subscribes with
 useSyncExternalStore and rebuilds native toolkit configuration. Every execute
 rechecks Service availability and validates args with Zod. The adapter preserves
-toolCallId and AbortSignal; pre-aborted calls have no side effect. Async capability
+toolCallId and AbortSignal; pre-aborted calls have no side effect. Host toolkit
+callbacks use the native toolCallId/abortSignal/human context and are cancelled on
+run cancellation, toolkit replacement or provider unmount. Async capability
 handlers must honor their signal; cancellation cannot undo a completed action.
 Errors propagate through native tool error handling. Standard ToolMessage results
 are sent on the continuation run, with no invented user message or resume protocol.
@@ -83,8 +92,8 @@ contains toolCallId/abortSignal/human but no subagent producer attribution.
 The root adapter therefore supplies `{ type: "root" }` for root calls only.
 Subagent Tool parts are upstream presentation, not an execution attribution seam.
 Do not promote subagent calls into root calls or claim subagent execution support.
-Human protocols, approval policies, result streaming and subagent attribution are
-outside this change.
+New human protocols, approval policies, result streaming and subagent attribution
+are outside this change.
 
 ## Dialog demo and regression coverage
 

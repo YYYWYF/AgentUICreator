@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test, type Page } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -103,12 +104,12 @@ test("unmount cancels both the foreground and a still-running background thread"
   const errors = await watch(page), closed = new Set<string>();
   const f = await createControlledAgentHost({
     prepareHost: installUnmount,
-    application: origin => ({ imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="unmount-a"' }),
+    application: origin => ({ imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="unmount-a"' }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations") response.end(JSON.stringify({ conversations: ["a", "b"].map(id => ({ id: `unmount-${id}`, title: `Thread ${id}` })) }));
+      if (request.url === "/history/conversations") response.end(JSON.stringify(historyListResponse(["a", "b"].map(id => ({ id: `unmount-${id}`, title: `Thread ${id}` })))));
       else if (request.url?.startsWith("/history/conversations/unmount-")) {
-        const id = request.url.slice(-1); response.end(JSON.stringify({ id: `unmount-${id}`, title: `Thread ${id}`, state: { values: { messages: [{ id: `saved-${id}`, type: "human", content: `History ${id}` }] } } }));
+        const id = request.url.slice(-1); response.end(JSON.stringify(historyDetailResponse({ id: `unmount-${id}`, title: `Thread ${id}`, history: { format: "langchain", messages: [{ id: `saved-${id}`, type: "human", content: `History ${id}` }] } })));
       } else { response.writeHead(404); response.end(); }
     },
     run(input, response) {
@@ -165,16 +166,16 @@ test("a thousand histories support bounded search, archived selection and cached
   const conversations = Array.from({ length: 1000 }, (_, index) => ({ id: index === 799 ? target : `ticket-${index}`, title: `${index < 800 ? "Work" : "Archive"} 工单 ${String(index).padStart(4, "0")}`, status: index < 800 ? "regular" : "archived" }));
   const timings: Record<string, number> = {}; let listRequests = 0, unarchives = 0;
   const f = await createControlledAgentHost({
-    application: origin => ({ imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="ticket-0"' }),
+    application: origin => ({ imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`, props: 'conversationDataSource={history} initialThreadId="ticket-0"' }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
-      if (request.url === "/history/conversations") { listRequests++; response.end(JSON.stringify({ conversations })); }
+      if (request.url === "/history/conversations") { listRequests++; response.end(JSON.stringify(historyListResponse(conversations))); }
       else if (request.url === "/history/conversations/ticket-999/unarchive" && request.method === "POST") {
         unarchives++; conversations[999]!.status = "regular"; response.writeHead(204); response.end();
       }
       else if (request.url?.startsWith("/history/conversations/")) {
         const id = decodeURIComponent(request.url.slice("/history/conversations/".length)); loaded.push(id);
-        response.end(JSON.stringify({ id, title: conversations.find(item => item.id === id)?.title, state: { values: { messages: [{ id: `message-${id}`, type: "human", content: `History content for ${id}` }] } } }));
+        response.end(JSON.stringify(historyDetailResponse({ id, title: conversations.find(item => item.id === id)?.title, history: { format: "langchain", messages: [{ id: `message-${id}`, type: "human", content: `History content for ${id}` }] } })));
       } else { response.writeHead(404); response.end(); }
     },
     run(input, response) { startRun(response, input); finishRun(response, input, "History continuation remains usable"); },

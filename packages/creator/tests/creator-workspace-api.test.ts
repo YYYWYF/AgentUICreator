@@ -62,6 +62,48 @@ async function request(manager: CreatorWorkspaceManager, method: string, route: 
 }
 
 describe("Creator Workspace setup API", () => {
+  it("waits for an in-flight selection and startup in one GET without restarting the worker", async () => {
+    const root = await projectRoot();
+    let startInspection: (() => void) | undefined;
+    let finishInspection: (() => void) | undefined;
+    let startWorker: (() => void) | undefined;
+    let finishStartup: (() => void) | undefined;
+    const inspecting = new Promise<void>(resolve => { startInspection = resolve; });
+    const inspected = new Promise<void>(resolve => { finishInspection = resolve; });
+    const starting = new Promise<void>(resolve => { startWorker = resolve; });
+    const started = new Promise<void>(resolve => { finishStartup = resolve; });
+    const ensureStarted = vi.fn(async () => { startWorker!(); await started; });
+    const dispose = vi.fn(async () => undefined);
+    const manager = new CreatorWorkspaceManager({
+      initializeProject: async () => undefined,
+      validateProjectSetup: async () => ({ valid: true, sourceRoot: { normalized: "src/agent-ui", parentExists: true, targetState: "missing" }, issues: [] }),
+      suggestSourceRoot: async () => "src/agent-ui",
+      ensureOperator: async () => [],
+      inspectProject: async () => {
+        startInspection!(); await inspected;
+        return { status: "ready", projectConfig: { mode: "assistant", sourceRoot: "src/agent-ui" }, paths: { sourceRoot: "src/agent-ui" } };
+      },
+      createRuntimeManager: () => ({ ensureStarted, dispose }) as unknown as CreatorProcessManager,
+    });
+    const selection = manager.selectProject(root);
+    await inspecting;
+    const completed = vi.fn();
+    const read = request(manager, "GET", "/").then(result => { completed(); return result; });
+    expect(manager.getState()).toEqual({ status: "none" });
+    await Promise.resolve();
+    expect(completed).not.toHaveBeenCalled();
+    finishInspection!();
+    await starting;
+    expect(manager.getState()).toMatchObject({ runtime: { status: "starting" } });
+    expect(completed).not.toHaveBeenCalled();
+    finishStartup!();
+    await selection;
+    expect((await read).body).toMatchObject({ status: "ready", runtime: { status: "ready" } });
+    expect((await request(manager, "GET", "/")).body).toMatchObject({ runtime: { status: "ready" } });
+    expect(ensureStarted).toHaveBeenCalledTimes(1);
+    expect(dispose).not.toHaveBeenCalled();
+  });
+
   it("opens the system folder chooser and keeps the current project on cancellation", async () => {
     const currentRoot = await projectRoot();
     const nextRoot = await projectRoot();

@@ -9,7 +9,7 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 
 界面由插件组合而成。消息输入框、会话列表、任务进度卡片和图表展示等都是插件，可以按需搭配。
 
-需要后端数据的插件，在“显示条件与数据来源”中说明事件格式、必需字段和显示条件，汇总见[插件显示条件与 AG-UI 数据](./ag-ui-data)。各插件的“属性”列出组件定制接口。
+需要后端数据的插件，在“显示条件与数据来源”中说明事件格式、必需字段和显示条件，汇总见[AG-UI 数据格式与插件数据接入](./ag-ui-data)。各插件的“属性”列出组件定制接口。
 
 ## 界面形态
 
@@ -18,6 +18,8 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 **工作台**：以聊天为中心，把会话列表、消息和输入框集中在一个工作区。
 
 ![工作台：会话列表、开场建议和消息输入框](/images/agent-ui/layout-workbench-hd.png)
+
+工作台还可使用[多内容侧栏](./workbench-panel)：在对话旁打开自定义内容，通过顶部标签切换，关闭和收起时保留状态；其他插件可以直接打开指定内容。
 
 **悬浮助手**：从业务页面角落展开，用户可以一边查看页面，一边与助理沟通。
 
@@ -81,6 +83,6 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 | [语言服务](./locale-provider) | 当前语言及界面文案 | [语言与文案](/development/localization) |
 | [会话数据源](./conversation-data-source) | 历史会话接口的请求与数据转换 | [接入历史会话](/development/history-backend) |
 | [会话服务](./conversation-service) | 会话列表、缓存、选择和管理操作 | [历史会话接入](/development/history-backend)、[业务页面控制](/development/react-host-control) |
-| [会话命令源](./conversation-command-source) | `/` 菜单的命令列表与选择行为 | [搜索候选与命令来源](/development/composer-sources) |
+| [会话命令源](./conversation-command-source) | `/` 菜单的命令列表与选择行为 | [提及搜索与快捷命令](/development/composer-sources) |
 
 需要自己编写提供服务的插件时，见[服务共享与状态订阅](/development/plugin-api#服务共享与状态订阅)。

@@ -74,6 +74,13 @@
       "ConversationSuggestionsPlugin": {
         "presentation": "Default starter text uses locales.starterSuggestions (title/label/prompt), bound in application/project-config.tsx. getConversationStarterSuggestions(locale, resolvedMessages) maps merged project/Host locale messages into item structure, count and order. To remove descriptions, omit label in the returned items and keep localized title/prompt; empty required locale labels fall back to default text. The project configuration callback is not an Agent suggestions prop. Use sendOnSelect for send versus draft behavior; items/renderSuggestion remain public extensions for dynamic business data."
       }
+    },
+    "@za38.03/agent-ui-plugins/workbench-panel": {
+      "WorkbenchPanelPlugin": {
+        "presentation": "Platform-only default composition: persistent main conversation and a collapsible side panel with top tabs. panelWidth defaults to 360px capped at 45% of the container.",
+        "composition": "Keep the entire existing conversation-surface instance and its child slots in main. Optional notes/details slots each accept one project Plugin and otherwise render localized draft components. Configure items/props/renderers in project JSX, never in AppUIModel fields. Only the platform preset opts in; do not add this to assistant/embedded templates.",
+        "interaction": "Provides agent-ui.workbench-panel. Consumers declare inject and use WorkbenchPanelService.open(id), activate(id), close(id), collapse(). Switching, closing a tab and collapsing keep all content mounted. Closing the last tab collapses the panel; open(id) restores a closed tab. visibleItemIds/onVisibleItemsChange optionally control visible tabs alongside open and activeItemId. Custom items require matching createWorkbenchPanelService(itemIds) in project setup; invalid IDs throw. Never recreate the Thread or toggle Plugin enablement to open/close a panel."
+      }
     }
   }
 }

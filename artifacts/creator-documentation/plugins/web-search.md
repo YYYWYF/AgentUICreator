@@ -12,36 +12,17 @@
 
 ![Creator 启用菜单：点击「查看网页搜索结果」，插件 ID 为 web-search](/images/plugins/enable/web-search.jpg)
 
-搜索结果使用 `title` 和 `domain`；提供完整的 HTTP(S) `url` 时，标题可打开原网页，提供 `snippet` 时显示摘要。只有标题和域名的旧格式仍可展示；缺少或不支持的链接不会变成可点击入口。
+搜索结果使用 `title` 和 `domain`；提供完整的 HTTP(S) `url` 时，标题可打开原网页，提供 `snippet` 时显示摘要。仅提供标题和域名时也可展示结果；缺少或不支持的链接不会变成可点击入口。
 
 ## 显示条件与数据来源
 
 **Agent 服务接入：**&#x5F53;前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "web_search"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"query\":\"Agent UI 文档\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "call-1",
-    "role": "tool",
-    "content": "{\"results\":[{\"title\":\"文档首页\",\"domain\":\"example.com\",\"url\":\"https://example.com/docs\",\"snippet\":\"接入与开发说明。\"}]}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"web_search"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"query\":\"Agent UI 文档\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"results\":[{\"title\":\"文档首页\",\"domain\":\"example.com\",\"url\":\"https://example.com/docs\",\"snippet\":\"接入与开发说明。\"}]}"}
 ```
 
 每项需要字符串 `title`、`domain`，`url`、`snippet` 是可选字符串。调用运行中可显示搜索状态；完成后必须返回有效的 `results` 数组，空数组表示无结果。错误、等待操作、未完成或结果无效时回退工具详情。实际搜索由服务端执行，启用插件不会发起搜索。

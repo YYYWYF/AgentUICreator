@@ -16,30 +16,11 @@
 
 **Agent 服务接入：**&#x5F53;前默认注册工具名为 `search_docs`。参数的 `query` 显示查询内容，结果从 `chunks` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "search_docs"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"query\":\"退款期限\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "call-1",
-    "role": "tool",
-    "content": "{\"chunks\":[{\"id\":\"chunk-1\",\"source\":\"退款政策.pdf\",\"locator\":\"第 14 页\",\"score\":0.91,\"text\":\"退款申请需在 30 天内提交。\"}]}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"search_docs"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"query\":\"退款期限\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"chunks\":[{\"id\":\"chunk-1\",\"source\":\"退款政策.pdf\",\"locator\":\"第 14 页\",\"score\":0.91,\"text\":\"退款申请需在 30 天内提交。\"}]}"}
 ```
 
 每项需要字符串 `id`、`source`、`locator`、`text` 和有限数值 `score`。运行中可显示检索状态；完成后需要有效的 `chunks` 数组，空数组表示无结果。错误、等待操作、未完成或结果无效时回退工具详情。该结果结构属于 `search_docs`，与 `CUSTOM CONTEXT_CONTENT` 的上下文展示路径不同。

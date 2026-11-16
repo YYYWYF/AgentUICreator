@@ -19,7 +19,7 @@ title: "Agent API"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `frontendTools` | `AgentFrontendToolSource` | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。 |
-| `endpoint` | `string` | 指定 AG-UI 地址，默认 `/agent`。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](./multiple-agents#同一助手的工作流入口)。Creator 开发预览期间使用面板选择的连接。 |
+| `endpoint` | `string` | 可选，无默认值。自定义 `fetch` 自行决定地址时可省略；浏览器默认 fetch 使用项目提供的地址。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](./multiple-agents#同一助手的工作流入口)。Creator 开发预览期间使用面板选择的连接。 |
 | `request` | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。 |
 | `fetch` | `(url: string, init: RequestInit) => Promise<Response>` | 可选。自定义 AG-UI 请求函数，返回流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent#自定义请求函数)。 |
 | `getRunContext` | `ConversationRunContextGetter` | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options#传入业务上下文)。 |
@@ -32,14 +32,14 @@ title: "Agent API"
 | `user` | `AgentUser` 或 `null` | 省略时继承外层 Provider 的展示资料；两者都省略时显示项目登录服务（`auth.session`）中的用户资料；null 显示未登录状态。可含 `userId`、`userName`、`avatar`，不用于认证。 |
 | `initialThreadId` | `string` | 不传则新建会话；传入时初始化打开已有会话，修改此值不会直接切换当前会话。 |
 | `transientMessages` | `ConversationRuntimeProviderProps['transientMessages']` | 可选。在页面内显示临时提示，不写入历史记录，也不发送给 Agent。 |
-| `appEventSchemas` | `AgentProps['appEventSchemas']` | 注册业务事件名和 payload Schema，见[自定义事件](./custom-ag-ui-events)。 |
+| `appEventSchemas` | `AgentProps['appEventSchemas']` | 传入项目已有的实时业务事件配置，见[订阅业务事件](./plugin-api#订阅业务事件)；显示自定义消息卡片无需设置。 |
 | `locales` | `AgentProps['locales']` | 中英文文案覆盖。 |
 | `assistantPanelWidth` | `number` | 悬浮助理宽度，受视口限制。 |
 | `enableMessageQueue` | `boolean` | 省略时继承项目默认值，新建项目默认 false；启用内存中的 Composer 后续消息队列，不改变程序化发送规则。见[消息排队](./message-queue)。 |
 | `attachments`、`dictation`、`feedback` | 对应 `ConversationRuntimeProviderProps` 字段 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。 |
 | `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段 | 自定义业务适配器，优先于对应通用配置。 |
 | `conversationDataSource` | `AgentProps['conversationDataSource']` | 历史数据源；保留对应插件启用，见[历史服务](./history-backend)。 |
-| `toolkit`、`frontendToolUIs` | 对应 `ConversationRuntimeProviderProps` 字段 | 项目额外的工具展示配置。 |
+| `toolkit` | `ConversationToolkit` | 注册组件交互、前端执行方法和工具展示，见[前端工具](./frontend-tools)。 |
 | `integrations` | `ComponentType<{ children: ReactNode }>` | 额外集成包装组件，保留已生成的 integration。 |
 | `onError` | `ConversationRuntimeProviderProps['onError']` | 可选。应用或 Agent 运行出错时调用；业务代码调用异步方法时，还需用 try/catch 处理报错。 |
 
@@ -233,7 +233,7 @@ export function TicketSelection({ onSelect }: {
 
 ### 提供宿主页面操作
 
-`AgentProps.frontendTools` 接收 npm 公开的 `AgentFrontendToolSource`。使用 Runtime 的 `createAgentUIFrontendTools()` 可以直接从页面方法创建该来源，完整示例见[宿主页面操作接入](/development/frontend-tools#宿主页面操作接入)。它与生成项目已有工具合并，不会替换原有工具。
+通过 `AgentProps.toolkit` 注册 `frontend` 工具的 `execute` 和可选 `render`，或注册 `human` 工具的交互组件，见[前端工具接入](/development/frontend-tools)。已有项目的 `frontendTools` 仍接收 `AgentFrontendToolSource`，与项目工具合并；其展示也在 `toolkit` 中配置。
 
 ### 外壳定制
 

@@ -8,7 +8,7 @@ title: "连接 AG-UI 服务"
 
 **修改位置：**业务项目挂载 `<Agent />` 的文件，例如 `src/AssistantPage.tsx`。需要自定义请求时，新建 `src/agent-ui/services/agent-transport.ts` 并通过 `fetch` 传入。
 
-具体插件需要的事件名、数据字段和完整 SSE 格式，见[插件显示条件与 AG-UI 数据](/plugins/ag-ui-data)。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
+具体插件需要的事件名、数据字段和完整 SSE 格式，见[AG-UI 数据格式与插件数据接入](/plugins/ag-ui-data)。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
 
 ## 配置应用地址
 

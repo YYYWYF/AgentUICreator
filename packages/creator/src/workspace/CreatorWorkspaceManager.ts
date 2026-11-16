@@ -57,6 +57,13 @@ export class CreatorWorkspaceManager {
 
   getState(): CreatorWorkspaceState { return this.#state; }
 
+  /** Read after admitted project operations settle, rather than exposing their
+   * temporary none/starting state to a freshly mounted panel. No worker restart. */
+  async readSettledState(): Promise<CreatorWorkspaceState> {
+    await this.#queue;
+    return this.#state;
+  }
+
   hasActiveCreatorRequests(): boolean { return this.#activeRequests.size > 0; }
 
   runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>, options: { mutation?: boolean } = {}): Promise<T> {
@@ -193,7 +200,6 @@ export class CreatorWorkspaceManager {
           const result = await initializeCompatibilityProject({ ...input, projectRoot: workspace.hostProjectRoot ?? workspace.projectRoot });
           workspace = { ...workspace, projectRoot: result.projectRoot, producerRoot: result.producerRoot };
           this.#state = { status: "uninitialized", workspace };
-          await buildCompatibilityProject(result.projectRoot);
         } else {
           const result = await this.#initialize({ ...input, projectRoot: workspace.projectRoot });
           if (typeof result === "object" && result !== null && "status" in result && result.status === "dependencies-prepared") {

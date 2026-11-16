@@ -8,7 +8,7 @@ import type { AbstractAgent, HttpAgentConfig } from "@ag-ui/client";
 import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationCommandDecisionProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationCommandDecisionBinding, type ConversationTransientMessageService, type ConversationToolkit } from "./plugin-api/index.js";
 import { normalizeSseResponse } from "./compatibility/sse-line-endings.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
-import { useFrontendToolSource } from "./tools/use-frontend-tool-source.js";
+import { useFrontendToolSource, useFrontendToolkit } from "./tools/use-frontend-tool-source.js";
 import { installCancelledToolContinuationGuard } from "./compatibility/cancelled-tool-continuation.js";
 import { installConversationOutgoingMessages } from "./compatibility/conversation-outgoing-messages.js";
 import {
@@ -59,7 +59,7 @@ import type {
   ConversationAssistantRunUpdate,
 } from "./threads/types.js";
 import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
-import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
+import { createConversationFrontendToolPort } from "./tools/types.js";
 import { createAssistantUiFrontendToolkit } from "./tools/assistant-ui-frontend-tool-adapter.js";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
 import type { AgentUIContext } from "@za38.03/agent-ui-core";
@@ -81,17 +81,17 @@ export type ConversationAgentFactory = (
 
 export interface ConversationRuntimeProviderProps<TState = unknown> {
   transientMessages?: ConversationTransientMessageService | undefined;
-  endpoint: string;
+  /** Optional when custom fetch owns the destination; no default service URL. */
+  endpoint?: string | undefined;
   request?: ServiceRequestConfig | undefined;
   /** Default business parameters merged into forwardedProps.ctx on every request. */
   ctx?: AgentUIContext | undefined;
-  /** Custom AG-UI transport; omitted uses browser fetch. Receives merged request configuration. */
+  /** Custom AG-UI transport; receives an empty URL when endpoint is omitted, plus merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
   /** Internal Host preview override also applies to workflow requests. */
   requestEndpointOverride?: string | undefined;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
-  frontendToolUIs?: ConversationFrontendToolUIRegistry | undefined;
   toolkit?: ConversationToolkit | undefined;
   suggestions?: readonly ConversationStarterSuggestion[] | undefined;
   getRunContext?: ConversationRunContextGetter | undefined;
@@ -123,8 +123,11 @@ const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId, get
       const config = getRequestConfig?.();
       const headers = new Headers(init?.headers);
       for (const [name, value] of Object.entries(config?.headers ?? {})) headers.set(name, value);
-      const send = getFetch?.() ?? ((url: string, init: RequestInit) => globalThis.fetch(url, init));
-      return normalizeSseResponse(await send(getRequestEndpoint?.() ?? url, { ...init, headers, ...(config?.credentials === undefined ? {} : { credentials: config.credentials }) }));
+      const customFetch = getFetch?.();
+      const target = getRequestEndpoint?.() ?? url;
+      if (!customFetch && !target.trim()) throw new Error("AGENT_UI_ENDPOINT_REQUIRED");
+      const send = customFetch ?? ((url: string, init: RequestInit) => globalThis.fetch(url, init));
+      return normalizeSseResponse(await send(target, { ...init, headers, ...(config?.credentials === undefined ? {} : { credentials: config.credentials }) }));
     },
   });
 
@@ -146,15 +149,15 @@ function createThreadOptionsStore(initial: ThreadOptions) {
 
 export function ConversationRuntimeProvider<TState = unknown>({
   transientMessages,
-  endpoint,
+  // HttpAgent requires a string; an empty value leaves the destination to custom fetch.
+  endpoint = "",
   request,
   ctx,
   fetch: requestFetch,
   requestEndpointOverride,
   threadBinding,
   frontendTools: providedFrontendTools,
-  frontendToolUIs,
-  toolkit,
+  toolkit: providedToolkit,
   suggestions,
   getRunContext,
   attachments,
@@ -177,6 +180,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const fetchRef = useRef(requestFetch);
   useLayoutEffect(() => { fetchRef.current = requestFetch; }, [requestFetch]);
   const frontendTools = useFrontendToolSource(providedFrontendTools);
+  const toolkit = useFrontendToolkit(providedToolkit);
   // Compare HTTP options by value, but keep custom implementations out of serialization.
   const attachmentKey = JSON.stringify(attachments && { ...attachments, dataSource: undefined });
   const dictationKey = JSON.stringify(dictation && { ...dictation, dataSource: undefined });
@@ -197,8 +201,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
     () => frontendTools?.getRevision() ?? 0,
   );
   const resolvedToolkit = useMemo(
-    () => createAssistantUiFrontendToolkit(frontendTools, toolkit, frontendToolUIs),
-    [frontendTools, toolkit, frontendToolUIs, toolRevision],
+    () => createAssistantUiFrontendToolkit(frontendTools, toolkit),
+    [frontendTools, toolkit, toolRevision],
   );
   // Updating presentation/adapters must update mounted threads, not replace the
   // upstream runtimeHook: a new hook identity retires every thread instance.

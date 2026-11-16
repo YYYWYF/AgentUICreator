@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Agent } from './agent-ui';
 import { agentUIProject } from './agent-ui/application/project-config';
-import { createHttpConversationDataSource } from './agent-ui/services/conversations';
+import { createConversationDataSource } from './agent-ui/services/conversations';
 import { createConversationTransientMessageService } from '@za38.03/agent-ui-runtime/plugin-api';
 import './host.css';
 
 const query = new URLSearchParams(location.search);
 const history = query.has('history')
-  ? createHttpConversationDataSource({ endpoint: new URL('/history', location.href).href })
+  ? createConversationDataSource({ endpoint: new URL('/history', location.href).href })
   : undefined;
 const notices = createConversationTransientMessageService();
 if (query.has('suggestions')) {

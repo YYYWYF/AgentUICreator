@@ -74,7 +74,7 @@ export function ComposerHint() {
 
 官方文案沿用现有域；`Agent.locales` 不注册任意新命名空间或键。新增业务文案集中在项目共享消息模块，按领域组织完整双语表，通过统一的 `useAgentUILocaleCode()` 值选择文案。组件不写语言条件，不创建每插件国际化 Hook 或独立语言状态，纯展示函数接收文案参数。
 
-创建共享消息模块与组件接线的完整示例，见[新增业务文案](/development/component-customization.md#新增业务文案)；Hook 和领域文案示例见[插件 API](/development/plugin-api.md#主题与多语言)。
+创建共享文案文件并在组件中读取文案的完整示例，见[新增业务文案](/development/component-customization.md#新增业务文案)；Hook 和领域文案示例见[插件 API](/development/plugin-api.md#主题与多语言)。
 
 ## 验证
 

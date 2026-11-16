@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, rename, unlink, readdir, lstat } from "node
 import path from "node:path";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
-import { satisfies, valid } from "semver";
+import { minVersion, satisfies, valid, validRange } from "semver";
 import { createDefaultAgentUIPresetRegistry, agentUIModeRegistry, initializeAgentUIProject, validateAgentUIProjectSetup, type AgentUIMode } from "../bootstrap/index.js";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
 import { loadAgentUISourceRegistry } from "../source-catalog/index.js";
@@ -16,12 +16,13 @@ import { ownPackageIdentity, readPackageIdentity } from "../updates/package-iden
 import { digest, optionalText, readCompatibilityBinding, resolveCompatibilityConsumer, safeCompatibilityPath, compatibilityError } from "./compatibility-binding";
 
 const SOURCE_ROOT = "src/agent-ui";
+interface BridgePackageManifest {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
+interface CompatibilityVersionAdvisory { name: string; version: string; required: string }
+
 export async function planCompatibilityProject(input: { projectRoot: string; sourceRoot: string; mode: AgentUIMode }) {
-  for (let directory = path.resolve(input.projectRoot); ; directory = path.dirname(directory)) {
-    const manifest = await optionalText(path.join(directory, "package.json"));
-    if (await optionalText(path.join(directory, "pnpm-workspace.yaml")) !== undefined || (manifest && "workspaces" in JSON.parse(manifest))) compatibilityError("AGENT_UI_COMPATIBILITY_WORKSPACE_UNSUPPORTED");
-    if (directory === path.dirname(directory)) break;
-  }
   const validation = await validateAgentUIProjectSetup(input);
   if (["src", "public", "node_modules", ".agent-ui", ".git", "dist", "build"].includes((input.sourceRoot.split("/")[0] ?? "").toLowerCase())) {
     return { ...validation, valid: false, issues: [...validation.issues, { code: "AGENT_UI_COMPATIBILITY_DIRECTORY_INVALID", message: "AGENT_UI_COMPATIBILITY_DIRECTORY_INVALID" }], compatibilityPlan: undefined };
@@ -41,14 +42,18 @@ export async function planCompatibilityProject(input: { projectRoot: string; sou
   const creator = await ownPackageIdentity("@za38.03/agent-ui-creator");
   const bridgeName = "@za38.03/agent-ui-web-component";
   const bridge = await readPackageIdentity(creator.root, bridgeName);
-  if (!bridge || !satisfies(bridge.version, requirements[bridgeName] ?? "")) compatibilityError("AGENT_UI_COMPATIBILITY_DEPENDENCY_CONFLICT");
-  const bridgePackage = JSON.parse(await readFile(path.join(bridge.root, "package.json"), "utf8"));
-  const react = bridgePackage.dependencies?.react;
-  const reactDom = bridgePackage.dependencies?.["react-dom"];
-  if (!valid(react) || reactDom !== react || !satisfies(react, requirements.react ?? "") ||
-      (requirements["react-dom"] && !satisfies(reactDom, requirements["react-dom"]))) compatibilityError("AGENT_UI_COMPATIBILITY_REACT_VERSION_REQUIRED");
-  const tailwind = bridgePackage.devDependencies?.tailwindcss;
-  if (!valid(tailwind) || (requirements.tailwindcss && !satisfies(tailwind, requirements.tailwindcss))) compatibilityError("AGENT_UI_COMPATIBILITY_DEPENDENCY_CONFLICT");
+  if (!bridge) compatibilityError("AGENT_UI_COMPATIBILITY_DEPENDENCY_CONFLICT");
+  const bridgePackage = JSON.parse(await readFile(path.join(bridge.root, "package.json"), "utf8")) as BridgePackageManifest;
+  const react = bridgePackage.dependencies?.react ?? requirements.react ?? "";
+  const reactDom = bridgePackage.dependencies?.["react-dom"] ?? requirements["react-dom"] ?? react;
+  const tailwind = bridgePackage.devDependencies?.tailwindcss ?? requirements.tailwindcss ?? "";
+  const advisories: CompatibilityVersionAdvisory[] = [];
+  for (const [name, version] of [[bridgeName, bridge.version], ["react", react], ["react-dom", reactDom], ["tailwindcss", tailwind]] as const) {
+    const required = requirements[name];
+    if (required && (!valid(version) || !satisfies(version, required))) advisories.push({ name, version, required });
+  }
+  if (reactDom !== react) advisories.push({ name: "react-dom", version: reactDom, required: react });
+  requirements[bridgeName] = bridge.version;
   requirements.react = react;
   requirements["react-dom"] = reactDom;
   requirements.tailwindcss = tailwind;
@@ -56,15 +61,18 @@ export async function planCompatibilityProject(input: { projectRoot: string; sou
   const typescript = JSON.parse(await readFile(require.resolve("typescript/package.json"), "utf8")).version as string;
   const devNames = new Set(["vite", "@vitejs/plugin-react", "@tailwindcss/vite", "tailwindcss"]);
   const dependencies = Object.fromEntries(Object.entries(requirements).filter(([name]) => !devNames.has(name)));
-  const devDependencies: Record<string, string> = { ...Object.fromEntries(Object.entries(requirements).filter(([name]) => devNames.has(name))), typescript,
-    "@types/react": `^${react.split(".")[0]}.0.0`, "@types/react-dom": `^${react.split(".")[0]}.0.0`, "@types/node": ">=20 <27" };
+  const devDependencies: Record<string, string> = { ...Object.fromEntries(Object.entries(requirements).filter(([name]) => devNames.has(name))), typescript, "@types/node": ">=20 <27" };
+  for (const [name, declaration] of [["@types/react", react], ["@types/react-dom", reactDom]] as const) {
+    const major = validRange(declaration) ? minVersion(declaration)?.major : undefined;
+    const version = major === undefined ? (await readPackageIdentity(creator.root, name))?.version : `^${major}.0.0`;
+    if (version) devDependencies[name] = version;
+  }
   const manager = await detectResourcePackageManager(input.projectRoot);
-  if (manager !== "npm" && manager !== "pnpm") compatibilityError("AGENT_UI_COMPATIBILITY_MANAGER_UNSUPPORTED");
   const manifest = { name: "agent-ui-frontend", private: true, type: "module", scripts: {
     dev: "vite --host 127.0.0.1", typecheck: "tsc --noEmit", test: "tsc --noEmit", build: "node scripts/build.mjs",
   }, dependencies, devDependencies };
   const context = { registryHash: digest(await optionalText(path.join(input.projectRoot, ".npmrc")) ?? ""), hostPackage: await optionalText(path.join(input.projectRoot, "package.json")), hostLock: await optionalText(path.join(input.projectRoot, manager === "npm" ? "package-lock.json" : "pnpm-lock.yaml")) };
-  const plan = { producerRoot: input.sourceRoot, sourceRoot: SOURCE_ROOT, mode: input.mode, manager, dependencies, devDependencies };
+  const plan = { producerRoot: input.sourceRoot, sourceRoot: SOURCE_ROOT, mode: input.mode, manager, dependencies, devDependencies, advisories };
   return { ...validation, compatibilityPlan: { ...plan, id: digest(JSON.stringify({ projectRoot: path.resolve(input.projectRoot), plan, manifest, context })) } };
 }
 export type CompatibilityPlan = NonNullable<Awaited<ReturnType<typeof planCompatibilityProject>>["compatibilityPlan"]>;
@@ -131,7 +139,6 @@ export async function buildCompatibilityProject(projectRoot: string, run: Update
   try {
     const before = await sourceDigest(projectRoot);
     const manager = await detectResourcePackageManager(projectRoot);
-    if (manager !== "npm" && manager !== "pnpm") compatibilityError("AGENT_UI_COMPATIBILITY_MANAGER_UNSUPPORTED");
     await run(projectRoot, manager, ["run", "build"]);
     if (await sourceDigest(projectRoot) !== before) compatibilityError("AGENT_UI_COMPATIBILITY_BUILD_STALE");
     const output = await safeCompatibilityPath(projectRoot, "dist/agent-ui-web-component/agent-ui.js");

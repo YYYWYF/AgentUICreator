@@ -139,7 +139,7 @@
 
 /* Selection wins over hover, keyboard focus and an open menu. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-item"][data-active="true"] {
-  background-color: var(--agent-brand-selected);
+  background-color: var(--agent-brand-surface);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="aui_thread-list-search"] [data-slot="input"]:focus {

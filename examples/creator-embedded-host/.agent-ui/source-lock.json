@@ -48,13 +48,13 @@
           "sha256": "b3619ba9dd96686fcd906f1163037834b1d410ec04c8f416340a43874625d946"
         },
         "services/conversations.ts": {
-          "sha256": "023d449ffbb65e3792ac8df1e541bffc6336373c3a819dcc4762926cadcdaea6"
+          "sha256": "423dac1a0ad1b8087c1a59af737f36758fdd1105a737bb98ceca629b887a06d8"
         },
         "services/conversations/endpoint.ts": {
-          "sha256": "efd5d464a13506418595006e637cb0b7977f067b9f2dea93b2cef2ce9b1fd14e"
+          "sha256": "9062cfbdff9553524a5f9ef849fef11396760c3c3b2b4a9fe6444ca6256bde56"
         },
-        "services/conversations/http-data-source.ts": {
-          "sha256": "fb507b5bf15ef127ecd161d7a7f16428c3a63fd52847e74b0e4281c171e328c2"
+        "services/conversations/data-source.ts": {
+          "sha256": "65b57a64969dc4d8479210193f33dc64a5e7d3882ab9121c31428ce8746cf89d"
         }
       }
     },

@@ -12,7 +12,7 @@
   {
     "type": "file",
     "name": "ag-ui-data",
-    "label": "插件显示条件与 AG-UI 数据"
+    "label": "AG-UI 数据格式与插件数据接入"
   },
   {
     "type": "custom-link",
@@ -40,6 +40,10 @@
         "type": "custom-link",
         "label": "临时通知",
         "link": "/plugins/transient-assistant-messages"
+      },
+      {
+        "label": "多内容侧栏",
+        "link": "/plugins/workbench-panel"
       }
     ]
   },

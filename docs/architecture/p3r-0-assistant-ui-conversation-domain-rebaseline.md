@@ -1,6 +1,6 @@
 # Conversation Domain 架构
 
-assistant-ui 是 Agent UI 的 canonical Conversation Domain 实现。一个应用可组合多个隔离的 Agent 实例；每个 Thread 归属一个逻辑助手，消息与生命周期只有一个 canonical owner。同一助手的工作流按钮可为每次发送指定 URL；只有显式新建会话才生成新的 threadId，打开历史恢复原 Thread。业务组件控制助手显示，后台运行由上游持有；工具续传、重试和审批恢复沿用原请求入口。具体接线见[多 Agent 接入](../../website/docs/development/multiple-agents.md)。
+assistant-ui 是 Agent UI 的 canonical Conversation Domain 实现。一个应用可组合多个隔离的 Agent 实例；每个 Thread 归属一个逻辑助手，消息与生命周期只有一个 canonical owner。同一助手的工作流按钮可为每次发送指定 URL；只有显式新建会话才生成新的 threadId，打开历史恢复原 Thread。业务组件控制助手显示，后台运行由上游持有；工具续传、重试和审批恢复沿用原请求入口。具体配置方法见[多 Agent 接入](../../website/docs/development/multiple-agents.md)。
 
 ## 所有权
 
@@ -32,13 +32,13 @@ AppUIModel 选择实际 Plugin；Runtime 解析语义 Slot。普通 content Slot
 
 ## Thread 与历史
 
-Thread 绑定在一次挂载期间保持稳定。项目配置历史地址、鉴权和自定义覆盖，也可显式传入 `Agent.conversationDataSource`。`conversation-data-source` 插件提供默认 HTTP 请求与后端格式转换，包括 `max_message_checkpoint` 和 `channel_values → values`；自己的历史接口通过项目响应解码器或自定义数据源适配。
+Thread 绑定在一次挂载期间保持稳定。项目的 `services/conversations/data-source.ts` 直接提供 list/get/delete/rename/archive/unarchive 方法，拥有请求、鉴权和业务响应转换。list 返回会话数组，get 返回带 history 的统一详情；npm 不提供历史 HTTP 工厂或自动识别后端包装。项目应用层按 Agent 实例绑定地址和请求传输，保留预览代理及取消信号；也可通过 `Agent.conversationDataSource` 替换数据源。
 
 `conversation-service` 插件拥有业务 DTO/DataSource 契约、列表/详情缓存与会话管理，处理 `<think>` 等历史兼容，并提供通用 `agent-ui.thread-binding` 工厂。项目薄应用层负责服务创建、注册和清理；Runtime 通过通用接口加载消息、封装 assistant-ui 官方转换并运行会话，不创建具体业务会话服务。直接调用 Runtime 转换器不包含插件的特殊兼容。读取历史不发起新 Agent 推理，也不在历史 Tool UI 挂载时执行工具。
 
 历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流。插件可调用业务接口管理保存的会话，但数据库持久化属于业务后端，canonical 会话分支与运行生命周期仍使用 assistant-ui，不另建仓库或 Runtime。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。
 
-项目配置和自定义适配不属于插件实现 BASE，npm 升级保留它们；已接管的插件通过单独源码同步合并更新。旧工程的完整 HTTP 实现和绑定不会因 npm 升级自动迁移。准确文件归属见 [插件所有权](npm-default-plugin-source-ownership.md#1-通用基础设施与应用配置)。
+项目配置和自定义适配不属于插件实现 BASE，npm 升级保留它们；已接管的插件通过单独源码同步合并更新。本次移除旧工厂，不提供旧配置兼容。准确文件归属见 [插件所有权](npm-default-plugin-source-ownership.md#1-通用基础设施与应用配置)。
 
 AG-UI 请求的 `messages` 默认只发送本次用户消息，不附带历史用户或 assistant 消息；完整历史仍由本地 Conversation Runtime 展示，后端按 `threadId` 维护上下文。前端工具续传只发送本次工具结果；中断恢复使用原生 `resume`，`messages` 只携带中断后追加的消息，没有新消息时为空。
 

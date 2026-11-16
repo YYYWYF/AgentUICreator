@@ -1,0 +1,37 @@
+{
+  "id": "workbench-panel",
+  "name": "Workbench Panel",
+  "description": "A persistent tabbed side panel beside the workbench conversation",
+  "version": "0.0.1",
+  "capabilities": [
+    "workbench-panel"
+  ],
+  "slots": {
+    "children": {
+      "mainActions": {
+        "description": "Controls above the main conversation, alongside the full-height side panel",
+        "cardinality": "many",
+        "optional": true
+      },
+      "main": {
+        "description": "Persistent conversation content",
+        "cardinality": "one",
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-surface"
+          ]
+        }
+      },
+      "notes": {
+        "description": "Notes content",
+        "cardinality": "one",
+        "optional": true
+      },
+      "details": {
+        "description": "Details content",
+        "cardinality": "one",
+        "optional": true
+      }
+    }
+  }
+}

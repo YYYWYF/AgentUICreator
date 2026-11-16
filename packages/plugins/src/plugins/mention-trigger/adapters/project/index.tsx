@@ -2,7 +2,7 @@ import { CanonicalConversationMentionTrigger as Implementation } from '@za38.03/
 import type { UIPluginComponentProps } from '@za38.03/agent-ui-plugins/contracts';
 import { usePluginService } from '@za38.03/agent-ui-runtime/ui/runtime/plugins/index';
 import type { ComponentProps } from 'react';
-import { CONVERSATION_MENTION_SOURCE, type ConversationMentionSource } from '../../services/composer-triggers';
+import { CONVERSATION_MENTION_SOURCE, type ConversationMentionSource } from '@za38.03/agent-ui-plugins/composer-triggers';
 
 export function ConversationMentionTrigger(
   props: ComponentProps<typeof Implementation> & Partial<UIPluginComponentProps>,

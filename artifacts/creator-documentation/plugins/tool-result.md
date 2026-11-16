@@ -29,32 +29,8 @@
 
 后端通过 AG-UI `TOOL_CALL_RESULT.content` 返回内容数组，例如：
 
-```json
-{
-  "type": "TOOL_CALL_RESULT",
-  "messageId": "result-1",
-  "toolCallId": "call-1",
-  "content": [
-    { "type": "text", "text": "报告已生成。" },
-    {
-      "type": "image",
-      "source": {
-        "type": "url",
-        "value": "https://example.com/chart.png",
-        "mimeType": "image/png"
-      }
-    },
-    {
-      "type": "document",
-      "source": {
-        "type": "url",
-        "value": "https://example.com/report.pdf",
-        "mimeType": "application/pdf"
-      },
-      "metadata": { "filename": "report.pdf" }
-    }
-  ]
-}
+```jsonl
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","content":[{"type":"text","text":"报告已生成。"},{"type":"image","source":{"type":"url","value":"https://example.com/chart.png","mimeType":"image/png"}},{"type":"document","source":{"type":"url","value":"https://example.com/report.pdf","mimeType":"application/pdf"},"metadata":{"filename":"report.pdf"}}]}
 ```
 
 `audio` 和 `video` 使用相同的 `source` 结构。音视频由用户点击播放，不自动播放，暂不提供下载入口；视频原生控件设置了隐藏下载项。文档保留文件卡片和下载入口，不内嵌执行文档内容。普通字符串、业务 JSON 或不符合内容数组结构的结果沿用原始结果展示。

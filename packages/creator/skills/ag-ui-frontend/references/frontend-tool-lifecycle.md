@@ -8,7 +8,7 @@ the generated application's chosen UI stack; no particular UI library is require
 
 A Plugin provides an activation-scoped Service. The application explicitly permits
 selected operations through project frontend-tool modules or the Host's
-`Agent.frontendTools` source. A Service method is not an Agent Tool until the
+`Agent.frontendTools` source or explicit `toolkit` frontend entries. A Service method is not an Agent Tool until the
 application authorizes it. Existing Host page methods do not require a new Plugin
 or Service. For Plugin-shared capabilities, reuse existing Service seams and
 preserve Service ownership and public contracts. Plugins cannot self-register
@@ -33,9 +33,11 @@ protocol, or send a synthetic UserMessage to report a result. Agent UI owns
 invocation identity, single-fire execution, status, result injection, cancellation
 and continuation. Keep upstream types inside the integration adapter.
 
-Backend Tool UI is render-only. Application frontend UI registration does not
-supply execute or grant permissions. Available definitions become frontend Toolkit
-entries. When permission is absent, named historical renderers use backend Toolkit
+Use one `toolkit` for human components, frontend execute callbacks and backend
+renderers. Explicit application/Host frontend entries grant execution permission.
+Backend entries are presentation only and may supply render/display for a same-name
+application-owned source. Available source definitions become frontend Toolkit
+entries; competing human/frontend executors must fail on name collisions. When permission is absent, named historical renderers use backend Toolkit
 entries with render and optional display only; no description, schema or execute.
 Upstream filters those entries from model tools. Use Tools({ toolkit }) for both
 live and historical UI registration, avoiding deprecated Tool UI registration APIs.
@@ -43,9 +45,11 @@ Omit display unless the application explicitly chooses inline or standalone.
 
 ## Execute versus render and history
 
-Product actions belong only in execute: opening dialogs, navigation, selection,
+For automatically executed frontend tools, product actions belong in execute: opening dialogs, navigation, selection,
 editor changes, application mutations, storage/clipboard writes, downloads, form
-submission or host actions. Tool renderers project args/result/status only.
+submission or host actions. Tool renderers project args/result/status. Human tools collect user input through
+a TSX component and submit addResult without execute; submission must be gated by
+requires-action, the runtime answer capability and addResult availability.
 
 Assume history loading, thread/branch switching, remounts, StrictMode and
 virtualization can mount renderers again. Mount never means invoke. Do not call
@@ -75,8 +79,13 @@ must not infer success from a tool-specific receipt field such as opened.
 
 ## Business page and form integration
 
-An existing Host page exposes its methods through Runtime's public
-`createAgentUIFrontendTools()` and `<Agent frontendTools={tools} />`.
+A Host page can use `<Agent toolkit={toolkit} />` with type frontend,
+parameters, execute and optional render. The native execution context supplies
+abortSignal, toolCallId and human. Keep toolkit/callback identity stable; cancellation,
+replacement and unmount cancel pending callbacks. Disabled frontend entries retain
+only historical rendering. Existing source-based applications can continue using
+`createAgentUIFrontendTools()` and `<Agent frontendTools={tools} />`; their renderers
+now also belong in toolkit, as backend entries without execution permission.
 The application owns field names, argument validation, form-library calls and
 business submission. No form-specific Integration, Provider Plugin or Service
 registration is required for this Host path. Plugin-shared capabilities retain

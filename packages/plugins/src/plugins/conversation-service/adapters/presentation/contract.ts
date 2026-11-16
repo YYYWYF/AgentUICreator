@@ -9,25 +9,6 @@ export interface ConversationSummary {
   disabled?: boolean | undefined;
 }
 
-export interface LangGraphStateSnapshotDto {
-  values: {
-    messages?: unknown[] | undefined;
-    [key: string]: unknown;
-  };
-  next?: unknown;
-  metadata?: unknown;
-  createdAt?: string | undefined;
-  tasks?: unknown[] | undefined;
-}
-
-export interface ConversationDetailResponse {
-  id: string;
-  title: string;
-  state: LangGraphStateSnapshotDto;
-  /** Explicit AG-UI application state; never inferred from state.values. */
-  agentState?: unknown;
-}
-
 export interface ConversationDetail {
   id: string;
   title: string;
@@ -38,9 +19,6 @@ export interface ConversationDetail {
   agentState?: unknown;
 }
 
-export interface ConversationListResponse {
-  conversations: ConversationSummary[];
-}
 
 const nonBlankStringSchema = z
   .string()
@@ -56,28 +34,13 @@ export const conversationSummarySchema: z.ZodType<ConversationSummary> =
     disabled: z.boolean().optional(),
   });
 
-export const langGraphStateSnapshotSchema: z.ZodType<LangGraphStateSnapshotDto> =
-  z.object({
-    values: z
-      .object({
-        messages: z.array(z.unknown()).optional(),
-      })
-      .catchall(z.unknown()),
-    next: z.unknown().optional(),
-    metadata: z.unknown().optional(),
-    createdAt: z.string().optional(),
-    tasks: z.array(z.unknown()).optional(),
-  });
-
-export const conversationListResponseSchema: z.ZodType<ConversationListResponse> =
-  z.strictObject({
-    conversations: z.array(conversationSummarySchema),
-  });
-
-export const conversationDetailResponseSchema: z.ZodType<ConversationDetailResponse> =
+export const conversationDetailSchema: z.ZodType<ConversationDetail> =
   z.object({
     id: nonBlankStringSchema,
     title: nonBlankStringSchema,
-    state: langGraphStateSnapshotSchema,
+    history: z.object({
+      format: z.literal("langchain"),
+      messages: z.array(z.unknown()),
+    }),
     agentState: z.unknown().optional(),
   });

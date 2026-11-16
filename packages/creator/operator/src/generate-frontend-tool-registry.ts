@@ -14,11 +14,11 @@ export async function writeGeneratedFrontendToolRegistries(projectRoot: string):
   const changedPaths: string[] = [];
   for (const [directory, output, exportName, typeName, typeImport, extension] of [
     ["agent-contract/frontend-tools", "agent-contract/frontend-tools.generated.ts", "frontendTools", "", "", ".ts"],
-    ["agent-ui/conversation/frontend-tool-uis", "agent-ui/conversation/frontend-tool-uis.generated.ts", "frontendToolUIs", "ConversationFrontendToolUIRegistry", 'import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";', ".tsx"],
+    ["agent-ui/conversation/toolkit", "agent-ui/conversation/toolkit.generated.ts", "toolkit", "ConversationToolkit", 'import type { ConversationToolkit } from "@za38.03/agent-ui-runtime/plugin-api";', ".tsx"],
   ] as const) {
     await assertNoSymbolicLinkTraversal(sourceRoot, directory);
     const entries = await readdir(path.join(sourceRoot, directory), { withFileTypes: true }).catch(error => {
-      if (error.code === "ENOENT") return []; throw error;
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") return []; throw error;
     });
     const modules = entries.filter(entry => entry.isFile() && entry.name.endsWith(extension)).map(entry => entry.name).sort();
     for (const file of modules) {
@@ -27,11 +27,11 @@ export async function writeGeneratedFrontendToolRegistries(projectRoot: string):
     const imports = modules.map((file, i) => `import { ${exportName} as resource${i} } from "./${path.basename(directory)}/${file.slice(0, -extension.length)}";`);
     const value = exportName === "frontendTools" ? `[${modules.map((_, i) => `...resource${i}`).join(", ")}] as const`
       : `mergeRegistries([${modules.map((_, i) => `resource${i}`).join(", ")}])`;
-    const merger = exportName === "frontendToolUIs" ? `
-function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): ConversationFrontendToolUIRegistry {
-  const registry: { -readonly [K in keyof ConversationFrontendToolUIRegistry]: ConversationFrontendToolUIRegistry[K] } = {};
+    const merger = exportName === "toolkit" ? `
+function mergeRegistries(resources: ConversationToolkit[]): ConversationToolkit {
+  const registry: { -readonly [K in keyof ConversationToolkit]: ConversationToolkit[K] } = {};
   for (const resource of resources) for (const [name, renderer] of Object.entries(resource)) {
-    if (Object.hasOwn(registry, name)) throw new Error(\`Duplicate frontend tool UI: \${name}\`);
+    if (Object.hasOwn(registry, name)) throw new Error(\`Duplicate toolkit entry: \${name}\`);
     registry[name] = renderer;
   }
   return registry;
@@ -42,7 +42,7 @@ function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): Conve
       `export const generated${exportName[0]!.toUpperCase()}${exportName.slice(1)}${typeAnnotation} = ${value};`, ""].join("\n");
     await assertNoSymbolicLinkTraversal(sourceRoot, output);
     const destination = path.join(sourceRoot, output);
-    const old = await readFile(destination, "utf8").catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
+    const old = await readFile(destination, "utf8").catch(error => { if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined; throw error; });
     if (modules.length === 0 && old === undefined) continue;
     if (old === source) continue;
     if (old !== undefined && !(await lstat(destination)).isFile()) throw new Error("Generated registry must be a regular file");

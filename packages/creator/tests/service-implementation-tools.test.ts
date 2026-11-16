@@ -4,24 +4,28 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
-import { createRequire } from "node:module";
 import { RunActivity } from "../src/agent/activity.js";
+import { CreatorValidation } from "../src/agent/validation.js";
+import type { ProjectConversationDataSource } from "./support/project-history-source.js";
 import { prepareServiceImplementation, applyServiceImplementation } from "../src/agent/service-implementation-tools.js";
 import { createTools, visibleTool, type ToolContext } from "../src/agent/tools.js";
 
-const state = vi.hoisted(() => ({ decision: undefined as string | undefined, resumeAnswers: undefined as Record<string, string[]> | undefined, prompts: [] as any[], topology: { services: [] as any[] } }));
+const state = vi.hoisted(() => ({ decision: undefined as string | undefined, resumeAnswers: undefined as Record<string, string[]> | undefined, prompts: [] as unknown[], topology: { services: [] as Array<{ name: string; contractPaths: string[] }> } }));
 vi.mock("../src/agent/operator.js", async original => ({ ...await original<typeof import("../src/agent/operator.js")>(), requestOperator: vi.fn(async () => state.topology) }));
-vi.mock("@langchain/langgraph", async original => ({ ...await original<typeof import("@langchain/langgraph")>(), interrupt: vi.fn((payload: any) => {
+vi.mock("@langchain/langgraph", async original => ({ ...await original<typeof import("@langchain/langgraph")>(), interrupt: vi.fn((payload: { steps: Array<{ id: string }> }) => {
   state.prompts.push(payload);
   if (!state.decision) throw Object.assign(new Error("Awaiting real user response"), { name: "TestInterrupt" });
-  return { answers: state.resumeAnswers ?? { [payload.steps[0].id]: [state.decision] } };
+  return { answers: state.resumeAnswers ?? { [payload.steps[0]!.id]: [state.decision] } };
 }) }));
 const roots: string[] = [];
-const relative = "services/conversations/http-data-source.ts";
+const relative = "services/conversations/data-source.ts";
 const source = "src/应用";
 const target = `${source}/${relative}`;
 const canonical = fileURLToPath(new URL("../../plugins/resources/registry/items/foundation/core-application/files/services/conversations/", import.meta.url));
-const edit = { oldText: 'url: ({ endpoint, id }) => `${endpoint}/conversations/${encodeURIComponent(id)}`', newText: 'url: ({ endpoint, id }) => `${endpoint}/history/${encodeURIComponent(id)}`' };
+const edit = {
+  oldText: "async delete(id, { signal } = {}) {\n      const response = await request(`${baseUrl}/conversations/${encodeURIComponent(id)}`",
+  newText: "async delete(id, { signal } = {}) {\n      const response = await request(`${baseUrl}/history/${encodeURIComponent(id)}`",
+};
 const proposal = { implementationPath: relative, edits: [edit], impactSummary: "只修改删除单条历史会话的路径。所有使用此数据源的删除调用生效；保留列表、详情、鉴权和公共契约。" };
 
 beforeEach(() => { state.decision = undefined; state.resumeAnswers = undefined; state.prompts = []; state.topology = { services: [] }; });
@@ -33,16 +37,17 @@ async function fixture() {
   await mkdir(path.join(root, source, "plugins/conversation-data-source"), { recursive: true });
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: source }));
   await writeFile(path.join(root, "package.json"), '{"type":"module"}');
-  for (const name of ["http-data-source.ts", "contract.ts", "data-source.ts"]) await writeFile(path.join(root, source, "services/conversations", name), await readFile(path.join(canonical, name)));
-  const httpFile = path.join(root, target);
-  await writeFile(httpFile, (await readFile(httpFile, "utf8")).replace("credentials: 'same-origin',", "credentials: 'same-origin',\n  delete: { url: ({ endpoint, id }) => `${endpoint}/conversations/${encodeURIComponent(id)}` },"));
-  await writeFile(path.join(root, source, "plugins/conversation-data-source/index.ts"), 'export { createHttpConversationDataSource } from "@za38.03/agent-ui-plugins/conversation-data-source";');
-  await writeFile(path.join(root, source, "plugins/conversation-data-source/definition.ts"), 'import { createHttpConversationDataSource } from "../../services/conversations/http-data-source.js"; export default createHttpConversationDataSource;');
+  for (const name of ["data-source.ts"]) await writeFile(path.join(root, source, "services/conversations", name), await readFile(path.join(canonical, name)));
+  await writeFile(path.join(root, source, "plugins/conversation-data-source/definition.ts"), 'import { createConversationDataSource } from "../../services/conversations/data-source.js"; export default createConversationDataSource;');
   const signal = new AbortController().signal;
   const context: ToolContext = { root, threadId: "history-delete", skills: root, contracts: fileURLToPath(new URL("../contracts/creator", import.meta.url)),
     activity: new RunActivity(root, "delete-1", signal), signal, readOnly: false, userMessage: "配置删除某一条历史会话的接口", groups: new Set(["services"]),
-    authorizedPlugins: new Set(), diagnostics: new Map(), verificationMode: "static_only",
-    validation: { ensureBaseline: vi.fn(async () => ({})) } as any };
+    authorizedPlugins: new Set(), diagnostics: new Map(), verificationMode: "static_only" };
+  context.validation = new CreatorValidation(root, context.activity, () => signal);
+  vi.spyOn(context.validation, 'ensureBaseline').mockResolvedValue({
+    staticErrors: new Set(), typeErrors: new Set(),
+    typeCheck: { command: 'typecheck', status: 'passed', exitCode: 0, output: '', truncated: false, revision: 0 },
+  });
   await context.activity.observations.observe(target);
   return context;
 }
@@ -62,41 +67,23 @@ it("preflights derived consumers without asking, then applies the exact deletion
   await expect(applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).rejects.toThrow("PLAN_INVALID");
 
   // Execute the edited, real HTTP template against a mocked transport.
-  const bundled = await build({ entryPoints: [path.join(context.root, target)], bundle: true, write: false, format: "esm", platform: "node",
-    alias: {
-      zod: createRequire(import.meta.url).resolve("zod"),
-      "@za38.03/agent-ui-plugins/conversation-data-source": fileURLToPath(new URL("../../plugins/src/plugins/conversation-data-source/adapters/presentation/http-data-source.ts", import.meta.url)),
-      "@za38.03/agent-ui-plugins/conversation-service": fileURLToPath(new URL("../../plugins/src/plugins/conversation-service/adapters/presentation/contract.ts", import.meta.url)),
-    } });
-  const implementation = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString("base64")}`);
+  const bundled = await build({ entryPoints: [path.join(context.root, target)], bundle: true, write: false, format: "esm", platform: "node" });
+  const implementation = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(bundled.outputFiles![0]!.text).toString("base64")}`) as { createConversationDataSource(options: { endpoint: string; fetch?: typeof globalThis.fetch }): ProjectConversationDataSource };
   const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(null, { status: 204 }));
-  const dataSource = implementation.createHttpConversationDataSource({ endpoint: "https://business.test/api/", fetch });
+  const dataSource = implementation.createConversationDataSource({ endpoint: "https://business.test/api/", fetch });
   await dataSource.delete("会话/a b");
   expect(fetch).toHaveBeenCalledWith(`https://business.test/api/history/${encodeURIComponent("会话/a b")}`, expect.objectContaining({ method: "DELETE", credentials: "same-origin" }));
   fetch.mockResolvedValueOnce(new Response('{"error":"denied"}', { status: 403 }));
   await expect(dataSource.delete("other")).rejects.toThrow("403");
 
-  // Per-call overrides retain other fields and operations configured by the project.
-  implementation.conversationDataSourceConfig.list = {
-    url: "/business/list", method: "POST", body: { scope: "saved" }, decode: () => [],
-  };
-  implementation.conversationDataSourceConfig.delete.method = "POST";
-  const overridden = implementation.createHttpConversationDataSource({
-    endpoint: "https://business.test/api/", fetch, list: { method: "PUT" }, delete: { method: "PUT" },
-  });
-  fetch.mockResolvedValueOnce(Response.json({ custom: true }));
-  await expect(overridden.list()).resolves.toEqual([]);
-  await overridden.delete("会话/a b");
-  expect(fetch.mock.calls.slice(-2).map(([, init]) => init?.method)).toEqual(["PUT", "PUT"]);
-  expect(fetch.mock.calls.at(-2)).toEqual(["/business/list", expect.objectContaining({ method: "PUT", body: '{"scope":"saved"}' })]);
-  expect(fetch.mock.calls.at(-1)?.[0]).toBe(`https://business.test/api/history/${encodeURIComponent("会话/a b")}`);
+
 });
 
 it.each(["file", "consumer", "topology"])("requires replanning when %s changes after confirmation", async kind => {
   const context = await fixture(); state.decision = "approve";
   const plan = await prepareServiceImplementation(context, proposal);
   if (kind === "file") await writeFile(path.join(context.root, target), (await readFile(path.join(context.root, target), "utf8")) + "\n// external change\n");
-  if (kind === "consumer") await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import "../../services/conversations/http-data-source.js"; export const changed = true;');
+  if (kind === "consumer") await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import "../../services/conversations/data-source.js"; export const changed = true;');
   if (kind === "topology") state.topology.services.push({ name: "agent-ui.other", contractPaths: [] });
   await expect(applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).rejects.toThrow(/STALE|CHANGED_EXTERNALLY|stale-version/);
   expect(await readFile(path.join(context.root, target), "utf8")).toContain(edit.oldText);
@@ -107,11 +94,11 @@ it("keeps public contract paths and declarations on the contract channel", async
   state.topology.services.push({ name: "agent-ui.conversation-data-source", contractPaths: [target.replaceAll("/", "\\")] });
   await expect(prepareServiceImplementation(context, proposal)).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
   state.topology.services = [];
-  await expect(prepareServiceImplementation(context, { ...proposal, edits: [{ oldText: "export type { HttpConversationDataSourceOptions };", newText: "export type { HttpConversationDataSourceOptions as OtherOptions };" }] })).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
+  await expect(prepareServiceImplementation(context, { ...proposal, edits: [{ oldText: "export interface ConversationDataSourceDependencies {", newText: "export interface OtherDependencies {" }] })).rejects.toThrow("SERVICE_CONTRACT_TOOL_REQUIRED");
   expect(state.prompts).toHaveLength(0);
 });
 
-it.each(["services/../runtime/private.ts", "services\\conversations\\http-data-source.ts", "services/C:/secret.ts", "services/vendor/helper.ts", "services/conversations/types.d.ts", "plugins/history/index.tsx"])("rejects invalid or protected logical path %s", async implementationPath => {
+it.each(["services/../runtime/private.ts", "services\\conversations\\data-source.ts", "services/C:/secret.ts", "services/vendor/helper.ts", "services/conversations/types.d.ts", "plugins/history/index.tsx"])("rejects invalid or protected logical path %s", async implementationPath => {
   const context = await fixture();
   await expect(prepareServiceImplementation(context, { ...proposal, implementationPath })).rejects.toThrow("PATH_INVALID");
 });
@@ -142,7 +129,7 @@ it("resolves configured import aliases and forward-slash paths with Windows-styl
   const context = await fixture(); state.decision = "approve";
   await writeFile(path.join(context.root, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: source.replaceAll("/", "\\") }));
   await writeFile(path.join(context.root, "tsconfig.json"), JSON.stringify({ compilerOptions: { paths: { "@/*": ["./src/应用/*"] } }, include: ["src/**/*"] }));
-  await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import { createHttpConversationDataSource } from "@/services/conversations/http-data-source"; export default createHttpConversationDataSource;');
+  await writeFile(path.join(context.root, source, "plugins/conversation-data-source/definition.ts"), 'import { createConversationDataSource } from "@/services/conversations/data-source"; export default createConversationDataSource;');
   const plan = await prepareServiceImplementation(context, proposal);
   expect(plan.affectedPlugins).toEqual(["conversation-data-source"]);
   expect(await applyServiceImplementation(context, { planId: ("planId" in plan ? plan.planId! : "missing") })).toMatchObject({ status: "applied" });

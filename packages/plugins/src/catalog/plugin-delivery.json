@@ -1057,8 +1057,7 @@
     "symbol": "conversationDataSourcePlugin",
     "support": "pluginSupport",
     "presentation": [
-      "conversation-data-source.tsx",
-      "http-data-source.ts"
+      "conversation-data-source.tsx"
     ],
     "implementationExports": [
       "CanonicalConversationDataSourcePlugin",
@@ -1091,12 +1090,7 @@
       ]
     ],
     "definitionExports": [
-      "bindSetup",
-      "createHttpConversationDataSource",
-      "HttpConversationDataSourceOptions",
-      "HttpConversationRequestOptions",
-      "HttpConversationRequestContext",
-      "HttpConversationRequestBody"
+      "bindSetup"
     ]
   },
   {
@@ -1161,17 +1155,12 @@
       "createUnavailableConversationDataSource",
       "ConversationDataSourceOptions",
       "conversationSummarySchema",
-      "langGraphStateSnapshotSchema",
-      "conversationListResponseSchema",
-      "conversationDetailResponseSchema",
-      "ConversationListResponse",
-      "ConversationDetailResponse",
-      "LangGraphStateSnapshotDto",
       "createConversationServiceThreadBinding",
       "ConversationRunResumeProvider",
       "ConversationServiceThreadBinding",
       "ConversationThreadSelectionDisabledError",
-      "projectConversationDetail"
+      "projectConversationDetail",
+      "conversationDetailSchema"
     ]
   },
   {
@@ -1787,6 +1776,101 @@
     "projectFiles": [
       "styles.css",
       "styles.css.d.ts"
+    ]
+  },
+  {
+    "id": "workbench-panel",
+    "component": "WorkbenchPanelPlugin",
+    "symbol": "workbenchPanelPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "workbench-panel.tsx",
+      "service.ts"
+    ],
+    "implementationExports": [
+      "WorkbenchPanel",
+      "WorkbenchPanelProps",
+      "WorkbenchPanelItem"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "workbench-panel",
+    "implementationModule": "workbench-panel",
+    "services": {
+      "provides": [
+        "agent-ui.workbench-panel"
+      ],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "definitionExports": [
+      "createWorkbenchPanelService",
+      "WORKBENCH_PANEL_SERVICE",
+      "WorkbenchPanelService",
+      "WorkbenchPanelSnapshot",
+      "WorkbenchPanelProps",
+      "WorkbenchPanelItem"
+    ]
+  },
+  {
+    "id": "workbench-panel-actions",
+    "component": "WorkbenchPanelActionsPlugin",
+    "symbol": "workbenchPanelActionsPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "workbench-panel-actions.tsx"
+    ],
+    "implementationExports": [
+      "WorkbenchPanelActions",
+      "WorkbenchPanelActionsProps"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "workbench-panel-actions",
+    "implementationModule": "workbench-panel-actions",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.workbench-panel"
+      ],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "definitionExports": [
+      "WorkbenchPanelActionsProps"
     ]
   }
 ]

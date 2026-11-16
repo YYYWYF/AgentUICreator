@@ -1348,7 +1348,7 @@ it("ends a non-recoverable Host capacity failure without inviting further model 
 
 it("edits a history-delete implementation through the real graph without an extra confirmation", async () => {
   const context = await project("history-service"); passingValidation();
-  const target = "src/应用/services/conversations/http-data-source.ts";
+  const target = "src/应用/services/conversations/data-source.ts";
   const original = 'export async function deleteHistory(id: string): Promise<void> { await fetch(`/conversations/${encodeURIComponent(id)}`, { method: "DELETE" }); }\n';
   await mkdir(path.dirname(path.join(context.root, target)), { recursive: true });
   await writeFile(path.join(context.root, target), original);
@@ -1358,7 +1358,7 @@ it("edits a history-delete implementation through the real graph without an extr
     if (index === 1) return call("enable_creator_tools", { groups: ["services"] }, "service-tools");
     if (index === 2) return call("read_file", { file_path: target }, "read-history");
     if (index === 3) return call("prepare_ui_service_implementation_change", {
-      implementationPath: "services/conversations/http-data-source.ts",
+      implementationPath: "services/conversations/data-source.ts",
       edits: [{ oldText: "/conversations/", newText: "/history/" }], impactSummary: "修改单条历史会话删除路径，影响所有使用此实现的删除调用，保留其他历史操作。",
     }, "prepare-history");
     if (index === 4) {

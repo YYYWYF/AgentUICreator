@@ -1,26 +1,10 @@
-// Mock API payloads are owned by this development provider. Keep package
-// declarations independent of generated frontend template source files.
+import type { ConversationDetail, ConversationSummary } from "./types.js";
+
+// Mock payloads follow the project data-source contract.
 export interface MockConversationFixture {
-  summary: {
-    id: string;
-    title: string;
-    group?: string | undefined;
-    updatedAt?: string | undefined;
-    disabled?: boolean | undefined;
-  };
-  detail: {
-    id: string;
-    title: string;
-    state: {
-      values: { messages?: unknown[] | undefined; [key: string]: unknown };
-      next?: unknown;
-      metadata?: unknown;
-      createdAt?: string | undefined;
-      tasks?: unknown[] | undefined;
-    };
-    agentState?: unknown;
-  };
-  /** Development documentation only; it is never consumed by the Runtime. */
+  summary: ConversationSummary;
+  detail: ConversationDetail;
+  /** Development documentation only; never consumed by the Runtime. */
   sourceScenarioId?: string | undefined;
 }
 
@@ -55,9 +39,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-basic",
       title: "历史：基础会话",
-      state: {
-        values: {
-          messages: [
+      history: { format: "langchain", messages: [
             {
               id: "basic-human-1",
               type: "human",
@@ -68,9 +50,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
               type: "ai",
               content: "可以，我们先从 Runtime、Frontend State 和 UI Plugin 的边界开始。",
             },
-          ],
-        },
-      },
+          ] },
     },
   },
   {
@@ -83,9 +63,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-tool",
       title: "历史：已完成工具调用",
-      state: {
-        values: {
-          messages: [
+      history: { format: "langchain", messages: [
             {
               id: "tool-human-1",
               type: "human",
@@ -118,9 +96,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
               type: "ai",
               content: "检查完成，历史工具结果已经恢复。",
             },
-          ],
-        },
-      },
+          ] },
     },
     sourceScenarioId: "reasoning-tool-success",
   },
@@ -134,9 +110,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-reasoning",
       title: "历史：推理内容",
-      state: {
-        values: {
-          messages: [
+      history: { format: "langchain", messages: [
             {
               id: "reasoning-human-1",
               type: "human",
@@ -153,9 +127,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
                 },
               },
             },
-          ],
-        },
-      },
+          ] },
     },
     sourceScenarioId: "reasoning-tool-success",
   },
@@ -169,9 +141,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-frontend-tool",
       title: "历史：已完成前端工具",
-      state: {
-        values: {
-          messages: [
+      history: { format: "langchain", messages: [
             {
               id: "frontend-tool-human-1",
               type: "human",
@@ -200,9 +170,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
               type: "ai",
               content: "The existing result is restored.",
             },
-          ],
-        },
-      },
+          ] },
     },
   },
   {
@@ -215,9 +183,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-attachments",
       title: "历史：图片与文件内容",
-      state: {
-        values: {
-          messages: [
+      history: { format: "langchain", messages: [
             {
               id: "attachments-human-1",
               type: "human",
@@ -241,9 +207,7 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
               type: "ai",
               content: "图片和文件保存在 LangGraph 消息内容中。",
             },
-          ],
-        },
-      },
+          ] },
     },
   },
   {
@@ -256,20 +220,12 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
     detail: {
       id: "mock-history-long",
       title: "历史：长会话",
-      state: {
-        values: {
-          messages: longHistoryMessages(),
-          businessState: { source: "mock-langgraph-checkpoint" },
-        },
-        metadata: { fixture: "long-history" },
-      },
+      history: { format: "langchain", messages: longHistoryMessages() },
     },
   },
 ];
 
-export const mockConversationList: { conversations: MockConversationFixture["summary"][] } = {
-  conversations: mockConversationFixtures.map((fixture) => fixture.summary),
-};
+export const mockConversationList: ConversationSummary[] = mockConversationFixtures.map(fixture => fixture.summary);
 
 export const mockConversationDetails: MockConversationFixture["detail"][] =
   mockConversationFixtures.map((fixture) => fixture.detail);

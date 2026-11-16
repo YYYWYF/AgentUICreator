@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, test } from "node:test";
 import {
   prepareDevelopmentCache,
@@ -42,6 +44,74 @@ test("Windows workspace paths cover drive case, spaces, Unicode and UNC", () => 
     workspaceDevelopmentId("C:\\UI", "win32"),
     workspaceDevelopmentId("D:\\UI", "win32"),
   );
+});
+
+test("default cache stays inside the project and cleans both services independently", () => {
+  const { root } = fixture();
+  const realRoot = fs.realpathSync(root);
+  const parent = path.join(
+    realRoot,
+    "node_modules",
+    ".cache",
+    "agent-ui-development",
+    workspaceDevelopmentId(realRoot),
+  );
+  const outputs = new Map();
+  for (const role of ["workbench", "host-preview"]) {
+    const cache = prepareDevelopmentCache(realRoot, role);
+    assert.equal(path.dirname(generation(cache)), path.join(parent, role));
+    const file = path.join(cache, "deps", "probe.js.map");
+    put(file);
+    outputs.set(role, file);
+  }
+  const next = prepareDevelopmentCache(realRoot, "workbench");
+  assert.equal(fs.existsSync(outputs.get("workbench")), false);
+  assert.equal(fs.existsSync(outputs.get("host-preview")), true);
+  assert.deepEqual(fs.readdirSync(next), []);
+  prepareDevelopmentCache(realRoot, "host-preview");
+  assert.equal(fs.existsSync(outputs.get("host-preview")), false);
+});
+
+test("Vite writes dependency maps after repeated project-local cold starts", async () => {
+  const { root } = fixture();
+  const require = createRequire(
+    new URL("../apps/creator-workbench/package.json", import.meta.url),
+  );
+  const { resolveConfig, optimizeDeps } = await import(
+    pathToFileURL(require.resolve("vite")).href
+  );
+  put(
+    path.join(root, "package.json"),
+    JSON.stringify({ name: "cache-fixture", type: "module" }),
+  );
+  const dependency = path.join(root, "node_modules", "cache-probe");
+  put(
+    path.join(dependency, "package.json"),
+    JSON.stringify({ name: "cache-probe", main: "index.js" }),
+  );
+  put(path.join(dependency, "index.js"), "module.exports = { value: 42 };\n");
+  const previous = new Map();
+  for (let round = 0; round < 2; round++) {
+    await Promise.all(["workbench", "host-preview"].map(async role => {
+      const cacheDir = prepareDevelopmentCache(root, role);
+      const old = previous.get(role);
+      if (old) assert.equal(fs.existsSync(old), false);
+      const config = await resolveConfig({
+        configFile: false,
+        root,
+        cacheDir,
+        logLevel: "silent",
+        optimizeDeps: { include: ["cache-probe"], noDiscovery: true },
+      }, "serve");
+      const metadata = await optimizeDeps(config, true);
+      const output = metadata.optimized["cache-probe"].file;
+      assert.ok(fs.readFileSync(output, "utf8").includes("42"));
+      const map = JSON.parse(fs.readFileSync(`${output}.map`, "utf8"));
+      assert.equal(map.version, 3);
+      assert.ok(map.sources.length > 0);
+      previous.set(role, generation(cacheDir));
+    }));
+  }
 });
 
 test("every startup clears previous Vite output while preserving dependencies and build receipts", () => {
@@ -101,13 +171,12 @@ test("cache cleanup stays inside its workspace and service", () => {
 
 test("locked Windows cache files warn and leave the new cache usable", () => {
   for (const code of ["EPERM", "EBUSY", "EACCES"]) {
-    const options = fixture();
-    const first = prepareDevelopmentCache(options.root, "workbench", options);
+    const { root } = fixture();
+    const first = prepareDevelopmentCache(root, "workbench");
     const old = generation(first);
     put(path.join(first, "react-markdown.js.map"));
     const warnings = [];
-    const second = prepareDevelopmentCache(options.root, "workbench", {
-      ...options,
+    const second = prepareDevelopmentCache(root, "workbench", {
       warn: (message) => warnings.push(message),
       remove(target, settings) {
         if (target === old)

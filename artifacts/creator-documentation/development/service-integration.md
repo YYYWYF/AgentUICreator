@@ -1,6 +1,6 @@
 # 业务服务接入总览
 
-这一组文档用于**手动接入自己的服务**。每篇分别给出修改文件、请求与响应格式、格式不一致时的适配代码，以及页面接线和验证方法。
+这一组文档用于**手动接入自己的服务**。每篇分别说明要修改哪些文件、接口的请求与响应格式、如何转换不同的数据格式，以及如何在页面中使用服务并验证结果。
 
 先完成 [React](/development/react.md)、[Vue](/development/vue.md) 或 [HTML](/development/web-component.md) 挂载，再按业务需要接入下表中的服务。各项独立配置，不要求一次实现全部接口。
 
@@ -8,20 +8,20 @@
 
 本组文档假设 Agent UI 源码目录是 `src/agent-ui/`。表中相对路径均在该目录下；初始化选择了其他目录时，替换此前缀。`src/AssistantPage.tsx` 是下面约定的**业务页面文件名**，可以换成项目实际挂载 `<Agent />` 的文件。
 
-| 要接入的能力                                                   | 修改入口                                                                                                | 接入方式与协议                                                           |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [Agent 对话与工作流](/development/connect-agent.md)            | `src/AssistantPage.tsx` 的 `Agent endpoint/request/fetch`；工作流按钮在项目插件应用层                              | POST AG-UI 请求，返回事件流；自定义 `fetch` 适配传输                              |
-| [历史会话](/development/history-backend.md)                  | `services/conversations/http-data-source.ts`                                                        | 每个接口对象配置 `url/method/body/decode`；也可注入完整 `ConversationDataSource` |
-| [附件上传](/development/attachment-upload.md)                | 页面 `Agent attachments`；可新建 `services/attachments.ts`                                                | multipart 上传，返回文件 URL；或 `dataSource.upload()`                     |
-| [语音转写服务（开发中）](/development/speech-to-text.md)            | 开发中                                                                                                 | 暂不提供业务转写服务接入教程                                                    |
-| [回复评价](/development/feedback-service.md)                 | 页面 `Agent feedback`；可新建 `services/feedback.ts`                                                      | JSON 提交评价；或 `dataSource.submit()`                                 |
-| [一号通登录（开发中）](/development/auth-service.md)               | 业务页面 `Agent request.headers/user`                                                                   | 当前由外部系统自行登录，再传入凭据和展示资料                                            |
-| [搜索候选与命令](/development/composer-sources.md)              | `plugins/mention-trigger/index.tsx`、`plugins/conversation-command-source/definition.ts`，以及项目自己的来源实现 | `@` 使用异步搜索来源；`/` 使用命令来源／注册器                                       |
-| [前端工具与页面操作](/development/frontend-tools.md)              | 业务页面 `Agent frontendTools`，工具实现可放 `services/frontend-tools.ts`                                      | 声明参数 Schema，在 `execute()` 中调用现有业务方法或接口                            |
-| [给 Agent 传递业务参数](/development/business-context.md)       | 页面 `Agent ctx/getRunContext` 与 `sendMessage` 参数                                                     | 发送消息时附带业务参数                                                       |
-| [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md) | 项目消息插件的 `schema.ts`、`index.tsx`、`definition.ts` 与页面事件配置                                             | 约定业务事件数据，校验并注册新的消息卡片                                              |
+| 要接入的能力                                                   | 修改入口                                                                                                | 接入方式与协议                                                  |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| [Agent 对话与工作流](/development/connect-agent.md)            | `src/AssistantPage.tsx` 的 `Agent endpoint/request/fetch`；工作流按钮在项目插件应用层                              | POST AG-UI 请求，返回事件流；自定义 `fetch` 适配传输                     |
+| [历史会话](/development/history-backend.md)                  | `services/conversations/data-source.ts`                                                             | 直接编辑 `list/get/delete/...` 方法中的请求和响应转换；也可传入完整数据源         |
+| [附件上传](/development/attachment-upload.md)                | 页面 `Agent attachments`；可新建 `services/attachments.ts`                                                | multipart 上传，返回文件 URL；或 `dataSource.upload()`            |
+| [语音转写服务（开发中）](/development/speech-to-text.md)            | 开发中                                                                                                 | 暂不提供业务转写服务接入教程                                           |
+| [回复评价](/development/feedback-service.md)                 | 页面 `Agent feedback`；可新建 `services/feedback.ts`                                                      | JSON 提交评价；或 `dataSource.submit()`                        |
+| [一号通登录（开发中）](/development/auth-service.md)               | 业务页面 `Agent request.headers/user`                                                                   | 当前由外部系统自行登录，再传入凭据和展示资料                                   |
+| [搜索候选与命令](/development/composer-sources.md)              | `plugins/mention-trigger/index.tsx`、`plugins/conversation-command-source/definition.ts`，以及项目自己的来源实现 | `@` 使用异步搜索来源；`/` 使用命令来源／注册器                              |
+| [前端工具与页面操作](/development/frontend-tools.md)              | 业务页面的 `Agent toolkit`                                                                               | 注册 `human + render` 收集用户输入，或 `frontend + execute` 调用业务方法 |
+| [给 Agent 传递业务参数](/development/business-context.md)       | 页面 `Agent ctx/getRunContext` 与 `sendMessage` 参数                                                     | 发送消息时附带业务参数                                              |
+| [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md) | 项目消息插件的 `data.ts`、`index.tsx` 与 `definition.ts`                                                     | 定义业务事件数据类型，注册并渲染新的消息卡片                                   |
 
-上表建议新建的 `services/*.ts` 是项目自己的代码组织方式，不是工具自动生成的固定文件。已有请求模块时直接复用它。新建服务文件后仍需按各篇示例导入并接线，只有文件不会自动生效。
+上表中的 `services/*.ts` 是建议新建的项目文件，工具不会自动生成。项目已有请求模块时可以直接复用。创建文件后，按各篇示例将导出的配置或函数传给 `Agent` 的对应属性，或在插件中调用；完成这些步骤后，服务才会生效。
 
 ## 同时接入多项服务
 

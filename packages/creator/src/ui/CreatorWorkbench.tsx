@@ -53,7 +53,8 @@ import { CreatorProjectIntegrationGuide } from "./setup/CreatorProjectIntegratio
 import { CreatorPluginUpdates } from "./CreatorPluginUpdates.js";
 import { MockServicePanel } from "./MockServicePanel.js";
 import { canInitializeCreatorProject, createEmptyCreatorSetupDraft, isCreatorSetupValidationUsable, isSetupRequestCurrent, shouldRefreshAfterInitializeError } from "./setup/creatorSetupState.js";
-import { CreatorWorkspaceRequestError, chooseWorkspaceProject, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
+import { CreatorWorkspaceRequestError, chooseWorkspaceProject, clearWorkspaceProject, getWorkspaceSetup, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
+import { recoverWorkspace } from "./workspaceRecovery.js";
 import {
   creatorStageTitle,
   interruptCreatorStage,
@@ -1155,7 +1156,8 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const [workspaceState, setWorkspaceState] = useState<CreatorWorkspacePublicState | null>(null);
   const [workspacePath, setWorkspacePath] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
-  const [workspaceBusy, setWorkspaceBusy] = useState(false);
+  const [workspaceBusy, setWorkspaceBusy] = useState(true);
+  const [workspaceRecoveryEpoch, setWorkspaceRecoveryEpoch] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState("");
   const refreshInFlight = useRef(false);
@@ -1172,7 +1174,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
-  const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
+  const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(false);
   const [setupInfo, setSetupInfo] = useState<CreatorSetupInfoState>({ status: "idle" });
   const [setupDraft, setSetupDraft] = useState<CreatorSetupDraft>(createEmptyCreatorSetupDraft);
   const [setupValidationEpoch, setSetupValidationEpoch] = useState(0);
@@ -1257,34 +1259,30 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     const loadWorkspace = async () => {
       setWorkspaceBusy(true);
+      setWorkspaceError(null);
       try {
-        let state = await getWorkspaceState(localeMessagesRef.current);
-        if (state.status === "none") {
-          const previousPath = rememberedWorkspacePath();
-          if (previousPath !== null) {
-            try {
-              state = await selectWorkspaceProject(previousPath, localeMessagesRef.current);
-            } catch (error) {
-              rememberWorkspacePath(null);
-              if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
-            }
-          }
-        }
+        const state = await recoverWorkspace(rememberedWorkspacePath(), localeMessagesRef.current, controller.signal);
         if (active) {
           installWorkspace(state);
           setShowWorkspaceSelector(state.status === "none");
         }
       } catch (error) {
-        if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
+        if (active) {
+          // Keep the remembered directory even when restoration fails. Only an
+          // explicit close (or a successful new selection) changes that choice.
+          setWorkspaceState({ status: "none" });
+          setWorkspaceError(error instanceof Error ? error.message : String(error));
+        }
       } finally {
         if (active) setWorkspaceBusy(false);
       }
     };
     void loadWorkspace();
-    return () => { active = false; };
-  }, []);
+    return () => { active = false; controller.abort(); };
+  }, [workspaceRecoveryEpoch]);
 
   useEffect(() => {
     if (!showWorkspaceSelector) return;
@@ -1681,10 +1679,11 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
         onRunErrorEvent({ event }) {
           runErrorHandled = true;
           runErrorCode = event.code;
+          const questionExpired = questionContextIsGone(event.code) || questionContextIsGone(event.message);
           const errorReceipt = isRecord(event.metadata) && isCreatorRunReceipt(event.metadata.receipt) ? event.metadata.receipt : undefined;
           if (response !== undefined) {
             updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id && item.status !== "resolved"
-              ? { ...item, status: (questionContextIsGone(event.code) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+              ? { ...item, status: (questionExpired ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
           }
           updateRunItems((current) => [
             ...current.map((item) =>
@@ -1701,7 +1700,8 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               kind: "message",
               id: crypto.randomUUID(),
               role: "error",
-              content: creatorRunOutcomeText(event.metadata, event.message, localeMessages),
+              content: questionExpired ? localeMessages.creatorQuestion.thisQuestionSAgentExecutionHasExpiredStart
+                : creatorRunOutcomeText(event.metadata, event.message, localeMessages),
               ...(errorReceipt ? { receipt: errorReceipt } : {}),
             },
           ]);
@@ -1767,13 +1767,16 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
     } catch (error) {
       const code = error instanceof Error && "code" in error ? String(error.code) : "";
-      if (code === "CREATOR_RUN_NOT_FOUND" || code === "CREATOR_WORKSPACE_CHANGED") completed = true;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const questionExpired = questionContextIsGone(runErrorCode) || questionContextIsGone(code) || questionContextIsGone(errorMessage);
+      if (questionExpired || code === "CREATOR_RUN_NOT_FOUND" || code === "CREATOR_WORKSPACE_CHANGED") completed = true;
       if (response !== undefined) {
         updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id && item.status !== "resolved"
-          ? { ...item, status: (questionContextIsGone(runErrorCode) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
+          ? { ...item, status: (questionExpired ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
       }
       if (!runErrorHandled) {
-        const message = creatorRuntimeErrorMessage(code, error instanceof Error ? error.message : String(error), localeMessages);
+        const message = questionExpired ? localeMessages.creatorQuestion.thisQuestionSAgentExecutionHasExpiredStart
+          : creatorRuntimeErrorMessage(code, errorMessage, localeMessages);
         updateRunItems((current) => [
           ...current.map((item) =>
             item.kind === "message" && item.streaming === true
@@ -1834,8 +1837,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
         { kind: "message", id: crypto.randomUUID(), role: "assistant",
           content: localeMessages.creatorWorkbench.thisDevelopmentTaskWasAbandonedPreviouslyCommittedChanges }]);
     } catch (error) {
+      const code = error instanceof Error && "code" in error ? String(error.code) : "";
+      const message = error instanceof Error ? error.message : String(error);
+      if (questionContextIsGone(code) || questionContextIsGone(message)) {
+        updateItems(current => current.map(item => item.kind === "question" && item.id === question.id
+          ? { ...item, status: "stale" as const } : item));
+        return;
+      }
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
-        content: error instanceof Error ? error.message : String(error) }]);
+        content: message }]);
     }
   };
 
@@ -1948,6 +1958,10 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
   const refreshCreator = async () => {
     if (refreshInFlight.current || workspaceBusy || isRunning || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
+    if (workspaceState === null || (workspaceState.status === "none" && workspaceError !== null)) {
+      setWorkspaceRecoveryEpoch(current => current + 1);
+      return;
+    }
     const id = workspaceIdRef.current, agent = agentRef.current;
     if (id && agent && workspaceState?.status === "ready" && workspaceState.runtime.status === "ready" && storedRun(id, agent.threadId, localeMessages)) {
       installWorkspace(workspaceState);
@@ -2034,12 +2048,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     const dependencyPlan = setupDraft.validation.status === "valid" ? setupDraft.validation.result.dependencyPlan : undefined;
     const preparingDependencies = dependencyPlan !== undefined &&
       (Object.keys(dependencyPlan.dependencies).length > 0 || Object.keys(dependencyPlan.devDependencies).length > 0);
-    if (dependencyPlan?.installRequired && !preparingDependencies) {
-      invalidateSetupValidation();
-      setSetupDraft(current => ({ ...current, validation: { status: "idle" }, error: null }));
-      setSetupValidationEpoch(current => current + 1);
-      return;
-    }
     initializingRef.current = true;
     setSetupDraft((current) => ({ ...current, initializing: true, error: null }));
     const planId = setupDraft.validation.status === "valid"
@@ -2334,7 +2342,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                   onBuild={workspaceState.workspace.hostFramework === "vue" ? () => buildCompatibilityProjectRequest(localeMessages) : undefined}
                   buildDisabled={isRunning || commandBusy || workspaceBusy} />
               ) : null}
-              {workspaceState?.status === "broken" ? (
+              {(workspaceState === null || workspaceState.status === "none") && workspaceError !== null ? (
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable}</strong><p>{localeMessages.creatorWorkbench.workspaceRecoveryFailed}</p>
+                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => setWorkspaceRecoveryEpoch(current => current + 1)}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.reconnect}</Button>
+                  <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary><p>{localizeCreatorPresentation(workspaceError, localeMessages)}</p></details>
+                </div>
+              ) : workspaceState?.status === "broken" ? (
                 <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{workspaceState.issues.some(issue => issue.code.startsWith("CREATOR_")) ? localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable : localeMessages.creatorWorkbench.projectConfigurationNeedsRepair}</strong><p>{workspaceState.issues.some(issue => issue.code === "CREATOR_OPERATOR_RESTART_REQUIRED") ? localeMessages.creatorWorkbench.operatorRestartRequired : localeMessages.creatorWorkbench.projectInspectionFailedAdvice}</p>
                   <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.recheckProject}</Button>
                   <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary>{workspaceState.issues.map((issue, index) => <pre key={`${issue.code}-${index}`}>{issue.code}{"\n"}{issue.message}</pre>)}</details>
@@ -2345,7 +2358,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                   <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary><code>{workspaceState.runtime.code}</code></details>
                 </div>
               ) : workspaceState?.status !== "ready" ? (
-                <div className="creator-panel-empty"><FolderOpen aria-hidden="true" /><strong>{workspaceState === null ? localeMessages.creatorWorkbench.readingProject : localeMessages.creatorWorkbench.startWithYourFrontendProject}</strong><p>{localeMessages.creatorWorkbench.chooseAProjectThenDescribeTheAgentUI}</p></div>
+                <div className="creator-panel-empty" aria-busy={workspaceBusy}><FolderOpen aria-hidden="true" /><strong>{workspaceBusy ? localeMessages.creatorWorkbench.readingProject : localeMessages.creatorWorkbench.startWithYourFrontendProject}</strong>{workspaceBusy ? null : <p>{localeMessages.creatorWorkbench.chooseAProjectThenDescribeTheAgentUI}</p>}</div>
               ) : items.filter(
                 (item) => item.kind !== "stage" || shouldPresentStage(item, creatorDebug),
               ).length === 0 ? (

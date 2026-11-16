@@ -27,6 +27,7 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
     return {
       remoteId: item.id, status: item.status,
       ...(title === undefined ? {} : { title }),
+      ...(item.lastMessageAt === undefined ? {} : { lastMessageAt: item.lastMessageAt }),
       ...(item.custom === undefined ? {} : { custom: item.custom }),
     };
   };

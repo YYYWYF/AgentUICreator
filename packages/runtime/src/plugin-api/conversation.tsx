@@ -118,15 +118,33 @@ export interface ConversationToolCallProps {
 export type ConversationToolCallComponent =
   ComponentType<ConversationToolCallProps>;
 
-export interface ConversationToolkitEntry {
-  /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
-  interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
-  type: "backend" | "human";
-  display: "standalone";
-  render: ComponentType<any>;
-  description?: string | undefined;
-  parameters?: Record<string, unknown> | undefined;
+export interface ConversationToolExecuteContext {
+  readonly toolCallId: string;
+  readonly abortSignal: AbortSignal;
+  human(payload: unknown): Promise<unknown>;
 }
+
+export type ConversationToolkitEntry =
+  | {
+      /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
+      interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
+      type: "backend" | "human";
+      display?: "inline" | "standalone" | undefined;
+      render: ConversationToolCallComponent;
+      description?: string | undefined;
+      parameters?: Record<string, unknown> | undefined;
+      disabled?: boolean | undefined;
+    }
+  | {
+      /** An explicit application/Host registration grants browser execution permission. */
+      type: "frontend";
+      description: string;
+      parameters: Record<string, unknown>;
+      execute(input: Record<string, unknown>, context: ConversationToolExecuteContext): unknown | Promise<unknown>;
+      render?: ConversationToolCallComponent | undefined;
+      display?: "inline" | "standalone" | undefined;
+      disabled?: boolean | undefined;
+    };
 
 export type ConversationToolkit = Readonly<
   Record<string, ConversationToolkitEntry>

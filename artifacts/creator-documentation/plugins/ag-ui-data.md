@@ -1,8 +1,37 @@
-# 插件显示条件与 AG-UI 数据
+# AG-UI 数据格式与插件数据接入
 
-**启用插件后，还要有对应的数据或操作才会显示。** 下表及对应插件页面的“显示条件与数据来源”说明服务端事件与数据格式；组件属性表用于定制展示，不能替代服务端事件。
+**启用插件后，还要有对应的数据或操作才会显示。** 下表及对应插件页面的“显示条件与数据来源”说明服务端事件与数据格式。
 
-本文按当前实现说明协议。AG-UI 定义事件结构；`chart`、`CONTEXT_CONTENT`、`run_ci_job` 等名称和业务字段是当前插件约定，不是 AG-UI 的内置事件类型。插件 ID、工具名和消息名用途不同，必须使用各页面列出的准确名称。
+## AG-UI 数据格式简介
+
+AG-UI（Agent User Interaction Protocol）是 Agent 与前端之间的交互协议。一次运行中，服务端可以依次发送文字、工具调用、状态更新等事件，前端据此更新会话和插件。接入时需要区分两类数据：
+
+- **前端发出的请求**：默认以 POST 发送 `RunAgentInput` JSON，包含会话 `threadId`、本次运行 `runId`、消息 `messages`，以及 `state`、`tools`、`context`、`forwardedProps` 等字段。完整请求示例见[连接 AG-UI 服务](/development/connect-agent.md#请求体与响应流)。
+- **服务端返回的响应**：本项目使用 SSE 持续传输 AG-UI 事件。每条事件是一个 JSON 对象，由必需的 `type` 区分类型，其余字段取决于事件类型。
+
+例如，下面是一条文字增量事件的 JSON 内容；实际传输时还要加上下文和 SSE 包装，见下一节：
+
+```jsonl
+{"type":"TEXT_MESSAGE_CONTENT","messageId":"answer-1","delta":"你好。"}
+```
+
+`type` 告诉前端如何处理数据；`messageId` 指定更新哪条消息；`delta` 在这里是追加到消息末尾的文字片段。不同事件中的数据字段含义不同：
+
+| 用途      | 常见事件                                                    | 主要数据字段                                                                     |
+| ------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 运行状态    | `RUN_STARTED`、`RUN_FINISHED`、`RUN_ERROR`                | 开始与完成使用 `threadId`、`runId`；失败使用 `message`，可附 `code`                        |
+| 文字回复    | `TEXT_MESSAGE_START/CONTENT/END`                        | `messageId` 关联同一条消息；开始携带 `role`，内容携带文字 `delta`                             |
+| 工具调用与结果 | `TOOL_CALL_START/ARGS/END/RESULT`                       | `toolCallId` 关联一次调用；开始携带 `toolCallName`，参数使用 `delta`，结果使用 `content`        |
+| 共享状态    | `STATE_SNAPSHOT`、`STATE_DELTA`                          | `snapshot` 提供完整状态；`delta` 是按顺序应用的 JSON Patch 操作数组                          |
+| 活动卡片    | `ACTIVITY_SNAPSHOT`、`ACTIVITY_DELTA`                    | `messageId` 关联卡片；快照携带 `activityType`、`content`，增量使用 JSON Patch 格式的 `patch` |
+| 思考内容    | `REASONING_START`、`REASONING_MESSAGE_*`、`REASONING_END` | 思考消息通过 `messageId` 关联，文字片段使用 `delta`                                       |
+| 自定义业务数据 | `CUSTOM`                                                | `name` 标识业务事件，`value` 携带业务数据，具体结构由对应插件约定                                   |
+
+会话、运行、消息和工具调用是不同层级：一个 `threadId` 下可以有多次 `runId`，一次运行可以产生多条消息和多次工具调用。各事件只携带自身需要的关联字段，不需要把所有 ID 都加到每条事件上。
+
+**同名字段不代表同一种格式。** 文字 `delta` 是字符串，工具参数 `delta` 是拼接后才能解析的 JSON 字符串，状态 `delta` 是 JSON Patch 数组；`CUSTOM.value` 则可以直接携带业务对象。不能把这些数据统一当作文字或普通对象处理。
+
+以上列出本页常用的事件形式；协议事件说明见 [AG-UI 官方文档](https://docs.ag-ui.com/concepts/events)，各插件实际需要的名称和字段以本页及对应插件页为准。
 
 ## 共用的 SSE 格式
 
@@ -23,7 +52,13 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 
 `threadId`、`runId` 应使用当前请求的值；消息和工具调用 ID 应在各自生命周期内保持一致，不同对象使用不同 ID。文字增量使用 `delta`。
 
-各插件页的 JSON 数组表示**依次发送的事件**，便于阅读；HTTP 响应仍逐条使用上面的 SSE 格式，不返回整个数组。除页面特别列出的中断结束事件外，将示例放在同一轮 `RUN_STARTED` 与 `RUN_FINISHED` 之间。中断使用 `outcome.type: "interrupt"`，失败使用 `RUN_ERROR`，不能在失败或中断后再追加成功结束。
+文档中的事件示例与 F12 的 EventStream **Data** 列一致：每行一个完整 JSON 事件，按行依次发送，不加外层数组。实际 HTTP 响应仍需按上面的 SSE 格式为每条事件添加 `data:` 前缀，并在事件之间留一个空行。除页面特别列出的结束事件外，示例中的内容事件放在 `RUN_STARTED` 与对应结束事件之间。
+
+结束事件的格式分为：
+
+- 正常完成：`RUN_FINISHED`，可携带 `outcome: { "type": "success" }`。
+- 等待用户输入：`RUN_FINISHED`，携带 `outcome: { "type": "interrupt", "interrupts": [...] }`，其中 `interrupts` 是非空的中断描述数组。
+- 错误：`RUN_ERROR`，携带错误描述 `message`，可附错误码 `code`，例如 `{ "type": "RUN_ERROR", "message": "请求超时", "code": "TIMEOUT" }`。`RUN_ERROR` 后仍可以返回新事件。
 
 ## 按展示内容找事件
 
@@ -49,13 +84,11 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 
 下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result` 或 `tool-fallback`。
 
-```json
-[
-  { "type": "TOOL_CALL_START", "toolCallId": "call-1", "toolCallName": "lookup_order" },
-  { "type": "TOOL_CALL_ARGS", "toolCallId": "call-1", "delta": "{\"orderId\":\"O-1042\"}" },
-  { "type": "TOOL_CALL_END", "toolCallId": "call-1" },
-  { "type": "TOOL_CALL_RESULT", "messageId": "result-1", "toolCallId": "call-1", "role": "tool", "content": "{\"status\":\"shipped\"}" }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"lookup_order"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"orderId\":\"O-1042\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"status\":\"shipped\"}"}
 ```
 
 `TOOL_CALL_ARGS.delta` 是 JSON **字符串增量**，拼接后才得到参数对象。`TOOL_CALL_END` 表示参数传输结束，工具仍可继续执行；`TOOL_CALL_RESULT` 才提供结果。业务 JSON 结果先序列化为 `content` 字符串，由当前适配层解析后交给插件；[多模态工具结果](/plugins/tool-result.md)使用标准内容数组。

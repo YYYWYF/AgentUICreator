@@ -108,7 +108,7 @@ The state API reports `selection: { type: "builtin" | "recording", id }`, projec
 Generated applications export `createAgentBackendTransport()` and its `fetch`
 port. Product adapters explicitly use this transport; global `fetch` is unchanged.
 The conversation data-source adapter injects this port into
-`createHttpConversationDataSource`. Other file/business adapters can opt in:
+the project-owned `createConversationDataSource` methods. Other file/business adapters can opt in:
 
 ```ts
 import { createAgentBackendTransport } from "./agent-ui";

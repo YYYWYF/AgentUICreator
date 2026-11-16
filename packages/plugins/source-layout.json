@@ -1852,6 +1852,66 @@
       "source": "src/plugins/skills-selection/CHANGELOG.json",
       "kind": "changelog",
       "pluginId": "skills-selection"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel/files/plugins/workbench-panel/definition.ts",
+      "source": "src/plugins/workbench-panel/adapters/package-definition.ts",
+      "kind": "project",
+      "pluginId": "workbench-panel"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel/files/plugins/workbench-panel/index.tsx",
+      "source": "src/plugins/workbench-panel/adapters/component.tsx",
+      "kind": "project",
+      "pluginId": "workbench-panel"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel/files/plugins/workbench-panel/manifest.json",
+      "source": "src/plugins/workbench-panel/plugin.json",
+      "kind": "project",
+      "pluginId": "workbench-panel"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel/files/plugins/workbench-panel/styles.css",
+      "source": "src/plugins/workbench-panel/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "workbench-panel"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel/changelog.json",
+      "source": "src/plugins/workbench-panel/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "workbench-panel"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel-actions/files/plugins/workbench-panel-actions/definition.ts",
+      "source": "src/plugins/workbench-panel-actions/adapters/package-definition.ts",
+      "kind": "project",
+      "pluginId": "workbench-panel-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel-actions/files/plugins/workbench-panel-actions/index.tsx",
+      "source": "src/plugins/workbench-panel-actions/adapters/component.tsx",
+      "kind": "project",
+      "pluginId": "workbench-panel-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel-actions/files/plugins/workbench-panel-actions/manifest.json",
+      "source": "src/plugins/workbench-panel-actions/plugin.json",
+      "kind": "project",
+      "pluginId": "workbench-panel-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel-actions/files/plugins/workbench-panel-actions/styles.css",
+      "source": "src/plugins/workbench-panel-actions/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "workbench-panel-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin/workbench-panel-actions/changelog.json",
+      "source": "src/plugins/workbench-panel-actions/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "workbench-panel-actions"
     }
   ]
 }

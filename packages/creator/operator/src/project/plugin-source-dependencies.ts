@@ -27,7 +27,7 @@ export async function inspectPluginSourceDependencies(root: string, installedRoo
   const inspection = await inspectAgentUIPackages(root, [{ packages: requirements }]);
   const changes = inspection.packages.filter(item => !item.declared || !item.installed).map(item => `${item.name}@${item.required}`);
   // Packages with the same version can still be separate Context instances.
-  // Compare actual resolved locations, including the direct imports' peer trees.
+  // Record resolved locations for plan provenance without rejecting the project.
   const identities: (string | null)[][] = [];
   const dependencyRoots = [installedRoot];
   for (const name of Object.keys(requirements).sort()) {
@@ -42,14 +42,13 @@ export async function inspectPluginSourceDependencies(root: string, installedRoo
     for (const from of [root, ...dependencyRoots]) {
       const resolved = await readPackageIdentity(from, name);
       identities.push([from, name, resolved?.root ?? null]);
-      if (resolved && !samePackageLocation(resolved.root, canonical.root)) throw new AgentUISourceError("PLUGIN_SOURCE_CONTEXT_DUPLICATED", "Source and npm presentation must use the same runtime and Context instances.", { name, project: resolved.root, package: canonical.root });
     }
   }
   return { requirements, changes, identities, manifest };
 }
 
 /** Dependencies are a separately visible part of the confirmed source plan.
- * A later source-validation failure leaves prepared dependencies installed;
+ * A later source write failure leaves prepared dependencies installed;
  * source/BASE transactions do not claim to roll back package-manager effects.
  */
 export async function installPluginSourceDependencies(root: string, preparation: Awaited<ReturnType<typeof inspectPluginSourceDependencies>>, run: ResourcePackageRunner) {

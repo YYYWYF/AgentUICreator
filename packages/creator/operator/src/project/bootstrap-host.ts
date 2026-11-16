@@ -14,7 +14,6 @@ import { writeGeneratedPluginRegistry } from "../generate-plugin-registry";
 import { verifyUIProject } from "../verify-ui";
 import { resolveAgentUIProjectPaths, operatorConfigForPaths, projectRelativePath } from "./agent-ui-project-paths";
 import { inspectCreatorProject } from "./creator-project-inspector";
-import { inspectAgentUIPackages } from "./source-registry/inspector";
 import { installAgentUISourceItems, resolveAgentUISourceItems } from "./source-registry/installer";
 import { recoverPendingAgentUISourceTransaction } from "./source-registry/transaction";
 import { assertNoSymbolicLinkTraversal, resolveAgentUISourceRoots } from "./source-registry/path-policy";
@@ -58,14 +57,6 @@ export function createAgentUIInitializationHost() {
       for(const file of applicationPaths){
         await assertNoSymbolicLinkTraversal(projectRoot,file);
         if(await exists(path.join(projectRoot,file))) throw new AgentUIInitializationError("AGENT_UI_PROJECT_INVALID_STATE","Existing Plugin application files must be preserved.");
-      }
-      const packageInspection = await inspectAgentUIPackages(projectRoot, items);
-      if (packageInspection.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_MISSING")) {
-        throw new AgentUIInitializationError(
-          "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
-          "Agent UI package requirements are not installed or are incompatible.",
-          packageInspection.issues,
-        );
       }
       return {
         plannedPaths: [

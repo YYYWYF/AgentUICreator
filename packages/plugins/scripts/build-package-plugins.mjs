@@ -40,9 +40,7 @@ await mkdir(generated, { recursive: true });
 await mkdir(path.join(generated, "framework/contracts"), { recursive: true });
 await writeFile(path.join(generated, "framework/contracts/ui-plugin.ts"), 'export * from "@za38.03/agent-ui-plugins/contracts";\n');
 // Each official plugin has one product entry point.
-// The HTTP adapter consumes the conversation-service public DTO/schema contract.
-const plugins = [...deliveries].sort((a, b) =>
-  Number(a.id === "conversation-data-source") - Number(b.id === "conversation-data-source"));
+const plugins = [...deliveries];
 const utilityCandidatesByPlugin = new Map();
 // Do not emit the utilities already guaranteed by styles-base.css a second time.
 const baseCandidates = new Set(new Scanner({ sources: sharedStyleScanSources(path.join(root, "dist")) }).scan());

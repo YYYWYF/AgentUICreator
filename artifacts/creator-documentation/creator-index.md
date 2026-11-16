@@ -20,7 +20,7 @@
 
 ## Host 与接入
 
-- [Host-owned Integration Recipe](references/docs/architecture/host-integration-recipe.md)：Host 拥有服务与业务接线；官方应用模板、Provider 生命周期和清理。
+- [Host-owned Integration Recipe](references/docs/architecture/host-integration-recipe.md)：Host 负责服务实现与业务调用；官方应用模板、Provider 生命周期和清理。
 - [Agent Connection and Preview Source](references/docs/architecture/agent-connection-preview-source.md)：业务 Agent 连接、预览来源、Mock/recording 解析、身份与隔离。
 - [可选认证与账号插件](references/docs/implementation/authentication/README.md)：可选认证与账号插件；Host 服务、登录状态和应用自有配置。
 

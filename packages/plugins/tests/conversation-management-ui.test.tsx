@@ -5,7 +5,7 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
 import { ConversationThreadListPlugin } from "../dist/conversation-thread-list/index.js";
-import { createHttpConversationDataSource } from "../src/plugins/conversation-data-source/adapters/presentation/http-data-source";
+import { createConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/data-source";
 import { createConversationService } from "../resources/registry/items/foundation/core-application/files/services/conversations/service";
 import { createConversationServiceThreadBinding } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 
@@ -29,10 +29,10 @@ async function fixture(locale: "en-US" | "zh-CN" = "en-US") {
   let fail = false;
   const fetch = vi.fn<typeof globalThis.fetch>(async (input, init) => {
     const url = String(input);
-    if (init?.method === "GET" && url === "/history/conversations") return Response.json({ conversations: records });
+    if (init?.method === "GET" && url === "/history/conversations") return Response.json(records);
     if (init?.method === "GET") {
       const id = url.split("/").at(-1)!;
-      return Response.json({ id, title: records.find(item => item.id === id)?.title ?? id, state: { values: { messages: [] } } });
+      return Response.json({ id, title: records.find(item => item.id === id)?.title ?? id, history: { format: "langchain", messages: [] } });
     }
     if (fail) return new Response(null, { status: 403 });
     const id = url.split("/")[3];
@@ -41,7 +41,7 @@ async function fixture(locale: "en-US" | "zh-CN" = "en-US") {
     else item.status = url.endsWith("/unarchive") ? "regular" : "archived";
     return new Response(null, { status: 204 });
   });
-  const service = createConversationService({ dataSource: createHttpConversationDataSource({ endpoint: "/history", fetch }) });
+  const service = createConversationService({ dataSource: createConversationDataSource({ endpoint: "/history", fetch }) });
   const binding = createConversationServiceThreadBinding(undefined, "current");
   const detach = binding.attachConversationService(service);
   dispose = () => { detach(); service.dispose(); };

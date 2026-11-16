@@ -2,12 +2,12 @@ import type {
   ConversationMentionSource,
   ConversationSlashCommand,
   ConversationSlashCommandSource,
-} from '@za38.03/agent-ui-plugins';
+} from "./public.js";
 export type {
   ConversationMentionSource,
   ConversationSlashCommand,
   ConversationSlashCommandSource,
-} from '@za38.03/agent-ui-plugins';
+} from "./public.js";
 export const CONVERSATION_MENTION_SOURCE = 'conversation.mention-source' as const;
 export const CONVERSATION_COMMAND_SOURCE = 'conversation.slash-command-source' as const;
 export interface ConversationCommandRegistry extends ConversationSlashCommandSource {
@@ -45,7 +45,7 @@ export function createConversationCommandRegistry(): ConversationCommandRegistry
     },
   };
 }
-declare module '@za38.03/agent-ui-plugins/contracts' {
+declare module "@za38.03/agent-ui-runtime/contracts" {
   interface UIPluginServiceMap {
     [CONVERSATION_MENTION_SOURCE]: ConversationMentionSource;
     [CONVERSATION_COMMAND_SOURCE]: ConversationCommandRegistry;

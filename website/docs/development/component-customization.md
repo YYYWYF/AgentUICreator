@@ -243,16 +243,10 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 ### 请求适配器实现
 
-新建 `services/draft-template.ts`，使用项目已有 `zod`：
+新建 `services/draft-template.ts`，也可以在此复用项目已有的业务请求方法：
 
 ```ts
-import { z } from 'zod';
 import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-
-const responseSchema = z.object({
-  code: z.literal(0),
-  data: z.object({ prompt: z.string().trim().min(1).max(2000) }),
-});
 
 export async function loadDraftTemplate(input: {
   threadId: string; locale: AgentUILocaleCode; signal: AbortSignal;
@@ -263,7 +257,11 @@ export async function loadDraftTemplate(input: {
     body: JSON.stringify({ threadId: input.threadId, locale: input.locale }),
   });
   if (!response.ok) throw new Error('DRAFT_TEMPLATE_REQUEST_FAILED');
-  return responseSchema.parse(await response.json()).data.prompt;
+  const result: { code: number; data?: { prompt: string } } = await response.json();
+  if (result.code !== 0 || !result.data?.prompt.trim()) {
+    throw new Error('DRAFT_TEMPLATE_REQUEST_FAILED');
+  }
+  return result.data.prompt.trim();
 }
 ```
 
@@ -422,7 +420,7 @@ export function createComposerPolicy(): ComposerPolicyService {
 
 ### 输入区服务注册与清理
 
-对于默认组件入口，`plugins/composer/definition.ts` 可以写为下面的完整定义。已有项目自定义 setup、服务或本地实现时，将新增部分合入原定义，保留现有组件引用和服务接线：
+使用默认组件入口时，`plugins/composer/definition.ts` 的完整定义如下。项目已有自定义 `setup`、服务或本地实现时，只将新增部分合入原定义，继续使用已有组件，并保留服务声明、注册和清理代码：
 
 ```ts
 import implementation from '@za38.03/agent-ui-plugins/composer';
@@ -554,7 +552,7 @@ plugins/composer/
   index.tsx                 # 前面编写的项目应用层，保留
   definition.ts             # 原注册和业务服务，保留
   source/
-    index.tsx               # 实现入口和 Slot 接线
+    index.tsx               # 插件实现入口，负责渲染各个 Slot
     adapters/composer.tsx   # 输入区产品展示与交互适配
     adapters/textarea.tsx   # 默认输入展示适配
     presentation/           # 当前配方的展示依赖
@@ -583,7 +581,7 @@ plugins/composer/
 
 ### 后续升级
 
-npm 升级保留项目应用层和本地实现，不自动把 source 升成新版。实现同步以 BASE／LOCAL／TARGET 合并，仅包含受管理的实现子树，验证后明确采用才推进 BASE；项目应用层、Shell 和业务服务不进入这个合并范围。公共 API 不兼容时，单独处理应用迁移，见[更新与源码维护](./source-takeover)。
+npm 升级保留项目应用层和本地实现，不自动把 source 升成新版。实现同步以 BASE／LOCAL／TARGET 合并，仅包含受管理的实现子树，验证后明确采用才推进 BASE；项目应用层、Shell 和业务服务不进入这个合并范围。公共 API 发生变化时，单独检查并调整项目中的组件调用，见[更新与源码维护](./source-takeover)。
 
 ## 8. 改动验证
 

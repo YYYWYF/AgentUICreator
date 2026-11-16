@@ -38,13 +38,13 @@ export function createAgentUIProject({ hot, ...options }: CreateAgentUIProjectOp
   };
 }
 
-type ProjectResources = Pick<AgentUIProjectOptions, "appFrontendTools" | "generatedFrontendToolUIs" | "Integrations">;
+type ProjectResources = Pick<AgentUIProjectOptions, "appFrontendTools" | "baseConversationToolkit" | "Integrations">;
 /** Inputs are explicit build-time imports of Operator outputs, never runtime discovery. */
 export function resolveAgentUIProjectResources(modules: Record<string, unknown>): Partial<ProjectResources> {
   const result: Partial<ProjectResources> = {};
   for (const module of Object.values(modules)) {
     const value = module as Record<string, unknown>;
-    for (const [source, target] of [["generatedFrontendTools", "appFrontendTools"], ["generatedFrontendToolUIs", "generatedFrontendToolUIs"], ["GeneratedConversationIntegrations", "Integrations"]] as const) {
+    for (const [source, target] of [["generatedFrontendTools", "appFrontendTools"], ["generatedToolkit", "baseConversationToolkit"], ["GeneratedConversationIntegrations", "Integrations"]] as const) {
       if (value[source] === undefined) continue;
       if (Object.hasOwn(result, target)) throw new Error(`Duplicate Agent UI resource export: ${source}`);
       Object.assign(result, { [target]: value[source] });

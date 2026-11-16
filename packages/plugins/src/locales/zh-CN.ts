@@ -1,5 +1,16 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const zhCN = {
+  workbenchPanel: {
+  "region": "工作台侧栏",
+  "tabs": "侧栏内容",
+  "collapse": "收起",
+  "closeItem": "关闭{name}",
+  "open": "打开侧栏",
+  "notes": "笔记",
+  "details": "详情",
+  "notesDraft": "笔记草稿",
+  "detailsDraft": "详情草稿"
+},
   skills: {
     title: "技能与工作流",
     more: "更多",

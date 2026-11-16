@@ -4,7 +4,7 @@
 
 **默认启用**表示新建项目已组合该插件；有对应数据或发生相关操作时才显示。附件上传、历史会话等功能还需业务服务支持。**默认未启用**的插件可以按需让 Creator 添加，或在项目应用层接入。
 
-Agent 服务返回什么数据才能显示卡片，见[插件显示条件与 AG-UI 数据](/plugins/ag-ui-data.md)及对应插件页的“显示条件与数据来源”。
+Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插件数据接入](/plugins/ag-ui-data.md)及对应插件页的“显示条件与数据来源”。
 
 **审批默认可用**：`tool-result` 已包含操作确认区，支持[旧版 CUSTOM 和新版 interrupt 审批](/plugins/tool-fallback.md#显示条件与数据来源)，不需要额外开启审批插件。`tool-fallback` 是同一位置的基础展示替代，两者选择一个即可。
 
@@ -17,6 +17,15 @@ Agent 服务返回什么数据才能显示卡片，见[插件显示条件与 AG-
 | [`conversation-new`](/plugins/conversation-new.md)                         | 开始新对话，保留原有聊天记录。                | 默认启用 |
 | [`conversation-suggestions`](/plugins/conversation-suggestions.md)         | 显示可点击的示例问题，帮助用户开始对话。           | 默认启用 |
 | [`transient-assistant-messages`](/plugins/transient-assistant-messages.md) | 在对话中显示不发送给 Agent、不写入后端历史的页面提示。 | 默认启用 |
+
+## 工作台侧栏
+
+以下两项只在工作台（platform）默认启用，悬浮助手与嵌入式助手暂不支持。内容开发、跨插件打开和新增标签见[多内容侧栏](/plugins/workbench-panel.md)。
+
+| 插件                                                                   | 用途                       | 默认状态    |
+| -------------------------------------------------------------------- | ------------------------ | ------- |
+| [`workbench-panel`](/plugins/workbench-panel.md)                     | 在对话旁切换多个内容，关闭和收起时保留内容状态。 | 工作台默认启用 |
+| [`workbench-panel-actions`](/plugins/workbench-panel.md#让其他插件打开指定内容) | 通过共享服务打开指定侧栏内容。          | 工作台默认启用 |
 
 ## 消息输入与编辑
 

@@ -23,8 +23,9 @@ describe("npm project defaults", () => {
   });
   it("binds explicitly installed resources and rejects ambiguous generated outputs", () => {
     const Integrations = ({ children }: { children: import("react").ReactNode }) => children;
-    const modules = { tools: { generatedFrontendTools: [] }, ui: { generatedFrontendToolUIs: {} }, integrations: { GeneratedConversationIntegrations: Integrations } };
+    const modules = { tools: { generatedFrontendTools: [] }, ui: { generatedToolkit: {} }, integrations: { GeneratedConversationIntegrations: Integrations } };
     expect(createAgentUIProject({ ...required, ...resolveAgentUIProjectResources(modules) }).Integrations).toBe(Integrations);
+    expect(resolveAgentUIProjectResources(modules).baseConversationToolkit).toEqual({});
     expect(resolveAgentUIProjectResources({})).toEqual({});
     expect(() => resolveAgentUIProjectResources({ first: modules.tools, second: modules.tools })).toThrow("Duplicate Agent UI resource export");
   });

@@ -73,10 +73,11 @@ official presentation keeps the canonical Agent UI typography boundary.
 `config` is the data entry. `endpoint`, `locale`, `theme`, `thread-id` attributes
 supply defaults for properties not present in `config`. Assign a new config
 object to update it; modifying the getter's returned object does not update UI.
-Removing an attribute restores its default. Properties assigned before bundle
+Removing a presentation attribute restores its default. Properties assigned before bundle
 registration are upgraded when the element connects. Registration is idempotent.
 
-- `endpoint`: existing AG-UI API, default `/agent`.
+- `endpoint`: optional AG-UI API address, with no default. The React producer can
+  omit it when its custom `agentProps.fetch` chooses the destination itself.
 - `locale`: `en-US` or `zh-CN`, through the existing locale layer. When omitted,
   use the producer project's `agentUILocaleConfig.defaultLocale` (official default `zh-CN`).
 - `theme`: `violet`, `light` or `dark`, through the existing theme service. When

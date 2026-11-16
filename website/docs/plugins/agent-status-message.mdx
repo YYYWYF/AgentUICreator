@@ -20,30 +20,11 @@ title: "Agent 工作状态（agent-status-message）"
 
 **Agent 服务接入：**当前默认注册名仍为 `mock_agent_status`；服务端要使用此准确工具名，或在项目应用层显式调整具名工具注册。文案来自工具参数。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "mock_agent_status"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"label\":\"正在分析工作区\",\"elapsed\":\"0:12\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "call-1",
-    "role": "tool",
-    "content": "{\"applied\":true}"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"mock_agent_status"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"label\":\"正在分析工作区\",\"elapsed\":\"0:12\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"applied\":true}"}
 ```
 
 `label` 必须是非空字符串，`elapsed` 可省略，提供时也须为非空字符串。`elapsed` 只展示服务端文案，不自动计时。工作中、等待中、完成状态由当前工具调用生命周期推导；`applied` 只是示例结果，不驱动状态。错误、未完成或参数无效时回退工具详情。AG-UI 没有名为 `AGENT_STATUS` 的标准事件。

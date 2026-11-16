@@ -17,12 +17,14 @@ interface CreatorWorkspaceApiErrorBody {
 export class CreatorWorkspaceRequestError extends Error {
   readonly code: string | undefined;
   readonly details: readonly CreatorProjectIssue[] | undefined;
+  readonly status: number | undefined;
 
-  constructor(message: string, body: CreatorWorkspaceApiErrorBody) {
+  constructor(message: string, body: CreatorWorkspaceApiErrorBody, status?: number) {
     super(message);
     this.name = "CreatorWorkspaceRequestError";
     this.code = body.code;
     this.details = body.details;
+    this.status = status;
   }
 }
 
@@ -34,12 +36,13 @@ async function readWorkspaceJson(response: Response, localeMessages: CreatorLoca
     if (error instanceof Error && error.name === "AbortError") throw error;
     throw new CreatorWorkspaceRequestError(localeMessages.errors.workspaceResponseInvalid, {
       code: "CREATOR_WORKSPACE_RESPONSE_INVALID",
-    });
+    }, response.status);
   }
 }
 
 async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSignal, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Promise<T> {
   const response = await fetch(`${CREATOR_WORKSPACE_API_PATH}${route}`, {
+    cache: "no-store",
     ...(body === undefined ? {} : {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,14 +55,14 @@ async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSi
     const error = typeof result === "object" && result !== null
       ? result as CreatorWorkspaceApiErrorBody
       : {};
-    throw new CreatorWorkspaceRequestError(error.error ?? localeMessages.errors.workspaceRequestFailed, error);
+    throw new CreatorWorkspaceRequestError(error.error ?? localeMessages.errors.workspaceRequestFailed, error, response.status);
   }
   return result as T;
 }
 
-export const getWorkspaceState = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => workspaceFetch<CreatorWorkspacePublicState>("", undefined, undefined, localeMessages);
-export const selectWorkspaceProject = (projectRoot: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
-  workspaceFetch<CreatorWorkspacePublicState>("/select", { projectRoot }, undefined, localeMessages);
+export const getWorkspaceState = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES, signal?: AbortSignal) => workspaceFetch<CreatorWorkspacePublicState>("", undefined, signal, localeMessages);
+export const selectWorkspaceProject = (projectRoot: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES, signal?: AbortSignal) =>
+  workspaceFetch<CreatorWorkspacePublicState>("/select", { projectRoot }, signal, localeMessages);
 export const chooseWorkspaceProject = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
   workspaceFetch<CreatorWorkspacePublicState | { readonly status: "cancelled" }>("/choose-directory", {}, undefined, localeMessages);
 export const clearWorkspaceProject = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>

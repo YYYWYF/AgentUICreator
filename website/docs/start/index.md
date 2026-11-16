@@ -196,11 +196,10 @@ src/agent-ui/                        # 生成的 Agent 前端源码
 │       ├── manifest.json            # 声明插件身份、能力和插槽等信息
 │       └── application.json         # 记录项目入口对应的官方插件身份
 └── services/                        # 业务服务接入与共享 Hook
-    ├── composer-triggers.ts         # @ 提及和 / 命令的服务契约与注册
     ├── conversations.ts             # 会话服务契约与标识
     ├── conversations/               # 历史会话 HTTP 接入
     │   ├── endpoint.ts              # 解析配置的历史服务地址
-    │   └── http-data-source.ts      # 对接会话列表、详情等 HTTP 接口
+    │   └── data-source.ts           # 直接编辑会话列表、详情、删除等方法
     └── hooks/                       # 组件调用会话服务的 React Hook
         ├── useConversations.ts      # 读取会话列表与当前会话状态
         └── useConversationActions.ts # 切换、删除、重命名等会话操作

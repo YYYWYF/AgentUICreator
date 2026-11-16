@@ -6,6 +6,6 @@ Runtime 通过当前 concrete thread binding 安装引用生命周期。切换�
 
 发送沿用已有上下文与编码路径，不重写 AG-UI 协议，不删除历史引用。只读历史保持只读。选择菜单和预览保持在当前主题/Portal 容器内，文案通过统一 locale。
 
-公开 props 和接线以项目薄应用层及实际安装类型为准，默认 npm 实现的定制遵循 [所有权规则](npm-default-plugin-source-ownership.md)。
+可用 props 及组件的导入、注册方式，以项目应用层代码和实际安装包的类型声明为准，默认 npm 实现的定制遵循 [所有权规则](npm-default-plugin-source-ownership.md)。
 
 验证选中、预览、移除、发送、线程切换、停用、只读、附件组合、输入身份以及卸载清理。源码和测试存在不代表浏览器交互或真实 Windows 验收已通过。

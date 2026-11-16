@@ -239,6 +239,14 @@
     {
       "id": "plugin/skills-selection",
       "path": "items/plugin/skills-selection/item.json"
+    },
+    {
+      "id": "plugin/workbench-panel",
+      "path": "items/plugin/workbench-panel/item.json"
+    },
+    {
+      "id": "plugin/workbench-panel-actions",
+      "path": "items/plugin/workbench-panel-actions/item.json"
     }
   ]
 }

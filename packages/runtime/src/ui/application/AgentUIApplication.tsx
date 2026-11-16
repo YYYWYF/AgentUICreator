@@ -15,7 +15,7 @@ export interface AgentUIApplicationProps extends AgentProps {
 }
 
 export function AgentUIApplication({ agentId, ...props }: AgentUIApplicationProps) {
-  return <AgentUIAgentProvider key={JSON.stringify([agentId, props.endpoint ?? "/agent"])} agentId={agentId}>
+  return <AgentUIAgentProvider key={JSON.stringify([agentId, props.endpoint])} agentId={agentId}>
     <AgentBody agentId={agentId} {...props} />
   </AgentUIAgentProvider>;
 }

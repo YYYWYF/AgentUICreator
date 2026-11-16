@@ -1,0 +1,9 @@
+{
+  "id": "workbench-panel-actions",
+  "name": "Workbench Panel Actions",
+  "description": "Opens configured workbench panel content from other Plugin instances",
+  "version": "0.0.1",
+  "capabilities": [
+    "workbench-panel-action"
+  ]
+}

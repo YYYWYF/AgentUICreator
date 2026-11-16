@@ -1201,8 +1201,8 @@ export interface ConversationMentionItem {
   description?: string;
 }
 export interface ConversationMentionSource {
-  /** Change when identity, locale, permissions, or available data changes. */
-  cacheKey: string | number;
+  /** Optional cache identity for sources that publish changes while mounted. */
+  cacheKey?: string | number;
   /** Notify cacheKey changes when the source object stays mounted. */
   subscribe?(listener: () => void): () => void;
   search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>;
@@ -1421,3 +1421,10 @@ export { ConversationSkillSelection } from "./plugins/skills-selection/adapters/
 export type { ConversationSkillSelectionProps } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export { ConversationSkillsSelection } from "./plugins/skills-selection/adapters/presentation/binding.js";
 export type { ConversationSkillsSelectionPluginProps } from "./plugins/skills-selection/adapters/presentation/binding.js";
+
+export { WorkbenchPanel } from './plugins/workbench-panel/adapters/presentation/workbench-panel.js';
+export type { WorkbenchPanelProps, WorkbenchPanelItem } from './plugins/workbench-panel/adapters/presentation/workbench-panel.js';
+export { WORKBENCH_PANEL_SERVICE, DEFAULT_WORKBENCH_PANEL_IDS, createWorkbenchPanelService } from './plugins/workbench-panel/adapters/presentation/service.js';
+export type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './plugins/workbench-panel/adapters/presentation/service.js';
+export { WorkbenchPanelActions } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
+export type { WorkbenchPanelActionsProps } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';

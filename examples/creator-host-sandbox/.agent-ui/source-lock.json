@@ -6,23 +6,20 @@
         "application/Agent.tsx": {
           "sha256": "1e4e9dd9b2ce004d69961491a23823e8cf96ff6bfaaf363dd67b61adecb84264"
         },
-        "application/project-config.tsx": {
-          "sha256": "1b89bb844a674ec8f0e6302b72618cda74a58ccbf91983caac4beb04b466347f"
+        "application/assets.d.ts": {
+          "sha256": "1ae7ecf6ec60cf47774171838ba687131d718dafd5a22c1a9d998413b069c61d"
         },
-        "application/locales.ts": {
-          "sha256": "bf89853794d68f1995c27c7c4641b249227b189e825faa2f39415ab292ba3e89"
-        },
-        "index.ts": {
-          "sha256": "8b9aa7bf52fa0787bae874c904534967d96c7412b9fb761092906337392bc8f6"
-        },
-        "plugins/index.ts": {
-          "sha256": "861575fddd1d069d6b11a4516c74839831a77a273e0fe96b16239c72c08ca1b3"
+        "application/composition-store.ts": {
+          "sha256": "e66f26557cd3d258711054658f26f84709dfc67f84fdb4019bb128e63380a835"
         },
         "application/environment.ts": {
           "sha256": "c29099b8c1d13f6d9b62528694b05469d7f11d712cf683ef923f8062b4d72992"
         },
-        "application/composition-store.ts": {
-          "sha256": "e66f26557cd3d258711054658f26f84709dfc67f84fdb4019bb128e63380a835"
+        "application/locales.ts": {
+          "sha256": "bf89853794d68f1995c27c7c4641b249227b189e825faa2f39415ab292ba3e89"
+        },
+        "application/project-config.tsx": {
+          "sha256": "1b89bb844a674ec8f0e6302b72618cda74a58ccbf91983caac4beb04b466347f"
         },
         "application/resources.generated.ts": {
           "sha256": "c41db7c5236cbc7edc0a980a08d40befea0f326a19a8a2b835ad51fcc84020e4"
@@ -30,8 +27,11 @@
         "composition-revision.generated.json": {
           "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
         },
-        "application/assets.d.ts": {
-          "sha256": "1ae7ecf6ec60cf47774171838ba687131d718dafd5a22c1a9d998413b069c61d"
+        "index.ts": {
+          "sha256": "8b9aa7bf52fa0787bae874c904534967d96c7412b9fb761092906337392bc8f6"
+        },
+        "plugins/index.ts": {
+          "sha256": "861575fddd1d069d6b11a4516c74839831a77a273e0fe96b16239c72c08ca1b3"
         }
       }
     },
@@ -48,13 +48,13 @@
           "sha256": "b3619ba9dd96686fcd906f1163037834b1d410ec04c8f416340a43874625d946"
         },
         "services/conversations.ts": {
-          "sha256": "023d449ffbb65e3792ac8df1e541bffc6336373c3a819dcc4762926cadcdaea6"
+          "sha256": "423dac1a0ad1b8087c1a59af737f36758fdd1105a737bb98ceca629b887a06d8"
+        },
+        "services/conversations/data-source.ts": {
+          "sha256": "65b57a64969dc4d8479210193f33dc64a5e7d3882ab9121c31428ce8746cf89d"
         },
         "services/conversations/endpoint.ts": {
-          "sha256": "efd5d464a13506418595006e637cb0b7977f067b9f2dea93b2cef2ce9b1fd14e"
-        },
-        "services/conversations/http-data-source.ts": {
-          "sha256": "fb507b5bf15ef127ecd161d7a7f16428c3a63fd52847e74b0e4281c171e328c2"
+          "sha256": "9062cfbdff9553524a5f9ef849fef11396760c3c3b2b4a9fe6444ca6256bde56"
         }
       }
     },

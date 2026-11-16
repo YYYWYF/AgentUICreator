@@ -47,25 +47,21 @@ title: "@ 提及搜索（mention-trigger）"
 | `source?` | [`ConversationMentionSource`](#conversationmentionsource) | 从已有提及数据源搜索候选项；缺少时不显示提及候选界面 |
 | `debounceMs?` | `number` | 搜索防抖；省略时沿用底层触发器默认值 |
 
-项目改变身份、权限、语言或可用数据时更新 `source.cacheKey` 并通知。
-
 文案字段见统一 `conversationTriggers` 命名空间。
 
 ### 类型说明
 
 #### ConversationMentionSource
 
-已有的提及搜索数据源；返回项的结构见 [`ConversationMentionItem`](#conversationmentionitem)。
+已有的提及搜索数据源；最小接入结构如下，返回项的结构见 [`ConversationMentionItem`](#conversationmentionitem)。
 
 ```ts
 interface ConversationMentionSource {
-  cacheKey: string | number;
-  subscribe?(listener: () => void): () => void;
   search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>;
 }
 ```
 
-`cacheKey` 标识当前缓存；`subscribe` 可通知缓存标识变化并返回取消订阅函数。`search` 接收查询文本和取消信号，异步返回候选项。
+`search` 接收查询文本和取消信号，调用项目请求方法并异步返回候选项。
 
 #### ConversationMentionItem
 

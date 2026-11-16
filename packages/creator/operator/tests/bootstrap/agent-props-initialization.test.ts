@@ -31,7 +31,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  for(const hook of ['useConversations','useConversationActions']) {
   expect(await readFile(path.join(source,'services','hooks',hook+'.ts'),'utf8')).toContain("from '../conversations'");
  }
- for(const service of ['agent-ui-theme','agent-ui-locale']) {
+ for(const service of ['agent-ui-theme','agent-ui-locale','composer-triggers']) {
   await expect(lstat(path.join(source,'services',service+'.ts'))).rejects.toMatchObject({code:'ENOENT'});
  }
  const agentEntry = await readFile(path.join(source,'application/Agent.tsx'),'utf8');

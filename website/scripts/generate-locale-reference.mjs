@@ -26,6 +26,7 @@ const groups = [
   ['搜索与检索', ['searchTools', 'search']],
   ['图片、音视频与文件', ['images', 'media', 'files']],
   ['主题、语言与通用控件', ['theme', 'accessibility', 'layout', 'common']],
+  ['工作台侧栏', ['workbenchPanel']],
   ['登录与账号', ['auth']],
   ['运行状态与错误', ['thinkingIndicator', 'runtime']],
   ['示例与演示页面', ['examples', 'themeShowcase', 'composerTriggerDemo']],

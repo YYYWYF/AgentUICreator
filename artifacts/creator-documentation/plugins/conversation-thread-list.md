@@ -70,7 +70,7 @@
 
 `snapshot` 字段均可选：`activeConversationId`、`listStatus`、`detailStatus`、`listError`、`detailError`、`detailErrorConversationId`，类型均为 `string`。这些值继续从项目已有的会话服务和主题设置中读取。
 
-另导出的旧组件 `CanonicalConversationThreadListRailAction` 已弃用，推荐使用独立的 `conversation-new`。它仍公开 `enabled?: boolean`（默认 `true`）、`buttonProps?: ComponentProps<typeof ConversationThreadListNew>`、`tooltipProps?: ComponentProps<typeof AgentUITooltip>`、`tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>`。
+侧栏新建按钮组件 `CanonicalConversationThreadListRailAction` 支持 `enabled?: boolean`（默认 `true`）、`buttonProps?: ComponentProps<typeof ConversationThreadListNew>`、`tooltipProps?: ComponentProps<typeof AgentUITooltip>`、`tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>`。需要在布局中独立放置新建会话入口时，使用 [`conversation-new`](/plugins/conversation-new.md)。
 
 ### 类型说明
 

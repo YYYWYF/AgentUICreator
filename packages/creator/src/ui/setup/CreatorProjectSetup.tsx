@@ -1,5 +1,4 @@
 import { formatLocaleMessage, localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
-import { useEffect, useRef } from "react";
 import type {
   CreatorProjectIssue,
   CreatorProjectMode,
@@ -9,7 +8,7 @@ import type {
 import { CreatorModeCard } from "./CreatorModeCard.js";
 import { Button } from "../components/button.js";
 import { Input } from "../components/input.js";
-import { CheckCircle2, FileJson, Folder, Layers, Terminal } from "lucide-react";
+import { CheckCircle2, FileJson, Layers, Terminal } from "lucide-react";
 import "./creator-project-setup.css";
 
 export interface CreatorSetupError {
@@ -80,11 +79,6 @@ export function CreatorProjectSetup({
   const dependencyPlan = validation.status === "valid" ? validation.result.dependencyPlan : undefined;
   const preparingDependencies = dependencyPlan !== undefined &&
     (Object.keys(dependencyPlan.dependencies).length > 0 || Object.keys(dependencyPlan.devDependencies).length > 0);
-  const waitingForInstallation = dependencyPlan !== undefined && dependencyPlan.installRequired && !preparingDependencies;
-  const contentRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (waitingForInstallation && contentRef.current) contentRef.current.scrollTop = 0;
-  }, [waitingForInstallation]);
   const packageGroups = dependencyPlan ? (preparingDependencies ? [
     { label: localeMessages.setup.runtimeDependencies, entries: Object.entries(dependencyPlan.dependencies) },
     { label: localeMessages.setup.buildDependencies, entries: Object.entries(dependencyPlan.devDependencies) },
@@ -100,7 +94,7 @@ export function CreatorProjectSetup({
     : null;
   return (
     <section className="creator-project-setup creator-ui-scope" aria-label={localeMessages.setup.createAgentUI}>
-      <div className="creator-project-setup-content" ref={contentRef}>
+      <div className="creator-project-setup-content">
         <div className="creator-setup-heading"><Layers aria-hidden="true" /><h2>{localeMessages.setup.createAgentUI}</h2></div>
         <p className="creator-setup-description">{compatibility ? localeMessages.setup.vueProducerDescription : localeMessages.setup.chooseAProductModeToIntegrateAgentUI}</p>
         {infoState.status === "loading" || infoState.status === "idle" ? (
@@ -112,17 +106,7 @@ export function CreatorProjectSetup({
           </div>
         ) : (
           <>
-            {waitingForInstallation && dependencyPlan ? <section className="creator-install-step" role="status" aria-label={localeMessages.setup.installManually}>
-              <div className="creator-install-step-heading"><CheckCircle2 aria-hidden="true" /><h3>{localeMessages.setup.dependencyDeclarationsReady}</h3></div>
-              <p className="creator-install-step-next">{localeMessages.setup.manualInstallNextStep}</p>
-              <div className="creator-dependency-file">
-                <div className="creator-dependency-file-label"><Folder aria-hidden="true" /><span>{localeMessages.setup.dependencyInstallDirectory}</span></div>
-                <code className="creator-dependency-file-path">{dependencyPlan.projectRoot}</code>
-              </div>
-              <div className="creator-install-step-command"><Terminal aria-hidden="true" /><code>{dependencyPlan.installCommand}</code></div>
-              <p className="creator-install-step-hint">{localeMessages.setup.recheckAfterManualInstall}</p>
-            </section> : null}
-            <div className="creator-project-setup-fields" hidden={waitingForInstallation}>
+            <div className="creator-project-setup-fields">
             <fieldset className="creator-project-setup-modes" disabled={draft.initializing}>
               <legend>{localeMessages.setup.chooseProductMode}</legend>
               <div className="creator-project-setup-mode-grid">
@@ -138,6 +122,7 @@ export function CreatorProjectSetup({
                 disabled={draft.initializing} onChange={(event) => onSourceRootChange(event.target.value)} />
               <small>{compatibility ? localeMessages.setup.vueProducerDirectoryHint : localeMessages.setup.enterARelativeProjectPathCreatorManagesAgent}</small>
             </div>
+            <p className="creator-setup-description" role="note">{localeMessages.setup.dependencyAdvisoryNotice}</p>
             <div className="creator-project-setup-validation" aria-live="polite">
               {validation.status === "validating" ? <p>{localeMessages.setup.checkingDirectory}</p> : null}
               {validTarget === "missing" ? <p>{localeMessages.setup.newDirectoryWillBeCreated}<span className="creator-setup-target-path">{targetPath}</span></p> : null}
@@ -149,12 +134,17 @@ export function CreatorProjectSetup({
                 ))}</ul>
               ) : null}
             </div>
+            {validation.status === "valid" && validation.result.compatibilityPlan?.advisories?.length ? <ul role="note">
+              {validation.result.compatibilityPlan.advisories.map((advice, index) => <li key={`${advice.name}-${index}`}>
+                {formatLocaleMessage(localeMessages.setup.compatibilityVersionAdvisory, advice.name, advice.version, advice.required)}
+              </li>)}
+            </ul> : null}
             {validation.status === "valid" && validation.result.compatibilityPlan ? <details>
               <summary>{localeMessages.setup.vueDependencyPlan}</summary>
               <p>{validation.result.compatibilityPlan.manager} · {validation.result.compatibilityPlan.producerRoot}</p>
               <ul>{Object.entries({ ...validation.result.compatibilityPlan.dependencies, ...validation.result.compatibilityPlan.devDependencies }).map(([name, version]) => <li key={name}><code>{name} {version}</code></li>)}</ul>
             </details> : null}
-            {dependencyPlan && !waitingForInstallation ? <section className="creator-dependency-plan" aria-label={localeMessages.setup.dependencyPlanTitle}>
+            {dependencyPlan ? <section className="creator-dependency-plan" aria-label={localeMessages.setup.dependencyPlanTitle}>
               <header className="creator-dependency-heading">
                 <h3>{localeMessages.setup.dependencyPlanTitle}</h3>
                 {packageCount > 0 ? <span className="creator-dependency-count">{formatLocaleMessage(
@@ -203,7 +193,7 @@ export function CreatorProjectSetup({
       {infoState.status === "ready" && infoState.info !== undefined ? (
         <div className="creator-project-setup-actions">
           <Button size="sm" type="button" disabled={!canInitialize} onClick={onInitialize}>
-            {draft.initializing ? localeMessages.setup.initializing : compatibility ? localeMessages.setup.vueInitialize : preparingDependencies ? localeMessages.setup.confirmDependencyDeclarations : dependencyPlan?.installRequired ? localeMessages.setup.recheckDependencies : localeMessages.setup.initializeAgentUI}
+            {draft.initializing ? localeMessages.setup.initializing : compatibility ? localeMessages.setup.vueInitialize : preparingDependencies ? localeMessages.setup.confirmDependencyDeclarations : localeMessages.setup.initializeAgentUI}
           </Button>
         </div>
       ) : null}

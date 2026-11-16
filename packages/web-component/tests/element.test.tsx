@@ -23,6 +23,7 @@ beforeAll(async () => {
 afterEach(async () => { await act(async () => { document.body.replaceChildren(); }); });
 async function mount(config?: AgentUIConfig) {
   const element = document.createElement("agent-ui");
+  element.setAttribute("endpoint", "/test-agent");
   if (config) element.config = config;
   await act(async () => { document.body.append(element); });
   return element;
@@ -37,7 +38,9 @@ describe("host bridge lifecycle", () => {
       { agentId: "a", endpoint: "/a", threadId: "same" },
       { agentId: "b", endpoint: "/b", threadId: "same" },
     ];
-    expect(resolveConfig({ agents: agents.map(agent => ({ ...agent, hidden: agent.agentId !== "b" })) }, {})).toMatchObject({ agents: [{ agentId: "a", hidden: true }, { agentId: "b", hidden: false }] });
+    const resolved = resolveConfig({ agents: agents.map(agent => ({ ...agent, hidden: agent.agentId !== "b" })) }, {});
+    expect(resolved).toMatchObject({ agents: [{ agentId: "a", hidden: true }, { agentId: "b", hidden: false }] });
+    expect(resolved.endpoint).toBeUndefined();
     expect(() => resolveConfig({ agents: [{ ...agents[0]!, hidden: "yes" as unknown as boolean }] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
     expect(() => resolveConfig({ agents: [agents[0]!, agents[0]!] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
     expect(() => resolveConfig({ agents: [] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
@@ -124,6 +127,7 @@ it("uses the producer defaults without overriding explicit Host presentation", a
     defaults: { locale: "en-US" } });
   customElements.define("agent-ui-producer-defaults", Element);
   const element = new Element();
+  element.setAttribute("endpoint", "/producer-agent");
   await act(async () => { document.body.append(element); });
   expect(received.at(-1)).toMatchObject({ locale: "en-US", theme: undefined });
   await act(async () => { element.setAttribute("locale", "zh-CN"); element.config = { theme: "light" }; });
@@ -131,7 +135,25 @@ it("uses the producer defaults without overriding explicit Host presentation", a
 });
 
 it("leaves an omitted theme uncontrolled while retaining the producer locale", () => {
-  expect(resolveConfig({}, { endpoint: null, locale: null, theme: null, "thread-id": null })).toMatchObject({ locale: "zh-CN", theme: undefined });
+  expect(resolveConfig({}, { endpoint: "/host-agent", locale: null, theme: null, "thread-id": null })).toMatchObject({ endpoint: "/host-agent", locale: "zh-CN", theme: undefined });
+});
+
+it.each(["", "   "])("rejects an explicitly empty endpoint: %s", endpoint => {
+  expect(() => resolveConfig({ endpoint }, {})).toThrow("Invalid Agent UI endpoint.");
+});
+
+it("allows the producer to supply fetch without requiring or inventing an endpoint", async () => {
+  const element = document.createElement("agent-ui");
+  const listener = vi.fn();
+  element.addEventListener("agent-error", listener);
+  const before = calls.mounted;
+  await act(async () => { document.body.append(element); });
+  expect(listener).not.toHaveBeenCalled();
+  expect(calls.configs.at(-1)?.endpoint).toBeUndefined();
+  expect(calls.mounted).toBe(before + 1);
+  await act(async () => { element.config = { endpoint: "/configured-agent" }; });
+  expect(calls.configs.at(-1)?.endpoint).toBe("/configured-agent");
+  expect(calls.mounted).toBe(before + 1);
 });
 
 it("releases a controlled theme when both the property and attribute are removed", async () => {

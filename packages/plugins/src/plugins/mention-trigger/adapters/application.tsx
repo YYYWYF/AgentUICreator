@@ -1,9 +1,16 @@
-import { usePluginService } from '@za38.03/agent-ui-plugins';
+import type { ConversationMentionItem, ConversationMentionSource } from '@za38.03/agent-ui-plugins';
 import { ConversationMentionTrigger as Implementation } from '@za38.03/agent-ui-plugins/mention-trigger';
 import type { ComponentProps } from 'react';
-import { CONVERSATION_MENTION_SOURCE, type ConversationMentionSource } from '../../services/composer-triggers';
+
+export const source: ConversationMentionSource = {
+  async search(_input): Promise<readonly ConversationMentionItem[]> {
+    // 在这里调用项目的提及搜索请求，并处理鉴权和返回字段转换。
+    // _input.query 是搜索词；_input.signal 用于取消请求。
+    // 返回候选项数组；默认没有匹配项。
+    return [];
+  },
+};
 
 export function ConversationMentionTrigger(props: ComponentProps<typeof Implementation>) {
-  const source = usePluginService<ConversationMentionSource>(CONVERSATION_MENTION_SOURCE);
-  return <Implementation source={source} {...props} />;
+  return <Implementation {...props} source={props.source ?? source} />;
 }

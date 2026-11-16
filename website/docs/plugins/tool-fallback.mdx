@@ -33,23 +33,10 @@ title: "工具调用详情（tool-fallback）"
 
 先发送对应的工具调用，随后再发送下方任一种审批结束事件。此时暂不发送 `TOOL_CALL_RESULT`：
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "confirm_take_leave_policy"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"user\":\"杨康\",\"leave_policy\":\"年假\"}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"confirm_take_leave_policy"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"user\":\"杨康\",\"leave_policy\":\"年假\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
 ```
 
 `action_requests[].name`、`args` 必须与等待结果的工具调用匹配。没有 `toolCallId` 的审批按工具名和参数做唯一匹配；存在多个相同调用时不会猜测绑定。
@@ -58,41 +45,9 @@ title: "工具调用详情（tool-fallback）"
 
 `value` 是对象，包含 `action_requests` 和 `review_configs`。发送该事件后结束本轮流，等待用户决定：
 
-```json
-[
-  {
-    "type": "CUSTOM",
-    "name": "ON_INTERRUPT",
-    "value": {
-      "action_requests": [
-        {
-          "name": "confirm_take_leave_policy",
-          "args": {
-            "user": "杨康",
-            "leave_policy": "年假"
-          },
-          "description": "请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"
-        }
-      ],
-      "review_configs": [
-        {
-          "action_name": "confirm_take_leave_policy",
-          "allowed_decisions": [
-            "approve",
-            "edit",
-            "reject",
-            "respond"
-          ]
-        }
-      ]
-    }
-  },
-  {
-    "type": "RUN_FINISHED",
-    "threadId": "thread-1",
-    "runId": "run-1"
-  }
-]
+```jsonl
+{"type":"CUSTOM","name":"ON_INTERRUPT","value":{"action_requests":[{"name":"confirm_take_leave_policy","args":{"user":"杨康","leave_policy":"年假"},"description":"请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"}],"review_configs":[{"action_name":"confirm_take_leave_policy","allowed_decisions":["approve","edit","reject","respond"]}]}}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1"}
 ```
 
 点击「允许」后，下一次请求在原会话中携带下列字段；点击「拒绝」时将 `type` 改为 `reject`：
@@ -117,53 +72,8 @@ title: "工具调用详情（tool-fallback）"
 
 后端将同一审批内容放在 `metadata.langgraph.raw`，使用 `reason: "langgraph:interrupt"` 和稳定的中断 ID。下面的结构不要求另行添加 `toolCallId`、`message` 或 `responseSchema`：
 
-```json
-[
-  {
-    "type": "RUN_FINISHED",
-    "threadId": "thread-1",
-    "runId": "run-1",
-    "outcome": {
-      "type": "interrupt",
-      "interrupts": [
-        {
-          "id": "approval-1",
-          "reason": "langgraph:interrupt",
-          "metadata": {
-            "langgraph": {
-              "raw": {
-                "action_requests": [
-                  {
-                    "name": "confirm_take_leave_policy",
-                    "args": {
-                      "user": "杨康",
-                      "leave_policy": "年假"
-                    },
-                    "description": "请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"
-                  }
-                ],
-                "review_configs": [
-                  {
-                    "action_name": "confirm_take_leave_policy",
-                    "allowed_decisions": [
-                      "approve",
-                      "edit",
-                      "reject",
-                      "respond"
-                    ]
-                  }
-                ]
-              },
-              "ns": null,
-              "resumable": null,
-              "when": null
-            }
-          }
-        }
-      ]
-    }
-  }
-]
+```jsonl
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"interrupt","interrupts":[{"id":"approval-1","reason":"langgraph:interrupt","metadata":{"langgraph":{"raw":{"action_requests":[{"name":"confirm_take_leave_policy","args":{"user":"杨康","leave_policy":"年假"},"description":"请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"}],"review_configs":[{"action_name":"confirm_take_leave_policy","allowed_decisions":["approve","edit","reject","respond"]}]},"ns":null,"resumable":null,"when":null}}}]}}
 ```
 
 点击「允许」后，下一次请求携带下列字段；点击「拒绝」时将决定的 `type` 改为 `reject`：

@@ -1,5 +1,5 @@
 import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
-import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";
+import type { ConversationToolkit } from "@za38.03/agent-ui-runtime/plugin-api";
 import { useAgentUILocale } from "../../i18n/useAgentUILocale";
 function titleOf(value: unknown): string {
   if (value === null || typeof value !== "object") return "";
@@ -13,6 +13,6 @@ export function OpenDemoDialogToolUI({ args, result, status, isError }: Conversa
     : status.type === "running" || status.type === "requires-action" ? locale.opening : locale.opened;
   return <div data-frontend-tool="open_demo_dialog">{label} {titleOf(result) || titleOf(args)}</div>;
 }
-export const frontendToolUIs: ConversationFrontendToolUIRegistry = {
-  open_demo_dialog: { display: "standalone", render: OpenDemoDialogToolUI },
+export const toolkit: ConversationToolkit = {
+  open_demo_dialog: { type: "backend", display: "standalone", render: OpenDemoDialogToolUI },
 };

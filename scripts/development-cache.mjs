@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 
 // Hash only the workspace path to keep unrelated checkouts' caches separate.
@@ -17,7 +16,11 @@ export function workspaceDevelopmentId(root, platform = process.platform) {
 export function prepareDevelopmentCache(
   root,
   role,
-  { base = tmpdir(), warn = console.warn, remove = fs.rmSync } = {},
+  {
+    base = path.join(root, "node_modules", ".cache"),
+    warn = console.warn,
+    remove = fs.rmSync,
+  } = {},
 ) {
   const parent = path.join(
     base,
@@ -27,8 +30,8 @@ export function prepareDevelopmentCache(
   );
   fs.mkdirSync(parent, { recursive: true });
   const current = fs.mkdtempSync(path.join(parent, "run-"));
-  // Preserve the node_modules boundary used by React/Babel source transforms,
-  // while keeping these disposable files outside the project's dependencies.
+  // Preserve the node_modules boundary used by React/Babel source transforms.
+  // Disposable output stays in the project's cache, separate from packages.
   const cacheDir = path.join(current, "node_modules", ".vite");
   fs.mkdirSync(cacheDir, { recursive: true });
   const clear = (target) => {

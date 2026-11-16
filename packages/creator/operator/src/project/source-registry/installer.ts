@@ -15,7 +15,6 @@ import {
   sha256,
 } from "./lock";
 import {
-  inspectAgentUIPackages,
   inspectAgentUISources,
 } from "./inspector";
 import { AgentUISourceError } from "./path-policy";
@@ -107,14 +106,6 @@ export async function installAgentUISourceItems(
     const status = inspectionById.get(item.id)?.status;
     if (status !== "not-installed") throw stateError(item.id, status ?? "unavailable");
   }
-  const packageInspection = await inspectAgentUIPackages(projectRoot, items);
-  if (packageInspection.issues.some(issue => issue.code === "AGENT_UI_PACKAGE_MISSING")) {
-    throw new AgentUISourceError(
-      "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
-      "Agent UI package requirements are not installed or are incompatible.",
-      packageInspection.issues,
-    );
-  }
   const { lock } = await readAgentUISourceLock(projectRoot, config);
   if (Object.keys(lock.items).length > 0 || Object.keys(lock.examples ?? {}).length > 0) {
     throw new AgentUISourceError("AGENT_UI_SOURCE_PATH_CONFLICT", "Clean installation requires an empty Source Registry lock.");
@@ -193,11 +184,6 @@ export async function preflightAgentUISourceApply(
         },
       );
     }
-  }
-  const packageInspection = await inspectAgentUIPackages(projectRoot, closure);
-  const packageIssue = packageInspection.issues.find(issue => issue.code === "AGENT_UI_PACKAGE_MISSING");
-  if (packageIssue !== undefined) {
-    throw new AgentUISourceError(packageIssue.code, packageIssue.message, packageIssue);
   }
   return { loadedRegistry, closure, before, byId, lock };
 }

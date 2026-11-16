@@ -27,7 +27,7 @@ function button(container: HTMLElement, text: string) {
   return result;
 }
 
-it("keeps the full confirmation flow on an explicit manual-install screen until the user installs", async () => {
+it("allows initialization after dependency declarations without waiting for installation", async () => {
   localStorage.clear(); sessionStorage.clear(); HTMLElement.prototype.scrollTo = vi.fn();
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ commands: [] })));
   const state = { status: "uninitialized" as const, workspace: { id: "setup-project", name: "Project", displayPath: "/work/My Project" } };
@@ -52,14 +52,11 @@ it("keeps the full confirmation flow on an explicit manual-install screen until 
   await act(async () => button(container, "确认添加依赖").click());
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)); });
   expect(initializeWorkspaceProjectRequest).toHaveBeenCalledTimes(1);
-  expect(container.querySelector(".creator-install-step-command code")?.textContent).toBe("pnpm install");
-  expect(container.querySelector(".creator-install-step .creator-dependency-file-path")?.textContent).toBe("/work/My Project");
-  expect(container.textContent).toContain("下一步");
+  expect(container.querySelector(".creator-dependency-manual code")?.textContent).toBe("pnpm install");
+  expect(container.textContent).toContain("不作为初始化门槛");
   expect(container.textContent).not.toContain("Creator 服务暂不可用");
-  expect(content.scrollTop).toBe(0);
-  expect(container.querySelector(".creator-project-setup-fields")?.hasAttribute("hidden")).toBe(true);
-  await act(async () => button(container, "重新检查依赖").click());
+  expect(container.querySelector(".creator-project-setup-fields")?.hasAttribute("hidden")).toBe(false);
+  await act(async () => button(container, "初始化 Agent UI").click());
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 350)); });
-  expect(initializeWorkspaceProjectRequest).toHaveBeenCalledTimes(1);
-  expect(container.querySelector(".creator-install-step-command code")?.textContent).toBe("pnpm install");
+  expect(initializeWorkspaceProjectRequest).toHaveBeenCalledTimes(2);
 });

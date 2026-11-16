@@ -1,0 +1,29 @@
+{
+  "id": "plugin/workbench-panel",
+  "kind": "agent-component",
+  "description": "A persistent tabbed side panel beside the workbench conversation",
+  "files": [
+    {
+      "source": "files/plugins/workbench-panel/definition.ts",
+      "target": "plugins/workbench-panel/definition.ts"
+    },
+    {
+      "source": "files/plugins/workbench-panel/index.tsx",
+      "target": "plugins/workbench-panel/index.tsx"
+    },
+    {
+      "source": "files/plugins/workbench-panel/manifest.json",
+      "target": "plugins/workbench-panel/manifest.json"
+    },
+    {
+      "source": "files/plugins/workbench-panel/styles.css",
+      "target": "plugins/workbench-panel/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

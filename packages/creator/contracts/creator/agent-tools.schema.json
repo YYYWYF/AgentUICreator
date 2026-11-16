@@ -1855,7 +1855,7 @@
         "implementationPath": {
           "type": "string",
           "minLength": 1,
-          "description": "Logical path relative to sourceRoot, e.g. services/conversations/http-data-source.ts. Use forward slashes on every OS."
+          "description": "Logical path relative to sourceRoot, e.g. services/conversations/data-source.ts. Use forward slashes on every OS."
         },
         "edits": {
           "type": "array",

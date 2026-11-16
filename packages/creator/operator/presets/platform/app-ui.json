@@ -69,91 +69,96 @@
       {
         "type": "panel",
         "child": {
-          "type": "column",
-          "gap": 0,
-          "sizes": [
-            "minmax(0, 1fr)"
-          ],
-          "children": [
+          "type": "slot",
+          "plugins": [
             {
-              "type": "slot",
-              "plugins": [
-                {
-                  "pluginId": "conversation-surface",
-                  "slots": {
-                    "emptySuggestions": [
-                      {
-                        "pluginId": "conversation-suggestions"
-                      }
-                    ],
-                    "composer": [
-                      {
-                        "pluginId": "composer",
-                        "slots": {
-                          "leadingActions": [
-                            {
-                              "pluginId": "add-attachment-action"
-                            }
-                          ],
-                          "submitAction": [
-                            {
-                              "pluginId": "submit-action"
-                            }
-                          ],
-                          "beforeInput": [
-                            {
-                              "pluginId": "conversation-quote"
-                            }
-                          ]
+              "pluginId": "workbench-panel",
+              "id": "workbench-panel-main",
+              "slots": {
+                "main": [
+                  {
+                    "pluginId": "conversation-surface",
+                    "slots": {
+                      "emptySuggestions": [
+                        {
+                          "pluginId": "conversation-suggestions"
                         }
-                      }
-                    ],
-                    "reasoningGroup": [
-                      {
-                        "pluginId": "reasoning"
-                      }
-                    ],
-                    "toolGroup": [
-                      {
-                        "pluginId": "tool-group"
-                      }
-                    ],
-                    "taskGroup": [
-                      {
-                        "pluginId": "task-group"
-                      }
-                    ],
-                    "toolFallback": [
-                      {
-                        "pluginId": "tool-result"
-                      }
-                    ],
-                    "assistantResponseFooter": [
-                      {
-                        "pluginId": "response-footer",
-                        "slots": {
-                          "actions": [
-                            {
-                              "pluginId": "copy-action"
-                            },
-                            {
-                              "pluginId": "reload-action"
-                            },
-                            {
-                              "pluginId": "export-markdown-action"
-                            }
-                          ]
+                      ],
+                      "composer": [
+                        {
+                          "pluginId": "composer",
+                          "slots": {
+                            "leadingActions": [
+                              {
+                                "pluginId": "add-attachment-action"
+                              }
+                            ],
+                            "submitAction": [
+                              {
+                                "pluginId": "submit-action"
+                              }
+                            ],
+                            "beforeInput": [
+                              {
+                                "pluginId": "conversation-quote"
+                              }
+                            ]
+                          }
                         }
-                      }
-                    ],
-                    "transientMessages": [
-                      {
-                        "pluginId": "transient-assistant-messages"
-                      }
-                    ]
+                      ],
+                      "reasoningGroup": [
+                        {
+                          "pluginId": "reasoning"
+                        }
+                      ],
+                      "toolGroup": [
+                        {
+                          "pluginId": "tool-group"
+                        }
+                      ],
+                      "taskGroup": [
+                        {
+                          "pluginId": "task-group"
+                        }
+                      ],
+                      "toolFallback": [
+                        {
+                          "pluginId": "tool-result"
+                        }
+                      ],
+                      "assistantResponseFooter": [
+                        {
+                          "pluginId": "response-footer",
+                          "slots": {
+                            "actions": [
+                              {
+                                "pluginId": "copy-action"
+                              },
+                              {
+                                "pluginId": "reload-action"
+                              },
+                              {
+                                "pluginId": "export-markdown-action"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "transientMessages": [
+                        {
+                          "pluginId": "transient-assistant-messages"
+                        }
+                      ]
+                    }
                   }
-                }
-              ]
+                ],
+                "mainActions": [
+                  {
+                    "pluginId": "workbench-panel-actions",
+                    "id": "workbench-panel-actions-main"
+                  }
+                ]
+              }
             }
           ]
         }

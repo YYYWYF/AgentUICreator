@@ -38,6 +38,8 @@ export interface ConversationThreadListItem<
   id: string;
   status: TStatus;
   title?: string | undefined;
+  /** Last conversation activity, used by the canonical thread list's date groups. */
+  lastMessageAt?: Date | undefined;
   custom?: Record<string, unknown> | undefined;
 }
 

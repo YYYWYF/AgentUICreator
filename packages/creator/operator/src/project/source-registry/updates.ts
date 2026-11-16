@@ -103,7 +103,6 @@ export class AgentUIUpdateService {
       if (locked?.pluginVersion && targetPluginVersion && comparePluginVersions(targetPluginVersion, locked.pluginVersion) < 0) recommendations.push(`${item.id}: 目标版本低于当前版本`);
       // A shared dependency with no content change must keep its existing baseline.
       const changed = provided ? inspected.status !== "managed" : inspected.updateAvailable || !locked;
-      if (inspected.resolvedRequirements.some(requirement => requirement.installed === undefined)) issues.push(`${item.id}: 依赖包未安装`);
       if (["blocked", "partial"].includes(inspected.status)) issues.push(`${item.id}: ${inspected.status}`);
       if (provided && changed) issues.push(`${item.id}: Host 提供的基础依赖无法通过插件更新修改`);
       const paths = [...new Set([...item.loadedFiles.filter(file => locked?.files[file.target]?.sha256 !== sha256(file.content)).map(file => file.target), ...Object.keys(locked?.files ?? {}).filter(target => !item.loadedFiles.some(file => file.target === target))])].sort();

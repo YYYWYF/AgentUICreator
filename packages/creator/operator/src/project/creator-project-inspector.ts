@@ -129,8 +129,8 @@ async function inspectCreatorProjectCore(
       ...childSlotIssues,
     ];
     if (errors.length > 0) {
-      return { status: "broken", repairContext: { projectConfig: structure.projectConfig, paths }, issues: errors.map((issue) => ({
-        code: issue.code, message: issue.message, severity: "error" as const,
+      return { ...structure, warnings: errors.map((issue) => ({
+        code: issue.code, message: issue.message, severity: "warning" as const,
       })) };
     }
     const warnings: CreatorProjectIssue[] = [];
@@ -152,7 +152,8 @@ async function inspectCreatorProjectCore(
     }
     return { ...structure, ...(warnings.length === 0 ? {} : { warnings }) };
   } catch (error) {
-    return broken("AGENT_UI_STATIC_INSPECTION_FAILED", error);
+    return { ...structure, warnings: [{ code: "AGENT_UI_STATIC_INSPECTION_FAILED",
+      message: error instanceof Error ? error.message : String(error), severity: "warning" }] };
   }
 }
 

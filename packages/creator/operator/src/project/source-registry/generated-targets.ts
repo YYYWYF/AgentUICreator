@@ -4,6 +4,6 @@ export const generatedSourceTargets = [
   "application/resources.generated.ts",
   "composition-revision.generated.json",
   "agent-contract/frontend-tools.generated.ts",
-  "agent-ui/conversation/frontend-tool-uis.generated.ts",
+  "agent-ui/conversation/toolkit.generated.ts",
   "agent-ui/conversation/integrations.generated.tsx",
 ];

@@ -20,53 +20,10 @@ title: "任务计划与完成状态（agent-plan-message）"
 
 **Agent 服务接入：**计划由 `activityType: "agent-plan"` 的 Activity 快照提供，后续 delta 更新同一个 `messageId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "ACTIVITY_SNAPSHOT",
-    "messageId": "plan-1",
-    "activityType": "agent-plan",
-    "replace": true,
-    "content": {
-      "title": "生成报告",
-      "steps": [
-        {
-          "id": "search",
-          "label": "检索资料"
-        },
-        {
-          "id": "write",
-          "label": "生成报告"
-        }
-      ],
-      "activeIndex": 0
-    }
-  },
-  {
-    "type": "ACTIVITY_DELTA",
-    "messageId": "plan-1",
-    "activityType": "agent-plan",
-    "patch": [
-      {
-        "op": "replace",
-        "path": "/activeIndex",
-        "value": 1
-      }
-    ]
-  },
-  {
-    "type": "ACTIVITY_DELTA",
-    "messageId": "plan-1",
-    "activityType": "agent-plan",
-    "patch": [
-      {
-        "op": "replace",
-        "path": "/activeIndex",
-        "value": 2
-      }
-    ]
-  }
-]
+```jsonl
+{"type":"ACTIVITY_SNAPSHOT","messageId":"plan-1","activityType":"agent-plan","replace":true,"content":{"title":"生成报告","steps":[{"id":"search","label":"检索资料"},{"id":"write","label":"生成报告"}],"activeIndex":0}}
+{"type":"ACTIVITY_DELTA","messageId":"plan-1","activityType":"agent-plan","patch":[{"op":"replace","path":"/activeIndex","value":1}]}
+{"type":"ACTIVITY_DELTA","messageId":"plan-1","activityType":"agent-plan","patch":[{"op":"replace","path":"/activeIndex","value":2}]}
 ```
 
 `steps` 每项需要非空 `label`，可含非空 `id`、字符串 `description`；`title` 可省略。`activeIndex` 是从 0 开始的整数，之前的步骤视为完成，等于 `steps.length` 时全部完成。无效数据不显示计划。

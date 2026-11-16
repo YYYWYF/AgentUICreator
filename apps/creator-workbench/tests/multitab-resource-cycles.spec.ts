@@ -1,3 +1,4 @@
+import { historyListResponse, historyDetailResponse } from "./support/history-backend.js";
 import { expect, test, type Page } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -24,18 +25,18 @@ test("two tabs refresh shared metadata without reviving a deleted cached row or 
   const changes: { tab: string; method: string; id: string }[] = [];
   const f = await createControlledAgentHost({
     prepareHost: refreshButton,
-    application: origin => ({ imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const tab=new URLSearchParams(location.search).get("tab")??"a";const history=createHttpConversationDataSource({endpoint:${JSON.stringify(origin)}+"/history/"+tab});`, props: 'conversationDataSource={history} initialThreadId="kept"' }),
+    application: origin => ({ imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";', declarations: `const tab=new URLSearchParams(location.search).get("tab")??"a";const history=createConversationDataSource({endpoint:${JSON.stringify(origin)}+"/history/"+tab});`, props: 'conversationDataSource={history} initialThreadId="kept"' }),
     other(request, response, body) {
       const parts = request.url!.split("/"), tab = parts[2]!, route = parts[3], id = parts[4];
       response.setHeader("Content-Type", "application/json");
       if (route === "conversations" && !id) {
-        const data = JSON.stringify({ conversations: records });
+        const data = JSON.stringify(historyListResponse(records));
         if (tab === "b" && holdB) { holdB = false; stale = { response, body: data, closed: false }; response.once("close", () => { stale!.closed = true; }); }
         else response.end(data);
       } else if (route === "conversations" && id && request.method === "GET") {
         const record = records.find(item => item.id === id);
         if (!record) { response.writeHead(404); response.end('{"error":"missing"}'); return; }
-        response.end(JSON.stringify({ ...record, state: { values: { messages: [{ id: `saved-${id}`, type: "human", content: `Saved content ${id}` }] } } }));
+        response.end(JSON.stringify(historyDetailResponse({ ...record, history: { format: "langchain", messages: [{ id: `saved-${id}`, type: "human", content: `Saved content ${id}` }] } })));
       } else if (route === "conversations" && id && ["PATCH", "DELETE"].includes(request.method!)) {
         changes.push({ tab, method: request.method!, id });
         if (request.method === "PATCH") records = records.map(item => item.id === id ? { ...item, title: JSON.parse(body.toString()).title } : item);
@@ -92,8 +93,8 @@ test("twenty root lifetimes release pending history requests and Host tool subsc
   const errors = await watch(page); let started = 0, closed = 0, active = 0, peak = 0;
   const f = await createControlledAgentHost({
     application: origin => ({
-      imports: 'import {createHttpConversationDataSource} from "./agent-ui/services/conversations";import type {AgentFrontendToolSource} from "@za38.03/agent-ui-core";',
-      declarations: `const metrics={active:0,peak:0};(window as Window & {fixtureMetrics?:typeof metrics}).fixtureMetrics=metrics;const tools:AgentFrontendToolSource={getRevision:()=>0,listTools:()=>[],subscribe(){metrics.active++;metrics.peak=Math.max(metrics.peak,metrics.active);return()=>{metrics.active--;};},execute:async()=>({content:""})};const history=createHttpConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
+      imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";import type {AgentFrontendToolSource} from "@za38.03/agent-ui-core";',
+      declarations: `const metrics={active:0,peak:0};(window as Window & {fixtureMetrics?:typeof metrics}).fixtureMetrics=metrics;const tools:AgentFrontendToolSource={getRevision:()=>0,listTools:()=>[],subscribe(){metrics.active++;metrics.peak=Math.max(metrics.peak,metrics.active);return()=>{metrics.active--;};},execute:async()=>({content:""})};const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
       props: 'conversationDataSource={history} initialThreadId="held-history" frontendTools={tools}',
     }),
     prepareHost: async root => {

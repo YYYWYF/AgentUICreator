@@ -158,8 +158,10 @@ async function sendCtx(host: AgentUIHost) {
   await host.sendComposer({ ctx });
 }
 const agentCtx: import("@za38.03/agent-ui-runtime/ui").AgentProps = { ctx };
+const fetchOnly: import("@za38.03/agent-ui-runtime/ui").AgentProps = { fetch: async (_url, init) => globalThis.fetch("/business/agent", init) };
+const runtimeFetchOnly: Omit<ConversationRuntimeProviderProps, "children"> = { threadBinding: createEphemeralConversationThreadBinding(), fetch: fetchOnly.fetch };
 const pluginCtx: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions["sendMessage"] = async (_input, options) => { void options?.ctx; };
-void [sendCtx, agentCtx, pluginCtx];
+void [sendCtx, agentCtx, fetchOnly, runtimeFetchOnly, pluginCtx];
 void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, optionalUser];
 const hostTools = createAgentUIFrontendTools([{
   name: "open_record", description: "Open record", inputSchema: { type: "object" },

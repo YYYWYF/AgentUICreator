@@ -148,9 +148,6 @@ importers:
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1
-      zod:
-        specifier: 4.5.4
-        version: 4.5.4
       zustand:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.1.1)
@@ -236,9 +233,6 @@ importers:
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1
-      zod:
-        specifier: 4.5.4
-        version: 4.5.4
       zustand:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.1.1)
@@ -324,9 +318,6 @@ importers:
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1
-      zod:
-        specifier: 4.5.4
-        version: 4.5.4
       zustand:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.1.1)

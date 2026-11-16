@@ -8,7 +8,7 @@ import path from "node:path";
 import { PackageUpgradeService } from "../src/updates/package-upgrade-service";
 import { PackageUpdateService } from "../src/updates/package-update-service";
 import { HttpCompatibilityReleaseProvider } from "../src/updates/release-provider";
-import { runUpdateCommand, verifyNpmArtifact } from "../src/updates/npm-artifact";
+import { runUpdateCommand } from "../src/updates/npm-artifact";
 import { officialPackageNames } from "../src/updates/compatibility-release";
 import { resourcePackageInvocation } from "../src/project/ensure-resource-packages";
 const roots:string[]=[],servers:Server[]=[];
@@ -63,54 +63,106 @@ async function setup(manager:"npm"|"pnpm"="npm", plugins=false, versions=["0.0.1
   const provider=new HttpCompatibilityReleaseProvider(`${url}/feed`),overview=new PackageUpdateService(provider,{root:tools,creatorVersion:"0.0.1"});
   return {root:project,provider,overview,service:new PackageUpgradeService(provider,overview),bad(){badIntegrity=true;},release};
 }
-it("installs the explicitly selected published version beyond recommendations without forcing a Creator upgrade",async()=>{
- const {root,service,release}=await setup("npm",false,["0.0.1","0.0.2","0.0.3"]);
- Object.assign(release,{minimumCreatorVersion:"99.0.0",node:">=99",react:">=99"});
- const plan=await service.plan(root,{[name]:"0.0.3"});
- expect(plan.packages.find(pkg=>pkg.name===name)?.target).toBe("0.0.3");
- expect(plan.advisories?.some(issue=>issue.code==="creator")).toBe(true);
- expect(plan.advisories?.some(issue=>issue.code==="node")).toBe(true);
- expect(await service.execute(root,plan.id)).toMatchObject({status:"installed"});
- expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.3");
-},120000);
-for(const manager of ["npm","pnpm"] as const)it(`installs verified artifacts with real ${manager}, updates its lock and preserves local files`,async()=>{
- const {root,service}=await setup(manager),before=await readFile(path.join(root,"app-ui/composer.tsx"));
- const plan=await service.plan(root);expect(plan.manager).toBe(manager);expect(plan.packages[0]!.target).toBe("0.0.2");
- expect(JSON.parse(await readFile(path.join(root,"package.json"),"utf8")).dependencies[name]).toBe("0.0.1");
- const stages:string[]=[];expect(await service.execute(root,plan.id,stage=>{stages.push(stage);if(stage==="checking")throw new Error("observer disconnected");})).toMatchObject({status:"installed"});
- expect(stages).toEqual(["installing","checking"]);
- expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.2");
- expect(await readFile(path.join(root,"app-ui/composer.tsx"))).toEqual(before);expect(await readFile(path.join(root,"plugins/owned.ts"),"utf8")).toBe("// LOCAL custom source");expect(await readFile(path.join(root,"plugins/base.json"),"utf8")).toBe('"original BASE"');
- expect(await service.recovery(root)).toBeNull();
-},120000);
-it("rejects stale plans and forged confirmation IDs without changing dependencies",async()=>{
- const {root,service}=await setup();await expect(service.execute(root,"invented")).rejects.toThrow("PACKAGE_PLAN_STALE");
- const plan=await service.plan(root);await writeFile(path.join(root,"app-ui/composer.tsx"),"// newer edit");await expect(service.execute(root,plan.id)).rejects.toThrow("PACKAGE_PLAN_STALE");expect(await service.recovery(root)).toBeNull();
-},60000);
-it("restores manifest, exact lock and actual old installed version after validation fails",async()=>{
- const {root,provider,overview}=await setup();const before=await readFile(path.join(root,"package.json"),"utf8"),lock=await readFile(path.join(root,"package-lock.json"),"utf8");
- let fail=true;const service=new PackageUpgradeService(provider,overview,async(root,command,args)=>{const output=await runUpdateCommand(root,command,args);if(fail&&args[0]==="install"){fail=false;throw new Error("injected validation failure");}return output;});
- const plan=await service.plan(root);const stages:string[]=[];expect(await service.execute(root,plan.id,stage=>stages.push(stage))).toMatchObject({status:"restored"});expect(stages).toEqual(["installing","recovering"]);
- expect(await readFile(path.join(root,"package.json"),"utf8")).toBe(before);expect(await readFile(path.join(root,"package-lock.json"),"utf8")).toBe(lock);expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.1");
-},60000);
-it("persists failed recovery across service restart and retries the original lock install",async()=>{
- const {root,provider,overview}=await setup();let blocked=true;
- const service=new PackageUpgradeService(provider,overview,async(root,command,args)=>{if(blocked&&["install","ci"].includes(args[0]!))throw new Error("network down");return runUpdateCommand(root,command,args);});
- const plan=await service.plan(root);expect(await service.execute(root,plan.id)).toMatchObject({status:"recovery-required"});
- const restarted=new PackageUpgradeService(provider,overview);expect(await restarted.recovery(root)).toMatchObject({id:plan.id});await expect(restarted.plan(root)).rejects.toThrow("PACKAGE_RECOVERY_REQUIRED");blocked=false;
- expect(await restarted.recover(root,plan.id)).toMatchObject({status:"restored"});expect(await restarted.recovery(root)).toBeNull();
-},60000);
-it("verifies registry integrity and blocks workspace/local/override declarations before mutation",async()=>{
- const {root,service,bad}=await setup();bad();await expect(service.plan(root)).rejects.toThrow("PACKAGE_COMMAND_FAILED");
- await writeFile(path.join(root,"pnpm-workspace.yaml"),'packages: ["."]');await expect(service.plan(root)).rejects.toThrow("PACKAGE_WORKSPACE");
-},60000);
-it("retains concurrent user edits when recovery cannot safely restore",async()=>{
- const {root,provider,overview}=await setup();const service=new PackageUpgradeService(provider,overview,async(root,command,args)=>{const output=await runUpdateCommand(root,command,args);if(args[0]==="install"){await writeFile(path.join(root,"app-ui/composer.tsx"),"// user edit during install");throw new Error("failed");}return output;});
- const plan=await service.plan(root);expect(await service.execute(root,plan.id)).toMatchObject({status:"recovery-required"});expect(await readFile(path.join(root,"app-ui/composer.tsx"),"utf8")).toBe("// user edit during install");
-},60000);
-it("uses Windows command helpers without shell expansion and handles inherited JS launchers",()=>{
- expect(resourcePackageInvocation("npm",["install","--ignore-scripts"],"win32",{})).toEqual({command:"npm.cmd",args:['"install"','"--ignore-scripts"'],shell:true});
- expect(resourcePackageInvocation("npm",["view","@za38.03/agent-ui-core@0.0.2","--json"],"win32",{npm_execpath:"C:\\tools\\npm-cli.js"})).toMatchObject({command:process.execPath,shell:false});
+it("installs the explicitly selected version beyond recommendations", async () => {
+  const { root, service, release } = await setup("npm", false, ["0.0.1", "0.0.2", "0.0.3"]);
+  Object.assign(release, { minimumCreatorVersion: "99.0.0", node: ">=99", react: ">=99" });
+  const plan = await service.plan(root, { [name]: "0.0.3" });
+  expect(plan.advisories?.some(issue => issue.code === "creator")).toBe(true);
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "installed", checks: [] });
+  expect(await readFile(path.join(root, "node_modules", name, "package.json"), "utf8")).toContain('"0.0.3"');
+});
+for (const manager of ["npm", "pnpm"] as const) it(`uses real ${manager} without project checks or automatic rollback`, async () => {
+  const { root, provider, overview } = await setup(manager);
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as Record<string, unknown>;
+  manifest.scripts = { typecheck: "exit 1", build: "exit 1", test: "exit 1" };
+  await writeFile(path.join(root, "package.json"), JSON.stringify(manifest));
+  const before = await readFile(path.join(root, "app-ui/composer.tsx"));
+  const calls: string[][] = [];
+  const service = new PackageUpgradeService(provider, overview, async (cwd, command, args) => {
+    calls.push([command, ...args]);
+    return runUpdateCommand(cwd, command, args);
+  });
+  const plan = await service.plan(root);
+  expect(plan.checks).toEqual([]);
+  expect(calls).toEqual([]);
+  const stages: string[] = [];
+  expect(await service.execute(root, plan.id, stage => stages.push(stage))).toMatchObject({ status: "installed" });
+  expect(calls).toEqual([[manager, "install"]]);
+  expect(stages).toEqual(["installing"]);
+  expect(await readFile(path.join(root, "node_modules", name, "package.json"), "utf8")).toContain('"0.0.2"');
+  expect(await readFile(path.join(root, "app-ui/composer.tsx"))).toEqual(before);
+  expect(await service.recovery(root)).toBeNull();
+});
+it("accepts workspace, overrides, local declarations, duplicate fields and multiple/missing locks", async () => {
+  const { root, provider, overview } = await setup();
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as Record<string, unknown>;
+  Object.assign(manifest, { workspaces: ["*"], overrides: { unrelated: "1.0.0" }, resolutions: {},
+    pnpm: { patchedDependencies: {} }, dependencies: { [name]: "file:../local" }, peerDependencies: { [name]: "*" } });
+  await writeFile(path.join(root, "package.json"), JSON.stringify(manifest));
+  await writeFile(path.join(root, "pnpm-workspace.yaml"), 'packages: ["."]');
+  await writeFile(path.join(root, "yarn.lock"), "old lock");
+  await rm(path.join(root, "package-lock.json"));
+  const service = new PackageUpgradeService(provider, overview, async () => "");
+  const plan = await service.plan(root, { [name]: "0.0.2" });
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "installed" });
+  const after = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as { dependencies: Record<string, string>; peerDependencies: Record<string, string>; overrides: unknown };
+  expect(after.dependencies[name]).toBe("0.0.2");
+  expect(after.peerDependencies[name]).toBe("0.0.2");
+  expect(after.overrides).toEqual(manifest.overrides);
+});
+for (const manager of ["yarn", "bun"] as const) it(`uses the selected ${manager} without an admission gate`, async () => {
+  const { root, provider, overview } = await setup();
+  const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as Record<string, unknown>;
+  manifest.packageManager = `${manager}@1.0.0`;
+  await writeFile(path.join(root, "package.json"), JSON.stringify(manifest));
+  const calls: string[][] = [];
+  const service = new PackageUpgradeService(provider, overview, async (_cwd, command, args) => { calls.push([command, ...args]); return ""; });
+  const plan = await service.plan(root);
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "installed" });
+  expect(calls).toEqual([[manager, "install"]]);
+});
+it("reports an actual install failure without rollback or blocking a new plan", async () => {
+  const { root, provider, overview } = await setup();
+  const calls: string[][] = [];
+  const service = new PackageUpgradeService(provider, overview, async (_cwd, command, args) => { calls.push([command, ...args]); throw new Error("PACKAGE_COMMAND_FAILED"); });
+  const plan = await service.plan(root);
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "recovery-required", failure: "PACKAGE_COMMAND_FAILED" });
+  expect(calls).toEqual([["npm", "install"]]);
+  expect(await readFile(path.join(root, "package.json"), "utf8")).toContain('"0.0.2"');
+  await expect(service.plan(root, { [name]: "0.0.2" })).resolves.toBeDefined();
+  const restarted = new PackageUpgradeService(provider, overview);
+  expect(await restarted.recover(root, plan.id)).toMatchObject({ status: "restored" });
+});
+it("does not inspect installed content, lock changes or unrelated source edits", async () => {
+  const { root, provider, overview } = await setup();
+  const service = new PackageUpgradeService(provider, overview, async () => "");
+  const plan = await service.plan(root);
+  await writeFile(path.join(root, "package-lock.json"), "changed by user");
+  await writeFile(path.join(root, "app-ui/composer.tsx"), "// user edit");
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "installed" });
+  expect(await readFile(path.join(root, "package-lock.json"), "utf8")).toBe("changed by user");
+  expect(await readFile(path.join(root, "app-ui/composer.tsx"), "utf8")).toBe("// user edit");
+});
+it("accepts an explicit tag when metadata discovery fails", async () => {
+  const { root, provider, overview } = await setup();
+  overview.inspect = async () => { throw new Error("registry unavailable"); };
+  const service = new PackageUpgradeService(provider, overview, async () => "");
+  const plan = await service.plan(root, { [name]: "next" });
+  expect(plan.packages[0]?.target).toBe("next");
+  expect(await service.execute(root, plan.id)).toMatchObject({ status: "installed" });
+  expect(await readFile(path.join(root, "package.json"), "utf8")).toContain('"next"');
+});
+it("keeps confirmation tied to the project and manifest write", async () => {
+  const { root, service } = await setup();
+  await expect(service.execute(root, "invented")).rejects.toThrow("PACKAGE_PLAN_STALE");
+  const plan = await service.plan(root);
+  await writeFile(path.join(root, "package.json"), '{"name":"user-edit"}');
+  await expect(service.execute(root, plan.id)).rejects.toThrow("PACKAGE_PLAN_STALE");
+});
+it("uses Windows package-manager helpers with inherited JS launchers", () => {
+  for (const manager of ["npm", "pnpm", "yarn"]) expect(resourcePackageInvocation(manager, ["install"], "win32", {})).toEqual({ command: `${manager}.cmd`, args: ['"install"'], shell: true });
+  expect(resourcePackageInvocation("bun", ["install"], "win32", {})).toEqual({ command: "bun", args: ["install"], shell: false });
+  expect(resourcePackageInvocation("npm", ["install"], "win32", { npm_execpath: "C:\\tools\\npm-cli.js" })).toMatchObject({ command: process.execPath, shell: false });
 });
 
 it("real npm upgrade preserves Composer application/BASE and permits subsequent source conflict synchronization",async()=>{
@@ -131,7 +183,7 @@ it("real npm upgrade preserves Composer application/BASE and permits subsequent 
  const takeover=await planPluginSourceTakeover(root,{pluginId:"composer"});await takeoverPluginSource(root,{pluginId:"composer",planHash:takeover.planHash},validate);
  const source=path.join(root,"src/ui/plugins/composer/source/adapters/composer.tsx"),original=await readFile(source,"utf8");await writeFile(source,original+"\n// kept local adapter customizations\n");
  const application=await readFile(appPath),local=await readFile(source),ownershipPath=path.join(root,".agent-ui/plugin-ownership.json"),base=await readFile(ownershipPath);
- const plan=await service.plan(root);const installedResult=await service.execute(root,plan.id);expect(installedResult.failure).toBeUndefined();expect(installedResult).toMatchObject({status:"installed",checks:["build"]});
+ const plan=await service.plan(root);const installedResult=await service.execute(root,plan.id);expect(installedResult.failure).toBeUndefined();expect(installedResult).toMatchObject({status:"installed",checks:[]});
  expect(await readFile(appPath)).toEqual(application);expect(await readFile(source)).toEqual(local);expect(await readFile(ownershipPath)).toEqual(base);expect(await readFile(path.join(root,"src/ui/app-ui/app-ui.json"),"utf8")).toBe(model);
  const sync=await planPluginSourceSync(root,{pluginId:"composer"});expect(sync.package.version).toBe("0.0.2");
  await expect(syncPluginSource(root,{pluginId:"composer",planHash:sync.planHash},validate)).rejects.toMatchObject({code:"PLUGIN_SOURCE_MERGE_REQUIRED"});
@@ -139,58 +191,3 @@ it("real npm upgrade preserves Composer application/BASE and permits subsequent 
  await syncPluginSource(root,{pluginId:"composer",planHash:sync.planHash,resolutions:{"adapters/composer.tsx":target+"\n// kept local adapter customizations\n"}},validate);
  expect(await readFile(appPath)).toEqual(application);expect(await readFile(source,"utf8")).toContain("npmUpgradeFeature");expect(await readFile(source,"utf8")).toContain("kept local adapter customizations");expect(JSON.parse(await readFile(ownershipPath,"utf8")).plugins.composer.package.version).toBe("0.0.2");
 },120000);
-it("invalidates a reviewed plan when its lockfile changes",async()=>{
- const {root,service}=await setup();const plan=await service.plan(root);const file=path.join(root,"package-lock.json");await writeFile(file,(await readFile(file,"utf8"))+"\n");await expect(service.execute(root,plan.id)).rejects.toThrow("PACKAGE_PLAN_STALE");expect(await service.recovery(root)).toBeNull();
-},60000);
-it("leaves an interrupted unknown installation for review instead of racing an orphan package manager",async()=>{
- const {root,service}=await setup();const file=path.join(root,".agent-ui-npm-update.json");await writeFile(file,JSON.stringify({schemaVersion:1,id:"crash",root:await import("node:fs/promises").then(fs=>fs.realpath(root)),manager:"npm",lockfile:"package-lock.json",state:"installing"}));
- const before=await readFile(path.join(root,"package.json"));expect(await service.recover(root,"crash")).toMatchObject({status:"recovery-required",failure:"PACKAGE_INTERRUPTED_INSTALL_REQUIRES_REVIEW"});expect(await readFile(path.join(root,"package.json"))).toEqual(before);
-},60000);
-it("shares Operator cross-process admission and does not install while another operation owns it",async()=>{
- const {root,service}=await setup();const plan=await service.plan(root);const {acquireOperatorLock}=await import("../src/project/operator-lock");const release=await acquireOperatorLock(root);
- try{await expect(service.execute(root,plan.id)).rejects.toThrow("Another Host request");expect(await service.recovery(root)).toBeNull();}finally{await release();}
-},60000);
-it("detects installed content drift even when the target version and lock integrity look correct",async()=>{
- const {root,provider,overview}=await setup();const service=new PackageUpgradeService(provider,overview,async(root,command,args)=>{const output=await runUpdateCommand(root,command,args);if(args[0]==="install")await writeFile(path.join(root,"node_modules",name,"index.cjs"),'module.exports="tampered"');return output;});
- const plan=await service.plan(root);expect(await service.execute(root,plan.id)).toMatchObject({status:"restored",failure:"PACKAGE_INSTALLED_ARTIFACT"});expect(await readFile(path.join(root,"node_modules",name,"index.cjs"),"utf8")).toContain("0.0.1");
-},60000);
-
-for(const manager of ["npm","pnpm"] as const)it(`restores the real ${manager} dependency when the project's build command fails`,async()=>{
- const {root,service}=await setup(manager);
- const manifest=JSON.parse(await readFile(path.join(root,"package.json"),"utf8"));
- manifest.scripts={build:"node validate.cjs"};
- await writeFile(path.join(root,"validate.cjs"),`if (require(${JSON.stringify(name)}) !== "0.0.1") process.exit(1);`);
- await writeFile(path.join(root,"package.json"),JSON.stringify(manifest));
- const lockfile=manager==="npm"?"package-lock.json":"pnpm-lock.yaml";
- const before=await readFile(path.join(root,"package.json"),"utf8"),lock=await readFile(path.join(root,lockfile),"utf8");
- const plan=await service.plan(root);expect(plan.checks).toEqual(["build"]);
- expect(await service.execute(root,plan.id)).toMatchObject({status:"restored",failure:"PACKAGE_COMMAND_FAILED"});
- expect(await readFile(path.join(root,"package.json"),"utf8")).toBe(before);
- expect(await readFile(path.join(root,lockfile),"utf8")).toBe(lock);
- expect(JSON.parse(await readFile(path.join(root,"node_modules",name,"package.json"),"utf8")).version).toBe("0.0.1");
- expect(await service.recovery(root)).toBeNull();
-},60000);
-
-for(const manager of ["npm","pnpm"] as const)for(const filename of ["package.json",manager==="npm"?"package-lock.json":"pnpm-lock.yaml"])it(`preserves an outside ${filename} edit during ${manager} project checks and never reports installation success`,async()=>{
- const {root,provider,overview}=await setup(manager);
- const manifest=JSON.parse(await readFile(path.join(root,"package.json"),"utf8"));
- manifest.scripts={build:"node -e \"process.exit(0)\""};
- await writeFile(path.join(root,"package.json"),JSON.stringify(manifest));
- let edited="";
- const service=new PackageUpgradeService(provider,overview,async(cwd,command,args)=>{
-   const output=await runUpdateCommand(cwd,command,args);
-   if(args[0]==="run"){
-     const file=path.join(root,filename),raw=await readFile(file,"utf8");
-     if(filename.endsWith(".yaml"))edited=raw+"\n# user edit must survive validation and recovery\n";
-     else {const current=JSON.parse(raw);current.userEdit="must survive validation and recovery";edited=JSON.stringify(current,null,2)+"\n";}
-     await writeFile(file,edited);
-   }
-   return output;
- });
- const plan=await service.plan(root);expect(await service.execute(root,plan.id)).toMatchObject({status:"recovery-required"});
- expect(await readFile(path.join(root,filename),"utf8")).toBe(edited);
- expect(await service.recovery(root)).toMatchObject({id:plan.id,state:"recovery-required"});
- const restarted=new PackageUpgradeService(provider,overview);
- expect(await restarted.recover(root,plan.id)).toMatchObject({status:"recovery-required"});
- expect(await readFile(path.join(root,filename),"utf8")).toBe(edited);
-},60000);

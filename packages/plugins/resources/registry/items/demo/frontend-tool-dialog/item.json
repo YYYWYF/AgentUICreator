@@ -35,8 +35,8 @@
       "target": "agent-contract/frontend-tools/open-demo-dialog.ts"
     },
     {
-      "source": "files/agent-ui/conversation/frontend-tool-uis/open-demo-dialog.tsx",
-      "target": "agent-ui/conversation/frontend-tool-uis/open-demo-dialog.tsx"
+      "source": "files/agent-ui/conversation/toolkit/open-demo-dialog.tsx",
+      "target": "agent-ui/conversation/toolkit/open-demo-dialog.tsx"
     }
   ]
 }

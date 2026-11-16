@@ -12,6 +12,7 @@ vi.mock("../src/ui/CreatorPluginUpdates.js", () => ({ CreatorPluginUpdates: () =
 vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }));
 
 import { CreatorWorkbench } from "../src/ui/CreatorWorkbench.js";
+import { CreatorAgentClient } from "../src/agent/CreatorAgentClient.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const roots: Root[] = [];
@@ -43,6 +44,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const root of roots.splice(0)) act(() => root.unmount());
   document.body.replaceChildren();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -93,6 +95,90 @@ it("sends pending-question abandon through the control route and releases the wo
   expect(JSON.parse(String(init.body))).toEqual({ action: "abandon", threadId: "thread-1", interruptId: "interrupt-1" });
   expect(container.textContent).toContain("已放弃本次开发任务");
   expect((container.querySelector('button[title="清空当前对话和草稿，重新开始"]') as HTMLButtonElement).disabled).toBe(false);
+});
+
+async function sendFreshRequest(container: HTMLDivElement): Promise<void> {
+  const input = container.querySelector("#creator-request") as HTMLTextAreaElement;
+  expect(input.disabled).toBe(false);
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set?.call(input, "Start again");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await act(async () => {
+    (container.querySelector(".creator-panel-composer") as HTMLFormElement)
+      .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  });
+}
+
+it.each([
+  { body: { code: "CREATOR_REQUEST_FAILED", error: "CREATOR_INTERRUPT_NOT_FOUND" }, clear: false },
+  { body: { code: "CREATOR_REQUEST_FAILED", error: "CREATOR_INTERRUPT_NOT_FOUND" }, clear: true },
+  { body: { code: "CREATOR_INTERRUPT_CONTEXT_INVALID" }, clear: true },
+  { body: { error: "CREATOR_RUN_STOPPED" }, clear: false },
+])("releases an expired abandon response and sends again ($body, clear=$clear)", async ({ body, clear }) => {
+  const requests: { threadId: string; forwardedProps?: { command?: unknown }; messages: { role: string; content: string }[] }[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
+    if (url === "/__creator/control") return Response.json(body, { status: 400 });
+    const request = JSON.parse(String(init.body)) as { threadId: string; runId: string; messages: { role: string; content: string }[] };
+    requests.push(request);
+    return stream([{ type: "RUN_STARTED", threadId: request.threadId, runId: request.runId },
+      { type: "RUN_FINISHED", threadId: request.threadId, runId: request.runId }]);
+  }));
+  const { container } = await mount();
+  const abandon = [...container.querySelectorAll(".creator-question-card button")]
+    .find(button => button.textContent === "放弃本次任务") as HTMLButtonElement;
+  await act(async () => abandon.click());
+  expect(container.textContent).toContain("执行状态已经失效");
+  expect(container.querySelectorAll(".creator-question-card button")).toHaveLength(0);
+  expect(container.textContent).not.toContain("CREATOR_INTERRUPT_");
+  const stored = JSON.parse(sessionStorage.getItem("agent-ui-creator-conversation:workspace-1") ?? "null") as { items: { kind: string; status?: string }[] };
+  expect(stored.items.find(item => item.kind === "question")?.status).toBe("stale");
+  const clearButton = container.querySelector(".creator-composer-clear") as HTMLButtonElement;
+  expect(clearButton.disabled).toBe(false);
+  if (clear) {
+    await act(async () => clearButton.click());
+    expect(container.textContent).not.toContain("Layout?");
+  }
+  await sendFreshRequest(container);
+  expect(requests).toHaveLength(1);
+  expect(requests[0]?.forwardedProps?.command).toBeUndefined();
+  expect(requests[0]?.messages.at(-1)).toMatchObject({ role: "user", content: "Start again" });
+  if (clear) {
+    expect(requests[0]?.threadId).not.toBe("thread-1");
+    expect(requests[0]?.messages).toHaveLength(1);
+  }
+});
+
+it.each(["network", "server"])("keeps a question pending when abandon fails with an uncertain %s error", async failure => {
+  vi.stubGlobal("fetch", vi.fn(async () => {
+    if (failure === "network") throw new Error("Network disconnected");
+    return Response.json({ code: "CREATOR_REQUEST_FAILED", error: "Unexpected failure" }, { status: 500 });
+  }));
+  const { container } = await mount();
+  const abandon = [...container.querySelectorAll(".creator-question-card button")]
+    .find(button => button.textContent === "放弃本次任务") as HTMLButtonElement;
+  await act(async () => abandon.click());
+  expect(container.querySelector('.creator-question-card')?.getAttribute("data-status")).toBe("pending");
+  expect((container.querySelector(".creator-composer-clear") as HTMLButtonElement).disabled).toBe(true);
+});
+
+it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID", "CREATOR_RUN_STOPPED"])("clears a rejected resume's run record and permits sending for %s", async code => {
+  vi.spyOn(CreatorAgentClient.prototype, "resumeInterrupt").mockRejectedValue(Object.assign(new Error(code), { code }));
+  const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
+    const request = JSON.parse(String(init.body)) as { threadId: string; runId: string };
+    return stream([{ type: "RUN_STARTED", threadId: request.threadId, runId: request.runId },
+      { type: "RUN_FINISHED", threadId: request.threadId, runId: request.runId }]);
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const { container } = await mount();
+  await act(async () => { (container.querySelector(".creator-question-card input") as HTMLInputElement).click(); });
+  await act(async () => { (container.querySelector(".creator-question-card button") as HTMLButtonElement).click(); });
+  expect(container.querySelector('.creator-question-card')?.getAttribute("data-status")).toBe("stale");
+  expect((container.querySelector(".creator-composer-clear") as HTMLButtonElement).disabled).toBe(false);
+  await sendFreshRequest(container);
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(container.textContent).toContain("Start again");
+  expect(container.textContent).not.toContain("任务连接已断开");
 });
 
 it("lets the IME confirm text before Enter sends a Creator request", async () => {

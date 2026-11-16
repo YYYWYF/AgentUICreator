@@ -32,23 +32,10 @@ title: "询问用户"
 
 **数据来源：**只在工具 `ask_user_question` 发起提问时显示，参数和答案见下方[Agent 服务接入](#agent-服务接入)。一次提问的事件如下，随后以 `RUN_FINISHED` 的成功 outcome 结束本轮，等待用户提交工具结果并通过后续请求续答；此时服务端不预先发送 `TOOL_CALL_RESULT`：
 
-```json
-[
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "call-1",
-    "toolCallName": "ask_user_question"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "call-1",
-    "delta": "{\"steps\":[{\"id\":\"layout\",\"question\":\"你希望采用哪种首页布局？\",\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1,\"options\":[{\"id\":\"dashboard\",\"label\":\"数据总览\"},{\"id\":\"sidebar\",\"label\":\"侧边导航\"}]}]}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "call-1"
-  }
-]
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"ask_user_question"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"steps\":[{\"id\":\"layout\",\"question\":\"你希望采用哪种首页布局？\",\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1,\"options\":[{\"id\":\"dashboard\",\"label\":\"数据总览\"},{\"id\":\"sidebar\",\"label\":\"侧边导航\"}]}]}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
 ```
 
 事件逐条包装成 SSE，见[共用格式](./ag-ui-data#共用的-sse-格式)。问题卡片使用 human 工具结果提交，与 `outcome.type: "interrupt"` 的后端审批是两条接入路径。
@@ -91,7 +78,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 先编辑项目内 `plugins/ask-user-question/index.tsx` 的项目组件入口，组合公开的 `AskUserQuestionPlugin`，保留工具调用数据和提交答案的方法。需要完全替换问卷 UI 时，可以在本地定义中替换 `ask_user_question.render`，复用公开的参数与答案校验。
 
-插件 ID 是 `ask-user-question`，工具名是 `ask_user_question`，两者用途不同。旧项目若已有 `ask-user-question-demo`，先检查其定制并停用旧实例，再启用正式插件；不要同时注册两个同名工具。此次添加不会自动改写旧项目。
+插件 ID 是 `ask-user-question`，工具名是 `ask_user_question`，两者用途不同。同一个工具名只能注册一次，自定义展示时直接修改该插件的工具注册。
 
 [人机交互与操作确认](/plugins/human-interaction) · [前端工具接入](/development/frontend-tools) · [返回插件总览](/plugins/)
 

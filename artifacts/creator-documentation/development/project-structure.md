@@ -14,17 +14,17 @@
 | `styles.css`                                  | 项目样式覆盖                   | 品牌色、间距和组件样式                                 |
 | `services/`                                   | 业务接入、服务声明及对应的 React Hook | 历史 HTTP 接口、认证、业务服务                          |
 
-不同版本或历史工程的目录可能不同，先检查已有组件的导入和导出。官方插件通常由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
+修改组件前，先检查项目入口的导入和导出。官方插件默认由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
 
 ## 接口与适配器目录
 
-先到[业务服务接入总览](/development/service-integration.md)选择能力。历史 HTTP 配置已有固定入口 `services/conversations/http-data-source.ts`；其余可按教程新建 `services/attachments.ts`、`feedback.ts` 等项目文件，再在实际挂载 `<Agent />` 的业务页面导入并传 props。新建文件不代表自动注册生效。
+先到[业务服务接入总览](/development/service-integration.md)选择能力。历史接口方法已有固定入口 `services/conversations/data-source.ts`；其余可按教程新建 `services/attachments.ts`、`feedback.ts` 等项目文件，再在实际挂载 `<Agent />` 的业务页面导入并传 props。新建文件不代表自动注册生效。
 
 请求方法、业务成功码和返回字段转换放在对应项目数据源内；AG-UI 传输通过 `Agent fetch` 适配。组件外观在 `plugins/<id>/index.tsx` 中调整。Vue/HTML 的函数适配写在 React 生产工程中，重新构建后更新宿主加载的资源。
 
 新工程只生成布局中选用的插件入口，以及读取服务、传入数据和显示子插件所需的代码，添加插件时再生成对应入口。已经存在的项目入口会保留。
 
-服务相关 Hook 统一放在 `services/hooks/` 下：`useConversations.ts`、`useConversationActions.ts` 和按需生成的 `useAuthSession.ts`，不再按领域拆分子目录。插件通过相对路径调用这些 Hook；服务契约和实现不反向依赖 Hook。已有工程的旧 `hooks/` 目录不自动迁移。
+服务相关 Hook 放在 `services/hooks/` 下：`useConversations.ts`、`useConversationActions.ts` 和按需生成的 `useAuthSession.ts`。插件通过相对路径调用这些 Hook；服务契约和实现不反向依赖 Hook。
 
 主题、语言和文案覆盖通过 `Agent` 属性配置；只有编写服务消费代码时才需从 npm 导入公共服务标识和类型，入口见[插件 API](/development/plugin-api.md#内置领域-hook)。
 

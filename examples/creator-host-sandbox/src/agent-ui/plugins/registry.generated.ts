@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from '@za38.03/agent-ui-runtime/ui';
 
-export const capabilityCatalogRevision = '6035d546b2926c24bd9b085059f77bf78c6f5ea6b3046a88b7146ffc3f3d7113';
+export const capabilityCatalogRevision = '1f3a9915bed5ec3cc85f8f6c0defed5b8787ec120c7d9f155dde8ff5f7f34d73';
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -586,5 +586,47 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     optionalInject: [],
     loadDefinition: () =>
       import('./transient-assistant-messages/definition').then(({ default: definition }) => definition),
+  },
+  {
+    manifest: {
+      id: 'workbench-panel',
+      name: 'Workbench Panel',
+      description: 'A persistent tabbed side panel beside the workbench conversation',
+      version: '0.0.1',
+      capabilities: ['workbench-panel'],
+      slots: {
+        children: {
+          mainActions: {
+            description: 'Controls above the main conversation, alongside the full-height side panel',
+            cardinality: 'many',
+            optional: true,
+          },
+          main: {
+            description: 'Persistent conversation content',
+            cardinality: 'one',
+            accepts: { anyOfCapabilities: ['conversation-surface'] },
+          },
+          notes: { description: 'Notes content', cardinality: 'one', optional: true },
+          details: { description: 'Details content', cardinality: 'one', optional: true },
+        },
+      },
+    },
+    provides: ['agent-ui.workbench-panel'],
+    inject: [],
+    optionalInject: [],
+    loadDefinition: () => import('./workbench-panel/definition').then(({ default: definition }) => definition),
+  },
+  {
+    manifest: {
+      id: 'workbench-panel-actions',
+      name: 'Workbench Panel Actions',
+      description: 'Opens configured workbench panel content from other Plugin instances',
+      version: '0.0.1',
+      capabilities: ['workbench-panel-action'],
+    },
+    provides: [],
+    inject: ['agent-ui.workbench-panel'],
+    optionalInject: [],
+    loadDefinition: () => import('./workbench-panel-actions/definition').then(({ default: definition }) => definition),
   },
 ]);

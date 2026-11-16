@@ -20,62 +20,13 @@ title: "后台任务进度（job-progress-message）"
 
 **Agent 服务接入：**需要工具 `run_ci_job` 的参数、`STATE_*` 中的实时进度，以及最终工具结果三部分。`jobs` 的键必须与 `toolCallId` 相同。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
-```json
-[
-  {
-    "type": "STATE_SNAPSHOT",
-    "snapshot": {
-      "jobs": {
-        "job-1": {
-          "stageIndex": 0,
-          "stageProgress": 0.1,
-          "eta": "约 1 分钟"
-        }
-      }
-    }
-  },
-  {
-    "type": "TOOL_CALL_START",
-    "toolCallId": "job-1",
-    "toolCallName": "run_ci_job"
-  },
-  {
-    "type": "TOOL_CALL_ARGS",
-    "toolCallId": "job-1",
-    "delta": "{\"target\":\"生成报告\",\"stages\":[{\"name\":\"收集资料\",\"weight\":1},{\"name\":\"生成文件\",\"weight\":2}]}"
-  },
-  {
-    "type": "TOOL_CALL_END",
-    "toolCallId": "job-1"
-  },
-  {
-    "type": "STATE_DELTA",
-    "delta": [
-      {
-        "op": "replace",
-        "path": "/jobs/job-1/stageIndex",
-        "value": 1
-      },
-      {
-        "op": "replace",
-        "path": "/jobs/job-1/stageProgress",
-        "value": 0.5
-      },
-      {
-        "op": "replace",
-        "path": "/jobs/job-1/eta",
-        "value": "即将完成"
-      }
-    ]
-  },
-  {
-    "type": "TOOL_CALL_RESULT",
-    "messageId": "result-1",
-    "toolCallId": "job-1",
-    "role": "tool",
-    "content": "{\"status\":\"success\",\"summary\":\"报告已生成\",\"elapsedMs\":2300}"
-  }
-]
+```jsonl
+{"type":"STATE_SNAPSHOT","snapshot":{"jobs":{"job-1":{"stageIndex":0,"stageProgress":0.1,"eta":"约 1 分钟"}}}}
+{"type":"TOOL_CALL_START","toolCallId":"job-1","toolCallName":"run_ci_job"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"job-1","delta":"{\"target\":\"生成报告\",\"stages\":[{\"name\":\"收集资料\",\"weight\":1},{\"name\":\"生成文件\",\"weight\":2}]}"}
+{"type":"TOOL_CALL_END","toolCallId":"job-1"}
+{"type":"STATE_DELTA","delta":[{"op":"replace","path":"/jobs/job-1/stageIndex","value":1},{"op":"replace","path":"/jobs/job-1/stageProgress","value":0.5},{"op":"replace","path":"/jobs/job-1/eta","value":"即将完成"}]}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"job-1","role":"tool","content":"{\"status\":\"success\",\"summary\":\"报告已生成\",\"elapsedMs\":2300}"}
 ```
 
 工具参数包含非空 `target` 和 `stages` 数组；每阶段提供非空 `name`、数值 `weight`，可含 `description`，业务应使用正权重。state 中每个任务包含数值 `stageIndex`、`stageProgress` 和字符串 `eta`；阶段索引从 0 开始，阶段进度使用 0–1。`STATE_SNAPSHOT` 是完整 Agent state，已有其他字段时应一起保留；后续 `STATE_DELTA` 使用标准 JSON Patch 更新既有路径。

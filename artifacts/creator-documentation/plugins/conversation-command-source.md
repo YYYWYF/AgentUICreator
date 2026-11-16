@@ -38,5 +38,5 @@
 
 ## 开发文档
 
-- 加载业务命令、注册与清理、区分操作和指令行为：[搜索候选与命令来源](/development/composer-sources.md)。
+- 配置入口与命令数据格式：[提及搜索与快捷命令](/development/composer-sources.md)。
 - 在自定义插件中提供或消费命令服务：[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。

@@ -57,8 +57,10 @@ export class CreatorAgentClient {
     });
     const body: unknown = await response.json();
     if (!response.ok || typeof body !== "object" || body === null || !("status" in body)) {
-      throw new Error(typeof body === "object" && body !== null && "error" in body && typeof body.error === "string"
-        ? body.error : "Creator 停止请求未被接受。");
+      const code = typeof body === "object" && body !== null && "code" in body && typeof body.code === "string" ? body.code : undefined;
+      const message = typeof body === "object" && body !== null && "error" in body && typeof body.error === "string"
+        ? body.error : code ?? "Creator 停止请求未被接受。";
+      throw Object.assign(new Error(message), { code });
     }
     return body.status === "abandoned" ? "abandoned" : "stopping";
   }

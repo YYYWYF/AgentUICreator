@@ -1,0 +1,29 @@
+{
+  "id": "plugin/workbench-panel-actions",
+  "kind": "agent-component",
+  "description": "Opens configured workbench panel content from other Plugin instances",
+  "files": [
+    {
+      "source": "files/plugins/workbench-panel-actions/definition.ts",
+      "target": "plugins/workbench-panel-actions/definition.ts"
+    },
+    {
+      "source": "files/plugins/workbench-panel-actions/index.tsx",
+      "target": "plugins/workbench-panel-actions/index.tsx"
+    },
+    {
+      "source": "files/plugins/workbench-panel-actions/manifest.json",
+      "target": "plugins/workbench-panel-actions/manifest.json"
+    },
+    {
+      "source": "files/plugins/workbench-panel-actions/styles.css",
+      "target": "plugins/workbench-panel-actions/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

@@ -161,16 +161,26 @@ test.each(["npm", "pnpm"] as const)("prepares declarations only for %s and leave
   const prepared = (await planReactAgentUIProject(input)).dependencyPlan!;
   expect(prepared.dependencies).toEqual({}); expect(prepared.devDependencies).toEqual({});
   expect(prepared.installRequired).toBe(true);
-  await expect(initializeReactAgentUIProject({ ...input, planId: prepared.id })).rejects.toMatchObject({ code: "AGENT_UI_SETUP_INSTALL_REQUIRED" });
+  await expect(initializeReactAgentUIProject({ ...input, planId: prepared.id })).resolves.toBeDefined();
+  expect(await readFile(path.join(input.projectRoot, ".agent-ui/project.json"), "utf8")).toContain(input.sourceRoot);
 });
-test("blocks interrupted legacy installs, shared workspaces and mismatched managers", async () => {
-  const input = await host();
+test.each(["npm", "pnpm", "yarn", "bun"] as const)("does not gate %s initialization on workspace, locks, duplicate declarations or a legacy install record", async manager => {
+  const input = await host({ packageManager: `${manager}@1.0.0`, dependencies: { react: "^18.3.1" }, peerDependencies: { react: ">=18" }, workspaces: ["."] });
   await mkdir(path.join(input.projectRoot, ".agent-ui/creator"), { recursive: true });
   await writeFile(path.join(input.projectRoot, ".agent-ui/creator/dependency-install.json"), JSON.stringify({ stage: "installing" }));
-  await expect(planReactAgentUIProject(input)).rejects.toMatchObject({ code: "AGENT_UI_SETUP_INSTALL_REVIEW_REQUIRED" });
-  await rm(path.join(input.projectRoot, ".agent-ui"), { recursive: true });
-  await writeFile(path.join(input.projectRoot, "package-lock.json"), "{}");
-  await expect(planReactAgentUIProject(input)).rejects.toMatchObject({ code: "AGENT_UI_SETUP_MANAGER_UNSUPPORTED" });
   await writeFile(path.join(input.projectRoot, "pnpm-workspace.yaml"), 'packages: ["."]');
-  await expect(planReactAgentUIProject(input)).rejects.toMatchObject({ code: "AGENT_UI_SETUP_WORKSPACE_UNSUPPORTED" });
+  for (const file of ["package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock"]) await writeFile(path.join(input.projectRoot, file), "existing lock");
+  const result = await planReactAgentUIProject(input);
+  expect(result.valid).toBe(true);
+  expect(result.dependencyPlan?.manager).toBe(manager);
+  expect(result.dependencyPlan?.installCommand).toBe(`${manager} install`);
+});
+test("reuses dependencies resolved from the parent node_modules", async () => {
+  const parent = await host();
+  await installed(parent.projectRoot, "react", "18.3.1");
+  const child = path.join(parent.projectRoot, "packages", "frontend");
+  await mkdir(path.join(child, "src"), { recursive: true });
+  await writeFile(path.join(child, "package.json"), JSON.stringify({ dependencies: { react: "^18.3.1" } }));
+  const result = await planReactAgentUIProject({ ...parent, projectRoot: child });
+  expect(result.dependencyPlan?.packages.find(pkg => pkg.name === "react")).toMatchObject({ version: "18.3.1", action: "reuse" });
 });

@@ -19,7 +19,7 @@ export const feedback = {
 } satisfies Exclude<ConversationRuntimeProviderProps['feedback'], false | undefined>;
 ```
 
-在业务挂载文件 `src/AssistantPage.tsx` 中接线：
+在显示 Agent 的业务页面 `src/AssistantPage.tsx` 中，导入 `feedback` 并传给 `Agent` 的 `feedback` 属性：
 
 ```tsx
 import { Agent } from './agent-ui';
@@ -31,7 +31,7 @@ export function AssistantPage() {
 }
 ```
 
-保留回复操作区的 `feedback-actions` 插件。项目将 `onError` 接入自己的日志和本地化提示；评价失败不等于 Agent 推理失败。Vue/HTML 见[生产工程接线](./service-integration#vue--html-服务适配位置)。
+回复操作区需要启用 `feedback-actions` 插件，供用户点赞或点踩。在 `onError` 回调中记录日志并显示项目对应语言的错误提示；评价保存失败不代表 Agent 回复失败。Vue/HTML 项目见[在 React 生产工程中配置服务](./service-integration#vue--html-服务适配位置)。
 
 ## 2. 默认 HTTP 请求与响应
 
@@ -62,10 +62,7 @@ export function AssistantPage() {
 改写 `services/feedback.ts`。示例接口需要 `conversation_id`、`answer_id`、`score` 和 `reason`，响应为 `{ "code": 0 }`：
 
 ```ts
-import { z } from 'zod';
 import type { FeedbackDataSource, ConversationRuntimeProviderProps } from '@za38.03/agent-ui-runtime';
-
-const responseSchema = z.object({ code: z.literal(0) });
 
 const feedbackDataSource: FeedbackDataSource = {
   async submit(value) {
@@ -81,7 +78,8 @@ const feedbackDataSource: FeedbackDataSource = {
       }),
     });
     if (!response.ok) throw new Error('FEEDBACK_SAVE_FAILED');
-    responseSchema.parse(await response.json());
+    const result: { code: number } = await response.json();
+    if (result.code !== 0) throw new Error('FEEDBACK_SAVE_FAILED');
   },
 };
 
@@ -90,7 +88,7 @@ export const feedback = {
 } satisfies Exclude<ConversationRuntimeProviderProps['feedback'], false | undefined>;
 ```
 
-使用项目已有 `zod`，或调用已有业务 API 并判断成功码。`submit()` 成功无需返回内容，失败抛错；当前方法没有取消 signal 参数。数据源的鉴权自行处理，外层 URL、headers、credentials 不会应用到它。
+可直接调用已有业务 API 并判断成功码，无需引入额外校验库。`submit()` 成功无需返回内容，失败抛错；当前方法没有取消 signal 参数。数据源的鉴权自行处理，外层 URL、headers、credentials 不会应用到它。
 
 也可直接传 `<Agent feedbackAdapter={feedbackDataSource} />`，使用相同 `submit()` 契约。优先级为显式 `feedbackAdapter` → `feedback.dataSource` → `feedback.url` → 仅保留界面选择。`feedback={false}` 关闭内置适配器，按钮显示另在布局或组件应用层调整。
 

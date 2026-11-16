@@ -28,7 +28,6 @@ export interface AgentUIProjectOptions {
   compositionStore: RuntimeCompositionStore<AppAgentState>;
   appFrontendTools: readonly AppFrontendToolDefinition[];
   appEventSchemas: AppEventSchemas;
-  generatedFrontendToolUIs?: ConversationRuntimeProviderProps["frontendToolUIs"];
   baseConversationToolkit: ConversationToolkit;
   Integrations: ComponentType<{ children: ReactNode }>;
   conversationServices: Pick<ConversationRuntimeProviderProps, "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter">;

@@ -17,7 +17,9 @@ export function resourcePackageConflicts(packages: readonly ResourcePackageRequi
     (item.declared !== undefined && validRange(item.declared) !== null && !intersects(item.declared, item.required)));
 }
 
-export async function detectResourcePackageManager(projectRoot: string): Promise<"pnpm" | "yarn" | "npm" | "bun"> {
+export type ResourcePackageManager = "pnpm" | "yarn" | "npm" | "bun";
+
+export async function detectResourcePackageManager(projectRoot: string): Promise<ResourcePackageManager> {
   return await packageManagerAt(path.resolve(projectRoot)) ?? "npm";
 }
 
@@ -29,16 +31,15 @@ async function packageManagerAt(projectRoot: string, inherited = false): Promise
   const manifest = JSON.parse(await readFile(path.join(projectRoot, "package.json"), "utf8")) as { packageManager?: unknown };
   const workspace = await exists("pnpm-workspace.yaml") || "workspaces" in manifest;
   if (inherited && !workspace) return undefined;
-  if (manifest.packageManager !== undefined) {
-    if (typeof manifest.packageManager !== "string" || !/^(pnpm|yarn|npm|bun)@[^\s]+$/.test(manifest.packageManager)) throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Unsupported project packageManager.", manifest.packageManager);
-    return manifest.packageManager.split("@", 1)[0] as "pnpm" | "yarn" | "npm" | "bun";
+  if (typeof manifest.packageManager === "string") {
+    const manager = manifest.packageManager.split("@", 1)[0];
+    if (manager === "pnpm" || manager === "yarn" || manager === "npm" || manager === "bun") return manager;
   }
   const detected = new Set<"pnpm" | "yarn" | "npm" | "bun">();
   for (const [file, manager] of [["pnpm-lock.yaml", "pnpm"], ["yarn.lock", "yarn"], ["package-lock.json", "npm"], ["bun.lock", "bun"], ["bun.lockb", "bun"]] as const) {
     try { await access(path.join(projectRoot, file)); detected.add(manager); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
   }
-  if (detected.size > 1) throw new OfficialResourceError("RESOURCE_CONFLICT", "Multiple package manager lockfiles; select a packageManager in package.json.", [...detected]);
   if (detected.size) return [...detected][0];
   if (inherited) return undefined;
   // Workspace children normally have neither packageManager nor a private lockfile.

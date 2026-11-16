@@ -1,5 +1,16 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const enUS = {
+  workbenchPanel: {
+  "region": "Workbench side panel",
+  "tabs": "Panel contents",
+  "collapse": "Collapse",
+  "closeItem": "Close {name}",
+  "open": "Open side panel",
+  "notes": "Notes",
+  "details": "Details",
+  "notesDraft": "Notes draft",
+  "detailsDraft": "Details draft"
+},
   skills: {
     title: "Skills and workflows",
     more: "More",

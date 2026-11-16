@@ -63,7 +63,13 @@
 .app-ui-layout-drawer-controls button {
   display: inline-flex;
   margin: 10px 8px 0;
+  color: var(--muted-foreground, currentColor);
   pointer-events: auto;
+}
+
+.app-ui-layout-drawer-controls button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .app-ui-layout-drawer-controls button:hover,
@@ -78,6 +84,7 @@
 }
 
 .app-ui-layout-drawer[data-layout-drawer-mode="inline"] {
+  box-sizing: border-box;
   display: block;
   position: static;
   width: 100%;
@@ -107,9 +114,18 @@
   margin: 0 0 0 auto;
   padding: 0.75rem;
   overflow: auto;
-  border: 1px solid var(--app-ui-placeholder-border, #9aa4b2);
+  border: 0;
   background: var(--app-ui-surface, Canvas);
   color: inherit;
+}
+
+/* Separate navigation from the primary workspace on their shared edge only. */
+.app-ui-layout-drawer:is([data-layout-drawer-mode="inline"], [data-layout-drawer-mode="modal"][open])[data-layout-drawer-side="left"] {
+  border-right: 1px solid color-mix(in srgb, var(--border, #e5e7eb) 45%, transparent);
+}
+
+.app-ui-layout-drawer:is([data-layout-drawer-mode="inline"], [data-layout-drawer-mode="modal"][open])[data-layout-drawer-side="right"] {
+  border-left: 1px solid color-mix(in srgb, var(--border, #e5e7eb) 45%, transparent);
 }
 
 /* The Row policy supplies the side from its child order; templates do not override it. */

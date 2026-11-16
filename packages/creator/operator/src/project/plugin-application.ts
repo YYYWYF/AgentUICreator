@@ -4,6 +4,7 @@ import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
 import type { UIOperatorConfig } from "./types";
 import { createRequire } from "node:module";
+import { ownPackageIdentity, readPackageIdentity } from "../updates/package-identity";
 import { lstat, readFile } from "node:fs/promises";
 import path from "node:path";
 import { officialPackagePlugin } from "../source-catalog/index.js";
@@ -43,6 +44,13 @@ export async function isPluginApplication(directory: string, id: string): Promis
   return true;
 }
 
+/** Before installation, use the tool's templates while keeping generated imports project-owned. */
+async function applicationPackageRequire(root: string): Promise<NodeJS.Require> {
+  const installed = await readPackageIdentity(root, "@za38.03/agent-ui-plugins");
+  const templateRoot = installed ? root : (await ownPackageIdentity("@za38.03/agent-ui-creator")).root;
+  return createRequire(path.join(templateRoot, "package.json"));
+}
+
 /** Application files are deliberately absent from source-lock and implementation BASE. */
 export async function ensurePluginApplication(root: string, id: string, context?: {paths: AgentUIProjectPaths; config: UIOperatorConfig; mode?: AgentUIMode | undefined}, options: { preview?: boolean; repair?: boolean } = {}) {
   const official = officialPackagePlugin(id);
@@ -61,9 +69,8 @@ export async function ensurePluginApplication(root: string, id: string, context?
     throw new AgentUISourceError("PLUGIN_APPLICATION_EXISTS", "Existing Plugin code must be preserved; migrate it explicitly before creating the application layer.");
   }
   const entry = official.runtime.package + official.runtime.subpath.slice(1);
-  createRequire(path.join(root, "package.json")).resolve(entry);
   const installedManifest = await readApplicationPackageManifest(root, id);
-  const catalogPath = createRequire(path.join(root, "package.json")).resolve("@za38.03/agent-ui-plugins/catalog.json");
+  const catalogPath = (await applicationPackageRequire(root)).resolve("@za38.03/agent-ui-plugins/catalog.json");
   const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
   const installedApplication = catalog.plugins.find((plugin: { id: string }) => plugin.id === id)?.application;
   const sharedFiles = installedApplication?.sharedFiles ?? [];
@@ -139,7 +146,7 @@ export async function ensurePluginApplication(root: string, id: string, context?
   const modeApplicationFiles = official.application.modeApplicationFiles as ModeApplicationFiles | undefined;
   const modeFiles = mode ? modeApplicationFiles?.[mode] : undefined;
   if (mode && modeFiles?.length) {
-    const catalogPath = createRequire(path.join(root, "package.json")).resolve("@za38.03/agent-ui-plugins/catalog.json");
+    const catalogPath = (await applicationPackageRequire(root)).resolve("@za38.03/agent-ui-plugins/catalog.json");
     const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
     const installed = catalog.plugins.find((plugin: {id:string}) => plugin.id === id)?.application?.modeFiles?.[mode];
     const expected = modeFiles.map(([target, origin]) => ({ target, path: `sources/plugins/${id}/${origin}` }));
@@ -210,7 +217,7 @@ export async function switchApplicationImport(file: string, from: string, to: st
 
 /** Runtime and inventory both follow installed package metadata in npm mode. */
 export async function readApplicationPackageManifest(root: string, id: string): Promise<string> {
-  const require = createRequire(path.join(root, "package.json"));
+  const require = await applicationPackageRequire(root);
   const catalogPath = require.resolve("@za38.03/agent-ui-plugins/catalog.json");
   const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
   const pkg = JSON.parse(await readFile(path.join(path.dirname(catalogPath), "..", "package.json"), "utf8"));

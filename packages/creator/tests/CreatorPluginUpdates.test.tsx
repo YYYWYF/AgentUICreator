@@ -120,7 +120,7 @@ it("does not execute until the displayed dependency plan is explicitly confirmed
   await click(container, "查看更新"); await click(container, "更新此插件");
   expect(container.textContent).toContain("foundation/core");
   expect(container.textContent).toContain("@base-ui/react@1.8.0");
-  expect(container.textContent).toContain("已准备的依赖会保留");
+  expect(container.textContent).toContain("不自动运行工程检查");
   const region = container.querySelector<HTMLElement>('[aria-label="更新方案"]')!;
   expect(region.closest(".creator-update-plugin-card")?.textContent).toContain("Conversation Surface");
   expect(document.activeElement).toBe(region);
@@ -207,7 +207,26 @@ it("shows a bound npm plan and installs only after separate user confirmation, t
 });
 it("offers explicit recovery when an interrupted install prevents normal dependency inspection",async()=>{
  const routes:string[]=[];vi.stubGlobal("fetch",vi.fn(async(url:string)=>{routes.push(url);return new Response(JSON.stringify(url.endsWith("/packages/recover")?{status:"restored",checks:[]}:{...inspection,plugins:[],packageUpdates:{status:"unavailable",checkedAt:"now",packages:[],advisories:[],installationSupported:true,fingerprint:"recovery",recovery:{id:"pending",state:"recovery-required"}}}));}));
- const {container}=await mount();await click(container,"查看更新");await click(container,"重试恢复原依赖");expect(routes.some(r=>r.endsWith("/packages/recover"))).toBe(true);expect(container.textContent).toContain("原依赖文件和实际安装版本已恢复");
+ const {container}=await mount();await click(container,"查看更新");await click(container,"重试恢复原依赖");expect(routes.some(r=>r.endsWith("/packages/recover"))).toBe(true);expect(container.textContent).toContain("已恢复原依赖声明并执行安装");
+});
+
+it("keeps package updates available alongside an earlier failed installation", async () => {
+  const overview = packageOverview();
+  overview.recovery = { id: "pending", state: "recovery-required" };
+  let planned = false;
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+    if (url.endsWith("/packages/plan")) {
+      planned = true;
+      return Response.json({ id: "retry", packages: [{ name: "@za38.03/agent-ui-plugins", current: "0.0.1", target: "0.0.3" }], checks: [] });
+    }
+    return Response.json({ ...inspection, packageUpdates: overview });
+  }));
+  const { container } = await mount();
+  await click(container, "查看更新");
+  expect(container.textContent).toContain("其他功能仍可使用");
+  await click(container, "更新官方插件");
+  expect(planned).toBe(true);
+  expect(container.textContent).toContain("不自动校验升级结果");
 });
 
 it("keeps unchanged packages secondary and focuses the separately confirmed npm plan", async () => {
@@ -242,10 +261,10 @@ it("keeps code comparison optional and requires validation before finishing a so
  const comparison=container.querySelector(".creator-source-diff")!;expect(comparison.hasAttribute("open")).toBe(false);
  expect(comparison.textContent).toContain("你的当前代码");expect(comparison.textContent).not.toContain("BASE");
  expect(routes.some(r=>r.url.endsWith("/adopt")||r.url.endsWith("/execute"))).toBe(false);
- await click(container,"验证并完成同步");expect(container.textContent).toContain("尚有源码冲突未合并");expect(container.querySelector(".creator-source-diff")).not.toBeNull();
- valid=true;await click(container,"验证并完成同步");
+ await click(container,"确认并完成同步");expect(container.textContent).toContain("尚有源码冲突未合并");expect(container.querySelector(".creator-source-diff")).not.toBeNull();
+ valid=true;await click(container,"确认并完成同步");
  expect(routes.filter(r=>r.url.endsWith("/adopt")).every(r=>r.body.planId==="source-review"&&r.body.confirmed===true)).toBe(true);
- expect(container.textContent).toContain("已更新至 0.0.2，工程检查通过");expect(container.querySelector(".creator-source-diff")).toBeNull();
+ expect(container.textContent).toContain("已更新至 0.0.2。请自行检查工程和运行效果");expect(container.querySelector(".creator-source-diff")).toBeNull();
 });
 
 it("opens only the latest release and groups previous changes by version without downgrade warnings", async () => {
@@ -301,9 +320,9 @@ it("keeps an owned-plugin confirmation busy until completion and replaces versio
  expect(card.querySelector('.creator-release-list > .creator-release')?.textContent).toContain("新版功能");
  expect(card.querySelector<HTMLDetailsElement>('.creator-release-history')?.open).toBe(false);
  await click(container,"更新此插件");await click(container,"确认更新");
- expect(card.textContent).toContain("正在更新插件并检查工程");expect([...card.querySelectorAll('button')].find(button=>button.textContent==='更新中…')?.disabled).toBe(true);
+ expect(card.textContent).toContain("正在更新插件");expect([...card.querySelectorAll('button')].find(button=>button.textContent==='更新中…')?.disabled).toBe(true);
  updated=true;await act(async()=>complete(Response.json({updatedItems:["copy-action"],adopted:true})));
- expect(card.textContent).toContain("Conversation Copy Action已更新至 0.0.3，工程检查通过");
+ expect(card.textContent).toContain("Conversation Copy Action 已更新至 0.0.3。请自行检查工程和运行效果");
  expect(card.querySelector('[data-slot="card-description"]')).toBeNull();
  expect(card.textContent).not.toContain("已采用源码");expect(card.textContent).not.toContain("已安装包内官方版本");
 });
@@ -317,7 +336,7 @@ it("keeps automatic dependency versions out of feature notes and puts exact chan
  expect(main.querySelectorAll('.creator-release-list')).toHaveLength(1);
  await click(container,"更新官方插件");
  const plan=container.querySelector('.creator-package-plan')!;
- expect(plan.textContent).toContain("无需你单独操作");
+ expect(plan.textContent).toContain("其余依赖沿用工程现有配置");
  const details=plan.querySelector<HTMLDetailsElement>('.creator-dependency-details')!;
  expect(details.open).toBe(false);expect(details.textContent).toContain("@za38.03/agent-ui-runtime");expect(details.textContent).toContain("0.0.1 → 0.0.3");
  expect(details.textContent).not.toContain("此版本未提供更新说明");expect(details.querySelector('.creator-release-list')).toBeNull();

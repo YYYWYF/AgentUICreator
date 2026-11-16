@@ -42,6 +42,7 @@ export interface AgentUIInitializationHost<TModel> {
     config: AgentUIProjectConfig,
     onCreatedPaths?: (paths: readonly string[]) => void,
   ): Promise<string>;
+  /** Optional manual diagnostics; initialization does not call this. */
   verifyProject(projectRoot: string, config: AgentUIProjectConfig): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
   rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfig, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
   /** Install the development control plane before committing project.json. */
@@ -63,7 +64,7 @@ interface AgentUIInitializationJournal {
   readonly sourceRoot: string;
   readonly plannedPaths: readonly string[];
   readonly createdPaths: readonly string[];
-  readonly phase: "preparing" | "sources-installed" | "model-written" | "verified" | "committed" | "postcondition-failed";
+  readonly phase: "preparing" | "sources-installed" | "model-written" | "prepared" | "committed" | "postcondition-failed";
   readonly failure?: { readonly code: string; readonly message: string };
 }
 
@@ -155,22 +156,6 @@ export async function initializeAgentUIProject<TModel>(
       );
     }
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "model-written" }, false);
-    let verification: Awaited<ReturnType<typeof host.verifyProject>>;
-    try {
-      verification = await host.verifyProject(projectRoot, projectConfig);
-    } catch (error) {
-      throw new AgentUIInitializationError(
-        "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
-        "Prospective Agent UI project static verification could not run.", error,
-      );
-    }
-    if (verification.status !== "passed") {
-      throw new AgentUIInitializationError(
-        "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",
-        "Prospective Agent UI project failed static verification.",
-        verification.errors,
-      );
-    }
     for (const operatorPath of await host.installOperatorEntry(projectRoot)) createdPaths.add(operatorPath);
     // Keep portable project records tracked, while excluding local tool data.
     try {
@@ -179,7 +164,7 @@ export async function initializeAgentUIProject<TModel>(
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
     }
-    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" }, false);
+    await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "prepared" }, false);
     try {
       await writeFile(projectConfigPath, `${JSON.stringify({ sourceRoot: projectConfig.sourceRoot }, null, 2)}\n`, { flag: "wx" });
     } catch (error) {
@@ -214,14 +199,6 @@ export async function initializeAgentUIProject<TModel>(
   // The project.json write above is the only commit point. Everything below is post-commit.
   try {
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "committed" }, false);
-    const finalState = await host.inspectProject(projectRoot);
-    if (finalState.status !== "ready") {
-      throw new AgentUIInitializationError(
-        "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED",
-        `Committed Agent UI project inspected as ${finalState.status}.`,
-        { finalState },
-      );
-    }
     await unlink(journalPath);
     return {
       projectConfig, presetId: preset.id,
