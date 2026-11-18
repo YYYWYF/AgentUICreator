@@ -19,6 +19,7 @@ export const zhCN = {
     empty: "没有匹配的技能或工作流",
     unavailable: "暂无可用技能或工作流",
     hint: "选择技能后输入需求，工作流点击启动",
+    selectionFailed: "无法选择此技能，请重试。",
     startFailed: "工作流启动失败，请重试。",
   },
   ...AGENT_UI_RUNTIME_LOCALES["zh-CN"],
@@ -59,6 +60,7 @@ export const zhCN = {
     "name": "智能助手"
   },
   "conversationQuote": {
+    "requestFailed": "无法使用此引用，请重试。",
     "quote": "引用",
     "dismiss": "取消引用"
   },
@@ -140,6 +142,7 @@ export const zhCN = {
     "notHelpful": "没有帮助"
   },
   starterSuggestions: {
+    requestFailed: "无法使用此建议问题，请重试。",
     architectureTitle: "账户交易查询",
     architectureLabel: "查询余额、账单与交易明细",
     architecturePrompt: "如何查询账户余额、账单和交易明细？",

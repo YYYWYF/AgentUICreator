@@ -1,9 +1,10 @@
 'use client';
 
-import { AuiIf, useAuiState, ThreadPrimitive } from '@assistant-ui/react';
+import { AuiIf, useAuiState } from '@assistant-ui/react';
+import { ConversationSuggestion, type ConversationSuggestionRequestAdapter } from '@za38.03/agent-ui-plugins';
 import { useCallback, useEffect, useRef, useState, type FC } from 'react';
 
-const FollowupSuggestionsRow: FC = () => {
+const FollowupSuggestionsRow: FC<{ requestAdapter?: ConversationSuggestionRequestAdapter | undefined }> = ({ requestAdapter }) => {
   const suggestions = useAuiState((s) => s.thread.suggestions);
   const scrollRef = useRef<HTMLDivElement>(null);
   const rtlRef = useRef<boolean | null>(null);
@@ -48,10 +49,12 @@ const FollowupSuggestionsRow: FC = () => {
     >
       <div data-agent-ui-owned='' className='mx-auto flex min-h-8 w-max items-center gap-2 px-0.5'>
         {suggestions.map((suggestion, idx) => (
-          <ThreadPrimitive.Suggestion
+          <ConversationSuggestion
             key={idx}
             className='aui-thread-followup-suggestion border-foreground/10 hover:bg-foreground/[0.03] hover:border-foreground/25 rounded-md border px-2.5 py-1 text-sm whitespace-nowrap transition-colors ease-in motion-reduce:transition-none'
             prompt={suggestion.prompt}
+            requestItem={{ prompt: suggestion.prompt, title: suggestion.title, label: suggestion.label }}
+            requestAdapter={requestAdapter}
             send
           >
             {suggestion.title ?? suggestion.prompt}
@@ -60,15 +63,15 @@ const FollowupSuggestionsRow: FC = () => {
                 {suggestion.label}
               </span>
             )}
-          </ThreadPrimitive.Suggestion>
+          </ConversationSuggestion>
         ))}
       </div>
     </div>
   );
 };
 
-export const ThreadFollowupSuggestions: FC = () => (
+export const ThreadFollowupSuggestions: FC<{ requestAdapter?: ConversationSuggestionRequestAdapter | undefined }> = (props) => (
   <AuiIf condition={(s) => !s.thread.isEmpty && !s.thread.isRunning && s.thread.suggestions.length > 0}>
-    <FollowupSuggestionsRow />
+    <FollowupSuggestionsRow {...props} />
   </AuiIf>
 );

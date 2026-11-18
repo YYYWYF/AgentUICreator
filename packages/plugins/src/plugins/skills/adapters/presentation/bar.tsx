@@ -1,15 +1,21 @@
-import { useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useAuiEvent } from '@assistant-ui/react';
-import { usePluginService } from '@za38.03/agent-ui-runtime/plugin-api';
+import { PluginInstanceContext, useComposer, usePluginService } from '@za38.03/agent-ui-runtime/plugin-api';
 import { ConversationSkills, type ConversationSkillsProps } from './skills.js';
-import { CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService } from './service.js';
+import { CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService, type ConversationSkillRequestAdapter } from './service.js';
+import { useAgentUILocale } from '../../../../locale.js';
 import { useConversationSkillsState } from './use-skills.js';
 
 export type ConversationSkillsPluginProps = Omit<ConversationSkillsProps,
-  'selectedSkillId' | 'defaultSelectedSkillId' | 'onSelectedSkillChange' | 'scopeKey'>;
-export function ConversationSkillsBar(props: ConversationSkillsPluginProps) {
+  'selectedSkillId' | 'defaultSelectedSkillId' | 'onSelectedSkillChange' | 'scopeKey'> & { requestAdapter?: ConversationSkillRequestAdapter | undefined };
+export function ConversationSkillsBar({ requestAdapter, ...props }: ConversationSkillsPluginProps) {
+  const instance = useContext(PluginInstanceContext);
+  const composer = useComposer(instance?.instance.pluginId === 'skills' ? undefined : 'skills');
+  const [failed, setFailed] = useState(false);
+  const labels = useAgentUILocale('skills');
   const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
-  const { selected, threadId, composer, disabled } = useConversationSkillsState(service);
+  const { selected, threadId, disabled } = useConversationSkillsState(service);
+  useEffect(() => setFailed(false), [threadId]);
   useAuiEvent('composer.send', event => {
     if (event.messageId === undefined) service?.clear(event.threadId);
   });
@@ -20,12 +26,15 @@ export function ConversationSkillsBar(props: ConversationSkillsPluginProps) {
     if (!current) service?.clear(threadId);
     else if (current.kind === 'skill' && (current.label !== selected.label || current.description !== selected.description)) service?.updatePresentation(threadId, current);
   }, [props.items, selected, service, threadId]);
-  return <ConversationSkills {...props}
+  return <><ConversationSkills {...props}
     scopeKey={threadId}
     disabled={disabled || props.disabled || !service}
     selectedSkillId={selected?.id ?? null}
     onSelectedSkillChange={skill => {
-      if (skill && composer) service?.select(threadId, skill, composer);
-      else service?.clear(threadId);
-    }} />;
+      try {
+        if (skill) service?.select(threadId, skill, composer, requestAdapter);
+        else service?.clear(threadId);
+        setFailed(false);
+      } catch { setFailed(true); }
+    }} />{failed && <p role='alert'>{labels.selectionFailed}</p>}</>;
 }

@@ -44,6 +44,10 @@ Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runt
 
 输入触发器的通用服务标识、类型和 `createConversationCommandRegistry()` 由 Plugins 的 `/composer-triggers` 公开入口提供，新模板不再生成 `services/composer-triggers.ts`。注册表实例仍在项目插件的 setup 中按服务作用域创建；具体命令、执行回调和提及搜索请求由项目应用层配置。已有项目的同名文件与定制内容保留，不随 npm 升级自动迁移或删除。
 
+@ 与 / 的项目应用层通过 `requestAdapter(item)` 格式化选择，并使用 Runtime `/plugin-api` 的 `useComposer().setData` 提交 JSON 草稿数据。第三方插件复用同一个端口，不引用 Composer 实现。端口按 Thread、插件实例与命名子作用域隔离；引用绑定、原始选择与默认发送开关属于数据生命周期。Composer 通过可选 `requestAdapter({ request, pluginData, selections })` 同步返回最终请求，之后不再合并 forwardedProps；未配置时保留默认组装，未定制触发器保留原有正文引用格式。Runtime 提供通用存取、原生 runConfig 提交快照和私有消息元数据绑定，不拥有官方插件业务格式，也不创建第二套消息或队列。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../website/docs/development/composer-sources.md)。
+
+技能、引用和建议问题复用同一 `requestAdapter → useComposer().setData → Composer` 链。技能服务只持有选择及本次数据的释放函数，不再直接写原生业务配置。默认技能项使用 ctx，业务参数统一合并到 forwardedProps.ctx；原生配置中携带的业务字段也在最终适配器执行前归入 ctx，不默认输出运行配置字段。通用数据选项可提供默认 forwardedProps、正文前缀和原生引用绑定，保留已有技能字段与引用格式；最终适配器仍拥有完整请求。原生建议动作负责点击、填入、直接发送和排队，数据采集在动作之前执行，按本次写入的释放函数清理，不清除之后的草稿。回复后的建议行使用同一公共组件，可通过 Thread components.FollowupSuggestions 替换；这是应用层组件组合，不增加 AppUIModel Slot 或持久化字段。
+
 服务相关 Hook 统一放在 `services/hooks/`，其下不再按会话、认证拆分子目录，作为项目拥有的 React 访问层。服务契约和实现不反向导入 Hook；插件内部交互 Hook 仍属于对应插件。新模板不创建根级 `hooks/` 目录，已有工程的旧路径与定制文件不自动搬迁或删除。
 
 根样式与可选能力分开交付。新模板使用 `styles-base.css`，Plugin 子入口加载自己的预编译样式；完整 `styles.css` 服务直接 facade 消费者。Lexical 经 `/lexical` 及可选 peers 按需加载，目标工程自己拥有依赖。

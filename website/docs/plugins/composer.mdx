@@ -64,6 +64,7 @@ title: "消息输入（composer）"
 | `trailingActions?` | `ReactNode` | 后部操作区 |
 | `submitAction?` | `ReactNode` | 提交操作区 |
 | `onSubmit?` | `ConversationComposerRootProps['onSubmit']` | 表单提交回调；保留默认发送与等待回复检查 |
+| `requestAdapter?` | `ComposerRequestAdapter` | 同步定制最终 AG-UI 请求，见下方请求适配；省略时沿用默认组装 |
 
 `inputProps` 继承自动增高 textarea 的原生属性，包括 `rows`、`maxLength`、`minRows`、`maxRows`、`onChange`、`onKeyDown`、`className`、`style`，另有：
 
@@ -97,3 +98,92 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
 具体属性和保留插槽的修改示例见[输入框定制](/development/component-customization)。
 
 默认输入提示、无障碍名称和排队文案统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+## 开发 API
+
+### Hook
+
+从用途选择 Hook：
+
+- **修改草稿和写入参数**：`useComposer(name?)` 提供当前输入区的操作与 JSON 草稿数据。
+- **响应式读取输入状态**：`useConversationComposer()` 提供输入状态、附件与发送／取消操作。
+- **判断是否等待用户处理**：`useConversationComposerAwaitingReply()` 返回是否等待审批或补充输入。
+- **读取等待标识**：`useConversationComposerGuardState()` 同时返回 `interruptKey`。
+- **适配最终请求**：`useComposerRequestAdapter(adapter)` 为已接管的 Composer 实现注册当前会话唯一的同步请求适配器；普通业务插件使用 `setData`。
+
+具体签名与示例见下方。
+
+从 `@za38.03/agent-ui-plugins` 导入 `useComposer`。它复用当前 Thread 的原生输入区，需要已有 Conversation 上下文；`setData` 还需要 Agent UI 提供的草稿数据上下文。
+
+| 成员 | 参数与返回值 | 用途 |
+| --- | --- | --- |
+| `subscribe(listener)` | `(() => void) → () => void` | 订阅原生草稿变化，返回取消订阅函数 |
+| `setQuote(quote)` | `{ text, messageId } \| undefined → void` | 设置或清除原生引用 |
+| `getState()` | 原生 Composer 状态快照 | 读取 `text`、`canSend` 等；此调用自身不订阅变化 |
+| `setText(text)` | `string → void` | 修改同一份输入草稿 |
+| `send()` | `void` | 通过当前输入区提交草稿 |
+| `setData(data, options?)` | `(ComposerData, ComposerDataOptions?) → () => void` | 设置本插件的 JSON 草稿数据 |
+| `clearData()` | `void` | 清除当前 Thread 中本调用方拥有的数据；私有引用恢复为公开的 fallback 文本 |
+
+`name?: string` 区分同一插件内的子用途；默认以插件**实例 ID**隔离数据。插件上下文外调用时以 `standalone` 为基础，多个调用方应传不同名称；仍须位于已有 Conversation 内。不同 Thread 的草稿数据分开保存。
+
+`setData` 返回只释放本次写入的函数；后续写入不会被旧清理函数移除。适合建议问题等直接发送动作的清理。
+
+`ComposerData` 是 JSON 值，不能传函数、DOM 或循环对象。无引用的 `setData` 更新本调用方的数据；带引用的数据可保留多项选择。`ComposerDataOptions` 包含：
+
+| 属性 | 类型 | 用途 |
+| --- | --- | --- |
+| `reference?` | `{ token: string; text: string; fallbackText: string }` | 绑定输入中的引用；删除引用时移除其数据，发送时替换 token |
+| `quote?` | `{ text: string; messageId: string }` | 绑定原生引用，取消引用后排除数据 |
+| `defaultForwardedProps?` | `Readonly<Record<string, ComposerData>>` | 插件的默认外带字段；同一顶层对象与原字段浅合并，插件字段优先 |
+| `defaultTextPrefix?` | `string` | 插件默认加到当前用户正文前的文本 |
+| `selection?` | `ComposerData` | 保留原始选择，供最终适配器读取 |
+| `includeInRequest?` | `boolean`，默认 `true` | 是否按实例 ID 自动进入外带参数；`false` 仍可由适配器读取，并可显式提供默认组装字段 |
+
+`useConversationComposer(): ConversationComposerController` 响应式提供以下状态与操作：
+
+| 类别 | 成员 |
+| --- | --- |
+| 草稿 | `text`、`setText(text)` |
+| 附件状态 | `attachments`、`attachmentAccept`、`attachmentsEnabled` |
+| 可用状态 | `isRunning`、`disabled`、`canSend`、`canCancel` |
+| 发送与取消 | `send()`、`cancel()` |
+| 附件操作 | `addAttachment(file): Promise<void>`、`removeAttachment(id): Promise<void>` |
+
+它不提供结构化数据写入；这类写入使用 `useComposer`，不要混作同一接口。
+
+### 请求适配
+
+`ComposerRequestAdapter` 的签名为 `(input: ComposerRequestAdapterInput) => RunAgentInput`；`RunAgentInput` 从 `@ag-ui/client` 导入。输入含：
+
+| 字段 | 类型 | 内容 |
+| --- | --- | --- |
+| `request` | `RunAgentInput` | 已完成默认组装的请求 |
+| `pluginData` | `Readonly<Record<string, ComposerData>>` | 按插件实例 ID 或命名子作用域归组的数据 |
+| `selections` | `Readonly<Record<string, readonly ComposerData[]>>` | 各调用方保留的原始选择 |
+
+请求参数按以下规则组装：
+
+- **默认位置**：允许发送的插件数据放入 `request.forwardedProps` 的对应调用方键下。没有适配器时，与已有字段同名会报错。
+- **配置适配器后**：`request` 保留同名的已有字段，插件数据仍在 `pluginData` 中，由适配器决定如何使用。
+- **最终结果**：适配器返回的请求不再合并默认 `forwardedProps`；需要保留原字段时，显式展开。
+
+同一个 Agent 只能注册一个最终适配器。普通应用在已有 Composer JSX 上传 `requestAdapter`，不要在每个业务插件里分别注册；工具续传和中断恢复会对原次提交的数据再次调用它。
+
+```tsx
+import {
+  ConversationCanonicalComposer, type ComposerRequestAdapter,
+} from '@za38.03/agent-ui-plugins';
+import type { ComponentProps } from 'react';
+
+const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) => ({
+  ...request,
+  forwardedProps: { pluginData },
+});
+
+export function ProjectComposer(props: ComponentProps<typeof ConversationCanonicalComposer>) {
+  return <ConversationCanonicalComposer {...props} requestAdapter={requestAdapter} />;
+}
+```
+
+在项目已有的 Composer 入口应用这个属性并保留其组合；不要额外挂载第二个 Composer。若要保留原外带字段，先将 `request.forwardedProps` 作为 `unknown` 检查为对象后再展开。

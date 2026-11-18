@@ -45,6 +45,8 @@ title: "@ 提及搜索（mention-trigger）"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `source?` | [`ConversationMentionSource`](#conversationmentionsource) | 从已有提及数据源搜索候选项；缺少时不显示提及候选界面 |
+| `onSelect?` | `(item, { text, range }) => string \| null` | 完全替换默认插入；返回项目文本或移除查询。见[选中与发送格式](/development/composer-sources#在项目中替换选中行为) |
+| `requestAdapter?` | `ConversationTriggerRequestAdapter<ConversationMentionItem>` | 同步将一次选择转换为 `ComposerData`；最终请求位置与格式由 [Composer requestAdapter](./composer#请求适配) 决定 |
 | `debounceMs?` | `number` | 搜索防抖；省略时沿用底层触发器默认值 |
 
 文案字段见统一 `conversationTriggers` 命名空间。
@@ -71,6 +73,7 @@ interface ConversationMentionItem {
   type: string; // 提及类型
   label: string; // 展示文字
   description?: string; // 补充说明
+  data?: unknown; // 项目附加数据，默认不发送
 }
 ```
 
@@ -88,3 +91,7 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationMentionTri
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
 
 触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+## 自定义选择数据
+
+`ConversationTriggerRequestAdapter<T>` 从 `@za38.03/agent-ui-plugins` 导入，签名为 `(item: T) => ComposerData`。`requestAdapter` 在选择时同步返回 JSON，通过 `useComposer().setData` 交给 Composer；原始选择同时保留在 `selections` 中。省略时保留原有默认行为。完整应用层配置见[选择数据与请求组装](/development/composer-sources#插件提供数据composer-组装请求)。

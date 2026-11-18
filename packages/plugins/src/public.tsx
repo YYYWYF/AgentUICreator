@@ -1,3 +1,4 @@
+import { useSuggestionRequest } from './internal/adapters-generated/assistant-ui/suggestion-request.js';
 import {
   type ConversationMessage,
   type ConversationThreadComponents,
@@ -430,12 +431,23 @@ export { ConversationComposerAddAttachment, type ConversationComposerAddAttachme
 export { ConversationComposerDictate, ConversationComposerStopDictation, type ConversationComposerDictateProps, type ConversationComposerStopDictationProps } from "./plugins/dictation-action/adapters/presentation/dictation-action.js";
 export { ConversationComposerSend, ConversationComposerCancel, type ConversationComposerSendProps, type ConversationComposerCancelProps } from "./plugins/submit-action/adapters/presentation/submit-action.js";
 
+export interface ConversationSuggestionRequestItem {
+  prompt: string;
+  title?: string | undefined;
+  label?: string | undefined;
+  data?: import('@za38.03/agent-ui-runtime/plugin-api').ComposerData | undefined;
+}
+export type ConversationSuggestionRequestAdapter = (item: ConversationSuggestionRequestItem) => import('@za38.03/agent-ui-runtime/plugin-api').ComposerData;
+
 export interface ConversationSuggestionProps
   extends Omit<ComponentProps<"button">, "children"> {
   /** A prompt for a genuinely hard-coded suggestion. Runtime suggestions use
    * ConversationSuggestionTrigger instead. */
   prompt: string;
   send?: boolean | undefined;
+  clearComposer?: boolean | undefined;
+  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
+  requestItem?: ConversationSuggestionRequestItem | undefined;
   children?: ReactNode;
 }
 
@@ -458,16 +470,23 @@ export function ConversationSuggestions({
 }
 
 export type ConversationSuggestionTriggerProps = ComponentProps<"button"> & {
-  asChild?: boolean;
+  asChild?: boolean | undefined;
   render?: ReactElement | undefined;
   send?: boolean | undefined;
   clearComposer?: boolean | undefined;
+  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
 };
 
 export function ConversationSuggestionTrigger(
   props: Readonly<ConversationSuggestionTriggerProps>,
 ) {
-  return <SuggestionPrimitive.Trigger {...props} />;
+  const { requestAdapter, onClick, ...nativeProps } = props;
+  const suggestion = useInternalConversationState(state => state.suggestion);
+  const item = { prompt: suggestion.prompt, title: suggestion.title, label: suggestion.label };
+  const request = useSuggestionRequest(item, requestAdapter, props.send ?? false, props.clearComposer, onClick);
+  const messages = useAgentUILocale('starterSuggestions');
+  return <><SuggestionPrimitive.Trigger {...nativeProps} onClick={request.onClick} />
+    {request.failed && <span role='alert'>{messages.requestFailed}</span>}</>;
 }
 
 export type ConversationSuggestionTitleProps = ComponentProps<"span"> & {
@@ -493,17 +512,26 @@ export function ConversationSuggestion({
   prompt,
   send,
   children,
+  requestAdapter,
+  requestItem,
+  clearComposer,
+  onClick,
   ...props
 }: Readonly<ConversationSuggestionProps>) {
-  return (
+  const request = useSuggestionRequest(requestItem ?? { prompt }, requestAdapter, send ?? false, clearComposer, onClick);
+  const messages = useAgentUILocale('starterSuggestions');
+  return (<>
     <ThreadPrimitive.Suggestion
       prompt={prompt}
       {...(send === undefined ? {} : { send })}
+      {...(clearComposer === undefined ? {} : { clearComposer })}
       {...props}
+      onClick={request.onClick}
     >
       {children}
     </ThreadPrimitive.Suggestion>
-  );
+    {request.failed && <span role='alert'>{messages.requestFailed}</span>}
+  </>);
 }
 
 export function ConversationCommandDecisionProvider(props: {
@@ -1199,6 +1227,8 @@ export interface ConversationMentionItem {
   type: string;
   label: string;
   description?: string;
+  /** Project-owned candidate data; ignored by the default reference encoding. */
+  data?: unknown;
 }
 export interface ConversationMentionSource {
   /** Optional cache identity for sources that publish changes while mounted. */
@@ -1212,6 +1242,8 @@ export interface ConversationCommandBase {
   label: string;
   description?: string;
   disabled?: boolean;
+  /** Project-owned command data; ignored by default selection handling. */
+  data?: unknown;
 }
 export type ConversationSlashCommand =
   | (ConversationCommandBase & { mode: "action"; execute(): void | Promise<void> })
@@ -1223,10 +1255,26 @@ export interface ConversationSlashCommandSource {
 export interface ConversationMentionTriggerProps {
   source?: ConversationMentionSource | undefined;
   debounceMs?: number | undefined;
+  /** Replaces default insertion. Return replacement text, or null to remove the query.
+   * Synchronous; may throw to leave the draft unchanged and show a localized error.
+   */
+  onSelect?: ConversationTriggerSelect<ConversationMentionItem> | undefined;
+  /** Formats each selected item as JSON. Composer owns the final request assembly. */
+  requestAdapter?: ConversationTriggerRequestAdapter<ConversationMentionItem> | undefined;
 }
 export interface ConversationCommandTriggerProps {
   source?: ConversationSlashCommandSource | undefined;
+  /** Replaces both directive insertion and action execution. */
+  onSelect?: ConversationTriggerSelect<ConversationSlashCommand> | undefined;
+  requestAdapter?: ConversationTriggerRequestAdapter<ConversationCommandRequestItem> | undefined;
 }
+export type ConversationCommandRequestItem = ConversationCommandBase & { mode: 'directive' | 'action' };
+export type ConversationTriggerRequestAdapter<T> = (item: T) => import('@za38.03/agent-ui-runtime/plugin-api').ComposerData;
+export interface ConversationTriggerSelectionContext {
+  readonly text: string;
+  readonly range: { readonly start: number; readonly end: number };
+}
+export type ConversationTriggerSelect<T> = (item: T, context: ConversationTriggerSelectionContext) => string | null;
 import { InternalConversationMentionTrigger, InternalConversationCommandTrigger } from "./internal/conversation-composer-triggers.js";
 export function ConversationComposerMentionTrigger(props: ConversationMentionTriggerProps): ReactElement | null {
   const messages = useAgentUILocale("conversationTriggers");
@@ -1332,7 +1380,7 @@ export { CanonicalConversationNew } from "./plugins/conversation-new/adapters/pr
 export type { ConversationNewPluginProps } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
 
 export { CanonicalConversationQuote } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
-export type { ConversationQuotePluginProps } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
+export type { ConversationQuotePluginProps, ConversationQuoteRequestAdapter, ConversationQuoteData } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
 
 export { PolicyThreadList as ConversationPolicyThreadList } from "./plugins/conversation-thread-list/adapters/presentation/PolicyThreadList.js";
 
@@ -1415,7 +1463,7 @@ export { ConversationSkillsBar } from "./plugins/skills/adapters/presentation/ba
 export { useConversationComposerRunConfig } from '@za38.03/agent-ui-runtime/plugin-api';
 export type { ConversationSkillsPluginProps } from "./plugins/skills/adapters/presentation/bar.js";
 export { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from "./plugins/skills/adapters/presentation/service.js";
-export type { ConversationSkillsService, ConversationSkillComposerBinding } from "./plugins/skills/adapters/presentation/service.js";
+export type { ConversationSkillsService, ConversationSkillComposerBinding, ConversationSkillRequestAdapter, ConversationSkillRequestItem } from "./plugins/skills/adapters/presentation/service.js";
 export { useConversationSkillsState } from "./plugins/skills/adapters/presentation/use-skills.js";
 export { ConversationSkillSelection } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export type { ConversationSkillSelectionProps } from "./plugins/skills-selection/adapters/presentation/selection.js";
@@ -1428,3 +1476,11 @@ export { WORKBENCH_PANEL_SERVICE, DEFAULT_WORKBENCH_PANEL_IDS, createWorkbenchPa
 export type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './plugins/workbench-panel/adapters/presentation/service.js';
 export { WorkbenchPanelActions } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
 export type { WorkbenchPanelActionsProps } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
+
+export { useComposer, useComposerRequestAdapter, type ComposerData, type ComposerDataOptions, type ComposerRequestAdapter, type ComposerRequestAdapterInput } from "@za38.03/agent-ui-runtime/plugin-api";
+
+
+import { ThreadFollowupSuggestions as InternalFollowupSuggestions } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
+export function ConversationFollowupSuggestions(props: { requestAdapter?: ConversationSuggestionRequestAdapter | undefined } = {}): ReactElement {
+  return <InternalFollowupSuggestions {...props} />;
+}

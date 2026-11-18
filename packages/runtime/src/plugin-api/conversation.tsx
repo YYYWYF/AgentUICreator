@@ -12,6 +12,7 @@ export type ConversationThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
+  FollowupSuggestions?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ThinkingIndicator?:
     | ComponentType<ConversationThinkingIndicatorRenderScope>

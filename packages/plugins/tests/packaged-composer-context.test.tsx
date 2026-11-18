@@ -73,3 +73,43 @@ it("published Lexical keeps legacy IME Enter out of submission while forwarding 
     expect(runs).toBe(1); expect(keys).toBe(2);
   } finally { await act(async () => root.unmount()); expect(childCleanups).toBe(1); container.remove(); }
 });
+
+it('npm and source-owned Composers use the shared data port and forward the final requestAdapter', async () => {
+  const { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } = await import('@za38.03/agent-ui-runtime');
+  const { useAui } = await import('@assistant-ui/react');
+  const { HttpAgent } = await import('@ag-ui/client');
+  const { useComposer } = await import('../dist/index.js');
+  const { ConversationComposerPlugin: NpmComposer } = await import('../dist/composer/index.js');
+  const { ConversationComposerPlugin: SourceComposer } = await import('../dist/sources/takeover/composer/index');
+  for (const Composer of [NpmComposer, SourceComposer]) {
+    const requests: import('@ag-ui/client').RunAgentInput[] = [];
+    let native!: import('@assistant-ui/react').AssistantRuntime;
+    let composer!: ReturnType<typeof useComposer>;
+    function Capture() { native = useAui().threads.__internal_getAssistantRuntime!(); composer = useComposer('test'); return null; }
+    const container = document.createElement('div'); document.body.append(container);
+    const root = createRoot(container);
+    const binding = createEphemeralConversationThreadBinding();
+    try {
+      await act(async () => root.render(<ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding}
+        ctx={{ tenant: 'host' }} unstable_agentFactory={() => new HttpAgent({ url: 'http://example.test/agent', fetch: async (_url, init) => {
+          const input = JSON.parse(String(init.body)) as import('@ag-ui/client').RunAgentInput;
+          requests.push(input);
+          return new Response([{ type: 'RUN_STARTED', threadId: input.threadId, runId: input.runId },
+            { type: 'RUN_FINISHED', threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(''),
+          { headers: { 'Content-Type': 'text/event-stream' } });
+        } })}>
+        <Capture /><Composer renderSlot={(_slot, fallback) => fallback} renderScopedSlot={() => null} autoFocus={false}
+          requestAdapter={({ request, pluginData }) => ({ ...request, forwardedProps: { business: pluginData['standalone:test'] } })} />
+      </ConversationRuntimeProvider>));
+      for (let index = 0; index < 100 && native.thread.getState().isLoading; index++)
+        await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });
+      await act(async () => { composer.setData({ orderId: 'O-1' }); composer.setText('Question'); composer.send(); });
+      for (let index = 0; index < 100 && (requests.length === 0 || native.thread.getState().isRunning); index++)
+        await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });
+      expect(requests).toHaveLength(1);
+      expect(requests[0]!.forwardedProps).toEqual({ business: { orderId: 'O-1' } });
+      expect(requests[0]!.messages[0]!.content).toBe('Question');
+      expect(JSON.stringify(requests[0])).not.toContain('__agentUI');
+    } finally { await act(async () => root.unmount()); container.remove(); }
+  }
+});

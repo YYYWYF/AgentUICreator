@@ -63,6 +63,7 @@ title: "消息引用（conversation-quote）"
 | `renderPreview?` | `() => ReactNode` | 自定义引用预览 |
 | `renderToolbar?` | `() => ReactNode` | 自定义选择工具栏 |
 | `children?` | `ReactNode` | 替换默认预览与工具栏 |
+| `requestAdapter?` | `(quote: ConversationQuoteData) => ComposerData` | 同步定义引用 JSON；省略时保留 Markdown 引用正文 |
 
 默认组件没有根级 `className`／`style`；结构替换使用渲染回调或 children。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
 
@@ -80,3 +81,20 @@ type ImplementationProps = ComponentProps<typeof CanonicalConversationQuote>;
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
 
 引用与关闭文案统一在 `locales.conversationQuote.quote` / `dismiss` 修改。`renderPreview` 与 `renderToolbar` 是无参数的结构渲染回调。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+## 自定义引用数据
+
+在已有应用层组件上设置：
+
+```tsx
+<Implementation {...props}
+  requestAdapter={quote => ({ sourceMessageId: quote.messageId, passage: quote.text })} />
+```
+
+回调接收 `{ text: string, messageId: string }`，同步返回 JSON。插件仍使用原生引用预览与移除行为，通过 `useComposer().setData` 保存数据。配置回调后，默认 Markdown 引用不再拼进正文，数据默认放入 `forwardedProps[引用插件实例ID]`；省略回调时发送格式与前文相同。
+
+Composer 的 `requestAdapter` 同时取得 `pluginData[引用插件实例ID]` 与 `selections[同一ID]`，可以将引用放到任意业务字段、AG-UI Context 或正文。它返回的请求是最终结果，见[统一组装](./composer#请求适配)。
+
+取消引用后不携带这份数据；编辑重发只保留当前消息仍有的引用。排队、重试和中断恢复使用原次提交的快照。原始引用保留在本地消息元数据中，若刷新后还需还原，应在业务历史中保留前端元数据。
+
+回调抛错或返回非 JSON 时恢复上一次有效引用，不退回默认格式发送失败的选择；错误文案使用 `conversationQuote.requestFailed`。

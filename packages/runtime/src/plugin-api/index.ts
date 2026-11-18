@@ -23,6 +23,7 @@ export {
 } from "../conversation-support/quote-lifecycle.js";
 export * from "./portal.js";
 export * from "./composer.js";
+export * from './request.js';
 export * from "./thread-binding.js";
 export * from "../conversation-support/task-disclosure-context.js";
 export { useOptionalAgentUIAgents, useAgentUIAgents, useAgentUIAgentsState, useAgentUIAgentIdentity } from "../host/AgentUIAgentsProvider.js";

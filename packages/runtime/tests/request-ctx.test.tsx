@@ -209,14 +209,14 @@ describe("default and per-send forwardedProps.ctx", () => {
     } finally { await f.close(); }
   });
 
-  it("preserves native forwarded settings and custom run config", async () => {
+  it("preserves native forwarded settings and puts business fields in ctx", async () => {
     const f = await fixture({ tenant: "one" });
     const unregister = f.native.registerModelContextProvider({ getModelContext: () => ({ callSettings: { temperature: 0.4 } }) });
     try {
       await f.settle(async () => {
         f.native.thread.append({ role: "user", content: [{ type: "text", text: "native" }], runConfig: { custom: { source: "native" } } });
       });
-      expect(f.requests[0]!.forwardedProps).toEqual({ temperature: 0.4, runConfig: { source: "native" }, ctx: { tenant: "one" } });
+      expect(f.requests[0]!.forwardedProps).toEqual({ temperature: 0.4, ctx: { source: "native", tenant: "one" } });
     } finally { unregister(); await f.close(); }
   });
 

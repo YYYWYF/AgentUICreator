@@ -1,15 +1,19 @@
 'use client';
+import type { ConversationSuggestionRequestAdapter } from '@za38.03/agent-ui-plugins';
+import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import { ConversationParts, SuggestionActions } from '../../../../plugin-support.js';
-import { ConversationSuggestion } from '../../../../public.js';
+import { ConversationSuggestion, ConversationSuggestionTrigger } from '../../../../public.js';
 export interface ConversationSuggestionItem {
   title?: string;
   label?: string;
   prompt: string;
+  data?: ComposerData;
 }
 export interface ConversationCanonicalSuggestionsProps extends Omit<ComponentProps<'div'>, 'children'> {
   items?: readonly ConversationSuggestionItem[];
   sendOnSelect?: boolean;
+  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
   clearComposer?: boolean;
   buttonProps?: Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' | 'clearComposer'>;
   classNames?: Partial<Record<'title' | 'description', string>>;
@@ -20,6 +24,7 @@ export interface ConversationCanonicalSuggestionsProps extends Omit<ComponentPro
 export function ConversationCanonicalSuggestions({
   items,
   sendOnSelect = true,
+  requestAdapter,
   clearComposer,
   buttonProps,
   classNames,
@@ -49,6 +54,8 @@ export function ConversationCanonicalSuggestions({
             <ConversationSuggestion
               key={`${index}:${item.prompt}`}
               prompt={item.prompt}
+              requestItem={item}
+              requestAdapter={requestAdapter}
               {...behavior}
               data-agent-ui-owned=''
               className='conversation-suggestion'
@@ -62,15 +69,16 @@ export function ConversationCanonicalSuggestions({
           <ConversationParts.Suggestions>
             {renderSuggestion ??
               (() => (
-                <SuggestionActions.Trigger
+                <ConversationSuggestionTrigger
                   data-agent-ui-owned=''
                   className='conversation-suggestion'
                   {...behavior}
+                  requestAdapter={requestAdapter}
                   {...buttonProps}
                 >
                   <SuggestionActions.Title {...titleProps} />
                   <SuggestionActions.Description {...descriptionProps} />
-                </SuggestionActions.Trigger>
+                </ConversationSuggestionTrigger>
               ))}
           </ConversationParts.Suggestions>
         ))}

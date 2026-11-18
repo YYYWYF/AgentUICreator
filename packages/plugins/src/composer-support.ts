@@ -12,3 +12,5 @@ export { XIcon } from "lucide-react";
 export type ConversationComposerInputProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>;
 export type ConversationComposerRootProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Root>;
 export type ConversationComposerDropzoneProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.AttachmentDropzone>;
+
+export { useComposer, useComposerRequestAdapter, type ComposerRequestAdapter, type ComposerRequestAdapterInput, type ComposerData } from "@za38.03/agent-ui-runtime/plugin-api";

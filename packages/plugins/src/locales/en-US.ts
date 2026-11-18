@@ -19,6 +19,7 @@ export const enUS = {
     empty: "No matching skills or workflows",
     unavailable: "No skills or workflows available",
     hint: "Choose a skill, then write your request. Workflows start when you click Start.",
+    selectionFailed: "Unable to select this skill. Please try again.",
     startFailed: "Unable to start the workflow. Please try again.",
   },
   ...AGENT_UI_RUNTIME_LOCALES["en-US"],
@@ -59,6 +60,7 @@ export const enUS = {
     "name": "Agent"
   },
   "conversationQuote": {
+    "requestFailed": "Unable to use this quote. Please try again.",
     "quote": "Quote",
     "dismiss": "Dismiss quote"
   },
@@ -140,6 +142,7 @@ export const enUS = {
     "notHelpful": "Not helpful"
   },
   starterSuggestions: {
+    requestFailed: "Unable to use this suggestion. Please try again.",
     architectureTitle: "Account lookup",
     architectureLabel: "View balances, statements and transactions",
     architecturePrompt: "How can I view my account balance, statements, and transaction history?",

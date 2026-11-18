@@ -48,6 +48,7 @@ title: "开场建议（conversation-suggestions）"
 | `items?` | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem) | 省略时读取当前会话建议；空数组表示不显示列表项 |
 | `sendOnSelect?` | `boolean` | 默认 `true`；`false` 时将建议写入输入框 |
 | `clearComposer?` | `boolean` | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置 |
+| `requestAdapter?` | `(item: ConversationSuggestionRequestItem) => ComposerData` | 同步定义选中建议的 JSON，正文仍沿用 prompt；最终请求由 Composer 组装 |
 | `buttonProps?` | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |
 | `classNames?` | `Partial<Record<'title' \| 'description', string>>` | 标题与说明的样式类 |
 | `styles?` | `Partial<Record<'title' \| 'description', CSSProperties>>` | 标题与说明的内联样式 |
@@ -94,6 +95,7 @@ interface ConversationSuggestionItem {
   prompt: string; // 选择后发送或写入输入框的文本
   title?: string; // 展示标题，省略时显示 prompt
   label?: string; // 标题下方的附加说明
+  data?: ComposerData; // 项目自有 JSON 数据
 }
 ```
 
@@ -109,3 +111,47 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalSuggestion
 ```
 
 组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+
+## 自定义建议问题的数据
+
+在项目 `plugins/conversation-suggestions/index.tsx` 已有组件上配置：
+
+```tsx
+<Implementation {...props}
+  items={[{ title: '订单进度', prompt: '查询订单进度', data: { orderId: 'O-1' } }]}
+  requestAdapter={item => ({ selectedQuestion: item.prompt, business: item.data ?? null })} />
+```
+
+示例文案在实际应用中使用项目统一 locale。`ConversationSuggestionItem` 可附加 `data?: ComposerData`。回调接收 `prompt/title/label/data`，同步返回 JSON；原生运行时提供的建议以实际公开字段为准。
+
+选择时通过 `useComposer().setData` 保存结果，发送行为取决于是否配置回调：
+
+- **省略回调**：只发送原有 `prompt` 文本，不增加默认外带参数；原始建议项仍能由 Composer 的 `selections` 读取。
+- **配置回调**：数据默认放入 `forwardedProps[建议插件实例ID]` 的数组中，正文仍是 `prompt`。
+
+需要更换最终正文或外带结构时，使用 [Composer requestAdapter](./composer#请求适配)。
+
+建议问题与自定义点击的行为：
+
+- `sendOnSelect={false}`：只填入草稿，提交时才发送数据；删除建议文本后不再携带它。
+- `buttonProps.onClick`：调用 `preventDefault()` 会取消数据采集和原生动作。
+- `renderSuggestion`：自定义渲染时使用公开的 `ConversationSuggestionTrigger requestAdapter={...}`；渲染器自行决定是否采用这条数据链。
+
+原生排队保留下一条未提交草稿，每次点击的数据独立保存。回调抛错或产生非 JSON 时取消本次动作、保留原草稿，使用 `starterSuggestions.requestFailed` 显示错误。
+
+### 回复后的建议问题
+
+当原生运行时提供回复后的建议时，默认建议行通过同一个数据接口采集原始选择；这个接口不生成建议，也不增加后端能力。需要逐项转换时，可在现有 Thread 组件组合中替换该行，无需接管源码：
+
+```tsx
+import { ConversationThread, ConversationFollowupSuggestions } from '@za38.03/agent-ui-plugins';
+
+function Followups() {
+  return <ConversationFollowupSuggestions requestAdapter={item => ({ followup: item.prompt })} />;
+}
+
+// 保留项目已有的 components、composer 等属性，仅增加这一项。
+<ConversationThread {...props} components={{ ...props.components, FollowupSuggestions: Followups }} />
+```
+
+直接复用 `ConversationSuggestion` 时，可传入 `requestAdapter`；`requestItem` 用于提供完整原始条目，省略时按 `{ prompt }` 采集。`ConversationSuggestionTrigger` 从当前运行时建议作用域读取条目。

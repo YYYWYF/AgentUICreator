@@ -2,8 +2,11 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, expect, it, vi } from 'vitest';
-import { AssistantRuntimeProvider, useLocalRuntime, type AssistantRuntime, type RunConfig } from '@assistant-ui/react';
+import { useAui, type AssistantRuntime, type RunConfig } from '@assistant-ui/react';
 import { PluginServiceRuntimeProvider, PluginServiceConsumerProvider } from '@za38.03/agent-ui-runtime/plugin-api';
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from '@za38.03/agent-ui-runtime';
+import { HttpAgent, type RunAgentInput } from '@ag-ui/client';
+import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
 import { AgentUILocaleProvider, AgentUIRoot, ConversationComposerQuotePreview } from '../src/public';
 import { ConversationSkills, type ConversationSkill, type ConversationSkillItem } from '../src/plugins/skills/adapters/presentation/skills';
 import { createConversationSkillsService, CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService } from '../src/plugins/skills/adapters/presentation/service';
@@ -25,7 +28,7 @@ async function render(node: ReactNode) {
   await act(async () => root!.render(<AgentUIRoot theme='violet'><AgentUILocaleProvider locale='zh-CN'>{node}</AgentUILocaleProvider></AgentUIRoot>));
 }
 function button(text: string) { return [...document.querySelectorAll<HTMLButtonElement>('button')].find(node => node.textContent === text)!; }
-const skill: ConversationSkill = { kind: 'skill', id: 'research', label: '深度研究', runConfig: { custom: { skillId: 'research' } } };
+const skill: ConversationSkill = { kind: 'skill', id: 'research', label: '深度研究', ctx: { skillId: 'research' } };
 function service() { const value = createConversationSkillsService(); services.push(value); return value; }
 const variants = [
   { name: 'npm', Composer: NpmComposer, Bar: NpmBar, Selection: NpmSelection },
@@ -33,19 +36,34 @@ const variants = [
   { name: 'source-owned selection', Composer: NpmComposer, Bar: NpmBar, Selection: LocalSelection },
   { name: 'source-owned Composer', Composer: LocalComposer, Bar: NpmBar, Selection: NpmSelection },
 ];
-async function fixture(variant = variants[0]!) {
-  const shared = service(); const runs: (RunConfig | undefined)[] = []; let runtime!: AssistantRuntime;
+async function fixture(variant = variants[0]!, custom: {
+  requestAdapter?: import('../src/public').ConversationSkillRequestAdapter;
+  composerAdapter?: import('../src/public').ComposerRequestAdapter;
+} = {}) {
+  const shared = service(); const runs: (RunConfig | undefined)[] = []; const requests: RunAgentInput[] = []; let runtime!: AssistantRuntime;
   const port = { get: <T,>(name: string) => name === CONVERSATION_SKILLS_SERVICE ? shared as T : undefined, subscribe: () => () => {}, getRevision: () => 0 };
+  const binding = createEphemeralConversationThreadBinding();
+  const factory = () => new HttpAgent({ url: 'http://example.test/agent', fetch: async (_url, init) => {
+    const input = JSON.parse(String(init.body)) as RunAgentInput;
+    requests.push(input);
+    runs.push({ custom: (input.forwardedProps as Record<string, Record<string, unknown>>).ctx ?? {} });
+    return new Response([{ type: 'RUN_STARTED', threadId: input.threadId, runId: input.runId },
+      { type: 'RUN_FINISHED', threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(''),
+      { headers: { 'Content-Type': 'text/event-stream' } });
+  } });
+  function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   function Host() {
-    runtime = useLocalRuntime({ async *run(options) { runs.push(options.runConfig); yield { content: [{ type: 'text' as const, text: 'done' }] }; } });
-    return <AssistantRuntimeProvider runtime={runtime}><PluginServiceRuntimeProvider runtime={port}>
-      <variant.Composer renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback}
-        triggers={<PluginServiceConsumerProvider scope={{ pluginId: 'skills', instanceId: 'bar', provides: [CONVERSATION_SKILLS_SERVICE], inject: [], optionalInject: ['agent-ui.locale'] }}><variant.Bar items={[skill]} /></PluginServiceConsumerProvider>}
+    return <ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding} ctx={{ tenant: 'host', skillId: 'host' }} unstable_agentFactory={factory}>
+    <Capture /><PluginServiceRuntimeProvider runtime={port}>
+      <variant.Composer requestAdapter={custom.composerAdapter} renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback}
+        triggers={<PluginServiceConsumerProvider scope={{ pluginId: 'skills', instanceId: 'bar', provides: [CONVERSATION_SKILLS_SERVICE], inject: [], optionalInject: ['agent-ui.locale'] }}><variant.Bar items={[skill]} requestAdapter={custom.requestAdapter} /></PluginServiceConsumerProvider>}
         beforeInput={<><ConversationComposerQuotePreview /><PluginServiceConsumerProvider scope={{ pluginId: 'skills-selection', instanceId: 'selection', provides: [], inject: [CONVERSATION_SKILLS_SERVICE], optionalInject: ['agent-ui.locale'] }}><variant.Selection /></PluginServiceConsumerProvider></>} />
-    </PluginServiceRuntimeProvider></AssistantRuntimeProvider>;
+    </PluginServiceRuntimeProvider></ConversationRuntimeProvider>;
   }
   await render(<Host />);
-  return { shared, runtime, runs };
+  for (let index = 0; index < 100 && runtime.thread.getState().isLoading; index++)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });
+  return { shared, runtime, runs, requests };
 }
 
 it.each(variants)('$name renders the label through beforeInput and preserves the quote and draft', async variant => {
@@ -72,7 +90,8 @@ it('uses the native request snapshot and clears selection only after an accepted
   expect(f.shared.getSnapshot(id)?.id).toBe('research'); expect(f.runs).toHaveLength(0);
   await act(async () => { f.runtime.thread.composer.setText('发送'); await f.runtime.thread.composer.send(); });
   await vi.waitFor(() => expect(f.runs).toHaveLength(1));
-  expect(f.runs[0]?.custom).toEqual({ keep: 'host', skillId: 'research' });
+  expect(f.runs[0]?.custom).toEqual({ keep: 'host', tenant: 'host', skillId: 'research' });
+  expect(f.requests[0]!.forwardedProps).not.toHaveProperty('runConfig');
   expect(f.shared.getSnapshot(id)).toBeNull();
   expect(f.runtime.thread.composer.getState().runConfig.custom).toEqual({ keep: 'host', skillId: 'original' });
   expect(document.querySelector('.skills-selection-chip')).toBeNull();
@@ -95,16 +114,46 @@ it('restores the previous concrete Thread without writing into the newly selecte
   expect(f.runtime.thread.composer.getState().runConfig.custom?.skillId).toBeUndefined();
 });
 
-it('isolates service instances and restores only fields still owned by a selection on disposal', () => {
-  const one = service(), two = service(); let config: RunConfig = { custom: { keep: 'host', skillId: 'original' } };
-  const binding = { getRunConfig: () => config, setRunConfig: (next: RunConfig) => { config = next; } };
+it('isolates service instances and releases only the selected data on disposal', () => {
+  const one = service(), two = service(); let data: ComposerData | undefined;
+  const binding = { setData(next: ComposerData) { data = next; return () => { if (data === next) data = undefined; }; } };
   one.select('same-id', skill, binding);
   expect(two.getSnapshot('same-id')).toBeNull();
-  config = { custom: { keep: 'newer host', skillId: 'newer owner' } };
+  expect(data).toEqual({ skillId: 'research' });
+  data = { newer: 'owner' };
   one.updatePresentation('same-id', { ...skill, label: 'Research' });
   expect(one.getSnapshot('same-id')?.label).toBe('Research');
-  one.dispose(); expect(config.custom).toEqual({ keep: 'newer host', skillId: 'newer owner' });
+  one.dispose(); expect(data).toEqual({ newer: 'owner' });
   expect(one.getSnapshot('same-id')).toBeNull();
+});
+
+it.each(variants)('$name sends adapted skill data and raw selection to Composer without changing native business configuration', async variant => {
+  const adapter = vi.fn<import('../src/public').ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
+    ...request, forwardedProps: { ctx: { selected: pluginData['standalone:skills'], raw: selections['standalone:skills'] } },
+  }));
+  const f = await fixture(variant, { requestAdapter: selected => ({ operation: selected.id }), composerAdapter: adapter });
+  await act(async () => button('深度研究').click());
+  expect(f.runtime.thread.composer.getState().runConfig.custom?.skillId).toBeUndefined();
+  await act(async () => { f.runtime.thread.composer.setText('Question'); f.runtime.thread.composer.send(); });
+  await vi.waitFor(() => expect(f.requests).toHaveLength(1));
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { selected: { operation: 'research' }, raw: [skill] } });
+  expect(adapter).toHaveBeenCalledOnce();
+});
+
+it.each(variants)('$name merges default skill ctx and never sends a runtime configuration field', async variant => {
+  const f = await fixture(variant);
+  await act(async () => { button('深度研究').click(); f.runtime.thread.composer.setText('Default'); f.runtime.thread.composer.send(); });
+  await vi.waitFor(() => expect(f.requests).toHaveLength(1));
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host', skillId: 'research' } });
+});
+
+it('preserves the previous skill and draft on invalid requestAdapter output', async () => {
+  const f = await fixture(variants[0], { requestAdapter: () => ({ value: Number.NaN }) });
+  await act(async () => { f.runtime.thread.composer.setText('Keep draft'); button('深度研究').click(); });
+  expect(f.shared.getSnapshot(f.runtime.threads.getState().mainThreadId)).toBeNull();
+  expect(f.runtime.thread.composer.getState().text).toBe('Keep draft');
+  expect(document.querySelector('[role="alert"]')?.textContent).toContain('无法选择');
+  expect(f.requests).toHaveLength(0);
 });
 
 it('shows two shortcuts, keeps all skills searchable and never submits the enclosing form on selection', async () => {

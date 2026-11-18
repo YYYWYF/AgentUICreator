@@ -30,3 +30,12 @@ it("keeps public action prop declarations independent of private tooltip impleme
   expect(declaration).toContain("likeButtonProps");
   expect(declaration).not.toContain("positiveProps");
 });
+
+
+it("keeps suggestion request adapter types public without references to removed private declarations", async () => {
+  const declaration = await readFile(path.join(packageRoot, "dist/public.d.ts"), "utf8");
+  expect(declaration).toContain("export type ConversationSuggestionRequestAdapter");
+  expect(declaration).toContain("export declare function ConversationFollowupSuggestions");
+  expect(declaration).not.toContain("internal/adapters-generated/assistant-ui/suggestion-request");
+  expect(declaration).not.toContain("internal/adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions");
+});

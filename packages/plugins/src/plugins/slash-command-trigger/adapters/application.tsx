@@ -5,5 +5,6 @@ import { CONVERSATION_COMMAND_SOURCE, type ConversationCommandRegistry } from '@
 
 export function ConversationSlashCommandTrigger(props: ComponentProps<typeof Implementation>) {
   const source = usePluginService<ConversationCommandRegistry>(CONVERSATION_COMMAND_SOURCE);
+  // 在此传入 requestAdapter 定义选中数据；最终请求格式由 Composer 的 requestAdapter 决定。
   return <Implementation source={source} {...props} />;
 }

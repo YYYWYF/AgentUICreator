@@ -88,6 +88,14 @@
       {
         "label": "语音输入（开发中）",
         "link": "/plugins/dictation-action.html"
+      },
+      {
+        "label": "技能与工作流选择",
+        "link": "/plugins/skills"
+      },
+      {
+        "label": "当前技能标签",
+        "link": "/plugins/skills-selection"
       }
     ]
   },

@@ -26,7 +26,7 @@
 | `dictation-action` | 直接 startText、stopText、className、style、disabled；独立按钮为 startButtonProps、stopButtonProps。 |
 | `submit-action` | 直接 sendText、cancelText、className、style、disabled；独立按钮为 sendButtonProps、cancelButtonProps。 |
 | `response-footer` | 直接整体样式；保留真正独立的 actionBarProps、branchPickerProps 与 actions 内容。 |
-| `conversation-suggestions` | 直接 items、sendOnSelect、clearComposer 和整体样式；文字样式用 classNames/styles，按钮用 buttonProps。 |
+| `conversation-suggestions` | 直接 items、requestAdapter、sendOnSelect、clearComposer 和整体样式；文字样式用 classNames/styles，按钮用 buttonProps。 |
 | `thinking-indicator` | 直接 label、className、style；保留推导可见性策略。 |
 | `tool-timeline` | 直接展开状态、restingLabel、activeLabel、visibleSteps 与整体样式；去掉已无效的二层详情参数。 |
 | `tool-fallback` | 直接展开状态与整体样式；详情、参数、结果、错误、审批作为真实组件保留组合入口。 |
@@ -41,7 +41,7 @@
 | `web-search` | 直接 visibleResults、cycle、query、results、searching、labels 与整体样式；保留 renderer。 |
 | `conversation-thread-list` | 直接 showSearch、showArchived、searchProps、itemProps、components、整体样式；保留 Host 会话服务。 |
 | `conversation-new` | 直接 showLabel、disabled 与整体样式；新建按钮为 buttonProps，保留导航行为。 |
-| `conversation-quote` | 直接 quoteText、dismissText；预览与选择工具栏是两个独立表面，保留 previewProps、toolbarProps 和 renderers。 |
+| `conversation-quote` | 通过 requestAdapter 定义引用 JSON；通过 renderPreview、renderToolbar、children 组合预览与工具栏；文案沿用统一 locale，无独立根样式属性。 |
 | `agent-identity` | 直接 name、logo、description、整体样式；图片保留 logoProps，文字样式用 classNames/styles。 |
 | `auth-account` | 直接 signOutText、整体样式；独立组件为 buttonProps、menuProps、signOutButtonProps。 |
 | `auth-gate` | 直接 title、submitText、整体样式；独立组件为 formProps、accountInputProps、passwordInputProps、submitButtonProps。 |
@@ -52,8 +52,8 @@
 | `lexical-composer-input` | 已直接继承原生输入与编辑器公开属性；保留输入与中文 composition 行为。 |
 | `lexical-edit-composer` | 已直接继承编辑区公开属性；保留编辑提交和取消生命周期。 |
 | `locale-provider` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |
-| `mention-trigger` | 已直接继承提及组件公开属性；labels 是统一 locale 的部分覆盖。 |
-| `slash-command-trigger` | 已直接继承命令组件公开属性；labels 是统一 locale 的部分覆盖。 |
+| `mention-trigger` | source、debounceMs、onSelect、requestAdapter；文案使用统一 conversationTriggers locale。 |
+| `slash-command-trigger` | source、onSelect、requestAdapter；文案使用统一 conversationTriggers locale。 |
 | `task-group` | 已直接继承任务组公开属性；保留 renderGroup。 |
 | `theme-provider` | 无展示根节点；保留既有 Host/Provider 绑定与 children，不人为添加外观参数。 |
 | `theme-switch` | 直接整体样式、disabled；保留 selectProps；不改变主题选择归属。 |
@@ -61,3 +61,5 @@
 | `locale-switch` | 直接整体样式、disabled；保留 selectProps；使用现有唯一语言服务。 |
 | `ask-user-question` | 直接 submitText、整体样式；labels 为统一文案域的部分覆盖；保留问答协议与历史只读。 |
 | `tool-result` | 继承工具详情 API；整体样式作用于完整结果卡片；保留 renderPart、resolveFile、resultOnly。 |
+| `skills` | `items`、`requestAdapter`、`quickItemCount`、`disabled` 及根样式；选择通过 `conversation.skills` 服务与公开 Hook 共享。 |
+| `skills-selection` | 绑定组件保留 `disabled` 与原生 div 属性；独立标签组件还接收 `selectedSkill`、`onRemove`。 |

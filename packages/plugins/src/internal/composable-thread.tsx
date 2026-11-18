@@ -100,6 +100,7 @@ export type ThreadComponents = {
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
+  FollowupSuggestions?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ThinkingIndicator?: ComponentType<{ reasoningVisible: boolean; timelineVisible: boolean }> | undefined;
   reasoningVisible?: boolean | undefined;
@@ -224,7 +225,7 @@ const ThreadRoot: FC<{
   composer,
 }) => {
   const quoteRootRef = useRef<HTMLDivElement | null>(null);
-  const { Welcome = ThreadWelcome, TransientMessages } = useContext(ThreadComponentsContext);
+  const { Welcome = ThreadWelcome, TransientMessages, FollowupSuggestions = ThreadFollowupSuggestions } = useContext(ThreadComponentsContext);
   const transientMessages = useTransientMessages();
   // Anchors need message identity/order, not the growing contents. Keep the
   // outer viewport/composer from rendering again for every streamed token.
@@ -284,7 +285,7 @@ const ThreadRoot: FC<{
             )}
           >
             <ThreadScrollToBottom />
-            <ThreadFollowupSuggestions />
+            <FollowupSuggestions />
             {composer}
             <AuiIf condition={(s) => isEmpty && isNewChatView(s) && s.composer.isEmpty}>
               <ThreadSuggestions />

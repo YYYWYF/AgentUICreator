@@ -16,6 +16,8 @@ import {
   useConversationComposerAwaitingReply,
   useConversationComposerSendGuard,
   XIcon,
+  useComposerRequestAdapter,
+  type ComposerRequestAdapter,
 } from '../../../../composer-support.js';
 
 import { useContext, useState, type FC, type ReactNode } from 'react';
@@ -93,6 +95,8 @@ export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued })
 );
 
 export interface CanonicalComposerProps extends Omit<ConversationComposerRootProps, 'children'> {
+  /** Final request assembly. Returned forwardedProps replaces all defaults. */
+  requestAdapter?: ComposerRequestAdapter | undefined;
   rows?: ConversationComposerInputProps['rows'];
   maxLength?: ConversationComposerInputProps['maxLength'];
   submitMode?: ConversationComposerInputProps['submitMode'];
@@ -111,6 +115,7 @@ export interface CanonicalComposerProps extends Omit<ConversationComposerRootPro
 }
 
 export const CanonicalComposer: FC<CanonicalComposerProps> = ({
+  requestAdapter,
   rows,
   maxLength,
   submitMode,
@@ -128,6 +133,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   submitAction,
   ...rootProps
 }) => {
+  useComposerRequestAdapter(requestAdapter);
   const { submitMode: inputSubmitMode, submitOnEnter, ...nativeInputProps } = inputProps ?? {};
   const resolvedSubmitMode = submitMode ?? inputSubmitMode;
   const resolvedInputProps = {

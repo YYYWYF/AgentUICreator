@@ -12,5 +12,6 @@ export const source: ConversationMentionSource = {
 };
 
 export function ConversationMentionTrigger(props: ComponentProps<typeof Implementation>) {
+  // 在此传入 requestAdapter 定义选中数据；最终请求格式由 Composer 的 requestAdapter 决定。
   return <Implementation {...props} source={props.source ?? source} />;
 }
