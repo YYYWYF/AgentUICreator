@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { snapshotAgentUIContext } from '@za38.03/agent-ui-core';
-import { PluginInstanceContext, useComposer, type ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
+import { PluginInstanceContext } from '@za38.03/agent-ui-runtime/plugin-api';
+import { useComposer, type ComposerData } from '@za38.03/agent-ui-plugins/composer-support';
 import type { ConversationMentionItem, ConversationCommandRequestItem } from '../../../public.js';
 
 function command(input: ConversationCommandRequestItem): ConversationCommandRequestItem {

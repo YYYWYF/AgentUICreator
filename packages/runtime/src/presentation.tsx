@@ -10,6 +10,7 @@ import type {
 } from "./plugin-api/conversation.js";
 import { useConversationToolRenderer } from "./conversation-support/tool-renderer-context.js";
 import { useOptionalAgentUIProject } from "./ui/project-context.js";
+import type { ConversationInputControllerFactory } from './plugin-api/input-controller.js';
 import type {
   AgentUILocaleCode,
   AgentUILocaleMessages,
@@ -41,6 +42,8 @@ export interface AgentUISidebarPresentationProps {
 }
 /** Instances and components are supplied by the application, never selected by Runtime. */
 export interface AgentUIPresentation {
+  /** Optional application-owned input behavior; Runtime provides no implementation. */
+  createInputController?: ConversationInputControllerFactory;
   Surface?: ComponentType<ConversationSurfacePresentationProps>;
   Welcome?: ComponentType<{ title: string; description?: string | undefined }>;
   EmptyState?: ComponentType<{ welcome?: ReactNode; suggestions?: ReactNode }>;

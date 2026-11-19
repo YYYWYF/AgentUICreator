@@ -1,6 +1,6 @@
 'use client';
 import type { ConversationSuggestionRequestAdapter } from '@za38.03/agent-ui-plugins';
-import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
+import type { ComposerData } from '@za38.03/agent-ui-plugins/composer-support';
 import { Fragment, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { ConversationParts, SuggestionActions } from '../../../../plugin-support.js';
 import { ConversationSuggestion, ConversationSuggestionTrigger } from '../../../../public.js';

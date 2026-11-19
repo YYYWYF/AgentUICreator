@@ -11,19 +11,13 @@ export * from "../conversation-support/assistant-response-runtime.js";
 export * from "../conversation-support/assistant-response.js";
 export * from "../conversation-support/conversation-turn.js";
 export * from "../conversation-support/conversation-transient-messages.js";
-export * from "../conversation-support/quote-thread-root.js";
 export * from "../conversation-support/tool-renderer-context.js";
 export * from "../conversation-support/conversation-transient-message-service.js";
 export * from "../conversation-support/composer-input-host-context.js";
-export * from "../conversation-support/quote-lifecycle.js";
 export * from "../conversation-support/conversation-composer-state.js";
-export {
-  InternalConversationQuoteLifecycleProvider as ConversationQuoteLifecycleProvider,
-  useInternalConversationQuoteLifecycle as useConversationQuoteLifecycle,
-} from "../conversation-support/quote-lifecycle.js";
 export * from "./portal.js";
 export * from "./composer.js";
-export * from './request.js';
+export * from './input-controller.js';
 export * from "./thread-binding.js";
 export * from "../conversation-support/task-disclosure-context.js";
 export { useOptionalAgentUIAgents, useAgentUIAgents, useAgentUIAgentsState, useAgentUIAgentIdentity } from "../host/AgentUIAgentsProvider.js";

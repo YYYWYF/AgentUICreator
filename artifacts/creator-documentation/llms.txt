@@ -31,8 +31,8 @@
 - [/ 快捷命令（slash-command-trigger）](/plugins/slash-command-trigger.md): 输入 / 打开命令菜单。菜单中的指令会进入草稿供本次发送使用，动作则在选择时执行项目行为；插件已区分这两种流程，无需用户为普通选项自己调用 Composer。
 - [输入标签展示（lexical-composer-input）](/plugins/lexical-composer-input.md): 让当前草稿中的 @ 提及和 / 指令以标签形式编辑。它替换输入界面，继续使用现有 Composer 的文本、会话和发送流程；选择、删除标签与中文输入法处理已内置。
 - [语音输入（开发中）](/plugins/dictation-action.md): 在已有语音能力可用时，开始听写并将识别结果写入当前草稿；录音期间显示停止听写入口。默认使用受支持的浏览器语音识别，需要麦克风权限和可用设备。业务转写服务接入仍在开发中，见语音转写服务。
-- [技能与工作流选择（skills）](/plugins/skills.md): 为本次问题选择一个技能，或显式启动项目工作流。技能栏、当前技能标签和 Composer 已共享选择状态；选中技能不会立即发送，也不需要用户再手动把技能写进草稿。
-- [当前技能标签（skills-selection）](/plugins/skills-selection.md): 显示当前 Thread 已选技能，并提供移除入口。技能来自技能栏，标签自动订阅同一份服务；未选择技能时不显示，不需要调用方自己维护第二份选中状态。
+- [技能选择（开发中）](/plugins/skills.md): 开发中：技能相关文档仍在完善，接口说明和示例可能调整。 skills 在插件 setup 中提供 conversation.skills Service，保存当前技能选择。skills 插件提供选择栏；独立的 skills-selection 插件显示当前技能标签，发送后由用户消息显示只读标签。两个 UI 插件通过该 Service 共享状态；Composer 只收集待发送的数据和来源。 需要完整技能输入 UI 时，在 Composer 的 triggers 中组合 skills，在 beforeInput 中组合 skills-selection，具体模型见当前技能预览。两个插件均按需添加，初始化预设不会默认启用。
+- [当前技能预览（开发中）](/plugins/skills-selection.md): skills-selection 在输入框内显示当前技能和移除按钮。它与技能选择器是两个独立的 UI 插件，通过 conversation.skills Service 共享选择状态。
 - [回复操作栏（response-footer）](/plugins/response-footer.md): 在完整回答后组合复制、重试、评价、导出和版本切换操作。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
 - [回复复制（copy-action）](/plugins/copy-action.md): 复制当前版本整次回答的文字，包含工具续跑后产生的多段助理内容。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
 - [回复重新生成（reload-action）](/plugins/reload-action.md): 为当前整次回答重新发起生成，并沿用原有回复版本与分支生命周期。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>

@@ -2,12 +2,12 @@ import type { Message, RunAgentInput } from '@ag-ui/client';
 import { RunAgentInputSchema } from '@ag-ui/core/schemas';
 import type { AssistantRuntime, ThreadMessage } from '@assistant-ui/react';
 import { snapshotAgentUIContext } from '@za38.03/agent-ui-core';
-import type { ConversationComposerRunConfig } from '../plugin-api/composer.js';
-import type { ComposerData, ComposerDataEntry, ComposerDataOptions, ComposerDataPort, ComposerRequestAdapter } from '../plugin-api/request.js';
+import type { ConversationComposerRunConfig, ConversationInputRequestContext } from '@za38.03/agent-ui-runtime/plugin-api';
+import type { ComposerData, ComposerDataEntry, ComposerDataOptions, ComposerDataPort, ComposerRequestAdapter, ComposerMessageDataAdapter, ComposerDataSource } from './request.js';
+import { metadataKey, draftMetadataKey, editKey, runConfigKey, emptyData, readComposerMessageData, readComposerMessageSources } from './message-data.js';
+import { injectConversationQuoteContext } from './quote-context.js';
+import { readNativeInputSession, isSubmittedUserMessage } from './native-session.js';
 
-const metadataKey = 'agentUIComposerData';
-const editKey = 'agentUIComposerDataEdit';
-const runConfigKey = '__agentUIComposerData';
 type DataMap = Record<string, ComposerDataEntry>;
 interface ThreadData {
   snapshot: DataMap;
@@ -16,11 +16,14 @@ interface ThreadData {
   native?: AssistantRuntime;
 }
 export interface ConversationRequestPlan {
+  messageMetadata: Readonly<Record<string, ComposerData>>;
+  metadataKeys: readonly string[];
   userId: string;
   sourceText: string;
   text: string;
   pluginData: Record<string, ComposerData>;
   selections: Record<string, ComposerData[]>;
+  sources: Record<string, ComposerDataSource>;
   forwardedProps: Record<string, ComposerData>;
   adapter: ComposerRequestAdapter | undefined;
   defaultForwardedProps: Record<string, ComposerData>;
@@ -38,19 +41,22 @@ function textOf(message: ThreadMessage): string {
 }
 function publicMessage(message: Message): Message {
   const metadata = record(message.metadata);
-  if (!metadata || (!(metadataKey in metadata) && !(editKey in metadata))) return message;
-  const { [metadataKey]: _private, [editKey]: _edit, ...rest } = metadata;
+  if (!metadata || (!(metadataKey in metadata) && !(draftMetadataKey in metadata) && !(editKey in metadata))) return message;
+  const { [metadataKey]: _private, [draftMetadataKey]: _draft, [editKey]: _edit, ...rest } = metadata;
   return { ...message, metadata: rest };
 }
-function entries(message: ThreadMessage): DataMap {
-  const values = record(message.metadata.custom[metadataKey]);
-  if (!values) return {};
+function entries(message: ThreadMessage, metadataAdapter?: ComposerMessageDataAdapter): DataMap {
+  const values = record(message.metadata.custom[metadataKey]) ?? record(message.metadata.custom[draftMetadataKey]) ??
+    Object.fromEntries(Object.entries(metadataAdapter?.fromMetadata(message.metadata.custom) ?? {}).map(([key, data]) =>
+      [key, { owner: key, source: { pluginId: key }, data, enabled: true, selection: data }]));
   const text = textOf(message);
   const offsets = new Map<string, number>();
   return Object.fromEntries(Object.entries(values).flatMap(([key, candidate]) => {
     const entry = record(candidate);
     if (!entry || typeof entry.owner !== 'string' || !Object.hasOwn(entry, 'data')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
-    if ((entry.enabled !== undefined && typeof entry.enabled !== 'boolean') ||
+    if ((entry.source !== undefined && (!record(entry.source) ||
+      Object.values(record(entry.source)!).some(value => typeof value !== 'string'))) ||
+      (entry.enabled !== undefined && typeof entry.enabled !== 'boolean') ||
       (entry.includeInRequest !== undefined && typeof entry.includeInRequest !== 'boolean') ||
       (entry.defaultTextPrefix !== undefined && typeof entry.defaultTextPrefix !== 'string') ||
       (entry.defaultForwardedProps !== undefined && !record(entry.defaultForwardedProps))) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
@@ -75,9 +81,46 @@ function entries(message: ThreadMessage): DataMap {
 
 /** Owns draft data only. Native messages and queues own submitted snapshots. */
 export class ConversationRequestPartsRuntime implements ComposerDataPort {
+  private readonly plans = new Map<string, ConversationRequestPlan>();
   private readonly owners = new Map<string, number>();
   private readonly adapters = new Map<string, ComposerRequestAdapter>();
   private readonly threads = new Map<string, ThreadData>();
+  private readonly dataCache = new Map<string, { snapshot: DataMap; ownersVersion: number; data: Readonly<Record<string, ComposerData>> }>();
+  private ownersVersion = 0;
+  constructor(private readonly messageData?: ComposerMessageDataAdapter) {
+    if (messageData?.metadataKeys.some(key => !key.trim() || [metadataKey, draftMetadataKey, editKey].includes(key)))
+      throw new Error('AGENT_UI_INVALID_COMPOSER_METADATA_ADAPTER');
+  }
+  private projectMetadata(snapshot: DataMap): Readonly<Record<string, ComposerData>> {
+    const value = json(this.messageData?.toMetadata(readComposerMessageData({ [metadataKey]: snapshot }), readComposerMessageSources({ [metadataKey]: snapshot })) ?? {});
+    const metadata = record(value);
+    if (!metadata || Object.keys(metadata).some(key => !this.messageData?.metadataKeys.includes(key)))
+      throw new Error('AGENT_UI_INVALID_COMPOSER_METADATA_ADAPTER');
+    return value as Record<string, ComposerData>;
+  }
+  onHistoryLoaded(messages: readonly unknown[]): void {
+    for (const message of messages) {
+      if (!isSubmittedUserMessage(message)) continue;
+      // Native enrichment may later merge the active draft. Retain this message's own snapshot.
+      message.metadata.custom[metadataKey] = structuredClone(entries(message, this.messageData));
+    }
+  }
+  getData(threadId: string): Readonly<Record<string, ComposerData>> {
+    const state = this.threads.get(threadId);
+    if (!state) return emptyData;
+    const cached = this.dataCache.get(threadId);
+    if (cached?.snapshot === state.snapshot && cached.ownersVersion === this.ownersVersion) return cached.data;
+    const active = Object.fromEntries(Object.entries(state.snapshot).filter(([, entry]) =>
+      (!entry.reference && !entry.quote) || this.owners.has(entry.owner)));
+    const data = readComposerMessageData({ [metadataKey]: active });
+    this.dataCache.set(threadId, { snapshot: state.snapshot, ownersVersion: this.ownersVersion, data });
+    return data;
+  }
+  subscribe(threadId: string, listener: () => void): () => void {
+    const state = this.state(threadId);
+    state.listeners.add(listener);
+    return () => { state.listeners.delete(listener); };
+  }
   private state(threadId: string): ThreadData {
     let state = this.threads.get(threadId);
     if (!state) {
@@ -88,7 +131,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
   }
   private snapshot(state: ThreadData): DataMap {
     return Object.fromEntries(Object.entries(state.snapshot).map(([key, entry]) =>
-      [key, { ...structuredClone(entry), enabled: this.owners.has(entry.owner) }]));
+      [key, { ...structuredClone(entry), enabled: (!entry.reference && !entry.quote) || this.owners.has(entry.owner) }]));
   }
   private refreshOwner(owner: string): void {
     for (const state of this.threads.values()) if (Object.values(state.snapshot).some(entry => entry.owner === owner)) {
@@ -100,25 +143,24 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     const composer = state.native?.thread.composer;
     if (!composer) return;
     const config = composer.getState().runConfig;
-    if (!Object.keys(state.snapshot).length && !Object.hasOwn(config.custom ?? {}, runConfigKey)) return;
     const { [runConfigKey]: _private, ...custom } = config.custom ?? {};
     composer.setRunConfig({ ...config, custom: { ...custom,
-      ...(Object.keys(state.snapshot).length ? { [runConfigKey]: this.snapshot(state) } : {}),
+      [runConfigKey]: this.snapshot(state),
     } });
   }
   setRunConfig(threadId: string, config: ConversationComposerRunConfig): void {
     const state = this.state(threadId);
     state.native?.thread.composer.setRunConfig({ ...config, custom: { ...config.custom,
-      ...(Object.keys(state.snapshot).length ? { [runConfigKey]: this.snapshot(state) } : {}),
+      [runConfigKey]: this.snapshot(state),
     } });
   }
   register(owner: string): () => void {
     this.owners.set(owner, (this.owners.get(owner) ?? 0) + 1);
-    if (this.owners.get(owner) === 1) this.refreshOwner(owner);
+    if (this.owners.get(owner) === 1) { this.ownersVersion++; this.refreshOwner(owner); }
     return () => {
       const count = (this.owners.get(owner) ?? 1) - 1;
       if (count) this.owners.set(owner, count);
-      else { this.owners.delete(owner); this.refreshOwner(owner); }
+      else { this.owners.delete(owner); this.ownersVersion++; this.refreshOwner(owner); }
     };
   }
   registerAdapter(owner: string, adapter: ComposerRequestAdapter): () => void {
@@ -137,8 +179,8 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     }
     if (text !== original) composer.setText(text);
   }
-  setData(threadId: string, owner: string, data: ComposerData, options: ComposerDataOptions = {}): () => void {
-    const entry = json({ ...options, owner, data }) as unknown as ComposerDataEntry;
+  setData(threadId: string, owner: string, data: ComposerData, options: ComposerDataOptions = {}, source: ComposerDataSource = {}): () => void {
+    const entry = json({ ...options, owner, source, data }) as unknown as ComposerDataEntry;
     if (entry.includeInRequest !== undefined && typeof entry.includeInRequest !== 'boolean') throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
     if (entry.reference !== undefined && (!record(entry.reference) || !entry.reference.token || typeof entry.reference.token !== 'string' ||
       typeof entry.reference.text !== 'string' || typeof entry.reference.fallbackText !== 'string')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
@@ -165,10 +207,14 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     };
   }
   clearData(threadId: string, owner: string): void {
-    const state = this.state(threadId);
-    const removed = Object.values(state.snapshot).filter(entry => entry.owner === owner);
+    this.removeData(threadId, entry => entry.owner === owner);
+  }
+  private removeData(threadId: string, matches: (entry: ComposerDataEntry) => boolean): void {
+    const state = this.threads.get(threadId);
+    if (!state) return;
+    const removed = Object.values(state.snapshot).filter(matches);
     if (!removed.length) return;
-    state.snapshot = Object.fromEntries(Object.entries(state.snapshot).filter(([, entry]) => entry.owner !== owner));
+    state.snapshot = Object.fromEntries(Object.entries(state.snapshot).filter(([, entry]) => !matches(entry)));
     this.restoreReferences(state, removed);
     this.syncDraft(state);
     state.listeners.forEach(listener => listener());
@@ -176,7 +222,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
   attach(threadId: string, runtime: AssistantRuntime): () => void {
     const state = this.state(threadId);
     state.native = runtime;
-    if (Object.keys(state.snapshot).length) this.syncDraft(state);
+    this.syncDraft(state);
     let submitted: DataMap | undefined;
     const stopText = runtime.thread.composer.unstable_on('textChange', event => {
       if (event.origin === 'send') submitted = { ...state.snapshot };
@@ -204,12 +250,14 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
           const edit = runtime.thread.getMessageById(message.id).composer.getState();
           if (!edit.isEditing) continue;
           if (!editing) { snapshot = {}; editing = true; }
-          for (const [key, part] of Object.entries(entries(message))) {
+          for (const [key, part] of Object.entries(entries(message, this.messageData))) {
             if (!part.reference || edit.text.includes(part.reference.token)) snapshot[key] = part;
           }
         }
-        return Object.keys(snapshot).length || editing
-          ? { unstable_composerMetadata: { [metadataKey]: snapshot, ...(editing ? { [editKey]: true } : {}) } } : {};
+        // Upstream may enrich a retry/queue at dispatch. Never overwrite submitted metadata here.
+        return Object.keys(state.snapshot).length || editing
+          ? { unstable_composerMetadata: { [draftMetadataKey]: snapshot,
+            ...this.projectMetadata(snapshot), ...(editing ? { [editKey]: true } : {}) } } : {};
       },
       subscribe: listener => { state.listeners.add(listener); return () => state.listeners.delete(listener); },
     });
@@ -229,7 +277,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
         const texts = [composer.text, composer.submission?.text ?? '', ...(composer.inTransit ?? []).map(item => item.text),
           ...composer.queue.map(item => item.prompt)];
         const submitted = new Set(runtime.thread.getState().messages.flatMap(message => {
-          try { return Object.keys(entries(message)); } catch { return []; }
+          try { return Object.keys(entries(message, this.messageData)); } catch { return []; }
         }));
         const kept: DataMap = {};
         for (const [key, part] of Object.entries(state.snapshot)) {
@@ -250,12 +298,32 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
       disposed = true; stopThread(); stopComposer(); stopSend(); stopText(); unregister();
       delete state.native; state.snapshot = {}; state.listeners.clear(); state.seen.clear();
       this.threads.delete(threadId);
+      this.dataCache.delete(threadId);
+      this.plans.delete(threadId);
     };
+  }
+  transformRequest(input: RunAgentInput, context: ConversationInputRequestContext): RunAgentInput {
+    const last = input.messages.at(-1);
+    const continuation = 'resume' in input || last?.role === 'tool' ||
+      (typeof input.forwardedProps === 'object' && input.forwardedProps !== null && 'command' in input.forwardedProps);
+    const native = readNativeInputSession(context.runtime)?.thread.getState().messages ?? [];
+    const messages = [...context.submittedMessages.filter(isSubmittedUserMessage), ...native];
+    const decorated = injectConversationQuoteContext(input, messages);
+    let plan = this.plans.get(context.threadId);
+    if (!continuation || !plan) {
+      const userId = [...input.messages].reverse().find(message => message.role === 'user')?.id;
+      const user = userId ? messages.find(message => message.role === 'user' && message.id === userId)
+        : [...native].reverse().find(message => message.role === 'user');
+      plan = user ? this.prepare(user, continuation ? undefined : input) : undefined;
+      if (plan) this.plans.set(context.threadId, plan);
+      else this.plans.delete(context.threadId);
+    }
+    return plan ? this.apply(decorated, plan) : decorated;
   }
   prepare(user: ThreadMessage, input?: RunAgentInput): ConversationRequestPlan {
     const config = record(record(input?.forwardedProps)?.runConfig);
     const captured = record(config?.[runConfigKey]);
-    if (captured && user.metadata.custom[editKey] !== true) {
+    if (captured && !record(user.metadata.custom[metadataKey]) && user.metadata.custom[editKey] !== true) {
       // The native queue enriches model-context metadata at dispatch, whereas
       // runConfig is frozen at submission (including attachment preparation).
       // Bind our own private metadata namespace to that submitted snapshot before
@@ -265,7 +333,15 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     let text = textOf(user);
     const groups = new Map<string, ComposerDataEntry[]>();
     const offsets = new Map<string, number>();
-    const parts = Object.values(entries(user)).map(part => {
+    const submitted = entries(user, this.messageData);
+    user.metadata.custom[metadataKey] = structuredClone(submitted);
+    const saved = Object.values(submitted);
+    const messageMetadata = this.projectMetadata(submitted);
+    for (const key of this.messageData?.metadataKeys ?? []) delete user.metadata.custom[key];
+    for (const [key, value] of Object.entries(messageMetadata)) {
+      Object.defineProperty(user.metadata.custom, key, { value, enumerable: true, configurable: true, writable: true });
+    }
+    const parts = saved.map(part => {
       const token = part.reference?.token;
       const position = token ? text.indexOf(token, offsets.get(token) ?? 0) : -1;
       if (token) offsets.set(token, position + token.length);
@@ -276,14 +352,15 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     const prefixes = new Set<string>();
     let quotePrefix = '';
     for (const part of parts) {
-      const active = part.enabled ?? this.owners.has(part.owner);
+      const active = part.enabled ?? ((!part.reference && !part.quote) || this.owners.has(part.owner));
       if (part.reference) {
         const replacement = active ? part.reference.text : part.reference.fallbackText;
         changed ||= replacement !== part.reference.token;
         text = text.split(part.reference.token).join(replacement);
       }
       if (active) {
-        groups.set(part.owner, [...(groups.get(part.owner) ?? []), part]);
+        const key = part.owner;
+        groups.set(key, [...(groups.get(key) ?? []), part]);
         if (part.defaultTextPrefix) prefixes.add(part.defaultTextPrefix);
         if (part.quote) quotePrefix = part.quote.text.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
         for (const [key, value] of Object.entries(part.defaultForwardedProps ?? {})) {
@@ -298,11 +375,12 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
       [owner, values.some(value => value.reference) ? values.map(value => value.data) : values.at(-1)!.data]));
     const selections = Object.fromEntries([...groups].map(([owner, values]) =>
       [owner, values.flatMap(value => value.selection === undefined ? [] : [value.selection])]));
+    const sources = Object.fromEntries([...groups].map(([owner, values]) => [owner, values.at(-1)!.source ?? {}]));
     const forwardedProps = Object.fromEntries([...groups].flatMap(([owner, values]) => {
-      const sent = values.filter(value => value.includeInRequest !== false);
+      const sent = values.filter(value => value.includeInRequest === true);
       return sent.length ? [[owner, sent.some(value => value.reference) ? sent.map(value => value.data) : sent.at(-1)!.data]] : [];
     }));
-    return { userId: user.id, sourceText: textOf(user), text: changed ? text.trim() : text, pluginData, selections,
+    return { messageMetadata, metadataKeys: [...this.messageData?.metadataKeys ?? []], userId: user.id, sourceText: textOf(user), text: changed ? text.trim() : text, pluginData, selections, sources,
       forwardedProps, adapter: this.adapters.values().next().value,
       defaultForwardedProps: defaults, textPrefix: [...prefixes].join(''), quotePrefix };
   }
@@ -320,7 +398,12 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     }));
     const request = { ...input,
       messages: input.messages.map(originalMessage => {
-        const message = publicMessage(originalMessage);
+        let message = publicMessage(originalMessage);
+        if (message.role === 'user' && message.id === plan.userId) {
+          const metadata = { ...record(message.metadata) };
+          for (const key of plan.metadataKeys) delete metadata[key];
+          message = { ...message, metadata: { ...metadata, ...plan.messageMetadata } };
+        }
         if (message.role !== 'user' || message.id !== plan.userId || (plan.text === plan.sourceText && !plan.quotePrefix && !plan.textPrefix)) return message;
         const wireText = typeof message.content === 'string' ? message.content
           : message.content.filter(part => part.type === 'text').map(part => part.text).join('');
@@ -345,7 +428,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
       return request;
     }
     const result: unknown = plan.adapter({ request: structuredClone(request),
-      pluginData: structuredClone(plan.pluginData), selections: structuredClone(plan.selections) });
+      pluginData: structuredClone(plan.pluginData), selections: structuredClone(plan.selections), sources: structuredClone(plan.sources) });
     // Validate without replacing the user's JSON with Schema defaults or stripping extension fields.
     json(result);
     RunAgentInputSchema.parse(result);

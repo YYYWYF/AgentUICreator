@@ -7,7 +7,7 @@ import { sharedStyleScanSources } from "../scripts/shared-style-sources.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 
-it("ships standalone tool-call layout and transitions in the packaged base CSS", async () => {
+it("ships standalone tool-call layout and read-only skill badges in the packaged base CSS", async () => {
   // Compile the actual consumer entry without importing any Plugin utility CSS.
   const compiler = await compile('@import "./dist/styles-base.css";', {
     base: packageRoot,
@@ -22,7 +22,9 @@ it("ships standalone tool-call layout and transitions in the packaged base CSS",
     String.raw`.text-\[11px\]`,
     String.raw`.blur-\[2px\]`,
     ".overflow-x-clip",
+    ".justify-self-end",
     String.raw`.h-\(--collapsible-panel-height\)`,
+    String.raw`.px-\[7px\]`,
   ]) expect(css.includes(`${selector} {`), selector).toBe(true);
 });
 

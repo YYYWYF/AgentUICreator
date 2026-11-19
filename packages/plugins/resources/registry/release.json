@@ -143,13 +143,13 @@
     "skills": {
       "version": "0.0.1"
     },
-    "skills-selection": {
-      "version": "0.0.1"
-    },
     "workbench-panel": {
       "version": "0.0.1"
     },
     "workbench-panel-actions": {
+      "version": "0.0.1"
+    },
+    "skills-selection": {
       "version": "0.0.1"
     }
   }

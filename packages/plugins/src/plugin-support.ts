@@ -14,7 +14,6 @@ export { ToolGroupRoot, ToolGroupTrigger, ToolGroupContent } from "./internal/ad
 export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, ThreadPrimitive as ConversationParts, SuggestionPrimitive as SuggestionActions } from "@assistant-ui/react";
 export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export { Button } from "./internal/adapters-generated/assistant-ui/components/ui/button.js";
-export { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
 export { useOptionalAgentUI } from "@za38.03/agent-ui-runtime/plugin-api";
 export { ResponseActionBarRoot, ResponseBranchPicker } from "./internal/composable-thread.js";
 export { ToolTimeline } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
@@ -42,7 +41,7 @@ export { ConversationOptionList as QuestionOptionList, ConversationQuestionFlow 
 
 // Source-owned presentation uses the same Host/runtime instances as npm UI.
 // These are behavior seams; their Providers and stores are never extracted.
-export { useThreadRootElementRef } from "./internal/quote-thread-root.js";
+export { QuoteThreadRootContext, useThreadRootElementRef } from "./internal/quote-thread-root.js";
 export { SelectionToolbarPrimitive } from "./internal/quote-selection-adapter.js";
 export { TaskDisclosureScopeContext, useTaskDisclosure } from "./internal/task-disclosure-context.js";
 export { useConversationToolRenderer } from "./internal/tool-renderer-context.js";
@@ -52,3 +51,5 @@ export { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, convers
 export { detectTrigger, type TriggerMatch } from "./internal/trigger-matcher.js";
 export { serializeConversationDirective } from "./internal/composer-trigger-utils.js";
 export type { ConversationMentionTriggerProps, ConversationCommandTriggerProps } from "./internal/composer-trigger-types.js";
+
+export { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";

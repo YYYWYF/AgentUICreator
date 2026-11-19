@@ -93,4 +93,4 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 
 ## 技能与跨插件组合
 
-[技能与工作流选择](./skills)提供当前 Thread 的选择与共享服务，[当前技能标签](./skills-selection)显示并移除同一份选择。[侧栏打开按钮](./workbench-panel-actions)通过已有面板服务打开指定内容。
+[技能选择（开发中）](./skills)提供选择入口，[当前技能预览](./skills-selection)在输入框内显示和移除选择；两个 UI 插件通过 Service 共享技能选择，发送后的只读标签来自消息快照。[侧栏打开按钮](./workbench-panel-actions)通过已有面板服务打开指定内容。

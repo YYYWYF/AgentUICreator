@@ -3,7 +3,7 @@ export interface ConversationComposerGuardState {
   awaitingReply: boolean;
   interruptKey: string;
 }
-const Context = createContext<ConversationComposerGuardState>({
+export const ConversationComposerGuardContext = createContext<ConversationComposerGuardState>({
   awaitingReply: false,
   interruptKey: "",
 });
@@ -17,11 +17,11 @@ export function ConversationComposerGuardProvider({
   children: ReactNode;
 }) {
   return (
-    <Context.Provider value={{ awaitingReply, interruptKey }}>
+    <ConversationComposerGuardContext.Provider value={{ awaitingReply, interruptKey }}>
       {children}
-    </Context.Provider>
+    </ConversationComposerGuardContext.Provider>
   );
 }
-export const useConversationComposerGuardState = () => useContext(Context);
-export const useConversationComposerAwaitingReply = () =>
-  useContext(Context).awaitingReply;
+
+export const useConversationComposerGuardState = () => useContext(ConversationComposerGuardContext);
+export const useConversationComposerAwaitingReply = () => useContext(ConversationComposerGuardContext).awaitingReply;

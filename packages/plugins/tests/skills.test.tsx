@@ -1,159 +1,296 @@
 // @vitest-environment jsdom
-import { act, type ReactNode } from 'react';
+import { act, useEffect, useState, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, expect, it, vi } from 'vitest';
-import { useAui, type AssistantRuntime, type RunConfig } from '@assistant-ui/react';
-import { PluginServiceRuntimeProvider, PluginServiceConsumerProvider } from '@za38.03/agent-ui-runtime/plugin-api';
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from '@za38.03/agent-ui-runtime';
+import { useAui, type AssistantRuntime, type AttachmentAdapter, type CompleteAttachment } from '@assistant-ui/react';
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding, type ConversationLoadedThread } from '@za38.03/agent-ui-runtime';
 import { HttpAgent, type RunAgentInput } from '@ag-ui/client';
-import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
-import { AgentUILocaleProvider, AgentUIRoot, ConversationComposerQuotePreview } from '../src/public';
+import { createComposerInputController, useComposer, type ComposerRequestAdapter } from '../src/composer-support';
+import { AgentUILocaleProvider, AgentUIRoot, ConversationComposerQuotePreview, ConversationThread } from '../src/public';
 import { ConversationSkills, type ConversationSkill, type ConversationSkillItem } from '../src/plugins/skills/adapters/presentation/skills';
-import { createConversationSkillsService, CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService } from '../src/plugins/skills/adapters/presentation/service';
 import { ConversationComposerPlugin as NpmComposer } from '../dist/composer/index.js';
-import { SkillsPlugin as NpmBar } from '../dist/skills/index.js';
-import { SkillsSelectionPlugin as NpmSelection } from '../dist/skills-selection/index.js';
+import skillsDefinition, { SkillsPlugin as NpmBar } from '../dist/skills/index.js';
+import selectionDefinition, { SkillsSelectionPlugin as NpmSelection } from '../dist/skills-selection/index.js';
 import { SkillsPlugin as LocalBar } from '../dist/sources/takeover/skills/index';
+import localSkillsDefinition from '../dist/sources/takeover/skills/definition';
 import { SkillsSelectionPlugin as LocalSelection } from '../dist/sources/takeover/skills-selection/index';
 import { ConversationComposerPlugin as LocalComposer } from '../dist/sources/takeover/composer/index';
+import { requestAdapter as defaultRequestAdapter } from '../src/plugins/composer/adapters/application-request-adapter';
+import { skillsMessageDataAdapter, type ConversationSkillData, readSubmittedSkill } from '../src/plugins/skills/adapters/presentation/skill-data';
+import { projectConversationDetail } from '../src/plugins/conversation-service/adapters/presentation/conversation-history-projector';
 
+import { PluginInstanceProvider, PluginServiceRuntimeProvider } from '@za38.03/agent-ui-runtime/plugin-api';
+import type { UIPluginSetupContext } from '@za38.03/agent-ui-runtime/contracts';
+import type { ConversationSkillsService } from '../src/plugins/skills/adapters/presentation/service';
+const actions = { sendMessage: async () => {}, resumeInterrupts: async () => {}, startNewConversation: async () => {}, abortRun() {} };
+const events = { subscribe: () => () => {} };
+const skillInstance = { id: 'custom-skills-picker', pluginId: 'skills', enabled: true };
+const controllerFactory = () => createComposerInputController({ messageData: skillsMessageDataAdapter });
 let root: Root | undefined;
-const services: ConversationSkillsService[] = [];
-afterEach(async () => {
-  await act(async () => { for (const service of services.splice(0)) service.dispose(); root?.unmount(); });
-  root = undefined; document.body.replaceChildren();
-});
+afterEach(async () => { await act(async () => root?.unmount()); root = undefined; document.body.replaceChildren(); });
 async function render(node: ReactNode) {
   if (!root) { const host = document.createElement('div'); document.body.append(host); root = createRoot(host); }
   await act(async () => root!.render(<AgentUIRoot theme='violet'><AgentUILocaleProvider locale='zh-CN'>{node}</AgentUILocaleProvider></AgentUIRoot>));
 }
 function button(text: string) { return [...document.querySelectorAll<HTMLButtonElement>('button')].find(node => node.textContent === text)!; }
-const skill: ConversationSkill = { kind: 'skill', id: 'research', label: '深度研究', ctx: { skillId: 'research' } };
-function service() { const value = createConversationSkillsService(); services.push(value); return value; }
+const skill: ConversationSkill = { kind: 'skill', id: 'research', label: '深度研究' };
+const selected: ConversationSkillData = { id: 'research', label: '深度研究' };
 const variants = [
-  { name: 'npm', Composer: NpmComposer, Bar: NpmBar, Selection: NpmSelection },
-  { name: 'source-owned bar', Composer: NpmComposer, Bar: LocalBar, Selection: NpmSelection },
-  { name: 'source-owned selection', Composer: NpmComposer, Bar: NpmBar, Selection: LocalSelection },
-  { name: 'source-owned Composer', Composer: LocalComposer, Bar: NpmBar, Selection: NpmSelection },
+  { name: 'npm', definition: skillsDefinition, Composer: NpmComposer, Bar: NpmBar, Selection: NpmSelection },
+  { name: 'source-owned bar', definition: localSkillsDefinition, Composer: NpmComposer, Bar: LocalBar, Selection: NpmSelection },
+  { name: 'source-owned preview', definition: skillsDefinition, Composer: NpmComposer, Bar: NpmBar, Selection: LocalSelection },
+  { name: 'source-owned Composer', definition: skillsDefinition, Composer: LocalComposer, Bar: NpmBar, Selection: NpmSelection },
 ];
-async function fixture(variant = variants[0]!, custom: {
-  requestAdapter?: import('../src/public').ConversationSkillRequestAdapter;
-  composerAdapter?: import('../src/public').ComposerRequestAdapter;
-} = {}) {
-  const shared = service(); const runs: (RunConfig | undefined)[] = []; const requests: RunAgentInput[] = []; let runtime!: AssistantRuntime;
-  const port = { get: <T,>(name: string) => name === CONVERSATION_SKILLS_SERVICE ? shared as T : undefined, subscribe: () => () => {}, getRevision: () => 0 };
-  const binding = createEphemeralConversationThreadBinding();
-  const factory = () => new HttpAgent({ url: 'http://example.test/agent', fetch: async (_url, init) => {
+async function fixture(variant = variants[0]!, custom: { attachmentAdapter?: AttachmentAdapter; composerAdapter?: ComposerRequestAdapter | null; history?: ConversationLoadedThread; showBar?: boolean; showPreview?: boolean } = {}) {
+  const values = new Map<string, unknown>();
+  const services: UIPluginSetupContext['services'] = {
+    get: <T,>(name: string) => values.get(name) as T | undefined,
+    provide<T>(name: string, value: T) { values.set(name, value); return () => { values.delete(name); }; },
+  };
+  const cleanup = variant.definition.setup!({ instance: skillInstance, services, actions, events });
+  const service = services.get<ConversationSkillsService>('conversation.skills')!;
+  const serviceRuntime = { get: services.get, subscribe: () => () => {}, getRevision: () => 0 };
+  function Services({ children }: { children: ReactNode }) {
+    useEffect(() => () => { if (typeof cleanup === 'function') cleanup(); }, []);
+    return <PluginServiceRuntimeProvider runtime={serviceRuntime}>{children}</PluginServiceRuntimeProvider>;
+  }
+  function SkillsScope({ children }: { children: ReactNode }) {
+    return <PluginInstanceProvider instance={skillInstance} actions={actions} events={events}>{children}</PluginInstanceProvider>;
+  }
+  const requests: RunAgentInput[] = [];
+  let native!: AssistantRuntime;
+  let composer!: ReturnType<typeof useComposer>;
+  let setPreviewVisible!: (visible: boolean) => void;
+  let setBarVisible!: (visible: boolean) => void;
+  function Capture() { native = useAui().threads.__internal_getAssistantRuntime!(); composer = useComposer('test-control'); return null; }
+  const base = createEphemeralConversationThreadBinding();
+  const binding = { ...base, ...(custom.history ? { loadThread: async () => custom.history! } : {}) };
+  const factory = ({ threadId }: { threadId: string }) => new HttpAgent({ threadId, url: 'http://example.test/agent', fetch: async (_url, init) => {
     const input = JSON.parse(String(init.body)) as RunAgentInput;
     requests.push(input);
-    runs.push({ custom: (input.forwardedProps as Record<string, Record<string, unknown>>).ctx ?? {} });
     return new Response([{ type: 'RUN_STARTED', threadId: input.threadId, runId: input.runId },
       { type: 'RUN_FINISHED', threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(''),
       { headers: { 'Content-Type': 'text/event-stream' } });
   } });
-  function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
-  function Host() {
-    return <ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding} ctx={{ tenant: 'host', skillId: 'host' }} unstable_agentFactory={factory}>
-    <Capture /><PluginServiceRuntimeProvider runtime={port}>
-      <variant.Composer requestAdapter={custom.composerAdapter} renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback}
-        triggers={<PluginServiceConsumerProvider scope={{ pluginId: 'skills', instanceId: 'bar', provides: [CONVERSATION_SKILLS_SERVICE], inject: [], optionalInject: ['agent-ui.locale'] }}><variant.Bar items={[skill]} requestAdapter={custom.requestAdapter} /></PluginServiceConsumerProvider>}
-        beforeInput={<><ConversationComposerQuotePreview /><PluginServiceConsumerProvider scope={{ pluginId: 'skills-selection', instanceId: 'selection', provides: [], inject: [CONVERSATION_SKILLS_SERVICE], optionalInject: ['agent-ui.locale'] }}><variant.Selection /></PluginServiceConsumerProvider></>} />
-    </PluginServiceRuntimeProvider></ConversationRuntimeProvider>;
+  function ComposerWithPlugins() {
+    const [previewVisible, setVisible] = useState(custom.showPreview !== false);
+    const [barVisible, setBar] = useState(custom.showBar !== false);
+    setPreviewVisible = setVisible;
+    setBarVisible = setBar;
+    return <variant.Composer requestAdapter={custom.composerAdapter === null ? undefined : custom.composerAdapter ?? defaultRequestAdapter}
+      renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback}
+      triggers={barVisible ? <SkillsScope><variant.Bar items={[skill]} /></SkillsScope> : null}
+      beforeInput={<>{previewVisible && <variant.Selection />}<ConversationComposerQuotePreview /></>} />;
   }
-  await render(<Host />);
-  for (let index = 0; index < 100 && runtime.thread.getState().isLoading; index++)
-    await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });
-  return { shared, runtime, runs, requests };
+  await render(<Services><ConversationRuntimeProvider inputControllerFactory={controllerFactory} endpoint='http://example.test/agent'
+    threadBinding={binding} attachmentAdapter={custom.attachmentAdapter} ctx={{ tenant: 'host' }} unstable_agentFactory={factory}>
+    <SkillsScope><Capture /></SkillsScope><ConversationThread autoFocus={false} composer={<ComposerWithPlugins />} />
+  </ConversationRuntimeProvider></Services>);
+  await vi.waitFor(async () => { await act(async () => {}); expect(native.thread.getState().isLoading).toBe(false); });
+  return { requests, service,
+    get selected() { return service.getSnapshot(native.threads.getState().mainThreadId); },
+    select(value: ConversationSkillData) { service.select(native.threads.getState().mainThreadId, value, composer); },
+    get native() { return native; }, get composer() { return composer; },
+    async showPreview(visible: boolean) { await act(async () => setPreviewVisible(visible)); },
+    async showBar(visible: boolean) { await act(async () => setBarVisible(visible)); },
+    async send(text = 'Question') {
+      const count = requests.length + 1;
+      await act(async () => { native.thread.composer.setText(text); native.thread.composer.send(); });
+      await vi.waitFor(async () => { await act(async () => {}); expect(requests).toHaveLength(count); expect(native.thread.getState().isRunning).toBe(false); });
+    },
+  };
 }
 
-it.each(variants)('$name renders the label through beforeInput and preserves the quote and draft', async variant => {
+it.each(variants)('$name composes one removable skill preview alongside quote and draft', async variant => {
   const f = await fixture(variant);
-  await act(async () => { f.runtime.thread.composer.setText('保留草稿'); f.runtime.thread.composer.setQuote({ text: '保留引用', messageId: 'origin' }); });
-  await act(async () => button('深度研究').click());
-  expect(document.querySelector('.skills-selection-chip')?.closest('[data-slot="aui_composer-before-input"]')).toBeTruthy();
-  expect(document.querySelectorAll('.skills-selection-chip')).toHaveLength(1);
-  expect(document.querySelector('.skills-bar')?.closest('[data-slot="aui_composer-shell"]')).toBeNull();
-  expect(document.querySelector('[data-slot="aui_composer-input-accessories"]')).toBeNull();
+  await act(async () => { f.composer.setText('保留草稿'); f.composer.setQuote({ text: '保留引用', messageId: 'origin' }); button('深度研究').click(); });
+  expect(f.selected).toEqual(selected);
+  expect(document.querySelector('[data-slot="composer-skill"]')?.closest('[data-slot="aui_composer-before-input"]')).not.toBeNull();
+  expect(document.querySelectorAll('[data-slot="composer-skill"]')).toHaveLength(1);
   expect(document.querySelector('[data-slot="composer-quote"]')?.textContent).toContain('保留引用');
   await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="移除技能: 深度研究"]')!.click());
-  expect(document.querySelector('.skills-selection-chip')).toBeNull();
-  expect(f.runtime.thread.composer.getState().text).toBe('保留草稿');
-  expect(f.runtime.thread.composer.getState().quote?.text).toBe('保留引用');
+  expect(f.selected).toBeNull();
+  expect(f.composer.getState().text).toBe('保留草稿');
+  expect(f.composer.getState().quote?.text).toBe('保留引用');
 });
 
-it('uses the native request snapshot and clears selection only after an accepted send', async () => {
-  const f = await fixture();
-  await act(async () => f.runtime.thread.composer.setRunConfig({ custom: { keep: 'host', skillId: 'original' } }));
-  await act(async () => button('深度研究').click());
-  const id = f.runtime.threads.getState().mainThreadId;
-  await act(async () => f.runtime.thread.composer.send());
-  expect(f.shared.getSnapshot(id)?.id).toBe('research'); expect(f.runs).toHaveLength(0);
-  await act(async () => { f.runtime.thread.composer.setText('发送'); await f.runtime.thread.composer.send(); });
-  await vi.waitFor(() => expect(f.runs).toHaveLength(1));
-  expect(f.runs[0]?.custom).toEqual({ keep: 'host', tenant: 'host', skillId: 'research' });
-  expect(f.requests[0]!.forwardedProps).not.toHaveProperty('runConfig');
-  expect(f.shared.getSnapshot(id)).toBeNull();
-  expect(f.runtime.thread.composer.getState().runConfig.custom).toEqual({ keep: 'host', skillId: 'original' });
-  expect(document.querySelector('.skills-selection-chip')).toBeNull();
-});
-
-it('restores the previous concrete Thread without writing into the newly selected Thread', async () => {
-  const f = await fixture();
-  await act(async () => { f.runtime.thread.composer.setText('seed'); await f.runtime.thread.composer.send(); });
-  await vi.waitFor(() => expect(f.runs).toHaveLength(1));
-  const originalId = f.runtime.threads.getState().mainThreadId;
-  const original = f.runtime.threads.getById(originalId).composer;
-  await act(async () => { original.setText('旧会话草稿'); original.setRunConfig({ custom: { keep: 'original' } }); });
-  await act(async () => button('深度研究').click());
-  await act(async () => f.runtime.threads.switchToNewThread());
-  const nextId = f.runtime.threads.getState().mainThreadId;
-  expect(nextId).not.toBe(originalId);
-  expect(f.shared.getSnapshot(originalId)).toBeNull();
-  expect(original.getState().runConfig.custom).toEqual({ keep: 'original' });
-  expect(original.getState().text).toBe('旧会话草稿');
-  expect(f.runtime.thread.composer.getState().runConfig.custom?.skillId).toBeUndefined();
-});
-
-it('isolates service instances and releases only the selected data on disposal', () => {
-  const one = service(), two = service(); let data: ComposerData | undefined;
-  const binding = { setData(next: ComposerData) { data = next; return () => { if (data === next) data = undefined; }; } };
-  one.select('same-id', skill, binding);
-  expect(two.getSnapshot('same-id')).toBeNull();
-  expect(data).toEqual({ skillId: 'research' });
-  data = { newer: 'owner' };
-  one.updatePresentation('same-id', { ...skill, label: 'Research' });
-  expect(one.getSnapshot('same-id')?.label).toBe('Research');
-  one.dispose(); expect(data).toEqual({ newer: 'owner' });
-  expect(one.getSnapshot('same-id')).toBeNull();
-});
-
-it.each(variants)('$name sends adapted skill data and raw selection to Composer without changing native business configuration', async variant => {
-  const adapter = vi.fn<import('../src/public').ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
-    ...request, forwardedProps: { ctx: { selected: pluginData['standalone:skills'], raw: selections['standalone:skills'] } },
-  }));
-  const f = await fixture(variant, { requestAdapter: selected => ({ operation: selected.id }), composerAdapter: adapter });
-  await act(async () => button('深度研究').click());
-  expect(f.runtime.thread.composer.getState().runConfig.custom?.skillId).toBeUndefined();
-  await act(async () => { f.runtime.thread.composer.setText('Question'); f.runtime.thread.composer.send(); });
-  await vi.waitFor(() => expect(f.requests).toHaveLength(1));
-  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { selected: { operation: 'research' }, raw: [skill] } });
-  expect(adapter).toHaveBeenCalledOnce();
-});
-
-it.each(variants)('$name merges default skill ctx and never sends a runtime configuration field', async variant => {
+it.each(variants)('$name submits ctx.skill and retains a read-only message badge after clearing the draft', async variant => {
   const f = await fixture(variant);
-  await act(async () => { button('深度研究').click(); f.runtime.thread.composer.setText('Default'); f.runtime.thread.composer.send(); });
-  await vi.waitFor(() => expect(f.requests).toHaveLength(1));
-  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host', skillId: 'research' } });
+  await act(async () => button('深度研究').click());
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host', skill: selected } });
+  expect(f.requests[0]!.messages[0]!.metadata).toMatchObject({ skill: selected });
+  expect(f.selected).toBeNull();
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+  expect(document.querySelector('[data-slot="message-skill"]')?.textContent).toContain('深度研究');
+  expect(document.querySelector('[data-slot="message-skill"] button')).toBeNull();
 });
 
-it('preserves the previous skill and draft on invalid requestAdapter output', async () => {
-  const f = await fixture(variants[0], { requestAdapter: () => ({ value: Number.NaN }) });
-  await act(async () => { f.runtime.thread.composer.setText('Keep draft'); button('深度研究').click(); });
-  expect(f.shared.getSnapshot(f.runtime.threads.getState().mainThreadId)).toBeNull();
-  expect(f.runtime.thread.composer.getState().text).toBe('Keep draft');
-  expect(document.querySelector('[role="alert"]')?.textContent).toContain('无法选择');
-  expect(f.requests).toHaveLength(0);
+it('supports Service selection with the selector UI hidden', async () => {
+  const f = await fixture(undefined, { showBar: false });
+  await act(async () => { f.select(selected); });
+  expect(document.querySelector('[data-slot="composer-skill"]')?.textContent).toContain('深度研究');
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host', skill: selected } });
+});
+
+it('does not render a built-in preview when the preview Plugin is absent', async () => {
+  const f = await fixture(undefined, { showPreview: false });
+  await act(async () => button('深度研究').click());
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+  expect(f.selected).toEqual(selected);
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('ctx.skill', selected);
+});
+
+it('only collects skill data when the project requestAdapter is absent', async () => {
+  const f = await fixture(undefined, { composerAdapter: null });
+  await act(async () => button('深度研究').click());
+  expect(f.selected).toEqual(selected);
+  expect(f.composer).not.toHaveProperty('setSkill');
+  expect(f.composer).not.toHaveProperty('skill');
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+  expect(f.requests[0]!.messages[0]!.metadata).toMatchObject({ skill: selected });
+});
+
+it('lets project code map skill data to its own ctx field without a default ctx.skill merge', async () => {
+  const f = await fixture(undefined, { composerAdapter: ({ request, pluginData, sources }) => {
+    const skill = readSubmittedSkill(pluginData, sources);
+    return { ...request, forwardedProps: { ctx: { skillId: skill?.id } } };
+  } });
+  await act(async () => button('深度研究').click());
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { skillId: selected.id } });
+});
+
+it.each(variants)('$name removes and remounts the preview without clearing shared skill or draft state', async variant => {
+  const f = await fixture(variant);
+  await act(async () => { button('深度研究').click(); f.composer.setText('保留草稿'); });
+  await f.showPreview(false);
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+  expect(f.selected).toEqual(selected);
+  expect(f.composer.getState().text).toBe('保留草稿');
+  expect(button('深度研究').getAttribute('aria-pressed')).toBe('true');
+  await f.showPreview(true);
+  expect(document.querySelectorAll('[data-slot="composer-skill"]')).toHaveLength(1);
+  await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="移除技能: 深度研究"]')!.click());
+  expect(f.selected).toBeNull();
+  expect(button('深度研究').getAttribute('aria-pressed')).toBe('false');
+});
+
+it('declares the preview dependency on the skills Service', () => {
+  expect(selectionDefinition.manifest.id).toBe('skills-selection');
+  expect(selectionDefinition.manifest.capabilities).toContain('conversation-composer-before-input');
+  expect(selectionDefinition.inject).toEqual(['conversation.skills']);
+  expect(selectionDefinition.provides ?? []).toEqual([]);
+});
+
+it.each(variants)('$name removes the selector without clearing the shared skill or preview', async variant => {
+  const f = await fixture(variant);
+  await act(async () => button('深度研究').click());
+  await f.showBar(false);
+  expect(document.querySelector('[data-ui-plugin="skills"]')).toBeNull();
+  expect(f.selected).toEqual(selected);
+  expect(document.querySelector('[data-slot="composer-skill"]')?.textContent).toContain('深度研究');
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('ctx.skill', selected);
+});
+
+it('lets the final Composer adapter replace the wire format while keeping the UI snapshot', async () => {
+  const f = await fixture(undefined, { composerAdapter: ({ request, pluginData, sources }) => ({ ...request,
+    forwardedProps: { operation: readSubmittedSkill(pluginData, sources) } }) });
+  await act(async () => { f.select(selected); });
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ operation: selected });
+  expect(document.querySelector('[data-slot="message-skill"]')?.textContent).toContain('深度研究');
+});
+
+it('restores a skill badge from public persisted metadata without private draft state', async () => {
+  const messages = projectConversationDetail({ id: 'persisted', title: 'History', history: { format: 'langchain', messages: [
+    { type: 'human', id: 'old-user', content: 'Saved question', additional_kwargs: { metadata: { skill: selected } } },
+  ] } });
+  expect(messages[0]?.metadata).toMatchObject({ custom: { skill: selected } });
+  await fixture(undefined, { showBar: false, history: { messages } });
+  expect(document.querySelector('[data-slot="message-skill"]')?.textContent).toContain('深度研究');
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+});
+
+it('keeps the previous skill on invalid selection and clears it on navigation', async () => {
+  const f = await fixture();
+  await act(async () => { f.select(selected); });
+  expect(() => f.select({ id: '', label: 'Invalid' })).toThrow('AGENT_UI_INVALID_SKILL');
+  expect(f.selected).toEqual(selected);
+  const originalThreadId = f.native.threads.getState().mainThreadId;
+  await act(async () => f.native.threads.switchToNewThread());
+  expect(f.selected).toBeNull();
+  expect(f.service.getSnapshot(originalThreadId)).toBeNull();
+});
+
+it('records the source Plugin and custom instance automatically without forwarding raw data', async () => {
+  const adapter = vi.fn<ComposerRequestAdapter>(defaultRequestAdapter);
+  const f = await fixture(undefined, { composerAdapter: adapter });
+  await act(async () => button('深度研究').click());
+  await f.send();
+  const input = adapter.mock.calls[0]![0];
+  expect(input.pluginData).toEqual({ 'custom-skills-picker': selected });
+  expect(input.sources).toEqual({ 'custom-skills-picker': { pluginId: 'skills', instanceId: 'custom-skills-picker' } });
+  expect(input.request.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+});
+
+it('keeps UI state in the Service when collected Composer data is cleared directly', async () => {
+  const f = await fixture();
+  await act(async () => { f.select(selected); f.composer.clearData(); });
+  expect(f.selected).toEqual(selected);
+  expect(document.querySelector('[data-slot="composer-skill"]')?.textContent).toContain('深度研究');
+});
+
+it('disposes the Service selection and its collected data when the provider stops', async () => {
+  const f = await fixture();
+  await act(async () => { button('深度研究').click(); f.service.dispose(); });
+  expect(f.selected).toBeNull();
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+});
+
+it('preserves the next Service selection while an attachment submission finishes', async () => {
+  let complete: ((attachment: CompleteAttachment) => void) | undefined;
+  const f = await fixture(undefined, { attachmentAdapter: {
+    accept: 'text/plain',
+    async add({ file }) { return { id: 'upload', type: 'document', name: file.name, file,
+      status: { type: 'requires-action', reason: 'composer-send' } }; },
+    async remove() {},
+    send() { return new Promise(resolve => { complete = resolve; }); },
+  } });
+  await act(async () => {
+    await f.composer.addAttachment(new File(['file'], 'file.txt', { type: 'text/plain' }));
+    button('深度研究').click();
+    f.composer.setText('Original');
+    f.composer.send();
+  });
+  await vi.waitFor(() => expect(complete).toBeDefined());
+  const next = { id: 'report', label: 'Next' };
+  await act(async () => { f.select(next); f.composer.setText('Next draft'); });
+  await act(async () => complete!({ id: 'upload', type: 'document', name: 'file.txt',
+    status: { type: 'complete' }, content: [{ type: 'text', text: 'File' }] }));
+  await vi.waitFor(() => { expect(f.requests).toHaveLength(1); expect(f.native.thread.getState().isRunning).toBe(false); });
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('ctx.skill', selected);
+  expect(f.selected).toEqual(next);
+  expect(f.composer.text).toBe('Next draft');
+  await f.send();
+  expect(f.requests[1]!.forwardedProps).toHaveProperty('ctx.skill', next);
+  expect(f.selected).toBeNull();
+});
+
+it('clears Service selection and collected data on native composer reset', async () => {
+  const f = await fixture();
+  await act(async () => button('深度研究').click());
+  await act(async () => { await f.native.thread.composer.reset(); });
+  expect(f.selected).toBeNull();
+  expect(document.querySelector('[data-slot="composer-skill"]')).toBeNull();
+  await f.send();
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
 });
 
 it('shows two shortcuts, keeps all skills searchable and never submits the enclosing form on selection', async () => {
@@ -166,7 +303,7 @@ it('shows two shortcuts, keeps all skills searchable and never submits the enclo
   expect(change).toHaveBeenLastCalledWith(items[2]); expect(submit).not.toHaveBeenCalled();
 });
 
-it('starts a workflow only on an explicit click, blocks duplicates and reports failures', async () => {
+it('runs a project callback on click, blocks duplicates and reports failures', async () => {
   let reject!: (reason: unknown) => void;
   const start = vi.fn(() => new Promise<void>((_resolve, fail) => { reject = fail; }));
   await render(<div data-agent-ui-conversation='true'><ConversationSkills items={[{kind:'workflow',id:'weekly',label:'生成周报',onStart:start}]}/></div>);

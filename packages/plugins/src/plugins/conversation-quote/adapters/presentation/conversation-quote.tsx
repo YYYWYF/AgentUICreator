@@ -1,10 +1,10 @@
 import { useContext, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   ConversationComposerDataContext,
-  PluginInstanceContext,
   useComposer,
   type ComposerData,
-} from '@za38.03/agent-ui-runtime/plugin-api';
+} from '@za38.03/agent-ui-plugins/composer-support';
+import { PluginInstanceContext } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
   ConversationComposerQuotePreview,
   ConversationQuoteSelectionToolbar,

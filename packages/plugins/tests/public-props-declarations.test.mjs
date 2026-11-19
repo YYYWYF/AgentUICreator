@@ -16,7 +16,23 @@ it("ships the Composer declarations referenced by the public props on POSIX and 
     expect(isPublicPluginDeclaration(path.win32.join(...logical.split("/")), declarations)).toBe(true);
     await access(path.join(packageRoot, "dist", ...logical.split("/")));
   }
+  for (const file of ["selection", "binding"]) {
+    const logical = `plugins/skills-selection/adapters/presentation/${file}.d.ts`;
+    expect(isPublicPluginDeclaration(logical, declarations)).toBe(true);
+    expect(isPublicPluginDeclaration(path.win32.join(...logical.split("/")), declarations)).toBe(true);
+    await access(path.join(packageRoot, "dist", ...logical.split("/")));
+  }
   expect(isPublicPluginDeclaration("theme\\theme-contract.d.ts", declarations)).toBe(true);
+  const inputController = 'composer-data/input-controller.d.ts';
+  expect(isPublicPluginDeclaration(inputController, declarations)).toBe(true);
+  expect(isPublicPluginDeclaration(path.win32.join(...inputController.split('/')), declarations)).toBe(true);
+  await access(path.join(packageRoot, 'dist', ...inputController.split('/')));
+  for (const file of ['request', 'request-parts', 'native-session', 'quote-context']) {
+    const logical = `composer-data/${file}.d.ts`;
+    expect(isPublicPluginDeclaration(logical, declarations)).toBe(false);
+    expect(isPublicPluginDeclaration(path.win32.join(...logical.split('/')), declarations)).toBe(false);
+    await expect(access(path.join(packageRoot, 'dist', ...logical.split('/')))).rejects.toMatchObject({ code: 'ENOENT' });
+  }
   for (const logical of sourceRuntimeDeclarations) {
     expect(isPublicPluginDeclaration(logical, declarations)).toBe(true);
     expect(isPublicPluginDeclaration(path.win32.join(...logical.split("/")), declarations)).toBe(true);

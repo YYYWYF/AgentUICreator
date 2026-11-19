@@ -169,11 +169,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           >
             <ComposerAttachments />
             <ComposerAttachmentError />
-            {beforeInput === undefined || beforeInput === null ? null : (
-              <div data-agent-ui-owned='' data-slot='aui_composer-before-input'>
-                {beforeInput}
-              </div>
-            )}
+            <div data-agent-ui-owned='' data-slot='aui_composer-before-input' className='empty:hidden'>
+              {beforeInput}
+            </div>
             <ComposerQueue {...queueLabels} />
             <ComposerInputHostContext.Provider
               value={{ variant: 'primary', placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}

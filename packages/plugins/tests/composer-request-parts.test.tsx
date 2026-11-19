@@ -2,10 +2,16 @@ import { HttpAgent, type RunAgentInput } from '@ag-ui/client';
 import { useAui, type AssistantRuntime, type AttachmentAdapter, type CompleteAttachment } from '@assistant-ui/react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { afterEach, expect, it, vi } from 'vitest';
-import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationRuntimeBridge, type ConversationLoadedThread } from '../src/public.js';
-import { useComposer, useComposerRequestAdapter, type ComposerRequestAdapter, type ComposerData, type ComposerDataOptions } from '../src/plugin-api/request.js';
+import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationRuntimeBridge, type ConversationLoadedThread } from '@za38.03/agent-ui-runtime';
+import { useComposer, type ComposerRequestAdapter, type ComposerData, type ComposerDataOptions } from '../src/composer-data/request.js';
+import { useComposerRequestAdapter } from '../src/internal/composer-request-adapter.js';
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
+import { skillsMessageDataAdapter, readConversationSkillData } from '../src/plugins/skills/adapters/presentation/skill-data.js';
+import { requestAdapter as defaultRequestAdapter } from '../src/plugins/composer/adapters/application-request-adapter.js';
+import { PluginInstanceProvider } from '@za38.03/agent-ui-runtime/plugin-api';
 import type { AgentFrontendToolSource } from '@za38.03/agent-ui-core';
 
+const controllerFactory = () => createComposerInputController({ messageData: skillsMessageDataAdapter });
 let tree: ReactTestRenderer | undefined;
 afterEach(async () => { await act(async () => tree?.unmount()); tree = undefined; });
 async function until(predicate: () => boolean) {
@@ -16,23 +22,33 @@ async function until(predicate: () => boolean) {
   throw new Error('Plugin request fixture did not settle');
 }
 type Callback = ComposerRequestAdapter;
-async function fixture(callback: Callback | undefined, options: { hold?: boolean; interrupt?: boolean; history?: ConversationLoadedThread; tools?: AgentFrontendToolSource; attachmentAdapter?: AttachmentAdapter } = {}) {
+async function fixture(callback: Callback | undefined, options: { pluginId?: string; hold?: boolean; interrupt?: boolean; history?: ConversationLoadedThread; tools?: AgentFrontendToolSource; attachmentAdapter?: AttachmentAdapter } = {}) {
   const errors = vi.fn();
   const runs: { input: RunAgentInput; emit(event: Record<string, unknown>): void; finish(): void }[] = [];
   let native!: AssistantRuntime, bridge!: ConversationRuntimeBridge;
   let composer!: ReturnType<typeof useComposer>;
   let second!: ReturnType<typeof useComposer>;
+  let rendered!: {
+    text: string; attachmentNames: readonly string[]; skillId: string | undefined;
+    quoteText: string | undefined; isRunning: boolean; canSend: boolean; canCancel: boolean;
+  };
   let active = 'A';
+  const deleted = new Set<string>();
   const binding = {
     getThreadId: () => active, activateThread: (id: string) => { active = id; }, subscribe: () => () => {},
     createNewThread: async () => crypto.randomUUID(),
-    getThreadListSnapshot: () => ({ threads: [{ id: 'A', status: 'regular' as const }, { id: 'B', status: 'regular' as const }], archivedThreads: [] }),
+    getThreadListSnapshot: () => ({ threads: [{ id: 'A', status: 'regular' as const }, { id: 'B', status: 'regular' as const }]
+      .filter(thread => !deleted.has(thread.id)), archivedThreads: [] }),
+    deleteThread: async (id: string) => { deleted.add(id); },
     loadThread: async (id: string) => id === 'A' ? options.history ?? { messages: [] } : { messages: [] },
   };
   function Capture() {
     native = useAui().threads.__internal_getAssistantRuntime!(); bridge = useConversationRuntimeBridge();
     composer = useComposer('test');
     second = useComposer('other');
+    rendered = { text: composer.text, attachmentNames: composer.attachments.map(attachment => attachment.name),
+      skillId: readConversationSkillData(composer.data['standalone:test'])?.id, quoteText: composer.quote?.text, isRunning: composer.isRunning,
+      canSend: composer.canSend, canCancel: composer.canCancel };
     useComposerRequestAdapter(callback ? input => callback!(input) : undefined);
     return null;
   }
@@ -59,13 +75,16 @@ async function fixture(callback: Callback | undefined, options: { hold?: boolean
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     },
   });
-  await act(async () => { tree = create(<ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding}
+  await act(async () => { tree = create(<ConversationRuntimeProvider inputControllerFactory={controllerFactory} endpoint='http://example.test/agent' threadBinding={binding}
     enableMessageQueue attachmentAdapter={options.attachmentAdapter} frontendTools={options.tools} ctx={{ tenant: 'host' }} onError={errors} unstable_agentFactory={factory}>
-    <Capture />
+    <PluginInstanceProvider instance={{id:'standalone',pluginId:options.pluginId ?? 'test-plugin',enabled:true}}
+      actions={{sendMessage:async()=>{},resumeInterrupts:async()=>{},startNewConversation:async()=>{},abortRun(){}}}
+      events={{subscribe:()=>()=>{}}}><Capture /></PluginInstanceProvider>
   </ConversationRuntimeProvider>); });
   await until(() => !native.thread.getState().isLoading);
   return {
     runs, errors, get native() { return native; }, get bridge() { return bridge; },
+    get rendered() { return rendered; },
     update(next: Callback) { callback = next; },
     async select(data: ComposerData, fallbackText = ':user[Person]{name=business}') {
       const token = `:user[Person]{name=agent-ui-selection-${crypto.randomUUID()}}`;
@@ -82,6 +101,86 @@ async function fixture(callback: Callback | undefined, options: { hold?: boolean
   };
 }
 const external: Callback = ({ request, pluginData }) => ({ ...request, forwardedProps: { ctx: { selected: pluginData['standalone:test'] ?? [] } } });
+
+const forwardData: Callback = ({ request, pluginData }) => ({ ...request, forwardedProps: {
+  ...(typeof request.forwardedProps === 'object' && request.forwardedProps !== null
+    ? request.forwardedProps as Record<string, unknown> : {}), ...pluginData,
+} });
+
+it('isolates collected values by their automatic owner and clears only the calling owner', async () => {
+  const callback = vi.fn<Callback>(({ request }) => request);
+  const f = await fixture(callback);
+  await act(async () => { f.setData({ own: true }); f.secondData({ other: true }); f.clearData(); });
+  expect(f.composer.data).toEqual({ 'standalone:other': { other: true } });
+  await f.send('Collected only'); await f.settle(1);
+  expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+  expect(callback.mock.calls[0]![0].pluginData).toEqual({ 'standalone:other': { other: true } });
+  expect(callback.mock.calls[0]![0].sources).toEqual({
+    'standalone:other': { pluginId: 'test-plugin', instanceId: 'standalone', name: 'other' },
+  });
+});
+
+it('reactively exposes one stable controller for text, skill, quote, attachments and run cancellation', async () => {
+  const attachmentAdapter: AttachmentAdapter = {
+    accept: 'text/plain',
+    async add({ file }) {
+      return { id: 'draft-file', type: 'file', name: file.name, file,
+        status: { type: 'requires-action', reason: 'composer-send' } };
+    },
+    async remove() {},
+    async send(attachment) {
+      return { ...attachment, status: { type: 'complete' }, content: [{ type: 'text', text: 'Attachment' }] };
+    },
+  };
+  const f = await fixture(forwardData, { hold: true, attachmentAdapter });
+  const controller = f.composer;
+  const listener = vi.fn();
+  const unsubscribe = controller.subscribe(listener);
+  expect(controller.getState()).toBe(controller.getState());
+  expect(f.rendered).toMatchObject({ text: '', attachmentNames: [], isRunning: false, canSend: false });
+  await act(async () => {
+    controller.setText('Question');
+    controller.setData({ id: 'research', label: 'Research' });
+    controller.setQuote({ text: 'Passage', messageId: 'source' });
+    f.secondData({ orderId: 'A1' });
+    await controller.addAttachment(new File(['Draft'], 'draft.txt', { type: 'text/plain' }));
+  });
+  expect(f.composer).toBe(controller);
+  expect(f.rendered).toMatchObject({ text: 'Question', attachmentNames: ['draft.txt'],
+    skillId: 'research', quoteText: 'Passage', canSend: true });
+  expect(controller.attachmentsEnabled).toBe(true);
+  expect(controller.attachmentAccept).toBe('text/plain');
+  expect(controller.getState().attachments).toBe(controller.attachments);
+  expect(listener).toHaveBeenCalled();
+  await act(async () => controller.removeAttachment('draft-file'));
+  expect(f.rendered.attachmentNames).toEqual([]);
+  await expect(controller.removeAttachment('missing')).rejects.toThrow('AGENT_UI_COMPOSER_ATTACHMENT_NOT_FOUND');
+  await act(async () => controller.send());
+  await until(() => f.runs.length === 1 && f.rendered.isRunning);
+  expect(f.rendered).toMatchObject({ text: '', canCancel: true, skillId: undefined });
+  expect(f.runs[0]!.input.forwardedProps).toMatchObject({ ctx: { tenant: 'host' },
+    'standalone:other': { orderId: 'A1' } });
+  await act(async () => controller.cancel());
+  await until(() => !f.rendered.isRunning);
+  expect(f.composer).toBe(controller);
+  expect(f.rendered.canCancel).toBe(false);
+  unsubscribe();
+});
+
+it('propagates attachment failures without changing text or the selected skill', async () => {
+  const failure = new Error('Attachment failure');
+  const f = await fixture(forwardData, { attachmentAdapter: {
+    accept: 'text/plain', add: async () => { throw failure; },
+    remove: async () => {}, send: async attachment => ({ ...attachment, content: [], status: { type: 'complete' } }),
+  } });
+  await act(async () => {
+    f.composer.setText('Keep this draft');
+    f.composer.setData({ id: 'research', label: 'Research' });
+    await expect(f.composer.addAttachment(new File(['Draft'], 'draft.txt', { type: 'text/plain' }))).rejects.toBe(failure);
+  });
+  expect(f.rendered).toMatchObject({ text: 'Keep this draft', skillId: 'research', attachmentNames: [] });
+  expect(f.runs).toHaveLength(0);
+});
 
 it('gives the final adapter defaults, Plugin data and raw selections; never merges afterwards', async () => {
   const callback = vi.fn<Callback>(external);
@@ -103,7 +202,7 @@ it('gives the final adapter defaults, Plugin data and raw selections; never merg
 });
 
 it('defaults to namespaced data, preserves Host fields, and lets a Plugin replace or clear its own value', async () => {
-  const f = await fixture(undefined);
+  const f = await fixture(forwardData);
   await act(async () => { f.setData({ old: true }); f.setData({ value: [1, null, false] }); f.secondData('independent'); });
   await f.send('Default'); await f.settle(1);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' }, 'standalone:test': { value: [1, null, false] }, 'standalone:other': 'independent' });
@@ -130,7 +229,9 @@ it('normalizes native business fields into ctx before the final adapter without 
   await f.send('Native fields'); await f.settle(1);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host', nativeField: true } });
   expect(adapter.mock.calls[0]![0].request.forwardedProps).toEqual({ ctx: { tenant: 'host', nativeField: true } });
-  expect(f.native.thread.composer.getState().runConfig.custom).toEqual({ tenant: 'native', nativeField: true });
+  const { __agentUIComposerData: snapshot, ...business } = f.native.thread.composer.getState().runConfig.custom ?? {};
+  expect(business).toEqual({ tenant: 'native', nativeField: true });
+  expect(snapshot).toBeDefined();
 });
 
 it('keeps default reference text while making the raw selection available to a custom adapter', async () => {
@@ -161,7 +262,7 @@ it('recomputes edit/reload and excludes removed references', async () => {
 });
 
 it('rejects invalid JSON before changing the draft data', async () => {
-  const f = await fixture(undefined);
+  const f = await fixture(forwardData);
   await act(async () => f.setData({ valid: true }));
   expect(() => f.setData({ value: Number.NaN })).toThrow();
   const cyclic: Record<string, ComposerData> = {}; cyclic.self = cyclic;
@@ -239,7 +340,7 @@ it('snapshots queued data through tool continuation while another Thread runs', 
 });
 
 it('snapshots unbound third-party data for multiple queued drafts and clears it afterwards', async () => {
-  const f = await fixture(({ request }) => request, { hold: true });
+  const f = await fixture(forwardData, { hold: true });
   await act(async () => f.setData({ draft: 'first' }));
   await f.send('First'); await until(() => f.runs.length === 1);
   await act(async () => f.setData({ draft: 'second' }));
@@ -257,7 +358,7 @@ it('snapshots unbound third-party data for multiple queued drafts and clears it 
 });
 
 it('keeps the next unbound draft out of an edit and restores unbound data from native history', async () => {
-  const callback = vi.fn<Callback>(({ request }) => request);
+  const callback = vi.fn<Callback>(forwardData);
   const f = await fixture(callback);
   await act(async () => f.setData({ draft: 'original' }));
   await f.send('Original'); await f.settle(1);
@@ -272,13 +373,13 @@ it('keeps the next unbound draft out of an edit and restores unbound data from n
   expect(f.native.thread.composer.getState().text).toBe('Next draft');
   const history: ConversationLoadedThread = { messages: f.native.thread.getState().messages as unknown as ConversationLoadedThread['messages'] };
   await f.close();
-  const restored = await fixture(({ request }) => request, { history });
+  const restored = await fixture(forwardData, { history });
   await act(async () => restored.native.thread.getMessageById('answer-A-1').reload()); await restored.settle(1);
   expect(restored.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' }, 'standalone:test': { draft: 'original' } });
 });
 
 it('keeps a retained useComposer handle bound to its original Thread', async () => {
-  const f = await fixture(({ request }) => request);
+  const f = await fixture(forwardData);
   const first = f.composer;
   await act(async () => f.native.threads.switchToThread('B'));
   await until(() => !f.native.thread.getState().isLoading);
@@ -293,9 +394,21 @@ it('keeps a retained useComposer handle bound to its original Thread', async () 
   expect(f.runs[1]!.input.forwardedProps).toHaveProperty('standalone:test', { background: 'A' });
 });
 
+it('ignores run configuration writes from a handle whose Thread was deleted', async () => {
+  const f = await fixture(forwardData);
+  const first = f.composer;
+  await act(async () => first.setRunConfig({ custom: { original: true } }));
+  await act(async () => f.native.threads.switchToThread('B'));
+  await until(() => !f.native.thread.getState().isLoading);
+  await act(async () => f.native.threads.getItemById('A').delete());
+  await act(async () => first.setRunConfig({ custom: { removed: true } }));
+  expect(f.native.threads.getState().threadIds).not.toContain('A');
+  expect(f.composer.getState().runConfig.custom).not.toHaveProperty('removed');
+});
+
 
 it('clears data when the native composer is reset, including an empty text draft', async () => {
-  const f = await fixture(undefined);
+  const f = await fixture(forwardData);
   await act(async () => f.setData({ removed: true }));
   await act(async () => { await f.native.thread.composer.reset(); });
   await f.send('After reset'); await f.settle(1);
@@ -315,7 +428,7 @@ it('keeps attachment submission data fixed while preserving data for the next dr
       return new Promise(resolve => { release = resolve; });
     },
   };
-  const f = await fixture(({ request }) => request, { attachmentAdapter: adapter });
+  const f = await fixture(forwardData, { attachmentAdapter: adapter });
   await act(async () => { await f.native.thread.composer.addAttachment(new File(['file'], 'file.txt', { type: 'text/plain' })); });
   await act(async () => f.setData({ draft: 'upload' }));
   await f.send('Upload');
@@ -331,7 +444,7 @@ it('keeps attachment submission data fixed while preserving data for the next dr
 });
 
 it('restores a private reference to its public fallback when clearing its draft data', async () => {
-  const f = await fixture(undefined);
+  const f = await fixture(forwardData);
   const token = await f.select({ id: 'one' });
   await act(async () => { f.composer.setText(`${token} Question`); f.clearData(); });
   expect(f.native.thread.composer.getState().text).toBe(':user[Person]{name=business} Question');
@@ -341,8 +454,8 @@ it('restores a private reference to its public fallback when clearing its draft 
 });
 
 it('lets per-send configuration scopes restore themselves when Plugin data is present', async () => {
-  const { withConversationSendOptions } = await import('../src/compatibility/conversation-request-routing.js');
-  const f = await fixture(({ request }) => request);
+  const { withConversationSendOptions } = await import('../../runtime/src/compatibility/conversation-request-routing.js');
+  const f = await fixture(forwardData);
   await act(async () => {
     f.setData({ id: 'one' });
     f.composer.setText('Scoped');
@@ -370,7 +483,9 @@ it('assembles default fields without changing native business configuration and 
   expect(f.native.thread.composer.getState().runConfig.custom?.skillId).toBe('original');
   await f.send('Default skill'); await f.settle(1);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { keep: 'host', skillId: 'research', tenant: 'host' } });
-  expect(f.native.thread.composer.getState().runConfig.custom).toEqual({ keep: 'host', skillId: 'original' });
+  const { __agentUIComposerData: snapshot, ...business } = f.native.thread.composer.getState().runConfig.custom ?? {};
+  expect(business).toEqual({ keep: 'host', skillId: 'original' });
+  expect(snapshot).toBeDefined();
   f.update(({ request }) => ({ ...request, forwardedProps: {} }));
   await act(async () => f.setData({ operation: 'research' }, { includeInRequest: false, defaultForwardedProps: { ctx: { skillId: 'research' } } }));
   await f.send('Override'); await f.settle(2);
@@ -400,7 +515,7 @@ it('composes quote defaults with other data and excludes dismissed quotes on edi
 });
 
 it('releases only the setData snapshot that created the disposer', async () => {
-  const f = await fixture(undefined);
+  const f = await fixture(forwardData);
   let release!: () => void;
   await act(async () => {
     release = f.composer.setData({ old: true });
@@ -421,4 +536,49 @@ it('lets the final adapter resolve overlapping Plugin defaults using their separ
   });
   await f.send('Resolve'); await f.settle(1);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ selected: { 'standalone:test': { one: true }, 'standalone:other': { two: true } } });
+});
+
+it('freezes selected and empty skills independently for queued requests and later draft changes', async () => {
+  const f = await fixture(defaultRequestAdapter, { hold: true, pluginId: 'skills' });
+  const research = { id: 'research', label: 'Research' };
+  const report = { id: 'report', label: 'Report' };
+  await f.send('Running'); await until(() => f.runs.length === 1);
+  await f.send('Queued without a skill');
+  await act(async () => { f.composer.setData(research); });
+  await f.send('Queued research');
+  await act(async () => { f.composer.setData(report); f.composer.setText('Next draft'); });
+  await act(async () => f.runs[0]!.finish()); await until(() => f.runs.length === 2);
+  expect(f.runs[1]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+  expect(f.runs[1]!.input.messages[0]!.metadata).not.toHaveProperty('skill');
+  await act(async () => f.runs[1]!.finish()); await until(() => f.runs.length === 3);
+  expect(f.runs[2]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host', skill: research } });
+  expect(f.runs[2]!.input.messages[0]!.metadata).toMatchObject({ skill: research });
+  expect(readConversationSkillData(f.composer.getState().data['standalone:test'])).toEqual(report);
+  await act(async () => f.runs[2]!.finish());
+});
+
+it('keeps the message skill for retry/edit and restores it from public history metadata', async () => {
+  const f = await fixture(defaultRequestAdapter, { pluginId: 'skills' });
+  const original = { id: 'research', label: 'Research' };
+  await act(async () => { f.composer.setData(original); });
+  await f.send('Original'); await f.settle(1);
+  await act(async () => { f.composer.setData({ id: 'report', label: 'Next' }); });
+  await act(async () => f.native.thread.getMessageById('answer-A-0').reload()); await f.settle(2);
+  expect(f.runs[1]!.input.forwardedProps).toHaveProperty('ctx.skill', original);
+  const user = f.native.thread.getState().messages.find(message => message.role === 'user')!;
+  await act(async () => {
+    const edit = f.native.thread.getMessageById(user.id).composer;
+    edit.beginEdit(); edit.setText('Edited'); edit.send();
+  });
+  await f.settle(3);
+  expect(f.runs[2]!.input.forwardedProps).toHaveProperty('ctx.skill', original);
+  expect(readConversationSkillData(f.composer.getState().data['standalone:test'])?.id).toBe('report');
+  const messages = f.native.thread.getState().messages.map(message => message.role !== 'user' ? message : {
+    ...message, metadata: { ...message.metadata, custom: { skill: original } },
+  });
+  await f.close();
+  const restored = await fixture(defaultRequestAdapter, { pluginId: 'skills', history: { messages: messages as unknown as ConversationLoadedThread['messages'] } });
+  const assistant = [...restored.native.thread.getState().messages].reverse().find(message => message.role === 'assistant')!;
+  await act(async () => restored.native.thread.getMessageById(assistant.id).reload()); await restored.settle(1);
+  expect(restored.runs[0]!.input.forwardedProps).toHaveProperty('ctx.skill', original);
 });

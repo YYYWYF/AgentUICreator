@@ -14,7 +14,6 @@ export interface ConversationRuntimeBridge<TState = unknown> {
   threadBinding: ConversationThreadBinding<TState>;
   /** Input data follows the stable local session while its wire ID is assigned. */
   inputSessionId?: string | undefined;
-  clearPendingQuote: () => void;
   frontendTools?: ConversationFrontendToolPort | undefined;
 }
 

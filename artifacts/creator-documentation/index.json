@@ -10,12 +10,12 @@
     "@za38.03/agent-ui-web-component": "0.0.11",
     "@za38.03/agent-ui-creator": "0.0.11"
   },
-  "sourceDigest": "84b26222c66b12cd4af3e87e292b1faca7b02fc313e2a6df9b3f678284441317",
+  "sourceDigest": "587ccebe10408665640f69c3653111b4551671daa8d9cc1aa3e6ee026c53cd67",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 245939,
-      "sha256": "bb07d7d9d95c8813d776d891af028e1468e7daea659e75e2a7369502e33cc59a"
+      "bytes": 246389,
+      "sha256": "08764a6d130c31091be0cd810fa9011fcaabd2471ce2437f81ce5a0d12d45d0d"
     },
     {
       "path": "creator-index.md",
@@ -49,8 +49,8 @@
     },
     {
       "path": "development/composer-sources.md",
-      "bytes": 20339,
-      "sha256": "bb23ac1dea47e767fce55543db0dae394901c4798b88747f4ee40e9b4fbeafc6"
+      "bytes": 21808,
+      "sha256": "b724eaae7de6eee5c0320b85011cbe2efc6fcdbed6a93bc308e88313f44ccce5"
     },
     {
       "path": "development/connect-agent.md",
@@ -124,8 +124,8 @@
     },
     {
       "path": "development/plugin-interaction.md",
-      "bytes": 9773,
-      "sha256": "55d909ad0f88d501c1ef42044d424d6c9abf63fb1372a8808af14578c06d296b"
+      "bytes": 9771,
+      "sha256": "f1521cd847b1add9cf951ec9ea5c2d63a6bc42f2d358b3023ea67b53f55898fd"
     },
     {
       "path": "development/project-structure.md",
@@ -284,13 +284,13 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 1061311,
-      "sha256": "410ed125231832ebffac4c5d585cf1501fd36c9ba509be03218db96403aa0b39"
+      "bytes": 1061871,
+      "sha256": "71a8ffbbb2eeca24e2109e246ce30f322e82ae2562a64c28838c7e21706f9230"
     },
     {
       "path": "llms.txt",
-      "bytes": 30018,
-      "sha256": "c838735633b7c30a0a7295debbad76e40d37ea4dd54a6c0ea31ce3edb1a11c82"
+      "bytes": 30387,
+      "sha256": "61e90480d62d36f213edf1339240d77e3248c732c821d113b3e03c9d0d0019aa"
     },
     {
       "path": "mock/builtin-scenarios.md",
@@ -359,8 +359,8 @@
     },
     {
       "path": "plugins/composer.md",
-      "bytes": 35235,
-      "sha256": "77b0bfa37720d41bf567fbaed74bcc2f9ead037fc9b16142bc3c19b77d06cca1"
+      "bytes": 36688,
+      "sha256": "e04425c2de1cba470c7108b0ff82d955d9b4112b85edefdf8d307266fc522be0"
     },
     {
       "path": "plugins/context-retrieval-message.md",
@@ -444,8 +444,8 @@
     },
     {
       "path": "plugins/index.md",
-      "bytes": 6949,
-      "sha256": "ec0ee9db66c109606f57bb3fd2f239ba09c88dc3aca75817ed3bb09abbc4c736"
+      "bytes": 7029,
+      "sha256": "ebf487f5df5f17b499aa18b0cac4346926a435e80aa380f18ff9408061093987"
     },
     {
       "path": "plugins/job-progress-message.md",
@@ -499,13 +499,13 @@
     },
     {
       "path": "plugins/skills-selection.md",
-      "bytes": 5229,
-      "sha256": "e94c114a49c79107acbd94b96f708f71b3e8d7d7d1f62c332deb4e915fec99b8"
+      "bytes": 4008,
+      "sha256": "adcd584704c1ba1d69a87508c551a39b92da8b3b7846d26d42db49622987f0f9"
     },
     {
       "path": "plugins/skills.md",
-      "bytes": 11871,
-      "sha256": "fe9e3f8331282c21edafd81df76931d0e22190f6e728e8ac337e71bef43656ba"
+      "bytes": 10652,
+      "sha256": "9a1cbf3f553248eded3ee1f79a45120127ea60bcfbd394757dc41a44fee2fa34"
     },
     {
       "path": "plugins/slash-command-trigger.md",
@@ -654,13 +654,13 @@
     },
     {
       "path": "references/docs/architecture/npm-default-plugin-source-ownership.md",
-      "bytes": 34231,
-      "sha256": "a64eb3e8379ca3e83b5a9450173675c8103fd3f311756d5feb42511634fdbdb2"
+      "bytes": 35851,
+      "sha256": "b10013602a261c8b93714cbe488ac2bc8c8c8b787770f82ba99c12df8f66d0cc"
     },
     {
       "path": "references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md",
-      "bytes": 8421,
-      "sha256": "d08deedfc228842175e88ba7a945f747e2b870b7a703268bf9017254413e8b53"
+      "bytes": 9331,
+      "sha256": "93664b7060d04b9f1de343b3d538c69995a86dfb013f8a808f63652ab9f86df2"
     },
     {
       "path": "references/docs/architecture/plugin-authoring-contract.md",
@@ -674,8 +674,8 @@
     },
     {
       "path": "references/docs/architecture/plugin-public-props.md",
-      "bytes": 9529,
-      "sha256": "8c2a97bad1c644320df3a966e19e1cce98cb3dc92186bf950cd16d53532e0bc5"
+      "bytes": 9644,
+      "sha256": "dfca429e35e5ee413784e8414c5aefdd0fe9abae325422f99764951a034356f6"
     },
     {
       "path": "references/docs/architecture/scoped-renderer-plugin.md",

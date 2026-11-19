@@ -1,11 +1,25 @@
 import { Middleware, type AbstractAgent, type RunAgentInput } from '@ag-ui/client';
 import type { AssistantRuntime, ThreadMessage } from '@assistant-ui/react';
-import type { ConversationRequestPartsRuntime, ConversationRequestPlan } from '../conversation-support/conversation-request-parts.js';
+import type { ConversationInputController } from '../plugin-api/input-controller.js';
 
-/** History stays upstream; Plugin request contributions follow the submitted turn. */
+function record(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
+
+/** Native per-send configuration follows the Host's public ctx envelope. */
+function normalizeNativeRequest(input: RunAgentInput): RunAgentInput {
+  const props = record(input.forwardedProps);
+  const config = record(props?.runConfig);
+  if (!config || !props) return input;
+  const { runConfig: _native, ...forwardedProps } = props;
+  const ctx = { ...config, ...record(forwardedProps.ctx) };
+  return { ...input, forwardedProps: { ...forwardedProps, ...(Object.keys(ctx).length ? { ctx } : {}) } };
+}
+
+/** History stays upstream; applications may transform the outgoing request. */
 class ConversationOutgoingMessages extends Middleware {
-  private plan: ConversationRequestPlan | undefined;
-  constructor(private readonly parts?: ConversationRequestPartsRuntime,
+  constructor(private readonly controller?: ConversationInputController,
+    private readonly threadId = '',
     private readonly getNative?: () => AssistantRuntime | undefined,
     private readonly getSubmitted?: () => readonly ThreadMessage[]) { super(); }
   override run(input: RunAgentInput, next: AbstractAgent): ReturnType<AbstractAgent['run']> {
@@ -15,27 +29,18 @@ class ConversationOutgoingMessages extends Middleware {
     else if (last?.role === 'tool') {
       while (start > 0 && input.messages[start - 1]?.role === 'tool') start -= 1;
     }
-    const continuation = 'resume' in input || last?.role === 'tool' ||
-      (typeof input.forwardedProps === 'object' && input.forwardedProps !== null && 'command' in input.forwardedProps);
-    if (this.parts && (!continuation || !this.plan)) {
-      const native = this.getNative?.()?.thread.getState().messages ?? [];
-      const submitted = this.getSubmitted?.() ?? [];
-      const userId = [...input.messages].reverse().find(message => message.role === 'user')?.id;
-      // An attachment/queue dispatch can start before React publishes the native
-      // projection. The history adapter already holds the exact submitted message.
-      const user = userId ? [...submitted, ...native].find(message => message.role === 'user' && message.id === userId)
-        : [...native].reverse().find(message => message.role === 'user');
-      // Build only after successful callbacks, so a failed submission can be retried.
-      this.plan = user ? this.parts.prepare(user, continuation ? undefined : input) : undefined;
-    }
     const outgoing = { ...input, messages: input.messages.slice(start) };
-    return next.run(this.parts && this.plan ? this.parts.apply(outgoing, this.plan) : outgoing);
+    return next.run(this.controller ? this.controller.transformRequest(outgoing, {
+      threadId: this.threadId,
+      runtime: this.getNative?.(),
+      submittedMessages: this.getSubmitted?.() ?? [],
+    }) : normalizeNativeRequest(outgoing));
   }
 }
 const installed = new WeakSet<AbstractAgent>();
-export function installConversationOutgoingMessages(agent: AbstractAgent, parts?: ConversationRequestPartsRuntime,
+export function installConversationOutgoingMessages(agent: AbstractAgent, controller?: ConversationInputController, threadId = '',
   getNative?: () => AssistantRuntime | undefined, getSubmitted?: () => readonly ThreadMessage[]): void {
   if (installed.has(agent)) return;
-  agent.use(new ConversationOutgoingMessages(parts, getNative, getSubmitted));
+  agent.use(new ConversationOutgoingMessages(controller, threadId, getNative, getSubmitted));
   installed.add(agent);
 }

@@ -9,12 +9,12 @@ import { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from '@z
 export const skillsPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   provides: ['conversation.skills'],
-  setup: ({ services }) => {
-    const service = createConversationSkillsService();
-    services.provide(CONVERSATION_SKILLS_SERVICE, service);
-    return () => service.dispose();
-  },
   optionalInject: ['agent-ui.locale'],
+  setup({ services }) {
+    const service = createConversationSkillsService();
+    const release = services.provide(CONVERSATION_SKILLS_SERVICE, service);
+    return () => { service.dispose(); release(); };
+  },
   Component: SkillsPlugin,
 };
 export default skillsPlugin;

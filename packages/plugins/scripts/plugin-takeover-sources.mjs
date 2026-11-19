@@ -16,7 +16,11 @@ const packageName = "@za38.03/agent-ui-plugins";
 const runtimePackage = "@za38.03/agent-ui-runtime";
 const boundaries = new Map([
  ["src/contracts.ts", runtimePackage + "/contracts"],
- ...["assistant-response-runtime", "assistant-response", "conversation-command-decisions", "conversation-transient-messages", "quote-thread-root", "task-disclosure-context", "tool-renderer-context", "conversation-turn", "data-message-ui"].map(name => ["src/internal/" + name + (name === "assistant-response" ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
+ ["src/composer-data/request.tsx", packageName + "/composer-support"],
+ ["src/composer-data/message-data.ts", packageName + "/composer-support"],
+ ["src/internal/quote-lifecycle.tsx", packageName + "/composer-support"],
+ ["src/internal/quote-thread-root.tsx", packageName + "/plugin-support"],
+ ...["assistant-response-runtime", "assistant-response", "conversation-command-decisions", "conversation-transient-messages", "task-disclosure-context", "tool-renderer-context", "conversation-turn", "data-message-ui"].map(name => ["src/internal/" + name + (name === "assistant-response" ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
  ["src/conversation-transient-message-service.ts", runtimePackage + "/plugin-api"],
  ...["ApplicationLifecycleContext", "PluginInstanceContext", "PluginRenderScope", "PluginServiceContext", "usePluginServiceSnapshot", "custom-event-name"].map(name=>["src/plugin-api/" + name + (["usePluginServiceSnapshot","custom-event-name"].includes(name) ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
 ]);
@@ -48,6 +52,7 @@ const presentationModules = new Set([
   "src/internal/conversation-thread-list-item.tsx",
   "src/internal/search-elements.tsx",
   "src/internal/conversation-composer-triggers.tsx",
+  "src/internal/composer-skill.tsx",
   "src/internal/conversation-task-group.tsx",
   "src/internal/primitives/native-select.tsx",
 ]);

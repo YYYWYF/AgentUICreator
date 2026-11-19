@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
 import { useAui, ComposerPrimitive, type AssistantRuntime } from "@assistant-ui/react";
 import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
@@ -69,7 +70,7 @@ async function mount(disabled = false, history: readonly ConversationMessage[] =
   };
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
-  const render = () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
+  const render = () => root!.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
     <AgentUIRoot theme="light"><Capture /><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer requestAdapter={custom.composerAdapter} autoFocus={false} beforeInput={installed ? <Feature requestAdapter={custom.quoteAdapter} /> : null} submitAction={<ComposerPrimitive.Send aria-label="Send" />} />} /></AgentUIRoot>
   </ConversationRuntimeProvider>);
   await act(async () => { render(); });

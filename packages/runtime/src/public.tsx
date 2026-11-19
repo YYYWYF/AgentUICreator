@@ -70,6 +70,7 @@ export type ConversationAgentFactory = (
 ) => AbstractAgent;
 
 export interface ConversationRuntimeProviderProps<TState = unknown> {
+  inputControllerFactory?: import("./plugin-api/input-controller.js").ConversationInputControllerFactory | undefined;
   /** Page-memory presentation service; never enters Agent messages or persistence. */
   transientMessages?: ConversationTransientMessageService | undefined;
   /** Optional when custom fetch owns the destination; no default service URL. */

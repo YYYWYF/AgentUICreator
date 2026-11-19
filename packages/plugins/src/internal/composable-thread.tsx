@@ -10,6 +10,7 @@ import { ConversationActionMoreMenuItem } from "./style-boundary/ConversationAct
 import { QuoteThreadRootContext } from "./quote-thread-root.js";
 import { QuoteSelectableText } from "./quote-selectable-text.js";
 import { InternalConversationQuoteBlock } from "./conversation-quote.js";
+import { ConversationMessageSkill } from './composer-skill.js';
 import {
   ComposerAttachments,
   UserMessageAttachments,
@@ -654,6 +655,7 @@ const UserMessage: FC = () => {
       data-aui-quote-selectable="false"
     >
       <UserMessageAttachments />
+      <ConversationMessageSkill />
       <MessagePrimitive.Quote>{quote => <InternalConversationQuoteBlock text={quote.text} messageId={quote.messageId} />}</MessagePrimitive.Quote>
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">

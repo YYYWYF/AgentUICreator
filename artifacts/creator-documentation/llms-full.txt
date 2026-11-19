@@ -537,7 +537,7 @@ Agent UI 把对话、任务过程和结果放在同一个界面中。用户既�
 
 ## 技能与跨插件组合
 
-[技能与工作流选择](/plugins/skills.md)提供当前 Thread 的选择与共享服务，[当前技能标签](/plugins/skills-selection.md)显示并移除同一份选择。[侧栏打开按钮](/plugins/workbench-panel-actions.md)通过已有面板服务打开指定内容。
+[技能选择（开发中）](/plugins/skills.md)提供选择入口，[当前技能预览](/plugins/skills-selection.md)在输入框内显示和移除选择；两个 UI 插件通过 Service 共享技能选择，发送后的只读标签来自消息快照。[侧栏打开按钮](/plugins/workbench-panel-actions.md)通过已有面板服务打开指定内容。
 
 
 
@@ -2117,21 +2117,20 @@ url: /plugins/composer.md
 
 每个插件提供的原始数据、默认发送位置和移除规则在它自己的页面说明。这里保留联动入口，避免把各插件的格式混写成一份通用对象：
 
-| 联动入口                                                           | 对当前草稿或请求的作用                        |
-| -------------------------------------------------------------- | ---------------------------------- |
-| [@ 提及](/plugins/mention-trigger.md#交给-composer-的数据)            | 插入正文引用，保留原始候选数组供最终适配器读取            |
-| [/ 快捷命令](/plugins/slash-command-trigger.md#交给-composer-的数据)    | 指令模式插入引用；动作模式默认执行动作，不产生选择数据        |
-| [命令源](/plugins/conversation-command-source.md#与-composer-联动)   | 提供 `/` 菜单数据，选择快照归命令触发器所有           |
-| [消息引用](/plugins/conversation-quote.md#交给-composer-的数据)         | 默认加 Markdown 引用正文，也可转换为业务 JSON     |
-| [技能](/plugins/skills.md#交给-composer-的数据)                       | 默认将技能 `ctx` 合入业务字段，或通过插件适配器提供 JSON |
-| [已选技能标签](/plugins/skills-selection.md#与-composer-联动)           | 订阅并移除同一份技能选择，不再提供一份数据              |
-| [建议问题](/plugins/conversation-suggestions.md#交给-composer-的数据)   | 默认发送或填入 prompt，保留原始建议项             |
-| [附件](/plugins/add-attachment-action.md#与-composer-联动)          | 进入原生附件列表与消息内容，不在插件数据字典中另建记录        |
-| [语音](/plugins/dictation-action.md#与-composer-联动)               | 按现有能力将识别文字写入正文，不自动产生音频附件           |
-| [发送／停止](/plugins/submit-action.md#与-composer-联动)               | 提交、取消或为本次发送选择地址，不提供业务数据条目          |
-| [Lexical 输入](/plugins/lexical-composer-input.md#与-composer-联动) | 编辑同一份文本与指令标签，不额外生成选择数据             |
-| [消息编辑](/plugins/lexical-edit-composer.md#与-composer-联动)        | 编辑已有消息，沿用该消息仍有效的选择快照               |
-| [会话界面](/plugins/conversation-surface.md#输入区与会话作用域)             | 将输入区放进现有会话作用域，提供当前 Thread 与原有插槽组合  |
+| 联动入口                                                           | 对当前草稿或请求的作用                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [@ 提及](/plugins/mention-trigger.md#交给-composer-的数据)            | 插入正文引用，保留原始候选数组供最终适配器读取                                                  |
+| [/ 快捷命令](/plugins/slash-command-trigger.md#交给-composer-的数据)    | 指令模式插入引用；动作模式默认执行动作，不产生选择数据                                              |
+| [命令源](/plugins/conversation-command-source.md#与-composer-联动)   | 提供 `/` 菜单数据，选择快照归命令触发器所有                                                 |
+| [消息引用](/plugins/conversation-quote.md#交给-composer-的数据)         | 默认加 Markdown 引用正文，也可转换为业务 JSON                                           |
+| [技能（开发中）](/plugins/skills.md#交给-composer-的数据)                  | `setData({ id, label })` 保存原始数据，生成项目的 `requestAdapter` 默认映射为 `ctx.skill` |
+| [建议问题](/plugins/conversation-suggestions.md#交给-composer-的数据)   | 默认发送或填入 prompt，保留原始建议项                                                   |
+| [附件](/plugins/add-attachment-action.md#与-composer-联动)          | 进入原生附件列表与消息内容，不在插件数据字典中另建记录                                              |
+| [语音](/plugins/dictation-action.md#与-composer-联动)               | 按现有能力将识别文字写入正文，不自动产生音频附件                                                 |
+| [发送／停止](/plugins/submit-action.md#与-composer-联动)               | 提交、取消或为本次发送选择地址，不提供业务数据条目                                                |
+| [Lexical 输入](/plugins/lexical-composer-input.md#与-composer-联动) | 编辑同一份文本与指令标签，不额外生成选择数据                                                   |
+| [消息编辑](/plugins/lexical-edit-composer.md#与-composer-联动)        | 编辑已有消息，沿用该消息仍有效的选择快照                                                     |
+| [会话界面](/plugins/conversation-surface.md#输入区与会话作用域)             | 将输入区放进现有会话作用域，提供当前 Thread 与原有插槽组合                                        |
 
 这些键使用**插件实例 ID**，不一定等于插件 ID。实例为 `employee-mention` 时，用这个实例键读取；同一类插件可以有多个实例。嵌在其他插件中的入口可能使用命名子作用域，格式见各插件页。
 
@@ -2140,7 +2139,7 @@ url: /plugins/composer.md
 输入区中的内容通过两条路径参与发送：
 
 - **原生草稿**：正文、引用和附件由当前会话转换为 `request.messages`。仅文字时 `content` 可以是字符串；带附件时可以是文字和媒体片段组成的数组。
-- **插件业务数据**：通过 `setData()` 提交 JSON，最终适配器从 `pluginData` 和 `selections` 取得它们。默认是否进入外带字段，由各插件自己的提交规则决定。
+- **插件业务数据**：通过 `setData()` 提交 JSON，最终适配器从 `pluginData` 和 `selections` 取得它们。普通调用仅收集数据；最终请求由项目适配器映射，引用型插件可显式提供已有的默认发送规则。
 
 `ComposerData` 支持字符串、有限数值、布尔值、`null`、这些值组成的数组和普通对象。不能放函数、`undefined`、`NaN`、文件对象、DOM、类实例或循环引用；原始 `File` 用附件接口加入。
 
@@ -2164,9 +2163,9 @@ url: /plugins/composer.md
 
 ## 读取本次请求、插件数据和原始选择 \{#请求适配}
 
-最终适配器接收 `{ request, pluginData, selections }`。`request` 已完成默认组装，包含正文、附件、Host 业务字段，以及各插件启用的默认发送内容。
+最终适配器接收 `{ request, pluginData, selections, sources }`。`request` 已完成默认组装，包含正文、附件、Host 业务字段，以及各插件启用的默认发送内容。
 
-`pluginData` 按数据所有者归组：普通 `setData(value)` 保留值本身；同一所有者带正文引用绑定的数据以数组提供，便于保留多次选择。`selections` 的值始终是原始选择数组；未设置 `selection` 时，对应所有者的数组为空。没有活跃数据的所有者键可以不存在。
+`pluginData` 按数据所有者归组：普通 `setData(value)` 保留值本身；同一所有者带正文引用绑定的数据以数组提供，便于保留多次选择。`selections` 的值始终是原始选择数组；未设置 `selection` 时，对应所有者的数组为空。没有活跃数据的所有者键可以不存在。`sources` 使用相同的所有者键，自动记录 `pluginId`、`instanceId` 和可选的 `name`，适配器可据此识别插件而不依赖实例名称。
 
 例如订单卡片实例 `order-picker` 调用 `useComposer('order').setData({ orderId: 'A1001' })` 后，一次适配器输入可以是：
 
@@ -2180,16 +2179,16 @@ url: /plugins/composer.md
     "tools": [],
     "context": [],
     "forwardedProps": {
-      "ctx": { "tenantId": "t-1" },
-      "order-picker:order": { "orderId": "A1001" }
+      "ctx": { "tenantId": "t-1" }
     }
   },
   "pluginData": { "order-picker:order": { "orderId": "A1001" } },
-  "selections": { "order-picker:order": [] }
+  "selections": { "order-picker:order": [] },
+  "sources": { "order-picker:order": { "pluginId": "order-card", "instanceId": "order-picker", "name": "order" } }
 }
 ```
 
-使用引用型选择、插件自己的适配器或 `includeInRequest: false` 时，这三个对象可以不同；不要从 `forwardedProps` 反推完整选择，也不要把所有 `pluginData` 都当作数组。各插件页提供其实际 JSON 示例。
+普通 `setData(value)` 不自动写入 `forwardedProps`，业务映射由最终适配器完成；不要从 `forwardedProps` 反推完整选择，也不要把所有 `pluginData` 都当作数组。各插件页提供其实际 JSON 示例。
 
 ## 统一组装业务字段
 
@@ -2270,32 +2269,32 @@ export function AskAboutOrder({ orderId, prompt, label }: {
 ## 让其他插件实时跟随草稿 \{#hook}
 
 
-其他插件需要随输入字数、附件数量或运行状态更新界面时，使用 `useConversationComposer()`。它响应式读取现有草稿，返回的 `setText`、`send`、`cancel`、`addAttachment`、`removeAttachment` 也操作这一份草稿：
+其他插件需要随输入字数、附件数量或运行状态更新界面时，使用 `useComposer()`。它响应式读取现有草稿，返回的 `setText`、`send`、`cancel`、`addAttachment`、`removeAttachment` 也操作这一份草稿：
 
 ```tsx
-import { useConversationComposer } from '@za38.03/agent-ui-plugins';
+import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftSummary({ format }: {
   format: (characters: number, attachments: number) => string;
 }) {
-  const composer = useConversationComposer();
+  const composer = useComposer();
   return <output>{format(composer.text.length, composer.attachments.length)}</output>;
 }
 ```
 
-`format` 来自项目语言层。正文或附件变化后重新渲染，不需要轮询；这里的 `attachments` 提供当前附件的 `id` 和 `name`，不是已经转换好的 AG-UI 媒体片段。
+`format` 来自项目语言层。正文、附件、引用、技能或运行状态变化后重新渲染，不需要轮询；这里的 `attachments` 是当前草稿附件，包含 `id`、`name` 和附件状态，不是已经转换好的 AG-UI 媒体片段。
 
-需要原生引用等完整草稿快照时，组合 `useComposer().subscribe` 与 `getState()`。单独调用 `getState()` 只读一次，不会因为用户继续输入而主动更新这个组件：
+需要完整草稿快照时，直接读取 `getState()`。Hook 已自动订阅变化，无需再在组件中手动订阅：
 
 ```tsx
-import { useSyncExternalStore, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftPreview({ render }: {
   render: (value: { text: string; attachmentCount: number; quoteText: string | undefined }) => ReactNode;
 }) {
   const composer = useComposer();
-  const draft = useSyncExternalStore(composer.subscribe, composer.getState, composer.getState);
+  const draft = composer.getState();
   return <>{render({
     text: draft.text,
     attachmentCount: draft.attachments.length,
@@ -2314,18 +2313,16 @@ Hook 随当前会话重新绑定；保留的旧句柄仍绑定原 Thread。长�
 只改样式时直接定制[发送／停止插件](/plugins/submit-action.md)。确需自己组合操作区时，继续读取当前控制器与等待用户操作状态：
 
 ```tsx
-import { useAgentUILocale, useConversationComposer } from '@za38.03/agent-ui-plugins';
-import { useConversationComposerAwaitingReply } from '@za38.03/agent-ui-runtime/plugin-api';
+import { useAgentUILocale, useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftActions({ formatCount }: { formatCount: (count: number) => string }) {
-  const composer = useConversationComposer();
-  const awaitingReply = useConversationComposerAwaitingReply();
+  const composer = useComposer();
   const messages = useAgentUILocale('composer');
   return <div>
     <output>{formatCount(composer.text.length)}</output>
-    {awaitingReply && <p role="status">{messages.awaitingReply}</p>}
+    {composer.awaitingReply && <p role="status">{messages.awaitingReply}</p>}
     <button type="button"
-      disabled={composer.disabled || !composer.canSend || awaitingReply}
+      disabled={composer.disabled || !composer.canSend || composer.awaitingReply}
       onClick={() => composer.send()}>
       {composer.isRunning ? messages.queueSend : messages.send}
     </button>
@@ -2335,7 +2332,7 @@ export function DraftActions({ formatCount }: { formatCount: (count: number) => 
 }
 ```
 
-`canSend` 已结合草稿准备情况和运行／排队能力，但它本身不表示等待审批保护已经解除；`send()` 会再执行该保护。这个方法返回 `void`，不是业务 HTTP 保存回执。`useComposer().send()` 是原生提交入口；自定义业务发送按钮优先使用上例的受保护控制器。
+`canSend` 已结合草稿准备情况和运行／排队能力，但它本身不表示等待审批保护已经解除；统一的 `send()` 会再执行该保护。这个方法返回 `void`，不是业务 HTTP 保存回执。
 
 `addAttachment(file)` 与 `removeAttachment(id)` 返回 Promise，调用方处理失败；前者走当前附件准备与上传配置，后者按 ID 操作草稿。它们不会把文件登记成一个 `pluginData` 条目。
 
@@ -2370,6 +2367,10 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Implemen
 ```
 
 Ctrl+Enter 在 Windows／Linux 上使用 Ctrl，在 macOS 上使用 Cmd。已经提供自定义 `input` 或输入子插件时，输入自身要接收其支持的配置；根参数不会自动改造任意编辑器。
+
+## AG-UI 数据来源 \{#显示条件与数据来源}
+
+本插件负责组装并发送 `RunAgentInput`，输入正文、附件和业务字段的格式见[Composer 接受的数据与最终请求](#composer-接受的数据与最终请求)。它不要求服务端返回 Composer 专用事件；回复沿用[文字、工具及各类消息的 AG-UI 流](/plugins/ag-ui-data.md#按展示内容找事件)。
 
 ## API
 
@@ -2423,79 +2424,81 @@ Ctrl+Enter 在 Windows／Linux 上使用 Ctrl，在 macOS 上使用 Cmd。已经
 
 默认输入提示、无障碍名称和排队文案统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
-### 写入与订阅原生草稿
+### 响应式草稿控制器
 
-从 `@za38.03/agent-ui-plugins` 导入 `useComposer(name?)`，用法见[订单卡片示例](#example-3)。它返回操作当前草稿的方法；`setData` 还需要 Agent UI 提供的草稿数据上下文。
 
-| 成员                        | 参数与返回值                                              | 用途                                                                 |
-| ------------------------- | --------------------------------------------------- | ------------------------------------------------------------------ |
-| `subscribe(listener)`     | `(() => void) → () => void`                         | 订阅原生草稿变化，返回取消订阅函数                                                  |
-| `setQuote(quote)`         | `{ text, messageId } \| undefined → void`           | 设置或清除原生引用                                                          |
-| `getState()`              | 原生 Composer 状态快照                                    | 读取 `text`、`canSend` 等；此调用自身不订阅变化                                   |
-| `setText(text)`           | `string → void`                                     | 修改同一份输入草稿                                                          |
-| `send()`                  | `() → void`                                         | 通过原生输入区提交草稿；自定义发送按钮使用下方带等待回复检查的 `useConversationComposer().send()` |
-| `setData(data, options?)` | `(ComposerData, ComposerDataOptions?) → () => void` | 设置本插件的 JSON 草稿数据                                                   |
-| `clearData()`             | `void`                                              | 清除当前 Thread 中本调用方拥有的数据；私有引用恢复为公开的 fallback 文本                      |
+Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供。标准项目通过 `createDefaultAgentUIPresentation()` 自动接入；手动使用底层 `ConversationRuntimeProvider` 时，传入 `inputControllerFactory={createComposerInputController}`，其中 `createComposerInputController` 从 `@za38.03/agent-ui-plugins` 导入。未接入时，底层 Runtime 只负责原生会话运行，不创建这些输入能力。
 
-`name?: string` 区分同一插件内的子用途；默认以插件**实例 ID**隔离数据。插件上下文外调用时以 `standalone` 为基础，多个调用方应传不同名称；仍须位于已有 Conversation 内。不同 Thread 的草稿数据分开保存。
+从 `@za38.03/agent-ui-plugins` 或 `/composer-support` 导入 `useComposer(name?)`，返回 `ComposerController`。同一个接口提供响应式状态、正文、附件、引用、结构化数据和发送操作。`setData` 需要 Agent UI 提供的草稿数据上下文。
+
+句柄和方法在同一 Thread、调用方作用域内保持稳定。Hook 自动订阅草稿与运行状态；事件回调中可用 `getState()` 读取即时快照，React 外的订阅方可使用 `subscribe()`。
+
+| 状态                   | 类型                                       | 用途                                        |
+| -------------------- | ---------------------------------------- | ----------------------------------------- |
+| `text`               | `string`                                 | 当前草稿正文                                    |
+| `attachments`        | `readonly ComposerAttachment[]`          | 当前草稿附件，包含 `id`、`name` 和状态                 |
+| `quote`              | `{ text, messageId } \| undefined`       | 当前引用                                      |
+| `data`               | `Readonly<Record<string, ComposerData>>` | 已收集的发送草稿数据，按插件实例隔离；领域 UI 状态由对应 Service 管理 |
+| `attachmentAccept`   | `string`                                 | 当前接受的文件类型，可传给文件输入的 `accept`               |
+| `attachmentsEnabled` | `boolean`                                | 当前 Thread 是否支持附件                          |
+| `isRunning`          | `boolean`                                | 当前 Thread 是否正在运行                          |
+| `disabled`           | `boolean`                                | 当前输入是否因会话禁用或语音输入状态而禁用                     |
+| `canSend`            | `boolean`                                | 草稿是否就绪且当前运行／队列允许发送；不包含等待审批检查              |
+| `canCancel`          | `boolean`                                | 当前 Composer 是否允许取消                        |
+| `awaitingReply`      | `boolean`                                | 当前是否等待用户回答、确认或审批；由 `send()` 执行最终保护        |
+
+| 成员                        | 参数与返回值                                              | 用途                                                                   |
+| ------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- |
+| `subscribe(listener)`     | `(() => void) → () => void`                         | 订阅草稿、收集的数据和运行状态，返回取消订阅函数                                             |
+| `setQuote(quote)`         | `{ text, messageId } \| undefined → void`           | 设置或清除原生引用                                                            |
+| `getState()`              | `ComposerState`                                     | 读取同一份状态快照，保留原生队列、提交状态等详细字段                                           |
+| `setText(text)`           | `string → void`                                     | 修改同一份输入草稿                                                            |
+| `send()`                  | `() → void`                                         | 检查等待回复状态后提交草稿；允许时走原生队列                                               |
+| `cancel()`                | `() → void`                                         | 取消当前运行，不负责移除待发送项；详见[消息排队](/development/message-queue.md#3-停止审批和切换会话) |
+| `addAttachment(file)`     | `(File) → Promise<void>`                            | 将浏览器文件加入草稿；上传仍使用项目附件服务，调用方处理异步失败                                     |
+| `removeAttachment(id)`    | `(string) → Promise<void>`                          | 按附件 ID 移除，调用方处理异步失败                                                  |
+| `setData(data, options?)` | `(ComposerData, ComposerDataOptions?) → () => void` | 设置本插件的 JSON 草稿数据                                                     |
+| `clearData()`             | `() → void`                                         | 清除本调用方的数据，其他插件和原生正文不受影响                                              |
+| `setRunConfig(config)`    | 原生 `runConfig → void`                               | 设置原生运行配置，保留 Composer 管理的提交快照                                         |
+
+`name?: string` 区分同一插件内的子用途；默认以插件**实例 ID**隔离数据。插件上下文外调用时以 `standalone` 为基础，多个调用方应传不同名称；仍须位于已有 Conversation 内。不同 Thread 的草稿数据分开保存。跨插件 UI 状态通过 Service 共享；`setData(value)` 只收集发送数据并自动记录来源，不接受共享 `key` 或业务生命周期配置。
 
 `setData` 返回只释放本次写入的函数；后续写入不会被旧清理函数移除。适合建议问题等直接发送动作的清理。
 
 `ComposerData` 是 JSON 值，不能传函数、DOM 或循环对象。无引用的 `setData` 更新本调用方的数据；带引用的数据可保留多项选择。`ComposerDataOptions` 包含：
 
-| 属性                       | 类型                                                      | 用途                                              |
-| ------------------------ | ------------------------------------------------------- | ----------------------------------------------- |
-| `reference?`             | `{ token: string; text: string; fallbackText: string }` | 绑定输入中的引用；删除引用时移除其数据，发送时替换 token                 |
-| `quote?`                 | `{ text: string; messageId: string }`                   | 绑定原生引用，取消引用后排除数据                                |
-| `defaultForwardedProps?` | `Readonly<Record<string, ComposerData>>`                | 插件的默认外带字段；同一顶层对象与原字段浅合并，插件字段优先                  |
-| `defaultTextPrefix?`     | `string`                                                | 插件默认加到当前用户正文前的文本                                |
-| `selection?`             | `ComposerData`                                          | 保留原始选择，供最终适配器读取                                 |
-| `includeInRequest?`      | `boolean`，默认 `true`                                     | 是否按实例 ID 自动进入外带参数；`false` 仍可由适配器读取，并可显式提供默认组装字段 |
-
-### 响应式草稿控制器
-
-从 `@za38.03/agent-ui-plugins` 导入 `useConversationComposer()`，返回 `ConversationComposerController`。草稿、附件或运行状态变化时，使用它的组件会重新渲染，见[自定义操作区示例](#example-4)。
-
-| 成员                     | 类型或签名                                       | 怎么用                                                                  |
-| ---------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| `text`                 | `string`                                    | 当前草稿正文，可用于字数提示或预览                                                    |
-| `setText(text)`        | `(string) → void`                           | 修改当前输入框正文                                                            |
-| `attachments`          | `readonly ConversationComposerAttachment[]` | 每项有 `id: string` 和 `name: string`，用于显示附件列表、按 ID 移除                   |
-| `attachmentAccept`     | `string`                                    | 当前接受的文件类型，可传给文件输入的 `accept`                                          |
-| `attachmentsEnabled`   | `boolean`                                   | 当前 Thread 是否支持附件；据此显示附件入口                                            |
-| `isRunning`            | `boolean`                                   | 当前 Thread 是否正在运行；据此区分普通发送与排队提示                                       |
-| `disabled`             | `boolean`                                   | 当前输入是否因会话禁用或语音输入状态而禁用                                                |
-| `canSend`              | `boolean`                                   | 原生草稿是否就绪且当前运行／队列允许发送；不包含等待审批检查                                       |
-| `canCancel`            | `boolean`                                   | 当前 Composer 是否允许取消；据此启用停止按钮                                          |
-| `send()`               | `() → void`                                 | 检查等待回复状态后提交草稿；允许时走现有消息队列                                             |
-| `cancel()`             | `() → void`                                 | 取消当前运行，不负责移除待发送项；详见[消息排队](/development/message-queue.md#3-停止审批和切换会话) |
-| `addAttachment(file)`  | `(File) → Promise<void>`                    | 将浏览器文件加入当前草稿；调用方处理异步失败，上传仍使用项目附件服务                                   |
-| `removeAttachment(id)` | `(string) → Promise<void>`                  | 按附件 ID 移除；调用方处理异步失败                                                  |
-
-结构化业务参数仍通过 `useComposer().setData()` 写入。
+| 属性                       | 类型                                                      | 用途                                                   |
+| ------------------------ | ------------------------------------------------------- | ---------------------------------------------------- |
+| `reference?`             | `{ token: string; text: string; fallbackText: string }` | 绑定输入中的引用；删除引用时移除其数据，发送时替换 token                      |
+| `quote?`                 | `{ text: string; messageId: string }`                   | 绑定原生引用，取消引用后排除数据                                     |
+| `defaultForwardedProps?` | `Readonly<Record<string, ComposerData>>`                | 插件的默认外带字段；同一顶层对象与原字段浅合并，插件字段优先                       |
+| `defaultTextPrefix?`     | `string`                                                | 插件默认加到当前用户正文前的文本                                     |
+| `selection?`             | `ComposerData`                                          | 保留原始选择，供最终适配器读取                                      |
+| `includeInRequest?`      | `boolean`，默认 `false`                                    | 高级集成可显式按实例所有者键转发；普通 `setData(value)` 只收集数据，交给最终适配器映射 |
 
 ### 等待审批与补充输入
 
-从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useConversationComposerAwaitingReply()`，返回 `boolean`。为 `true` 时，可像[上例](#example-4)一样禁用普通发送并显示 `locales.composer.awaitingReply`，让用户先处理原审批或补充问题。
+从同一个 `useComposer()` 读取 `composer.awaitingReply`。为 `true` 时，可像[上例](#example-4)一样禁用普通发送并显示 `locales.composer.awaitingReply`，让用户先处理原审批或补充问题。`send()` 始终执行等待回复保护。
 
-若项目需要在**新的中断到来时**重置自定义提示的关闭状态，同一入口的 `useConversationComposerGuardState()` 返回 `{ awaitingReply: boolean; interruptKey: string }`；以 `interruptKey` 区分中断，避免把上一轮提示的关闭状态带到下一轮。常规按钮只需要前一个布尔 Hook。
+高级定制可从 `composer.getState()` 同时读取 `awaitingReply` 和 `interruptKey`。后者是当前待处理内容的不透明标识，无需解析；与等待状态一起用于重置或去重自定义提示。未等待回复时，`interruptKey` 为空字符串。这些字段的变化也会通知 `composer.subscribe()` 的订阅者。
 
 这些状态由已有 Host 提供。普通业务插件直接读取；`ConversationComposerGuardProvider` 用于手动集成时传入已有中断状态，它本身不检测 Agent 是否暂停。
 
 ### 最终请求适配器
 
 
-`ComposerRequestAdapter`、`ComposerRequestAdapterInput`、`ComposerData` 与 `ComposerDataOptions` 从 `@za38.03/agent-ui-plugins` 导入。`RunAgentInput` 从 `@ag-ui/client` 导入。
+`ComposerRequestAdapter`、`ComposerRequestAdapterInput`、`ComposerDataSource`、`ComposerData` 与 `ComposerDataOptions` 从 `@za38.03/agent-ui-plugins` 导入。`RunAgentInput` 从 `@ag-ui/client` 导入。
 
-| 字段           | 类型                                                  | 内容                   |
-| ------------ | --------------------------------------------------- | -------------------- |
-| `request`    | `RunAgentInput`                                     | 已完成默认组装的请求；展开后修改约定字段 |
-| `pluginData` | `Readonly<Record<string, ComposerData>>`            | 按实例或命名子作用域归组的有效数据    |
-| `selections` | `Readonly<Record<string, readonly ComposerData[]>>` | 同一批数据保留的原始选择数组       |
+| 字段           | 类型                                                  | 内容                                    |
+| ------------ | --------------------------------------------------- | ------------------------------------- |
+| `request`    | `RunAgentInput`                                     | 已完成默认组装的请求；展开后修改约定字段                  |
+| `pluginData` | `Readonly<Record<string, ComposerData>>`            | 按实例或命名子作用域归组的有效数据                     |
+| `selections` | `Readonly<Record<string, readonly ComposerData[]>>` | 同一批数据保留的原始选择数组                        |
+| `sources`    | `Readonly<Record<string, ComposerDataSource>>`      | 自动记录的插件 ID、实例 ID 和可选用途名；插件上下文外不伪造插件身份 |
 
 `ComposerRequestAdapter = (input: ComposerRequestAdapterInput) => RunAgentInput`。返回完整同步结果，不返回 Promise 或请求片段。
 
-`useComposerRequestAdapter(adapter | undefined): void` 是手动组合 Composer 时的注册入口，随卸载注销。普通项目使用已有 Composer 的 `requestAdapter` 属性；同一 Agent 只注册一个最终适配器。
+最终适配器只从 Composer 组件的 `requestAdapter` 属性传入，由组件内部负责注册、更新和卸载清理；同一 Agent 只注册一个最终适配器。`useComposer(name?)` 接受可选的数据作用域名称，负责读取状态和操作草稿。
 
 ### 最终请求的主要字段
 
@@ -3492,225 +3495,182 @@ export function Example(props: ComponentProps<typeof ConversationComposerDictate
 url: /plugins/skills.md
 ---
 
-# 技能与工作流选择（skills）
+# 技能选择（开发中）
+
+> **开发中**：技能相关文档仍在完善，接口说明和示例可能调整。
 
 <figure className="plugin-preview">
 
-<img src="/images/plugins/features/skills.png" alt="技能与工作流界面" width="672" height="103" />
+<img src="/images/plugins/features/skills.png" alt="技能选择界面" width="672" height="103" />
 
-<figcaption>项目提供的技能快捷入口与更多选择；选择后用于当前问题，不立即发送。</figcaption>
+<figcaption>选择一个技能后，当前技能预览插件显示标签。</figcaption>
 </figure>
 
-为本次问题选择一个技能，或显式启动项目工作流。技能栏、当前技能标签和 Composer 已共享选择状态；选中技能不会立即发送，也不需要用户再手动把技能写进草稿。
+`skills` 在插件 `setup` 中提供 `conversation.skills` Service，保存当前技能选择。`skills` 插件提供选择栏；独立的 [`skills-selection`](/plugins/skills-selection.md) 插件显示当前技能标签，发送后由用户消息显示只读标签。两个 UI 插件通过该 Service 共享状态；Composer 只收集待发送的数据和来源。
+
+需要完整技能输入 UI 时，在 Composer 的 `triggers` 中组合 `skills`，在 `beforeInput` 中组合 `skills-selection`，具体模型见[当前技能预览](/plugins/skills-selection.md#启用与使用)。两个插件均按需添加，初始化预设不会默认启用。
 
 ## 选择技能后再输入问题
 
-项目通过 `items` 提供自己的技能；默认前两项作为快捷入口，其余通过更多入口选择。选中技能后，[当前技能标签](/plugins/skills-selection.md)显示这份选择，用户继续输入问题并正常发送。
-
-同一 Thread 当前只保留一个技能选择。移除标签、切换会话、已接受普通发送，或当前技能被移除／禁用时，都会清除对应待发送选择。已提交或已排队请求的快照不受后来选择变化影响。只更新标签和说明不会重新提交一次业务选择。
+项目通过 `items` 提供技能条目。默认前两项技能显示为快捷入口，其余条目从“更多”选择。技能的名称、说明来自项目统一文案层，`id` 是稳定业务标识。
 
 <figure className="plugin-preview">
 
-<img src="/images/plugins/features/skills-selection.png" alt="当前技能界面" width="672" height="77" />
+<img src="/images/plugins/features/skills-selection.png" alt="输入框内的当前技能标签" width="672" height="77" />
 
-<figcaption>选中的资料研究技能显示为当前技能标签，移除入口同步清除这份选择。</figcaption>
+<figcaption>标签由 skills-selection 提供，点击移除只取消技能，保留正文、引用和附件。</figcaption>
 </figure>
+
+同一 Thread 一次只选择一个技能。接受发送后清空草稿选择；切换会话时清除原会话的待发送选择。已提交、排队或历史消息中的技能快照不会随之后的选择变化。
+
+选择器和预览组件可以独立隐藏或卸载，状态由 Service 保留。停用整个 `skills` 插件时，Service 会清理选择与待发送数据，依赖它的 `skills-selection` 随之停用。
+
+## 显示条件与数据来源 \{#显示条件与数据来源}
+
+技能来自项目的 `items` 或调用 Service 的 `select()`，不依赖后端消息事件。只读历史标签来自每条用户消息保存的技能元数据。
+
+## 从业务卡片选择技能 \{#从业务卡片选择技能}
+
+在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
+
+```tsx
+import { useComposer, useConversationSkillsState, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
+
+export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
+  const composer = useComposer();
+  const { service, threadId } = useConversationSkillsState();
+  return <button type="button" onClick={() => service?.select(threadId, skill, composer)}>{skill.label}</button>;
+}
+```
+
+Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收集发送数据；无需传 `key`、发送开关或会话清理配置。取消选择调用 `service.clear(threadId)`，两个 UI 都从 `useConversationSkillsState().selected` 订阅选择。若卡片属于另一个独立插件，需在 definition 声明 `inject: ['conversation.skills']`，并在项目请求适配器中识别该插件的数据来源。
 
 ## 交给 Composer 的数据
 
-例如项目提供下列技能，文案来自项目 locale，`ctx` 是本次发送的默认业务参数：
+<span id="自定义发送数据"></span>
 
-```json
-{ "kind": "skill", "id": "research", "label": "资料研究", "ctx": { "skillId": "research" } }
-```
-
-假设技能栏插件实例 ID 为 `skills`，未配置局部 `requestAdapter` 时，Composer 最终适配器读取到：
+默认生成的 `plugins/composer/request-adapter.ts` 通过 `sources[owner].pluginId` 识别 `skills` 的来源，再从 `pluginData[owner]` 读取技能快照，并将其放入 `forwardedProps.ctx.skill`，与 Host 已有 `ctx` 合并。例如：
 
 ```json
 {
-  "pluginData": { "skills": { "skillId": "research" } },
-  "selections": {
-    "skills": [{ "kind": "skill", "id": "research", "label": "资料研究", "ctx": { "skillId": "research" } }]
+  "forwardedProps": {
+    "ctx": {
+      "tenantId": "t-1",
+      "skill": { "id": "research", "label": "深度研究" }
+    }
   }
 }
 ```
 
-`pluginData.skills` 是技能 `ctx` 的**对象**，不是技能条目；`selections.skills` 是原始技能数组，保留 `kind/id/label` 与实际提供的 `description/disabled/ctx`，不保存 React `icon`。
-
-默认请求将技能 `ctx` 浅合并到 `forwardedProps.ctx`。例如 Host 已提供租户 ID，本次请求的外带字段为：
-
-```json
-{ "forwardedProps": { "ctx": { "tenantId": "t-1", "skillId": "research" } } }
-```
-
-保留原有业务字段，技能字段覆盖同名字段；不额外生成 `forwardedProps.skills`。没有 `ctx` 时 `pluginData.skills` 为 `{}`，仍保留原始选择，但不自动增加后端参数。实例键以项目实际实例 ID 为准；嵌入其他插件中的技能入口使用其 `:skills` 子键。
+未选择技能时不额外添加 `skill`。技能不会变成正文，也不会自动发送问题。普通 `setData` 仅收集数据；`sources` 自动记录插件 ID、实例 ID 和可选的用途名，实例 ID 改名不会破坏默认映射。npm Composer 不自动生成 `ctx.skill`；默认映射属于生成项目的应用代码，用户可以改名、改结构或删除。
 
 ## 改为后端约定的技能字段 \{#选择技能后发送业务标识}
 
-<span id="example-1"></span>
-
-<span id="自定义发送数据"></span>
-
-在项目已有技能入口上配置同步局部适配器，不改动选择、标签与移除逻辑：
+编辑项目生成的 `plugins/composer/request-adapter.ts`，或在 Composer 应用层替换最终 `requestAdapter`。下面把默认 `ctx.skill` 改为 `ctx.skillId`，保留其他业务字段：
 
 ```tsx
 import type { ComponentProps } from 'react';
-import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
+import { ConversationCanonicalComposer } from '@za38.03/agent-ui-plugins';
+import { readConversationSkillData } from '@za38.03/agent-ui-plugins';
 
-export function ProjectSkills(props: ComponentProps<typeof ConversationSkillsBar>) {
-  return <ConversationSkillsBar {...props} requestAdapter={skill => ({ operation: skill.id })} />;
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown> : {};
+}
+
+export function ProjectComposer(props: ComponentProps<typeof ConversationCanonicalComposer>) {
+  return <ConversationCanonicalComposer {...props} requestAdapter={({ request, pluginData, sources }) => {
+    const forwarded = record(request.forwardedProps);
+    const { skill: _skill, ...ctx } = record(forwarded.ctx);
+    const owner = Object.keys(pluginData).find(owner => sources[owner]?.pluginId === 'skills');
+    const skill = readConversationSkillData(owner === undefined ? undefined : pluginData[owner]);
+    return { ...request, forwardedProps: { ...forwarded,
+      ctx: { ...ctx, ...(skill ? { skillId: skill.id } : {}) },
+    } };
+  }} />;
 }
 ```
 
-此时 `pluginData.skills` 为 `{ "operation": "research" }`，`selections.skills` 仍为原始技能数组，默认放入 `forwardedProps.skills`；不再自动合并该技能的 `ctx`。原有 Host 字段仍保留。
+适配器返回的请求是最终结果；不会再次补回默认字段。技能栏没有单独的请求适配器。调整发送格式不会改变本地消息保存的技能快照和标签展示。
 
-最终格式还可由 [Composer `requestAdapter`](/plugins/composer.md#请求适配)统一调整。局部回调抛错或返回非 JSON 时保留原选择和草稿，使用 `skills.selectionFailed` 显示错误。
+## 发送后的消息与历史
 
-## 技能选择与工作流启动 \{#同时提供技能和工作流}
+发送时保存 `{ id, label }` 快照，消息标签只读，不影响下一次输入。默认请求的当前用户消息也带有 `metadata.skill`，供业务后端持久化。
 
-技能供下一次问题使用；工作流只在用户明确点击启动时调用项目提供的 `onStart`。启动工作流不会自动生成一个技能选择或 Composer 数据条目。工作流是否发送问题、使用哪个地址，由该项目操作决定。
+历史由业务后端保存并返回，前端不代替后端持久化。使用 LangChain 历史格式时，返回 `additional_kwargs.metadata.skill`：
 
-```tsx
-import { ConversationSkillsBar, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-
-const messages = {
-  'zh-CN': { research: '资料研究', report: '生成报告' },
-  'en-US': { research: 'Research', report: 'Generate report' },
-};
-export function Example({ startReport }: { startReport: () => Promise<void> }) {
-  const labels = messages[useAgentUILocaleCode()];
-  return <ConversationSkillsBar items={[
-    { kind: 'skill', id: 'research', label: labels.research, ctx: { skillId: 'research' } },
-    { kind: 'workflow', id: 'report', label: labels.report, onStart: startReport },
-  ]} />;
+```json
+{
+  "type": "human",
+  "id": "message-1",
+  "content": "请帮我整理资料",
+  "additional_kwargs": {
+    "metadata": {
+      "skill": { "id": "research", "label": "深度研究" }
+    }
+  }
 }
 ```
 
-## 共享技能选择 \{#从业务卡片选择技能}
+官方转换器将其恢复到用户消息的 `metadata.custom.skill`。无需保存私有草稿状态即可显示历史标签，并在编辑重发、重试时沿用该条消息的技能。只保存正文无法恢复技能标签；`requestAdapter` 若删除或改写请求中的元数据，需相应调整业务保存与返回映射。接入步骤见[历史会话](/development/history-backend.md)。
 
-组件与服务位于同一 Agent，并声明 `conversation.skills` 依赖。
+## 调整快捷入口和标签
 
-```tsx
-import {
-  CONVERSATION_SKILLS_SERVICE, usePluginService, useConversationSkillsState, useComposer,
-  type ConversationSkillsService, type ConversationSkill,
-} from '@za38.03/agent-ui-plugins';
+<span id="代码示例"></span>
+<span id="example-1"></span>
 
-export function SelectBusinessSkill({ skill }: { skill: ConversationSkill }) {
-  const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
-  const { threadId, disabled } = useConversationSkillsState(service);
-  const composer = useComposer();
-  return <button type="button" disabled={disabled || !service || skill.disabled}
-    onClick={() => { service?.select(threadId, skill, composer); }}>
-    {skill.label}
-  </button>;
-}
-```
-
-调用 `select()` 后，技能栏和标签跟随同一个服务更新；调用 `clear(threadId)` 只清除这份技能选择及它绑定的数据，不清空正文、附件或其他插件的数据。Composer 草稿订阅不会替代技能服务的选择订阅。
-
-## 快捷技能数量 \{#调整快捷技能数量}
-
-前 3 项直接显示，其余条目使用原有更多选择入口；items 为空时不会自动生成业务技能。
+### 调整快捷技能数量 \{#调整快捷技能数量}
 
 ```tsx
 import type { ComponentProps } from 'react';
 import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
 
 export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
-  return <ConversationSkillsBar {...props}
-    quickItemCount={3} />;
+  return <ConversationSkillsBar {...props} quickItemCount={3} />;
 }
 ```
 
-<span id="example-3"></span>
+### 自定义标签
+
+在 `skills-selection` 的项目薄应用层定制当前技能预览，或通过 AppUIModel 停用该插件以隐藏预览。隐藏、停用或移除预览不会清除当前选择，也不改变发送数据；Composer 没有内置技能预览或专用 `skillPreview` 属性。用户消息默认显示只读标签。业务卡片需要额外展示时，可用 `useConversationSkillsState().selected` 读取 Service 中的选择，再传给公开展示组件 `ConversationSkillSelection`。`selectedSkill` 接受 `{ id, label }`；提供 `onRemove` 才显示移除按钮，`disabled` 控制该按钮。
+
+<span id="启用与使用"></span>
+<span id="需求示例"></span>
+<span id="当前技能标签"></span>
+<span id="与-composer-联动"></span>
 
 ## API
 
 <span id="属性"></span>
 <span id="开发-api"></span>
 
-`ConversationSkillsBar` 使用 `ConversationSkillsPluginProps`，继承 `div` 原生属性并排除 `children`；选择状态由服务管理。
+`ConversationSkillsBar` 使用 `ConversationSkillsPluginProps`，继承 `div` 属性并排除 `children`；选择状态由 `conversation.skills` Service 管理。
 
-| 属性                      | 类型                                                      | 默认行为                                |
-| ----------------------- | ------------------------------------------------------- | ----------------------------------- |
-| `items?`                | `readonly ConversationSkillItem[]`                      | 默认空数组，无业务技能或工作流                     |
-| `requestAdapter?`       | `(skill: ConversationSkillRequestItem) => ComposerData` | 同步定义选中技能的 JSON 数据；最终字段由 Composer 组装 |
-| `quickItemCount?`       | `number`                                                | 默认 `2`，快捷展示项数                       |
-| `disabled?`             | `boolean`                                               | 默认 `false`，并叠加会话与服务可用性              |
-| `className?` / `style?` | `string` / `CSSProperties`                              | 根容器样式                               |
+| 属性                    | 类型                                 | 默认值与作用             |
+| --------------------- | ---------------------------------- | ------------------ |
+| `items?`              | `readonly ConversationSkillItem[]` | 默认空数组，不生成业务技能      |
+| `quickItemCount?`     | `number`                           | 默认 `2`，其余条目从更多入口选择 |
+| `disabled?`           | `boolean`                          | 禁用条目交互             |
+| `className?`、`style?` | 原生属性                               | 调整整体样式             |
 
-`ConversationSkillItem = ConversationSkill | ConversationWorkflow`。两种条目共有以下字段：
+条目共有 `id`、`label`，可提供 `description`、`icon` 和 `disabled`。技能条目使用 `kind: 'skill'`。项目组件可自行组合业务按钮、卡片和其他交互，通过 Service 的 `select(threadId, value, composer)` 设置当前技能。
 
-| 字段             | 类型          |
-| -------------- | ----------- |
-| `id`           | `string`    |
-| `label`        | `string`    |
-| `description?` | `string`    |
-| `icon?`        | `ReactNode` |
-| `disabled?`    | `boolean`   |
-
-两类条目的区别：
-
-- **技能 `ConversationSkill`**：`kind: 'skill'`；可提供 `ctx?: Readonly<Record<string, ComposerData>>`，用于声明默认业务参数；字段值须为 JSON。
-- **工作流 `ConversationWorkflow`**：`kind: 'workflow'`；必须提供 `onStart(): void | Promise<void>`，只有显式点击启动时调用。
-
-独立展示组件 `ConversationSkills` 使用 `ConversationSkillsProps`，还公开以下属性：
-
-| 属性                        | 类型                                           | 默认行为              |
-| ------------------------- | -------------------------------------------- | ----------------- |
-| `selectedSkillId?`        | `string \| null`                             | 传入即受控；未传入时使用本地状态  |
-| `defaultSelectedSkillId?` | `string \| null`                             | 默认 `null`         |
-| `onSelectedSkillChange?`  | `(skill: ConversationSkill \| null) => void` | 选择或移除时通知          |
-| `scopeKey?`               | `string`                                     | 变化时重置本地选择、弹层与等待状态 |
-
-`ConversationSkillsBar` 不接受这四个受控属性；它通过现有服务绑定 Thread。项目条目的 `label` / `description` 由统一文案层提供，`id` 不随语言变化。
-
-<span id="取数与联动"></span>
-
-其他插件可读取当前选中的技能，或通过同一个 `conversation.skills` 服务选择、清除技能；技能栏和当前技能标签会跟随更新。选择需要传入当前输入区的写入绑定，见[调用示例](#从业务卡片选择技能)。其他联动入口见[插件联动与取数](/development/plugin-interaction.md)。
+独立展示组件 `ConversationSkills` 另有 `selectedSkillId`、`defaultSelectedSkillId`、`onSelectedSkillChange` 和 `scopeKey`，用于由调用方控制的展示。`ConversationSkillsBar` 不接受这些受控属性。
 
 <span id="hook"></span>
+<span id="服务"></span>
 
-`useConversationSkillsState(service)` 响应式订阅当前 Thread 的技能选择，返回：
+| Service 与领域 API                                               | 作用                                                          |
+| ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `CONVERSATION_SKILLS_SERVICE`                                 | 服务标识 `conversation.skills`，由 `skills` 提供                    |
+| `useConversationSkillsState()`                                | 返回 `service`、当前 Thread 的 `selected`、`threadId` 和 `disabled` |
+| `service.select(threadId, skill, composer)`                   | 保存技能并通过调用方的 Composer 收集数据                                   |
+| `service.clear(threadId)`                                     | 取消选择，同时释放待发送数据                                              |
+| `service.getSnapshot(threadId)`、`service.subscribe(listener)` | 读取与订阅稳定快照                                                   |
+| `ConversationSkillData`                                       | 只读 `id: string` 和 `label: string`                           |
+| `readConversationSkillData(value)`                            | 将未知 JSON 收窄为技能数据；不是 Hook                                    |
 
-- `selected`：当前技能。
-- `threadId`：当前 Thread 标识。
-- `disabled`：当前是否禁用。
-
-`service` 可为 `undefined`，此时 `selected` 为 `null`。写入数据使用同一会话中的 `useComposer()`，无需操作原生运行配置。
-
-### 服务方法 \{#服务}
-
-提供 `conversation.skills`。根入口公开 `CONVERSATION_SKILLS_SERVICE`、`createConversationSkillsService()`、`ConversationSkillsService`、`ConversationSkillComposerBinding`。
-
-| 方法                                                   | 用途                                      |        |
-| ---------------------------------------------------- | --------------------------------------- | ------ |
-| `getSnapshot(threadId)`                              | 返回该 Thread 的 \`ConversationSkill        | null\` |
-| `subscribe(listener)`                                | 订阅选择变化，返回取消订阅函数                         |        |
-| `select(threadId, skill, composer, requestAdapter?)` | 绑定当前 Thread 的 `setData`，选择技能并保存 JSON 快照 |        |
-| `clear(threadId)`                                    | 清除该 Thread 的选择与本次选择的数据，不改写其他插件或原生业务配置   |        |
-| `updatePresentation(threadId, skill)`                | 只更新当前技能展示信息                             |        |
-| `dispose()`                                          | 释放全部选择；由提供方清理生命周期调用                     |        |
-
-选择会在发送、切换会话或技能失效时清除；仅组件重挂载不会新建服务。普通调用方取得已有服务，不重复提供同一标识。
-
-<details className="plugin-faq" id="为什么没有-selectedskillid-属性">
-<summary>为什么没有 selectedSkillId 属性？</summary>
-
-ConversationSkillsBar 通过会话服务管理选择。需要独立的受控展示时使用 ConversationSkills 的 selectedSkillId/onSelectedSkillChange；不要把独立组件属性传给服务绑定组件。
-
-</details>
-
-<span id="example-2"></span>
-
-<span id="代码示例"></span>
-
-<span id="常见需求"></span>
-
-<span id="技能与工作流"></span>
-
-<span id="技能与工作流条目"></span>
+Service 随插件 setup 创建和销毁，并观察现有 canonical Thread 的切换、发送和重置。Composer 冻结每次提交的数据与来源，处理排队、编辑、重试和恢复；Runtime 不认识技能字段。
 
 
 
@@ -3718,114 +3678,81 @@ ConversationSkillsBar 通过会话服务管理选择。需要独立的受控展�
 url: /plugins/skills-selection.md
 ---
 
-# 当前技能标签（skills-selection）
+# 当前技能预览（开发中）
+
+`skills-selection` 在输入框内显示当前技能和移除按钮。它与[技能选择器](/plugins/skills.md)是两个独立的 UI 插件，通过 `conversation.skills` Service 共享选择状态。
 
 <figure className="plugin-preview">
 
-<img src="/images/plugins/features/skills-selection.png" alt="当前技能界面" width="672" height="77" />
+<img src="/images/plugins/features/skills-selection.png" alt="输入框内的当前技能标签" width="672" height="77" />
 
-<figcaption>资料研究技能已选中；点击移除会同步清除当前技能与待发送参数。</figcaption>
+<figcaption>点击移除取消技能，保留正文、引用和附件。</figcaption>
 </figure>
 
-显示当前 Thread 已选技能，并提供移除入口。技能来自[技能栏](/plugins/skills.md)，标签自动订阅同一份服务；未选择技能时不显示，不需要调用方自己维护第二份选中状态。
+## 显示条件与数据来源 \{#显示条件与数据来源}
 
-## 与 Composer 联动
+数据来自 `useConversationSkillsState().selected`，不依赖后端事件。当前 Thread 有技能选择时显示标签；没有选择时不占用内容空间。运行状态及项目的 `disabled` 控制移除按钮。
 
-这个插件不向 `pluginData` 或 `selections` 再写一份数据。数据属于发起选择的技能入口，完整格式见[技能交给 Composer 的数据](/plugins/skills.md#交给-composer-的数据)。
+该插件声明 `inject: ['conversation.skills']`，依赖 `skills` 在 setup 中提供的服务。它只负责读取选择和调用 Service 取消选择，不从 Composer 读取 UI 状态。
 
-需要改变整体请求结构时，仍由 [Composer 最终适配器](/plugins/composer.md#请求适配)处理。
+## 在输入框中显示当前技能
 
-点击移除会调用当前 Thread 的技能服务清理，下一次发送便不再携带该技能参数；正文、附件及其他插件选择保留。已提交快照不受移除影响。技能栏选中别的技能时标签同步更新；发送、切换会话或技能失效后的清理同样由共享服务处理。
+<span id="启用与使用"></span>
 
-## 在业务卡片中显示同一份选择 \{#在其他卡片显示并移除技能}
+需要选择器和预览时，在现有 Composer 实例中组合两个插件：
 
-下面是独立展示组件的接法：既订阅当前选择，也把移除交回同一服务。组件与服务位于同一 Agent，并声明 `conversation.skills` 依赖。
-
-```tsx
-import {
-  ConversationSkillSelection, CONVERSATION_SKILLS_SERVICE,
-  usePluginService, useConversationSkillsState, type ConversationSkillsService,
-} from '@za38.03/agent-ui-plugins';
-
-export function SharedSkillChip() {
-  const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
-  const { selected, threadId, disabled } = useConversationSkillsState(service);
-  return <ConversationSkillSelection selectedSkill={selected} disabled={disabled}
-    onRemove={() => service?.clear(threadId)} />;
+```json
+{
+  "id": "composer-main",
+  "pluginId": "composer",
+  "slots": {
+    "triggers": [
+      { "id": "skills-main", "pluginId": "skills" }
+    ],
+    "beforeInput": [
+      { "id": "skills-preview", "pluginId": "skills-selection" }
+    ]
+  }
 }
 ```
 
-业务卡片只需要读选择时，直接使用 `useConversationSkillsState(service)` 的 `selected`；不调用 `setData()`，也不重复创建技能服务。完整选择与清理方法见 [skills 服务](/plugins/skills.md#服务)。
+这是 AppUIModel 的局部片段；保留现有实例、引用插件和其他子插槽。通过正常的插件应用层生成流程添加两个本地 definition，不直接覆盖已有模型。两个插件均为按需启用，不默认加入初始化预设。
 
-## 调整当前技能标签外观 \{#调整当前技能标签外观}
+隐藏、停用或移除预览只影响展示，当前技能仍可发送。隐藏或卸载选择器组件不会清空已有选择；停用整个 `skills` 插件会销毁 Service，预览也随依赖失效停用。点击移除按钮调用 `service.clear(threadId)`。发送、排队、重试和历史恢复由现有 Composer 数据能力处理，用户消息中的只读技能标签不依赖此输入区插件。
 
-<span id="example-1"></span>
+## 定制预览 \{#代码示例}
 
-selectedSkill 与 onRemove 继续使用原有服务绑定，标签只改变展示。
+在 `plugins/skills-selection/index.tsx` 中向已有实现传 props：
 
 ```tsx
+import { SkillsSelectionPlugin as Implementation } from '@za38.03/agent-ui-plugins/skills-selection';
 import type { ComponentProps } from 'react';
-import { ConversationSkillSelection } from '@za38.03/agent-ui-plugins';
 
-export function Example(props: ComponentProps<typeof ConversationSkillSelection>) {
-  return <ConversationSkillSelection {...props}
-    style={{ ...props.style, maxWidth: 240 }} />;
+export function SkillsSelectionPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props} className="project-skill-preview" />;
 }
 ```
 
-<span id="example-2"></span>
+可通过公开组件 `ConversationSkillsSelection` 组合默认预览；完全替换展示时，使用 `useConversationSkillsState()` 读取 `selected` 并调用 `service.clear(threadId)`，保持同一份 Service 状态。组件和样式调整先在项目应用层完成；确需修改内部实现时，仅接管 `skills-selection`。
 
-## 禁用技能移除 \{#禁用技能移除}
+## 从内置预览迁移
 
-业务处于不可修改的状态时，disabled 控制标签的移除操作。
+此前依赖 Composer 自动显示技能的项目，需要显式添加 `skills-selection`。原来使用 Composer `skillPreview` 的定制移到这个插件的应用层，或组合进通用 `beforeInput` 内容。npm 升级不会自动改写 AppUIModel、项目应用层、已接管源码或 BASE。
 
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationSkillSelection } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof ConversationSkillSelection>) {
-  return <ConversationSkillSelection {...props}
-    disabled={true} />;
-}
-```
-
-`disabled` 禁止用户移除，不会清除已选技能或把它从请求中排除。要取消技能对本次发送的影响，使用同一个服务的 `clear(threadId)`。
+既有技能 UI 状态读取与取消操作需迁移到 `conversation.skills` Service。Composer 不提供专用 `setSkill`，也不提供具名共享数据键。既有 Composer 应用层还需显式接入本地 `request-adapter.ts`；包升级不会自动覆盖项目代码。
 
 ## API
 
 <span id="属性"></span>
-<span id="开发-api"></span>
 
-`ConversationSkillsSelection` 从已有服务读取选择并处理移除，`disabled?: boolean` 用于禁止移除；它继承 `div` 属性。需要自己提供选择和回调时，使用下表中的 `ConversationSkillSelection`。
+`ConversationSkillsSelection` 使用 `ConversationSkillsSelectionPluginProps`：
 
-插件不接受 `children`。需要完全不同的标签结构时，在项目组件中读取选择状态并组合自己的展示。
+| 属性                    | 类型        | 作用           |
+| --------------------- | --------- | ------------ |
+| `disabled?`           | `boolean` | 禁用移除按钮，不清空技能 |
+| `className?`、`style?` | 原生属性      | 调整预览根元素      |
 
-自定义其他插件的展示时可使用 `ConversationSkillSelection` 与 `ConversationSkillSelectionProps`：
-
-| 属性                      | 类型                          | 默认行为                |
-| ----------------------- | --------------------------- | ------------------- |
-| `selectedSkill?`        | `ConversationSkill \| null` | 缺少时不渲染              |
-| `onRemove?`             | `() => void`                | 点击移除时调用             |
-| `disabled?`             | `boolean`                   | 禁用移除按钮              |
-| `className?` / `style?` | `string` / `CSSProperties`  | 根容器样式，继承其他 `div` 属性 |
-
-技能类型来自根入口，字段见 [skills 属性](/plugins/skills.md#属性)。
-
-<span id="hook"></span>
-
-业务卡片和技能栏要显示同一份选择时，通过 [skills 的 `useConversationSkillsState(service)`](/plugins/skills.md#hook) 订阅当前 Thread，使用返回的 `selected` 显示标签、`threadId` 清除对应选择、`disabled` 控制移除入口。[技能标签与移除](#在其他卡片显示并移除技能)同时保留这三项绑定。
-
-### 服务方法 \{#服务}
-
-依赖 `conversation.skills`，不另行提供服务；方法与类型见 [skills](/plugins/skills.md#服务)。
-
-<span id="代码示例"></span>
-
-<span id="常见需求"></span>
-
-<span id="当前技能"></span>
-
-<span id="技能标签与移除"></span>
+其余非 `children` 的 `div` 属性透传。`selectedSkill` 和 `onRemove` 由绑定组件管理；独立展示组件 `ConversationSkillSelection` 额外提供这两个属性。
 
 
 
@@ -12229,6 +12156,13 @@ url: /development/composer-sources.md
 
 输入 `@` 搜索员工、文档等业务对象；输入 `/` 选择快捷命令。
 
+<figure className="plugin-preview">
+
+![输入 @产品 后显示文档候选列表](/images/plugins/mention-trigger.png)
+
+<figcaption>@ 搜索把来源返回的 label 和 description 显示为候选；此时仍在查询，还没有选中引用。</figcaption>
+</figure>
+
 以下路径以 `src/agent-ui/` 为源码目录。使用前先启用 `mention-trigger`，或 `slash-command-trigger` 与 `conversation-command-source`。
 
 **先选择你要接入或修改的功能：**
@@ -12293,6 +12227,13 @@ export const source: ConversationMentionSource = {
 </details>
 
 ## 接入 / 快捷命令 \{#-快捷命令}
+
+<figure className="plugin-preview">
+
+![输入斜杠后出现新建会话和总结对话菜单](/images/plugins/slash-command-trigger.png)
+
+<figcaption>/ 菜单可以同时包含页面动作和待发送指令。选中后的行为由条目的 mode 决定。</figcaption>
+</figure>
 
 **第 1 步：填写命令列表请求。**
 
@@ -12381,6 +12322,13 @@ return [{
 - `/ action` 默认只调用 `execute()`，触发器不自动发送消息。
 
 后端按项目约定解析引用。
+
+<figure className="plugin-preview">
+
+![引用标记在 Lexical 输入中显示为提及和命令标签](/images/plugins/lexical-composer-input.png)
+
+<figcaption>启用 Lexical 输入后，引用标记显示为“@产品说明文档”和“/总结对话”标签。普通输入框直接显示上表中的标记文本。</figcaption>
+</figure>
 
 <details class="dev-guide-details" id="在项目中替换选中行为">
 <summary>用 onSelect 替换默认引用文字或动作</summary>
@@ -12512,13 +12460,14 @@ return [{
 
 上例发送完整选中项；如果后端只需要其中的 `data` 或其他字段，在同一个 Composer 回调中收窄并提取即可。@ 与 / 在 `pluginData` 中也提供相同的原始选中项数组。
 
-`requestAdapter({ request, pluginData, selections })` 同步返回完整的 AG-UI 请求：
+`requestAdapter({ request, pluginData, selections, sources })` 同步返回完整的 AG-UI 请求：
 
-| 输入           | 内容                                              |
-| ------------ | ----------------------------------------------- |
-| `request`    | 默认组装好的请求，包括已有的 `forwardedProps`、正文、附件与 Context。 |
-| `pluginData` | 按插件实例 ID 分组的数据；引用型选择是数组，普通 `setData` 保留传入值。     |
-| `selections` | 按同一身份分组的原始选中对象数组；可与格式化结果分别使用。                   |
+| 输入           | 内容                                                |
+| ------------ | ------------------------------------------------- |
+| `request`    | 默认组装好的请求，包括已有的 `forwardedProps`、正文、附件与 Context。   |
+| `pluginData` | 按插件实例 ID 分组的数据；引用型选择是数组，普通 `setData` 保留传入值。       |
+| `selections` | 按同一身份分组的原始选中对象数组；可与格式化结果分别使用。                     |
+| `sources`    | 自动记录的插件 ID、实例 ID 和可选用途名；与 `pluginData` 使用相同的所有者键。 |
 
 返回值就是最终请求，之后不再合并或补写 `forwardedProps`。用户可以任意重排、删除、改名，也可以返回 `forwardedProps: {}`。需要保留默认字段时，检查 `request.forwardedProps` 是对象后显式展开；其他请求字段通常用 `...request` 保留。AG-UI 的标准字段仍须满足协议类型。
 
@@ -12551,8 +12500,8 @@ export function OrderDraftData({ orderId, children }: {
 
 请求冲突按是否配置适配器处理：
 
-- **未配置**：默认写入 `forwardedProps[插件实例ID]`，与已有字段同名时会报错。
-- **已配置**：`request` 保留同名的已有字段；从 `pluginData` 读取插件数据，由用户处理冲突。
+- **未配置**：普通 `setData(value)` 只收集数据，不自动写入外带字段。
+- **已配置**：从 `pluginData` 读取数据，结合 `sources` 识别来源，由用户决定映射和冲突处理。
 
 多个组件需要区分用途时，使用 `useComposer('用途名')`：
 
@@ -12566,7 +12515,9 @@ export function OrderDraftData({ orderId, children }: {
 <details class="dev-guide-details" id="技能引用和建议问题">
 <summary>技能、引用和建议问题怎样加入同一份请求</summary>
 
-技能、引用和建议问题保留各自的 `requestAdapter`，内部通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
+技能相关文档标记为**开发中**，见[技能选择（开发中）](/plugins/skills.md)。
+
+技能由 `conversation.skills` Service 管理 UI 状态，通过 `composer.setData({ id, label })` 交付发送数据；引用和建议问题保留各自的 `requestAdapter`，通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
 
 ```tsx
 <Implementation {...props}
@@ -12578,22 +12529,22 @@ export function OrderDraftData({ orderId, children }: {
 
 上例放在 Composer 应用层；各插件的适配器签名见对应文档：
 
-| 插件                                                                          | 输入                                  | 无适配器时的默认请求                                  |
-| --------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------- |
-| [skills](/plugins/skills.md#自定义发送数据)                                        | 技能项，排除 React icon                   | `skill.ctx → forwardedProps.ctx`，与已有 ctx 合并 |
-| [conversation-quote](/plugins/conversation-quote.md#自定义引用数据)                | `{ text, messageId }`               | Markdown 引用放在正文前                            |
-| [conversation-suggestions](/plugins/conversation-suggestions.md#自定义建议问题的数据) | `{ prompt, title?, label?, data? }` | 发送或填入原有 prompt 文本                           |
+| 插件                                                                          | 输入                                  | 无适配器时的默认请求                                |
+| --------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------- |
+| [skills（开发中）](/plugins/skills.md#自定义发送数据)                                   | `{ id, label }`                     | `forwardedProps.ctx.skill`，保留已有 ctx 的其他字段 |
+| [conversation-quote](/plugins/conversation-quote.md#自定义引用数据)                | `{ text, messageId }`               | Markdown 引用放在正文前                          |
+| [conversation-suggestions](/plugins/conversation-suggestions.md#自定义建议问题的数据) | `{ prompt, title?, label?, data? }` | 发送或填入原有 prompt 文本                         |
 
-配置插件适配器后，默认将返回值放到该插件实例对应的外带字段；引用会取消默认 Markdown 前缀，技能会取消默认运行字段，建议问题保留 prompt 正文。最终 Composer 适配器可以覆盖这些默认选择，也可以返回空的 `forwardedProps`。
+配置插件适配器后，默认将返回值放到该插件实例对应的外带字段；引用会取消默认 Markdown 前缀，建议问题保留 prompt 正文；技能的默认 `ctx.skill` 映射位于生成项目的 `plugins/composer/request-adapter.ts`，用户可以修改。最终 Composer 适配器可以覆盖这些默认选择，也可以返回空的 `forwardedProps`。
 
-技能和引用的数据值为对象或插件返回的 JSON；建议项与 @、/ 的引用型数据为数组。原始技能项不携带 React icon，命令项不携带 execute；所有持久化选择必须是 JSON。`skills-selection` 只显示和移除同一份技能选择，不额外生成一份数据。
+技能和引用的数据值为对象或插件返回的 JSON；建议项与 @、/ 的引用型数据为数组。原始技能项不携带 React icon，命令项不携带 execute；所有持久化选择必须是 JSON。`skills` 在 Composer 的 `triggers` 中提供选择入口，`skills-selection` 在 `beforeInput` 中显示和移除选择，两者共享一份 Composer 状态；Composer 不内置技能展示。发送后的只读标签来自消息元数据。
 
 </details>
 
 <details class="dev-guide-details" id="发送重发与恢复">
 <summary>排队、重试、恢复和刷新后的数据生命周期</summary>
 
-@、/ 在选择时保存原始选中项的 JSON 快照；Composer 的 `requestAdapter({ request, pluginData, selections })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
+@、/ 在选择时保存原始选中项的 JSON 快照；Composer 的 `requestAdapter({ request, pluginData, selections, sources })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
 
 按钮、回车与原生队列共用发送链。提交后清理本次草稿数据，下一条消息不自动继承。队列数据按提交时固定，后续选择、对象修改或切换 Thread 不改变已有快照。编辑重发只带仍存在的引用；重试使用原消息的数据。原生发送配置保持原有生命周期，默认业务参数统一发送到 `forwardedProps.ctx`。
 
@@ -15375,9 +15326,9 @@ url: /development/plugin-interaction.md
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 读取当前消息、共享业务状态、运行或审批状态  | [会话状态 Hook](/development/plugin-api.md#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()`、`useAgentInterrupts()`       |
 | 读取会话列表，或取得指定历史的消息      | [会话服务](/plugins/conversation-service.md)：订阅快照或调用 `loadConversation(id)`，见[独立读取历史](#读取历史不切换聊天)                                      |
-| 结果卡片把文字、引用或附件放进当前输入框   | [Composer](/plugins/composer.md#hook)：`setText()`、`setQuote()`；附件使用 `useConversationComposer().addAttachment(file)`，调用方处理异步失败      |
+| 结果卡片把文字、引用或附件放进当前输入框   | [Composer](/plugins/composer.md#hook)：`setText()`、`setQuote()`；附件使用 `useComposer().addAttachment(file)`，调用方处理异步失败                  |
 | 多个插件共同提供本次发送参数         | 各自调用 [Composer `setData()`](/plugins/composer.md#请求适配)，由现有输入区统一汇总；填入后不自动发送                                                         |
-| 业务插件读取、选择或清除当前技能       | [技能服务](/plugins/skills.md#服务)：`getSnapshot(threadId)`、`select()`、`clear(threadId)`；技能栏和标签使用同一份选择                                   |
+| 业务插件读取、选择或清除当前技能       | [Skills Service（开发中）](/plugins/skills.md#hook)：`conversation.skills` 管理选择与取消；`skills-selection` 订阅同一 Service 显示预览                  |
 | 功能启用时向 `/` 菜单增加业务命令    | [命令注册器](/plugins/conversation-command-source.md#服务)：`register(command)`，停用或卸载时调用返回的注销函数                                            |
 | 消息卡片打开详情侧栏，其他插件跟随当前标签  | [工作台侧栏服务](/plugins/workbench-panel.md#服务方法与状态)：打开、切换、关闭，以及订阅展开状态和可见标签                                                              |
 | 读取已有登录服务的用户资料，或跟随主题、语言 | [账号](/plugins/auth-account.md#hook)、[主题服务](/plugins/theme-provider.md#服务)、[语言服务](/plugins/locale-provider.md#服务)；用户资料只用于展示，不代替接口鉴权 |

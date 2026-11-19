@@ -24,7 +24,22 @@
       "optionalInject": [
         "agent-ui.locale"
       ]
-    }
+    },
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ],
+      [
+        "request-adapter.ts",
+        "adapters/application-request-adapter.ts"
+      ]
+    ]
   },
   {
     "id": "copy-action",
@@ -1708,9 +1723,10 @@
     "support": "pluginSupport",
     "presentation": [
       "skills.tsx",
+      "bar.tsx",
+      "skill-data.ts",
       "service.ts",
-      "use-skills.ts",
-      "bar.tsx"
+      "use-skills.ts"
     ],
     "implementationExports": [
       "ConversationSkillsBar",
@@ -1772,11 +1788,7 @@
         "agent-ui.locale"
       ]
     },
-    "publicPresentationTypes": true,
-    "projectFiles": [
-      "styles.css",
-      "styles.css.d.ts"
-    ]
+    "publicPresentationTypes": true
   },
   {
     "id": "workbench-panel",

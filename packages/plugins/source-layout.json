@@ -1847,12 +1847,6 @@
       "pluginId": "skills-selection"
     },
     {
-      "view": "resources/registry/items/plugin/skills-selection/files/plugins/skills-selection/styles.css",
-      "source": "src/plugins/skills-selection/adapters/project/styles.css",
-      "kind": "project",
-      "pluginId": "skills-selection"
-    },
-    {
       "view": "resources/registry/items/plugin/skills-selection/changelog.json",
       "source": "src/plugins/skills-selection/CHANGELOG.json",
       "kind": "changelog",

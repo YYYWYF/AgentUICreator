@@ -233,14 +233,14 @@
       "path": "plugins/index.md",
       "title": "功能概览",
       "summary": "了解 Agent UI 的界面形态、业务对话、任务协作和结果交付能力。",
-      "sha256": "ec0ee9db66c109606f57bb3fd2f239ba09c88dc3aca75817ed3bb09abbc4c736",
+      "sha256": "ebf487f5df5f17b499aa18b0cac4346926a435e80aa380f18ff9408061093987",
       "sections": [
         {
           "id": "s1",
           "title": "功能概览",
           "level": 1,
           "start": 0,
-          "end": 3723
+          "end": 3753
         },
         {
           "id": "s13",
@@ -289,7 +289,7 @@
           "title": "技能与跨插件组合",
           "level": 2,
           "start": 3549,
-          "end": 3723
+          "end": 3753
         }
       ]
     },
@@ -910,14 +910,14 @@
       "path": "plugins/composer.md",
       "title": "消息输入（composer）",
       "summary": "把正文、附件、引用和业务选择准备为当前会话的一条消息，再通过已有发送入口提交。输入区、发送按钮与业务插件共用草稿和运行状态。",
-      "sha256": "77b0bfa37720d41bf567fbaed74bcc2f9ead037fc9b16142bc3c19b77d06cca1",
+      "sha256": "e04425c2de1cba470c7108b0ff82d955d9b4112b85edefdf8d307266fc522be0",
       "sections": [
         {
           "id": "s1",
           "title": "消息输入（composer）",
           "level": 1,
           "start": 0,
-          "end": 24271
+          "end": 25156
         },
         {
           "id": "s10",
@@ -938,105 +938,105 @@
           "title": "与哪些插件共享输入和发送",
           "level": 2,
           "start": 1040,
-          "end": 2787
+          "end": 3215
         },
         {
-          "id": "s59",
+          "id": "s58",
           "title": "Composer 接受的数据与最终请求",
           "level": 2,
-          "start": 2787,
-          "end": 3663
+          "start": 3215,
+          "end": 4109
         },
         {
-          "id": "s86",
+          "id": "s85",
           "title": "读取本次请求、插件数据和原始选择 \\{#请求适配}",
           "level": 2,
-          "start": 3663,
-          "end": 4612
+          "start": 4109,
+          "end": 5211
         },
         {
-          "id": "s115",
+          "id": "s114",
           "title": "统一组装业务字段",
           "level": 2,
-          "start": 4612,
-          "end": 6414
+          "start": 5211,
+          "end": 7013
         },
         {
-          "id": "s166",
+          "id": "s165",
           "title": "从业务卡片填入问题和参数 \\{#从订单卡片填入问题并携带订单-id}",
           "level": 2,
-          "start": 6414,
-          "end": 7269
+          "start": 7013,
+          "end": 7868
         },
         {
-          "id": "s191",
+          "id": "s190",
           "title": "让其他插件实时跟随草稿 \\{#hook}",
           "level": 2,
-          "start": 7269,
-          "end": 8758
+          "start": 7868,
+          "end": 9209
         },
         {
-          "id": "s232",
+          "id": "s231",
           "title": "自定义发送入口并保留运行保护 \\{#实时显示草稿字数定制发送与停止操作}",
           "level": 2,
-          "start": 8758,
-          "end": 10085
+          "start": 9209,
+          "end": 10323
         },
         {
-          "id": "s263",
+          "id": "s260",
           "title": "提交后的快照、重发与会话切换",
           "level": 2,
-          "start": 10085,
-          "end": 10394
+          "start": 10323,
+          "end": 10632
         },
         {
-          "id": "s271",
+          "id": "s268",
           "title": "调整高度与发送快捷键 \\{#高度和字数限制}",
           "level": 2,
-          "start": 10394,
-          "end": 11059
+          "start": 10632,
+          "end": 11297
         },
         {
-          "id": "s295",
+          "id": "s292",
+          "title": "AG-UI 数据来源 \\{#显示条件与数据来源}",
+          "level": 2,
+          "start": 11297,
+          "end": 11498
+        },
+        {
+          "id": "s296",
           "title": "API",
           "level": 2,
-          "start": 11059,
-          "end": 24271
+          "start": 11498,
+          "end": 25156
         },
         {
-          "id": "s347",
-          "title": "写入与订阅原生草稿",
-          "level": 3,
-          "start": 16496,
-          "end": 19407
-        },
-        {
-          "id": "s376",
+          "id": "s348",
           "title": "响应式草稿控制器",
           "level": 3,
-          "start": 19407,
-          "end": 21773
+          "start": 16935,
+          "end": 22496
         },
         {
-          "id": "s398",
+          "id": "s400",
           "title": "等待审批与补充输入",
           "level": 3,
-          "start": 21773,
-          "end": 22265
+          "start": 22496,
+          "end": 22949
         },
         {
-          "id": "s406",
+          "id": "s408",
           "title": "最终请求适配器",
           "level": 3,
-          "start": 22265,
-          "end": 23171
+          "start": 22949,
+          "end": 24056
         },
         {
-          "id": "s421",
+          "id": "s424",
           "title": "最终请求的主要字段",
           "level": 3,
-          "start": 23171,
-          "end": 24271
+          "start": 24056,
+          "end": 25156
         }
       ]
     },
@@ -1560,72 +1560,86 @@
       "source": "public",
       "topic": "插件",
       "path": "plugins/skills.md",
-      "title": "技能与工作流选择（skills）",
-      "summary": "为本次问题选择一个技能，或显式启动项目工作流。技能栏、当前技能标签和 Composer 已共享选择状态；选中技能不会立即发送，也不需要用户再手动把技能写进草稿。",
-      "sha256": "fe9e3f8331282c21edafd81df76931d0e22190f6e728e8ac337e71bef43656ba",
+      "title": "技能选择（开发中）",
+      "summary": "开发中：技能相关文档仍在完善，接口说明和示例可能调整。 skills 在插件 setup 中提供 conversation.skills Service，保存当前技能选择。skills 插件提供选择栏；独立的 skills-selection 插件显示当前技能标签，发送后由用户消息显示只读标签。两个 UI 插件通过该 Service 共享状态；Composer 只收集待发送的数据和来源。 需要完整技能输入 UI 时，在 Composer 的 triggers 中组合 skills，在 beforeInput 中组合 skills-selection，具体模型见当前技能预览。两个插件均按需添加，",
+      "sha256": "9a1cbf3f553248eded3ee1f79a45120127ea60bcfbd394757dc41a44fee2fa34",
       "sections": [
         {
           "id": "s1",
-          "title": "技能与工作流选择（skills）",
+          "title": "技能选择（开发中）",
           "level": 1,
           "start": 0,
-          "end": 8555
+          "end": 7452
         },
         {
-          "id": "s12",
+          "id": "s16",
           "title": "选择技能后再输入问题",
           "level": 2,
-          "start": 300,
-          "end": 741
+          "start": 607,
+          "end": 1105
         },
         {
-          "id": "s25",
+          "id": "s31",
+          "title": "显示条件与数据来源 \\{#显示条件与数据来源}",
+          "level": 2,
+          "start": 1105,
+          "end": 1209
+        },
+        {
+          "id": "s35",
+          "title": "从业务卡片选择技能 \\{#从业务卡片选择技能}",
+          "level": 2,
+          "start": 1209,
+          "end": 1960
+        },
+        {
+          "id": "s51",
           "title": "交给 Composer 的数据",
           "level": 2,
-          "start": 741,
-          "end": 1640
+          "start": 1960,
+          "end": 2496
         },
         {
-          "id": "s54",
+          "id": "s70",
           "title": "改为后端约定的技能字段 \\{#选择技能后发送业务标识}",
           "level": 2,
-          "start": 1640,
-          "end": 2351
+          "start": 2496,
+          "end": 3766
         },
         {
-          "id": "s75",
-          "title": "技能选择与工作流启动 \\{#同时提供技能和工作流}",
+          "id": "s99",
+          "title": "发送后的消息与历史",
           "level": 2,
-          "start": 2351,
-          "end": 3083
+          "start": 3766,
+          "end": 4320
         },
         {
-          "id": "s95",
-          "title": "共享技能选择 \\{#从业务卡片选择技能}",
+          "id": "s120",
+          "title": "调整快捷入口和标签",
           "level": 2,
-          "start": 3083,
-          "end": 3935
+          "start": 4320,
+          "end": 5136
         },
         {
-          "id": "s118",
-          "title": "快捷技能数量 \\{#调整快捷技能数量}",
-          "level": 2,
-          "start": 3935,
-          "end": 4312
+          "id": "s125",
+          "title": "调整快捷技能数量 \\{#调整快捷技能数量}",
+          "level": 3,
+          "start": 4388,
+          "end": 4687
         },
         {
-          "id": "s134",
+          "id": "s136",
+          "title": "自定义标签",
+          "level": 3,
+          "start": 4687,
+          "end": 5136
+        },
+        {
+          "id": "s145",
           "title": "API",
           "level": 2,
-          "start": 4312,
-          "end": 8555
-        },
-        {
-          "id": "s189",
-          "title": "服务方法 \\{#服务}",
-          "level": 3,
-          "start": 7073,
-          "end": 8555
+          "start": 5136,
+          "end": 7452
         }
       ]
     },
@@ -1634,58 +1648,51 @@
       "source": "public",
       "topic": "插件",
       "path": "plugins/skills-selection.md",
-      "title": "当前技能标签（skills-selection）",
-      "summary": "显示当前 Thread 已选技能，并提供移除入口。技能来自技能栏，标签自动订阅同一份服务；未选择技能时不显示，不需要调用方自己维护第二份选中状态。",
-      "sha256": "e94c114a49c79107acbd94b96f708f71b3e8d7d7d1f62c332deb4e915fec99b8",
+      "title": "当前技能预览（开发中）",
+      "summary": "skills-selection 在输入框内显示当前技能和移除按钮。它与技能选择器是两个独立的 UI 插件，通过 conversation.skills Service 共享选择状态。",
+      "sha256": "adcd584704c1ba1d69a87508c551a39b92da8b3b7846d26d42db49622987f0f9",
       "sections": [
         {
           "id": "s1",
-          "title": "当前技能标签（skills-selection）",
+          "title": "当前技能预览（开发中）",
           "level": 1,
           "start": 0,
-          "end": 3589
+          "end": 2552
         },
         {
           "id": "s12",
-          "title": "与 Composer 联动",
+          "title": "显示条件与数据来源 \\{#显示条件与数据来源}",
           "level": 2,
-          "start": 327,
-          "end": 640
+          "start": 332,
+          "end": 591
         },
         {
-          "id": "s20",
-          "title": "在业务卡片中显示同一份选择 \\{#在其他卡片显示并移除技能}",
+          "id": "s18",
+          "title": "在输入框中显示当前技能",
           "level": 2,
-          "start": 640,
-          "end": 1436
+          "start": 591,
+          "end": 1201
         },
         {
-          "id": "s40",
-          "title": "调整当前技能标签外观 \\{#调整当前技能标签外观}",
+          "id": "s43",
+          "title": "定制预览 \\{#代码示例}",
           "level": 2,
-          "start": 1436,
-          "end": 1886
+          "start": 1201,
+          "end": 1796
         },
         {
           "id": "s58",
-          "title": "禁用技能移除 \\{#禁用技能移除}",
+          "title": "从内置预览迁移",
           "level": 2,
-          "start": 1886,
-          "end": 2309
+          "start": 1796,
+          "end": 2120
         },
         {
-          "id": "s74",
+          "id": "s64",
           "title": "API",
           "level": 2,
-          "start": 2309,
-          "end": 3589
-        },
-        {
-          "id": "s98",
-          "title": "服务方法 \\{#服务}",
-          "level": 3,
-          "start": 3396,
-          "end": 3589
+          "start": 2120,
+          "end": 2552
         }
       ]
     },
@@ -5994,63 +6001,63 @@
       "path": "development/composer-sources.md",
       "title": "提及搜索与快捷命令",
       "summary": "输入 @ 搜索员工、文档等业务对象；输入 / 选择快捷命令。 以下路径以 src/agent-ui/ 为源码目录。使用前先启用 mention-trigger，或 slash-command-trigger 与 conversation-command-source。 先选择你要接入或修改的功能：",
-      "sha256": "bb23ac1dea47e767fce55543db0dae394901c4798b88747f4ee40e9b4fbeafc6",
+      "sha256": "b724eaae7de6eee5c0320b85011cbe2efc6fcdbed6a93bc308e88313f44ccce5",
       "sections": [
         {
           "id": "s1",
           "title": "提及搜索与快捷命令",
           "level": 1,
           "start": 0,
-          "end": 12939
+          "end": 13884
         },
         {
-          "id": "s16",
+          "id": "s23",
           "title": "接入 @ 提及搜索 \\{#-提及搜索}",
           "level": 2,
-          "start": 819,
-          "end": 2127
+          "start": 1003,
+          "end": 2311
         },
         {
-          "id": "s68",
+          "id": "s75",
           "title": "接入 / 快捷命令 \\{#-快捷命令}",
           "level": 2,
-          "start": 2127,
-          "end": 4385
+          "start": 2311,
+          "end": 4749
         },
         {
-          "id": "s139",
+          "id": "s153",
           "title": "可选：改变选中后的草稿内容 \\{#改变选中行为}",
           "level": 2,
-          "start": 4385,
-          "end": 6274
+          "start": 4749,
+          "end": 6848
         },
         {
-          "id": "s203",
+          "id": "s224",
           "title": "可选：把选中对象作为结构化数据发送 \\{#插件提供数据composer-组装请求}",
           "level": 2,
-          "start": 6274,
-          "end": 12779
+          "start": 6848,
+          "end": 13724
         },
         {
-          "id": "s209",
+          "id": "s230",
           "title": "第 1 步：在来源中定义选项数据 \\{#-与--的选项数据}",
           "level": 3,
-          "start": 6543,
-          "end": 7619
+          "start": 7117,
+          "end": 8193
         },
         {
-          "id": "s243",
+          "id": "s264",
           "title": "第 2 步：Composer 组装最终请求 \\{#composer-的-requestadapter决定最终字段}",
           "level": 3,
-          "start": 7619,
-          "end": 12779
+          "start": 8193,
+          "end": 13724
         },
         {
-          "id": "s379",
+          "id": "s403",
           "title": "检查查询与发送结果 \\{#检查查询与发送结果}",
           "level": 2,
-          "start": 12779,
-          "end": 12939
+          "start": 13724,
+          "end": 13884
         }
       ]
     },
@@ -6665,7 +6672,7 @@
       "path": "development/plugin-interaction.md",
       "title": "插件联动与取数",
       "summary": "从插件读取会话、结果和共享数据，并调用输入框、技能、命令与侧栏操作。",
-      "sha256": "55d909ad0f88d501c1ef42044d424d6c9abf63fb1372a8808af14578c06d296b",
+      "sha256": "f1521cd847b1add9cf951ec9ea5c2d63a6bc42f2d358b3023ea67b53f55898fd",
       "sections": [
         {
           "id": "s1",
@@ -7209,91 +7216,91 @@
       "topic": "职责与所有权",
       "summary": "npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。",
       "title": "统一 Plugins 包、内置源码目录与按需源码托管",
-      "sha256": "a64eb3e8379ca3e83b5a9450173675c8103fd3f311756d5feb42511634fdbdb2",
+      "sha256": "b10013602a261c8b93714cbe488ac2bc8c8c8b787770f82ba99c12df8f66d0cc",
       "sections": [
         {
           "id": "s1",
           "title": "统一 Plugins 包、内置源码目录与按需源码托管",
           "level": 1,
           "start": 0,
-          "end": 17695
+          "end": 18677
         },
         {
           "id": "s11",
           "title": "1. 通用基础设施与应用配置",
           "level": 2,
           "start": 763,
-          "end": 6748
+          "end": 7730
         },
         {
-          "id": "s57",
+          "id": "s60",
           "title": "2. 项目外壳",
           "level": 2,
-          "start": 6748,
-          "end": 8221
+          "start": 7730,
+          "end": 9203
         },
         {
-          "id": "s69",
+          "id": "s72",
           "title": "3. 项目应用层",
           "level": 2,
-          "start": 8221,
-          "end": 8746
+          "start": 9203,
+          "end": 9728
         },
         {
-          "id": "s77",
+          "id": "s80",
           "title": "4. Canonical 实现、元数据与构建",
           "level": 2,
-          "start": 8746,
-          "end": 9918
+          "start": 9728,
+          "end": 10900
         },
         {
-          "id": "s97",
+          "id": "s100",
           "title": "5. 应用层的组件配置与 Slot 组合",
           "level": 2,
-          "start": 9918,
-          "end": 11494
+          "start": 10900,
+          "end": 12476
         },
         {
-          "id": "s115",
+          "id": "s118",
           "title": "6. 首次源码接管",
           "level": 2,
-          "start": 11494,
-          "end": 13769
+          "start": 12476,
+          "end": 14751
         },
         {
-          "id": "s145",
+          "id": "s148",
           "title": "7. Ownership、BASE 与来源身份",
           "level": 2,
-          "start": 13769,
-          "end": 14301
+          "start": 14751,
+          "end": 15283
         },
         {
-          "id": "s153",
+          "id": "s156",
           "title": "8. 实现同步与基线采用",
           "level": 2,
-          "start": 14301,
-          "end": 14997
+          "start": 15283,
+          "end": 15979
         },
         {
-          "id": "s165",
+          "id": "s168",
           "title": "9. 默认组合与正式插件",
           "level": 2,
-          "start": 14997,
-          "end": 16059
+          "start": 15979,
+          "end": 17041
         },
         {
-          "id": "s179",
+          "id": "s182",
           "title": "10. 模板与业务示例",
           "level": 2,
-          "start": 16059,
-          "end": 17193
+          "start": 17041,
+          "end": 18175
         },
         {
-          "id": "s192",
+          "id": "s195",
           "title": "11. 验证与当前支持范围",
           "level": 2,
-          "start": 17193,
-          "end": 17695
+          "start": 18175,
+          "end": 18677
         }
       ]
     },
@@ -7304,14 +7311,14 @@
       "topic": "职责与所有权",
       "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。",
       "title": "Conversation Domain 架构",
-      "sha256": "d08deedfc228842175e88ba7a945f747e2b870b7a703268bf9017254413e8b53",
+      "sha256": "93664b7060d04b9f1de343b3d538c69995a86dfb013f8a808f63652ab9f86df2",
       "sections": [
         {
           "id": "s1",
           "title": "Conversation Domain 架构",
           "level": 1,
           "start": 0,
-          "end": 4541
+          "end": 5007
         },
         {
           "id": "s5",
@@ -7339,28 +7346,28 @@
           "title": "Thread 与历史",
           "level": 2,
           "start": 1644,
-          "end": 3136
+          "end": 3602
         },
         {
-          "id": "s49",
+          "id": "s51",
           "title": "Frontend Tool 与 HITL",
           "level": 2,
-          "start": 3136,
-          "end": 3435
+          "start": 3602,
+          "end": 3901
         },
         {
-          "id": "s55",
+          "id": "s57",
           "title": "数据、事件与展示",
           "level": 2,
-          "start": 3435,
-          "end": 4419
+          "start": 3901,
+          "end": 4885
         },
         {
-          "id": "s65",
+          "id": "s67",
           "title": "验证边界",
           "level": 2,
-          "start": 4419,
-          "end": 4541
+          "start": 4885,
+          "end": 5007
         }
       ]
     },
@@ -7459,14 +7466,14 @@
       "topic": "插件开发与组合",
       "summary": "官方插件公开 props、children、组件组合与应用层定制；类型和运行转发核对。",
       "title": "官方插件公开 props 约定与逐项核对",
-      "sha256": "8c2a97bad1c644320df3a966e19e1cce98cb3dc92186bf950cd16d53532e0bc5",
+      "sha256": "dfca429e35e5ee413784e8414c5aefdd0fe9abae325422f99764951a034356f6",
       "sections": [
         {
           "id": "s1",
           "title": "官方插件公开 props 约定与逐项核对",
           "level": 1,
           "start": 0,
-          "end": 5783
+          "end": 5834
         }
       ]
     },

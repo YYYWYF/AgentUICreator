@@ -1,7 +1,7 @@
 {
   "id": "plugin/skills",
   "kind": "agent-component",
-  "description": "Selectable skill shortcuts and explicit workflow launch actions",
+  "description": "Selectable skill shortcuts connected to the conversation composer",
   "files": [
     {
       "source": "files/plugins/skills/definition.ts",

@@ -13,15 +13,27 @@ import { deliveries, portableSource, sourceEntries } from "../scripts/plugin-sou
 const root = fileURLToPath(new URL("../", import.meta.url));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 
-it('publishes skills as an opt-in UI plugin without enabling it in any initialization preset', async () => {
+it('publishes two opt-in skill UI plugins sharing a Skills Service without enabling them in initialization presets', async () => {
   const catalog = JSON.parse(await readFile(path.join(root, 'dist/catalog.json'), 'utf8'));
   const skills = catalog.plugins.find(plugin => plugin.id === 'skills');
   const selection = catalog.plugins.find(plugin => plugin.id === 'skills-selection');
-  expect(skills.application.component).toBe('SkillsPlugin');
-  expect(skills.application.services.provides).toContain('conversation.skills');
   expect(selection.application.component).toBe('SkillsSelectionPlugin');
+  expect(selection.application.hostApplication).toBe(false);
+  expect(deliveries.find(plugin => plugin.id === 'skills-selection').services).toEqual({
+    provides: [], inject: ['conversation.skills'], optionalInject: ['agent-ui.locale'],
+  });
+  expect(selection.takeover.requiredDependencies).toHaveProperty('lucide-react');
+  expect(skills.application.component).toBe('SkillsPlugin');
+  expect(skills.application.services.provides).toEqual(['conversation.skills']);
   expect(skills.takeover.requiredDependencies).toHaveProperty('@base-ui/react');
   expect(skills.takeover.requiredDependencies).toHaveProperty('lucide-react');
+  const composer = catalog.plugins.find(plugin => plugin.id === 'composer');
+  expect(composer.application.files.map(file => file.target)).toContain('request-adapter.ts');
+  expect(composer.takeover.files.some(file => file.target === 'request-adapter.ts')).toBe(false);
+  const adapterFile = composer.application.files.find(file => file.target === 'request-adapter.ts');
+  const adapter = await readFile(path.join(root, 'dist', ...adapterFile.path.split('/')), 'utf8');
+  expect(adapter).toContain("sources[owner]?.pluginId === 'skills'");
+  expect(adapter).toContain('ctx:');
   for (const mode of ['platform', 'assistant', 'embedded']) {
     const presetPath = path.join(root, '../creator/operator/presets', mode, 'app-ui.json');
     let model = JSON.parse(await readFile(presetPath, 'utf8'));

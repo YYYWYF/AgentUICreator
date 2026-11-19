@@ -20,6 +20,9 @@
       ],
       "@za38.03/agent-ui-runtime/*": [
         "../runtime/dist/*"
+      ],
+      "@za38.03/agent-ui-plugins/composer-support": [
+        "./src/composer-support.ts"
       ]
     }
   },

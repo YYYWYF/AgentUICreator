@@ -1,7 +1,7 @@
 {
   "id": "skills",
-  "name": "Skills and Workflows",
-  "description": "Selectable skill shortcuts and explicit workflow launch actions above the conversation input.",
+  "name": "Skill Selection",
+  "description": "Selectable skill shortcuts connected to the conversation composer.",
   "version": "0.0.1",
   "capabilities": [
     "conversation-composer-trigger"
@@ -9,10 +9,9 @@
   "authoring": {
     "intents": [
       "show selectable skills above the composer",
-      "show backend workflow entry points",
-      "添加技能与工作流入口"
+      "添加技能选择入口"
     ],
-    "visualRole": "composer skill selection and workflow launch bar",
+    "visualRole": "composer skill selection bar",
     "defaultPlacement": {
       "type": "plugin_slot",
       "parentPluginId": "composer",

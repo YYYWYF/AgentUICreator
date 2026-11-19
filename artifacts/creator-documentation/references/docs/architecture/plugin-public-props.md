@@ -64,7 +64,7 @@
 | `locale-switch` | 直接整体样式、disabled、options；标识统一用 selectProps.id；使用现有唯一语言服务。 |
 | `ask-user-question` | 接收工具调用数据与整体样式，文案通过 humanQuestion locale；保留问答协议与历史只读。 |
 | `tool-result` | 继承工具详情 API；整体样式作用于完整结果卡片；保留 renderPart、resolveFile、resultOnly。 |
-| `skills` | `items`、`requestAdapter`、`quickItemCount`、`disabled` 及根样式；选择通过 `conversation.skills` 服务与公开 Hook 共享。 |
-| `skills-selection` | 绑定组件保留 `disabled` 与原生 div 属性，排除 children；独立标签组件还接收 `selectedSkill`、`onRemove`。 |
+| `skills` | `items`、`quickItemCount`、`disabled` 及根样式；通过 Service 保存选择，调用通用 `setData({ id, label })` 收集发送数据，默认生成的 Composer 应用层将其映射到 ctx，不暴露 ctx 或局部请求适配器。 |
+| `skills-selection` | `disabled` 和根 `div` 属性；依赖 `conversation.skills` Service，读取选择并通过服务取消，不从 Composer 读取 UI 状态。 |
 | `workbench-panel` | `items`、service、受控展开／选中／可见标签、回调、宽度和根样式；renderMain 提供主区域后备内容，main 插槽优先；关闭时保持内容挂载。 |
 | `workbench-panel-actions` | 仅 `service`、`items` 与兼容的 Runtime 组合参数，不宣称原生 nav／按钮属性。 |

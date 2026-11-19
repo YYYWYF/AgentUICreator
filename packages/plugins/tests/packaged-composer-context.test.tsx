@@ -1,3 +1,4 @@
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
 // @vitest-environment jsdom
 import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
@@ -90,7 +91,7 @@ it('npm and source-owned Composers use the shared data port and forward the fina
     const root = createRoot(container);
     const binding = createEphemeralConversationThreadBinding();
     try {
-      await act(async () => root.render(<ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding}
+      await act(async () => root.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint='http://example.test/agent' threadBinding={binding}
         ctx={{ tenant: 'host' }} unstable_agentFactory={() => new HttpAgent({ url: 'http://example.test/agent', fetch: async (_url, init) => {
           const input = JSON.parse(String(init.body)) as import('@ag-ui/client').RunAgentInput;
           requests.push(input);

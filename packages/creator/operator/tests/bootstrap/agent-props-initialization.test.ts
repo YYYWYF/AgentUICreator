@@ -25,6 +25,11 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  await symlink(path.join(example,'node_modules'),path.join(root,'node_modules'),process.platform==='win32'?'junction':'dir');
  await initializeAgentUIProject({projectRoot:root,mode,sourceRoot:'src/agent-ui'},createAgentUIInitializationHost());
  const source=path.join(root,'src/agent-ui');
+ const composerApplication=await readFile(path.join(source,'plugins/composer/index.tsx'),'utf8');
+ expect(composerApplication).toContain('requestAdapter');
+ const composerRequestAdapter=await readFile(path.join(source,'plugins/composer/request-adapter.ts'),'utf8');
+ expect(composerRequestAdapter).toContain("sources[owner]?.pluginId === 'skills'");
+ expect(composerRequestAdapter).toContain('ctx:');
  expect(JSON.parse(await readFile(path.join(root,'.agent-ui/project.json'),'utf8'))).toEqual({sourceRoot:'src/agent-ui'});
  await expect(lstat(path.join(source,'config.ts'))).rejects.toMatchObject({code:'ENOENT'});
  await expect(lstat(path.join(source,'hooks'))).rejects.toMatchObject({code:'ENOENT'});

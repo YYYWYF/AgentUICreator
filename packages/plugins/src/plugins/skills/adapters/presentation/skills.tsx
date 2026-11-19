@@ -17,7 +17,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Popover } from '@base-ui/react/popover';
-import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
   useAgentUIPortalContainer,
   useAgentUILocale,
@@ -33,12 +32,10 @@ interface SkillEntry {
 }
 export interface ConversationSkill extends SkillEntry {
   kind: 'skill';
-  /** Application-owned request fields, forwarded by the canonical Composer. */
-  ctx?: Readonly<Record<string, ComposerData>>;
 }
 export interface ConversationWorkflow extends SkillEntry {
   kind: 'workflow';
-  /** Only invoked by an explicit click on Start. */
+  /** Invoked by this entry's action button; the application owns the operation. */
   onStart: () => void | Promise<void>;
 }
 export type ConversationSkillItem = ConversationSkill | ConversationWorkflow;

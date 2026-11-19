@@ -94,11 +94,11 @@
         "link": "/plugins/dictation-action.html"
       },
       {
-        "label": "技能与工作流选择",
+        "label": "技能选择（开发中）",
         "link": "/plugins/skills"
       },
       {
-        "label": "当前技能标签",
+        "label": "当前技能预览（开发中）",
         "link": "/plugins/skills-selection"
       }
     ]

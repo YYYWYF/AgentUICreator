@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
@@ -59,7 +60,7 @@ async function mount(source?: ConversationMentionSource, commands: readonly Conv
   };
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
-  const render = () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
+  const render = () => root!.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
     <AgentUIRoot theme="dark"><Capture /><AgentUILocaleProvider locale="en-US" messages={{conversationTriggers:labels}}><PluginInstanceContext.Provider value={custom.sharedScope ? sharedInstance : null}><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer requestAdapter={custom.requestAdapter} autoFocus={false} input={custom.lexical ? <ConversationComposerLexicalInput><CaptureEditor /></ConversationComposerLexicalInput> : undefined} triggers={<>
       {mention && <ConversationComposerMentionTrigger source={source} debounceMs={1} onSelect={custom.mentionSelect} />}
       {slash && <ConversationComposerCommandTrigger source={commandSource} onSelect={custom.commandSelect} />}

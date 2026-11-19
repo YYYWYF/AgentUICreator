@@ -1,10 +1,10 @@
 # 统一 Plugins 包、内置源码目录与按需源码托管
 
-官方 46 个 Plugin 使用唯一无前缀 ID，由一个 `@za38.03/agent-ui-plugins` 包交付运行实现、catalog 和匹配源码快照。准确清单与应用合同来自 `packages/plugins/src/catalog/plugin-delivery.json`，不维护第二份官方身份列表。
+官方 50 个 Plugin 使用唯一无前缀 ID，由一个 `@za38.03/agent-ui-plugins` 包交付运行实现、catalog 和匹配源码快照。准确清单与应用合同来自 `packages/plugins/src/catalog/plugin-delivery.json`，不维护第二份官方身份列表。
 
 六个公开包 Core、Renderer、Runtime、Plugins、Web Component、Creator 独立版本。Creator Agent 位于 `packages/creator/src/agent`，Operator 位于同包 `operator`；用户只安装一个 Creator 开发工具包。Node 目录与源码操作由 Creator `/source-registry`、`/project/*` 提供，生产前端保持独立。见 [TypeScript 发行](../../packages/creator/docs/typescript-distribution.md)。
 
-全部官方插件已支持默认 npm 实现、项目薄应用层、显式确认后的源码接管及独立实现同步。46 个插件的公开展示 props 已按 [统一约定](plugin-public-props.md)核对。
+全部官方插件已支持默认 npm 实现、项目薄应用层、显式确认后的源码接管及独立实现同步。50 个插件的公开展示 props 已按 [统一约定](plugin-public-props.md)核对。
 
 [统一更新中心](unified-update-center.md)支持只读兼容发现、累计/逐版本变更，以及沿用工程 npm/pnpm/Yarn/Bun 和 workspace 工作流的确认安装。源码合并与 BASE 采用单独确认。Creator 不以工程拓扑或兼容建议拒绝操作，不运行安装前/后的产物或工程验证，不自动回滚；用户自行检查结果。
 
@@ -44,9 +44,12 @@ Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runt
 
 输入触发器的通用服务标识、类型和 `createConversationCommandRegistry()` 由 Plugins 的 `/composer-triggers` 公开入口提供，新模板不再生成 `services/composer-triggers.ts`。注册表实例仍在项目插件的 setup 中按服务作用域创建；具体命令、执行回调和提及搜索请求由项目应用层配置。已有项目的同名文件与定制内容保留，不随 npm 升级自动迁移或删除。
 
-@ 与 / 的项目来源直接定义候选项和 JSON 业务数据，不提供触发器级 `requestAdapter`。触发器保留正文引用，通过 Runtime `/plugin-api` 的 `useComposer().setData` 记录原始选中项快照；命令快照排除 `execute`。选中项数据由 Composer 的可选 `requestAdapter({ request, pluginData, selections })` 统一组装到 forwardedProps，正文引用不因结构化参数而自动移除；未配置 Composer 适配器时沿用原有正文引用请求，不自动添加 @、/ 的外带字段。第三方插件复用同一个端口，不引用 Composer 实现。端口按 Thread、插件实例与命名子作用域隔离；引用绑定、原始选择与默认发送开关属于数据生命周期。Composer 返回最终请求后不再合并 forwardedProps。Runtime 提供通用存取、原生 runConfig 提交快照和私有消息元数据绑定，不拥有官方插件业务格式，也不创建第二套消息或队列。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../website/docs/development/composer-sources.md)。
+@ 与 / 的项目来源直接定义候选项和 JSON 业务数据，不提供触发器级 `requestAdapter`。触发器保留正文引用，通过 Plugins 根入口或 `/composer-support` 的 `useComposer().setData` 记录原始选中项快照；命令快照排除 `execute`。选中项数据由 Composer 的可选 `requestAdapter({ request, pluginData, selections })` 统一组装到 forwardedProps，正文引用不因结构化参数而自动移除；未配置 Composer 适配器时沿用原有正文引用请求，不自动添加 @、/ 的外带字段。第三方插件复用同一个端口，不引用 Composer 实现。端口按 Thread、插件实例与命名子作用域隔离；引用绑定、原始选择与默认发送开关属于数据生命周期。Composer 返回最终请求后不再合并 forwardedProps。Composer 能力层拥有选择数据、原生 runConfig 提交快照、私有消息元数据绑定、引用正文转换和最终请求适配；它复用 assistant-ui 的原生消息、队列和编辑生命周期。Runtime 只定义可选的 `ConversationInputController` 接口，按实际 Thread 绑定、清理并调用应用选择的处理器；共享输入端口与会话 DOM 边界 Context 仅提供通用身份，不解释端口数据，不内置任何官方输入插件规则。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../website/docs/development/composer-sources.md)。
 
-技能、引用和建议问题复用同一 `requestAdapter → useComposer().setData → Composer` 链。技能服务只持有选择及本次数据的释放函数，不再直接写原生业务配置。默认技能项使用 ctx，业务参数统一合并到 forwardedProps.ctx；原生配置中携带的业务字段也在最终适配器执行前归入 ctx，不默认输出运行配置字段。通用数据选项可提供默认 forwardedProps、正文前缀和原生引用绑定，保留已有技能字段与引用格式；最终适配器仍拥有完整请求。原生建议动作负责点击、填入、直接发送和排队，数据采集在动作之前执行，按本次写入的释放函数清理，不清除之后的草稿。回复后的建议行使用同一公共组件，可通过 Thread components.FollowupSuggestions 替换；这是应用层组件组合，不增加 AppUIModel Slot 或持久化字段。
+`createDefaultAgentUIPresentation()` 显式选择 Plugins 的 `createComposerInputController`，每个 Agent 创建一份控制器，内部按 Thread 隔离。直接使用底层 `ConversationRuntimeProvider` 时，可通过 `inputControllerFactory={createComposerInputController}` 接入；省略时 Runtime 不创建 Composer 数据能力，也不拼接引用正文。`useComposer`、Composer 数据类型和引用展示／清理 API 由 Plugins 提供，不再从 Runtime `/plugin-api` 导出。已有应用或已接管源码若直接使用这些旧 Runtime 导入，需要显式迁移到 Plugins 公共入口；npm 升级不自动改写项目文件或 BASE。
+
+
+`skills` 在 setup 中提供 `conversation.skills` Service，保存选择、取消并跟随现有 canonical Thread 的切换、发送和重置清理。`skills` 在 `triggers` 提供选择器，`skills-selection` 在 `beforeInput` 展示与移除选择，并声明对该 Service 的硬依赖。隐藏或卸载 UI 组件不销毁 Service；停用整个提供方时清理能力，依赖消费者随之失效。选择通过 `composer.setData({id,label})` 收集，来源的插件 ID、实例 ID 和可选用途名由 Composer 自动记录；不使用具名共享 key 或业务清理配置。普通 setData 只收集数据，不自动添加业务外带字段。新生成项目的 `plugins/composer/request-adapter.ts` 根据 `sources` 识别 skills 数据，默认生成 `forwardedProps.ctx.skill` 并保留 Host 其他字段；该文件属于项目应用层，用户可修改或删除映射，npm 升级和源码同步不覆盖它，最终返回后不补回默认字段。技能类型、解析及公开消息元数据转换属于 `skills`；默认 Presentation 显式接入通用消息数据适配接口，保持 `metadata.custom.skill`、请求 `metadata.skill` 与 LangChain `additional_kwargs.metadata.skill` 的持久化约定。Composer 冻结数据和来源，处理排队、编辑、重试与恢复，不解释技能对象。两个插件按需添加，不默认加入初始化预设。既有工程需要显式迁移调用、服务声明与请求映射，npm 升级不改写 AppUIModel、应用层、已接管源码或 BASE。
 
 服务相关 Hook 统一放在 `services/hooks/`，其下不再按会话、认证拆分子目录，作为项目拥有的 React 访问层。服务契约和实现不反向导入 Hook；插件内部交互 Hook 仍属于对应插件。新模板不创建根级 `hooks/` 目录，已有工程的旧路径与定制文件不自动搬迁或删除。
 

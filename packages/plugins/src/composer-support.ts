@@ -3,7 +3,6 @@
  */
 export { useAgentUILocale } from "./locale.js";
 export { ComposerHostConfigContext, ComposerInputHostContext } from "./internal/composer-input-host-context.js";
-export { useConversationComposerAwaitingReply, useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
 export { ComposerAttachments } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
 export { TooltipIconButton } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 export { ComposerPrimitive, QueueItemPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
@@ -16,4 +15,13 @@ export type ConversationComposerInputProps = Omit<
 export type ConversationComposerRootProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Root>;
 export type ConversationComposerDropzoneProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.AttachmentDropzone>;
 
-export { useComposer, useComposerRequestAdapter, type ComposerRequestAdapter, type ComposerRequestAdapterInput, type ComposerData } from "@za38.03/agent-ui-runtime/plugin-api";
+export { useComposer, type ComposerController, type ComposerState, type ComposerAttachment, type ComposerMessageDataAdapter, type ComposerRequestAdapter, type ComposerRequestAdapterInput, type ComposerData, type ComposerDataSource } from "./composer-data/request.js";
+export { readComposerMessageData } from './composer-data/message-data.js';
+
+export { createComposerInputController } from './composer-data/input-controller.js';
+export { ConversationComposerDataContext } from './composer-data/request.js';
+export type { ComposerDataOptions } from './composer-data/request.js';
+export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from './internal/quote-lifecycle.js';
+
+export { useConversationComposerAwaitingReply, useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
+export { useComposerRequestAdapter } from "./internal/composer-request-adapter.js";

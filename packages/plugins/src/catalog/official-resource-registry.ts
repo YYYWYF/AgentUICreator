@@ -43,8 +43,8 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 }
 
 const productResourceRegistry = createOfficialResourceRegistry([
-  { id: "skills-selection", discoverable: true, label: "已选技能", implementation: { type: "plugin", pluginId: "skills-selection", slot: "beforeInput" } },
-  { id: "skills", discoverable: true, label: "技能与工作流", implementation: { type: "plugin", pluginId: "skills", slot: "triggers" } },
+  { id: "skills", discoverable: true, label: "技能选择", implementation: { type: "plugin", pluginId: "skills", slot: "triggers" } },
+  { id: "skills-selection", discoverable: true, label: "当前技能", implementation: { type: "plugin", pluginId: "skills-selection", slot: "beforeInput" } },
   { id: "transient-assistant-messages", discoverable: true, label: "临时消息", implementation: { type: "plugin", pluginId: "transient-assistant-messages", slot: "transientMessages" } },
   { id: "composer", label: "Composer", discoverable: true, implementation: { type: "plugin", pluginId: "composer", slot: "composer" } },
   { id: "web-component-bridge", kind: "compatibility", targets: ["vue", "legacy", "html"], discoverable: true, label: "Web Component Compatibility", implementation: { type: "source", sourceItemId: "integration/web-component-bridge" } },

@@ -435,9 +435,9 @@ export interface ConversationSuggestionRequestItem {
   prompt: string;
   title?: string | undefined;
   label?: string | undefined;
-  data?: import('@za38.03/agent-ui-runtime/plugin-api').ComposerData | undefined;
+  data?: import('./composer-support.js').ComposerData | undefined;
 }
-export type ConversationSuggestionRequestAdapter = (item: ConversationSuggestionRequestItem) => import('@za38.03/agent-ui-runtime/plugin-api').ComposerData;
+export type ConversationSuggestionRequestAdapter = (item: ConversationSuggestionRequestItem) => import('./composer-support.js').ComposerData;
 
 export interface ConversationSuggestionProps
   extends Omit<ComponentProps<"button">, "children"> {
@@ -1456,15 +1456,17 @@ export { createDefaultAgentUIPresentation } from "./presentation.js";
 export { ConversationSkills } from "./plugins/skills/adapters/presentation/skills.js";
 export type { ConversationSkillsProps, ConversationSkillItem, ConversationSkill, ConversationWorkflow } from "./plugins/skills/adapters/presentation/skills.js";
 export { ConversationSkillsBar } from "./plugins/skills/adapters/presentation/bar.js";
-export { useConversationComposerRunConfig } from '@za38.03/agent-ui-runtime/plugin-api';
 export type { ConversationSkillsPluginProps } from "./plugins/skills/adapters/presentation/bar.js";
-export { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from "./plugins/skills/adapters/presentation/service.js";
-export type { ConversationSkillsService, ConversationSkillComposerBinding, ConversationSkillRequestAdapter, ConversationSkillRequestItem } from "./plugins/skills/adapters/presentation/service.js";
-export { useConversationSkillsState } from "./plugins/skills/adapters/presentation/use-skills.js";
+export { readConversationSkillData } from './plugins/skills/adapters/presentation/skill-data.js';
+export type { ConversationSkillData } from './plugins/skills/adapters/presentation/skill-data.js';
+export { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from './plugins/skills/adapters/presentation/service.js';
+export type { ConversationSkillsService, ConversationSkillComposerBinding, ConversationSkillsLifecycle } from './plugins/skills/adapters/presentation/service.js';
+export { useConversationSkillsState } from './plugins/skills/adapters/presentation/use-skills.js';
 export { ConversationSkillSelection } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export type { ConversationSkillSelectionProps } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export { ConversationSkillsSelection } from "./plugins/skills-selection/adapters/presentation/binding.js";
 export type { ConversationSkillsSelectionPluginProps } from "./plugins/skills-selection/adapters/presentation/binding.js";
+export { ConversationMessageSkill } from "./internal/composer-skill.js";
 
 export { WorkbenchPanel } from './plugins/workbench-panel/adapters/presentation/workbench-panel.js';
 export type { WorkbenchPanelProps, WorkbenchPanelItem } from './plugins/workbench-panel/adapters/presentation/workbench-panel.js';
@@ -1473,10 +1475,17 @@ export type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './plugins/wo
 export { WorkbenchPanelActions } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
 export type { WorkbenchPanelActionsProps } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
 
-export { useComposer, useComposerRequestAdapter, type ComposerData, type ComposerDataOptions, type ComposerRequestAdapter, type ComposerRequestAdapterInput } from "@za38.03/agent-ui-runtime/plugin-api";
+export { useComposer, readComposerMessageData, type ComposerController, type ComposerState, type ComposerAttachment, type ComposerMessageDataAdapter, type ComposerData, type ComposerDataSource, type ComposerDataOptions, type ComposerRequestAdapter, type ComposerRequestAdapterInput } from "./composer-support.js";
+export { createComposerInputController } from "./composer-support.js";
 
 
 import { ThreadFollowupSuggestions as InternalFollowupSuggestions } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
 export function ConversationFollowupSuggestions(props: { requestAdapter?: ConversationSuggestionRequestAdapter | undefined } = {}): ReactElement {
   return <InternalFollowupSuggestions {...props} />;
 }
+
+import { useComposerRequestAdapter as useInternalComposerRequestAdapter } from "./internal/composer-request-adapter.js";
+export function useComposerRequestAdapter(adapter: import('./composer-support.js').ComposerRequestAdapter | undefined): void {
+  useInternalComposerRequestAdapter(adapter);
+}
+export { useConversationComposerRunConfig } from "@za38.03/agent-ui-runtime/plugin-api";

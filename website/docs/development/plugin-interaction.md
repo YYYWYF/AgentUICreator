@@ -13,9 +13,9 @@ description: 从插件读取会话、结果和共享数据，并调用输入框�
 | --- | --- |
 | 读取当前消息、共享业务状态、运行或审批状态 | [会话状态 Hook](./plugin-api#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()`、`useAgentInterrupts()` |
 | 读取会话列表，或取得指定历史的消息 | [会话服务](/plugins/conversation-service)：订阅快照或调用 `loadConversation(id)`，见[独立读取历史](#读取历史不切换聊天) |
-| 结果卡片把文字、引用或附件放进当前输入框 | [Composer](/plugins/composer#hook)：`setText()`、`setQuote()`；附件使用 `useConversationComposer().addAttachment(file)`，调用方处理异步失败 |
+| 结果卡片把文字、引用或附件放进当前输入框 | [Composer](/plugins/composer#hook)：`setText()`、`setQuote()`；附件使用 `useComposer().addAttachment(file)`，调用方处理异步失败 |
 | 多个插件共同提供本次发送参数 | 各自调用 [Composer `setData()`](/plugins/composer#请求适配)，由现有输入区统一汇总；填入后不自动发送 |
-| 业务插件读取、选择或清除当前技能 | [技能服务](/plugins/skills#服务)：`getSnapshot(threadId)`、`select()`、`clear(threadId)`；技能栏和标签使用同一份选择 |
+| 业务插件读取、选择或清除当前技能 | [Skills Service（开发中）](/plugins/skills#hook)：`conversation.skills` 管理选择与取消；`skills-selection` 订阅同一 Service 显示预览 |
 | 功能启用时向 `/` 菜单增加业务命令 | [命令注册器](/plugins/conversation-command-source#服务)：`register(command)`，停用或卸载时调用返回的注销函数 |
 | 消息卡片打开详情侧栏，其他插件跟随当前标签 | [工作台侧栏服务](/plugins/workbench-panel#服务方法与状态)：打开、切换、关闭，以及订阅展开状态和可见标签 |
 | 读取已有登录服务的用户资料，或跟随主题、语言 | [账号](/plugins/auth-account#hook)、[主题服务](/plugins/theme-provider#服务)、[语言服务](/plugins/locale-provider#服务)；用户资料只用于展示，不代替接口鉴权 |

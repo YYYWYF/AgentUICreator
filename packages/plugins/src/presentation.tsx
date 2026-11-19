@@ -1,4 +1,6 @@
 import type { AgentUIPresentation } from "@za38.03/agent-ui-runtime/presentation";
+import { createComposerInputController } from './composer-data/input-controller.js';
+import { skillsMessageDataAdapter } from './plugins/skills/adapters/presentation/skill-data.js';
 import {
   ConversationSurface,
   ConversationWelcome,
@@ -22,6 +24,7 @@ import {
 /** Project-owned composition selects these defaults; Runtime imports no Plugin. */
 export function createDefaultAgentUIPresentation(): AgentUIPresentation {
   return {
+    createInputController: () => createComposerInputController({ messageData: skillsMessageDataAdapter }),
     Surface: (props) => (
       <ConversationSurface
         {...props}

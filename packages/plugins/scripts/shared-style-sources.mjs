@@ -14,7 +14,9 @@ export const sharedStyleSources = [
   "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
   "./internal/vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
   "./internal/conversation-question-flow.tsx", "./internal/conversation-composer-triggers.tsx",
-  "./internal/conversation-quote.tsx", "./internal/composer-input-host-context.tsx",
+  "./internal/composer-skill.tsx", "./internal/conversation-quote.tsx", "./internal/composer-input-host-context.tsx",
+  // Sent skill badges use the same pure presentation even without the preview Plugin.
+  "./plugins/skills-selection/adapters/presentation/selection.tsx",
   // The application shell does not import a Plugin utility bundle. Its sidebar,
   // narrow-container Sheet and Tooltip primitives must ship in the base CSS.
   "./internal/sidebar-frame.tsx",

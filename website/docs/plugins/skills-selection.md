@@ -1,112 +1,79 @@
 ---
-title: "当前技能标签（skills-selection）"
+title: "当前技能预览（开发中）"
 ---
 
-# 当前技能标签（skills-selection）
+# 当前技能预览（开发中）
+
+`skills-selection` 在输入框内显示当前技能和移除按钮。它与[技能选择器](./skills)是两个独立的 UI 插件，通过 `conversation.skills` Service 共享选择状态。
 
 <figure className="plugin-preview">
 
-<img src="/images/plugins/features/skills-selection.png" alt="当前技能界面" width="672" height="77" />
+<img src="/images/plugins/features/skills-selection.png" alt="输入框内的当前技能标签" width="672" height="77" />
 
-<figcaption>资料研究技能已选中；点击移除会同步清除当前技能与待发送参数。</figcaption>
+<figcaption>点击移除取消技能，保留正文、引用和附件。</figcaption>
 </figure>
 
-显示当前 Thread 已选技能，并提供移除入口。技能来自[技能栏](./skills)，标签自动订阅同一份服务；未选择技能时不显示，不需要调用方自己维护第二份选中状态。
+## 显示条件与数据来源 {#显示条件与数据来源}
 
-## 与 Composer 联动
+数据来自 `useConversationSkillsState().selected`，不依赖后端事件。当前 Thread 有技能选择时显示标签；没有选择时不占用内容空间。运行状态及项目的 `disabled` 控制移除按钮。
 
-这个插件不向 `pluginData` 或 `selections` 再写一份数据。数据属于发起选择的技能入口，完整格式见[技能交给 Composer 的数据](./skills#交给-composer-的数据)。
+该插件声明 `inject: ['conversation.skills']`，依赖 `skills` 在 setup 中提供的服务。它只负责读取选择和调用 Service 取消选择，不从 Composer 读取 UI 状态。
 
-需要改变整体请求结构时，仍由 [Composer 最终适配器](./composer#请求适配)处理。
+## 在输入框中显示当前技能
 
-点击移除会调用当前 Thread 的技能服务清理，下一次发送便不再携带该技能参数；正文、附件及其他插件选择保留。已提交快照不受移除影响。技能栏选中别的技能时标签同步更新；发送、切换会话或技能失效后的清理同样由共享服务处理。
+<span id="启用与使用"></span>
 
-## 在业务卡片中显示同一份选择 {#在其他卡片显示并移除技能}
+需要选择器和预览时，在现有 Composer 实例中组合两个插件：
 
-下面是独立展示组件的接法：既订阅当前选择，也把移除交回同一服务。组件与服务位于同一 Agent，并声明 `conversation.skills` 依赖。
-
-```tsx
-import {
-  ConversationSkillSelection, CONVERSATION_SKILLS_SERVICE,
-  usePluginService, useConversationSkillsState, type ConversationSkillsService,
-} from '@za38.03/agent-ui-plugins';
-
-export function SharedSkillChip() {
-  const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
-  const { selected, threadId, disabled } = useConversationSkillsState(service);
-  return <ConversationSkillSelection selectedSkill={selected} disabled={disabled}
-    onRemove={() => service?.clear(threadId)} />;
+```json
+{
+  "id": "composer-main",
+  "pluginId": "composer",
+  "slots": {
+    "triggers": [
+      { "id": "skills-main", "pluginId": "skills" }
+    ],
+    "beforeInput": [
+      { "id": "skills-preview", "pluginId": "skills-selection" }
+    ]
+  }
 }
 ```
 
-业务卡片只需要读选择时，直接使用 `useConversationSkillsState(service)` 的 `selected`；不调用 `setData()`，也不重复创建技能服务。完整选择与清理方法见 [skills 服务](./skills#服务)。
+这是 AppUIModel 的局部片段；保留现有实例、引用插件和其他子插槽。通过正常的插件应用层生成流程添加两个本地 definition，不直接覆盖已有模型。两个插件均为按需启用，不默认加入初始化预设。
 
-## 调整当前技能标签外观 {#调整当前技能标签外观}
+隐藏、停用或移除预览只影响展示，当前技能仍可发送。隐藏或卸载选择器组件不会清空已有选择；停用整个 `skills` 插件会销毁 Service，预览也随依赖失效停用。点击移除按钮调用 `service.clear(threadId)`。发送、排队、重试和历史恢复由现有 Composer 数据能力处理，用户消息中的只读技能标签不依赖此输入区插件。
 
-<span id="example-1"></span>
+## 定制预览 {#代码示例}
 
-selectedSkill 与 onRemove 继续使用原有服务绑定，标签只改变展示。
+在 `plugins/skills-selection/index.tsx` 中向已有实现传 props：
 
 ```tsx
+import { SkillsSelectionPlugin as Implementation } from '@za38.03/agent-ui-plugins/skills-selection';
 import type { ComponentProps } from 'react';
-import { ConversationSkillSelection } from '@za38.03/agent-ui-plugins';
 
-export function Example(props: ComponentProps<typeof ConversationSkillSelection>) {
-  return <ConversationSkillSelection {...props}
-    style={{ ...props.style, maxWidth: 240 }} />;
+export function SkillsSelectionPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props} className="project-skill-preview" />;
 }
 ```
 
-<span id="example-2"></span>
+可通过公开组件 `ConversationSkillsSelection` 组合默认预览；完全替换展示时，使用 `useConversationSkillsState()` 读取 `selected` 并调用 `service.clear(threadId)`，保持同一份 Service 状态。组件和样式调整先在项目应用层完成；确需修改内部实现时，仅接管 `skills-selection`。
 
-## 禁用技能移除 {#禁用技能移除}
+## 从内置预览迁移
 
-业务处于不可修改的状态时，disabled 控制标签的移除操作。
+此前依赖 Composer 自动显示技能的项目，需要显式添加 `skills-selection`。原来使用 Composer `skillPreview` 的定制移到这个插件的应用层，或组合进通用 `beforeInput` 内容。npm 升级不会自动改写 AppUIModel、项目应用层、已接管源码或 BASE。
 
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationSkillSelection } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof ConversationSkillSelection>) {
-  return <ConversationSkillSelection {...props}
-    disabled={true} />;
-}
-```
-
-`disabled` 禁止用户移除，不会清除已选技能或把它从请求中排除。要取消技能对本次发送的影响，使用同一个服务的 `clear(threadId)`。
+既有技能 UI 状态读取与取消操作需迁移到 `conversation.skills` Service。Composer 不提供专用 `setSkill`，也不提供具名共享数据键。既有 Composer 应用层还需显式接入本地 `request-adapter.ts`；包升级不会自动覆盖项目代码。
 
 ## API
 
 <span id="属性"></span>
-<span id="开发-api"></span>
 
-`ConversationSkillsSelection` 从已有服务读取选择并处理移除，`disabled?: boolean` 用于禁止移除；它继承 `div` 属性。需要自己提供选择和回调时，使用下表中的 `ConversationSkillSelection`。
+`ConversationSkillsSelection` 使用 `ConversationSkillsSelectionPluginProps`：
 
-插件不接受 `children`。需要完全不同的标签结构时，在项目组件中读取选择状态并组合自己的展示。
-
-自定义其他插件的展示时可使用 `ConversationSkillSelection` 与 `ConversationSkillSelectionProps`：
-
-| 属性 | 类型 | 默认行为 |
+| 属性 | 类型 | 作用 |
 | --- | --- | --- |
-| `selectedSkill?` | `ConversationSkill \| null` | 缺少时不渲染 |
-| `onRemove?` | `() => void` | 点击移除时调用 |
-| `disabled?` | `boolean` | 禁用移除按钮 |
-| `className?` / `style?` | `string` / `CSSProperties` | 根容器样式，继承其他 `div` 属性 |
+| `disabled?` | `boolean` | 禁用移除按钮，不清空技能 |
+| `className?`、`style?` | 原生属性 | 调整预览根元素 |
 
-技能类型来自根入口，字段见 [skills 属性](./skills#属性)。
-
-<span id="hook"></span>
-
-业务卡片和技能栏要显示同一份选择时，通过 [skills 的 `useConversationSkillsState(service)`](./skills#hook) 订阅当前 Thread，使用返回的 `selected` 显示标签、`threadId` 清除对应选择、`disabled` 控制移除入口。[技能标签与移除](#在其他卡片显示并移除技能)同时保留这三项绑定。
-
-### 服务方法 {#服务}
-
-依赖 `conversation.skills`，不另行提供服务；方法与类型见 [skills](./skills#服务)。
-
-<span id="代码示例"></span>
-
-<span id="常见需求"></span>
-
-<span id="当前技能"></span>
-
-<span id="技能标签与移除"></span>
+其余非 `children` 的 `div` 属性透传。`selectedSkill` 和 `onRemove` 由绑定组件管理；独立展示组件 `ConversationSkillSelection` 额外提供这两个属性。

@@ -34,6 +34,9 @@
       ],
       "@za38.03/agent-ui-runtime/ui/*": [
         "../runtime/src/ui/*"
+      ],
+      "@za38.03/agent-ui-plugins/composer-support": [
+        "./src/composer-support.ts"
       ]
     },
     "resolveJsonModule": true

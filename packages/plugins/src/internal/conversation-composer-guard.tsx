@@ -1,10 +1,10 @@
 "use client";
 
-import {useConversationComposerGuardState} from "@za38.03/agent-ui-runtime/plugin-api";
+import {ConversationComposerGuardContext} from "@za38.03/agent-ui-runtime/plugin-api";
 export {ConversationComposerGuardProvider,useConversationComposerAwaitingReply} from "@za38.03/agent-ui-runtime/plugin-api";
 
 
-import { useCallback, useLayoutEffect } from "react";
+import { useCallback, useContext, useLayoutEffect } from "react";
 import { useAui } from "@assistant-ui/react";
 import { useAgentUILocale } from "../locale.js";
 import { useOptionalTransientMessageContext } from "./conversation-transient-messages.js";
@@ -15,7 +15,7 @@ const reminders = new WeakMap<object, Map<string, { interruptKey: string; messag
 
 /** Returns true when the attempted send was handled locally; never clears the draft. */
 export function useConversationComposerSendGuard() {
-  const { awaitingReply, interruptKey } = useConversationComposerGuardState();
+  const { awaitingReply, interruptKey } = useContext(ConversationComposerGuardContext);
   const context = useOptionalTransientMessageContext();
   useLayoutEffect(() => { if (context && !awaitingReply) reminders.get(context.service)?.delete(context.conversationId); }, [context?.service, context?.conversationId, awaitingReply]);
   const messages = useAgentUILocale("composer");

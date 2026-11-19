@@ -1,7 +1,7 @@
 {
   "id": "skills-selection",
   "name": "Selected Skill",
-  "description": "Shows the current thread's selected skill through the Composer beforeInput Slot.",
+  "description": "Shows and clears the shared Skills selection through the beforeInput Slot.",
   "version": "0.0.1",
   "capabilities": ["conversation-composer-before-input"],
   "authoring": {

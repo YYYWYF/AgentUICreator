@@ -291,11 +291,6 @@
       "import": "./dist/skills/index.js",
       "default": "./dist/skills/index.js"
     },
-    "./skills-selection": {
-      "types": "./dist/skills-selection/index.d.ts",
-      "import": "./dist/skills-selection/index.js",
-      "default": "./dist/skills-selection/index.js"
-    },
     "./workbench-panel": {
       "types": "./dist/workbench-panel/index.d.ts",
       "import": "./dist/workbench-panel/index.js",
@@ -309,6 +304,10 @@
     "./composer-triggers": {
       "types": "./dist/composer-triggers.d.ts",
       "import": "./dist/composer-triggers.js"
+    },
+    "./skills-selection": {
+      "types": "./dist/skills-selection/index.d.ts",
+      "import": "./dist/skills-selection/index.js"
     }
   },
   "files": [
@@ -961,9 +960,6 @@
       "skills": [
         "./dist/skills/index.d.ts"
       ],
-      "skills-selection": [
-        "./dist/skills-selection/index.d.ts"
-      ],
       "workbench-panel": [
         "./dist/workbench-panel/index.d.ts"
       ],
@@ -972,6 +968,9 @@
       ],
       "composer-triggers": [
         "./dist/composer-triggers.d.ts"
+      ],
+      "skills-selection": [
+        "./dist/skills-selection/index.d.ts"
       ]
     }
   }

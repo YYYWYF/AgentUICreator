@@ -23,4 +23,4 @@ export function InternalConversationQuoteSelectionToolbar({ quoteLabel }: { quot
   if (disabled || root === null) return null;
   return <SelectionToolbar.Root><SelectionToolbar.Quote><QuoteIcon className="size-3.5" />{quoteLabel}</SelectionToolbar.Quote></SelectionToolbar.Root>;
 }
-export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from "@za38.03/agent-ui-runtime/plugin-api";
+export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from "./quote-lifecycle.js";

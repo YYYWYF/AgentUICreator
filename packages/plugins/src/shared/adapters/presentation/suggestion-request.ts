@@ -1,6 +1,7 @@
 import { useContext, useState, type MouseEvent } from 'react';
 import { snapshotAgentUIContext } from '@za38.03/agent-ui-core';
-import { ConversationComposerDataContext, PluginInstanceContext, useComposer, type ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
+import { PluginInstanceContext } from '@za38.03/agent-ui-runtime/plugin-api';
+import { ConversationComposerDataContext, useComposer, type ComposerData } from '@za38.03/agent-ui-plugins/composer-support';
 import type { ConversationSuggestionRequestItem, ConversationSuggestionRequestAdapter } from '../../../public.js';
 
 /** Native Suggestion primitives still own insertion, disabled state and queueing. */

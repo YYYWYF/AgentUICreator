@@ -1,4 +1,4 @@
-import { Middleware, type AbstractAgent, type RunAgentInput } from "@ag-ui/client";
+import type { RunAgentInput } from "@ag-ui/client";
 import type { ThreadMessage } from "@assistant-ui/react";
 
 /** Only the outgoing copy changes. Quote ownership remains with assistant-ui. */
@@ -24,25 +24,4 @@ export function injectConversationQuoteContext(input: RunAgentInput, snapshot: r
     };
   });
   return changed ? { ...input, messages } : input;
-}
-
-/** Public AG-UI middleware wraps the real agent without a second lifecycle. */
-export class ConversationQuoteContextAgent extends Middleware {
-  constructor(public getMessages: () => readonly ThreadMessage[]) { super(); }
-  override run(input: RunAgentInput, next: AbstractAgent): ReturnType<AbstractAgent["run"]> {
-    return next.run(injectConversationQuoteContext(input, this.getMessages()));
-  }
-}
-
-const installed = new WeakMap<AbstractAgent, ConversationQuoteContextAgent>();
-/** Agent factories may reuse an instance across provider renders. Never stack injection. */
-export function installConversationQuoteContext(agent: AbstractAgent, getMessages: () => readonly ThreadMessage[]): AbstractAgent {
-  const existing = installed.get(agent);
-  if (existing !== undefined) {
-    existing.getMessages = getMessages;
-    return agent;
-  }
-  const wrapper = new ConversationQuoteContextAgent(getMessages);
-  installed.set(agent, wrapper);
-  return agent.use(wrapper);
 }

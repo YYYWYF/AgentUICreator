@@ -75,6 +75,9 @@ await copyFile(
   path.join(distRoot, "THIRD_PARTY_NOTICES.md"),
 );
 await cp(path.join(sourceRoot, "theme"), path.join(distRoot, "theme"), { recursive: true, filter: (source) => !source.endsWith(".ts") });
+// The opt-in Composer support API retains its inferred native method signatures.
+// Implementation-only declarations stay private and are removed below.
+const composerDataDeclaration = await readFile(path.join(distRoot, "composer-data/request.d.ts"), "utf8");
 await removeInternalDeclarations(distRoot);
 
 await cp(path.join(sourceRoot, "internal/vendor-generated/assistant-ui/generative-ui"), path.join(distRoot, "internal/vendor-generated/assistant-ui/generative-ui"), { recursive: true, filter: source => !source.endsWith(".tsx") });
@@ -94,11 +97,17 @@ export type ConversationComposerRootProps = ComponentProps<typeof import("@assis
 export type ConversationComposerDropzoneProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.AttachmentDropzone>;
 export const ComposerHostConfigContext: Context<{ autoFocus: boolean }>;
 export const ComposerInputHostContext: Context<{ variant: "primary" | "message-edit"; placeholder: string; inputAriaLabel: string; autoFocus: boolean | undefined } | null>;
+export { createComposerInputController } from "./composer-data/input-controller.js";
+export function readComposerMessageData(metadata: unknown): Readonly<Record<string, ComposerData>>;
+export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from "./internal/quote-lifecycle.js";
 export function useConversationComposerAwaitingReply(): boolean;
 export function useConversationComposerSendGuard(): () => boolean;
+export function useComposerRequestAdapter(adapter: ComposerRequestAdapter | undefined): void;
 export const ComposerAttachments: FC;
 export const TooltipIconButton: FC<ComponentProps<"button"> & { tooltip: string }>;
 `);
+
+await appendFile(path.join(distRoot, "composer-support.d.ts"), composerDataDeclaration.replace(/^\/\/# sourceMappingURL=.*$/gmu, ""));
 
 // Opt-in source support declarations reference installed public dependencies only.
 await writeFile(path.join(distRoot, "plugin-support.d.ts"), `import type { ComponentProps, FC } from "react";

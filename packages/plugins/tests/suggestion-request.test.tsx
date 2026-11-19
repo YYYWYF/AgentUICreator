@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
 import { act, useLayoutEffect, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { AuiIf, AssistantRuntimeProvider, useLocalRuntime, useAui, type AssistantRuntime } from '@assistant-ui/react';
-import { ConversationComposerDataContext } from '@za38.03/agent-ui-runtime/plugin-api';
-import { ConversationRequestPartsRuntime } from '../../runtime/src/conversation-support/conversation-request-parts';
+import { ConversationComposerDataContext } from '../src/composer-data/request.js';
+import { ConversationRequestPartsRuntime } from '../src/composer-data/request-parts.js';
 import { HttpAgent, type RunAgentInput } from '@ag-ui/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from '@za38.03/agent-ui-runtime';
@@ -39,7 +40,7 @@ async function fixture(options: { items?: readonly ConversationSuggestionItem[];
   } });
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement('div'); document.body.append(host); root = createRoot(host);
-  await act(async () => root!.render(<ConversationRuntimeProvider endpoint='http://example.test/agent' threadBinding={binding}
+  await act(async () => root!.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint='http://example.test/agent' threadBinding={binding}
     unstable_agentFactory={factory} enableMessageQueue ctx={{ host: true }}
     {...(options.dynamic ? { suggestions: [{ title: 'Dynamic title', prompt: 'Dynamic question', label: 'Dynamic label' }] } : {})}>
     <AgentUIRoot theme="dark"><AgentUILocaleProvider locale='en-US'><Capture />

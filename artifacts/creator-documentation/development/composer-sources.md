@@ -2,6 +2,13 @@
 
 输入 `@` 搜索员工、文档等业务对象；输入 `/` 选择快捷命令。
 
+<figure className="plugin-preview">
+
+![输入 @产品 后显示文档候选列表](/images/plugins/mention-trigger.png)
+
+<figcaption>@ 搜索把来源返回的 label 和 description 显示为候选；此时仍在查询，还没有选中引用。</figcaption>
+</figure>
+
 以下路径以 `src/agent-ui/` 为源码目录。使用前先启用 `mention-trigger`，或 `slash-command-trigger` 与 `conversation-command-source`。
 
 **先选择你要接入或修改的功能：**
@@ -66,6 +73,13 @@ export const source: ConversationMentionSource = {
 </details>
 
 ## 接入 / 快捷命令 \{#-快捷命令}
+
+<figure className="plugin-preview">
+
+![输入斜杠后出现新建会话和总结对话菜单](/images/plugins/slash-command-trigger.png)
+
+<figcaption>/ 菜单可以同时包含页面动作和待发送指令。选中后的行为由条目的 mode 决定。</figcaption>
+</figure>
 
 **第 1 步：填写命令列表请求。**
 
@@ -154,6 +168,13 @@ return [{
 - `/ action` 默认只调用 `execute()`，触发器不自动发送消息。
 
 后端按项目约定解析引用。
+
+<figure className="plugin-preview">
+
+![引用标记在 Lexical 输入中显示为提及和命令标签](/images/plugins/lexical-composer-input.png)
+
+<figcaption>启用 Lexical 输入后，引用标记显示为“@产品说明文档”和“/总结对话”标签。普通输入框直接显示上表中的标记文本。</figcaption>
+</figure>
 
 <details class="dev-guide-details" id="在项目中替换选中行为">
 <summary>用 onSelect 替换默认引用文字或动作</summary>
@@ -285,13 +306,14 @@ return [{
 
 上例发送完整选中项；如果后端只需要其中的 `data` 或其他字段，在同一个 Composer 回调中收窄并提取即可。@ 与 / 在 `pluginData` 中也提供相同的原始选中项数组。
 
-`requestAdapter({ request, pluginData, selections })` 同步返回完整的 AG-UI 请求：
+`requestAdapter({ request, pluginData, selections, sources })` 同步返回完整的 AG-UI 请求：
 
-| 输入           | 内容                                              |
-| ------------ | ----------------------------------------------- |
-| `request`    | 默认组装好的请求，包括已有的 `forwardedProps`、正文、附件与 Context。 |
-| `pluginData` | 按插件实例 ID 分组的数据；引用型选择是数组，普通 `setData` 保留传入值。     |
-| `selections` | 按同一身份分组的原始选中对象数组；可与格式化结果分别使用。                   |
+| 输入           | 内容                                                |
+| ------------ | ------------------------------------------------- |
+| `request`    | 默认组装好的请求，包括已有的 `forwardedProps`、正文、附件与 Context。   |
+| `pluginData` | 按插件实例 ID 分组的数据；引用型选择是数组，普通 `setData` 保留传入值。       |
+| `selections` | 按同一身份分组的原始选中对象数组；可与格式化结果分别使用。                     |
+| `sources`    | 自动记录的插件 ID、实例 ID 和可选用途名；与 `pluginData` 使用相同的所有者键。 |
 
 返回值就是最终请求，之后不再合并或补写 `forwardedProps`。用户可以任意重排、删除、改名，也可以返回 `forwardedProps: {}`。需要保留默认字段时，检查 `request.forwardedProps` 是对象后显式展开；其他请求字段通常用 `...request` 保留。AG-UI 的标准字段仍须满足协议类型。
 
@@ -324,8 +346,8 @@ export function OrderDraftData({ orderId, children }: {
 
 请求冲突按是否配置适配器处理：
 
-- **未配置**：默认写入 `forwardedProps[插件实例ID]`，与已有字段同名时会报错。
-- **已配置**：`request` 保留同名的已有字段；从 `pluginData` 读取插件数据，由用户处理冲突。
+- **未配置**：普通 `setData(value)` 只收集数据，不自动写入外带字段。
+- **已配置**：从 `pluginData` 读取数据，结合 `sources` 识别来源，由用户决定映射和冲突处理。
 
 多个组件需要区分用途时，使用 `useComposer('用途名')`：
 
@@ -339,7 +361,9 @@ export function OrderDraftData({ orderId, children }: {
 <details class="dev-guide-details" id="技能引用和建议问题">
 <summary>技能、引用和建议问题怎样加入同一份请求</summary>
 
-技能、引用和建议问题保留各自的 `requestAdapter`，内部通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
+技能相关文档标记为**开发中**，见[技能选择（开发中）](/plugins/skills.md)。
+
+技能由 `conversation.skills` Service 管理 UI 状态，通过 `composer.setData({ id, label })` 交付发送数据；引用和建议问题保留各自的 `requestAdapter`，通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
 
 ```tsx
 <Implementation {...props}
@@ -351,22 +375,22 @@ export function OrderDraftData({ orderId, children }: {
 
 上例放在 Composer 应用层；各插件的适配器签名见对应文档：
 
-| 插件                                                                          | 输入                                  | 无适配器时的默认请求                                  |
-| --------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------- |
-| [skills](/plugins/skills.md#自定义发送数据)                                        | 技能项，排除 React icon                   | `skill.ctx → forwardedProps.ctx`，与已有 ctx 合并 |
-| [conversation-quote](/plugins/conversation-quote.md#自定义引用数据)                | `{ text, messageId }`               | Markdown 引用放在正文前                            |
-| [conversation-suggestions](/plugins/conversation-suggestions.md#自定义建议问题的数据) | `{ prompt, title?, label?, data? }` | 发送或填入原有 prompt 文本                           |
+| 插件                                                                          | 输入                                  | 无适配器时的默认请求                                |
+| --------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------- |
+| [skills（开发中）](/plugins/skills.md#自定义发送数据)                                   | `{ id, label }`                     | `forwardedProps.ctx.skill`，保留已有 ctx 的其他字段 |
+| [conversation-quote](/plugins/conversation-quote.md#自定义引用数据)                | `{ text, messageId }`               | Markdown 引用放在正文前                          |
+| [conversation-suggestions](/plugins/conversation-suggestions.md#自定义建议问题的数据) | `{ prompt, title?, label?, data? }` | 发送或填入原有 prompt 文本                         |
 
-配置插件适配器后，默认将返回值放到该插件实例对应的外带字段；引用会取消默认 Markdown 前缀，技能会取消默认运行字段，建议问题保留 prompt 正文。最终 Composer 适配器可以覆盖这些默认选择，也可以返回空的 `forwardedProps`。
+配置插件适配器后，默认将返回值放到该插件实例对应的外带字段；引用会取消默认 Markdown 前缀，建议问题保留 prompt 正文；技能的默认 `ctx.skill` 映射位于生成项目的 `plugins/composer/request-adapter.ts`，用户可以修改。最终 Composer 适配器可以覆盖这些默认选择，也可以返回空的 `forwardedProps`。
 
-技能和引用的数据值为对象或插件返回的 JSON；建议项与 @、/ 的引用型数据为数组。原始技能项不携带 React icon，命令项不携带 execute；所有持久化选择必须是 JSON。`skills-selection` 只显示和移除同一份技能选择，不额外生成一份数据。
+技能和引用的数据值为对象或插件返回的 JSON；建议项与 @、/ 的引用型数据为数组。原始技能项不携带 React icon，命令项不携带 execute；所有持久化选择必须是 JSON。`skills` 在 Composer 的 `triggers` 中提供选择入口，`skills-selection` 在 `beforeInput` 中显示和移除选择，两者共享一份 Composer 状态；Composer 不内置技能展示。发送后的只读标签来自消息元数据。
 
 </details>
 
 <details class="dev-guide-details" id="发送重发与恢复">
 <summary>排队、重试、恢复和刷新后的数据生命周期</summary>
 
-@、/ 在选择时保存原始选中项的 JSON 快照；Composer 的 `requestAdapter({ request, pluginData, selections })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
+@、/ 在选择时保存原始选中项的 JSON 快照；Composer 的 `requestAdapter({ request, pluginData, selections, sources })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
 
 按钮、回车与原生队列共用发送链。提交后清理本次草稿数据，下一条消息不自动继承。队列数据按提交时固定，后续选择、对象修改或切换 Thread 不改变已有快照。编辑重发只带仍存在的引用；重试使用原消息的数据。原生发送配置保持原有生命周期，默认业务参数统一发送到 `forwardedProps.ctx`。
 
