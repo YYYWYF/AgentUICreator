@@ -25,13 +25,12 @@ Connect or change business services in project-owned implementation code:
   { format: 'langchain', messages }. Writes resolve without a value or throw.
   Import canonical types from Plugins /conversation-service. Generated project
   code uses TypeScript types and focused checks for unknown responses, without
-  Zod schemas, schema.parse calls or a direct Zod dependency. Do not
-  introduce HTTP-only state.values.messages DTOs or automatic backend-envelope
-  detection. Map backend-specific formats explicitly inside the project methods.
+  Zod schemas, schema.parse calls or a direct Zod dependency. Do not introduce
+  automatic backend-envelope detection. Map backend-specific formats explicitly
+  inside the project methods.
   Preserve the agreed backend response: returnCode/errorMsg/body, list items in
   body.conversations with thread_id/title/last_message_time, and details in
-  body.max_message_checkpoint.values.messages (channel_values is the storage-field
-  fallback; values takes precedence). The generated project methods explicitly map
+  body.max_message_checkpoint.channel_values.messages. The generated project methods explicitly map
   this response to the service contract. Do not replace the backend format with
   the internal { id, title, history } object or ask the backend to migrate.
   Each Agent binds an independent endpoint and request transport. Preserve preview

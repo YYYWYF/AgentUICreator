@@ -20,7 +20,7 @@ const backendDetail = {
   returnCode: 'SUC0000', errorMsg: null,
   body: {
     thread_id: detail.id, title: detail.title,
-    max_message_checkpoint: { values: { messages: detail.history.messages } },
+    max_message_checkpoint: { channel_values: { messages: detail.history.messages } },
     agentState: detail.agentState,
   },
 };
@@ -74,7 +74,7 @@ it('rejects HTTP errors, invalid results and a mismatched conversation', async (
     .mockResolvedValueOnce(new Response(null, { status: 403 }))
     .mockResolvedValueOnce(Response.json({ conversations: [] }))
     .mockResolvedValueOnce(Response.json({ ...backendDetail, body: { ...backendDetail.body, thread_id: 'other' } }))
-    .mockResolvedValueOnce(Response.json({ ...backendDetail, body: { ...backendDetail.body, max_message_checkpoint: { values: { messages: 'invalid' } } } }));
+    .mockResolvedValueOnce(Response.json({ ...backendDetail, body: { ...backendDetail.body, max_message_checkpoint: { channel_values: { messages: 'invalid' } } } }));
   const source = createConversationDataSource({ endpoint: '/api', fetch });
   await expect(source.delete('id')).rejects.toThrow('403');
   await expect(source.list()).rejects.toThrow();
@@ -117,15 +117,16 @@ it('preserves tool and multimodal message fields when converting the backend res
     { id: 'result', type: 'tool', content: 'Result', tool_call_id: 'tool-1' },
   ];
   const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
-    ...backendDetail, body: { ...backendDetail.body, max_message_checkpoint: { values: { messages } } },
+    ...backendDetail, body: { ...backendDetail.body, max_message_checkpoint: { channel_values: { messages } } },
   }));
   expect((await createConversationDataSource({ endpoint: '/api', fetch }).get(detail.id)).history.messages).toEqual(messages);
 });
 
 it.each([
   { channel_values: { messages: detail.history.messages } },
-  { values: { messages: detail.history.messages }, channel_values: { messages: [] } },
-])('restores messages from checkpoint values with storage-field fallback', async checkpoint => {
+  { channel_values: { messages: detail.history.messages }, values: { messages: [] } },
+  { channel_values: { messages: detail.history.messages }, values: null },
+])('restores messages only from checkpoint channel_values', async checkpoint => {
   const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
     returnCode: 'SUC0000', body: { thread_id: detail.id, max_message_checkpoint: checkpoint },
   }));
@@ -137,7 +138,7 @@ it.each([
 it('restores an empty history without inferring agentState from checkpoint business fields', async () => {
   const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
     returnCode: 'SUC0000', body: {
-      thread_id: detail.id, max_message_checkpoint: { values: { selected: 'business state' } },
+      thread_id: detail.id, max_message_checkpoint: { channel_values: { selected: 'business state' } },
     },
   }));
   expect(await createConversationDataSource({ endpoint: '/api', fetch }).get(detail.id)).toEqual({
@@ -154,8 +155,10 @@ it.each(['list', 'get'] as const)('rejects backend business errors in %s even wi
 });
 
 it.each([
-  {}, { values: null, channel_values: { messages: [] } }, { values: { messages: null } },
-  { values: {}, tasks: 'invalid' },
+  {}, { values: { messages: detail.history.messages } },
+  { channel_values: null, values: { messages: detail.history.messages } },
+  { channel_values: { messages: null }, values: { messages: detail.history.messages } },
+  { channel_values: {}, tasks: 'invalid' },
 ])('rejects invalid checkpoints instead of silently returning empty history', async checkpoint => {
   const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
     returnCode: 'SUC0000', body: { thread_id: detail.id, max_message_checkpoint: checkpoint },

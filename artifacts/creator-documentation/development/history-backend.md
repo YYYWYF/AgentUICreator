@@ -375,7 +375,7 @@ export function AssistantPage() {
   "body": {
     "thread_id": "thread-123",
     "max_message_checkpoint": {
-      "values": {
+      "channel_values": {
         "messages": [
           { "id": "user-1", "type": "human", "content": "订单到了吗？" },
           { "id": "answer-1", "type": "ai", "content": "订单正在配送。" }
@@ -391,7 +391,7 @@ export function AssistantPage() {
 历史响应字段按以下规则处理：
 
 - **身份与标题**：`body.thread_id` 必须与请求的会话 ID 一致；`body.title` 可选，缺少时使用 `thread_id`。
-- **消息来源**：从 `max_message_checkpoint.values.messages` 读取；也接受存储字段 `channel_values`，两者同时存在时优先使用 `values`。
+- **消息来源**：从 `max_message_checkpoint.channel_values.messages` 读取。
 - **顺序与空值**：消息按时间排列；空会话的 `messages` 可省略或返回 `[]`，消息 ID 应保持稳定。
 
 项目 `get()` 将上述响应转换为 `{ id, title, history: { format: 'langchain', messages } }`。可选的 `body.agentState` 必须由后端显式返回，项目方法会透传它，不从 checkpoint 的业务字段推断。`start_time`、`total_checkpoints` 等统计字段不参与消息恢复。

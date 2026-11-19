@@ -5764,14 +5764,14 @@
       "path": "development/history-backend.md",
       "title": "接入历史会话服务",
       "summary": "本页说明如何让会话列表和聊天记录使用你的业务后端。聊天记录由后端保存，前端负责读取和展示。 先按现有项目选择一种接入方式，完成对应一节即可： 前两种方式的文件位于 src/agent-ui/ 下；源码目录不同时替换这个前缀。三种方式都保留 conversation-data-source 和 conversation-service 插件启用。 只想调整打开方式或列表按钮，直接看会话行为配置。需要核对字段时，再查阅末尾的数据格式参考。",
-      "sha256": "017fda070254df152f3782c68dfbc4753be14acbf903c01cfa43e47beebee32f",
+      "sha256": "e3cdceb6606d2ffe86392533f118a0fcea5be5463519d1b904c1e1963787e0d8",
       "sections": [
         {
           "id": "s1",
           "title": "接入历史会话服务",
           "level": 1,
           "start": 0,
-          "end": 13670
+          "end": 13640
         },
         {
           "id": "s17",
@@ -5820,7 +5820,7 @@
           "title": "参考：返回格式与默认接口 \\{#数据格式参考}",
           "level": 2,
           "start": 9595,
-          "end": 13670
+          "end": 13640
         }
       ]
     },

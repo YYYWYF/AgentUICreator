@@ -113,15 +113,13 @@ export function createConversationDataSource({
         throw new Error('CONVERSATION_CHECKPOINT_INVALID');
       }
       if (checkpoint.tasks !== undefined) readArray(checkpoint.tasks);
-      const values = readObject(
-        checkpoint.values === undefined ? checkpoint.channel_values : checkpoint.values,
-      );
+      const channelValues = readObject(checkpoint.channel_values);
       return {
         id: threadId,
         title,
         history: {
           format: 'langchain',
-          messages: values.messages === undefined ? [] : readArray(values.messages),
+          messages: channelValues.messages === undefined ? [] : readArray(channelValues.messages),
         },
         ...(body.agentState === undefined ? {} : { agentState: body.agentState }),
       };

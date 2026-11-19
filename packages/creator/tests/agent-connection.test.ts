@@ -159,7 +159,7 @@ describe("workspace Agent connection", () => {
     } });
     expect(await (await fetch(`${history}/mock-history-basic`, { headers })).json()).toMatchObject({
       returnCode: 'SUC0000', body: {
-        thread_id: 'mock-history-basic', max_message_checkpoint: { values: { messages: expect.any(Array) } },
+        thread_id: 'mock-history-basic', max_message_checkpoint: { channel_values: { messages: expect.any(Array) } },
       },
     });
     await store.save({ activeSource: "connected", endpoint: "http://localhost:8000/agent" });

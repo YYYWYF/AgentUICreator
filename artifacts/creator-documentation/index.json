@@ -10,12 +10,12 @@
     "@za38.03/agent-ui-web-component": "0.0.11",
     "@za38.03/agent-ui-creator": "0.0.11"
   },
-  "sourceDigest": "d7042d71bd8dd1f478795f51abbd7ca8d62786533acf0c6f9e6cc1d0274a10f2",
+  "sourceDigest": "1d22e6041e70442fb83754ee8675328555e7964e6653cd3daa6fc54b1cf5dfbe",
   "files": [
     {
       "path": "agent-index.json",
       "bytes": 245462,
-      "sha256": "9d5b7ad842edc6904863d7888a6327dac95225c8ba3e5ed62a0cef1ebaa13e05"
+      "sha256": "30af4b4d72623bd445c5080d952f22dd77cc3c45371df3fce8ec15e53af263c6"
     },
     {
       "path": "creator-index.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "development/history-backend.md",
-      "bytes": 20032,
-      "sha256": "017fda070254df152f3782c68dfbc4753be14acbf903c01cfa43e47beebee32f"
+      "bytes": 19962,
+      "sha256": "e3cdceb6606d2ffe86392533f118a0fcea5be5463519d1b904c1e1963787e0d8"
     },
     {
       "path": "development/index.md",
@@ -284,8 +284,8 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 1056292,
-      "sha256": "2c9f66bde7ae89f0e49b7fa7dbbaf1de008402eb39482d1ee37bdb3e44657c3d"
+      "bytes": 1056222,
+      "sha256": "18da9be24e5ba4afd90ebbbf53d216a39f1d892b85a260b95d82d183245bb139"
     },
     {
       "path": "llms.txt",

@@ -207,7 +207,7 @@ export function createMockConversationApiHandler({
         returnCode: 'SUC0000', errorMsg: null,
         body: {
           thread_id: id, title: summaries.get(id)?.title ?? detail.title,
-          max_message_checkpoint: { values: { messages: detail.history.messages } },
+          max_message_checkpoint: { channel_values: { messages: detail.history.messages } },
           ...('agentState' in detail && detail.agentState !== undefined ? { agentState: detail.agentState } : {}),
         },
       });

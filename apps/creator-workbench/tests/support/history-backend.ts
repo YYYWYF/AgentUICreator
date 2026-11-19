@@ -27,7 +27,7 @@ export function historyDetailResponse(detail: {
     returnCode: 'SUC0000', errorMsg: null,
     body: {
       thread_id: detail.id, title: detail.title,
-      max_message_checkpoint: { values: { messages: detail.history.messages } },
+      max_message_checkpoint: { channel_values: { messages: detail.history.messages } },
     },
   };
 }
