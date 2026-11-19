@@ -1,5 +1,5 @@
-import { createComposerInputController } from '../src/composer-data/input-controller.js';
 // @vitest-environment jsdom
+import { createComposerInputController } from '../src/composer-data/input-controller.js';
 import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { AssistantRuntimeProvider, useLocalRuntime } from "@assistant-ui/react";
@@ -8,6 +8,63 @@ import { AgentUILocaleProvider, ConversationCanonicalComposer } from "../dist/in
 import { ConversationComposerLexicalInput } from "../dist/lexical.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+it('exports only the unified Composer Hook from every public support entry', async () => {
+  const entries = await Promise.all([
+    import('../dist/index.js'), import('../dist/composer-support.js'), import('../dist/plugin-support.js'),
+    import('../../runtime/dist/plugin-api/index.js'),
+  ]);
+  for (const entry of entries) for (const name of [
+    'useComposerSkill', 'useComposerRequestAdapter', 'useConversationComposerRunConfig',
+    'useConversationComposerAwaitingReply', 'useConversationComposerGuardState', 'useConversationComposerSendGuard',
+  ]) expect(Object.hasOwn(entry, name), name).toBe(false);
+  expect(entries[0].useComposer).toBe(entries[1].useComposer);
+});
+
+it('shares waiting state, snapshot subscriptions and protected submission with npm and source-owned Composers', async () => {
+  const { ConversationComposerGuardProvider, AgentUIRoot, useComposer } = await import('../dist/index.js');
+  const { ConversationComposerPlugin: NpmComposer } = await import('../dist/composer/index.js');
+  const { ConversationComposerPlugin: SourceComposer } = await import('../dist/sources/takeover/composer/index');
+  for (const Composer of [NpmComposer, SourceComposer]) {
+    let composer!: ReturnType<typeof useComposer>;
+    let runs = 0;
+    function Capture() { composer = useComposer(); return <output>{String(composer.awaitingReply)}</output>; }
+    function Host({ awaitingReply }: { awaitingReply: boolean }) {
+      const runtime = useLocalRuntime({ async *run() { runs++; yield { content: [{ type: 'text' as const, text: 'Done' }] }; } });
+      return <AssistantRuntimeProvider runtime={runtime}><AgentUIRoot theme='violet'><AgentUILocaleProvider locale='en-US'>
+        <ConversationComposerGuardProvider awaitingReply={awaitingReply} interruptKey='pending-question'>
+          <Capture /><Composer renderSlot={(_name, fallback) => fallback} renderScopedSlot={(_name, _scope, fallback) => fallback} autoFocus={false} />
+        </ConversationComposerGuardProvider>
+      </AgentUILocaleProvider></AgentUIRoot></AssistantRuntimeProvider>;
+    }
+    const container = document.createElement('div'); document.body.append(container);
+    const root = createRoot(container);
+    let unsubscribe = () => {};
+    try {
+      await act(async () => root.render(<Host awaitingReply={false} />));
+      const first = composer;
+      const notifications: boolean[] = [];
+      unsubscribe = composer.subscribe(() => notifications.push(composer.getState().awaitingReply));
+      await act(async () => composer.setText('Keep this draft'));
+      await act(async () => root.render(<Host awaitingReply />));
+      expect(composer).toBe(first);
+      expect(container.querySelector('output')?.textContent).toBe('true');
+      expect(composer.getState()).toMatchObject({ awaitingReply: true, interruptKey: 'pending-question' });
+      expect(notifications).toContain(true);
+      await act(async () => container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
+      await act(async () => composer.send());
+      expect(runs).toBe(0);
+      expect(composer.text).toBe('Keep this draft');
+      notifications.length = 0;
+      await act(async () => root.render(<Host awaitingReply={false} />));
+      expect(composer.awaitingReply).toBe(false);
+      expect(composer.getState().interruptKey).toBe('');
+      expect(notifications).toContain(false);
+      await act(async () => composer.send());
+      expect(runs).toBe(1);
+    } finally { unsubscribe(); await act(async () => root.unmount()); container.remove(); }
+  }
+});
+
 it("published Lexical uses the shared Composer host Context, including custom labels", async () => {
   function Host() {
     const runtime = useLocalRuntime({ async *run() { yield { content: [{ type: "text" as const, text: "done" }] }; } });

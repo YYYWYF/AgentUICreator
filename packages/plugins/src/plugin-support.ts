@@ -51,5 +51,3 @@ export { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, convers
 export { detectTrigger, type TriggerMatch } from "./internal/trigger-matcher.js";
 export { serializeConversationDirective } from "./internal/composer-trigger-utils.js";
 export type { ConversationMentionTriggerProps, ConversationCommandTriggerProps } from "./internal/composer-trigger-types.js";
-
-export { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";

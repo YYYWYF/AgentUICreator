@@ -13,16 +13,15 @@ import {
   TooltipIconButton,
   useAgentUILocale,
   useAuiEvent,
-  useConversationComposerAwaitingReply,
-  useConversationComposerSendGuard,
   XIcon,
-  useComposerRequestAdapter,
+  useComposer,
   type ComposerRequestAdapter,
 } from '../../../../composer-support.js';
 
 import { useContext, useState, type FC, type ReactNode } from 'react';
 
 import { ComposerTextareaInput } from './textarea.js';
+import { useComposerRequestAdapter } from '../../../../internal/composer-request-adapter.js';
 
 function ComposerAttachmentError() {
   const messages = useAgentUILocale();
@@ -145,8 +144,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   };
   const inheritedHostConfig = useContext(ComposerHostConfigContext);
   const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
-  const awaitingReply = useConversationComposerAwaitingReply();
-  const guardSend = useConversationComposerSendGuard();
+  const composer = useComposer();
 
   return (
     <ComposerPrimitive.Unstable_TriggerPopoverRoot>
@@ -155,8 +153,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
         className={['aui-composer-root relative flex w-full flex-col', rootProps.className].filter(Boolean).join(' ')}
         onSubmit={(event) => {
           rootProps?.onSubmit?.(event);
-          if (guardSend()) {
+          if (composer.awaitingReply) {
             event.preventDefault();
+            composer.send();
           }
         }}
       >
@@ -183,7 +182,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
                 onKeyDownCapture={(event) => {
                   // Only guard the primary input; sibling Slot controls keep their keyboard behavior.
                   if (
-                    awaitingReply &&
+                    composer.awaitingReply &&
                     event.key === 'Enter' &&
                     !event.shiftKey &&
                     !event.nativeEvent.isComposing &&
@@ -191,7 +190,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
                   ) {
                     event.preventDefault();
                     event.stopPropagation();
-                    guardSend();
+                    composer.send();
                   }
                 }}
               >

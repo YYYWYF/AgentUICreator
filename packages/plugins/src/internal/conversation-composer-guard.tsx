@@ -1,7 +1,7 @@
 "use client";
 
 import {ConversationComposerGuardContext} from "@za38.03/agent-ui-runtime/plugin-api";
-export {ConversationComposerGuardProvider,useConversationComposerAwaitingReply} from "@za38.03/agent-ui-runtime/plugin-api";
+export {ConversationComposerGuardProvider} from "@za38.03/agent-ui-runtime/plugin-api";
 
 
 import { useCallback, useContext, useLayoutEffect } from "react";

@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { HttpAgent } from "@ag-ui/client";
 import { useAui, type AssistantRuntime, type AttachmentAdapter } from "@assistant-ui/react";
-import { AgentUIRoot, AgentUILocaleProvider, ConversationThread, ConversationTransientMessages, ConversationCanonicalComposer, ConversationComposerSend, ConversationComposerQuotePreview, useConversationComposer } from "@za38.03/agent-ui-plugins";
+import { AgentUIRoot, AgentUILocaleProvider, ConversationThread, ConversationTransientMessages, ConversationCanonicalComposer, ConversationComposerSend, ConversationComposerQuotePreview, useComposer } from "@za38.03/agent-ui-plugins";
 import { ConversationComposerLexicalInput } from "@za38.03/agent-ui-plugins/lexical";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ConversationRuntimeProvider } from "../../runtime/src/ConversationRuntimeProvider.js";
@@ -47,13 +47,13 @@ describe("product Composer pending interrupt policy", () => {
     } });
     let native!: AssistantRuntime;
     let bridge!: ConversationRuntimeBridge;
-    let composer!: ReturnType<typeof useConversationComposer>;
+    let composer!: ReturnType<typeof useComposer>;
     let slotEnterCount = 0;
     let slotClickCount = 0;
     function Capture() {
       native = useAui().threads.__internal_getAssistantRuntime!();
       bridge = useConversationRuntimeBridge();
-      composer = useConversationComposer();
+      composer = useComposer();
       return null;
     }
     const container = document.createElement("div");

@@ -77,7 +77,6 @@ export function useConversationTransientMessages(): Pick<ConversationTransientMe
 export function ConversationTransientMessageProvider(props: { service: ConversationTransientMessageService; conversationId: string; children: ReactNode }): ReactElement {
   return <InternalTransientMessageProvider {...props} />;
 }
-import { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
 import { ConversationComposerGuardProvider as InternalComposerGuardProvider } from "./internal/conversation-composer-guard.js";
 import { ConversationCommandDecisionProvider as InternalCommandDecisionProvider } from "./internal/conversation-command-decisions.js";
 export function ConversationComposerGuardProvider(props: { awaitingReply: boolean; interruptKey?: string | undefined; children: ReactNode }): ReactElement {
@@ -370,61 +369,6 @@ export { ConversationCanonicalComposer, type ConversationCanonicalComposerProps 
 /** Canonical textarea fallback for optional Composer input Slots. */
 export function ConversationComposerTextareaInput(props: ConversationComposerInputProps = {}) {
   return <InternalComposerTextareaInput {...props} />;
-}
-
-export interface ConversationComposerAttachment {
-  readonly id: string;
-  readonly name: string;
-}
-
-/** State and actions for adapting a project-owned Composer view to the active Thread. */
-export interface ConversationComposerController {
-  readonly text: string;
-  readonly attachments: readonly ConversationComposerAttachment[];
-  readonly attachmentAccept: string;
-  readonly attachmentsEnabled: boolean;
-  readonly isRunning: boolean;
-  readonly disabled: boolean;
-  readonly canSend: boolean;
-  readonly canCancel: boolean;
-  setText(text: string): void;
-  send(): void;
-  cancel(): void;
-  addAttachment(file: File): Promise<void>;
-  removeAttachment(id: string): Promise<void>;
-}
-
-/** Connect a custom Composer UI to the existing assistant-ui Thread Composer. */
-export function useConversationComposer(): ConversationComposerController {
-  const guardSend = useConversationComposerSendGuard();
-  const runtime = useAui();
-  const text = useInternalConversationState((state) => state.composer.text);
-  const sourceAttachments = useInternalConversationState((state) => state.composer.attachments);
-  const attachmentAccept = useInternalConversationState((state) => state.composer.attachmentAccept);
-  const attachmentsEnabled = useInternalConversationState((state) => state.thread.capabilities.attachments);
-  const isRunning = useInternalConversationState((state) => state.thread.isRunning);
-  const disabled = useInternalConversationState((state) =>
-    state.thread.isDisabled || state.composer.dictation?.inputDisabled === true,
-  );
-  const canSend = useInternalConversationState((state) =>
-    state.composer.canSend && (!state.thread.isRunning || state.thread.capabilities.queue),
-  );
-  const canCancel = useInternalConversationState((state) => state.composer.canCancel);
-  const attachments = useMemo(
-    () => sourceAttachments.map(({ id, name }) => ({ id, name })),
-    [sourceAttachments],
-  );
-  const actions = useMemo(() => ({
-    setText: (value: string) => runtime.composer.setText(value),
-    send: () => { if (!guardSend()) runtime.composer.send(); },
-    cancel: () => runtime.composer.cancel(),
-    addAttachment: (file: File) => runtime.composer.addAttachment(file),
-    removeAttachment: (id: string) => runtime.composer.attachment({ id }).remove(),
-  }), [runtime, guardSend]);
-  return {
-    text, attachments, attachmentAccept, attachmentsEnabled,
-    isRunning, disabled, canSend, canCancel, ...actions,
-  };
 }
 
 export { ConversationComposerAddAttachment, type ConversationComposerAddAttachmentProps } from "./plugins/add-attachment-action/adapters/presentation/add-attachment-action.js";
@@ -1483,9 +1427,3 @@ import { ThreadFollowupSuggestions as InternalFollowupSuggestions } from "./inte
 export function ConversationFollowupSuggestions(props: { requestAdapter?: ConversationSuggestionRequestAdapter | undefined } = {}): ReactElement {
   return <InternalFollowupSuggestions {...props} />;
 }
-
-import { useComposerRequestAdapter as useInternalComposerRequestAdapter } from "./internal/composer-request-adapter.js";
-export function useComposerRequestAdapter(adapter: import('./composer-support.js').ComposerRequestAdapter | undefined): void {
-  useInternalComposerRequestAdapter(adapter);
-}
-export { useConversationComposerRunConfig } from "@za38.03/agent-ui-runtime/plugin-api";

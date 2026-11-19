@@ -10,9 +10,9 @@ import {
   TooltipIconButton,
   useAgentUILocale,
   useAuiState,
-  useConversationComposerSendGuard,
   useOptionalAgentUI,
 } from '../../../../plugin-support.js';
+import { useComposer } from '../../../../composer-support.js';
 export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip' | 'children'> & {
   icon?: ReactNode;
 } & {
@@ -30,7 +30,7 @@ export function ConversationComposerSend({ endpoint, onSendError, ...props }: Co
 }
 function CurrentComposerSend({ icon, className, disabled, ...props }: ConversationComposerSendProps = {}) {
   const messages = useAgentUILocale('composer');
-  const guardSend = useConversationComposerSendGuard();
+  const composer = useComposer();
   const isRunning = useAuiState((s) => s.thread.isRunning);
   const actionLabel = isRunning ? messages.queueSend : messages.send;
   return (
@@ -39,8 +39,9 @@ function CurrentComposerSend({ icon, className, disabled, ...props }: Conversati
         asChild
         {...(disabled === undefined ? {} : { disabled })}
         onClick={(event) => {
-          if (guardSend()) {
+          if (composer.awaitingReply) {
             event.preventDefault();
+            composer.send();
           }
         }}
       >
@@ -72,7 +73,7 @@ function WorkflowComposerSend({
   const empty = useAuiState((state) => state.composer.isEmpty);
   const running = useAuiState((state) => state.thread.isRunning);
   const canSend = useAuiState((state) => state.composer.canSend);
-  const guardSend = useConversationComposerSendGuard();
+  const composer = useComposer();
   const unavailable = !host || running || !canSend;
   const messages = useAgentUILocale('composer');
   const [sending, setSending] = useState(false);
@@ -88,7 +89,8 @@ function WorkflowComposerSend({
         disabled={disabled || empty || sending || unavailable}
         onClick={(event) => {
           onClick?.(event);
-          if (event.defaultPrevented || busy.current || unavailable || guardSend()) return;
+          if (event.defaultPrevented || busy.current || unavailable) return;
+          if (composer.awaitingReply) { composer.send(); return; }
           busy.current = true;
           setSending(true);
           setFailed(false);

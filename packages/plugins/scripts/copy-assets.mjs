@@ -100,9 +100,6 @@ export const ComposerInputHostContext: Context<{ variant: "primary" | "message-e
 export { createComposerInputController } from "./composer-data/input-controller.js";
 export function readComposerMessageData(metadata: unknown): Readonly<Record<string, ComposerData>>;
 export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from "./internal/quote-lifecycle.js";
-export function useConversationComposerAwaitingReply(): boolean;
-export function useConversationComposerSendGuard(): () => boolean;
-export function useComposerRequestAdapter(adapter: ComposerRequestAdapter | undefined): void;
 export const ComposerAttachments: FC;
 export const TooltipIconButton: FC<ComponentProps<"button"> & { tooltip: string }>;
 `);
@@ -136,7 +133,6 @@ export const ToolGroupContent: FC<CollapsiblePrimitive.Panel.Props>;
 export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, ThreadPrimitive as ConversationParts, SuggestionPrimitive as SuggestionActions } from "@assistant-ui/react";
 export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export const Button: FC<Omit<import("./public.js").ConversationTooltipIconButtonProps, "tooltip" | "side">>;
-export function useConversationComposerSendGuard(): () => boolean;
 export const ResponseActionBarRoot: typeof import("./public.js").ConversationResponseActionBarRoot;
 export const ResponseBranchPicker: typeof import("./public.js").ConversationResponseBranchPicker;
 export const ToolTimeline: FC<{ steps: readonly {id?: string;verb: string;chip: string;icon: import("lucide-react").LucideIcon}[]; visibleSteps: number; streaming: boolean; open: boolean; onOpenChange: (open:boolean)=>void; restingLabel:string;activeLabel:string;stats:{file:string;added?:number;removed?:number}[];className?:string }>;

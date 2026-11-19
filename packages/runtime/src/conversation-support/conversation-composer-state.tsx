@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, type ReactNode } from "react";
 export interface ConversationComposerGuardState {
   awaitingReply: boolean;
   interruptKey: string;
@@ -22,6 +22,3 @@ export function ConversationComposerGuardProvider({
     </ConversationComposerGuardContext.Provider>
   );
 }
-
-export const useConversationComposerGuardState = () => useContext(ConversationComposerGuardContext);
-export const useConversationComposerAwaitingReply = () => useContext(ConversationComposerGuardContext).awaitingReply;

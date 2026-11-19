@@ -22,6 +22,3 @@ export { createComposerInputController } from './composer-data/input-controller.
 export { ConversationComposerDataContext } from './composer-data/request.js';
 export type { ComposerDataOptions } from './composer-data/request.js';
 export { InternalConversationQuoteLifecycleProvider, useInternalConversationQuoteLifecycle } from './internal/quote-lifecycle.js';
-
-export { useConversationComposerAwaitingReply, useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
-export { useComposerRequestAdapter } from "./internal/composer-request-adapter.js";
