@@ -1,46 +1,93 @@
 # 上下文检索结果（context-retrieval-message）
 
-例如 Agent 查询请假制度后，卡片按检索词列出供它参考的制度片段，用户可以展开阅读。它展示已提供给 Agent 的上下文；文档检索片段插件则展示文档搜索工具的命中结果。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![默认收起的上下文摘要](/images/plugins/behavior/context-collapsed.jpg)
 
-![查看上下文检索结果（context-retrieval-message）界面示例](/images/plugins/context-retrieval-message.png)
+默认先显示来源和“1 条上下文”的摘要，点击标题再查看查询词与正文。
 
-## 启用与使用
+展示 Agent 取回的知识库、长期记忆等上下文，自动按查询分组，并以可展开的摘要显示片段总数。
 
-在 **Creator 输入框**输入 `/enable context-retrieval-message`，点击下图中的 **「查看上下文检索结果」**。
+## 按来源显示检索摘要
 
-![Creator 启用菜单：点击「查看上下文检索结果」，插件 ID 为 context-retrieval-message](/images/plugins/enable/context-retrieval-message.jpg)
+收到有效上下文消息后，插件显示来源名称和片段总数。知识库与长期记忆使用统一文案，其他来源显示消息提供的来源值。
 
-## 显示条件与数据来源
+数量是所有查询组中的片段总和，不是查询次数或文档数量；无需业务代码自行统计。
 
-**Agent 服务接入：**&#x53D1;送 `CUSTOM`，名称必须是 `CONTEXT_CONTENT`，`value` 为检索上下文。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+## 展开查看各次查询
+
+正文默认收起，点击标题展开。每一组保留自己的查询词和片段列表，方便对照“用什么问题取回了哪些内容”。
+
+
+![展开后的查询与上下文正文](/images/plugins/behavior/context-expanded.jpg)
+
+打开同一条摘要后，可以对照检索词阅读返回的上下文；片段总数仍显示在标题中。
+
+某次查询没有片段时，该组显示空结果提示，其他分组仍正常展示。用户切换展开状态只影响阅读，不会再次发起检索。
+
+## 由上下文消息更新
+
+插件读取 `CONTEXT_CONTENT` 消息中的结构化上下文。有效的新数据传入后，来源、分组和数量跟随更新；格式无效时不显示该卡片。
+
+这里的片段是检索正文，不是文件地址。插件不会单凭一段正文自动提供业务文档预览或下载。
+
+## 接入上下文消息 \{#显示条件与数据来源}
+
+发送 `CUSTOM`，名称必须是 `CONTEXT_CONTENT`，`value` 为检索上下文。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"CUSTOM","name":"CONTEXT_CONTENT","value":{"source":"rag","content":[{"query":"退款期限是多少？","context":["退款申请需在 30 天内提交。"]}]}}
 ```
 
-`source` 是字符串；`content` 是数组，每组包含字符串 `query` 和字符串数组 `context`。`rag`、`long_term_memory` 使用内置来源名称，其他来源显示原字符串。数据无效时不渲染。Mock 中的 `CONTEXT_STARTED`、`CONTEXT_FINISHED` 不提供本插件的卡片内容，不能替代 `CONTEXT_CONTENT`。
+- **数据结构**：`source` 是字符串；`content` 是数组，每组包含字符串 `query` 和字符串数组 `context`。
+- **来源名称**：`rag`、`long_term_memory` 使用内置名称，其他来源显示原字符串。
+- **无效数据**：不渲染。
 
-## 定制选项
+Mock 的 `CONTEXT_STARTED`、`CONTEXT_FINISHED` 不提供本插件的卡片内容，不能替代 `CONTEXT_CONTENT`。
 
-通过 `className`、`style` 调整卡片样式，通过 `defaultExpanded` 设置默认展开，通过 `title` 替换卡片标题；需要改变内容排版时使用 `renderContent`。检索词和片段内容继续来自 Agent 返回的数据。
 
-## 需求示例
+`renderContent(data, defaultContent)` 提供来源 `source`、按查询词组织的 `content` 片段和默认内容。可以保留默认片段，再组合项目的知识库明细或业务操作；数据传给独立插件的方法见[插件联动与取数](/development/plugin-interaction.md)。
 
-```text
-请修改「查看上下文检索结果（context-retrieval-message）」：
-修改：卡片最大宽度设为【640px】并居中，卡片间距设为【12px】。
-保留：Agent 返回的来源、检索词和片段内容。
+## 直接展示检索正文 \{#默认展开检索正文}
+
+
+希望用户直接看到各组片段时，在已有上下文消息入口设置初始展开：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
+
+export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    defaultExpanded />;
+}
 ```
 
-## 属性
+分组、片段计数、空组提示继续由插件处理，用户仍可手动收起。
 
-打开项目中的 `plugins/context-retrieval-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 给默认正文增加业务容器
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`CanonicalContextRetrievalMessage`；类型：`ContextRetrievalMessageProps`。继承 `details` 原生属性，排除 `children`、`title`、`open`、`onToggle`。
+`renderContent` 同时提供解析后的数据和默认正文。只增加布局时，直接复用默认正文，可保留查询分组和空结果提示：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
+
+export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    renderContent={(_data, defaultContent) => <section className="project-context">{defaultContent}</section>} />;
+}
+```
+
+需要按查询词增加知识库入口时，可从第一个参数读取各组 `query`。替换正文不会改变外层来源标题、数量和展开容器；如果不再返回 `defaultContent`，查询与片段的版式由新内容负责。
+
+## API
+
+以下选项用于定制已有消息展示。`data` 由已注册的消息入口提供；正常使用无需另建一份展示数据。
+
+
+
+继承 `details` 原生属性，排除 `children`、`title`、`open`、`onToggle`。
 
 | 属性                  | 类型                                                                                              | 省略时 / 用途                                                        |
 | ------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
@@ -51,40 +98,24 @@
 | `onExpandedChange?` | `(expanded: boolean) => void`                                                                   | 展开变化通知                                                          |
 | `renderContent?`    | [`(data: ContextRetrievalData, defaultContent: ReactNode) => ReactNode`](#contextretrievaldata) | 替换检索正文，保留标题和展开容器                                                |
 
-### 类型说明
+### 自定义正文时取得哪些数据 \{#contextretrievaldata}
 
-#### ContextRetrievalData
+`renderContent(data, defaultContent)` 收到的是已经校验的检索数据，结构与前面的 `CONTEXT_CONTENT.value` 对应：
 
-一次上下文检索的数据，按查询分组。
 
-```ts
-interface ContextRetrievalData {
-  source: string; // 检索来源
-  content: readonly ContextRetrievalGroup[]; // 查询及其检索片段
-}
-```
+| 读取位置            | 类型                  | 用来做什么                          |
+| --------------- | ------------------- | ------------------------------ |
+| `data.source`   | `string`            | 区分知识库、长期记忆或其他来源；按业务来源打开对应详情    |
+| `data.content`  | 只读分组数组              | 每组对应一次查询；按组排列正文                |
+| `group.query`   | `string`            | 显示该组的检索词，或传给项目的知识库查询入口         |
+| `group.context` | `readonly string[]` | 本组检索片段正文；不是文件 URL 或可直接下载的文件 ID |
 
-每个分组的结构见 [`ContextRetrievalGroup`](#contextretrievalgroup)。
+要在正文后追加业务操作，保留 `defaultContent` 并组合自己的按钮，见以下代码示例。
 
-#### ContextRetrievalGroup
 
-```ts
-interface ContextRetrievalGroup {
-  query: string; // 本组的查询文本
-  context: readonly string[]; // 检索到的正文片段
-}
-```
 
-### 类型查询
 
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalContextRetrievalMessage } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof CanonicalContextRetrievalMessage>;
-```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
-这里的工具或消息参数由会话传入，属于数据接口；需要更换结构时，在项目注册处包装或更换渲染函数。
+

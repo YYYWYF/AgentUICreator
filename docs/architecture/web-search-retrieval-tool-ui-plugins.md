@@ -17,6 +17,6 @@ web_search 使用 query 和 results 数组，网页结果包含 title、domain �
 
 ## 定制与验证
 
-项目入口保留已安装公开组件的 DOM、结果数量、cycle 和 renderer props。产品文案使用 searchTools namespace，保留 Host 覆盖和正确的结果计数。先使用 props 和局部样式，内部实现变更才考虑明确源码接管。
+项目入口保留已安装公开组件的 DOM、展示数量和 renderer props。查询、结果与加载状态由工具投影，不提供重复覆盖或 React key 重置参数。产品文案使用 searchTools namespace，保留 Host 覆盖和正确的结果计数。先使用 props 和局部样式，内部实现变更才考虑明确源码接管。
 
 验证标准工具事件、运行/完成状态、完整结果、空结果、错误/中断、无效 payload、语言、停用和重新启用，以及两个 Plugin 的独立性。Mock、静态、浏览器和真实后端结果分别记录。

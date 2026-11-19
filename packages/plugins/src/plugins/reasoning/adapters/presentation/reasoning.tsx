@@ -7,13 +7,16 @@ import {
 } from '../../../../plugin-support.js';
 import type { ConversationMessagePartGroup } from '../../../../public.js';
 export interface ConversationCanonicalReasoningGroupProps
-  extends Omit<ComponentProps<typeof InternalReasoningRoot>, 'children' | 'open' | 'defaultOpen' | 'onOpenChange'> {
+  extends Omit<
+    ComponentProps<typeof InternalReasoningRoot>,
+    'children' | 'open' | 'defaultOpen' | 'onOpenChange' | 'streaming' | 'onAnimationStart'
+  > {
   group: ConversationMessagePartGroup;
   children?: ReactNode;
   expanded?: boolean;
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
-  buttonProps?: ComponentProps<typeof InternalReasoningTrigger>;
+  buttonProps?: Omit<ComponentProps<typeof InternalReasoningTrigger>, 'active' | 'duration' | 'children'>;
   contentProps?: Omit<ComponentProps<typeof InternalReasoningContent>, 'children'>;
   textProps?: Omit<ComponentProps<typeof InternalReasoningText>, 'children'>;
 }
@@ -32,13 +35,13 @@ export function ConversationCanonicalReasoningGroup({
   return (
     <InternalReasoningRoot
       className='mb-0'
-      streaming={running}
       {...rootProps}
+      streaming={running}
       {...(expanded === undefined ? {} : { open: expanded })}
       {...(defaultExpanded === undefined ? {} : { defaultOpen: defaultExpanded })}
       {...(onExpandedChange === undefined ? {} : { onOpenChange: onExpandedChange })}
     >
-      <InternalReasoningTrigger active={running} {...buttonProps} />
+      <InternalReasoningTrigger {...buttonProps} active={running} />
       <InternalReasoningContent aria-busy={running} {...contentProps}>
         <InternalReasoningText {...textProps}>{children}</InternalReasoningText>
       </InternalReasoningContent>

@@ -199,19 +199,19 @@ it.each(modes)("$name new supports localized labeled and icon-only application v
   expect(button().getAttribute("aria-label")).toBe(button().textContent);
 });
 it.each(modes)("$name list retains service refresh and failed history retry including disabled admission",async({List})=>{
-  const refresh=vi.fn(async()=>{});const props:ComponentProps<typeof List>={serviceAvailable:true,onRefresh:refresh,snapshot:{listStatus:"error",detailStatus:"error",listError:"Network list",detailError:"Network history",detailErrorConversationId:"other",activeConversationId:"history"},children:<span>Custom body</span>};
+  const refresh=vi.fn(async()=>{});const props:ComponentProps<typeof List>={serviceAvailable:true,onRefresh:refresh,snapshot:{listStatus:"error",detailStatus:"error",listError:"Network list",detailError:"Network history",detailErrorConversationId:"other",activeConversationId:"history"},renderList:()=> <span>Custom body</span>};
   const el=await mount(<List {...props}/>);expect(el.host.querySelectorAll('[role="alert"]')).toHaveLength(2);expect(el.host.textContent).toContain("Network list");expect(el.host.textContent).toContain("Custom body");
   const retries=el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button');await act(async()=>retries[0]!.click());expect(refresh).toHaveBeenCalledOnce();await act(async()=>retries[1]!.click());await until(()=>el.runtime.threads.getState().mainThreadId==="other");
   const before=el.load.mock.calls.length;await el.render(<List {...props} snapshot={{...props.snapshot,activeConversationId:"other"}}/>);await act(async()=>el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button')[1]!.click());await until(()=>el.load.mock.calls.length>before);
   await el.render(<List {...props} serviceAvailable={false}/>);for(const button of el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button'))expect(button.disabled).toBe(true);
 });
 it.each(modes)("$name new and rail retain canonical new-thread behavior and respect prevented clicks",async({New,Rail})=>{
-  const prevent=vi.fn((event:React.MouseEvent<HTMLButtonElement>)=>event.preventDefault());const el=await mount(<New onClick={prevent} buttonProps={{"aria-label":"custom new",style:{padding:13},children:"Make new"}}/>);
+  const prevent=vi.fn((event:React.MouseEvent<HTMLButtonElement>)=>event.preventDefault());const el=await mount(<New icon={<span>Make new</span>} buttonProps={{"aria-label":"custom new",style:{padding:13},onClick:prevent}}/>);
   const button=el.host.querySelector<HTMLButtonElement>('[aria-label="custom new"]')!;expect(button.style.padding).toBe("13px");await act(async()=>button.click());expect(prevent).toHaveBeenCalledOnce();expect(el.create).not.toHaveBeenCalled();
   await el.render(<New buttonProps={{"aria-label":"create"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="create"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
   await act(async()=>el.runtime.threads.switchToThread("history"));
   await el.render(<Rail enabled={false}/>);expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
-  await el.render(<Rail enabled buttonProps={{"aria-label":"rail new",children:"Rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
+  await el.render(<Rail enabled icon={<span>Rail new</span>} buttonProps={{"aria-label":"rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
 });
 it.each(modes)("$name quote exposes renderers/props and follows locale with Host overrides",async({Quote})=>{
   function Preview() { const messages=useAgentUILocale("conversationQuote"); return <span>{messages.dismiss}</span>; }

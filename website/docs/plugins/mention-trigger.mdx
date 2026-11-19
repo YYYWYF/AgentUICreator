@@ -4,94 +4,119 @@ title: "@ 提及搜索（mention-trigger）"
 
 # @ 提及搜索（mention-trigger）
 
-例如输入「@产品」后选择「产品说明文档」。选择结果会带上对象 ID，方便 Agent 按项目约定识别引用的是哪一份资料。
+<figure className="plugin-preview">
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![提及候选界面](/images/plugins/mention-trigger.png)
 
-![输入 @ 搜索对象（mention-trigger）界面示例](/images/plugins/mention-trigger.png)
+<figcaption>输入 @ 查询后显示候选；选中对象会插入当前草稿。</figcaption>
+</figure>
 
-## 启用与使用
+在草稿中输入 `@` 后搜索项目提供的人、文件或资料，选中后插入引用。插件已处理搜索弹层、键盘选择、请求取消和引用插入；用户选好对象后继续编辑，再通过 Composer 发送。
 
-在 **Creator 输入框**输入 `/enable mention-trigger`，点击下图中的 **「输入 @ 搜索对象」**。
+## 搜索并选择一个对象
 
-![Creator 启用菜单：点击「输入 @ 搜索对象」，插件 ID 为 mention-trigger](/images/plugins/enable/mention-trigger.jpg)
+候选来自项目的 `source.search({ query, signal })`，不是插件内置的业务通讯录。输入查询时按防抖设置取数，过期查询通过 `signal` 取消；选中后保留查询前后的文字，只替换当前 `@` 查询片段。
 
-## 定制选项
+默认格式保留稳定 ID 和展示名，例如选择小李后写入 `:user[小李]{name=u-1}`。配置了 [Lexical 输入](./lexical-composer-input#与-composer-联动)时显示为可整体选择、删除的标签；标签样式不改变实际发送的引用文本。
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 搜索等待时间 | 设置停止输入后等待多少毫秒再搜索，避免每输入一个字就请求一次。 |
-| 加载和无结果提示 | 修改“正在加载”和“没有结果”等提示。 |
-| 失败和重试提示 | 修改搜索失败时的说明和重试文字。 |
+项目如何提供 HTTP 搜索、处理错误与缓存见[接入提及数据源](/development/composer-sources)。未提供可用来源时，不会自动出现业务候选。
 
-要更换可搜索的人或资料，见[自定义 @ 来源](/guide/adjustments/mention-and-commands)。
+## 交给 Composer 的数据
 
-## 需求示例
+<span id="选择候选后保存业务标识"></span>
 
-```text
-请修改「输入 @ 搜索对象（mention-trigger）」：
-修改：搜索等待时间设为【300ms】，加载提示改为【正在查找资料】，无结果提示改为【未找到匹配资料】。
-保留：现有搜索来源和选中后的引用行为。
+<span id="example-2"></span>
+
+以下候选中的 `data` 由项目定义，必须可序列化为 JSON：
+
+```json
+{ "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
 ```
 
-## 属性
+选择该候选后，正文包含 `:user[小李]{name=u-1}`，`data` 不编码进标记。假设触发器实例 ID 为 `employee-mention`，最终 Composer 适配器可读取：
 
-打开项目中的 `plugins/mention-trigger/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+```json
+{
+  "pluginData": {
+    "employee-mention": [
+      { "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
+    ]
+  },
+  "selections": {
+    "employee-mention": [
+      { "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
+    ]
+  }
+}
+```
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+两处都是**原始候选数组**，包括实际提供的可选字段。连续选中多个引用会保留多项；删除某个引用后，那一项不再进入本次请求。未选中、仅输入 `@` 查询文字不会生成选择数据。
 
-组件：`CanonicalConversationMentionTrigger`；类型：`ConversationMentionTriggerPluginProps`。无独立根外观属性。
+**默认发送正文引用，不自动新增 `forwardedProps` 中的选中项字段。** 后端若需要员工 ID 或完整对象，在已有 [Composer `requestAdapter`](./composer#请求适配) 中读取上述实例键并组装。触发器本身没有单独的 `requestAdapter`。
+
+嵌在其他业务插件中的提及入口使用该实例的 `:mention` 子键；以实际组合的实例 ID 为准。手动填入相同标记能恢复文字或标签展示，不能凭标记还原没有保存的原始 `data`。
+
+## 改变插入文字与移除规则
+
+`onSelect(item, { text, range })` 返回**替换当前查询的片段**。例如返回 `item.label` 就插入纯名称，插件仍保留其对应原始选择；返回 `null` 移除当前查询，不记录选择。不要把前后整段草稿再次拼回返回值，插件已经负责保留它们。
+
+修改正文格式不会自动把原始数据发给后端，仍由最终 Composer 适配器决定。已接受提交后清理本次待发送选择；排队和续答使用原次快照，不读取下一条草稿的新选择。更完整的提交规则见 [Composer](./composer#提交后的快照重发与会话切换)。
+
+## 设置搜索防抖 {#设置搜索防抖}
+
+<span id="example-1"></span>
+
+用户停止输入 300ms 后执行候选搜索。实际查询仍由项目提供的 source 完成。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationMentionTrigger } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalConversationMentionTrigger>) {
+  return <CanonicalConversationMentionTrigger {...props}
+    debounceMs={300} />;
+}
+```
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalConversationMentionTrigger` 上设置以下属性。
+
+无独立根外观属性。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `source?` | [`ConversationMentionSource`](#conversationmentionsource) | 从已有提及数据源搜索候选项；缺少时不显示提及候选界面 |
-| `onSelect?` | `(item, { text, range }) => string \| null` | 完全替换默认插入；返回项目文本或移除查询。见[选中与发送格式](/development/composer-sources#在项目中替换选中行为) |
-| `requestAdapter?` | `ConversationTriggerRequestAdapter<ConversationMentionItem>` | 同步将一次选择转换为 `ComposerData`；最终请求位置与格式由 [Composer requestAdapter](./composer#请求适配) 决定 |
 | `debounceMs?` | `number` | 搜索防抖；省略时沿用底层触发器默认值 |
+| `onSelect?` | `(item, { text, range }) => string \| null` | 完全替换默认插入；返回项目文本或移除查询。见[选中与发送格式](/development/composer-sources#在项目中替换选中行为) |
 
 文案字段见统一 `conversationTriggers` 命名空间。
 
-### 类型说明
+### 搜索输入和返回候选 {#conversationmentionsource}
 
-#### ConversationMentionSource
+`source.search({ query, signal })` 接收当前查询文本和取消信号，异步返回 `readonly ConversationMentionItem[]`。请求代码应传递 `signal`，让已过期搜索能够取消；选中项会交给 `onSelect`，实际插入的非空文本会绑定原始选择的 JSON 快照，供 Composer 读取。
 
-已有的提及搜索数据源；最小接入结构如下，返回项的结构见 [`ConversationMentionItem`](#conversationmentionitem)。
+<span id="conversationmentionitem"></span>
 
-```ts
-interface ConversationMentionSource {
-  search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>;
-}
-```
+每个候选必需 `id: string`（稳定业务 ID）、`type: string`（提及类别）、`label: string`（展示文字），可选 `description: string` 和 `data: unknown`。`data` 的格式由项目定义，值必须是 JSON；原始选中项由 Composer 决定如何发送。
 
-`search` 接收查询文本和取消信号，调用项目请求方法并异步返回候选项。
+默认支持 `user`、`resource`、`file`、`document` 引用标签。前面的[保存业务标识示例](#交给-composer-的数据)保留原始候选项；完整搜索请求接入见[提及数据源](/development/composer-sources)。
 
-#### ConversationMentionItem
+<span id="hook"></span>
 
-```ts
-interface ConversationMentionItem {
-  id: string; // 候选项标识
-  type: string; // 提及类型
-  label: string; // 展示文字
-  description?: string; // 补充说明
-  data?: unknown; // 项目附加数据，默认不发送
-}
-```
+候选来自 `source.search({ query, signal })`，选择后的插入行为由 `onSelect` 决定；业务数据直接定义在候选项中，最终请求由 [Composer requestAdapter](./composer#请求适配) 组装。未配置 Composer 适配器时只发送正文引用，不自动添加结构化外带字段。请求应透传 `signal`，防止旧搜索覆盖新结果。
 
-### 类型查询
+其他结果卡片需要直接填入问题、引用或附带业务参数时，使用 [Composer 的填入示例](./composer#example-3)。
 
-React 原生属性及其他复杂类型可在编辑器中查询。通过公开组件取得完整属性类型：
+<span id="代码示例"></span>
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalConversationMentionTrigger } from '@za38.03/agent-ui-plugins';
+<span id="启用与使用"></span>
 
-type ImplementationProps = ComponentProps<typeof CanonicalConversationMentionTrigger>;
-```
+<span id="常见需求"></span>
 
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+<span id="提及候选"></span>
 
-触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
-
-## 自定义选择数据
-
-`ConversationTriggerRequestAdapter<T>` 从 `@za38.03/agent-ui-plugins` 导入，签名为 `(item: T) => ComposerData`。`requestAdapter` 在选择时同步返回 JSON，通过 `useComposer().setData` 交给 Composer；原始选择同时保留在 `selections` 中。省略时保留原有默认行为。完整应用层配置见[选择数据与请求组装](/development/composer-sources#插件提供数据composer-组装请求)。
+<span id="需求示例"></span>

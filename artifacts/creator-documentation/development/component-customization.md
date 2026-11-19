@@ -1,12 +1,21 @@
 # 手动修改插件：样式与业务逻辑
 
-本教程以已有的 `composer` 输入区为例：先调整样式，再加入“获取草稿”按钮，调用业务接口填入当前输入框，最后让发送插件与输入区共享字数设置。全部示例使用当前公开 API，生产应用无需运行 Creator。
+先找到你要完成的改动，再阅读对应一节。以下用已有的 `composer` 输入区演示，路径以 `src/agent-ui/` 为生成目录。
 
-路径默认以 `src/agent-ui/` 为生成目录。已有工程选了其他目录时替换此前缀。**第 3～5 节依次修改同一个输入区；第 6 节是可选扩展。** 文中写明“局部修改”的代码只合入对应位置，不覆盖其他已有定制。
+| 你的需求             | 从哪里开始                    | 主要修改位置                     |
+| ---------------- | ------------------------ | -------------------------- |
+| 改行数、字号、提示文案或组件组合 | [调整样式与文案](#调整样式与文案)      | 插件 `index.tsx`、局部 CSS、项目文案 |
+| 点按钮调用业务接口，再填入草稿  | [接入业务请求与按钮](#5-插件业务逻辑定制) | `services/` 和插件组件          |
+| 多个插件共用一份可变状态     | [跨插件共享状态](#6-跨插件业务能力共享)  | 服务实现及插件 `definition.ts`    |
+| 公开属性与组合无法完成的实现修改 | [接管本地实现](#7-本地实现接管与定制)   | 明确接管后的插件 `source/`         |
 
-## 1. 插件与文件定位
+样式、文案和业务按钮示例逐步扩展同一个输入区；共享状态和源码接管按需阅读。标明“局部修改”的片段只合入对应位置，保留已有定制。生产应用无需运行 Creator。
 
-### Plugin ID 定位
+## 先定位插件与修改入口 \{#1-插件与文件定位}
+
+<span id="plugin-id-定位"></span>
+
+**Plugin ID 定位**
 
 打开 `src/agent-ui/app-ui.json`，搜索对应的 `pluginId`。例如输入区是 `composer`，其 `submitAction` 子插槽中一般放 `submit-action`。保留原有实例 `id`、其他子插槽和启用关系。
 
@@ -23,38 +32,43 @@ export const ConversationComposerPlugin = (props: ComponentProps<typeof Composer
 
 这个文件就是项目的组件定制入口。`{...props}` 传递现有插槽和组件参数；已有代码包含 `renderSlot()` 等调用时，将本例的属性合入原组件，保留这些调用。
 
-| 文件                               | 负责什么            | 本教程是否修改           |
-| -------------------------------- | --------------- | ----------------- |
-| `plugins/composer/index.tsx`     | 项目的组件属性、组合和回调   | 是                 |
-| `plugins/composer/definition.ts` | 组件注册、服务提供和依赖    | 第 6 节才改           |
-| `plugins/composer/manifest.json` | 插件身份、能力和子插槽声明   | 本例不需要改            |
-| `plugins/composer/composer.css`  | 本教程新增的局部样式      | 是，需由组件导入          |
-| `application/locales.ts`         | 官方已有文案的项目覆盖     | 是                 |
-| `application/i18n/messages.ts`   | 本教程新增的业务双语文案    | 是；已有文件时合并         |
-| `services/draft-template.ts`     | 本教程新增的业务请求与响应转换 | 是                 |
-| `plugins/composer/source/`       | 明确接管后才存在的本地实现   | 第 7 节说明，不是前面步骤的前提 |
+| 文件                               | 负责什么            | 本教程是否修改       |
+| -------------------------------- | --------------- | ------------- |
+| `plugins/composer/index.tsx`     | 项目的组件属性、组合和回调   | 是             |
+| `plugins/composer/definition.ts` | 组件注册、服务提供和依赖    | 共享状态时修改       |
+| `plugins/composer/manifest.json` | 插件身份、能力和子插槽声明   | 本例不需要改        |
+| `plugins/composer/composer.css`  | 本教程新增的局部样式      | 是，需由组件导入      |
+| `application/locales.ts`         | 官方已有文案的项目覆盖     | 是             |
+| `application/i18n/messages.ts`   | 本教程新增的业务双语文案    | 是；已有文件时合并     |
+| `services/draft-template.ts`     | 本教程新增的业务请求与响应转换 | 是             |
+| `plugins/composer/source/`       | 明确接管后才存在的本地实现   | 接管后使用，见源码接管一节 |
 
-修改已有组件后，直接检查页面效果；新增插件或修改服务定义后，按第 6 节的命令更新 `registry.generated.ts` 注册表。
+修改已有组件后，直接检查页面效果；新增插件或修改服务定义后，按[共享状态示例](#发送插件共享服务接入)中的命令更新 `registry.generated.ts` 注册表。
 
-## 2. 定制入口选择
+<span id="2-定制入口选择"></span>
 
-| 需求                              | 修改位置                                   |
-| ------------------------------- | -------------------------------------- |
-| 输入区的位置、宽度、插件顺序和启停               | `app-ui.json` 中已有的布局与实例                |
-| 输入行数、最大长度、按钮外观、事件回调             | 项目插件 `index.tsx` 中的公开 props            |
-| 局部样式、品牌主题                       | 插件自己的 CSS 或生成目录的 `styles.css`          |
-| 提示文字、欢迎语、中英文                    | `application/locales.ts`；新增业务文案放共享消息模块 |
-| 业务 URL、鉴权、请求／响应转换               | 项目 `services/`，从组件或 Agent 属性明确接入       |
-| 多个插件共享业务状态                      | Plugin Service，见第 6 节                  |
-| 公开 props、组合和 renderer 无法完成的实现修改 | 先评估第 7 节的源码接管                          |
+| 需求                              | 修改位置                                    |
+| ------------------------------- | --------------------------------------- |
+| 输入区的位置、宽度、插件顺序和启停               | `app-ui.json` 中已有的布局与实例                 |
+| 输入行数、最大长度、按钮外观、事件回调             | 项目插件 `index.tsx` 中的公开 props             |
+| 局部样式、品牌主题                       | 插件自己的 CSS 或生成目录的 `styles.css`           |
+| 提示文字、欢迎语、中英文                    | `application/locales.ts`；新增业务文案放共享消息模块  |
+| 业务 URL、鉴权、请求／响应转换               | 项目 `services/`，从组件或 Agent 属性明确接入        |
+| 多个插件共享业务状态                      | Plugin Service，见[跨插件共享状态](#6-跨插件业务能力共享) |
+| 公开 props、组合和 renderer 无法完成的实现修改 | 先评估[源码接管](#7-本地实现接管与定制)                 |
 
 布局和插件组合写在 `app-ui.json`，组件属性、业务函数和 renderer 写在项目代码中。会话状态和发送操作使用后面示例中的 Hook。
 
-## 3. 插件样式定制
+## 调整样式、文案与组件组合 \{#调整样式与文案}
 
-### 默认薄入口替换
+只调整外观时，展开对应示例即可。需要“获取草稿”按钮时，接着完成下一节的业务文案、请求与组件。
 
-对于第 1 节所示的默认入口，将 `plugins/composer/index.tsx` 改为：
+<span id="3-插件样式定制"></span>
+
+<details class="dev-guide-details" id="默认薄入口替换">
+<summary>调整输入框行数、字号与局部样式</summary>
+
+对于上面的默认入口，将 `plugins/composer/index.tsx` 改为：
 
 ```tsx
 import { ConversationComposerPlugin as Composer } from '@za38.03/agent-ui-plugins/composer';
@@ -122,9 +136,12 @@ export const ConversationComposerPlugin = (props: ComponentProps<typeof Composer
 
 **如果没有变化：**&#x68C0;查 `composer.slots.input` 是否已有独立输入插件，或应用入口是否已经传了自定义 `input`。它们优先于默认 textarea，此时应改那个输入组件的项目入口。Lexical 等可选输入也应沿用其自身公开接口。
 
-## 4. 文案与组件结构定制
+</details>
 
-### 提示文案覆盖
+<span id="4-文案与组件结构定制"></span>
+
+<details class="dev-guide-details" id="提示文案覆盖">
+<summary>修改已有的输入框提示</summary>
 
 在 `application/locales.ts` 的已有语言对象中合并 `composer.placeholder`，保留其他领域。例如一个尚无覆盖的新文件可写成：
 
@@ -139,42 +156,19 @@ export const locales: Record<AgentUILocaleCode, AgentUILocaleOverrides> = {
 
 当前模板的 `application/project-config.tsx` 已绑定 `locales`。业务页面 `Agent locales` 对同名字段的覆盖优先；发现文案不变时检查该属性。
 
-### 新增业务文案
+</details>
 
-新建 `application/i18n/messages.ts`；已有消息模块时合并 `composerCustomization` 领域，并复用已有统一读取函数：
+<details class="dev-guide-details" id="组件内容组合">
+<summary>在现有组件前后或子插槽中放置内容</summary>
 
-```ts
-import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-
-const zhCN = {
-  composerCustomization: {
-    load: '获取草稿', loading: '正在获取…', cancel: '取消获取',
-    failed: '获取失败，请重试。', tooLong: '草稿超过当前输入上限，请调整上限后重试。',
-    hint: '先核对草稿内容，再点击发送。',
-    limit: '输入上限 {count} 字符',
-  },
-};
-const enUS: typeof zhCN = {
-  composerCustomization: {
-    load: 'Load draft', loading: 'Loading…', cancel: 'Cancel loading',
-    failed: 'Could not load the draft. Try again.', tooLong: 'The draft exceeds the current input limit. Adjust it and try again.',
-    hint: 'Review the draft before sending.',
-    limit: 'Input limit: {count} characters',
-  },
-};
-const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US': enUS };
-export function getProjectMessages(locale: AgentUILocaleCode) { return messages[locale]; }
-```
-
-新增领域不直接塞入官方 `Agent.locales`。后面组件用 `useAgentUILocaleCode()` 读取统一语言，再消费这个业务领域，不创建另一份语言状态。
-
-### 组件内容组合
-
-第 5 节将把业务工具条放在 `<Composer />` 前，提示放在其后，保留内部的输入、附件、引用和发送插槽。若要放入现有语义子插槽，继续使用原来的 `renderSlot()` / `renderScopedSlot()`；不要删除它们。
+[业务按钮示例](#5-插件业务逻辑定制)会把业务工具条放在 `<Composer />` 前，提示放在其后，保留内部的输入、附件、引用和发送插槽。若要放入现有语义子插槽，继续使用原来的 `renderSlot()` / `renderScopedSlot()`；不要删除它们。
 
 `beforeInput` 等 props 有时是**空插槽的 fallback**：相应 Slot 已有子插件时，不能假设这个 prop 会与子插件自动拼接。固定业务内容可在应用层包裹组件；需要独立启停、排序的内容则创建子插件并放入现有 Slot，见[创建插件](/development/create-plugin.md)。
 
-### 已有结果的渲染定制
+</details>
+
+<details class="dev-guide-details" id="已有结果的渲染定制">
+<summary>修改已有图表或工具结果的展示</summary>
 
 已有图表或工具结果需要不同的样式和展示结构时，在对应插件的项目入口修改公开属性或 renderer。这里沿用原有数据协议；要新增一种业务事件或消息类型，另见[自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md)。
 
@@ -216,11 +210,15 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 修改后分别触发有数据、空数据、失败、流式更新和历史回放，确认展示更新且原交互保留。这些修改属于项目应用层，无需先接管官方实现。
 
-## 5. 插件业务逻辑定制
+</details>
+
+## 接入业务请求与按钮 \{#5-插件业务逻辑定制}
 
 本例点击“获取草稿”，请求业务接口，再填入当前空草稿。**不会自动发送消息。** 请求和填入逻辑都在下面的项目文件中完成。
 
-### 业务请求与响应
+**第 1 步：确认业务接口。**
+
+<span id="业务请求与响应"></span>
 
 示例约定 `POST /api/draft-template`，`Content-Type: application/json`：
 
@@ -236,7 +234,42 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 这是业务接口示例，不是内置后端地址。替换为自己的接口；普通浏览器请求不会继承 `Agent request` 的 headers。
 
-### 请求适配器实现
+**第 2～5 步：依次完成下面四个项目文件。**
+
+<details class="dev-guide-details" id="新增业务文案">
+<summary>第 2 步：准备按钮和错误提示的业务文案</summary>
+
+新建 `application/i18n/messages.ts`；已有消息模块时合并 `composerCustomization` 领域，并复用已有统一读取函数：
+
+```ts
+import type { AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+
+const zhCN = {
+  composerCustomization: {
+    load: '获取草稿', loading: '正在获取…', cancel: '取消获取',
+    failed: '获取失败，请重试。', tooLong: '草稿超过当前输入上限，请调整上限后重试。',
+    hint: '先核对草稿内容，再点击发送。',
+    limit: '输入上限 {count} 字符',
+  },
+};
+const enUS: typeof zhCN = {
+  composerCustomization: {
+    load: 'Load draft', loading: 'Loading…', cancel: 'Cancel loading',
+    failed: 'Could not load the draft. Try again.', tooLong: 'The draft exceeds the current input limit. Adjust it and try again.',
+    hint: 'Review the draft before sending.',
+    limit: 'Input limit: {count} characters',
+  },
+};
+const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US': enUS };
+export function getProjectMessages(locale: AgentUILocaleCode) { return messages[locale]; }
+```
+
+新增领域不直接塞入官方 `Agent.locales`。后面组件用 `useAgentUILocaleCode()` 读取统一语言，再消费这个业务领域，不创建另一份语言状态。
+
+</details>
+
+<details class="dev-guide-details" id="请求适配器实现">
+<summary>第 3 步：在 services/ 中实现请求与响应转换</summary>
 
 新建 `services/draft-template.ts`，也可以在此复用项目已有的业务请求方法：
 
@@ -262,7 +295,10 @@ export async function loadDraftTemplate(input: {
 
 请求体、业务成功码或返回字段不同时，就在这个文件改映射。已有 Axios、签名或登录凭据模块也在这里调用，继续传下 `signal`。不要把 HTTP 200 当成业务成功，更不要失败后返回一份假草稿。
 
-### 业务按钮实现
+</details>
+
+<details class="dev-guide-details" id="业务按钮实现">
+<summary>第 4 步：实现获取草稿、取消和失败处理</summary>
 
 新建 `plugins/composer/DraftTemplateAction.tsx`：
 
@@ -336,9 +372,12 @@ export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number }
 
 只在点击后发请求，挂载或历史展示不会调用业务接口。已有草稿时禁用获取，用户输入、开始运行、切换会话／语言、取消或卸载后忽略迟到结果。`type="button"` 避免工具按钮触发表单提交。
 
-### 输入区按钮集成
+</details>
 
-将第 3 节的 `plugins/composer/index.tsx` 完整更新为：
+<details class="dev-guide-details" id="输入区按钮集成">
+<summary>第 5 步：把按钮放回已有输入区</summary>
+
+将前面样式示例中的 `plugins/composer/index.tsx` 完整更新为：
 
 ```tsx
 import { ConversationComposerPlugin as Composer } from '@za38.03/agent-ui-plugins/composer';
@@ -369,19 +408,35 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Composer
 
 预期：工具条与提示出现在输入区附近；点击获取后填入草稿，再用原发送按钮发送。已有附件、引用、工具触发器和发送／停止插件继续由原 Slots 渲染。`key` 只让这一个业务按钮在切换会话时重置，不给整个 Agent 加 key 或重建会话。
 
-### 回调扩展与默认行为
+</details>
+
+<details class="dev-guide-details" id="回调扩展与默认行为">
+<summary>需要替换默认动作时，怎样处理事件回调</summary>
 
 事件回调在 `index.tsx` 的 JSX 中传入，先调用已有回调，并检查 `event.defaultPrevented`。仅记录点击时不要调用 `preventDefault()`；确实替换当前入口的默认动作时才同步阻止默认行为，再执行自己的流程。
 
-当前 `Composer onSubmit` 对应表单提交；默认发送按钮使用 Composer 的发送动作，带 endpoint 的工作流按钮使用独立发送入口。**只加 onSubmit 不能覆盖所有发送；只禁用发送按钮也不能代表 Enter 等入口已被校验。** 异步函数的 Promise 不会被 React 事件自动等待。本例不拦截发送，避免绕过原有附件、队列、审批与工作流路由。若业务要求统一发送前校验，需逐一确认所有发送入口及当前公开扩展点，不能自行重建消息链。
+发送入口需要分别考虑：
 
-## 6. 跨插件业务能力共享
+- **表单提交**：当前 `Composer onSubmit` 对应表单提交。
+- **按钮发送**：默认发送按钮使用 Composer 的发送动作；带 endpoint 的工作流按钮使用独立入口。
+- **异步回调**：React 不会自动等待事件处理函数返回的 Promise。
+
+因此，**只加 onSubmit 不能覆盖所有发送，只禁用发送按钮也不能代表 Enter 等入口已被校验。** 本例不拦截发送，避免绕过已有附件、队列、审批与工作流路由。业务要求统一发送前校验时，需逐一确认所有入口和当前公开扩展点，不能自行重建消息链。
+
+</details>
+
+## 可选：跨插件共享状态 \{#6-跨插件业务能力共享}
 
 只有输入区使用的请求函数，保留在 `services/draft-template.ts` 即可；按钮的 pending/failed 使用局部状态。多个插件需要同一份可变状态时，才使用 Plugin Service。
 
 下面可选扩展让 `submit-action` 的下拉框修改输入上限，`composer` 随之更新。它是前端输入约束，不代替后端限制；本例不截断已有草稿，也不修改 Agent 协议。
 
-### 定义共享服务
+<details class="dev-guide-details">
+<summary>展开完整示例：发送插件与输入区共享字数上限</summary>
+
+<span id="定义共享服务"></span>
+
+**定义共享服务**
 
 新建 `services/composer-policy.ts`：
 
@@ -413,7 +468,9 @@ export function createComposerPolicy(): ComposerPolicyService {
 }
 ```
 
-### 输入区服务注册与清理
+<span id="输入区服务注册与清理"></span>
+
+**输入区服务注册与清理**
 
 使用默认组件入口时，`plugins/composer/definition.ts` 的完整定义如下。项目已有自定义 `setup`、服务或本地实现时，只将新增部分合入原定义，继续使用已有组件，并保留服务声明、注册和清理代码：
 
@@ -444,9 +501,11 @@ export default conversationComposerPlugin;
 
 setup 同步返回清理函数，不写成 async。每个 Agent 内同名服务只放一个活动提供实例。不要创建文件顶层全局 store 让多个独立 Agent 串状态。服务声明使用字面量数组和常量，便于工具检查依赖；已有项目提供其他服务时，将它们明确保留在数组中，不用 `new Set()` 或动态计算生成声明。
 
-### 输入区字数限制读取
+<span id="输入区字数限制读取"></span>
 
-在第 5 节 `plugins/composer/index.tsx` 的已有 Plugins 根入口导入中补上 `usePluginService`、`usePluginServiceSnapshot`，并新增：
+**输入区字数限制读取**
+
+在业务按钮示例的 `plugins/composer/index.tsx` 的已有 Plugins 根入口导入中补上 `usePluginService`、`usePluginServiceSnapshot`，并新增：
 
 ```ts
 import { COMPOSER_POLICY, DEFAULT_POLICY, type ComposerPolicyService } from '../../services/composer-policy';
@@ -465,7 +524,9 @@ const policy = usePluginServiceSnapshot(service, DEFAULT_POLICY);
 
 提供方组件可以读取自己 provides 的服务，不需要再把同名服务加入 inject。状态未变时返回同一个 snapshot，fallback 也用稳定对象。
 
-### 发送插件共享服务接入
+<span id="发送插件共享服务接入"></span>
+
+**发送插件共享服务接入**
 
 更新 `plugins/submit-action/definition.ts`，保留已有字段并声明可选依赖。默认 npm 入口的完整定义为：
 
@@ -530,13 +591,20 @@ node scripts/sync-agent-ui.mjs
 
 这只是开发工具，不导入生产组件。保持 AppUIModel 中原来的 composer 和 submit-action 实例启用。预期：切换下拉值后默认输入框的 maxLength 更新，其他 Agent 不受影响；插件停用或卸载时清理服务和订阅。完整合同见[服务 API](/development/plugin-api.md#服务共享与状态订阅)。
 
-本例接口最多返回 2000 字符，短档可能只允许 1000。第 5 节按钮会按传入上限检查长度，过长时显示本地化提示并保留原草稿，不截断业务文字。原生 maxLength 本身不覆盖所有程序写入和发送路径；业务后端仍独立校验。
+本例接口最多返回 2000 字符，短档可能只允许 1000。前面的业务按钮会按传入上限检查长度，过长时显示本地化提示并保留原草稿，不截断业务文字。原生 maxLength 本身不覆盖所有程序写入和发送路径；业务后端仍独立校验。
 
-## 7. 本地实现接管与定制
+</details>
+
+## 可选：接管本地实现 \{#7-本地实现接管与定制}
 
 前面样式、业务请求、组件组合与服务修改都是项目应用代码，不要求源码接管。只有确需维护官方实现内部逻辑时，才进入本节。
 
-### 源码接管范围
+<details class="dev-guide-details">
+<summary>展开接管范围、附件布局示例与后续升级方式</summary>
+
+<span id="源码接管范围"></span>
+
+**源码接管范围**
 
 Creator 会先列出具体 Plugin、项目实际安装的版本、需要修改的文件、影响范围和验证方式。确认这份计划后，再将指定插件的实现提取到项目。下面的示例适用于已经完成 composer 接管的工程。
 
@@ -556,7 +624,9 @@ plugins/composer/
 
 实际完整文件清单以接管计划和已提取目录为准。已有项目沿用自己的目录，顺着本地实现的 import 找到要修改的组件。
 
-### 示例：附件区域布局定制
+<span id="示例附件区域布局定制"></span>
+
+**示例：附件区域布局定制**
 
 假设已明确接管 composer，要把**内置附件预览**从输入区上方移到下方。在 `plugins/composer/source/adapters/composer.tsx` 的 `CanonicalComposer` 中，仅移动现有 `<ComposerAttachments />`，其他内容保持。当前代码位置的差异如下：
 
@@ -570,15 +640,19 @@ plugins/composer/
                data-slot='aui_composer-actions'
 ```
 
-在 `source/adapters/composer.tsx` 中移动现有的附件展示组件，保留其属性、原有 `renderSlot()` / `renderScopedSlot()` 调用及审批、队列逻辑。新增文案放入项目共享语言模块，接入方式见第 4 节。
+在 `source/adapters/composer.tsx` 中移动现有的附件展示组件，保留其属性、原有 `renderSlot()` / `renderScopedSlot()` 调用及审批、队列逻辑。新增文案放入项目共享语言模块，接入方式见[业务文案示例](#新增业务文案)。
 
 接管后，在项目应用入口确认组件已引用这个本地实现，并保留原有 Plugin ID 和实例配置。后续定制保存到该插件的项目文件中。
 
-### 后续升级
+<span id="后续升级"></span>
+
+**后续升级**
 
 npm 升级保留项目应用层和本地实现，不自动把 source 升成新版。实现同步以 BASE／LOCAL／TARGET 合并，仅包含受管理的实现子树，验证后明确采用才推进 BASE；项目应用层、Shell 和业务服务不进入这个合并范围。公共 API 发生变化时，单独检查并调整项目中的组件调用，见[更新与源码维护](/development/source-takeover.md)。
 
-## 8. 改动验证
+</details>
+
+## 检查改动效果 \{#8-改动验证}
 
 沿用项目自己的包管理器和 `package.json` 中的 typecheck、test、build。修改公开入口不新增 UI 库或改变主版本；可选输入实现需要其自身依赖。Windows 中同样运行项目现有脚本，路径按实际目录填写，不使用 Bash 专用命令。
 
@@ -592,7 +666,8 @@ npm 升级保留项目应用层和本地实现，不自动把 source 升成新�
 | 共享服务   | 选择上限同步到默认输入；缺服务有 fallback；多个 Agent 状态隔离               |
 | 本地实现排布 | 附件预览只出现一次；添加、移除、上传失败与历史展示正常                           |
 
-### 常见问题
+<details class="dev-guide-details" id="常见问题">
+<summary>遇到样式、服务或异步结果问题时排查</summary>
 
 - **CSS 文件存在但不生效：**&#x68C0;查是否实际 import、className 是否传到目标元素、自定义 input 是否替代了默认组件，及生产样式入口是否保留。
 - **新函数从来没有执行：**&#x521B;建 services 文件不会自动接入，检查组件导入和回调是否绑定到当前实例。
@@ -603,3 +678,5 @@ npm 升级保留项目应用层和本地实现，不自动把 source 升成新�
 - **升级后定制丢失：**&#x68C0;查是否改过 node_modules 或生成文件；项目应用层与已授权本地实现应独立维护。
 
 类型检查证明接口签名，构建证明可编译；真实业务请求、取消、流式与视觉效果仍需在目标页面验证。完整接口查[插件 API](/development/plugin-api.md)，具体组件属性查[插件目录](/plugins/index.md)。
+
+</details>

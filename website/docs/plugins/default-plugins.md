@@ -30,7 +30,7 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 | 插件 | 用途 | 默认状态 |
 | --- | --- | --- |
 | [`workbench-panel`](./workbench-panel) | 在对话旁切换多个内容，关闭和收起时保留内容状态。 | 工作台默认启用 |
-| [`workbench-panel-actions`](./workbench-panel#让其他插件打开指定内容) | 配置自己的按钮列表，通过共享服务打开指定内容。 | 默认未启用 |
+| [`workbench-panel-actions`](./workbench-panel-actions) | 配置自己的按钮列表，通过共享服务打开指定内容。 | 默认未启用 |
 
 ## 消息输入与编辑
 

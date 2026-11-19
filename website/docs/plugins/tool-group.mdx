@@ -4,71 +4,138 @@ title: "工具调用分组（tool-group）"
 
 # 工具调用分组（tool-group）
 
-收起时显示调用数量，例如「2 次工具调用」。展开后可以看到组内每个工具的名称和状态，并继续打开单次调用的详情。
+<figure className="plugin-preview">
 
-组内出现等待审批或用户操作的工具时，默认自动展开，直接显示待处理内容；仍可手动收起。
+![展开后的工具分组](/images/plugins/behavior/tool-group-expanded.jpg)
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<figcaption>手动展开后的同一工具组：标题汇总 3 次调用，组内保留各个工具入口。</figcaption>
+</figure>
 
-![展开多个工具调用（tool-group）界面示例](/images/plugins/tool-group.jpg)
+将会话中归入同一组的工具调用集中展示，自动显示调用数量和运行状态，并保留每个工具原有的详情与操作。
 
-## 启用与使用
+## 汇总一组工具调用
 
-在 **Creator 输入框**输入 `/enable tool-group`，点击下图中的 **「展开多个工具调用」**。
+插件从会话取得当前工具分组和其中的内容，标题自动显示本组调用数量；运行中的分组带有进行中提示。普通分组初始收起，点击标题可以查看或隐藏各次调用。
 
-![Creator 启用菜单：点击「展开多个工具调用」，插件 ID 为 tool-group](/images/plugins/enable/tool-group.jpg)
+<figure className="plugin-preview">
 
-## 显示条件与数据来源
+![普通工具组的初始收起状态](/images/plugins/behavior/tool-group-collapsed.jpg)
 
-**数据来源：**当前回复中的工具调用。服务端发送[通用工具事件](./ag-ui-data#通用工具事件)后，界面将调用组织成分组，可展开查看参数、状态和结果。已配置的专用工具卡片和子任务展示会继续生效。
+<figcaption>同一组的初始状态只显示“3 次工具调用”；点击后才出现开头截图中的工具条目。</figcaption>
+</figure>
 
-## 定制选项
+分组和数量由现有会话渲染链提供，业务代码无需自己计数，也无需将工具名逐个拼成一组。
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 开始时展开还是收起 | 选择默认展开组内工具，或只显示摘要。 |
-| 背景和边框 | outline 显示边框，ghost 使用透明背景，muted 使用淡背景。 |
-| 摘要按钮样式 | 调整工具数量和摘要所在按钮的外观。 |
-| 详情区域样式 | 调整展开后的背景、间距和边框。 |
+## 待处理操作自动展开
 
-## 需求示例
+本组出现需要用户处理的操作时，插件自动展开，方便查看详情中的审批或补充输入入口。普通工具组随后进入待处理状态时，也会触发展开。
 
-```text
-请修改「展开多个工具调用（tool-group）」：
-修改：工具组默认【收起】，背景改为【淡灰色】，摘要按钮字号设为【13px】。
-保留：现有工具数量、执行状态和详情交互。
+展开只是让操作入口可见；实际提交、批准或继续运行沿用各个工具已有的处理流程。离开待处理状态后，插件不会强制把当前分组收起，用户仍可自行切换。
+
+## 分组内查看工具详情
+
+展开分组后，原有工具内容继续在组内展示。工具的输入、结果和错误由对应的工具展示处理，分组本身不会把它们改造成一段摘要，也不会替用户执行其中的操作。
+
+## 从会话取得工具分组 {#显示条件与数据来源}
+
+插件消费当前回复中的工具调用，由会话渲染链组织分组，不需要后端另外发送分组对象。下面展示同一回复中的两次调用，省略外层运行事件与 SSE 包装，完整格式见[通用工具事件](./ag-ui-data#通用工具事件)：
+
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"config-1","toolCallName":"read_config"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"config-1","delta":"{\"path\":\"app-ui.json\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"config-1"}
+{"type":"TOOL_CALL_START","toolCallId":"inspect-1","toolCallName":"inspect_component"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"inspect-1","delta":"{\"name\":\"composer\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"inspect-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"config-result-1","toolCallId":"config-1","role":"tool","content":"{\"found\":true}"}
+{"type":"TOOL_CALL_RESULT","messageId":"inspect-result-1","toolCallId":"inspect-1","role":"tool","content":"{\"available\":true}"}
 ```
 
-## 属性
+每次调用使用不同的 `toolCallId`；同一次调用的参数、结束和结果沿用相同 ID。`TOOL_CALL_ARGS.delta` 是可分段追加的 JSON 字符串，`TOOL_CALL_END` 只表示参数结束，不表示工具执行完成；结果通过对应的 `TOOL_CALL_RESULT` 返回。
 
-打开项目中的 `plugins/tool-group/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+工具名和参数是业务接口的一部分，上面的名称仅用于示例。分组边界与数量由会话中的实际内容决定，不通过后端传入 `count`、`expanded` 或单独的分组 ID 来控制；已配置的专用工具卡片和子任务展示继续生效。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+需要用户审批或补充输入时，还需沿用[审批／中断事件格式](./tool-fallback#显示条件与数据来源)。运行时据此得到待处理状态，再触发分组自动展开；普通工具参数结束事件不会让分组进入待审批状态。
 
-组件：`ConversationCanonicalToolGroup`；类型：`ConversationCanonicalToolGroupProps`。继承公开 ToolGroupRoot 的属性，排除 `children`、`open`、`defaultOpen`、`onOpenChange`。插件入口缺少 `group` 时不渲染。
+<span id="定制选项"></span>
+
+## 普通工具组也初始展开 {#初始展开}
+
+<span id="example-1"></span>
+
+默认只为待处理操作自动展开。希望普通调用也从展开状态开始时，在项目已有工具组入口设置 `defaultExpanded`：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationToolGroupPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.tool-group') return null;
+  return <Implementation {...scope.value} {...props}
+    defaultExpanded />;
+}
+```
+
+调用数量、运行状态和待处理操作的展开逻辑仍由插件提供，用户仍可点击标题收起。
+
+## 调整工具组外观
+
+<span id="example-2"></span>
+
+默认工具组使用无边框样式。需要将整组工具与正文明确分隔时，可增加边框：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationToolGroupPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.tool-group') return null;
+  return <Implementation {...scope.value} {...props}
+    variant="outline" />;
+}
+```
+
+## API
+
+以下选项用于定制已有分组展示。当前分组与内部消息由会话提供，正常使用无需重新组织这些数据。
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+继承公开 ToolGroupRoot 的属性，排除 `children`、`open`、`defaultOpen`、`onOpenChange`。插件入口缺少 `group` 时不渲染。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `group` | `ConversationMessagePartGroup` | 会话运行环境提供的当前工具分组；单独使用展示组件时必需 |
-| `children?` | `ReactNode` | 组内工具内容 |
-| `expanded?` | `boolean` | 受控展开 |
+| `children?` | `ReactNode` | Runtime 提供的组内工具内容，不作为普通用户配置 |
+| `expanded?` | `boolean` | 项目完全控制展开状态；设置后待处理操作也不能覆盖传入值 |
 | `defaultExpanded?` | `boolean` | 初始展开状态；省略时，含待处理操作的组展开，其余收起。后续进入待处理状态时自动展开；`expanded` 可完全控制展开状态 |
 | `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
-| `buttonProps?` | `Partial<ComponentProps<typeof ToolGroupTrigger>>` | 标题按钮，支持 `count`、`active` 和原生属性；默认从分组推导数量与运行状态 |
+| `buttonProps?` | `Partial<Omit<ComponentProps<typeof ToolGroupTrigger>, 'active' \| 'count' \| 'children'>>` | 标题按钮外观与原生属性；数量和运行状态由分组提供 |
 | `contentProps?` | `Omit<ComponentProps<typeof ToolGroupContent>, 'children'>` | 折叠内容面板属性 |
 | `variant?` | `'outline' \| 'ghost' \| 'muted' \| null` | 完整工具组组件默认 `ghost` |
 
 根组件还继承外观、无障碍与其余折叠根组件属性。子组件类型从公开 `/plugin-support` 入口取得。
 
-### 类型查询
+<span id="受控展开"></span>
 
-可在编辑器中通过公开组件取得完整属性类型：
+<span id="工具分组"></span>
 
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationCanonicalToolGroup } from '@za38.03/agent-ui-plugins';
+<span id="常见需求"></span>
 
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalToolGroup>;
-```
+<span id="需求示例"></span>
 
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+<span id="代码示例"></span>
+
+<span id="启用与使用"></span>
+
+<details className="plugin-faq" id="defaultexpanded-与-expanded-有什么区别">
+<summary>defaultExpanded 与 expanded 有什么区别？</summary>
+
+前者决定第一次展示时的状态，后续由组件管理；后者由项目每次渲染传入，需配套处理 onExpandedChange。
+
+</details>

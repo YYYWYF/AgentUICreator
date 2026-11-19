@@ -8,20 +8,12 @@ import {
 } from '../../../../public.js';
 import { projectWebSearch } from './projection.js';
 export interface WebSearchPluginProps extends ConversationToolCallProps, UIPluginElementProps {
-  query?: ComponentProps<typeof WebSearch>['query'];
-  results?: ComponentProps<typeof WebSearch>['results'];
-  searching?: ComponentProps<typeof WebSearch>['searching'];
   visibleResults?: ComponentProps<typeof WebSearch>['visibleResults'];
-  cycle?: ComponentProps<typeof WebSearch>['cycle'];
   renderSearch?: (props: WebSearchProps, tool: ConversationToolCallProps) => ReactNode;
   Fallback?: ComponentType<ConversationToolCallProps>;
 }
 export function CanonicalWebSearch({
-  query,
-  results,
-  searching,
   visibleResults,
-  cycle,
   className,
   style,
   id,
@@ -42,18 +34,14 @@ export function CanonicalWebSearch({
     'aria-describedby': ariaDescription,
     onClick,
   };
-  const overrides = Object.fromEntries(
-    Object.entries({ query, results, searching, visibleResults, cycle }).filter(([, value]) => value !== undefined),
-  );
   const view = projectWebSearch(tool);
   if (view === null) {
     return <Fallback {...tool} />;
   }
   const props: WebSearchProps = {
     ...view,
-    ...overrides,
+    ...(visibleResults === undefined ? {} : { visibleResults }),
     ...rootProps,
-
   };
   return <>{renderSearch ? renderSearch(props, tool) : <WebSearch {...props} />}</>;
 }

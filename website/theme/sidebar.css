@@ -202,6 +202,237 @@
   overflow-wrap: anywhere;
 }
 
+/* Component examples keep their code available without dominating the page. */
+.rp-doc details.doc-code,
+.rspress-doc details.doc-code {
+  margin-block: 16px 28px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--rp-c-divider-light);
+  border-radius: 10px;
+  background: var(--rp-c-bg);
+}
+
+.rp-doc details.doc-code > summary,
+.rspress-doc details.doc-code > summary {
+  padding: 10px 16px;
+  color: var(--rp-c-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rp-doc details.doc-code > summary:hover,
+.rspress-doc details.doc-code > summary:hover {
+  color: var(--rp-c-brand);
+  background: var(--rp-c-bg-soft);
+}
+
+.rp-doc details.doc-code > summary:focus-visible,
+.rspress-doc details.doc-code > summary:focus-visible {
+  outline: 2px solid var(--rp-c-brand);
+  outline-offset: -3px;
+}
+
+.rp-doc details.doc-code[open] > summary,
+.rspress-doc details.doc-code[open] > summary {
+  border-block-end: 1px solid var(--rp-c-divider-light);
+}
+
+.rp-doc details.doc-code .rp-codeblock,
+.rspress-doc details.doc-code .rp-codeblock {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.rp-doc figure.plugin-preview {
+  margin: 16px 0 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.rp-doc figure.plugin-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.rp-doc figure.plugin-preview figcaption {
+  margin-block-start: 12px;
+  color: var(--rp-c-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Plugin FAQs read as quiet article rows, including while hovered or expanded. */
+.rp-doc details.plugin-faq,
+.rp-doc details.plugin-faq:hover {
+  margin-block: 24px 0;
+  padding: 0;
+  border-block-start: 1px solid var(--rp-c-divider-light);
+  background: transparent;
+  cursor: auto;
+  transition: none;
+}
+
+.rp-doc details.plugin-faq + details.plugin-faq {
+  margin-block-start: 0;
+}
+
+.rp-doc details.plugin-faq > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 16px;
+  color: var(--rp-c-text-1);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rp-doc details.plugin-faq > summary::marker {
+  content: '';
+}
+
+.rp-doc details.plugin-faq > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-doc details.plugin-faq > summary::after {
+  content: '';
+  flex: 0 0 6px;
+  align-self: center;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 4px;
+  border-inline-end: 1.5px solid var(--rp-c-text-2);
+  border-block-end: 1.5px solid var(--rp-c-text-2);
+  transform: rotate(-45deg);
+}
+
+.rp-doc details.plugin-faq[open] > summary::after {
+  transform: rotate(45deg);
+}
+
+.rp-doc details.plugin-faq > summary:hover {
+  color: var(--rp-c-brand);
+}
+
+.rp-doc details.plugin-faq > summary:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.rp-doc details.plugin-faq > summary:focus-visible {
+  outline: 2px solid var(--rp-c-brand);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.rp-doc details.plugin-faq > summary + * {
+  margin-block-start: 0;
+}
+
+.rp-doc details.plugin-faq > :last-child:not(summary) {
+  margin-block-end: 20px;
+}
+
+.rp-doc details.plugin-faq :not(pre) > code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Developer guides share readable, task-specific disclosure panels. */
+.rp-doc details.dev-guide-details,
+.rp-doc details.dev-guide-details:hover {
+  --guide-details-padding: 20px;
+  margin-block: 20px;
+  padding: 0 var(--guide-details-padding);
+  border: 1px solid var(--rp-c-divider-light);
+  border-radius: 12px;
+  background: var(--rp-c-bg);
+  cursor: auto;
+  overflow: hidden;
+  transition: none;
+}
+
+.rp-doc details.dev-guide-details > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-inline: calc(-1 * var(--guide-details-padding));
+  padding: 15px var(--guide-details-padding);
+  color: var(--rp-c-text-1);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rp-doc details.dev-guide-details > summary::marker {
+  content: '';
+}
+
+.rp-doc details.dev-guide-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rp-doc details.dev-guide-details > summary::before {
+  content: '';
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-inline-end: 1.5px solid var(--rp-c-text-2);
+  border-block-end: 1.5px solid var(--rp-c-text-2);
+  transform: rotate(-45deg);
+}
+
+.rp-doc details.dev-guide-details > summary:hover,
+.rp-doc details.dev-guide-details[open] > summary {
+  background: var(--rp-c-bg-soft);
+}
+
+.rp-doc details.dev-guide-details > summary:focus-visible {
+  outline: 2px solid var(--rp-c-brand);
+  outline-offset: -3px;
+}
+
+.rp-doc details.dev-guide-details[open] {
+  padding-block-end: var(--guide-details-padding);
+}
+
+.rp-doc details.dev-guide-details[open] > summary {
+  margin-block-end: var(--guide-details-padding);
+  border-block-end: 1px solid var(--rp-c-divider-light);
+}
+
+.rp-doc details.dev-guide-details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.rp-doc details.dev-guide-details > summary + * {
+  margin-block-start: 0;
+}
+
+.rp-doc details.dev-guide-details > :last-child {
+  margin-block-end: 0;
+}
+
+@media (width <= 600px) {
+  .rp-doc details.dev-guide-details,
+  .rp-doc details.dev-guide-details:hover {
+    --guide-details-padding: 16px;
+  }
+}
+
 .rp-doc-layout__sidebar .rp-sidebar-item {
   border-radius: 6px;
 }

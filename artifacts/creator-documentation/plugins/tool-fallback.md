@@ -1,20 +1,174 @@
 # 工具调用详情（tool-fallback）
 
-工具调用是 Agent 发起的一次具体操作，例如读取项目配置。点击工具名称可展开参数、结果或错误；需要确认的操作会提供允许或拒绝入口。工具组负责归类多次调用，本插件负责展示其中每一次调用的内容。
+显示工具参数、结果和错误，保留原调用的审批与中断恢复。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
-![展开工具调用，查看输入参数和返回结果](/images/plugins/tool-fallback.jpg)
 
-## 启用与使用
 
-三种新建项目模板默认使用[工具结果（tool-result）](/plugins/tool-result.md)，包含本插件的工具详情和审批能力，并支持图片、音视频和文档结果。需要使用基础结果展示时，可将 `conversation-surface` 的 `toolFallback` 位置替换为 `tool-fallback`；同一位置只保留一个插件。
 
-在 **Creator 输入框**输入 `/enable tool-fallback`，点击下图中的 **「查看工具调用详情」**。
+## 工具详情与审批
 
-![Creator 启用菜单：点击「查看工具调用详情」，插件 ID 为 tool-fallback](/images/plugins/enable/tool-fallback.jpg)
 
-## 显示条件与数据来源
+![工具详情与审批界面](/images/plugins/tool-fallback.jpg)
+
+## 展开详情并限制内容高度 \{#展开详情并限制内容高度}
+
+
+参数、结果、错误和操作确认沿用现有工具上下文。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationToolFallback } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationToolFallback>) {
+  return <ConversationToolFallback {...props}
+    defaultExpanded
+    contentProps={{ ...props.contentProps, style: { ...props.contentProps?.style, maxHeight: 360, overflow: "auto" } }} />;
+}
+```
+
+
+## 受控工具详情 \{#受控工具详情}
+
+展开状态由项目维护；不改变工具审批和中断恢复的判断。
+
+```tsx
+import { useState, type ComponentProps } from 'react';
+import { ConversationToolFallback } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationToolFallback>) {
+  const [expanded, setExpanded] = useState(false);
+  return <ConversationToolFallback {...props}
+    expanded={expanded}
+    onExpandedChange={setExpanded} />;
+}
+```
+
+## 替换结果内容并保留审批 \{#自定义工具内容顺序}
+
+只改结果内容时，使用 `renderResult`，让完整卡片继续处理参数、错误、审批和中断：
+
+```tsx
+import {
+  ConversationToolFallback, type ConversationToolFallbackProps,
+} from '@za38.03/agent-ui-plugins';
+
+export function HighlightedToolResult(props: ConversationToolFallbackProps) {
+  return <ConversationToolFallback {...props}
+    renderResult={result => <div className="project-tool-result">
+      <ConversationToolFallback.Result result={result} />
+    </div>} />;
+}
+```
+
+自定义容器只包住结果；`.Result` 继续显示原结果，审批等交互由外面的完整卡片保留。其他组合部件使用底层原生参数类型，完整卡片的通用 `status` 不能直接展开给 `.Error` / `.Approval`；普通结果定制使用此回调即可。
+
+## 自定义审批 \{#hook}
+
+通常保留完整卡片及原工具 props 中的 `approval`、`respondToApproval`、`interrupt`、`resume`、`responseDeliveryStatus`，即可沿用审批和中断。
+
+确实需要自定义旧命令审批入口时，从 `@za38.03/agent-ui-runtime/plugin-api` 调用 `useConversationCommandDecision(toolCallId)`。返回 `ConversationCommandDecisionBinding | undefined`，绑定包含 `request.allowedDecisions: readonly string[]`、可选 `request.description`，以及 `submit(decisionType): Promise<void>`。
+
+```tsx
+import { useState } from 'react';
+import { useConversationCommandDecision }
+  from '@za38.03/agent-ui-runtime/plugin-api';
+
+export function CommandDecisions({ toolCallId, labelFor, onError }: {
+  toolCallId: string;
+  labelFor: (decision: string) => string;
+  onError: (error: unknown) => void;
+}) {
+  const binding = useConversationCommandDecision(toolCallId);
+  const [pending, setPending] = useState(false);
+  if (!binding) return null;
+  return <div>{binding.request.allowedDecisions.map(decision => (
+    <button key={decision} type="button" disabled={pending} onClick={async () => {
+      if (pending) return;
+      setPending(true);
+      try { await binding.submit(decision); }
+      catch (error: unknown) { onError(error); }
+      finally { setPending(false); }
+    }}>{labelFor(decision)}</button>
+  ))}</div>;
+}
+```
+
+组件放在已有工具 renderer 内，传入原 `toolCallId`；`labelFor` 用项目统一文案把后端 decision 映射为按钮文字，提交的仍是后端原值。等待期间禁用重复点击，错误交给 `onError`；没有待审批绑定时不显示按钮。此入口不替代组件原生审批或其他类型的中断回调。
+
+同一 Runtime 入口的 `useConversationCommandDecisions()` 返回所有待审批绑定的只读 Map，适合汇总待处理数量；`useConversationToolRenderer()` 返回已有工具组件或 `undefined`，适合复用当前工具展示。它们都读取既有上下文。
+
+只需改结果排版时，使用前面的[保留审批示例](#自定义工具内容顺序)，无须自己组装原生审批参数。
+
+## API
+
+
+
+插件入口：`ConversationToolFallbackPlugin`；公开展示组件：`ConversationToolFallback`。入口接收 `tool?`、`ToolFallbackPresentationProps`；单独使用展示组件时，直接传入当前工具调用的数据及下列展示属性。
+
+| 属性                  | 类型                                                                                                                                | 省略时 / 用途                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `tool?`             | `ConversationToolFallbackProps`                                                                                                   | 插件入口的工具上下文对象；缺少时不渲染                                |
+| `expanded?`         | `boolean`                                                                                                                         | 受控展开                                               |
+| `defaultExpanded?`  | `boolean`                                                                                                                         | 默认按是否等待操作决定；等待操作时初始展开                              |
+| `onExpandedChange?` | `(expanded: boolean) => void`                                                                                                     | 展开变化通知                                             |
+| `buttonProps?`      | `Omit<ComponentProps<typeof ConversationToolFallback.Trigger>, 'toolName' \| 'status' \| 'responseDeliveryStatus' \| 'children'>` | 标题按钮的样式、无障碍属性与事件；工具名和运行状态仍由当前调用提供                  |
+| `contentProps?`     | `Omit<ComponentProps<typeof ConversationToolFallback.Content>, 'children'>`                                                       | 折叠内容容器，可设置 `style.maxHeight` / `overflow`，见前面的高度示例 |
+| `argsProps?`        | `Omit<ComponentProps<typeof ConversationToolFallback.Args>, 'argsText' \| 'children'>`                                            | 参数区容器样式；不会替换真实输入参数，改内容需自定义组合                       |
+| `resultProps?`      | `Omit<ComponentProps<typeof ConversationToolFallback.Result>, 'result' \| 'children'>`                                            | 结果区容器样式；替换内容用 `renderResult(result)`               |
+| `renderResult?`     | `(result: unknown) => ReactNode`                                                                                                  | 替换默认结果内容                                           |
+| `errorProps?`       | `Omit<ComponentProps<typeof ConversationToolFallback.Error>, 'status' \| 'children'>`                                             | 错误区容器样式；错误状态仍由当前调用提供                               |
+| `approvalProps?`    | `Omit<ComponentPropsWithoutRef<'div'>, 'children'>`                                                                               | 审批区外观和无障碍属性                                        |
+| `renderDetails?`    | `(defaultDetails: ReactNode) => ReactNode`                                                                                        | 定制详情区域；复用默认节点可保留审批、错误与结果                           |
+
+整体样式用 `className` / `style`。只改结果内容时，使用前面的[组合示例](#自定义工具内容顺序)，可保留当前卡片的审批和错误处理。
+
+展示组件还保留 `approval`、`respondToApproval`、`interrupt`、`resume`、`responseDeliveryStatus`。这些由现有 assistant-ui 工具上下文提供，在插件入口放入 `tool` 对象中。完整签名见 `ConversationToolFallbackProps`；不要将展示修改变为自行处理审批或中断。
+
+### 当前工具调用的数据与操作
+
+这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+
+| 属性                 | 类型                                                                          | 用途                        |
+| ------------------ | --------------------------------------------------------------------------- | ------------------------- |
+| `type?`            | `'tool-call'`                                                               | 消息片段类型                    |
+| `toolCallId`       | `string`                                                                    | 工具调用 ID                   |
+| `toolName`         | `string`                                                                    | 工具名称                      |
+| `args`             | `unknown`                                                                   | 解析后的输入参数                  |
+| `argsText?`        | `string`                                                                    | 输入参数的文本形式                 |
+| `result?`          | `unknown`                                                                   | 工具结果                      |
+| `messages?`        | `readonly ConversationMessage[]`                                            | 关联的嵌套消息                   |
+| `isError?`         | `boolean`                                                                   | 结果是否为错误                   |
+| `status`           | [`ConversationToolCallStatus`](#conversationtoolcallstatus)                 | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
+| `addResult?`       | `(result: unknown) => void`                                                 | 提交前端工具结果                  |
+| `resumeInterrupt?` | `(payload: unknown) => Promise<void>`                                       | 提交恢复数据，让暂停的任务继续执行         |
+| `decisionRequest?` | [`ConversationCommandDecisionRequest`](#conversationcommanddecisionrequest) | 运行环境提供的操作确认请求             |
+| `submitDecision?`  | `(decisionType: string) => Promise<void>`                                   | 提交后端支持的决定                 |
+
+该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+
+在本插件入口中，上述数据和方法放在 `tool` 对象里；单独使用展示组件时直接传入这些字段。
+
+### 根据工具状态决定展示与操作 \{#conversationtoolcallstatus}
+
+`status` 按 `type` 区分当前调用处于哪一步。自定义卡片应分别处理这些情况：
+
+| `status.type`     | 显示什么                           | 可以做什么                                   |
+| ----------------- | ------------------------------ | --------------------------------------- |
+| `running`         | 参数、运行状态或当前已有内容                 | 等待结果；不把没有结果当作失败                         |
+| `complete`        | 已完成的结果                         | 展示、下载或交给业务操作；不再提供回答入口                   |
+| `incomplete`      | 未完成状态，可读取可选 `reason` / `error` | 显示项目错误或取消说明；错误详情经项目文案层转换后展示             |
+| `requires-action` | 待审批、补充信息或交互问卷                  | 还需检查对应回调存在、当前 Thread 允许回答及结果未提交，再显示操作入口 |
+
+完整状态类型是 `ConversationToolCallStatus`，从 Plugins 根入口导入；类型只描述状态，改变前端对象不会让 Agent 继续运行。
+
+#### 提交后端给出的决定 \{#conversationcommanddecisionrequest}
+
+旧命令审批通过 `decisionRequest` 提供 `allowedDecisions: readonly string[]` 和可选 `description`。例如返回 `{ allowedDecisions: ['approve', 'reject'] }` 时，按钮文字由项目语言层映射，点击提交的仍是原标识；不要根据中文按钮文字生成协议值。
+
+用 `submitDecision(decisionType): Promise<void>` 提交并处理拒绝；没有这个回调时保持只读。Hook 形式和重复提交保护见[自定义审批示例](#hook)。原生审批与其他中断继续使用 renderer 原有的 `respondToApproval` / `resume`，它们不能互相替代。
+
+### 显示条件与数据来源 \{#显示条件与数据来源}
 
 没有专用 Tool UI 的调用使用本插件。参数、结果使用[通用工具事件](/plugins/ag-ui-data.md#通用工具事件)。本插件须组合到 `conversation-surface` 的 `toolFallback` 位置，与 `tool-result` 二选一。新建项目默认启用的 `tool-result` 已包含审批区，两种格式都可直接使用。
 
@@ -66,7 +220,7 @@
 
 ### 新版格式：RUN_FINISHED interrupt
 
-后端将同一审批内容放在 `metadata.langgraph.raw`，使用 `reason: "langgraph:interrupt"` 和稳定的中断 ID。下面的结构不要求另行添加 `toolCallId`、`message` 或 `responseSchema`：
+后端将同一审批内容放在 `metadata.langgraph.raw`，使用 `reason: "langgraph:interrupt"` 和稳定的中断 ID。以下结构不要求另行添加 `toolCallId`、`message` 或 `responseSchema`：
 
 ```jsonl
 {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"interrupt","interrupts":[{"id":"approval-1","reason":"langgraph:interrupt","metadata":{"langgraph":{"raw":{"action_requests":[{"name":"confirm_take_leave_policy","args":{"user":"杨康","leave_policy":"年假"},"description":"请确认您的请假方案\n\nTool: confirm_take_leave_policy\nArgs: {'user': '杨康', 'leave_policy': '年假'}"}],"review_configs":[{"action_name":"confirm_take_leave_policy","allowed_decisions":["approve","edit","reject","respond"]}]},"ns":null,"resumable":null,"when":null}}}]}}
@@ -102,127 +256,11 @@
 
 在 Mock 的「提问与审批」分组中，分别选择「工具审批 · 旧版 CUSTOM 格式」和「工具审批 · 新版 interrupt 格式」验证。两者使用默认启用的 `tool-result`，不需要另启用一个审批插件。
 
-## 定制选项
 
-| 可以改什么      | 效果                   |
-| ---------- | -------------------- |
-| 开始时展开还是收起  | 选择默认展开或收起工具详情。       |
-| 标题和内容区样式   | 调整边框、背景、间距和内容区高度。    |
-| 参数、结果和错误样式 | 分别调整三块内容的字号、颜色和滚动区域。 |
-| 审批区域外观     | 调整允许、拒绝等操作所在区域的样式。   |
-| 补充内容       | 在原有结果后追加自己的内容。       |
+自定义工具展示中的业务按钮可以使用当前调用的 `args`、`result`、`status`，以及允许时提供的答案或审批回调；无需再请求一份工具详情。把结果交给其他插件时使用[共享 Service](/development/plugin-interaction.md#插件之间共享选择或结果)，业务操作由用户点击触发，历史回放不重复执行。
 
-## 需求示例
 
-```text
-请修改「查看工具调用详情（tool-fallback）」：
-修改：工具详情默认【收起】，参数和结果区域最大高度设为【240px】并可滚动。
-保留：工具数据、允许和拒绝操作及回答入口。
-```
 
-## 属性
+能否用自定义结果内容替代审批区域？
 
-打开项目中的 `plugins/tool-fallback/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
-
-插件入口：`ConversationToolFallbackPlugin`；公开展示组件：`ConversationToolFallback`。入口接收 `tool?`、`ToolFallbackPresentationProps`；单独使用展示组件时，直接传入当前工具调用的数据及下列展示属性。
-
-| 属性                  | 类型                                                  | 省略时 / 用途                                                     |
-| ------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
-| `tool?`             | `ConversationToolFallbackProps`                     | 插件入口的工具上下文对象；缺少时不渲染                                          |
-| `expanded?`         | `boolean`                                           | 受控展开                                                         |
-| `defaultExpanded?`  | `boolean`                                           | 默认按是否等待操作决定；等待操作时初始展开                                        |
-| `onExpandedChange?` | `(expanded: boolean) => void`                       | 展开变化通知                                                       |
-| `buttonProps?`      | `ToolFallbackPresentationProps['buttonProps']`      | `Trigger` 属性，排除 `toolName`、`status`、`responseDeliveryStatus` |
-| `contentProps?`     | `ToolFallbackPresentationProps['contentProps']`     | `Content` 面板属性                                               |
-| `argsProps?`        | `ToolFallbackPresentationProps['argsProps']`        | `Args` 展示属性，排除 `argsText`、`children`                         |
-| `resultProps?`      | `ToolFallbackPresentationProps['resultProps']`      | `Result` 展示属性，排除 `result`、`children`                         |
-| `renderResult?`     | `(result: unknown) => ReactNode`                    | 替换默认结果内容                                                     |
-| `errorProps?`       | `ToolFallbackPresentationProps['errorProps']`       | `Error` 展示属性，排除 `status`、`children`                          |
-| `approvalProps?`    | `Omit<ComponentPropsWithoutRef<'div'>, 'children'>` | 审批区外观和无障碍属性                                                  |
-| `children?`         | `ReactNode`                                         | 自定义详情组合                                                      |
-
-还支持下方列出的样式和无障碍属性。公开组合部件有 `ConversationToolFallback.Root`、`.Trigger`、`.Content`、`.Args`、`.Result`、`.Error`、`.Approval`；部件的准确类型可通过 `ComponentProps<typeof ConversationToolFallback.Args>` 等获取。底层 `Root` 部件保留原生 `open`／`defaultOpen`／`onOpenChange`，完整卡片使用上表的展开属性。
-
-展示组件还保留 `approval`、`respondToApproval`、`interrupt`、`resume`、`responseDeliveryStatus`。这些由现有 assistant-ui 工具上下文提供，在插件入口放入 `tool` 对象中。完整签名见 `ConversationToolFallbackProps`；不要将展示修改变为自行处理审批或中断。
-
-### 外观与无障碍属性
-
-以下属性均可选。
-
-| 属性                 | 类型                                    | 用途      |
-| ------------------ | ------------------------------------- | ------- |
-| `className`        | `string`                              | 整体样式类   |
-| `style`            | `CSSProperties`                       | 整体内联样式  |
-| `id`               | `string`                              | 元素标识    |
-| `role`             | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色   |
-| `aria-label`       | `string`                              | 无障碍名称   |
-| `aria-describedby` | `string`                              | 描述元素 ID |
-| `onClick`          | `MouseEventHandler<HTMLElement>`      | 点击回调    |
-
-### 当前工具调用的数据与操作
-
-这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
-
-| 属性                 | 类型                                                                          | 用途                        |
-| ------------------ | --------------------------------------------------------------------------- | ------------------------- |
-| `type?`            | `'tool-call'`                                                               | 消息片段类型                    |
-| `toolCallId`       | `string`                                                                    | 工具调用 ID                   |
-| `toolName`         | `string`                                                                    | 工具名称                      |
-| `args`             | `unknown`                                                                   | 解析后的输入参数                  |
-| `argsText?`        | `string`                                                                    | 输入参数的文本形式                 |
-| `result?`          | `unknown`                                                                   | 工具结果                      |
-| `messages?`        | `readonly ConversationMessage[]`                                            | 关联的嵌套消息                   |
-| `isError?`         | `boolean`                                                                   | 结果是否为错误                   |
-| `status`           | [`ConversationToolCallStatus`](#conversationtoolcallstatus)                 | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
-| `addResult?`       | `(result: unknown) => void`                                                 | 提交前端工具结果                  |
-| `resumeInterrupt?` | `(payload: unknown) => Promise<void>`                                       | 提交恢复数据，让暂停的任务继续执行         |
-| `decisionRequest?` | [`ConversationCommandDecisionRequest`](#conversationcommanddecisionrequest) | 运行环境提供的操作确认请求             |
-| `submitDecision?`  | `(decisionType: string) => Promise<void>`                                   | 提交后端支持的决定                 |
-
-该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
-
-在本插件入口中，上述数据和方法放在 `tool` 对象里；单独使用展示组件时直接传入这些字段。
-
-### 类型说明
-
-#### ConversationToolCallStatus
-
-按 `type` 区分工具状态：运行中、已完成、未完成和等待用户操作。
-
-```ts
-type ConversationToolCallStatus =
-  | { type: 'running' }
-  | { type: 'complete' }
-  | { type: 'incomplete'; reason?: string; error?: unknown }
-  | { type: 'requires-action'; reason?: string };
-```
-
-`reason` 是可选原因，`error` 是未完成时的可选错误详情。
-
-#### ConversationCommandDecisionRequest
-
-运行环境提供的操作确认请求。
-
-```ts
-interface ConversationCommandDecisionRequest {
-  allowedDecisions: readonly string[]; // 后端允许提交的决定标识
-  description?: string; // 请求说明
-}
-```
-
-提交决定时使用 `allowedDecisions` 中的原始标识。
-
-### 类型查询
-
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationToolFallback } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationToolFallback>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+renderResult 只替换结果。需要确认的工具继续使用审批与恢复操作；使用 renderDetails 定制详情时，应复用 defaultDetails 或显式保留对应部件。

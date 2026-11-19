@@ -45,7 +45,11 @@ export const locales = {
 };
 ```
 
-`project-config.tsx` 已绑定这个 locale 模块。三条示例分别使用 `architecture*`、`debug*`、`next*` 的 `Title` / `Label` / `Prompt` 字段；含义是标题、副标题和点击后发送的内容。数量、顺序由 `getConversationStarterSuggestions(locale, messages)` 组织，返回 `[]` 隐藏；纯文案修改只改 locales。Host 的 `Agent locales` 仍可按字段覆盖项目默认值，未覆盖字段保留。
+`project-config.tsx` 已绑定这个 locale 模块。调整建议时按以下位置修改：
+
+- **文案**：三条示例分别使用 `architecture*`、`debug*`、`next*` 的 `Title` / `Label` / `Prompt`，对应标题、副标题和点击后发送的内容。纯文案修改只改 locales。
+- **数量和顺序**：由 `getConversationStarterSuggestions(locale, messages)` 组织，返回 `[]` 隐藏。
+- **Host 覆盖**：`Agent locales` 按字段覆盖项目默认值，未覆盖字段保留。
 
 建议项的结构也由该回调组织：移除副标题时，保留 `title`、`prompt`，省略返回对象的 `label`，见[推荐问题结构示例](/plugins/conversation-suggestions.md#设置建议内容)。必需 locale 标签的空字符串会回退到默认值，不表示隐藏该字段。
 
@@ -99,7 +103,15 @@ export function OrderAssistant({ selectedOrder }: { selectedOrder: Order }) {
 
 ## 主题切换
 
-`theme` 支持 `light`、`dark`、`violet`。切换主题不会清空聊天记录或输入框中未发送的内容。主题只从 `Agent` 属性传入。不传 `theme` 时使用内置紫色主题，并允许主题控件自行切换。传入固定值（例如 `<Agent theme="dark" />`）时固定显示该主题；允许内置控件切换时，页面通过 `onThemeChange` 接受变更：
+`theme` 支持 `light`、`dark`、`violet`，只从 `Agent` 属性传入。切换主题保留聊天记录和未发送草稿。
+
+| 设置方式                              | 行为                                         |
+| --------------------------------- | ------------------------------------------ |
+| 不传 `theme`                        | 初始使用内置紫色主题，允许主题控件自行切换。                     |
+| 传入固定值，例如 `<Agent theme="dark" />` | 固定显示该主题。                                   |
+| 业务页面控制切换                          | 在 `onThemeChange` 中更新 `theme`，接受内置控件发出的变更。 |
+
+受控切换示例：
 
 ```tsx
 import { useState } from 'react';

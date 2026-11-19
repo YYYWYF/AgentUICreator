@@ -4,86 +4,123 @@ title: "账号信息与退出登录（auth-account）"
 
 # 账号信息与退出登录（auth-account）
 
-例如在侧栏底部显示用户名和头像，点击后打开账号菜单。直接传入业务用户资料时只显示身份；插件管理认证会话时，可提供退出登录。
+显示业务用户或认证服务中的身份，并复用现有退出流程。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<span id="常见需求"></span>
+<span id="需求示例"></span>
+<span id="代码示例"></span>
+<span id="启用与使用"></span>
 
-![查看账号与退出登录（auth-account）界面示例](/images/plugins/auth-account.png)
+## 账号展示
 
-## 启用与使用
+<figure className="plugin-preview">
 
-在 **Creator 输入框**输入 `/enable auth-account`，点击下图中的 **「查看账号与退出登录」**。
+![账号展示界面](/images/plugins/auth-account.png)
 
-![Creator 启用菜单：点击「查看账号与退出登录」，插件 ID 为 auth-account](/images/plugins/enable/auth-account.jpg)
-
-由开发者接好现有账号服务，配置登录和退出操作。用户查看当前账号并按业务登录流程操作。
-
-## 使用前提
+</figure>
 
 **登录、退出和会话刷新由业务认证服务实现**。用户资料仅用于展示，不能作为请求授权凭据。
 
-## 定制选项
+<span id="定制选项"></span>
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 账号名称和头像 | 展示业务页面提供的用户名和头像。 |
-| 账号按钮 | 调整账号入口的大小、颜色和边框。 |
-| 菜单位置 | 设置菜单从按钮哪一侧展开，以及与按钮的距离。 |
-| 退出按钮 | 调整退出按钮的大小、颜色和圆角。 |
-| 菜单和退出文字 | 修改“账号”“退出登录”等文字。 |
-| 账号区域样式 | 调整这块区域的宽度和间距。 |
+## 业务用户资料 {#由业务页面提供身份}
 
-## 需求示例
+<span id="example-1"></span>
 
-```text
-请修改「查看账号与退出登录（auth-account）」：
-修改：账号菜单从【下方】展开，与按钮间距设为【8px】。
-保留：当前用户资料和退出登录行为。
+
+hostUser 传入用户时显示业务身份；显式传 null 表示当前无业务用户，不回退到插件身份。此模式不显示插件自己的退出菜单。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
+
+type Props = ComponentProps<typeof CanonicalAuthAccountPlugin>;
+export function Example({ user, ...props }: Props & {
+  user: { id: string; name: string; avatarUrl?: string } | null;
+}) {
+  return <CanonicalAuthAccountPlugin {...props} hostUser={user ? {
+    userId: user.id, userName: user.name,
+    ...(user.avatarUrl ? { avatar: user.avatarUrl } : {}),
+  } : null} />;
+}
 ```
 
-## 属性
+<span id="example-2"></span>
 
-打开项目中的 `plugins/auth-account/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 账户菜单向右展开 {#账户菜单向右展开}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+只调整位置和大小，保留退出处理与已有用户快照。
 
-组件：`CanonicalAuthAccountPlugin`；类型：`AuthAccountPluginProps`。继承 `div` 原生属性，排除 `children`。
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalAuthAccountPlugin>) {
+  return <CanonicalAuthAccountPlugin {...props}
+    buttonProps={{ ...props.buttonProps, className: "project-account-trigger" }}
+    menuProps={{ ...props.menuProps, side: "right", align: "start", sideOffset: 8 }} />;
+}
+```
+
+## 读取当前登录用户 {#读取当前登录用户}
+
+组件与服务位于同一 Agent，并声明 `auth.session` 依赖。
+
+```tsx
+import { useAuthSession } from '../../services/hooks/useAuthSession';
+
+export function CurrentAccount() {
+  const { snapshot, serviceAvailable } = useAuthSession();
+  return serviceAvailable && snapshot.user ? <output>{snapshot.user.userName}</output> : null;
+}
+```
+
+相对导入以生成工程的 `plugins/<调用方>/index.tsx` 为起点；这些 `services/hooks` 文件由项目拥有，移动文件时同步调整路径。
+
+## API
+
+退出按钮文案在 `locales.auth.signOut` 中设置。触发按钮、菜单和退出按钮的属性不接受 `children`。
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalAuthAccountPlugin` 上设置以下属性。
+
+继承 `div` 原生属性，排除 `children`。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `signOutText?` | `ReactNode` | 默认 `auth.signOut` |
-| `buttonProps?` | `ComponentProps<typeof AgentUIPopoverTrigger>` | 账户菜单入口按钮 |
-| `menuProps?` | `ComponentProps<typeof AgentUIPopoverContent>` | 弹出菜单；默认在上方、末端对齐，偏移 10 |
-| `signOutButtonProps?` | `ComponentProps<typeof Button>` | 退出按钮；`onClick` 中 `preventDefault()` 可阻止默认退出 |
+| `buttonProps?` | `Omit<ComponentProps<typeof AgentUIPopoverTrigger>, 'children'>` | 账户菜单入口按钮 |
+| `menuProps?` | `Omit<ComponentProps<typeof AgentUIPopoverContent>, 'children'>` | 弹出菜单；默认在上方、末端对齐，偏移 10 |
+| `signOutButtonProps?` | `Omit<ComponentProps<typeof Button>, 'children'>` | 退出按钮；`onClick` 中 `preventDefault()` 可阻止默认退出 |
 | `hostUser?` | [`AuthAccountUser \| null`](#authaccountuser) | 宿主页面提供的用户信息；只要传入此属性（包括 `null`），就显示该身份，不显示本插件的退出菜单 |
 | `session?` | `{ signOut(): Promise<void> }` | 现有登录服务；退出操作调用它 |
 | `snapshot?` | [`{ user: AuthAccountUser \| null; busy: boolean }`](#authaccountuser) | 现有会话快照，单独使用组件时默认 `{ user: null, busy: false }` |
 
 未传 `hostUser` 时从 `snapshot.user` 读取；没有用户时显示未登录身份。
 
-### 类型说明
+### 将业务用户资料显示在账号区 {#authaccountuser}
 
-#### AuthAccountUser
+`hostUser` 和 `snapshot.user` 接受 `{ userId?: string; userName?: string; avatar?: string }`。`userName` 是展示名称，`avatar` 是头像 URL，`userId` 用于关联业务用户；这些展示字段不提供请求凭据。
 
-账号展示需要的身份字段，均可选。
+业务系统字段不同时，按前面的[身份映射示例](#example-1)转换。`hostUser={null}` 明确表示没有业务用户，并关闭插件自己的退出菜单；省略 `hostUser` 才会读取认证服务快照，退出仍调用现有 `session.signOut()`。
 
-```ts
-interface AuthAccountUser {
-  userId?: string; // 用户标识
-  userName?: string; // 展示名称
-  avatar?: string; // 头像 URL
-}
-```
+<span id="hook"></span>
 
-### 类型查询
+业务卡片需要当前用户 ID 或姓名时，从项目 `services/hooks/useAuthSession` 导入 `useAuthSession()`。它响应式返回 `{ snapshot, session, serviceAvailable }`；`snapshot.user` 在未登录时为 `null`，已登录时包含 `userId`、`userName` 和可选 `avatar`。
 
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+对应功能示例读取同一份用户资料。它不会发起登录请求，账号变化后会自动更新；业务接口的鉴权仍沿用项目请求配置。服务方法见[认证服务](./auth-gate#服务)。
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
+### 服务方法 {#服务}
 
-type ImplementationProps = ComponentProps<typeof CanonicalAuthAccountPlugin>;
-```
+消费可选的 `auth.session`；服务缺失时沿用已有 Host 用户展示。服务方法及类型见 [登录认证](./auth-gate#服务)。
 
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+<details className="plugin-faq" id="为什么设置-hostuser-后没有退出菜单">
+<summary>为什么设置 hostUser 后没有退出菜单？</summary>
+
+该模式把身份和退出流程交给业务 Host。业务页面提供自己的退出入口；需要插件登录服务的退出菜单时省略 hostUser。
+
+</details>
+
+
+<span id="使用前提"></span>

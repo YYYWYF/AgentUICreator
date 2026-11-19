@@ -4,23 +4,41 @@ title: "网页搜索结果（web-search）"
 
 # 网页搜索结果（web-search）
 
-结果显示可用的网页标题、摘要和来源，用户可以选择结果并打开原网页。搜索本身由 Agent 或业务搜索服务执行。
+<figure className="plugin-preview">
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![网页搜索完成后的结果](/images/plugins/behavior/web-search-finished.jpg)
 
-![查看网页搜索结果（web-search）界面示例](/images/plugins/web-search.png)
+<figcaption>搜索完成后显示 2 个来源，标题、域名和摘要一起展示；有有效地址的标题可以打开。</figcaption>
+</figure>
 
-## 启用与使用
+将网页搜索工具的查询和结果展示在回答中，自动切换搜索中与结果状态，并为有有效地址的网页提供打开入口。
 
-在 **Creator 输入框**输入 `/enable web-search`，点击下图中的 **「查看网页搜索结果」**。
+## 搜索过程中显示查询
 
-![Creator 启用菜单：点击「查看网页搜索结果」，插件 ID 为 web-search](/images/plugins/enable/web-search.jpg)
+工具运行时，插件从调用参数取得查询词并显示搜索中的状态。结果尚未返回时不需要业务代码另行设置加载开关。
 
-搜索结果使用 `title` 和 `domain`；提供完整的 HTTP(S) `url` 时，标题可打开原网页，提供 `snippet` 时显示摘要。仅提供标题和域名时也可展示结果；缺少或不支持的链接不会变成可点击入口。
+<figure className="plugin-preview">
 
-## 显示条件与数据来源
+![网页搜索正在进行](/images/plugins/behavior/web-search-running.jpg)
 
-**Agent 服务接入：**当前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
+<figcaption>结果返回前显示查询词和“正在搜索”；完成后切换为开头的来源列表。</figcaption>
+</figure>
+
+## 搜索完成后展示网页
+
+成功结果到达后，插件显示实际结果数量，按返回顺序列出标题和来源域名；有摘要时一起展示。默认显示全部已接收结果。
+
+结果具有有效 HTTP(S) 地址时，标题可在新窗口打开网页。地址缺失或无法用于打开网页时，标题保留为文字，不会根据域名拼出一个链接。
+
+## 空结果与工具异常
+
+成功返回空 `results` 数组时显示零条结果。工具报错、等待用户操作、处于未完成状态，或结束后的结果结构无效时，插件回到通用工具详情。
+
+搜索过程和结果展示都来自当前工具调用，插件不会自行请求搜索服务，也不会根据摘要推测新的结果。
+
+## 接入网页搜索结果 {#显示条件与数据来源}
+
+当前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"web_search"}
@@ -31,132 +49,92 @@ title: "网页搜索结果（web-search）"
 
 每项需要字符串 `title`、`domain`，`url`、`snippet` 是可选字符串。调用运行中可显示搜索状态；完成后必须返回有效的 `results` 数组，空数组表示无结果。错误、等待操作、未完成或结果无效时回退工具详情。实际搜索由服务端执行，启用插件不会发起搜索。
 
-## 定制选项
+<span id="取数与联动"></span>
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 一次显示几个结果 | 限制卡片中同时展示的网页数量。 |
-| 搜索提示 | 修改搜索中、已找到结果等提示文字。 |
-| 卡片样式 | 调整宽度、间距、字号和背景。 |
-| 整个结果列表 | 自定义网页标题、摘要和来源的排列。 |
+`renderSearch(view, tool)` 提供当前的 `query`、`results`、`searching`，以及原工具调用。可把结果交给项目组件，增加收藏、选择或打开业务详情等操作。需要其他插件跟随选中结果时，使用[共享 Service](/development/plugin-interaction#插件之间共享选择或结果)。
 
-## 需求示例
+<span id="定制选项"></span>
 
-```text
-请修改「查看网页搜索结果（web-search）」：
-修改：同时展示【5】条搜索结果，卡片间距设为【12px】，标题字号设为【14px】。
-保留：真实网页标题、摘要和链接。
+## 限制可见网页数量 {#只显示前-3-条搜索结果}
+
+<span id="example-1"></span>
+
+在已有搜索插件入口将列表限制为前 3 项，并设置滚动区域：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
+
+export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    visibleResults={3}
+    style={{ ...props.style, maxHeight: 360, overflow: 'auto' }} />;
+}
 ```
 
-## 属性
+只改变已接收结果的展示数量；结果总数仍按实际数据计算，不会请求下一页或限制服务端搜索数量。
 
-打开项目中的 `plugins/web-search/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 在业务区域复用搜索结果 {#自定义搜索结果列表}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+<span id="example-2"></span>
 
-组件：`CanonicalWebSearch`；类型：`WebSearchPluginProps`。还接受下方列出的工具调用数据、样式和无障碍属性。
+`renderSearch` 提供已解析的查询、结果和搜索状态。增加业务容器并复用默认展示，可以保留标题链接的处理与搜索状态：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
+import { WebSearch } from '@za38.03/agent-ui-plugins';
+
+export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    renderSearch={search => <section className="project-search"><WebSearch {...search} /></section>} />;
+}
+```
+
+完全替换这个回调时，状态、空结果、链接和摘要的展示都由新内容负责。工具异常和无效结果的回退仍由插件处理。
+
+## API
+
+以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
+
+<span id="属性"></span>
+<span id="开发-api"></span>
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `query?` | `string` | 默认工具输入中的 `query`，没有时为空字符串 |
-| `results?` | [`readonly WebSearchResult[]`](#websearchresult) | 默认从工具结果读取 |
-| `searching?` | `boolean` | 默认按工具是否正在运行推导 |
 | `visibleResults?` | `number` | 默认展示全部结果 |
-| `cycle?` | `number` | 默认 `0`，参与结果项的 React key；可用于新一轮展示时重建结果项，不是自动轮播时间 |
 | `renderSearch?` | `(props: WebSearchProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个搜索组件 |
 | `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback` |
 
 原始工具数据仍先经过校验，再应用自定义展示属性。
 
-### 外观与无障碍属性
-
-以下属性均可选。
-
-| 属性 | 类型 | 用途 |
-| --- | --- | --- |
-| `className` | `string` | 整体样式类 |
-| `style` | `CSSProperties` | 整体内联样式 |
-| `id` | `string` | 元素标识 |
-| `role` | `HTMLAttributes<HTMLElement>['role']` | 无障碍角色 |
-| `aria-label` | `string` | 无障碍名称 |
-| `aria-describedby` | `string` | 描述元素 ID |
-| `onClick` | `MouseEventHandler<HTMLElement>` | 点击回调 |
-
 ### 当前工具调用的数据与操作
 
-这些数据和方法由现有会话传入，类型为 `ConversationToolCallProps`。`toolCallId`、`toolName`、`args`、`status` 是必需字段，其余已列出的字段可选；修改展示时保留原有传参。
+`renderSearch(view, tool)` 提供查询、搜索状态、结果集合及原工具调用。业务收藏使用结果对象中的 URL 和标题，关联本次搜索使用 `tool.toolCallId`；页面显示的结果条数不等于工具只返回了这些结果。
 
-| 属性 | 类型 | 用途 |
-| --- | --- | --- |
-| `type?` | `'tool-call'` | 消息片段类型 |
-| `toolCallId` | `string` | 工具调用 ID |
-| `toolName` | `string` | 工具名称 |
-| `args` | `unknown` | 解析后的输入参数 |
-| `argsText?` | `string` | 输入参数的文本形式 |
-| `result?` | `unknown` | 工具结果 |
-| `messages?` | `readonly ConversationMessage[]` | 关联的嵌套消息 |
-| `isError?` | `boolean` | 结果是否为错误 |
-| `status` | [`ConversationToolCallStatus`](#conversationtoolcallstatus) | 工具当前状态：运行中、已完成、未完成或等待用户操作 |
-| `addResult?` | `(result: unknown) => void` | 提交前端工具结果 |
-| `resumeInterrupt?` | `(payload: unknown) => Promise<void>` | 提交恢复数据，让暂停的任务继续执行 |
-| `decisionRequest?` | [`ConversationCommandDecisionRequest`](#conversationcommanddecisionrequest) | 运行环境提供的操作确认请求 |
-| `submitDecision?` | `(decisionType: string) => Promise<void>` | 提交后端支持的决定 |
+公共字段、状态判断和操作回调见[工具调用参数](./tool-fallback#当前工具调用的数据与操作)。
 
-该类型允许传入额外字段，但字段是否生效取决于组件实现，不能据此添加任意配置项。
+### 使用搜索结果做打开或收藏操作 {#websearchresult}
 
-### 类型说明
+`renderSearch(view, tool)` 的 `view.results` 中，每项必需 `title: string`、`domain: string`，可选 `url: string`、`snippet: string`。
 
-#### WebSearchResult
+| 字段 | 用途 |
+| --- | --- |
+| `title` | 网页标题，用于展示或收藏名称 |
+| `domain` | 展示来源域名；不能拼成未经确认的完整链接 |
+| `url` | 有值时交给业务打开／收藏方法；缺失时保留普通文字展示 |
+| `snippet` | 可选结果摘要；省略时不需要占一个空摘要区域 |
 
-一条网页搜索结果。
-
-```ts
-interface WebSearchResult {
-  title: string; // 网页标题
-  domain: string; // 来源域名
-  url?: string; // 网页链接
-  snippet?: string; // 结果摘要
-}
-```
-
-#### ConversationToolCallStatus
-
-按 `type` 区分工具状态：运行中、已完成、未完成和等待用户操作。
-
-```ts
-type ConversationToolCallStatus =
-  | { type: 'running' }
-  | { type: 'complete' }
-  | { type: 'incomplete'; reason?: string; error?: unknown }
-  | { type: 'requires-action'; reason?: string };
-```
-
-`reason` 是可选原因，`error` 是未完成时的可选错误详情。
-
-#### ConversationCommandDecisionRequest
-
-运行环境提供的操作确认请求。
-
-```ts
-interface ConversationCommandDecisionRequest {
-  allowedDecisions: readonly string[]; // 后端允许提交的决定标识
-  description?: string; // 请求说明
-}
-```
-
-提交决定时使用 `allowedDecisions` 中的原始标识。
-
-### 类型查询
-
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalWebSearch } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof CanonicalWebSearch>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+`visibleResults` 只限制展示数量。需要处理全部返回结果时，读取回调中的结果集合，而不是收集界面上已经渲染的链接。
 
 搜索状态文案统一在 `locales.searchTools` 修改：`searching`、`sources`。搜索结果标题和摘要仍是工具数据。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+<span id="网页搜索结果"></span>
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+<span id="启用与使用"></span>

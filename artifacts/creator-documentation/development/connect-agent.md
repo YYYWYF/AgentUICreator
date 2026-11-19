@@ -19,7 +19,8 @@ export function AssistantPage() {
 }
 ```
 
-需要业务联动时，从 `@za38.03/agent-ui-runtime` 导入 `AgentUIProvider` 包住业务组件和 Agent，endpoint 仍传给 `<Agent />`。具体配置见[Agent 参数与配置](/development/agent-options.md)。Vue/HTML 则在 [Web Component](/development/web-component.md) 的 attribute 或 config 中配置地址。
+- **React 业务联动**：从 `@za38.03/agent-ui-runtime` 导入 `AgentUIProvider`，包住业务组件和 Agent；endpoint 仍传给 `<Agent />`。配置见[Agent 参数与配置](/development/agent-options.md)。
+- **Vue／HTML**：在 [Web Component](/development/web-component.md) 的 attribute 或 config 中配置地址。
 
 `/api/agent` 应指向业务 AG-UI 服务或网关。**接口需返回当前客户端支持的 AG-UI 事件流**；**模型服务的 Chat Completions JSON 不能直接作为这个接口**。
 
@@ -125,7 +126,13 @@ export function AssistantPage() {
 }
 ```
 
-回调收到实际请求地址，以及已合并 `request.headers`、`request.credentials` 的请求参数；返回 `Promise<Response>`。可以在这个文件中调用现有请求模块，但必须返回保留流式 body 的浏览器 `Response`，不能返回 Axios 的普通数据对象。自己的响应协议不同时，也在这个文件中转换成 AG-UI 流；上面的请求包装示例没有实现响应转换。OpenAI 等模型的原始流不能仅改 Content-Type 就当作 AG-UI。
+自定义请求函数需要满足：
+
+- **输入**：接收实际请求地址，以及已合并 `request.headers`、`request.credentials` 的请求参数。
+- **返回**：返回 `Promise<Response>`，保留浏览器 `Response` 的流式 body；不能返回 Axios 的普通数据对象。
+- **协议转换**：自己的响应协议不同时，在这个文件中转换为 AG-UI 流；上面的请求包装示例没有实现响应转换。
+
+可以在这里调用现有请求模块。OpenAI 等模型的原始流，不能仅改 Content-Type 就当作 AG-UI。
 
 保留请求的 `signal`，让停止生成能取消实际请求；转换 body 时保留会话标识、工具结果和中断恢复等协议字段。请求失败时抛出错误或返回相应 HTTP 失败响应。首次发送、重试、前端工具续传和中断恢复均经过此函数；它不接管历史查询、附件上传等独立服务。
 
@@ -133,7 +140,11 @@ export function AssistantPage() {
 
 ## 同一会话调用不同工作流
 
-在 `src/agent-ui/plugins/composer/index.tsx` 的已有组合中放置 `ConversationComposerSend endpoint="/api/workflows/..."`，具体 JSX 见[多 Agent 与工作流入口](/development/multiple-agents.md#同一助手的工作流入口)。它使用同一 Thread，只有显式新建会话才创建新 threadId；工具续传、重试和审批恢复沿用原运行入口。各工作流后端需要共享该会话上下文。多个独立助手则使用不同 `agentId`，不要把它们的独立流混到一个 Thread。
+在 `src/agent-ui/plugins/composer/index.tsx` 的已有组合中放置 `ConversationComposerSend endpoint="/api/workflows/..."`，具体 JSX 见[多 Agent 与工作流入口](/development/multiple-agents.md#同一助手的工作流入口)。
+
+- **会话身份**：继续使用同一 Thread，只有显式新建会话才创建新 threadId。
+- **后续请求**：工具续传、重试和审批恢复沿用原运行入口；各工作流后端需要共享该会话上下文。
+- **独立助手**：使用不同 `agentId`，不要将各自的独立流混到一个 Thread。
 
 ## 验证实际响应
 
@@ -148,7 +159,16 @@ export function AssistantPage() {
 
 在 Creator 的「设置 → 连接 Agent」中填写 AG-UI 地址，可临时连接 Agent 服务进行测试。**此设置仅在开发态生效，生产环境以应用代码中的 `endpoint` 配置为准。**
 
-可以填写完整 HTTP(S) 地址，也可以填写相对路径。相对路径按**业务页面地址**解析，保存后显示并使用完整 URL。例如业务页面为 `http://localhost:5173/orders/` 时，`/api/agent` 对应 `http://localhost:5173/api/agent`，`./agent` 对应 `http://localhost:5173/orders/agent`；不会拼接 Creator 服务地址。无法取得业务页面地址时，请先打开业务页面，或填写完整地址。
+临时连接可填写完整 HTTP(S) 地址或相对路径。相对路径按**业务页面地址**解析，保存后显示并使用完整 URL，不会拼接 Creator 服务地址。
+
+业务页面为 `http://localhost:5173/orders/` 时：
+
+| 填写值          | 实际地址                                 |
+| ------------ | ------------------------------------ |
+| `/api/agent` | `http://localhost:5173/api/agent`    |
+| `./agent`    | `http://localhost:5173/orders/agent` |
+
+无法取得业务页面地址时，先打开业务页面，或填写完整地址。
 
 「直接连接」由业务页面的浏览器请求该地址，跨域时需要 Agent 服务允许访问；「转发」由 Creator 开发服务请求解析后的同一地址，再将响应传回页面。业务工程已有开发代理时，相对路径可以继续使用它。
 

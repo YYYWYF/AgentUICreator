@@ -44,6 +44,10 @@
       {
         "label": "多内容侧栏",
         "link": "/plugins/workbench-panel"
+      },
+      {
+        "label": "侧栏打开按钮",
+        "link": "/plugins/workbench-panel-actions"
       }
     ]
   },

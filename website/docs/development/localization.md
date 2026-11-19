@@ -10,7 +10,12 @@ title: "语言与文案"
 
 ## 选择语言
 
-通过 `Agent` 的 `locale` 选择当前语言，支持 `zh-CN` 和 `en-US`。设置初始语言并允许内置切换时使用 `defaultLocale`；由业务页面控制当前语言时，同时使用 `locale` 和 `onLocaleChange`，示例见[语言切换](./agent-options#界面语言切换)。
+当前支持 `zh-CN` 和 `en-US`，按控制方式选择属性：
+
+- **内部切换**：用 `defaultLocale` 设置初始语言，并允许内置控件切换。
+- **业务页面控制**：同时使用 `Agent.locale` 和 `onLocaleChange`。
+
+完整示例见[语言切换](./agent-options#界面语言切换)。
 
 语言配置影响界面文字；Agent 消息、用户输入和后端返回内容保留其原始语言。
 

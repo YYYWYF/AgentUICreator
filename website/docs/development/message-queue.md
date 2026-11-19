@@ -21,7 +21,12 @@ export function AssistantPage() {
 }
 ```
 
-配置通过 `<Agent />` 传入；外层有 `AgentUIProvider` 时也一样。多助手使用 `<AgentUIApplication ... enableMessageQueue />`，每个助手分别配置。省略时继承项目的 `conversationMessageQueueEnabled`；新建项目默认关闭。传 `enableMessageQueue={false}` 可显式关闭。
+消息排队按助手配置：
+
+- 单助手：通过 `<Agent enableMessageQueue />` 传入，外层有 `AgentUIProvider` 时也一样。
+- 多助手：在每个 `<AgentUIApplication ... enableMessageQueue />` 上分别配置。
+- 省略时：继承项目的 `conversationMessageQueueEnabled`；新建项目默认关闭。
+- 显式关闭：传入 `enableMessageQueue={false}`。
 
 需要修改项目默认值时，在现有 `application/project-config.tsx` 的 `createAgentUIProject({ ... })` 参数中增加 `conversationMessageQueueEnabled: true`，其他配置继续沿用。直接使用 `ConversationRuntimeProvider` 的集成方可传同名的 `enableMessageQueue`，默认关闭。
 

@@ -49,6 +49,7 @@
 | 给 Agent 传业务参数              | [给 Agent 传递业务参数](/development/business-context.md)                                                    |
 | 让 Agent 调用页面已有方法           | [前端工具接入](/development/frontend-tools.md)                                                              |
 | 新增一个可独立启停的界面功能             | [创建自定义插件](/development/create-plugin.md)、[插件接口](/development/plugin-api.md)                           |
+| 从插件取数、共享业务选择或调用其他插件        | [插件联动与取数](/development/plugin-interaction.md)                                                         |
 
 ## 常用 API
 

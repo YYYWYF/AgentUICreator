@@ -9,16 +9,14 @@ import {
   useAgentUISidebarNavigation,
 } from '../../../../public.js';
 export interface ConversationNewPluginProps extends Omit<ComponentProps<'div'>, 'children' | 'onClick'> {
-  /** Application presentation; the accessible name remains present in icon-only mode. */
-  onClick?: ComponentProps<typeof ConversationThreadListNew>['onClick'];
   showLabel?: boolean;
   disabled?: boolean;
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
-  buttonProps?: ComponentProps<typeof ConversationThreadListNew>;
-  tooltipProps?: ComponentProps<typeof AgentUITooltip>;
-  tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>;
-  children?: ReactNode;
+  buttonProps?: Omit<ComponentProps<typeof ConversationThreadListNew>, 'children' | 'disabled'>;
+  tooltipProps?: Omit<ComponentProps<typeof AgentUITooltip>, 'children'>;
+  tooltipContentProps?: Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>;
+  icon?: ReactNode;
 }
 export function CanonicalConversationNew({
   renderSlot: _renderSlot,
@@ -26,10 +24,9 @@ export function CanonicalConversationNew({
   buttonProps,
   tooltipProps,
   tooltipContentProps,
-  children,
+  icon,
   showLabel = true,
   disabled,
-  onClick,
   ...rootProps
 }: ConversationNewPluginProps) {
   const onNavigate = useAgentUISidebarNavigation();
@@ -51,25 +48,23 @@ export function CanonicalConversationNew({
               className={['conversation-new-button', buttonProps?.className].filter(Boolean).join(' ')}
               onClick={(event) => {
                 buttonProps?.onClick?.(event);
-                onClick?.(event);
                 if (!event.defaultPrevented) {
                   onNavigate();
                 }
               }}
             >
-              {children ??
-                buttonProps?.children ??
-                (showLabel ? (
-                  messages.newThread
-                ) : (
-                  <Plus data-slot='aui_thread-list-new-icon' className='size-4 shrink-0' aria-hidden='true' />
-                ))}
+              {showLabel && icon === undefined ? (
+                messages.newThread
+              ) : (
+                <>
+                  {icon ?? <Plus data-slot='aui_thread-list-new-icon' className='size-4 shrink-0' aria-hidden='true' />}
+                  {showLabel && messages.newThread}
+                </>
+              )}
             </ConversationThreadListNew>
           }
         />
-        <AgentUITooltipContent {...tooltipContentProps}>
-          {tooltipContentProps?.children ?? messages.newThread}
-        </AgentUITooltipContent>
+        <AgentUITooltipContent {...tooltipContentProps}>{messages.newThread}</AgentUITooltipContent>
       </AgentUITooltip>
     </div>
   );

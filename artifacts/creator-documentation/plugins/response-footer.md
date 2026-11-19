@@ -1,75 +1,160 @@
 # 回复操作栏（response-footer）
 
-同一次回复即使分成多段，也**只在最后显示一组操作**。具体显示哪些按钮，由项目选择的操作插件决定。
+在完整回答后组合复制、重试、评价、导出和版本切换操作。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
-![回复操作栏（response-footer）界面示例](/images/plugins/response-footer.png)
 
-## 启用与使用
 
-在 **Creator 输入框**输入 `/enable response-footer`，点击下图中的 **「回复操作栏」**。
 
-![Creator 启用菜单：点击「回复操作栏」，插件 ID 为 response-footer](/images/plugins/enable/response-footer.jpg)
+## 回复操作栏
 
-## 定制选项
 
-| 可以改什么         | 效果                                                 |
-| ------------- | -------------------------------------------------- |
-| 显示哪些操作        | 组合复制、重试、评价、导出或自己的按钮。                               |
-| 按钮间距和外观       | 调整操作栏的布局、间距、背景和圆角。                                 |
-| 生成期间隐藏        | 决定回复尚未结束时是否隐藏操作栏。                                  |
-| 鼠标移上去才显示      | always 对所有回复使用自动隐藏；not-last 仅隐藏较早回复的操作；never 始终显示。 |
-| 只有一个版本时隐藏切换箭头 | 不需要切换版本时，隐藏左右箭头。                                   |
-| 版本切换按钮        | 修改左右按钮的提示、图标和大小。                                   |
+![回复操作栏界面](/images/plugins/response-footer.png)
 
-## 需求示例
+## 回复完成后始终显示 \{#回复完成后始终显示}
 
-```text
-请修改「回复操作栏（response-footer）」：
-修改：按钮间距设为【8px】，操作栏在【回复完成后始终显示】。
-保留：现有操作按钮和版本切换，每次完整回复只显示一组操作栏。
-```
 
-## 属性
+hideWhenRunning 隐藏生成中的操作栏；autohide=never 让回复完成后无需鼠标悬停即可看到操作。
 
-打开项目中的 `plugins/response-footer/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
-
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
-
-组件：`ConversationCanonicalResponseFooter`；类型：`ConversationCanonicalResponseFooterProps`。继承 `div` 原生属性。
-
-| 属性                   | 类型                                      | 省略时 / 用途                     |
-| -------------------- | --------------------------------------- | ---------------------------- |
-| `actions?`           | `ReactNode`                             | 操作栏内容；插件入口默认从 `actions` 插槽取得 |
-| `children?`          | `ReactNode`                             | 替换默认分支切换与操作栏                 |
-| `actionBarProps?`    | `ConversationResponseActionBarProps`    | 操作栏配置，见下表                    |
-| `branchPickerProps?` | `ConversationResponseBranchPickerProps` | 分支切换配置，见下表                   |
-
-| 嵌套属性                                      | 类型                                            | 省略时 / 用途                      |
-| ----------------------------------------- | --------------------------------------------- | ----------------------------- |
-| `actionBarProps.hideWhenRunning?`         | `boolean`                                     | 默认 `true`，运行时隐藏               |
-| `actionBarProps.autohide?`                | `'always' \| 'not-last' \| 'never'`           | 默认 `not-last`，控制哪些回答的操作栏自动隐藏  |
-| `actionBarProps.autohideFloat?`           | `'always' \| 'single-branch' \| 'never'`      | 控制浮动操作栏何时自动隐藏，省略时使用现有操作栏的默认设置 |
-| `actionBarProps.asChild?`                 | `boolean`                                     | 把操作栏属性传给已有子元素，避免再增加一层容器       |
-| `actionBarProps.render?`                  | `ReactElement`                                | 自定义操作栏元素                      |
-| `actionBarProps.children?`                | `ReactNode`                                   | 优先于 `actions` 的操作内容           |
-| `branchPickerProps.hideWhenSingleBranch?` | `boolean`                                     | 默认 `true`，单分支或不能切换时隐藏         |
-| `branchPickerProps.previousProps?`        | `Partial<ConversationTooltipIconButtonProps>` | 上一分支按钮                        |
-| `branchPickerProps.nextProps?`            | `Partial<ConversationTooltipIconButtonProps>` | 下一分支按钮                        |
-| `branchPickerProps.children?`             | `ReactNode`                                   | 替换默认分支按钮和计数                   |
-
-两个嵌套对象均继承 `div` 原生属性。分支切换针对当前整次回答，继续使用现有会话的方法。
-
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
+```tsx
 import type { ComponentProps } from 'react';
-import type { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
+import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseFooter>;
+export function Example(props: ComponentProps<typeof ConversationCanonicalResponseFooter>) {
+  return <ConversationCanonicalResponseFooter {...props}
+    actionBarProps={{ ...props.actionBarProps, hideWhenRunning: true, autohide: "never" }} />;
+}
 ```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+## 操作间距与版本按钮 \{#操作间距与版本按钮}
+
+合并嵌套对象后修改样式，原有 actions 插槽与回复级作用域继续使用。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalResponseFooter>) {
+  return <ConversationCanonicalResponseFooter {...props}
+    actionBarProps={{ ...props.actionBarProps, style: { ...props.actionBarProps?.style, gap: 8 } }}
+    branchPickerProps={{ ...props.branchPickerProps, hideWhenSingleBranch: true }} />;
+}
+```
+
+
+## 自定义回复操作组合 \{#自定义回复操作组合}
+
+以下展示组件在现有回复作用域内组合复制和独立导出按钮。生成项目已使用 actions 插槽时，优先在该插槽中调整操作插件；直接传 actions 不会覆盖已配置的插槽。
+
+```tsx
+import type { ComponentProps } from 'react';
+import {
+  ConversationCanonicalResponseFooter,
+  ConversationCanonicalResponseCopyAction,
+  ConversationCanonicalResponseExportMarkdownAction,
+} from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalResponseFooter>) {
+  return <ConversationCanonicalResponseFooter {...props} actions={<>
+    <ConversationCanonicalResponseCopyAction />
+    <ConversationCanonicalResponseExportMarkdownAction presentation="button" />
+  </>} />;
+}
+```
+
+## 收藏或保存整次回答 \{#收藏或保存整次回答}
+
+在 `plugins/response-footer/index.tsx` 的已有 `actions` 中加入自己的按钮。通过 `useConversationResponseRuntime()` 读取整次回答；工具续跑产生的多段助理文字会合并到 `text`，不用自己取最后一条消息。
+
+| 传给业务保存接口的内容    | 读取位置                                   |
+| -------------- | -------------------------------------- |
+| 本轮用户问题的消息 ID   | `group.requestMessageId`；旧历史可能为 `null` |
+| 本次回答的全部助理消息 ID | `group.assistantMessageIds`            |
+| 当前版本的整轮文字      | `text`；不包含工具结果、图表或附件本体                 |
+
+以下 `save` 接项目已有的收藏、知识库或业务记录方法，`label` 来自项目文案，`onError` 接业务错误提示：
+
+```tsx
+import { useState } from 'react';
+import { useConversationResponseRuntime } from '@za38.03/agent-ui-plugins';
+
+interface ResponseRecord {
+  requestMessageId: string | null;
+  assistantMessageIds: readonly string[];
+  text: string;
+}
+
+export function SaveResponse({ save, label, onError }: {
+  save: (record: ResponseRecord) => Promise<void>;
+  label: string;
+  onError: (error: unknown) => void;
+}) {
+  const response = useConversationResponseRuntime();
+  const [pending, setPending] = useState(false);
+  async function submit() {
+    if (pending || response.isRunning) return;
+    setPending(true);
+    try {
+      await save({
+        requestMessageId: response.group.requestMessageId,
+        assistantMessageIds: [...response.group.assistantMessageIds],
+        text: response.text,
+      });
+    } catch (error) { onError(error); }
+    finally { setPending(false); }
+  }
+  return <button type="button"
+    disabled={pending || response.isRunning || !response.text.trim()}
+    onClick={() => { void submit(); }}>{label}</button>;
+}
+```
+
+保留原有 `actions` 插槽和其他操作，只在其中追加这个组件。切换回答版本后，按钮读取该版本的内容；生成结束后再允许保存。
+
+## API
+
+
+
+在 `ConversationCanonicalResponseFooter` 上设置以下属性。
+
+继承 `div` 原生属性，排除 `children`。
+
+| 属性                   | 类型                                                        | 省略时 / 用途                     |
+| -------------------- | --------------------------------------------------------- | ---------------------------- |
+| `actions?`           | `ReactNode`                                               | 操作栏内容；插件入口默认从 `actions` 插槽取得 |
+| `actionBarProps?`    | `Omit<ConversationResponseActionBarProps, 'children'>`    | 操作栏配置，见下表                    |
+| `branchPickerProps?` | `Omit<ConversationResponseBranchPickerProps, 'children'>` | 分支切换配置，见下表                   |
+
+| 嵌套属性                                      | 类型                                                              | 省略时 / 用途                      |
+| ----------------------------------------- | --------------------------------------------------------------- | ----------------------------- |
+| `actionBarProps.hideWhenRunning?`         | `boolean`                                                       | 默认 `true`，运行时隐藏               |
+| `actionBarProps.autohide?`                | `'always' \| 'not-last' \| 'never'`                             | 默认 `not-last`，控制哪些回答的操作栏自动隐藏  |
+| `actionBarProps.autohideFloat?`           | `'always' \| 'single-branch' \| 'never'`                        | 控制浮动操作栏何时自动隐藏，省略时使用现有操作栏的默认设置 |
+| `actionBarProps.asChild?`                 | `boolean`                                                       | 把操作栏属性传给已有子元素，避免再增加一层容器       |
+| `actionBarProps.render?`                  | `ReactElement`                                                  | 自定义操作栏元素                      |
+| `branchPickerProps.hideWhenSingleBranch?` | `boolean`                                                       | 默认 `true`，单分支或不能切换时隐藏         |
+| `branchPickerProps.previousProps?`        | `Partial<Omit<ConversationTooltipIconButtonProps, 'children'>>` | 上一分支按钮                        |
+| `branchPickerProps.nextProps?`            | `Partial<Omit<ConversationTooltipIconButtonProps, 'children'>>` | 下一分支按钮                        |
+
+两个嵌套对象均继承 `div` 原生属性，排除 `children`。分支切换针对当前整次回答，继续使用现有会话的方法。
+
+
+`useConversationResponseRuntime(): ConversationResponseRuntime` 从 Plugins 根入口导入。需要 Runtime 对应入口时，`useAssistantResponseRuntime(): AssistantResponseRuntime` 从 `@za38.03/agent-ui-runtime/plugin-api` 导入。两者读取同一个回复上下文，以下收藏示例展示如何使用：
+
+| 成员                                                  | 类型或签名                   | 用途                             |
+| --------------------------------------------------- | ----------------------- | ------------------------------ |
+| `group`                                             | `ConversationTurnGroup` | 本轮问题与助理消息 ID，供业务记录关联           |
+| `text`                                              | `string`                | 当前回答版本的全部助理文字，适合保存或导出          |
+| `isRunning`                                         | `boolean`               | 生成期间可禁用需要完整回答的操作               |
+| `canReload`                                         | `boolean`               | 是否允许重新生成，点击调用 `reload(): void` |
+| `canSwitchBranch`                                   | `boolean`               | 是否允许切换回答版本                     |
+| `branchNumber` / `branchCount`                      | `number`                | 当前版本从 1 开始，以及总版本数              |
+| `switchToPreviousBranch()` / `switchToNextBranch()` | `() → void`             | 切换到上一／下一版本；按钮同时检查允许切换及版本边界     |
+
+这些 Hook 必须位于已有的 Response Footer 上下文；放到任意消息外、缺少上下文时会抛错。
+
+
+为什么 actions 属性没有替换现有按钮？
+
+项目已配置 actions 插槽时，先修改该插槽中的插件组合。操作内容统一通过 actions 或已有 actions 插槽组合。

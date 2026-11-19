@@ -10,14 +10,6 @@ export interface JobProgressMessageProps extends ConversationToolCallProps, UIPl
   /** Supplied by the project's existing Runtime bridge, never a second store. */
   state?: unknown;
   abortRun?: () => void;
-  title?: ComponentProps<typeof JobProgress>['title'];
-  stages?: ComponentProps<typeof JobProgress>['stages'];
-  stageIndex?: ComponentProps<typeof JobProgress>['stageIndex'];
-  stageProgress?: ComponentProps<typeof JobProgress>['stageProgress'];
-  eta?: ComponentProps<typeof JobProgress>['eta'];
-  onCancel?: ComponentProps<typeof JobProgress>['onCancel'];
-  outcome?: ComponentProps<typeof JobProgress>['outcome'];
-  elapsedMs?: ComponentProps<typeof JobProgress>['elapsedMs'];
   renderProgress?: (props: ComponentProps<typeof JobProgress>, tool: ConversationToolCallProps) => ReactNode;
   Fallback?: ComponentType<ConversationToolCallProps>;
 }
@@ -39,14 +31,6 @@ function lifecycleOutcome(tool: ConversationToolCallProps) {
 export function CanonicalJobProgressMessage({
   state,
   abortRun,
-  title,
-  stages,
-  stageIndex,
-  stageProgress,
-  eta,
-  onCancel,
-  outcome: presentationOutcome,
-  elapsedMs,
   className,
   style,
   id,
@@ -67,18 +51,6 @@ export function CanonicalJobProgressMessage({
     'aria-describedby': ariaDescription,
     onClick,
   };
-  const overrides = Object.fromEntries(
-    Object.entries({
-      title,
-      stages,
-      stageIndex,
-      stageProgress,
-      eta,
-      onCancel,
-      outcome: presentationOutcome,
-      elapsedMs,
-    }).filter(([, value]) => value !== undefined),
-  );
   const args = projectRunCiJobArgs(tool.args);
   const progress = projectJobProgressState(state, tool.toolCallId);
   const result = projectRunCiJobResult(tool.result);
@@ -100,7 +72,6 @@ export function CanonicalJobProgressMessage({
     eta: progress.eta,
     ...(outcome === null ? { onCancel: abortRun } : { outcome }),
     ...(result.elapsedMs === undefined ? {} : { elapsedMs: result.elapsedMs }),
-    ...overrides,
     ...rootProps,
   };
   return <>{renderProgress ? renderProgress(props, tool) : <JobProgress {...props} />}</>;

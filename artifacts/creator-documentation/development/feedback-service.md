@@ -86,7 +86,9 @@ export const feedback = {
 
 可直接调用已有业务 API 并判断成功码，无需引入额外校验库。`submit()` 成功无需返回内容，失败抛错；当前方法没有取消 signal 参数。数据源的鉴权自行处理，外层 URL、headers、credentials 不会应用到它。
 
-也可直接传 `<Agent feedbackAdapter={feedbackDataSource} />`，使用相同 `submit()` 契约。优先级为显式 `feedbackAdapter` → `feedback.dataSource` → `feedback.url` → 仅保留界面选择。`feedback={false}` 关闭内置适配器，按钮显示另在布局或组件应用层调整。
+- **直接使用适配器**：传入 `<Agent feedbackAdapter={feedbackDataSource} />`，沿用相同的 `submit()` 契约。
+- **配置优先级**：显式 `feedbackAdapter` → `feedback.dataSource` → `feedback.url` → 仅保留界面选择。
+- **关闭能力**：`feedback={false}` 关闭内置适配器；按钮显示在布局或组件应用层另行调整。
 
 ## 4. 验证
 

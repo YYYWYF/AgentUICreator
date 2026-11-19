@@ -3,14 +3,12 @@ import type { ComponentProps, ReactNode } from 'react';
 import { ResponseActionBarRoot, ResponseBranchPicker } from '../../../../plugin-support.js';
 export interface ConversationCanonicalResponseFooterProps extends Omit<ComponentProps<'div'>, 'children'> {
   actions?: ReactNode;
-  children?: ReactNode;
 
-  actionBarProps?: ComponentProps<typeof ResponseActionBarRoot>;
-  branchPickerProps?: ComponentProps<typeof ResponseBranchPicker>;
+  actionBarProps?: Omit<ComponentProps<typeof ResponseActionBarRoot>, 'children'>;
+  branchPickerProps?: Omit<ComponentProps<typeof ResponseBranchPicker>, 'children'>;
 }
 export function ConversationCanonicalResponseFooter({
   actions,
-  children,
   actionBarProps,
   branchPickerProps,
   ...rootProps
@@ -22,12 +20,8 @@ export function ConversationCanonicalResponseFooter({
       data-ui-plugin='response-footer'
       data-slot='aui_assistant-response-footer-plugin'
     >
-      {children ?? (
-        <>
-          <ResponseBranchPicker {...branchPickerProps} />
-          <ResponseActionBarRoot {...actionBarProps}>{actionBarProps?.children ?? actions}</ResponseActionBarRoot>
-        </>
-      )}
+      <ResponseBranchPicker {...branchPickerProps} />
+      <ResponseActionBarRoot {...actionBarProps}>{actions}</ResponseActionBarRoot>
     </div>
   );
 }

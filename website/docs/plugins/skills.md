@@ -4,65 +4,81 @@ title: "技能与工作流选择（skills）"
 
 # 技能与工作流选择（skills）
 
-在当前会话中选择技能，或通过显式点击启动项目提供的工作流。插件只负责前端选择与调用项目回调，不编排后端 Agent。
+<figure className="plugin-preview">
 
-## 常见需求
+<img src="/images/plugins/features/skills.png" alt="技能与工作流界面" width="672" height="103" />
 
-先按要实现的效果找到入口，再查看对应的代码示例和属性说明。
+<figcaption>项目提供的技能快捷入口与更多选择；选择后用于当前问题，不立即发送。</figcaption>
+</figure>
 
-| 你想实现 | 属性或开发入口 | 示例 |
-| --- | --- | --- |
-| 增加可选择技能 | `items` 中的 kind="skill" 条目 | [查看代码](#example-3) |
-| 选择后发送指定业务 JSON | `requestAdapter` | [查看代码](#example-1) |
-| 控制快捷展示数量 | `quickItemCount` | [查看代码](#example-2) |
-| 点击后执行工作流 | `items` 中 kind="workflow" 与 `onStart` | [查看代码](#example-3) |
-| 显示当前选择的标签 | [当前技能标签](./skills-selection)，共享同一个 skills 服务 | 见对应入口 |
+为本次问题选择一个技能，或显式启动项目工作流。技能栏、当前技能标签和 Composer 已共享选择状态；选中技能不会立即发送，也不需要用户再手动把技能写进草稿。
 
-## 取数与联动
+## 选择技能后再输入问题
 
-其他插件可读取当前选中的技能，或通过同一个 `conversation.skills` 服务选择、清除技能；技能栏和当前技能标签会跟随更新。选择需要传入当前输入区的写入绑定，见下方[调用示例](#其他插件如何调用)。其他联动入口见[插件联动与取数](/development/plugin-interaction)。
+项目通过 `items` 提供自己的技能；默认前两项作为快捷入口，其余通过更多入口选择。选中技能后，[当前技能标签](./skills-selection)显示这份选择，用户继续输入问题并正常发送。
 
-## 代码示例
+同一 Thread 当前只保留一个技能选择。移除标签、切换会话、已接受普通发送，或当前技能被移除／禁用时，都会清除对应待发送选择。已提交或已排队请求的快照不受后来选择变化影响。只更新标签和说明不会重新提交一次业务选择。
 
-以下示例用于项目的插件应用入口。在现有组件上传入相同属性即可；`props` 表示该入口已有的属性。示例组件沿用现有 Agent 和会话上下文。
+<figure className="plugin-preview">
+
+<img src="/images/plugins/features/skills-selection.png" alt="当前技能界面" width="672" height="77" />
+
+<figcaption>选中的资料研究技能显示为当前技能标签，移除入口同步清除这份选择。</figcaption>
+</figure>
+
+## 交给 Composer 的数据
+
+例如项目提供下列技能，文案来自项目 locale，`ctx` 是本次发送的默认业务参数：
+
+```json
+{ "kind": "skill", "id": "research", "label": "资料研究", "ctx": { "skillId": "research" } }
+```
+
+假设技能栏插件实例 ID 为 `skills`，未配置局部 `requestAdapter` 时，Composer 最终适配器读取到：
+
+```json
+{
+  "pluginData": { "skills": { "skillId": "research" } },
+  "selections": {
+    "skills": [{ "kind": "skill", "id": "research", "label": "资料研究", "ctx": { "skillId": "research" } }]
+  }
+}
+```
+
+`pluginData.skills` 是技能 `ctx` 的**对象**，不是技能条目；`selections.skills` 是原始技能数组，保留 `kind/id/label` 与实际提供的 `description/disabled/ctx`，不保存 React `icon`。
+
+默认请求将技能 `ctx` 浅合并到 `forwardedProps.ctx`。例如 Host 已提供租户 ID，本次请求的外带字段为：
+
+```json
+{ "forwardedProps": { "ctx": { "tenantId": "t-1", "skillId": "research" } } }
+```
+
+保留原有业务字段，技能字段覆盖同名字段；不额外生成 `forwardedProps.skills`。没有 `ctx` 时 `pluginData.skills` 为 `{}`，仍保留原始选择，但不自动增加后端参数。实例键以项目实际实例 ID 为准；嵌入其他插件中的技能入口使用其 `:skills` 子键。
+
+## 改为后端约定的技能字段 {#选择技能后发送业务标识}
 
 <span id="example-1"></span>
 
-### 选择技能后发送业务标识
+<span id="自定义发送数据"></span>
 
-items 继续来自项目双语配置。适配器将本次选择保存为 JSON，最终请求由 Composer 组装。
-
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
-  return <ConversationSkillsBar {...props}
-    requestAdapter={skill => ({ skillId: skill.id })} />;
-}
-```
-
-<span id="example-2"></span>
-
-### 调整快捷技能数量
-
-前 3 项直接显示，其余条目使用原有更多选择入口；items 为空时不会自动生成业务技能。
+在项目已有技能入口上配置同步局部适配器，不改动选择、标签与移除逻辑：
 
 ```tsx
 import type { ComponentProps } from 'react';
 import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
 
-export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
-  return <ConversationSkillsBar {...props}
-    quickItemCount={3} />;
+export function ProjectSkills(props: ComponentProps<typeof ConversationSkillsBar>) {
+  return <ConversationSkillsBar {...props} requestAdapter={skill => ({ operation: skill.id })} />;
 }
 ```
 
-<span id="example-3"></span>
+此时 `pluginData.skills` 为 `{ "operation": "research" }`，`selections.skills` 仍为原始技能数组，默认放入 `forwardedProps.skills`；不再自动合并该技能的 `ctx`。原有 Host 字段仍保留。
 
-### 同时提供技能和工作流
+最终格式还可由 [Composer `requestAdapter`](./composer#请求适配)统一调整。局部回调抛错或返回非 JSON 时保留原选择和草稿，使用 `skills.selectionFailed` 显示错误。
 
-技能选中后供下一次发送使用；工作流只在用户显式点击启动时调用 onStart。onStart 由项目提供，示例不定义后端执行流程。业务标签从共享双语表读取。
+## 技能选择与工作流启动 {#同时提供技能和工作流}
+
+技能供下一次问题使用；工作流只在用户明确点击启动时调用项目提供的 `onStart`。启动工作流不会自动生成一个技能选择或 Composer 数据条目。工作流是否发送问题、使用哪个地址，由该项目操作决定。
 
 ```tsx
 import { ConversationSkillsBar, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
@@ -80,44 +96,49 @@ export function Example({ startReport }: { startReport: () => Promise<void> }) {
 }
 ```
 
-## 开发 API
+## 共享技能选择 {#从业务卡片选择技能}
 
-以下入口以当前源码的公开导出为准；实际项目请核对所安装版本。组件属性设置在项目 JSX 中，保留原有服务与 renderer 绑定。
+组件与服务位于同一 Agent，并声明 `conversation.skills` 依赖。
 
-### 公开入口与类型
+```tsx
+import {
+  CONVERSATION_SKILLS_SERVICE, usePluginService, useConversationSkillsState, useComposer,
+  type ConversationSkillsService, type ConversationSkill,
+} from '@za38.03/agent-ui-plugins';
 
-**`@za38.03/agent-ui-plugins/skills`**
+export function SelectBusinessSkill({ skill }: { skill: ConversationSkill }) {
+  const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
+  const { threadId, disabled } = useConversationSkillsState(service);
+  const composer = useComposer();
+  return <button type="button" disabled={disabled || !service || skill.disabled}
+    onClick={() => { service?.select(threadId, skill, composer); }}>
+    {skill.label}
+  </button>;
+}
+```
 
-- `default` / `skillsPlugin`：插件定义。
-- `SkillsPlugin`：已绑定插件组件。
+调用 `select()` 后，技能栏和标签跟随同一个服务更新；调用 `clear(threadId)` 只清除这份技能选择及它绑定的数据，不清空正文、附件或其他插件的数据。Composer 草稿订阅不会替代技能服务的选择订阅。
 
-**`@za38.03/agent-ui-plugins`**
+## 快捷技能数量 {#调整快捷技能数量}
 
-组件与组合部件：
+前 3 项直接显示，其余条目使用原有更多选择入口；items 为空时不会自动生成业务技能。
 
-- `ConversationSkillsBar`。
-- `ConversationSkills`、`ConversationSkillsProps`。
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
 
-Hook：
+export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
+  return <ConversationSkillsBar {...props}
+    quickItemCount={3} />;
+}
+```
 
-- `useConversationSkillsState`。
+<span id="example-3"></span>
 
-工厂与辅助函数：
+## API
 
-- `createConversationSkillsService`。
-
-服务标识与常量：
-
-- `CONVERSATION_SKILLS_SERVICE`。
-
-类型：
-
-- `ConversationSkillsPluginProps`、`ConversationSkillItem`。
-- `ConversationSkill`、`ConversationWorkflow`。
-- `ConversationSkillsService`、`ConversationSkillComposerBinding`。
-- `ConversationSkillRequestItem`、`ConversationSkillRequestAdapter`。
-
-### 属性
+<span id="属性"></span>
+<span id="开发-api"></span>
 
 `ConversationSkillsBar` 使用 `ConversationSkillsPluginProps`，继承 `div` 原生属性并排除 `children`；选择状态由服务管理。
 
@@ -155,9 +176,11 @@ Hook：
 
 `ConversationSkillsBar` 不接受这四个受控属性；它通过现有服务绑定 Thread。项目条目的 `label` / `description` 由统一文案层提供，`id` 不随语言变化。
 
-插件入口组件还接受 `renderSlot?`、`renderScopedSlot?`，用于已有 Runtime 的组合，继续转发即可；其签名和返回值见[组件与子插槽](/development/plugin-api#组件与子插槽)。原始展示组件是否接收它们，以本页列出的 Props 类型为准。
+<span id="取数与联动"></span>
 
-### Hook
+其他插件可读取当前选中的技能，或通过同一个 `conversation.skills` 服务选择、清除技能；技能栏和当前技能标签会跟随更新。选择需要传入当前输入区的写入绑定，见[调用示例](#从业务卡片选择技能)。其他联动入口见[插件联动与取数](/development/plugin-interaction)。
+
+<span id="hook"></span>
 
 `useConversationSkillsState(service)` 响应式订阅当前 Thread 的技能选择，返回：
 
@@ -167,11 +190,7 @@ Hook：
 
 `service` 可为 `undefined`，此时 `selected` 为 `null`。写入数据使用同一会话中的 `useComposer()`，无需操作原生运行配置。
 
-### 服务
-
-- **提供**：`conversation.skills`。
-- **必需依赖**：无。
-- **可选依赖**：`agent-ui.locale`。
+### 服务方法 {#服务}
 
 提供 `conversation.skills`。根入口公开 `CONVERSATION_SKILLS_SERVICE`、`createConversationSkillsService()`、`ConversationSkillsService`、`ConversationSkillComposerBinding`。
 
@@ -186,56 +205,19 @@ Hook：
 
 选择会在发送、切换会话或技能失效时清除；仅组件重挂载不会新建服务。普通调用方取得已有服务，不重复提供同一标识。
 
-### 其他插件如何调用
-
-调用方在已有定义的 `inject` 中追加 `conversation.skills`，保留其他声明；只有允许缺失并处理降级时才使用 `optionalInject`。下例放在项目 `plugins/<调用方>/index.tsx`，服务必须与提供方位于同一 Agent 作用域。
-
-```tsx
-import {
-  CONVERSATION_SKILLS_SERVICE, usePluginService, useConversationSkillsState, useComposer,
-  type ConversationSkillsService, type ConversationSkill,
-} from '@za38.03/agent-ui-plugins';
-
-export function SelectBusinessSkill({ skill }: { skill: ConversationSkill }) {
-  const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
-  const { threadId, disabled } = useConversationSkillsState(service);
-  const composer = useComposer();
-  return <button type="button" disabled={disabled || !service || skill.disabled}
-    onClick={() => { service?.select(threadId, skill, composer); }}>
-    {skill.label}
-  </button>;
-}
-```
-
-## 自定义发送数据
-
-在项目已有的 `plugins/skills/index.tsx` 组件调用处配置，无需接管源码：
-
-```tsx
-<Implementation {...props} items={items}
-  requestAdapter={skill => ({ operation: skill.id })} />
-```
-
-`requestAdapter` 在选择时同步执行：
-
-- **输入**：`kind/id/label/description/disabled/ctx`，不含 React `icon`；可选字段按实际条目提供。
-- **返回**：任意 JSON 值，由插件通过 `useComposer().setData` 保存。
-- **最终组装时读取**：`pluginData[技能插件实例ID]` 为返回值，`selections[同一ID]` 为原始选择数组。
-
-省略回调时，`skill.ctx` 的字段合并到 `forwardedProps.ctx`，保留已有业务字段，技能字段覆盖同名字段。插件不会把业务字段写回原生 Composer 配置。没有配置 `ctx` 的技能不自动生成后端参数；原始选择仍可由 Composer 读取。
-
-```tsx
-<SkillsPlugin items={[{ kind: 'skill', id: 'research', label: messages.research, ctx: { skillId: 'research' } }]} />
-```
-
-选择该技能后发送，默认携带 `forwardedProps: { ctx: { skillId: "research" } }`；已有 Host `ctx` 字段也会保留。
-
-配置回调后，默认外带字段为 `forwardedProps[技能插件实例ID]`，不再自动附加该技能的默认运行字段。Composer 的最终 `requestAdapter` 可以重新命名、合并、写入正文或完全移除这些数据，见[统一组装](./composer#请求适配)。
-
-移除技能或切换会话会释放它自己的数据；提交快照不受后续选择修改影响。回调抛错或返回非 JSON 时保留原选择和草稿，并使用 `skills.selectionFailed` 显示错误。工作流仍只执行显式 `onStart`，不自动发送数据。
-
-## 常见问题
-
-### 为什么没有 selectedSkillId 属性？
+<details className="plugin-faq" id="为什么没有-selectedskillid-属性">
+<summary>为什么没有 selectedSkillId 属性？</summary>
 
 ConversationSkillsBar 通过会话服务管理选择。需要独立的受控展示时使用 ConversationSkills 的 selectedSkillId/onSelectedSkillChange；不要把独立组件属性传给服务绑定组件。
+
+</details>
+
+<span id="example-2"></span>
+
+<span id="代码示例"></span>
+
+<span id="常见需求"></span>
+
+<span id="技能与工作流"></span>
+
+<span id="技能与工作流条目"></span>

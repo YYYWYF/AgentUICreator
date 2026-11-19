@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, useLayoutEffect } from 'react';
+import { act, useLayoutEffect, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { AuiIf, AssistantRuntimeProvider, useLocalRuntime, useAui, type AssistantRuntime } from '@assistant-ui/react';
 import { ConversationComposerDataContext } from '@za38.03/agent-ui-runtime/plugin-api';
@@ -22,7 +22,7 @@ async function until(predicate: () => boolean) {
 }
 describe.each([{ name: 'npm', Suggestions: NpmSuggestions }, { name: 'portable', Suggestions: SourceSuggestions }])('$name suggestion data', ({ Suggestions }) => {
 async function fixture(options: { items?: readonly ConversationSuggestionItem[]; dynamic?: boolean; send?: boolean; hold?: boolean; hideOnSubmit?: boolean;
-  adapter?: ConversationSuggestionRequestAdapter; composerAdapter?: ComposerRequestAdapter; prevent?: boolean } = {}) {
+  renderSuggestion?: (item: ConversationSuggestionItem, defaultView: ReactNode) => ReactNode; adapter?: ConversationSuggestionRequestAdapter; composerAdapter?: ComposerRequestAdapter; prevent?: boolean } = {}) {
   const requests: RunAgentInput[] = [];
   const finish: (() => void)[] = [];
   let runtime!: AssistantRuntime;
@@ -46,7 +46,7 @@ async function fixture(options: { items?: readonly ConversationSuggestionItem[];
       <ConversationCanonicalComposer autoFocus={false} requestAdapter={options.composerAdapter} triggers={
         <AuiIf condition={state => !options.hideOnSubmit || state.thread.isEmpty === true}><Suggestions renderSlot={(_slot, fallback) => fallback} renderScopedSlot={() => null}
           {...(!options.dynamic ? { items: options.items ?? [{ title: 'Business', prompt: 'Business question', data: { id: 'Q1' } }] } : {})}
-          sendOnSelect={options.send ?? true} requestAdapter={options.adapter}
+          sendOnSelect={options.send ?? true} requestAdapter={options.adapter} {...(options.renderSuggestion ? { renderSuggestion: options.renderSuggestion } : {})}
           buttonProps={options.prevent ? { onClick: event => event.preventDefault() } : {}} /></AuiIf>
       } />
     </AgentUILocaleProvider></AgentUIRoot>
@@ -80,7 +80,10 @@ it('preserves default wire text while exposing raw data to Composer', async () =
   expect(adapter.mock.calls[0]![0].selections['standalone:suggestions']).toHaveLength(1);
 });
 it('handles runtime-provided suggestions with the same adapter', async () => {
-  const f = await fixture({ dynamic: true, adapter: item => ({ source: item.prompt }) });
+  const renderer = vi.fn((_item: ConversationSuggestionItem, defaultView: ReactNode) => <section data-dynamic-suggestion>{defaultView}</section>);
+  const f = await fixture({ dynamic: true, adapter: item => ({ source: item.prompt }), renderSuggestion: renderer });
+  expect(renderer).toHaveBeenCalledWith(expect.objectContaining({prompt: 'Dynamic question'}), expect.anything());
+  expect(f.host.querySelector('[data-dynamic-suggestion] button')).not.toBeNull();
   await f.click('Dynamic title'); await until(() => f.requests.length === 1);
   expect(f.requests[0]!.forwardedProps).toHaveProperty('standalone:suggestions', [{ source: 'Dynamic question' }]);
 });

@@ -1163,15 +1163,16 @@ export type ConversationResponseActionBarProps = ComponentProps<"div"> & {
 };
 export type ConversationResponseBranchPickerProps = ComponentProps<"div"> & {
   hideWhenSingleBranch?: boolean;
-  previousProps?: Partial<ConversationTooltipIconButtonProps>;
-  nextProps?: Partial<ConversationTooltipIconButtonProps>;
+  previousProps?: Partial<Omit<ConversationTooltipIconButtonProps, "children">>;
+  nextProps?: Partial<Omit<ConversationTooltipIconButtonProps, "children">>;
 };
 export const ConversationResponseActionBarRoot: ComponentType<ConversationResponseActionBarProps> = ResponseActionBarRoot;
 export const ConversationResponseBranchPicker: ComponentType<ConversationResponseBranchPickerProps> = ResponseBranchPicker;
-export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ likeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip">>; dislikeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip">> }> = CanonicalResponseFeedbackActions;
-export const ConversationCanonicalResponseCopyAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip">> = CanonicalResponseCopyAction;
-export const ConversationCanonicalResponseReloadAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip">> = CanonicalResponseReloadAction;
-export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip"> & { presentation?: "button" | "menu"; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
+export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ likeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip" | "children">> & { icon?: ReactNode }; dislikeButtonProps?: Partial<Omit<ConversationTooltipIconButtonProps, "tooltip" | "children">> & { icon?: ReactNode } }> = CanonicalResponseFeedbackActions;
+export const ConversationCanonicalResponseCopyAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip" | "children"> & { icon?: ReactNode }> = CanonicalResponseCopyAction;
+export const ConversationCanonicalResponseReloadAction: ComponentType<Omit<ConversationTooltipIconButtonProps, "tooltip" | "children"> & { icon?: ReactNode }> = CanonicalResponseReloadAction;
+export type { ResponseExportMarkdownActionProps } from "./plugins/export-markdown-action/adapters/presentation/export-markdown-action.js";
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<import("./plugins/export-markdown-action/adapters/presentation/export-markdown-action.js").ResponseExportMarkdownActionProps> = CanonicalResponseExportMarkdownAction;
 export interface ConversationTurnGroup {
   turnId: string;
   requestMessageId: string | null;
@@ -1259,17 +1260,13 @@ export interface ConversationMentionTriggerProps {
    * Synchronous; may throw to leave the draft unchanged and show a localized error.
    */
   onSelect?: ConversationTriggerSelect<ConversationMentionItem> | undefined;
-  /** Formats each selected item as JSON. Composer owns the final request assembly. */
-  requestAdapter?: ConversationTriggerRequestAdapter<ConversationMentionItem> | undefined;
 }
 export interface ConversationCommandTriggerProps {
   source?: ConversationSlashCommandSource | undefined;
   /** Replaces both directive insertion and action execution. */
   onSelect?: ConversationTriggerSelect<ConversationSlashCommand> | undefined;
-  requestAdapter?: ConversationTriggerRequestAdapter<ConversationCommandRequestItem> | undefined;
 }
 export type ConversationCommandRequestItem = ConversationCommandBase & { mode: 'directive' | 'action' };
-export type ConversationTriggerRequestAdapter<T> = (item: T) => import('@za38.03/agent-ui-runtime/plugin-api').ComposerData;
 export interface ConversationTriggerSelectionContext {
   readonly text: string;
   readonly range: { readonly start: number; readonly end: number };
@@ -1287,9 +1284,8 @@ export function ConversationComposerCommandTrigger(props: ConversationCommandTri
 
 import { WebSearch as InternalWebSearch, RetrievalChunks as InternalRetrievalChunks } from "./internal/search-elements.js";
 export interface WebSearchResult { title: string; domain: string; url?: string; snippet?: string }
-export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "results" | "searching" | "labels" | "visibleResults" | "cycle"> {
+export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "results" | "searching" | "labels" | "visibleResults"> {
   visibleResults?: number | undefined;
-  cycle?: number | undefined;
   query: string;
   results: readonly WebSearchResult[];
   searching: boolean;

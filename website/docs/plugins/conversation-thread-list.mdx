@@ -4,64 +4,270 @@ title: "会话列表（conversation-thread-list）"
 
 # 会话列表（conversation-thread-list）
 
-点击记录打开对话，可搜索会话并使用已接入的管理操作。
+提供标题搜索、归档、会话操作和自定义时间或业务分组。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<span id="常见需求"></span>
+<span id="需求示例"></span>
+<span id="代码示例"></span>
+<span id="启用与使用"></span>
 
-![查找与切换会话（conversation-thread-list）界面示例](/images/plugins/conversation-thread-list.png)
+## 会话列表
 
-## 启用与使用
+<figure className="plugin-preview">
 
-在 **Creator 输入框**输入 `/enable conversation-thread-list`，点击下图中的 **「查找与切换会话」**。
+![会话列表界面](/images/plugins/conversation-thread-list.png)
 
-![Creator 启用菜单：点击「查找与切换会话」，插件 ID 为 conversation-thread-list](/images/plugins/enable/conversation-thread-list.jpg)
-
-## 使用前提
+</figure>
 
 按[历史服务接入](/development/history-backend)配置列表和详情，按业务需要支持重命名、归档与删除。
 
 重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend#重命名归档与取消归档)。
 
-## 定制选项
+<span id="定制选项"></span>
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 显示搜索框 | 显示或隐藏会话搜索框。 |
-| 搜索提示 | 修改搜索框里的提示文字。 |
-| 每条会话的操作 | 选择是否显示重命名、归档、取消归档和删除入口。 |
-| 已归档会话 | 显示或隐藏归档区域，沿用会话搜索与条目定制。 |
-| 列表大小和外观 | 调整侧栏宽度、背景和内边距。 |
-| 列表上方的按钮 | 在列表顶部增加自己的操作。 |
-| 每条会话的排版 | 自定义会话名称、图标和按钮的排列。 |
+## 搜索、归档和菜单操作 {#搜索归档和菜单操作}
 
-新建会话使用[新建会话插件](/plugins/conversation-new)。
+<span id="example-1"></span>
 
-## 需求示例
 
-```text
-请修改「查找与切换会话（conversation-thread-list）」：
-修改：搜索提示改为【搜索历史对话】，列表内边距设为【12px】。
-保留：搜索、打开会话和现有会话操作。
+此例保留搜索、隐藏归档区，仅显示重命名和删除。actions 是完整开关对象，未写成 true 的操作不会显示。界面开关不代替后端权限校验。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalConversationThreadList>) {
+  return <CanonicalConversationThreadList {...props}
+    showSearch={true}
+    showArchived={false}
+    itemProps={{ ...props.itemProps, actions: { rename: true, delete: true } }} />;
+}
 ```
 
-## 属性
+<span id="example-2"></span>
 
-打开项目中的 `plugins/conversation-thread-list/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 自定义时间分组与业务分组 {#自定义时间分组与业务分组}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+下面是同一个应用层文件中的两个可选入口：`RecentHistory` 使用日期规则，`CategoryHistory` 使用业务分类。项目原有入口继续取得 snapshot、onRefresh、theme 等属性，改为渲染其中一个组件即可。
 
-组件：`CanonicalConversationThreadList`；类型：`ConversationThreadListPluginProps`。继承 `aside` 原生属性。
+- **日期规则**：近 7 天包含今天及之前 6 个当地自然日；近 30 天组收纳第 8～30 天，剩下的归入更早。按最近活动时间降序。示例把缺少或无效时间的记录放在更早组末尾。
+- **业务规则**：`work`、`study` 分别对应工作、学习，缺少或其他值归入其他。分组 ID 不翻译，标题从统一界面语言选择双语文案。
+- **数据入口**：`list()` 返回的 `updatedAt` 会转换为 `lastMessageAt`，`group` 会保存在 `custom.group`。默认列表不读取 group，需要这里的应用层分组。
+
+业务分类的数据源返回值例如：
+
+```json
+[
+  { "id": "thread-1", "title": "项目周报", "group": "work", "updatedAt": "2026-11-18T08:00:00Z" },
+  { "id": "thread-2", "title": "学习计划", "group": "study", "updatedAt": "2026-11-10T08:00:00Z" },
+  { "id": "thread-3", "title": "周末安排", "group": "other" }
+]
+```
+
+完整组件同时保留标题搜索、归档区、条目操作、禁用状态和侧栏导航；外层继续处理历史加载错误。普通条目传入的是原 `threadIds` 索引，归档条目传入的是原 `archivedThreadIds` 索引，不使用重新分组后的循环序号。已有列表定制通过 renderList 合并。
+
+```tsx
+import { createContext, useContext, useState, type ComponentProps } from 'react';
+import {
+  CanonicalConversationThreadList, ConversationThreadListRoot,
+  ConversationThreadListSearch, ConversationThreadListItem,
+  ConversationThreadListItemByIndex, useConversationState,
+  useConversationThreadListGroups, useAgentUISidebarNavigation,
+  useAgentUILocale, useAgentUILocaleCode,
+  type ConversationThreadListItemProps,
+} from '@za38.03/agent-ui-plugins';
+
+// 项目共享文案；也可移入 application/history-messages.ts。
+const historyMessages = {
+  'zh-CN': { recent7: '近 7 天', recent30: '近 30 天', earlier: '更早',
+    work: '工作', study: '学习', other: '其他' },
+  'en-US': { recent7: 'Last 7 days', recent30: 'Last 30 days', earlier: 'Earlier',
+    work: 'Work', study: 'Study', other: 'Other' },
+};
+type GroupKey = keyof (typeof historyMessages)['zh-CN'];
+type Props = ComponentProps<typeof CanonicalConversationThreadList>;
+const ItemOptions = createContext<ConversationThreadListItemProps>({});
+
+function ProjectThreadItem() {
+  const options = useContext(ItemOptions);
+  const navigate = useAgentUISidebarNavigation();
+  const disabled = useConversationState(s => s.threadListItem.custom?.agentUiDisabled === true);
+  return <div aria-disabled={disabled || undefined} inert={disabled || undefined}>
+    <ConversationThreadListItem {...options} onNavigate={options.onNavigate ?? navigate} />
+  </div>;
+}
+
+export function categoryOf(custom: unknown): GroupKey {
+  if (typeof custom !== 'object' || custom === null || !('group' in custom)) return 'other';
+  if (custom.group === 'work') return 'work';
+  if (custom.group === 'study') return 'study';
+  return 'other';
+}
+
+export function recentGroup(timestamp: number, now = new Date()): GroupKey {
+  if (!Number.isFinite(timestamp)) return 'earlier';
+  const start7 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).getTime();
+  const start30 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29).getTime();
+  return timestamp >= start7 ? 'recent7' : timestamp >= start30 ? 'recent30' : 'earlier';
+}
+
+export function ProjectGroupedHistory({
+  grouping, showSearch = true, showArchived = true, searchProps,
+  itemProps, components, ...props
+}: Props & { grouping: 'recent' | 'category' }) {
+  const [search, setSearch] = useState('');
+  const query = showSearch ? (searchProps?.value ?? search) : '';
+  // 复用标题过滤和跨零点刷新；不使用该 Hook 返回的默认日期 groups。
+  const { threadIds, filteredIndices } = useConversationThreadListGroups(query);
+  const items = useConversationState(s => s.threads.threadItems);
+  const archivedIds = useConversationState(s => s.threads.archivedThreadIds);
+  const loading = useConversationState(s => s.threads.isLoading);
+  const labels = useAgentUILocale('threadList');
+  const locale = useAgentUILocaleCode();
+  const headings = historyMessages[locale];
+  const byId = new Map(items.map(item => [item.id, item]));
+  const now = new Date();
+
+  function row(id: string, index: number) {
+    const item = byId.get(id);
+    const date = item?.lastMessageAt;
+    const timestamp = date instanceof Date ? date.getTime() : NaN;
+    const time = Number.isFinite(timestamp) ? timestamp : Number.MIN_SAFE_INTEGER;
+    const dateGroup = recentGroup(timestamp, now);
+    return { id, index, time, group: grouping === 'recent' ? dateGroup : categoryOf(item?.custom) };
+  }
+  const rows = filteredIndices.flatMap(index => {
+    const id = threadIds[index];
+    return id === undefined ? [] : [row(id, index)];
+  }).sort((a, b) => b.time - a.time);
+  const normalizedQuery = query.trim().toLowerCase();
+  const archived = archivedIds.map(row).filter(item => {
+    const title = byId.get(item.id)?.title;
+    return !normalizedQuery || (typeof title === 'string' ? title : labels.newChat)
+      .toLowerCase().includes(normalizedQuery);
+  });
+  const order: readonly GroupKey[] = grouping === 'recent'
+    ? ['recent7', 'recent30', 'earlier'] : ['work', 'study', 'other'];
+  const renderItem = (item: ReturnType<typeof row>, isArchived = false) => (
+    <ConversationThreadListItemByIndex key={item.id} index={item.index} archived={isArchived}
+      components={{ ThreadListItem: components?.ThreadListItem ?? ProjectThreadItem }} />
+  );
+
+  return <CanonicalConversationThreadList {...props} renderList={() => (
+    <ItemOptions.Provider value={itemProps ?? {}}>
+      <ConversationThreadListRoot>
+        {showSearch && (threadIds.length > 0 || (showArchived && archivedIds.length > 0)) && (
+          <ConversationThreadListSearch {...searchProps} value={query}
+            onValueChange={value => { setSearch(value); searchProps?.onValueChange?.(value); }} />
+        )}
+        {loading ? <p role="status">{labels.loading}</p> : <>
+          {!rows.length && <p>{labels.empty}</p>}
+          {order.map(key => {
+            const members = rows.filter(item => item.group === key);
+            return members.length ? <section key={key}>
+              <h3>{headings[key]}</h3>{members.map(item => renderItem(item))}
+            </section> : null;
+          })}
+          {showArchived && archived.length > 0 && <details>
+            <summary>{labels.archived}</summary>
+            {archived.map(item => renderItem(item, true))}
+          </details>}
+        </>}
+      </ConversationThreadListRoot>
+    </ItemOptions.Provider>
+   )} />;
+}
+
+// 示例一：项目入口把原 Implementation 替换为 RecentHistory，继续传入已有 props。
+export function RecentHistory(props: Props) {
+  return <ProjectGroupedHistory {...props} grouping="recent" />;
+}
+
+// 示例二：同样的入口按 data-source 的 group 字段分组。
+export function CategoryHistory(props: Props) {
+  return <ProjectGroupedHistory {...props} grouping="category" />;
+}
+```
+
+## 自定义排列与列表项 {#自定义排列与列表项}
+
+只改列表行时，在 `plugins/conversation-thread-list/index.tsx` 的现有列表组件上传入 `components={{ ThreadListItem: ProjectThreadItem }}`，继续使用原来的搜索、日期分组和归档区。
+
+需要自己排列分组时，可将以下组件通过原列表的 `renderList` 返回。`query` 传入项目搜索框的当前值，不搜索时传空字符串；外层原有属性和错误重试继续保留。
+
+```tsx
+import {
+  ConversationThreadListRoot, ConversationThreadListItem,
+  ConversationThreadListItemByIndex, useConversationThreadListGroups,
+  useConversationState, useAgentUISidebarNavigation, useAgentUILocale,
+} from '@za38.03/agent-ui-plugins';
+
+function ProjectThreadItem() {
+  const onNavigate = useAgentUISidebarNavigation();
+  const disabled = useConversationState(s =>
+    s.threadListItem.custom?.agentUiDisabled === true);
+  return <div className="project-thread-row"
+    aria-disabled={disabled || undefined} inert={disabled || undefined}>
+    <ConversationThreadListItem onNavigate={onNavigate} />
+  </div>;
+}
+
+export function ProjectThreadGroups({ query }: { query: string }) {
+  const { threadIds, filteredIndices, groups } = useConversationThreadListGroups(query);
+  const loading = useConversationState(s => s.threads.isLoading);
+  const labels = useAgentUILocale('threadList');
+  const renderItem = (index: number) => (
+    <ConversationThreadListItemByIndex key={threadIds[index]} index={index}
+      components={{ ThreadListItem: ProjectThreadItem }} />
+  );
+  if (loading) return <p role="status">{labels.loading}</p>;
+  if (!filteredIndices.length) return <p>{labels.empty}</p>;
+  return <ConversationThreadListRoot>
+    {groups ? groups.map(group => (
+      <section key={group.id}>
+        <h3>{group.label}</h3>
+        {group.indices.map(renderItem)}
+      </section>
+    )) : filteredIndices.map(renderItem)}
+  </ConversationThreadListRoot>;
+}
+```
+
+`ProjectThreadItem` 通过原生行组件保留切换、运行标记、重命名、归档和删除等操作；可以在它外面调整样式或增加业务内容。原项目限制过菜单操作时，把原有 `actions` 配置也传给行组件。`onNavigate` 让窄屏侧栏在选中会话后正常收起。
+
+归档区单独使用 `archivedThreadIds`，在列表组件内取得数据并渲染：
+
+```tsx
+const archivedIds = useConversationState(s => s.threads.archivedThreadIds);
+const archivedRows = archivedIds.map((id, index) => (
+  <ConversationThreadListItemByIndex key={id} index={index} archived
+    components={{ ThreadListItem: ProjectThreadItem }} />
+));
+```
+
+- 普通分组的 `indices` 和未分组的 `filteredIndices` 都对应 `threadIds`，直接传给 `index`，不要换成筛选后的循环序号。
+- 归档项的 `index` 对应 `archivedThreadIds`，同时传 `archived`；不要混用普通列表的索引。
+- 归档区需要搜索时，按标题筛选 `{ id, index }`，保留原始 `index` 再渲染。只需更换行外观时，使用前面的 `components` 配置即可，原列表会完成这些处理。
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalConversationThreadList` 上设置以下属性。
+
+继承 `aside` 原生属性。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `showSearch?` | `boolean` | 默认 `true`；设为 `false` 同时取消搜索条件对列表的过滤 |
 | `showArchived?` | `boolean` | 默认 `true`，展示归档会话区 |
-| `searchProps?` | `Partial<ComponentProps<typeof ConversationThreadListSearch>>` | 搜索组件属性 |
+| `searchProps?` | `Partial<Omit<ComponentProps<typeof ConversationThreadListSearch>, 'children' \| 'defaultValue'>>` | 搜索组件属性 |
 | `itemProps?` | `ConversationThreadListItemProps` | 列表项属性，见下表 |
 | `components?` | `{ ThreadListItem?: ComponentType }` | 替换列表项组件 |
+| `renderList?` | `(defaultList: ReactNode) => ReactNode` | 定制列表主体；外层错误提示与重试保留 |
 | `headerActions?` | `ReactNode` | 顶部操作区 |
-| `children?` | `ReactNode` | 替换默认列表主体；外层错误提示仍由组件处理 |
-| `snapshot?` | `ConversationThreadListPluginProps['snapshot']` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文 |
+| `snapshot?` | `{ activeConversationId?: string; listStatus?: string; detailStatus?: string; listError?: string; detailError?: string; detailErrorConversationId?: string }` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文 |
 | `serviceAvailable?` | `boolean` | 宿主页面提供的会话服务是否可用，单独使用组件时默认 `false` |
 | `onRefresh?` | `() => void \| Promise<void>` | 列表加载失败后的重试方法 |
 | `theme?` | [`AgentUITheme`](./theme-switch#agentuitheme) | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
@@ -72,38 +278,81 @@ title: "会话列表（conversation-thread-list）"
 | `onNavigate?` | `() => void` | 导航回调 |
 | `actions?` | [`ConversationThreadListItemActions`](#conversationthreadlistitemactions) | 操作可见性配置 |
 
-`snapshot` 字段均可选：`activeConversationId`、`listStatus`、`detailStatus`、`listError`、`detailError`、`detailErrorConversationId`，类型均为 `string`。这些值继续从项目已有的会话服务和主题设置中读取。
+`snapshot` 的字段均可选，类型均为 `string`：
 
-侧栏新建按钮组件 `CanonicalConversationThreadListRailAction` 支持 `enabled?: boolean`（默认 `true`）、`buttonProps?: ComponentProps<typeof ConversationThreadListNew>`、`tooltipProps?: ComponentProps<typeof AgentUITooltip>`、`tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>`。需要在布局中独立放置新建会话入口时，使用 [`conversation-new`](./conversation-new)。
+- 当前会话：`activeConversationId`。
+- 加载状态：`listStatus`、`detailStatus`。
+- 错误信息：`listError`、`detailError`、`detailErrorConversationId`。
 
-### 类型说明
+这些值继续从项目已有的会话服务和主题设置中读取。
 
-#### ConversationThreadListItemActions
+侧栏新建按钮组件 `CanonicalConversationThreadListRailAction` 支持：
 
-控制列表项菜单中显示哪些操作；这些字段是开关，不是操作回调。
+| 属性 | 类型与默认值 |
+| --- | --- |
+| `enabled?` | `boolean`，默认 `true` |
+| `icon?` | `ReactNode`，自定义按钮图标 |
+| `buttonProps?` | `Omit<ComponentProps<typeof ConversationThreadListNew>, 'children'>` |
+| `tooltipProps?` | `Omit<ComponentProps<typeof AgentUITooltip>, 'children'>` |
+| `tooltipContentProps?` | `Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>` |
 
-```ts
-interface ConversationThreadListItemActions {
-  rename?: boolean; // 重命名
-  archive?: boolean; // 归档
-  unarchive?: boolean; // 取消归档
-  delete?: boolean; // 删除
+需要在布局中独立放置新建会话入口时，使用 [`conversation-new`](./conversation-new)。
+
+### 只开放需要的列表操作 {#conversationthreadlistitemactions}
+
+`itemProps.actions` 控制菜单入口，不是操作回调。省略整个对象时保留默认操作；一旦传入对象，只显示值为 `true` 的项。
+
+例如 `{ rename: true, delete: true }` 显示重命名和删除，隐藏归档和恢复归档；`{}` 隐藏所有这些菜单项。四个可选键为 `rename`、`archive`、`unarchive`、`delete`，值均为 `boolean`。
+
+重命名、删除等实际操作仍由原会话服务执行；菜单显示不代替接口权限。完整组件示例：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
+
+export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConversationThreadList>) {
+  return <CanonicalConversationThreadList {...props}
+    itemProps={{ ...props.itemProps, actions: { rename: true, delete: true } }} />;
 }
 ```
 
-省略整个 `actions` 时保留默认的全部操作；传入对象后，只有值为 `true` 的操作才显示。
-
-### 类型查询
-
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof CanonicalConversationThreadList>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
-
 列表项默认按钮与无障碍文案统一在 `locales.threadList` 修改，`itemProps` 只配置操作和导航。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+<span id="hook"></span>
+
+- **分组与搜索**：`useConversationThreadListGroups(searchQuery = "")` 返回 `ConversationThreadListGroups`，包含 `threadIds`、`filteredIndices` 和 `groups`。
+- **每组内容**：包含 `id`、本地化 `label` 和 `indices`。
+- **导航完成通知**：`useAgentUISidebarNavigation()` 返回 `() => void`，供现有侧栏在导航后处理收起。
+
+项目的 `useConversations()` / `useConversationActions()` 见[会话服务](./conversation-service#hook)。
+
+<details className="plugin-faq" id="默认历史列表按什么分组">
+<summary>默认历史列表按什么分组？</summary>
+
+默认按 lastMessageAt 的当地自然日分为今天、昨天、更早。所有可见记录都没有日期时不分组；部分记录没有日期时，默认会将其放在今天组前面。前面的项目示例可以选择不同的缺失日期处理。
+
+</details>
+
+<details className="plugin-faq" id="接口返回-group-后默认列表会自动分组吗">
+<summary>接口返回 group 后，默认列表会自动分组吗？</summary>
+
+不会。group 被保留为 custom.group，默认日期分组不读取它。使用示例中的 CategoryHistory，或自行实现同样的数据归类。
+
+</details>
+
+<details className="plugin-faq" id="可以直接传-groupby-或修改-appuimodel-吗">
+<summary>可以直接传 groupBy 或修改 AppUIModel 吗？</summary>
+
+当前没有 groupBy 属性。分组规则在项目 React 组件中实现，通过 renderList 组合；AppUIModel 继续负责布局和插件组合。
+
+</details>
+
+<details className="plugin-faq" id="最终用户能创建分组把会话移入分组吗">
+<summary>最终用户能创建分组、把会话移入分组吗？</summary>
+
+上述业务分组是读取和展示能力。可编辑分组还需要项目提供创建、移动等界面，以及保存分组和会话归属的业务接口。
+
+</details>
+
+
+<span id="使用前提"></span>

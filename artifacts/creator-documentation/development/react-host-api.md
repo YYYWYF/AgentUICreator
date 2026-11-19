@@ -27,17 +27,17 @@
 | `onLocaleChange`                                         | `(locale: AgentUILocaleCode) => void`                                    | 可选。用户切换语言时调用；业务页面在回调中更新 `locale`。                                                                                                                            |
 | `user`                                                   | `AgentUser` 或 `null`                                                     | 省略时继承外层 Provider 的展示资料；两者都省略时显示项目登录服务（`auth.session`）中的用户资料；null 显示未登录状态。可含 `userId`、`userName`、`avatar`，不用于认证。                                              |
 | `initialThreadId`                                        | `string`                                                                 | 不传则新建会话；传入时初始化打开已有会话，修改此值不会直接切换当前会话。                                                                                                                         |
-| `transientMessages`                                      | `ConversationRuntimeProviderProps['transientMessages']`                  | 可选。在页面内显示临时提示，不写入历史记录，也不发送给 Agent。                                                                                                                           |
-| `appEventSchemas`                                        | `AgentProps['appEventSchemas']`                                          | 传入项目已有的实时业务事件配置，见[订阅业务事件](/development/plugin-api.md#订阅业务事件)；显示自定义消息卡片无需设置。                                                                                  |
-| `locales`                                                | `AgentProps['locales']`                                                  | 中英文文案覆盖。                                                                                                                                                     |
+| `transientMessages`                                      | `ConversationTransientMessageService`                                    | 可选。传入同一个临时消息服务，在页面内显示提示；常规插件直接用[本地提示 Hook](/plugins/transient-assistant-messages.md#hook)，不另建存储。                                                             |
+| `appEventSchemas`                                        | `AppEventSchemas`                                                        | 按事件名称配置项目实际 Schema；注册、校验和订阅见[业务事件示例](/development/plugin-api.md#订阅业务事件)。显示自定义消息卡片无需设置。                                                                       |
+| `locales`                                                | `Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>>`             | 按语言和领域覆盖官方文案，保留未覆盖字段；见[覆盖示例](/development/localization.md)。                                                                                                  |
 | `assistantPanelWidth`                                    | `number`                                                                 | 悬浮助理宽度，受视口限制。                                                                                                                                                |
 | `enableMessageQueue`                                     | `boolean`                                                                | 省略时继承项目默认值，新建项目默认 false；启用内存中的 Composer 后续消息队列，不改变程序化发送规则。见[消息排队](/development/message-queue.md)。                                                            |
 | `attachments`、`dictation`、`feedback`                     | 对应 `ConversationRuntimeProviderProps` 字段                                 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。                                                                                                 |
 | `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段                                 | 自定义业务适配器，优先于对应通用配置。                                                                                                                                          |
-| `conversationDataSource`                                 | `AgentProps['conversationDataSource']`                                   | 历史数据源；保留对应插件启用，见[历史服务](/development/history-backend.md)。                                                                                                     |
+| `conversationDataSource`                                 | `ConversationDataSource`                                                 | 实现 list/get/delete 及可选管理方法的历史数据源；保留对应插件启用，返回格式与接入见[历史服务](/development/history-backend.md)。                                                                   |
 | `toolkit`                                                | `ConversationToolkit`                                                    | 注册组件交互、前端执行方法和工具展示，见[前端工具](/development/frontend-tools.md)。                                                                                                  |
 | `integrations`                                           | `ComponentType<{ children: ReactNode }>`                                 | 额外集成包装组件，保留已生成的 integration。                                                                                                                                 |
-| `onError`                                                | `ConversationRuntimeProviderProps['onError']`                            | 可选。应用或 Agent 运行出错时调用；业务代码调用异步方法时，还需用 try/catch 处理报错。                                                                                                         |
+| `onError`                                                | `(error: Error) => void`                                                 | 可选。应用或 Agent 运行出错时调用；业务代码调用异步方法时，还需用 try/catch 处理报错。                                                                                                         |
 
 业务服务的 URL、鉴权和适配代码放在项目实现中，逐项手动接入步骤见[业务服务接入总览](/development/service-integration.md)。
 
@@ -47,14 +47,9 @@
 
 `ConversationRunContextGetter` 从 `@za38.03/agent-ui-runtime` 导入，也可通过 `ConversationRuntimeProviderProps['getRunContext']` 获取类型。直接使用 `ConversationRuntimeProvider` 时，传入同名属性。
 
-```ts
-type ConversationRunContextGetter = (input: {
-  readonly messages: readonly Message[];
-  readonly runConfig: { readonly custom?: Record<string, unknown> } | undefined;
-}) => readonly { description: string; value: string }[];
-```
+回调参数含 `messages`（当前 AG-UI 消息数组）和 `runConfig`（可为 `undefined` 的原生配置，含可选 `custom` 对象）。返回值为 `readonly { description: string; value: string }[]`：每项用 `description` 说明内容，`value` 提供字符串，复杂对象可序列化为 JSON；不需要附加上下文时返回空数组。完整接入见[按次读取页面数据](/development/agent-options.md#传入业务上下文)。
 
-`Message` 是 AG-UI 消息类型。回调读取当前页面的数据并同步返回数组，数组可以为空。它不管理业务状态，也不会订阅或推送状态变化。读取失败会通过 `onError` 报告，当前请求继续发送，不会因这个错误将整个运行标记为失败。配置方法和使用边界见[传入业务上下文](/development/agent-options.md#传入业务上下文)。
+`Message` 是 AG-UI 消息类型。回调在每次请求前读取当前页面的数据。它不管理业务状态，也不会订阅或推送状态变化。读取失败会通过 `onError` 报告，当前请求继续发送，不会因这个错误将整个运行标记为失败。配置方法和使用边界见[传入业务上下文](/development/agent-options.md#传入业务上下文)。
 
 欢迎语、示例问题与默认按钮文案统一使用 `locales`，项目默认值位于 `application/locales.ts`。结构与数量在项目组件和 `project-config.tsx` 中定制，见[Agent 参数与配置](/development/agent-options.md)。
 
@@ -71,7 +66,10 @@ type ConversationRunContextGetter = (input: {
 
 ### 会话方法
 
-`const host = useAgentUI()` 返回 `AgentUIHost`，其中包含以下方法。`sendMessage()`、`abortRun()`、`startNewConversation()` 和 `resumeInterrupts()` **必须在 `host.getSnapshot().status === 'ready'` 时调用**。读取状态和添加监听不受此限制。
+`const host = useAgentUI()` 返回 `AgentUIHost`。
+
+- **需要就绪**：`sendMessage()`、`abortRun()`、`startNewConversation()`、`resumeInterrupts()` 必须在 `host.getSnapshot().status === 'ready'` 时调用。
+- **不要求就绪**：读取状态和添加监听。
 
 | 方法                                            | 参数                                                                                                | 返回                            | 说明                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------- |
@@ -94,20 +92,16 @@ type ConversationRunContextGetter = (input: {
 
 `AgentUIContext` 和 `AgentUISendOptions` 可从 `@za38.03/agent-ui-runtime` 导入。`ctx` 的使用示例见[业务参数 ctx](/development/business-context.md#业务参数-ctx)。
 
-```ts
-// 类型从 @za38.03/agent-ui-core 导入
-interface AgentUserInput {
-  content: string | AgentInputPart[];
-}
-interface AgentInterruptResponse {
-  interruptId: string;
-  status: 'resolved' | 'cancelled';
-  payload?: unknown;
-  metadata?: Record<string, unknown>;
-}
-```
+`sendMessage()` 可直接传字符串；混合文本与媒体时传 `{ content: [...] }`，每项格式见下面的附件发送示例。
 
-`sendMessage()` 支持字符串、文本项以及 image/audio/video/document 的 URL 来源。文本项为 `{ type: 'text', text: '...' }`；纯文本数组保持直接拼接行为，混合数组保留各项的顺序和文本。空字符串或空 content 数组不发起请求，只有附件的数组也可以发送。`source.type: 'data'` 的内联媒体仍会抛出 `UnsupportedAgentInputError`（`code: 'AGENT_UI_UNSUPPORTED_INPUT'`）。
+`resumeInterrupts()` 接收处理结果数组，每项必需 `interruptId: string`（当前中断 ID）和 `status: 'resolved' | 'cancelled'`；可选 `payload: unknown` 填写该中断要求的回答，`metadata?: Record<string, unknown>` 携带业务附加信息。回答必须符合原请求的 `responseSchema`，调用方式见[读取并处理审批](/development/plugin-api.md#读取会话状态)。
+
+`sendMessage()` 的输入规则：
+
+- **文本**：支持字符串或 `{ type: 'text', text: '...' }`。纯文本数组直接拼接，混合数组保留各项顺序和文本。
+- **媒体**：支持 image/audio/video/document 的 URL 来源；只有附件的数组也可以发送。
+- **空输入**：空字符串或空 content 数组不发起请求。
+- **内联媒体**：`source.type: 'data'` 仍会抛出 `UnsupportedAgentInputError`，错误码为 `AGENT_UI_UNSUPPORTED_INPUT`。
 
 用户选择文件后的附件流程由原生 Composer 管理，使用内置发送动作或 `sendComposer()` 提交当前草稿，见[附件上传服务](/development/attachment-upload.md)。`payload` 用于填写审批结果或补充信息，字段必须符合当前请求的 `responseSchema` 和业务约定。
 
@@ -229,10 +223,23 @@ export function TicketSelection({ onSelect }: {
 
 ### 提供宿主页面操作
 
-通过 `AgentProps.toolkit` 注册 `frontend` 工具的 `execute` 和可选 `render`，或注册 `human` 工具的交互组件，见[前端工具接入](/development/frontend-tools.md)。已有项目的 `frontendTools` 仍接收 `AgentFrontendToolSource`，与项目工具合并；其展示也在 `toolkit` 中配置。
+通过 `AgentProps.toolkit` 注册：
+
+- `frontend` 工具：提供 `execute` 和可选的 `render`。
+- `human` 工具：提供交互组件。
+
+已有项目的 `frontendTools` 仍接收 `AgentFrontendToolSource`，与项目工具合并；展示也在 `toolkit` 中配置。示例见[前端工具接入](/development/frontend-tools.md)。
 
 ### 外壳定制
 
-初始化选择哪种展示形态，工程的 `application/shell/` 就生成对应的组件和样式：悬浮助理为 `AssistantShell.tsx` 与 `assistant-shell.css`，嵌入式为 `EmbeddedShell.tsx` 与 `embedded-shell.css`，平台式为 `PlatformShell.tsx` 与 `platform-shell.css`。修改图标、位置、动画或展开收起行为时，直接编辑这些文件。项目通过 `application/project-config.tsx` 中的 `Shell: ProjectShell` 绑定外壳；面板宽度通过 `assistantPanelWidth` 传入。
+所选展示形态对应 `application/shell/` 中的组件与样式：
+
+| 形态   | 文件                                         |
+| ---- | ------------------------------------------ |
+| 悬浮助理 | `AssistantShell.tsx`、`assistant-shell.css` |
+| 嵌入式  | `EmbeddedShell.tsx`、`embedded-shell.css`   |
+| 平台式  | `PlatformShell.tsx`、`platform-shell.css`   |
+
+修改图标、位置、动画或展开收起行为时，直接编辑对应文件。项目在 `application/project-config.tsx` 中通过 `Shell: ProjectShell` 绑定外壳；面板宽度通过 `assistantPanelWidth` 传入。
 
 收起面板时，通过隐藏面板保持内容挂载，会话和服务便可继续运行。更换外壳时，在项目配置中绑定新组件。接口、完整组件与 CSS 示例见[自定义 Shell](/development/shell-customization.md)。

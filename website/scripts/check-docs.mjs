@@ -95,6 +95,27 @@ for (const [name, file] of pages) {
   if (built) {
     const output = path.join(website, 'doc_build', name.replace(/\.(md|mdx)$/u, '.html'));
     assert(existsSync(output), `Missing built page: ${name}`);
+    const html = read(output);
+    // Event streams remain plain code blocks; development examples use disclosures.
+    const disclosures = [];
+    for (const match of html.matchAll(/<\/?details\b[^>]*>|<div\b[^>]*class="[^"]*\brp-codeblock(?:\s|")[^>]*>/gu)) {
+      const [tag] = match;
+      if (tag.startsWith('</details')) disclosures.pop();
+      else if (tag.startsWith('<details')) disclosures.push(!/\sopen(?:[\s=>])/u.test(tag));
+      else {
+        const language = tag.match(/\blanguage-([\w-]+)/u)?.[1];
+        const codeStart = html.indexOf('<code', match.index);
+        const codeEnd = html.indexOf('</code>', codeStart);
+        assert(codeStart >= 0 && codeEnd > codeStart, `Missing code content: ${name}`);
+        const content = html.slice(codeStart, codeEnd).replace(/<[^>]*>/gu, '')
+          .replace(/&quot;|&#34;|&#x22;/giu, '"');
+        const eventStream = language === 'jsonl' || language === 'sse' ||
+          ([undefined, 'json', 'text', 'plaintext'].includes(language) &&
+            /"type"\s*:\s*"(?:CUSTOM|RAW|(?:RUN|TEXT_MESSAGE|TOOL_CALL|REASONING|STATE|ACTIVITY|MESSAGES|STEP|SUBAGENT)_[A-Z_]+)"/u.test(content));
+        if (eventStream) assert.equal(disclosures.length, 0, `AG-UI events must use a plain visible code block: ${name}`);
+        else assert(disclosures.some(closed => closed), `Development code must be collapsed by default: ${name}`);
+      }
+    }
     if (destinations.has(name)) {
       const sidebar = read(output).match(/<aside class="rp-doc-layout__sidebar(?:\s|")[\s\S]*?<\/aside>/u)?.[0];
       if (/^sidebar:\s*false\s*$/mu.test(source)) {

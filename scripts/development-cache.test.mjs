@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -23,13 +24,52 @@ afterEach(() => {
 function fixture() {
   const root = fs.mkdtempSync(path.join(tmpdir(), "Agent UI 缓存 space "));
   roots.push(root);
-  return { root, base: path.join(root, "temporary") };
+  return { root, base: path.join(root, "temporary"), isProcessAlive: () => false };
 }
 function put(file, value = "old output") {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, value);
 }
 const generation = (cacheDir) => path.resolve(cacheDir, "../..");
+
+test("Vite restart preserves the old cache until its optimizer has stopped", async () => {
+  const { root } = fixture();
+  const require = createRequire(
+    new URL("../apps/creator-workbench/package.json", import.meta.url),
+  );
+  const { createServer } = await import(pathToFileURL(require.resolve("vite")).href);
+  put(path.join(root, "package.json"), JSON.stringify({ type: "module" }));
+  for (const role of ["workbench", "host-preview"]) {
+    const server = await createServer({
+      configFile: false,
+      root,
+      logLevel: "silent",
+      plugins: [{
+        name: "cache-restart-fixture",
+        config() { return { cacheDir: prepareDevelopmentCache(root, role) }; },
+      }],
+      server: { middlewareMode: true, watch: null },
+      optimizeDeps: { noDiscovery: true, include: [] },
+    });
+    try {
+      const previous = server.config.cacheDir;
+      const output = path.join(previous, "still-in-use.js");
+      put(output, "export const value = 42;");
+      const environment = server.environments.client;
+      const close = environment.close.bind(environment);
+      let retained;
+      environment.close = async () => {
+        retained = fs.existsSync(output);
+        return close();
+      };
+      await server.restart();
+      assert.equal(retained, true, `${role}: cache was deleted before optimizer shutdown`);
+      assert.notEqual(server.config.cacheDir, previous);
+    } finally {
+      await server.close();
+    }
+  }
+});
 
 test("Windows workspace paths cover drive case, spaces, Unicode and UNC", () => {
   assert.equal(
@@ -64,15 +104,15 @@ test("default cache stays inside the project and cleans both services independen
     put(file);
     outputs.set(role, file);
   }
-  const next = prepareDevelopmentCache(realRoot, "workbench");
+  const next = prepareDevelopmentCache(realRoot, "workbench", { isProcessAlive: () => false });
   assert.equal(fs.existsSync(outputs.get("workbench")), false);
   assert.equal(fs.existsSync(outputs.get("host-preview")), true);
   assert.deepEqual(fs.readdirSync(next), []);
-  prepareDevelopmentCache(realRoot, "host-preview");
+  prepareDevelopmentCache(realRoot, "host-preview", { isProcessAlive: () => false });
   assert.equal(fs.existsSync(outputs.get("host-preview")), false);
 });
 
-test("Vite writes dependency maps after repeated project-local cold starts", async () => {
+test("Vite writes maps through repeated cold starts and overlapping config resolution", async () => {
   const { root } = fixture();
   const require = createRequire(
     new URL("../apps/creator-workbench/package.json", import.meta.url),
@@ -93,7 +133,7 @@ test("Vite writes dependency maps after repeated project-local cold starts", asy
   const previous = new Map();
   for (let round = 0; round < 2; round++) {
     await Promise.all(["workbench", "host-preview"].map(async role => {
-      const cacheDir = prepareDevelopmentCache(root, role);
+      const cacheDir = prepareDevelopmentCache(root, role, { isProcessAlive: () => false });
       const old = previous.get(role);
       if (old) assert.equal(fs.existsSync(old), false);
       const config = await resolveConfig({
@@ -101,7 +141,22 @@ test("Vite writes dependency maps after repeated project-local cold starts", asy
         root,
         cacheDir,
         logLevel: "silent",
-        optimizeDeps: { include: ["cache-probe"], noDiscovery: true },
+        optimizeDeps: {
+          include: ["cache-probe"],
+          noDiscovery: true,
+          esbuildOptions: {
+            plugins: [{
+              name: "overlapping-config-fixture",
+              setup(build) {
+                build.onStart(() => {
+                  // A replacement config is resolved while esbuild still has
+                  // output pending in the previous generation.
+                  prepareDevelopmentCache(root, role);
+                });
+              },
+            }],
+          },
+        },
       }, "serve");
       const metadata = await optimizeDeps(config, true);
       const output = metadata.optimized["cache-probe"].file;
@@ -177,6 +232,7 @@ test("locked Windows cache files warn and leave the new cache usable", () => {
     put(path.join(first, "react-markdown.js.map"));
     const warnings = [];
     const second = prepareDevelopmentCache(root, "workbench", {
+      isProcessAlive: () => false,
       warn: (message) => warnings.push(message),
       remove(target, settings) {
         if (target === old)
@@ -196,7 +252,7 @@ test("locked Windows cache files warn and leave the new cache usable", () => {
   }
 });
 
-test("obsolete state is discarded without parsing it or checking any PID", () => {
+test("obsolete state is discarded without parsing it", () => {
   const options = fixture();
   const first = prepareDevelopmentCache(options.root, "workbench", options);
   const parent = path.dirname(generation(first));
@@ -211,4 +267,34 @@ test("obsolete state is discarded without parsing it or checking any PID", () =>
   assert.ok(fs.statSync(cache).isDirectory());
   assert.equal(fs.existsSync(state), false);
   assert.equal(fs.existsSync(oldGeneration), false);
+});
+
+test("a later startup removes the cache of an exited Vite process automatically", () => {
+  const { root } = fixture();
+  const cache = execFileSync(process.execPath, [
+    "--input-type=module", "-e",
+    `import { prepareDevelopmentCache } from ${JSON.stringify(new URL("./development-cache.mjs", import.meta.url).href)}; console.log(prepareDevelopmentCache(process.argv[1], "workbench"));`,
+    root,
+  ], { encoding: "utf8" }).trim();
+  put(path.join(cache, "old.js.map"));
+  const next = prepareDevelopmentCache(root, "workbench");
+  assert.notEqual(next, cache);
+  assert.equal(fs.existsSync(generation(cache)), false);
+});
+
+test("cleanup leaves a live owner's cache intact and removes it after that owner stops", () => {
+  const options = fixture();
+  const cache = prepareDevelopmentCache(options.root, "workbench", options);
+  const parent = path.dirname(generation(cache));
+  const active = path.join(parent, "run-54321-AbCdE1");
+  put(path.join(active, "node_modules/.vite/in-use.js"));
+  const checked = [];
+  prepareDevelopmentCache(options.root, "workbench", {
+    ...options,
+    isProcessAlive(pid) { checked.push(pid); return pid === 54321; },
+  });
+  assert.ok(checked.includes(54321));
+  assert.equal(fs.existsSync(active), true);
+  prepareDevelopmentCache(options.root, "workbench", options);
+  assert.equal(fs.existsSync(active), false);
 });

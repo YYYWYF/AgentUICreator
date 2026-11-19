@@ -4,10 +4,11 @@ import {
   type SpawnOptions,
 } from "node:child_process";
 import { watch } from "node:fs";
-import { stat } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
-import type { Plugin } from "vite";
+import { setTimeout as delay } from "node:timers/promises";
+import type { DepOptimizationOptions, Plugin } from "vite";
 import { terminateProcessTree } from "../../packages/creator/src/processTree.js";
 import type { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import {
@@ -123,13 +124,85 @@ type ReloadMessage = {
   projectRoot?: string;
 };
 
-/** Clear each service's previous Vite cache at startup, without lock/preflight gates. */
-export function developmentCachePlugin(root: string, role: "workbench" | "host-preview"): Plugin {
+type CacheWriter = (file: string, contents: Uint8Array) => Promise<void>;
+type CacheWriteOptions = {
+  write?: CacheWriter;
+  wait?: (milliseconds: number) => Promise<void>;
+  warn?: (message: string) => void;
+};
+type OptimizerPlugin = NonNullable<NonNullable<DepOptimizationOptions["esbuildOptions"]>["plugins"]>[number];
+
+/** Keep transient Windows file locks from aborting an otherwise valid bundle. */
+export async function writeDevelopmentCacheFile(
+  file: string,
+  contents: Uint8Array,
+  {
+    write = async (target, data) => {
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, data);
+    },
+    wait = delay,
+    warn = console.warn,
+  }: CacheWriteOptions = {},
+): Promise<void> {
+  const backoff = [50, 100, 200, 400, 800];
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await write(file, contents);
+      return;
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error
+        ? error.code : undefined;
+      const milliseconds = backoff[attempt];
+      if (code !== "EACCES" && code !== "EPERM" && code !== "EBUSY") throw error;
+      if (milliseconds === undefined) {
+        warn(`[Creator] Dependency cache remains inaccessible (${code}) after ${attempt + 1} attempts: ${file}`);
+        throw error;
+      }
+      if (attempt === 0)
+        warn(`[Creator] Dependency cache write delayed (${code}); retrying: ${file}`);
+      await wait(milliseconds);
+    }
+  }
+}
+
+function windowsDevelopmentOutputPlugin(options: CacheWriteOptions): OptimizerPlugin {
+  return {
+    name: "agent-ui-windows-development-output",
+    setup(build) {
+      // Vite also uses these plugins for in-memory dependency scanning and
+      // export analysis. Those stages must never write their virtual outputs.
+      if (build.initialOptions.write === false) return;
+      // esbuild's native writer fails immediately on access/sharing errors.
+      // Its public memory-output API lets the host finish ALL output writes in
+      // onEnd, before Vite receives metadata or commits the cache directory.
+      build.initialOptions.write = false;
+      build.onEnd(async result => {
+        if (result.errors.length > 0) return;
+        if (!result.outputFiles) throw new Error("Missing esbuild dependency output");
+        for (const output of result.outputFiles)
+          await writeDevelopmentCacheFile(output.path, output.contents, options);
+      });
+    },
+  };
+}
+
+/** Start with fresh output and clean caches only after their Vite process stops. */
+export function developmentCachePlugin(
+  root: string,
+  role: "workbench" | "host-preview",
+  options: CacheWriteOptions & { platform?: NodeJS.Platform } = {},
+): Plugin {
   return {
     name: "agent-ui-development-cache",
     apply: "serve",
     config() {
-      return { cacheDir: prepareDevelopmentCache(root, role) };
+      return {
+        cacheDir: prepareDevelopmentCache(root, role),
+        ...((options.platform ?? process.platform) === "win32" ? {
+          optimizeDeps: { esbuildOptions: { plugins: [windowsDevelopmentOutputPlugin(options)] } },
+        } : {}),
+      };
     },
     configResolved(config) {
       config.logger.info(`[Creator] ${role} dependency cache: ${config.cacheDir}`);

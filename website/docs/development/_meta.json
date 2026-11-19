@@ -158,6 +158,16 @@
       },
       {
         "type": "custom-link",
+        "label": "插件联动与取数",
+        "link": "/development/plugin-interaction"
+      },
+      {
+        "type": "custom-link",
+        "label": "插件按需打包",
+        "link": "/development/plugin-bundling"
+      },
+      {
+        "type": "custom-link",
         "label": "源码接管与更新参考",
         "link": "/development/source-takeover"
       }

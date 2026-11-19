@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { useId, type ComponentProps, type ReactNode } from 'react';
 import { useAgentUILocaleSnapshot } from '../../../../plugin-support.js';
 import { NativeSelect, NativeSelectOption, useAgentUILocale, type AgentUILocaleCode } from '../../../../public.js';
 // The application supplies its existing locale service; no private context is created.
@@ -12,11 +12,10 @@ export interface LocaleSwitchPluginProps extends Omit<ComponentProps<'section'>,
   service?: AgentUILocaleService | undefined;
   locale?: AgentUILocaleCode | undefined;
   onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined;
-  contextId?: string;
 
   disabled?: boolean;
-  selectProps?: ComponentProps<typeof NativeSelect>;
-  children?: ReactNode;
+  selectProps?: Omit<ComponentProps<typeof NativeSelect>, 'children' | 'value' | 'defaultValue' | 'disabled'>;
+  options?: readonly AgentUILocaleCode[];
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
 }
@@ -27,12 +26,12 @@ export function CanonicalLocaleSwitchPlugin({
   service,
   locale: controlledLocale,
   onLocaleChange,
-  contextId = 'locale',
   selectProps,
   disabled,
-  children,
+  options,
   ...rootProps
 }: LocaleSwitchPluginProps) {
+  const controlId = useId();
   const messages = useAgentUILocale('accessibility');
   const observedLocale = useAgentUILocaleSnapshot(controlledLocale === undefined ? service : undefined);
   const locale = controlledLocale ?? observedLocale;
@@ -49,7 +48,7 @@ export function CanonicalLocaleSwitchPlugin({
     >
       <NativeSelect
         disabled={disabled}
-        id={`${contextId}-control`}
+        id={controlId}
         aria-label={messages.language}
         className='locale-switch-plugin-control'
         value={locale}
@@ -65,12 +64,11 @@ export function CanonicalLocaleSwitchPlugin({
           }
         }}
       >
-        {children ?? (
-          <>
-            <NativeSelectOption value='zh-CN'>{messages.chineseName}</NativeSelectOption>
-            <NativeSelectOption value='en-US'>{messages.englishName}</NativeSelectOption>
-          </>
-        )}
+        {(options ?? (['zh-CN', 'en-US'] as const)).map((value) => (
+          <NativeSelectOption key={value} value={value}>
+            {{ 'zh-CN': messages.chineseName, 'en-US': messages.englishName }[value]}
+          </NativeSelectOption>
+        ))}
       </NativeSelect>
     </section>
   );

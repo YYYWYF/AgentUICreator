@@ -1,0 +1,154 @@
+{
+  "capturedDate": "2026-11-18",
+  "source": "/Users/yifei/Coding/agentui_test/plugin-docs-visuals-20261118",
+  "url": "http://127.0.0.1:5300/",
+  "viewport": {
+    "width": 1280,
+    "height": 1000
+  },
+  "scenario": "Actual Plugin implementations in an isolated canonical Host copy; installed official Mock replays paused at lifecycle boundaries. Screenshots captured from browser without image edits.",
+  "screenshots": [
+    {
+      "file": "reasoning-running.jpg",
+      "scenario": "Official reasoning-chat paused before reasoning end; automatic expansion in a 728px Host container.",
+      "sha256": "45cbb57534048f6569d54bce610e1085be7082ff9630127649abb32a2b551add",
+      "dimensions": {
+        "width": 384,
+        "height": 107
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "reasoning-finished.jpg",
+      "scenario": "Same replay after completion, automatically collapsed in a 728px Host container.",
+      "sha256": "c8fb0cdd75d54bb0946cf197a35625daac91cc16a16cd05bedf93b0b517609d1",
+      "dimensions": {
+        "width": 384,
+        "height": 64
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "reasoning-reopened.jpg",
+      "scenario": "Same completed replay after manual expansion in a 728px Host container.",
+      "sha256": "bdd2aca49ee8a29a2fd6345b59aa67ad3b3c4e54c3580415e501f8dae6dd7970",
+      "dimensions": {
+        "width": 384,
+        "height": 107
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "web-search-running.jpg",
+      "scenario": "Official web-search replay paused after tool arguments; search indicator before results.",
+      "sha256": "c85925c3a92de88d983724404b29bd58f0714e5c4a3bad6539366e0f0ad344cb",
+      "dimensions": {
+        "width": 400,
+        "height": 176
+      }
+    },
+    {
+      "file": "web-search-finished.jpg",
+      "scenario": "Same official web-search replay after success; source count, titles, domains and snippets.",
+      "sha256": "a8113b5cf1bac8dfd7e438dcc0e78aa65ecce67e9ad9ab431fbe89fa19575a22",
+      "dimensions": {
+        "width": 400,
+        "height": 196
+      }
+    },
+    {
+      "file": "retrieval-running.jpg",
+      "scenario": "Official retrieval-chunks replay paused before tool result; query and retrieval indicator.",
+      "sha256": "deb35faa5432cd6f6ea1efa5be674207aaf2e495094715fadf27cfd99e58e85d",
+      "dimensions": {
+        "width": 400,
+        "height": 196
+      }
+    },
+    {
+      "file": "retrieval-finished.jpg",
+      "scenario": "Same retrieval replay after success; one passage with source, page, text and relevance 0.91.",
+      "sha256": "696dd4c22e15882500afe2d70302f620a6f4f9539a4c24ec931889f9e03d187f",
+      "dimensions": {
+        "width": 400,
+        "height": 163
+      }
+    },
+    {
+      "file": "plan-running.jpg",
+      "scenario": "Official agent-plan ACTIVITY_SNAPSHOT: first of four steps active, 0 completed, current-step description visible.",
+      "sha256": "512c57196188699213f800532ac1fa2ff59d117c22a089bfbe4fadb7f7f815c5",
+      "dimensions": {
+        "width": 400,
+        "height": 210
+      }
+    },
+    {
+      "file": "plan-finished.jpg",
+      "scenario": "Same Activity replay after deltas advance activeIndex to four; all four steps complete.",
+      "sha256": "bb7b0e08ea281e84c4c1894c3f8afd8acd47da0548a9986e03715f3c07a27d07",
+      "dimensions": {
+        "width": 400,
+        "height": 192
+      }
+    },
+    {
+      "file": "job-running.jpg",
+      "scenario": "Official agent-state-sync replay paused during progress update; stage progress, ETA and existing cancel action.",
+      "sha256": "31b1f208fa13e6296fc6102d78c8c40bda16034044e67ad7cd1c9dac0b39d7f9",
+      "dimensions": {
+        "width": 400,
+        "height": 122
+      }
+    },
+    {
+      "file": "job-finished.jpg",
+      "scenario": "Same job replay after successful result; full progress and summary, no cancel entry.",
+      "sha256": "ec2d4cbc999b33cbd9ed9261aa0f178f4db7b336d52bb16f89a6dcf80a13eb54",
+      "dimensions": {
+        "width": 400,
+        "height": 151
+      }
+    },
+    {
+      "file": "context-collapsed.jpg",
+      "scenario": "Official context replay in a 728px Host: default collapsed source and context count.",
+      "sha256": "2ec82b291f3f11d8d991ba0d7fdba573f853825ef2e92817211d1f4a1e3344c8",
+      "dimensions": {
+        "width": 384,
+        "height": 50
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "context-expanded.jpg",
+      "scenario": "Same context replay after expansion in a 728px Host; query and scrollable returned text.",
+      "sha256": "02be53ec778f039321177233397972704049b77eb8c4f73b9d403f6ea5dd651a",
+      "dimensions": {
+        "width": 384,
+        "height": 472
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "tool-group-collapsed.jpg",
+      "scenario": "Official parallel-tools in a 728px Host: default collapsed summary of three calls.",
+      "sha256": "0d2dcf4a43c5e4408c1947c1d975fbc55dd46bcce5de86c8162a2e824cad0991",
+      "dimensions": {
+        "width": 384,
+        "height": 40
+      },
+      "hostWidth": 728
+    },
+    {
+      "file": "tool-group-expanded.jpg",
+      "scenario": "Same three-call group after manual expansion in a 728px Host.",
+      "sha256": "aa7c92c93a884d8abeee7509c94b4c25095e33e15516155f59cc476aeeacc4d0",
+      "dimensions": {
+        "width": 384,
+        "height": 136
+      },
+      "hostWidth": 728
+    }
+  ]
+}

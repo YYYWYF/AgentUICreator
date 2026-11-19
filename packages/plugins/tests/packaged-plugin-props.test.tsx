@@ -10,26 +10,56 @@ import { ConversationFeedbackActionsPlugin } from "../dist/feedback-actions/inde
 import { ConversationExportMarkdownActionPlugin } from "../dist/export-markdown-action/index.js";
 import { ConversationReasoningPlugin } from "../dist/reasoning/index.js";
 import { ConversationToolGroupPlugin } from "../dist/tool-group/index.js";
+import { ConversationReasoningPlugin as SourceReasoning } from "../dist/sources/takeover/reasoning/index";
 const frameworkProps={renderSlot:()=>null,renderScopedSlot:()=>null};
 (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 it("packaged actions share the response Runtime and forward props/events without losing locale or behavior",async()=>{
   const copied=vi.fn(async()=>{}), clicked=vi.fn(), feedback=vi.fn(), run=vi.fn(), exported=vi.fn();
   Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:copied}});
   function Footer(){return <>
-    <ConversationCopyActionPlugin {...frameworkProps} aria-label="application-copy" style={{padding:9}} onClick={clicked}/>
+    <ConversationCopyActionPlugin {...frameworkProps} aria-label="application-copy" style={{padding:9}} onClick={clicked} icon={<span data-copy-icon/>}/>
     <ConversationReloadActionPlugin {...frameworkProps} aria-label="application-reload" onClick={event=>event.preventDefault()}/>
     <ConversationFeedbackActionsPlugin {...frameworkProps} likeButtonProps={{"aria-label":"application-feedback",style:{padding:7}}}/>
-    <ConversationExportMarkdownActionPlugin {...frameworkProps} menuItemProps={{style:{padding:17},onSelect:event=>{exported();event.preventDefault();}}}/>
+    <ConversationExportMarkdownActionPlugin {...frameworkProps} presentation="button" aria-label="export-button" disabled icon={<span data-export-icon/>}/><ConversationExportMarkdownActionPlugin {...frameworkProps} style={{padding:17}} onSelect={event=>{exported();event.preventDefault();}}/>
   </>;}
   function Host(){const runtime=useLocalRuntime({async *run(){run();}},{adapters:{feedback:{submit:feedback}},initialMessages:[{id:"u",role:"user",content:[{type:"text",text:"question"}]},{id:"answer",role:"assistant",content:[{type:"text",text:"response text"}]}]});return <AgentUILocaleProvider locale="zh-CN" messages={{conversation:{exportMarkdown:"application-export"}}}><AssistantRuntimeProvider runtime={runtime}><ConversationThread components={{AssistantResponseFooter:Footer}} composer={null}/></AssistantRuntimeProvider></AgentUILocaleProvider>;}
   const element=document.createElement("div");document.body.append(element);const root=createRoot(element);
-  try{await act(async()=>root.render(<Host/>));const button=element.querySelector<HTMLButtonElement>('[aria-label="application-copy"]')!;expect(button.style.padding).toBe("9px");await act(async()=>button.click());expect(clicked).toHaveBeenCalledOnce();expect(copied).toHaveBeenCalledWith("response text");expect(button.getAttribute("data-copied")).toBe("true");
+  try{await act(async()=>root.render(<Host/>));const button=element.querySelector<HTMLButtonElement>('[aria-label="application-copy"]')!;expect(button.style.padding).toBe("9px");expect(button.querySelector("[data-copy-icon]")).not.toBeNull();expect(element.querySelector<HTMLButtonElement>('[aria-label="export-button"]')!.disabled).toBe(true);expect(element.querySelector('[aria-label="export-button"] [data-export-icon]')).not.toBeNull();await act(async()=>button.click());expect(clicked).toHaveBeenCalledOnce();expect(copied).toHaveBeenCalledWith("response text");expect(button.getAttribute("data-copied")).toBe("true");expect(button.querySelector("[data-copy-icon]")).toBeNull();expect(button.querySelector('[data-slot="copy-action-copied"]')).not.toBeNull();
     await act(async()=>element.querySelector<HTMLButtonElement>('[aria-label="application-reload"]')!.click());expect(run).not.toHaveBeenCalled();
     const positive=element.querySelector<HTMLButtonElement>('[aria-label="application-feedback"]')!;expect(positive.style.padding).toBe("7px");await act(async()=>positive.click());expect(feedback).toHaveBeenCalledWith(expect.objectContaining({type:"positive",message:expect.objectContaining({id:"answer"})}));
     await act(async()=>{const more=element.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')!;more.focus();more.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowDown",bubbles:true}));});
     const menu=document.querySelector<HTMLElement>('[role="menuitem"]')!;expect(menu.textContent).toContain("application-export");expect(menu.style.padding).toBe("17px");await act(async()=>menu.click());expect(exported).toHaveBeenCalledOnce();
   }finally{await act(async()=>root.unmount());element.remove();}
 });
+it.each([{ name: "npm", Reasoning: ConversationReasoningPlugin }, { name: "portable", Reasoning: SourceReasoning }])(
+  "$name reasoning derives streaming and retains automatic and manual disclosure behavior", async ({ Reasoning }) => {
+    let group: ConversationMessagePartGroup = { type: "group-reasoning", indices: [0], status: { type: "running" } };
+    const changed = vi.fn();
+    function Host() {
+      const runtime = useLocalRuntime({ async *run() {} });
+      return <AssistantRuntimeProvider runtime={runtime}><Reasoning {...frameworkProps} group={group}
+        onExpandedChange={changed} buttonProps={{ "aria-label": "reasoning-toggle" }}>Reasoning content</Reasoning></AssistantRuntimeProvider>;
+    }
+    const element = document.createElement("div"); document.body.append(element); const root = createRoot(element);
+    const trigger = () => element.querySelector<HTMLButtonElement>('[aria-label="reasoning-toggle"]')!;
+    try {
+      await act(async () => root.render(<Host />));
+      expect(trigger().getAttribute("aria-expanded")).toBe("true");
+      group = { ...group, status: { type: "complete" } };
+      await act(async () => root.render(<Host />));
+      expect(trigger().getAttribute("aria-expanded")).toBe("false");
+      expect(changed).not.toHaveBeenCalled();
+      await act(async () => trigger().click());
+      expect(trigger().getAttribute("aria-expanded")).toBe("true");
+      expect(changed).toHaveBeenLastCalledWith(true);
+      group = { ...group, status: { type: "running" } };
+      await act(async () => root.render(<Host />));
+      group = { ...group, status: { type: "complete" } };
+      await act(async () => root.render(<Host />));
+      expect(trigger().getAttribute("aria-expanded")).toBe("true");
+    } finally { await act(async () => root.unmount()); element.remove(); }
+  },
+);
 it("packaged reasoning and tool group preserve native disclosure props and composed children",async()=>{
   const group:ConversationMessagePartGroup={type:"group-reasoning",indices:[0],status:{type:"complete"}};
   function Host(){const runtime=useLocalRuntime({async *run(){}});return <AssistantRuntimeProvider runtime={runtime}>

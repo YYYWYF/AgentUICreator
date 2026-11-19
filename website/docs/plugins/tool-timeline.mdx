@@ -4,46 +4,88 @@ title: "工具执行时间线（tool-timeline）"
 
 # 工具执行时间线（tool-timeline）
 
-摘要显示工具调用的数量和运行状态；展开后按步骤展示动作及具体目标，例如读取的文件路径或执行的命令。它关注这条回复用了哪些工具，不表示构建或测试等后台作业的完成百分比。
+<figure className="plugin-preview">
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![调用时间线界面](/images/plugins/tool-timeline.jpg)
 
-![汇总工具执行过程（tool-timeline）界面示例](/images/plugins/tool-timeline.jpg)
+<figcaption>展开后的时间线列出 3 次读取操作和实际文件路径；标题继续汇总当前工具活动。</figcaption>
+</figure>
 
-## 启用与使用
+将当前助理消息中的工具活动汇总为可展开的执行时间线，自动更新调用摘要、执行目标和可用的文件变更统计。
 
-在 **Creator 输入框**输入 `/enable tool-timeline`，点击下图中的 **「汇总工具执行过程」**。
+## 自动汇总工具活动
 
-![Creator 启用菜单：点击「汇总工具执行过程」，插件 ID 为 tool-timeline](/images/plugins/enable/tool-timeline.jpg)
+存在可进入通用摘要的工具调用时，插件显示时间线入口。步骤来自当前消息中的真实工具调用，按 `toolCallId` 区分，不需要另发时间线事件。
 
-## 显示条件与数据来源
+带有专用展示、嵌套消息或其他独立展示信息的工具会参与不同的展示路径；如果消息中没有可作为通用时间线入口的调用，时间线不会单独出现。
 
-**数据来源：**消费当前回复的工具调用和运行状态，不要求时间线专用事件。使用[通用工具事件](./ag-ui-data#通用工具事件)；同一回复的多次调用使用不同 `toolCallId`。已注册的专用工具和子任务可自行展示状态，不一定重复进入通用摘要。单独发送一段工具名称文字不会建立时间线。
+## 运行中和结束后的摘要
 
-## 定制选项
+有工具仍在运行时，标题显示活动中的调用摘要；工具停止运行后，标题切换为结果摘要。只有所有调用都完成时才使用完成摘要，未完成的调用不会被统一描述为成功。
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 开始时展开还是收起 | 选择默认展开工具步骤，或只显示摘要。 |
-| 显示几个步骤 | 设置最多显示多少个工具步骤。 |
-| 摘要文字 | 分别修改执行结束和执行中显示的说明。 |
-| 整体外观 | 调整宽度、背景、间距和边框。 |
+已完成的文件编辑工具如果提供文件名和增加、删除行数，插件会按文件汇总这些数据。没有统计数据时只显示调用摘要。
 
-## 需求示例
+## 展开查看执行步骤
 
-```text
-请修改「汇总工具执行过程（tool-timeline）」：
-修改：工具步骤默认【展开】，最多显示【4】步，执行中摘要改为【正在处理】。
-保留：真实步骤和执行状态。
+时间线默认收起，点击标题展开步骤列表。插件按已知工具名显示读取、编辑、命令或搜索图标，并从调用参数中取得文件路径、命令或检索词；其他工具显示自己的名称。
+
+用户切换展开状态不会重新执行工具。错误、审批、中断和多模态结果等需要独立展示的内容，仍由对应的工具详情呈现，时间线不会替代这些操作入口。
+
+## 从工具调用取得时间线 {#显示条件与数据来源}
+
+时间线消费当前回复的工具调用和运行状态，没有单独的时间线事件。下面展示读取和编辑文件的调用，省略外层运行事件与 SSE 包装，完整格式见[通用工具事件](./ag-ui-data#通用工具事件)：
+
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"read-1","toolCallName":"read_file"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"read-1","delta":"{\"path\":\"src/main.tsx\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"read-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"read-result-1","toolCallId":"read-1","role":"tool","content":"{\"content\":\"export const title = 'Agent UI';\"}"}
+{"type":"TOOL_CALL_START","toolCallId":"edit-1","toolCallName":"edit_file"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"edit-1","delta":"{\"path\":\"src/main.tsx\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"edit-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"edit-result-1","toolCallId":"edit-1","role":"tool","content":"{\"file\":\"src/main.tsx\",\"added\":8,\"removed\":2}"}
 ```
 
-## 属性
+不同调用使用不同 `toolCallId`，参数和结果按这个 ID 关联。运行期间，时间线显示活动摘要；工具结果到达后更新完成情况。`TOOL_CALL_END` 只结束参数流，不能代替工具结果或把调用标成成功。
 
-打开项目中的 `plugins/tool-timeline/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+工具名用于选择读取、编辑、命令或搜索图标，参数中的 `path`、`command`、`query` 等字符串用于显示执行目标；其他工具仍以自己的名称展示。无需另传 `steps` 或前端图标名称。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+文件变更统计来自已完成编辑工具的结果：`file` 为非空文件名，`added`、`removed` 是可选的非负整数；同一文件的有效统计会累计。省略这些字段时不显示变更行数，不影响普通步骤展示。
 
-组件：`ConversationToolTimeline`；类型：`ConversationToolTimelineProps`。继承 `div` 原生属性，排除默认 `children` 定义。
+至少需要存在可进入通用摘要的调用，时间线才有展示入口。已注册的专用工具和子任务可以自行展示状态，不一定单独建立通用时间线；错误、审批、中断和媒体结果仍保留对应详情。单独发送一段工具名称文字或一份前端步骤数组，不会建立这些工具调用。
+
+<span id="定制选项"></span>
+
+## 初始展开并限制列表长度 {#默认展开并限制步骤数}
+
+<span id="example-1"></span>
+
+希望直接展示执行过程时，在已有时间线入口设置初始展开，并将可见步骤限制为前 5 项：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationToolTimelinePlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-timeline';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationToolTimelinePlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.tool-timeline') return null;
+  return <Implementation {...scope.value} {...props}
+    defaultExpanded
+    visibleSteps={5} />;
+}
+```
+
+限制的是已接收步骤的展示数量，摘要仍依据实际调用生成；不会分页请求、截断执行或改变任务状态。需要完整列表时省略 `visibleSteps`。
+
+## API
+
+以下选项用于定制当前消息中的展示。显示条件、活动状态和消息内容继续由原有会话环境提供。
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+继承 `div` 原生属性，排除默认 `children` 定义。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -51,21 +93,21 @@ title: "工具执行时间线（tool-timeline）"
 | `defaultExpanded?` | `boolean` | 默认 `false` |
 | `onExpandedChange?` | `(expanded: boolean) => void` | 展开变化通知 |
 | `visibleSteps?` | `number` | 默认全部步骤 |
-| `children?` | `ReactNode` | 当前类型保留，但实现忽略；工具详情由独立渲染器展示 |
 
 步骤来自当前助手消息的工具调用，不通过此属性表创建工具或新的运行状态。
 
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationToolTimeline } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationToolTimeline>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
-
 摘要与进行中文案统一在 `locales.toolTimeline` 修改；保留 `{count}`、`{files}` 等占位符。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+<span id="受控展开时间线"></span>
+
+<span id="调用时间线"></span>
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+<span id="启用与使用"></span>
+
+<span id="example-2"></span>

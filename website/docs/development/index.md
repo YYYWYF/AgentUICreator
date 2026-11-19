@@ -54,6 +54,7 @@ description: 自己编写 Agent 前端时，查找工程入口、接入指南、
 | 给 Agent 传业务参数 | [给 Agent 传递业务参数](./business-context) |
 | 让 Agent 调用页面已有方法 | [前端工具接入](./frontend-tools) |
 | 新增一个可独立启停的界面功能 | [创建自定义插件](./create-plugin)、[插件接口](./plugin-api) |
+| 从插件取数、共享业务选择或调用其他插件 | [插件联动与取数](./plugin-interaction) |
 
 ## 常用 API
 

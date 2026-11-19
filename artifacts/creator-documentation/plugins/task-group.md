@@ -1,24 +1,37 @@
 # SubAgent 任务与结果（task-group）
 
-多个 SubAgent 任务显示为可展开的卡片。用户可以分别查看任务名称、执行状态，以及返回的过程和结果；某个 SubAgent 失败时保留该项失败状态。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![嵌套任务界面](/images/plugins/task-group.png)
 
-![查看 SubAgent 任务与结果（task-group）界面示例](/images/plugins/task-group.png)
+展开后的任务区域保留子任务过程与结果，任务状态继续跟随原有运行更新。
 
-## 启用与使用
+将同一回答中的嵌套任务展示为任务卡片，汇总运行情况，并支持展开查看子任务过程与结果。
 
-工作台、悬浮助手和嵌入式助手的新建项目默认启用 `task-group`，组合到 `conversation-surface` 的 `taskGroup` 位置。后端返回符合下方条件的子任务事件时，才会显示任务卡片，无需手动启用。
+## 展示单个或多个任务
 
-模板更新不会自动修改已有项目。已有项目尚未添加或已停用本插件时，在 **Creator 输入框**输入 `/enable task-group`，点击下图中的 **「查看 SubAgent 任务与结果」**。
+同组只有一个任务时直接显示任务卡片；多个任务时增加总数和运行、等待、失败数量的摘要，并分批展示任务。任务较多时，用户可以通过“显示更多”继续查看。
 
-![Creator 启用菜单：点击「查看 SubAgent 任务与结果」，插件 ID 为 task-group](/images/plugins/enable/task-group.jpg)
+任务归属来自现有会话中的父工具调用与子任务标识，插件不会因为普通工具名称里包含“任务”就自行创建子任务。
 
-可使用 Mock 的 `nested-subagent-conversation`、`nested-subagent-task-group`、`nested-subagent-recursive` 和 `nested-subagent-error` 场景，分别检查单个任务、任务分组、递归委派与失败展示，见[内置场景](/mock/builtin-scenarios.md)。
+## 随任务生命周期更新
 
-## 显示条件与数据来源
+卡片根据当前工具状态显示工作中、等待、完成、失败或取消，并显示可用的任务说明和耗时。子任务内容继续更新时，已展开的记录也跟随显示新内容。
 
-**Agent 服务接入：**&#x5148;创建父工具调用，再通过 `parentToolCallId` 关联 SubAgent。子消息使用同一个 `subagentRunId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+子消息中的错误、父任务错误和已有结果会保留在卡片中，避免一条结束摘要掩盖子任务的失败。
+
+## 展开查看子任务过程
+
+有子消息时，点击标题展开对话记录；没有子消息时，标题不提供无内容的展开操作。嵌套任务继续使用任务卡片呈现，普通工具使用现有工具展示。
+
+展开状态按当前对话中的任务路径区分，父消息更新时不会反复重置用户的阅读选择。这是当前页面会话中的状态，不表示已跨刷新保存。
+
+## 区分当前操作与只读记录
+
+当前任务卡片需要用户处理、且现有调用提供可用操作时，卡片保留原审批或继续入口。展开的子任务记录以只读方式查看，不会在历史记录里重新提交审批或继续已结束的运行。
+
+## 接入嵌套任务消息 \{#显示条件与数据来源}
+
+先创建父工具调用，再通过 `parentToolCallId` 关联 SubAgent。子消息使用同一个 `subagentRunId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"delegate-1","toolCallName":"delegate_specialist"}
@@ -36,28 +49,53 @@
 
 多个同级任务分别使用各自的父工具 ID 与 SubAgent 运行 ID。失败时使用 `SUBAGENT_ERROR`（含 `subagentRunId`、`message`），保留已经产生的子消息；父工具结果和终态仍需由后端如实提供。这些事件通过当前会话的 AG-UI 连接发送。
 
-## 定制选项
 
-| 可以改什么 | 效果                    |
-| ----- | --------------------- |
-| 任务组外观 | 通过项目样式调整任务组的宽度、间距和背景。 |
-| 整体排版  | 自定义整组任务卡片的排列和展示。      |
+## 调整任务组所在区域 \{#调整任务组样式}
 
-## 需求示例
 
-```text
-请修改「查看 SubAgent 任务与结果（task-group）」：
-修改：任务卡片改为【纵向排列】，卡片间距设为【12px】，背景改为【浅灰色】。
-保留：真实任务名称、状态、结果和原有交互。
+在已有任务组入口增加项目样式类，保留任务分组和运行环境的绑定：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function TaskGroupPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.task-group') return null;
+  return <Implementation {...scope.value} {...props}
+    className="project-task-group" />;
+}
 ```
 
-## 属性
+状态摘要、子任务记录、结果和操作入口继续由插件提供。
 
-打开项目中的 `plugins/task-group/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 为默认任务组增加容器 \{#包装已有任务组组件}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`CanonicalTaskGroupPlugin`；类型：`TaskGroupPluginProps`。
+需要调整整组任务所在的布局时，在 `renderGroup` 中复用默认任务组：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import { ConversationTaskGroup } from '@za38.03/agent-ui-plugins';
+
+export function TaskGroupPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.task-group') return null;
+  return <Implementation {...scope.value} {...props}
+    renderGroup={group => <section className="project-task-area"><ConversationTaskGroup {...group} /></section>} />;
+}
+```
+
+完全替换任务内容时，子消息、错误、结果和可操作状态也需要由新内容表达。只加容器无需重新接入任务展开状态。
+
+## API
+
+以下选项用于定制已有分组展示。当前分组与内部消息由会话提供，正常使用无需重新组织这些数据。
+
+
 
 | 属性             | 类型                                                                   | 省略时 / 用途        |
 | -------------- | -------------------------------------------------------------------- | --------------- |
@@ -67,15 +105,46 @@
 
 仅公开上述外观参数，没有根级 `style` 或任意 DOM 属性。
 
-### 类型查询
+### useTaskDisclosure 返回值
 
-可在编辑器中通过公开组件取得完整属性类型：
+| 成员             | 类型                                       | 用途                                                   |
+| -------------- | ---------------------------------------- | ---------------------------------------------------- |
+| `scope`        | `string[]`                               | 当前嵌套任务路径，传给后代的 `TaskDisclosureScopeContext.Provider` |
+| `open`         | `boolean \| undefined`                   | 有现有 Provider 时为受控展开状态；缺失时为 `undefined`               |
+| `onOpenChange` | `((open: boolean) => void) \| undefined` | 保存该路径的展开状态；缺少 Provider 时不提供                          |
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalTaskGroupPlugin } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof CanonicalTaskGroupPlugin>;
+
+
+
+
+### 自定义任务的展开状态 \{#hook}
+
+默认任务卡片已经管理展开状态。完全自定义任务记录时，可复用下面的绑定。
+
+自定义嵌套任务卡片需要在重新渲染后保持展开状态时，从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useTaskDisclosure(toolCallId)`。传入当前任务的真实工具调用 ID，使用返回的 `open` / `onOpenChange` 控制展开，并把 `scope` 传给后代任务。
+
+以下容器放在现有任务 renderer 内，`title` 来自任务数据或项目文案：
+
+```tsx
+import type { ReactNode } from 'react';
+import { TaskDisclosureScopeContext, useTaskDisclosure }
+  from '@za38.03/agent-ui-runtime/plugin-api';
+
+export function TaskDetails({ toolCallId, title, children }: {
+  toolCallId: string;
+  title: string;
+  children: ReactNode;
+}) {
+  const disclosure = useTaskDisclosure(toolCallId);
+  return <TaskDisclosureScopeContext.Provider value={disclosure.scope}>
+    <details open={disclosure.open}
+      onToggle={event => disclosure.onOpenChange?.(event.currentTarget.open)}>
+      <summary>{title}</summary>
+      {children}
+    </details>
+  </TaskDisclosureScopeContext.Provider>;
+}
 ```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+展开值按任务嵌套路径区分；切换 Thread 后不沿用上一会话的状态。只调整默认任务卡片时，使用前面的 `renderGroup`，不需要自行接入该 Hook。

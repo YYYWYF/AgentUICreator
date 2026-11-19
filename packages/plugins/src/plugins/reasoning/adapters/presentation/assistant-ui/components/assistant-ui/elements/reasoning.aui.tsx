@@ -16,23 +16,18 @@ import {
   ReasoningText,
   ReasoningFade,
   reasoningVariants,
-  type ReasoningRootProps,
+  type ReasoningRootProps as BaseReasoningRootProps,
 } from './reasoning';
 
-export type { ReasoningRootProps } from './reasoning';
+export type ReasoningRootProps = Omit<BaseReasoningRootProps, 'onAnimationStart'>;
 
 /** `ReasoningRoot` with the thread viewport scroll locked during disclosure animations. */
 const ReasoningRoot = forwardRef<HTMLDivElement, Omit<ReasoningRootProps, 'ref'>>(function ReasoningRoot(
-  { onAnimationStart, streaming, ...props },
+  { streaming, ...props },
   ref,
 ) {
   const collapsibleRef = useRef<HTMLDivElement | null>(null);
   const lockScroll = useScrollLock(collapsibleRef, ANIMATION_DURATION);
-
-  const handleAnimationStart = useCallback(() => {
-    lockScroll();
-    onAnimationStart?.();
-  }, [lockScroll, onAnimationStart]);
 
   const composedRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -56,7 +51,7 @@ const ReasoningRoot = forwardRef<HTMLDivElement, Omit<ReasoningRootProps, 'ref'>
   return (
     <ReasoningRootBase
       ref={composedRef}
-      onAnimationStart={handleAnimationStart}
+      onAnimationStart={lockScroll}
       {...props}
       {...(streaming === undefined ? {} : { streaming })}
       data-agent-state={streaming ? 'running' : 'idle'}

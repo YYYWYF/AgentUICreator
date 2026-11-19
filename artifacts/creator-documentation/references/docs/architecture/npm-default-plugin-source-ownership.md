@@ -44,6 +44,10 @@ Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runt
 
 输入触发器的通用服务标识、类型和 `createConversationCommandRegistry()` 由 Plugins 的 `/composer-triggers` 公开入口提供，新模板不再生成 `services/composer-triggers.ts`。注册表实例仍在项目插件的 setup 中按服务作用域创建；具体命令、执行回调和提及搜索请求由项目应用层配置。已有项目的同名文件与定制内容保留，不随 npm 升级自动迁移或删除。
 
+@ 与 / 的项目来源直接定义候选项和 JSON 业务数据，不提供触发器级 `requestAdapter`。触发器保留正文引用，通过 Runtime `/plugin-api` 的 `useComposer().setData` 记录原始选中项快照；命令快照排除 `execute`。选中项数据由 Composer 的可选 `requestAdapter({ request, pluginData, selections })` 统一组装到 forwardedProps，正文引用不因结构化参数而自动移除；未配置 Composer 适配器时沿用原有正文引用请求，不自动添加 @、/ 的外带字段。第三方插件复用同一个端口，不引用 Composer 实现。端口按 Thread、插件实例与命名子作用域隔离；引用绑定、原始选择与默认发送开关属于数据生命周期。Composer 返回最终请求后不再合并 forwardedProps。Runtime 提供通用存取、原生 runConfig 提交快照和私有消息元数据绑定，不拥有官方插件业务格式，也不创建第二套消息或队列。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../../development/composer-sources.md)。
+
+技能、引用和建议问题复用同一 `requestAdapter → useComposer().setData → Composer` 链。技能服务只持有选择及本次数据的释放函数，不再直接写原生业务配置。默认技能项使用 ctx，业务参数统一合并到 forwardedProps.ctx；原生配置中携带的业务字段也在最终适配器执行前归入 ctx，不默认输出运行配置字段。通用数据选项可提供默认 forwardedProps、正文前缀和原生引用绑定，保留已有技能字段与引用格式；最终适配器仍拥有完整请求。原生建议动作负责点击、填入、直接发送和排队，数据采集在动作之前执行，按本次写入的释放函数清理，不清除之后的草稿。回复后的建议行使用同一公共组件，可通过 Thread components.FollowupSuggestions 替换；这是应用层组件组合，不增加 AppUIModel Slot 或持久化字段。
+
 服务相关 Hook 统一放在 `services/hooks/`，其下不再按会话、认证拆分子目录，作为项目拥有的 React 访问层。服务契约和实现不反向导入 Hook；插件内部交互 Hook 仍属于对应插件。新模板不创建根级 `hooks/` 目录，已有工程的旧路径与定制文件不自动搬迁或删除。
 
 根样式与可选能力分开交付。新模板使用 `styles-base.css`，Plugin 子入口加载自己的预编译样式；完整 `styles.css` 服务直接 facade 消费者。Lexical 经 `/lexical` 及可选 peers 按需加载，目标工程自己拥有依赖。
@@ -64,7 +68,7 @@ Creator/Operator 后续所需的模板来源和工作区策略，从已有 sourc
 
 ## 3. 项目应用层
 
-每个官方插件在用户工程中保留一个很薄的、用户拥有的应用层。默认直接引用 npm 包的公开组件，不复制官方实现；需要定制时，Creator 在这层 JSX 中传 props、组合 children/子组件、替换 renderer 或使用公开扩展 API。只有这些方式无法满足需求且确实需要修改实现时，才询问用户是否接管当前安装版本的源码。应用层的创建和普通修改不是源码接管，不需要接管确认。
+每个官方插件在用户工程中保留一个很薄的、用户拥有的应用层。默认直接引用 npm 包的公开组件，不复制官方实现；需要定制时，Creator 在这层 JSX 中传明确的 props、组合公开子组件、替换 renderer 或使用公开扩展 API。普通插件不提供通用 children 配置，仅 Runtime 分组和原生编辑器扩展保留必要的内容组合契约。只有这些方式无法满足需求且确实需要修改实现时，才询问用户是否接管当前安装版本的源码。应用层的创建和普通修改不是源码接管，不需要接管确认。
 
 AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 React props、renderer 或上游基础组件配置。现有实例字段保持兼容，本决策不直接删除现有 JSON 字段或修改 Schema。
 
@@ -92,7 +96,7 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 
 ## 5. 应用层的组件配置与 Slot 组合
 
-项目 Registry 始终解析本地 definition/application。默认薄层引用 npm 公开组件，以 JSX 传 props、children、renderers；实现接管后只切换对应 import，现有组合保持。薄层不是实现复制，不代表用户已同意接管。
+项目 Registry 始终解析本地 definition/application。默认薄层引用 npm 公开组件，以 JSX 传 props、renderers 并使用公开组合 API；实现接管后只切换对应 import，现有组合保持。薄层不是实现复制，不代表用户已同意接管。
 
 应用层可以在本地 manifest 中新增语义子 Slot，并在自己的组件中显式渲染、在本地 definition 中暴露同一合同。这是应用层组合扩展，不需要接管 npm 实现。工具以准确安装包的身份和既有 Slot 合同为基础，仅合入本地新增 Slot；扩展时不得删除或覆盖包已有 Slot。npm 组件的透传仅证明包原有 Slot，新 Slot 必须由应用层实际调用 `renderSlot` / `renderScopedSlot`。这些应用文件不进入实现 BASE；升级造成既有合同不兼容时单独迁移应用层。
 
@@ -100,7 +104,7 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 
 - 作用域 renderer 从既有 Host scope 取得 group、tool、children 等，通过 props 传给 npm 或本地实现，不复制 Context。
 - Headless 消息插件留在 `applicationPlugins`，保留 `toolkit` / `dataMessageUIs` 的 kind/name 和本地 renderer，`Component` 返回 null。不能生成只有 Component 的空定义。
-- `chart-message` 保留 `chart` 注册及 CSS/类型声明闭包；来源、检索与搜索保留实际数据投影、计数/cycle/DOM props 和统一 `searchTools` locale。
+- `chart-message` 保留 `chart` 注册及 CSS/类型声明闭包；来源、检索与搜索保留实际数据投影、展示数量/DOM props 和统一 `searchTools` locale，不暴露 key 重置与重复数据覆盖。
 - `job-progress-message` 从已有 Runtime 读取 state/abortRun，以 props 桥接；不复制状态 Context。
 - `tool-fallback` 与 `tool-result` 保留审批、中断、错误、重试和焦点恢复。`transient-assistant-messages` 只托管展示，临时消息 store、订阅和锚点仍共享 npm 实例，不写历史或 Agent 请求。
 - Host 绑定应用来自安装 catalog 中通过完整性检查的模板。provider `bindSetup` 使用已有 Host service context 并保留 cleanup；共享 auth 声明仅在缺失时初始化，不纳入实现 BASE。业务连接、鉴权配置与 identity 内容归应用层。
@@ -119,7 +123,7 @@ Creator 先用 AppUIModel 和应用层公开 props/组合。确需修改内部�
 ├── application.json       # 应用层与实现来源绑定
 ├── definition.ts          # 插件注册、身份声明、服务注册与消息渲染器配置
 ├── manifest.json          # 项目应用层声明
-├── index.tsx              # 项目 props / children / renderers
+├── index.tsx              # 项目 props / renderers / 公开组件组合
 └── source/                # 同意后提取的实现；独立同步范围
     ├── adapters/
     └── ...                # 完整配方声明的样式、类型、manifest、来源等
@@ -178,7 +182,7 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 
 `conversation-suggestions.items` 接收动态业务问题及可选标题、说明，仍属于数据与组件组合扩展；省略时沿用会话建议，空数组不显示。通用 Runtime 默认业务建议为空。新模板将默认欢迎语与三条示例文案集中在 `application/locales.ts` 的 `conversation` / `starterSuggestions`，由 `application/project-config.tsx` 绑定。`getConversationStarterSuggestions(locale, resolvedMessages)` 只组织数量与顺序，Runtime 传入合并后的 locale 文案。Agent 不再提供重复的 welcome/suggestions 属性；Host 通过 locales 按字段覆盖。AppUIModel 不保存文案 props。
 
-公开 API 按[逐插件 props 约定](plugin-public-props.md)统一：常用整体样式直接使用 `className`、`style`；检索卡片直接提供 `title`、展开状态与 `renderContent`，问答直接提供 `submitText`、统一文案域覆盖与整体样式。不为所有内部元素增加独立参数。数据解析、答复权限、历史只读与续答生命周期保持在原组件和 Runtime 中。
+公开 API 按[逐插件 props 约定](plugin-public-props.md)统一：常用整体样式直接使用 `className`、`style`；检索卡片直接提供 `title`、展开状态与 `renderContent`，问答通过统一文案域定制文案并提供整体样式。不为所有内部元素增加独立参数。数据解析、答复权限、历史只读与续答生命周期保持在原组件和 Runtime 中。
 
 弹窗、表单等 `demo/*` 资源是一次性导入的业务起点。文件按资源清单进入项目 `plugins/`、`services/` 等目录，导入后归项目维护，不属于官方插件实现接管，也没有实现 BASE 或官方源码同步。`source-lock.json.examples` 仅记录已导入文件的逻辑路径；读取旧 `items` 中 Demo 哈希时转为路径记录，保留项目文件。之后的 npm 升级或示例模板变化不更新业务代码、增删其文件或要求它跟随新版示例依赖。其他受管源码仍使用原有哈希与版本基线。
 

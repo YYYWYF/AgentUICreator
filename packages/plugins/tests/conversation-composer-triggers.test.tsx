@@ -4,9 +4,9 @@ import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding, projectLangChainHistory, type ConversationLoadedThread } from "@za38.03/agent-ui-runtime";
 import { HttpAgent } from "@ag-ui/client";
-import { AgentUILocaleProvider, AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand, type ConversationMentionItem, type ConversationTriggerSelect, type ConversationTriggerRequestAdapter, type ComposerRequestAdapter, type ConversationCommandRequestItem } from "../src/index.js";
+import { AgentUILocaleProvider, AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand, type ConversationMentionItem, type ConversationTriggerSelect, type ComposerRequestAdapter } from "../src/index.js";
 import {ConversationMentionTrigger as NpmMention} from "../dist/mention-trigger/index.js";
 import {ConversationSlashCommandTrigger as NpmCommand} from "../dist/slash-command-trigger/index.js";
 import {ConversationMentionTrigger as SourceMention} from "../dist/sources/takeover/mention-trigger/index";
@@ -34,11 +34,10 @@ describe.each([{name:"native",Mention:NativeMention,Command:NativeCommand},{name
 async function mount(source?: ConversationMentionSource, commands: readonly ConversationSlashCommand[] = [], disabled = false, custom: {
   mentionSelect?: ConversationTriggerSelect<ConversationMentionItem>;
   commandSelect?: ConversationTriggerSelect<ConversationSlashCommand>;
-  mentionData?: ConversationTriggerRequestAdapter<ConversationMentionItem>;
-  commandData?: ConversationTriggerRequestAdapter<ConversationCommandRequestItem>;
   requestAdapter?: ComposerRequestAdapter;
   lexical?: boolean;
   sharedScope?: boolean;
+  history?: ConversationLoadedThread;
 } = {}) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
@@ -55,13 +54,15 @@ async function mount(source?: ConversationMentionSource, commands: readonly Conv
     const input = JSON.parse(String(init.body)) as RunAgentInput; requests.push(input);
     return new Response([{ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId }, { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   } });
-  const binding = { ...createEphemeralConversationThreadBinding(), getThreadIsDisabled: () => disabled };
+  const binding = { ...createEphemeralConversationThreadBinding(), getThreadIsDisabled: () => disabled,
+    ...(custom.history ? { loadThread: async () => custom.history ?? { messages: [] } } : {}),
+  };
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const render = () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
     <AgentUIRoot theme="dark"><Capture /><AgentUILocaleProvider locale="en-US" messages={{conversationTriggers:labels}}><PluginInstanceContext.Provider value={custom.sharedScope ? sharedInstance : null}><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer requestAdapter={custom.requestAdapter} autoFocus={false} input={custom.lexical ? <ConversationComposerLexicalInput><CaptureEditor /></ConversationComposerLexicalInput> : undefined} triggers={<>
-      {mention && <ConversationComposerMentionTrigger source={source} debounceMs={1} onSelect={custom.mentionSelect} requestAdapter={custom.mentionData} />}
-      {slash && <ConversationComposerCommandTrigger source={commandSource} onSelect={custom.commandSelect} requestAdapter={custom.commandData} />}
+      {mention && <ConversationComposerMentionTrigger source={source} debounceMs={1} onSelect={custom.mentionSelect} />}
+      {slash && <ConversationComposerCommandTrigger source={commandSource} onSelect={custom.commandSelect} />}
     </>} />} /></PluginInstanceContext.Provider></AgentUILocaleProvider></AgentUIRoot>
   </ConversationRuntimeProvider>);
   await act(async () => { render(); });
@@ -99,23 +100,21 @@ it('lets project selection replace rich-editor insertion instead of being bypass
   expect(f.runtime.thread.composer.getState().text.trim()).toBe(':user[Existing]{name=existing} before CUSTOM(one)');
   expect(select).toHaveBeenCalledTimes(2);
 });
-it('formats selected JSON in the Plugin and gives Composer full control over external fields and text', async () => {
-  const item = { id: 'employee}custom', type: 'business.person', label: 'Custom person', data: { department: 'product' } };
-  const selectionAdapter = vi.fn<ConversationTriggerRequestAdapter<ConversationMentionItem>>(item => ({ employeeId: item.id }));
+it('gives Composer the original selection and full control over external fields and text', async () => {
+  const item = { id: 'employee-custom', type: 'user', label: 'Custom person', data: { department: 'product' } };
   const requestAdapter = vi.fn<ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
     ...request,
     messages: request.messages.map(message => message.role === 'user' ? { ...message, content: 'Custom question' } : message),
     forwardedProps: { business: pluginData, raw: selections },
   }));
-  const f = await mount({ search: async () => [item] }, [], false, { mentionData: selectionAdapter, requestAdapter });
+  const f = await mount({ search: async () => [item] }, [], false, { requestAdapter });
   await f.type('before @Custom after', 14); await f.choose('Custom person');
-  expect(selectionAdapter).toHaveBeenCalledWith(item);
   expect(requestAdapter).not.toHaveBeenCalled(); expect(f.requests).toHaveLength(0);
   await act(async () => f.runtime.thread.composer.send());
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
-  expect(requestAdapter.mock.calls[0]![0].request.messages[0]!.content).toBe('before  after');
+  expect(requestAdapter.mock.calls[0]![0].request.messages[0]!.content).toBe('before :user[Custom person]{name=employee-custom} after');
   expect(f.requests[0]!.messages[0]!.content).toBe('Custom question');
-  expect(f.requests[0]!.forwardedProps).toEqual({ business: { 'standalone:mention': [{ employeeId: item.id }] }, raw: { 'standalone:mention': [item] } });
+  expect(f.requests[0]!.forwardedProps).toEqual({ business: { 'standalone:mention': [item] }, raw: { 'standalone:mention': [item] } });
   expect(JSON.stringify(f.requests[0])).not.toContain('agent-ui-selection-');
   expect(JSON.stringify(f.requests[0])).not.toContain('agentUIComposerData');
   expect(f.host.textContent).toContain('@Custom person');
@@ -158,15 +157,13 @@ it('keeps the mention draft on callback failure and allows removal without inser
   expect(f.requests).toHaveLength(0);
 });
 it('collects @ and / data independently and assembles it once in Composer on keyboard submission', async () => {
-  const mentionData: ConversationTriggerRequestAdapter<ConversationMentionItem> = item => ({ employeeId: item.id });
-  const commandData = vi.fn<ConversationTriggerRequestAdapter<ConversationCommandRequestItem>>(item => ({ command: item.id }));
+  const item = { id: 'one', type: 'user', label: 'Person', data: { employeeId: 'one' } };
+  const command: ConversationSlashCommand = { id: 'summarize', label: 'Summary', mode: 'directive', data: { strategy: 'short' } };
   const requestAdapter = vi.fn<ComposerRequestAdapter>(({ request, pluginData }) => ({
     ...request, context: [{ description: 'project', value: 'custom-context' }],
     forwardedProps: { ctx: { employees: pluginData['composer-main:mention'], action: pluginData['composer-main:command'] } },
   }));
-  const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [
-    { id: 'summarize', label: 'Summary', mode: 'directive', data: { strategy: 'short' } },
-  ], false, { mentionData, commandData, requestAdapter, sharedScope: true });
+  const f = await mount({ search: async () => [item] }, [command], false, { requestAdapter, sharedScope: true });
   await f.type('@Person'); await f.choose('Person');
   await f.type(`${f.runtime.thread.composer.getState().text}/sum`); await f.choose('Summary');
   await f.type(`${f.runtime.thread.composer.getState().text}Question`);
@@ -174,15 +171,24 @@ it('collects @ and / data independently and assembles it once in Composer on key
   await act(async () => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })));
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(requestAdapter).toHaveBeenCalledOnce();
-  expect(f.requests[0]!.messages[0]!.content).toBe('Question');
+  expect(f.requests[0]!.messages[0]!.content).toBe(':user[Person]{name=one} :command[Summary]{name=summarize} Question');
   expect(f.requests[0]!.context).toEqual([{ description: 'project', value: 'custom-context' }]);
-  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { employees: [{ employeeId: 'one' }], action: [{ command: 'summarize' }] } });
-  expect(commandData).toHaveBeenCalledWith({ id: 'summarize', label: 'Summary', mode: 'directive', data: { strategy: 'short' } });
-  expect(f.host.textContent).toContain('@Person'); expect(f.host.textContent).toContain('/Summary');
+  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { employees: [item], action: [command] } });
+  expect(requestAdapter.mock.calls[0]![0].selections).toEqual({ 'composer-main:mention': [item], 'composer-main:command': [command] });
+  expect(f.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="one"]')?.textContent).toBe('@Person');
+  expect(f.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="summarize"]')?.textContent).toBe('/Summary');
+  const savedContent = f.requests[0]!.messages[0]!.content;
+  await act(async () => root?.unmount()); root = undefined; document.body.replaceChildren();
+  const restored = await mount(undefined, [], false, { history: {
+    messages: projectLangChainHistory([{ id: 'saved-user', type: 'human', content: savedContent }]),
+  } });
+  expect(restored.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="one"]')?.textContent).toBe('@Person');
+  expect(restored.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="summarize"]')?.textContent).toBe('/Summary');
+  expect(restored.requests).toHaveLength(0);
 });
 it('does not carry a deleted selection or the previous turn into the next request', async () => {
   const requestAdapter = vi.fn<ComposerRequestAdapter>(({ request }) => request);
-  const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [], false, { mentionData: item => item.id, requestAdapter });
+  const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [], false, { requestAdapter });
   await f.type('@Person'); await f.choose('Person');
   await f.type('Deleted the reference');
   await act(async () => f.runtime.thread.composer.send());
@@ -198,20 +204,19 @@ it('retains repeated structured selections in rich input and lets Composer send 
     ...request, context: [{ description: 'employees', value: JSON.stringify(pluginData['standalone:mention']) }], forwardedProps: {},
   }));
   const item = { id: 'one', type: 'user', label: 'Person', data: { role: 'owner' } };
-  const f = await mount({ search: async () => [item] }, [], false, { lexical: true, mentionData: item => ({ id: item.id }), requestAdapter });
+  const f = await mount({ search: async () => [item] }, [], false, { lexical: true, requestAdapter });
   await f.type('@Person'); await f.choose('Person');
   await f.type(`${f.runtime.thread.composer.getState().text}before @Person`); await f.choose('Person');
   await act(async () => f.runtime.thread.composer.send());
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(requestAdapter.mock.calls[0]![0].selections['standalone:mention']).toEqual([item, item]);
-  expect(f.requests[0]!.messages[0]!.content).toBe('before');
-  expect(JSON.parse(f.requests[0]!.context[0]!.value)).toEqual([{ id: 'one' }, { id: 'one' }]);
+  expect(String(f.requests[0]!.messages[0]!.content).trim()).toBe(':user[Person]{name=one} before :user[Person]{name=one}');
+  expect(JSON.parse(f.requests[0]!.context[0]!.value)).toEqual([item, item]);
 });
 it('allows Composer to clear every default field', async () => {
   const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [
     { id: 'summary', label: 'Summary', mode: 'directive' },
   ], false, {
-    mentionData: item => ({ ctx: item.id }), commandData: item => ({ ctx: item.id }),
     requestAdapter: ({ request }) => ({ ...request, forwardedProps: {} }),
   });
   await f.type('@Person'); await f.choose('Person');
@@ -220,15 +225,17 @@ it('allows Composer to clear every default field', async () => {
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(f.requests[0]!.forwardedProps).toEqual({});
 });
-it('reports Plugin requestAdapter failures locally and keeps the draft without fallback insertion', async () => {
-  const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [], false,
-    { mentionData: () => { throw new Error('Invalid project data'); } });
-  await f.type('@Person'); await f.choose('Person');
-  expect(f.runtime.thread.composer.getState().text).toBe('@Person');
-  expect(f.host.textContent).toContain('Invalid item');
+it.each(['mention', 'slash'] as const)('rejects non-JSON %s selection data locally and keeps the draft', async kind => {
+  const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person', data: { callback() {} } }] }, [
+    { id: 'summary', label: 'Summary', mode: 'directive', data: { callback() {} } },
+  ]);
+  const draft = kind === 'mention' ? '@Person' : '/sum';
+  await f.type(draft); await f.choose(kind === 'mention' ? 'Person' : 'Summary');
+  expect(f.runtime.thread.composer.getState().text).toBe(draft);
+  expect(f.host.textContent).toContain(kind === 'mention' ? 'Invalid item' : 'Command failed');
   expect(f.requests).toHaveLength(0);
 });
-it('exposes raw default selections to Composer without requiring a Plugin requestAdapter', async () => {
+it('exposes raw selections to Composer while preserving the original reference in the request', async () => {
   const item = { id: 'one', type: 'user', label: 'Person', data: { role: 'owner' } };
   const f = await mount({ search: async () => [item] }, [], false, {
     requestAdapter: ({ request, selections }) => ({ ...request, forwardedProps: { raw: selections } }),
@@ -242,18 +249,19 @@ it('exposes raw default selections to Composer without requiring a Plugin reques
 });
 it('supports custom text and JSON data together, and removes a disabled Plugin contribution', async () => {
   const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [], false, {
-    mentionSelect: item => JSON.stringify({ employees: [item.id] }), mentionData: item => ({ employeeId: item.id }),
+    mentionSelect: item => JSON.stringify({ employees: [item.id] }),
+    requestAdapter: ({ request, selections }) => ({ ...request, forwardedProps: { raw: selections } }),
   });
   await f.type('@Person'); await f.choose('Person');
   await act(async () => f.runtime.thread.composer.send());
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(String(f.requests[0]!.messages[0]!.content).trim()).toBe('{"employees":["one"]}');
-  expect(f.requests[0]!.forwardedProps).toEqual({ 'standalone:mention': [{ employeeId: 'one' }] });
+  expect(f.requests[0]!.forwardedProps).toEqual({ raw: { 'standalone:mention': [{ id: 'one', type: 'user', label: 'Person' }] } });
   await f.type('@Person'); await f.choose('Person');
   await f.remove('mention');
   await act(async () => f.runtime.thread.composer.send());
   await until(() => f.requests.length === 2 && !f.runtime.thread.getState().isRunning);
-  expect(f.requests[1]!.forwardedProps).toEqual({});
+  expect(f.requests[1]!.forwardedProps).toEqual({ raw: {} });
 });
 it("updates the open command menu when the packaged registry registers and removes commands", async () => {
   const execute = vi.fn();

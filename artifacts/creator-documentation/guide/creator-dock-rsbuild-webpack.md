@@ -98,7 +98,11 @@ module.exports = async function () {
 };
 ```
 
-若已有 `module.exports = function (...) { return { ... }; }`，在原函数上添加 `async`，将 `await import()` 放在该函数内、`return` 前，保留原参数和返回配置。Creator 使用 `await import()` 加载，其他依赖可沿用 `require()`。标准 CRACO 支持异步配置，自定义脚本封装也需要等待配置函数返回的 Promise。
+已有 `module.exports = function (...) { return { ... }; }` 时：
+
+1. 在原函数上添加 `async`，保留原参数和返回配置。
+2. 将 Creator 的 `await import()` 放在函数内、`return` 前；其他依赖可沿用 `require()`。
+3. 标准 CRACO 支持异步配置；自定义脚本封装也需要等待配置函数返回的 Promise。
 
 CRACO / CRA 会单独创建开发服务器配置，因此需要同时接入 `webpack.plugins.add` 和 `devServer`。前者注入页面入口，后者配置携带工程身份的开发代理。若已有 `devServer` 配置函数，先应用原有修改，再将结果传给 `createCreatorDockWebpackDevServerOptions`。
 

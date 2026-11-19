@@ -1,59 +1,89 @@
 # 思考状态提示（thinking-indicator）
 
-对话中会出现带动画的小提示；已有思考详情、工具活动或正文可展示时，会按配置让位给实际内容。它提示正在等待，**不展示具体思考文字或任务完成百分比**。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![思考状态界面](/images/plugins/thinking-indicator.png)
 
-![显示正在思考提示（thinking-indicator）界面示例](/images/plugins/thinking-indicator.png)
+尚未输出正式回答时显示轻量思考提示；正文开始或其他活动接替后，这条提示会让位。
 
-## 启用与使用
+在 Agent 尚未开始正式回答时提供轻量状态提示，并根据当前消息中的实际活动决定何时显示、让位或消失。
 
-在 **Creator 输入框**输入 `/enable thinking-indicator`，点击下图中的 **「显示正在思考提示」**。
+## 等待回答时显示提示
 
-![Creator 启用菜单：点击「显示正在思考提示」，插件 ID 为 thinking-indicator](/images/plugins/enable/thinking-indicator.jpg)
+当前助理消息处于运行中、尚无正式回答正文，也没有更具体的活动界面需要展示时，插件显示思考提示。普通工具正在运行且没有其他活动展示接替时，提示可以转为工作中状态。
 
-## 定制选项
+提示文字使用统一的 `thinkingIndicator` 文案。状态随消息变化更新，无需业务代码自行维护一个加载开关。
 
-| 可以改什么 | 效果                      |
-| ----- | ----------------------- |
-| 等待提示  | 把“正在思考”等提示换成自己的文案。      |
-| 耗时文字  | 显示业务提供的耗时文字，例如“已用 5 秒”。 |
-| 提示外观  | 调整颜色、字号和间距。             |
+## 正式回答开始后自动消失
 
-## 需求示例
+消息一旦出现非空的正式回答文字，提示就让出位置；消息不再运行时也不显示。修改提示文字不会强制让已结束的消息继续显示加载状态。
 
-```text
-请修改「显示正在思考提示（thinking-indicator）」：
-修改：等待提示改为【正在为你整理答案】，字号设为【13px】，颜色改为【灰色】。
-保留：提示随真实回复状态出现和消失的行为。
+## 让位给更具体的活动
+
+当前消息已由思考内容展示接替时，插件避免重复显示思考提示；已显示且仍在运行的工具时间线也会接替轻量提示。专用工具或子任务已经展示自己的运行活动时，同样让位。
+
+遇到等待用户处理的工具操作，提示也会隐藏，让用户关注原有操作入口。思考区和时间线是否展示由所在会话传入，正常接入无需在业务页面手动同步这些标志。
+
+## 耗时文字按需提供
+
+插件不自动计时。只有调用方提供 `elapsed` 时才展示相应文字；这不会改变提示出现和消失的判断。
+
+## 接入运行与消息数据 \{#显示条件与数据来源}
+
+思考提示读取当前助理消息的运行状态和内容，没有单独的后端提示事件。下面以普通文字回答为例；实际 HTTP 响应使用[共用 SSE 格式](/plugins/ag-ui-data.md#共用的-sse-格式)，`threadId` 和 `runId` 使用当前请求的值：
+
+```jsonl
+{"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}
+{"type":"TEXT_MESSAGE_START","messageId":"answer-1","role":"assistant"}
+{"type":"TEXT_MESSAGE_CONTENT","messageId":"answer-1","delta":"以下是分析结果。"}
+{"type":"TEXT_MESSAGE_END","messageId":"answer-1"}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"success"}}
 ```
 
-## 属性
+服务端开始助理消息、尚未发送首段正文时，会话中已有运行中的消息，插件可以显示等待提示；第一条非空 `TEXT_MESSAGE_CONTENT` 到达后，提示让位给正文。消息结束后也不再显示。要观察等待过程，服务端需及时发送并刷新前面的事件，随后再持续发送正文，而不是等结果全部生成后一次返回。
 
-打开项目中的 `plugins/thinking-indicator/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+`REASONING_*`、工具调用和待处理操作还会影响提示是否让位，分别沿用[思考数据](/plugins/reasoning.md#显示条件与数据来源)、[工具事件](/plugins/ag-ui-data.md#通用工具事件)和[审批／中断协议](/plugins/tool-fallback.md#显示条件与数据来源)。这些条件由运行时处理；服务端不需要发送 `reasoningVisible`、`timelineVisible` 等前端展示参数，也不需要增加自定义的“显示思考提示”事件。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+## 使用更紧凑的提示 \{#紧凑的思考提示}
 
-组件：`ConversationThinkingIndicator`；类型：`ConversationThinkingIndicatorProps`。继承 `div` 原生属性，排除 `children`。插件入口将可见性参数设为可选并默认 `false`。
 
-| 属性                 | 类型        | 省略时 / 用途                          |
-| ------------------ | --------- | --------------------------------- |
-| `label?`           | `string`  | 默认根据当前阶段读取 `thinkingIndicator` 文案 |
-| `elapsed?`         | `string`  | 可选耗时文字                            |
-| `reasoningVisible` | `boolean` | 推理区是否可见；单独使用组件时必需，由父组件根据当前消息传入    |
-| `timelineVisible`  | `boolean` | 时间线是否可见；单独使用组件时必需，由父组件根据当前消息传入    |
+在原有插件入口收紧上下留白，继续使用所在消息传入的展示状态和插件自己的显示判断：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationThinkingIndicatorPlugin as Implementation } from '@za38.03/agent-ui-plugins/thinking-indicator';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationThinkingIndicatorPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.thinking-indicator') return null;
+  return <Implementation {...scope.value} {...props}
+    style={{ ...props.style, paddingBlock: 4 }} />;
+}
+```
+
+这项调整仅改变间距；提示何时让位、何时随回答消失都保持原有行为。
+
+## API
+
+以下选项用于定制当前消息中的展示。显示条件、活动状态和消息内容继续由原有会话环境提供。
+
+
+
+继承 `div` 原生属性，排除 `children`。插件入口将可见性参数设为可选并默认 `false`。
+
+| 属性                 | 类型        | 省略时 / 用途                           |
+| ------------------ | --------- | ---------------------------------- |
+| `label?`           | `string`  | 默认根据当前阶段读取 `thinkingIndicator` 文案  |
+| `elapsed?`         | `string`  | 可选耗时文字                             |
+| `reasoningVisible` | `boolean` | 由当前会话注入，表示思考内容展示是否可用；正常插件入口保留现有绑定  |
+| `timelineVisible`  | `boolean` | 由当前会话注入，表示工具时间线展示是否可用；正常插件入口保留现有绑定 |
 
 组件仍根据消息内容和运行状态决定是否显示；传入 `label` 不会强制显示。
 
-### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
 
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationThinkingIndicator } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof ConversationThinkingIndicator>;
-```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+
+

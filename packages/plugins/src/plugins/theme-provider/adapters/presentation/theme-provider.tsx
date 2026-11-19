@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 export interface ThemeProviderPluginProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
-  children?: ReactNode;
 }
-export function CanonicalThemeProviderPlugin(props: ThemeProviderPluginProps) {
-  return <>{props.children ?? null}</>;
+export function CanonicalThemeProviderPlugin(_props: ThemeProviderPluginProps) {
+  return null;
 }

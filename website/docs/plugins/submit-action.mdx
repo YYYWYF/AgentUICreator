@@ -4,45 +4,72 @@ title: "发送与停止（submit-action）"
 
 # 发送与停止（submit-action）
 
-排队的启用方式和停止／审批时的行为见[消息排队](/development/message-queue)；带 `endpoint` 的工作流按钮在运行中不排队。
+<figure className="plugin-preview">
 
-输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。
+![发送与停止界面](/images/plugins/submit-action.png)
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<figcaption>当前输入区的发送入口；运行与排队状态由同一会话自动决定。</figcaption>
+</figure>
 
-![发送与停止（submit-action）界面示例](/images/plugins/submit-action.png)
+围绕当前 Composer 显示发送与停止入口。按钮已有运行状态、排队能力和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
 
-## 启用与使用
+## 发送、运行与停止
 
-在 **Creator 输入框**输入 `/enable submit-action`，点击下图中的 **「发送与停止」**。
+草稿可提交时，发送当前正文、附件、引用和业务选择。生成中根据当前能力显示停止入口；允许消息排队时还可把下一条问题加入队列，按钮提示随之变为加入队列。队列通过业务页面的 `<Agent enableMessageQueue />` 开启，默认关闭。
 
-![Creator 启用菜单：点击「发送与停止」，插件 ID 为 submit-action](/images/plugins/enable/submit-action.jpg)
+停止会取消当前运行，不等于删除待发送项。队列保留但不会在停止后立即自动发下一项；用户可继续调整队列。工具续传、审批与补充信息继续使用原有运行流程，见[消息排队](/development/message-queue)。
 
-## 定制选项
+等待审批或补充输入时，普通发送会被已有保护拦下并提示先处理当前操作，保留草稿。传入 `disabled={false}` 不会解除会话本身的不可用条件。
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 发送按钮提示 | 修改发送按钮的提示和读屏名称。 |
-| 排队提示 | 支持消息排队时，修改排队发送的提示。 |
-| 发送按钮外观 | 更换图标或文字，调整大小、颜色和圆角。 |
-| 停止按钮提示 | 修改停止按钮的读屏名称。 |
-| 停止按钮外观 | 单独调整停止按钮的图标、大小和颜色。 |
+## 与 Composer 联动
 
-发送和停止是两个按钮，需要分别调整。
+本插件提交当前共享草稿，**不另行提供 `pluginData` 或 `selections` 条目**。最终请求由已有 [Composer `requestAdapter`](./composer#请求适配) 组装；按钮没有自己的请求适配器。
 
-## 需求示例
+发送固定本次数据快照，附件准备和排队过程中，后续草稿修改不会覆盖它。重试、工具续答和中断恢复继续使用原次数据，最终 Composer 适配器可能再次执行，不应在适配器中附带业务写入操作。
 
-```text
-请修改「发送与停止（submit-action）」：
-修改：发送提示改为【发送问题】，停止提示改为【停止回答】，发送按钮圆角设为【8px】。
-保留：原有发送、排队和停止行为。
+需要业务卡片自己触发发送或停止时，使用 `useConversationComposer().send()`／`cancel()`；前者包含等待回复保护，读取 `canSend/canCancel/disabled` 决定界面状态。完整组合见 [Composer 的发送控制](./composer#实时显示草稿字数定制发送与停止操作)。
+
+## 本次发送使用工作流地址 {#本次发送使用工作流地址}
+
+endpoint 选择同一助手当前 Thread 的请求 URL，续答沿用它；此操作不创建新会话。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
+
+export function Example(props: ComponentProps<typeof ConversationSubmitActionPlugin>) {
+  return <ConversationSubmitActionPlugin {...props}
+    sendButtonProps={{ ...props.sendButtonProps, endpoint: "/api/agent/research" }} />;
+}
 ```
 
-## 属性
+设置 `endpoint` 的工作流按钮为本次发送及续答选择地址，复用当前 Thread，不自动新建会话。地址是 Host 的发送路由参数，不作为按钮自己的业务数据写入 `pluginData`，也不是自动追加到 `forwardedProps` 的 URL 字段。
 
-打开项目中的 `plugins/submit-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+该分支运行期间禁用，不走普通消息排队；`onSendError` 用于这一地址分支的异步发送失败。没有设置 `endpoint` 时，继续使用当前会话的普通发送与排队流程。多个工作流按钮的组合见[同一助手使用多个地址](/development/multiple-agents)。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+## 发送与停止使用不同样式 {#发送与停止使用不同样式}
+
+<span id="example-1"></span>
+
+外层配置负责组合，两种按钮分别接受自己的原生属性。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
+
+export function Example(props: ComponentProps<typeof ConversationSubmitActionPlugin>) {
+  return <ConversationSubmitActionPlugin {...props}
+    sendButtonProps={{ ...props.sendButtonProps, size: "sm", variant: "default" }}
+    cancelButtonProps={{ ...props.cancelButtonProps, size: "sm", variant: "outline" }} />;
+}
+```
+
+<span id="example-2"></span>
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
 
 插件入口：`ConversationSubmitActionPlugin`。没有独立的界面容器；子按钮参数优先于整体参数。
 
@@ -51,35 +78,39 @@ title: "发送与停止（submit-action）"
 | `className?` | `string` | 两个按钮的样式类 |
 | `style?` | `CSSProperties` | 两个按钮的内联样式 |
 | `disabled?` | `boolean` | 两个按钮的禁用设置 |
-| `sendButtonProps?` | `ComponentProps<typeof ConversationComposerSend>` | 原生按钮样式、事件和 children 属性 |
-| `cancelButtonProps?` | `ComponentProps<typeof ConversationComposerCancel>` | 原生按钮样式、事件和 children 属性 |
-| `children?` | `ReactNode` | 替换默认发送／取消按钮 |
+| `sendButtonProps?` | `ComponentProps<typeof ConversationComposerSend>` | 原生按钮样式、事件和 icon 属性 |
+| `cancelButtonProps?` | `ComponentProps<typeof ConversationComposerCancel>` | 原生按钮样式、事件和 icon 属性 |
 
 运行中支持排队时，发送按钮读取 `composer.queueSend`。发送和取消是否可用仍由现有 Composer 决定。
 
 ### 子按钮属性
 
-提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
+
+- 状态与事件：`disabled`、`onClick`。
+- 内容与样式：`icon`、`className`、`style`。
+- 组合与无障碍：`render`、`nativeButton` 和无障碍属性。
+
+组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `variant?` | `'default' \| 'outline' \| 'secondary' \| 'ghost' \| 'destructive' \| 'link' \| null` | 按钮样式；各操作按钮可能预设不同值 |
 | `size?` | `'default' \| 'xs' \| 'sm' \| 'lg' \| 'icon' \| 'icon-xs' \| 'icon-sm' \| 'icon-lg' \| null` | 按钮尺寸；各操作按钮可能预设不同值 |
 | `side?` | `'top' \| 'bottom' \| 'left' \| 'right'` | 默认 `bottom`，提示位置 |
+| `endpoint?` | `string` | 仅发送按钮；为本次发送及续答选择 URL，复用当前 Thread |
+| `onSendError?` | `(error: Error) => void` | 仅设置 `endpoint` 时使用的发送失败回调；按钮仍显示本地化失败提示 |
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationComposerSend } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationComposerSend>;
-```
-
-表中的成对 `…Props` 是项目组件的组合入口；类型示例对应其中一个公开动作组件，另一个沿用现有导入。
-
 发送、排队、停止和取消文案统一在 `locales.composer` 修改：`send`、`queueSend`、`stop`、`cancelSend`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+<span id="代码示例"></span>
+
+<span id="发送与停止"></span>
+
+<span id="启用与使用"></span>
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>

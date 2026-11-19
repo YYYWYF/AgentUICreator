@@ -26,7 +26,7 @@ it.each([{ name: "npm", Composer: NpmComposer }, { name: "portable", Composer: S
         <Composer renderSlot={(_name: string, fallback?: ReactNode) => <div>{fallback}</div>}
           renderScopedSlot={(_name, _scope, fallback) => fallback}
           rows={3} maxLength={120} submitMode="ctrlEnter"
-          inputProps={{ "aria-label": "Basic input", rows: 1, maxLength: 10, placeholder: "Project placeholder" }} />
+          inputProps={{ "aria-label": "Basic input", placeholder: "Project placeholder" }} />
       </AgentUILocaleProvider></AgentUIRoot></AssistantRuntimeProvider>;
     }
     const host = document.createElement("div"); document.body.append(host); root = createRoot(host);

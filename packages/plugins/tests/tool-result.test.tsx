@@ -15,6 +15,7 @@ import { ConversationToolResultPlugin as PortablePlugin } from "../dist/sources/
 vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
 Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
+const ToolTimelineView = () => <ConversationToolTimeline />;
 const roots: Root[] = [];
 afterEach(async () => { await act(async () => roots.splice(0).forEach(root => root.unmount())); document.body.replaceChildren(); });
 async function mount(node: ReactNode) { const el = document.createElement("div"); document.body.append(el); const root = createRoot(el); roots.push(root); await act(async () => root.render(<AgentUILocaleProvider locale="zh-CN">{node}</AgentUILocaleProvider>)); return { el, root }; }
@@ -87,7 +88,7 @@ function Registration({ custom = false }: { custom?: boolean }) {
 }
 function Thread({ enabled = true, named = false, custom = false, task = false }: { enabled?: boolean; named?: boolean; custom?: boolean; task?: boolean }) {
   const runtime = useLocalRuntime({ async *run() {} }, { initialMessages: [{ role: "assistant", content: [task ? { ...tool, messages: [] } : tool] }] });
-  return <AssistantRuntimeProvider runtime={runtime}>{named && <Registration custom={custom} />}<ConversationThread composer={null} components={{ ...(enabled ? { ToolFallback: ConversationToolResult } : {}), ToolTimeline: ConversationToolTimeline, ...(task ? { TaskGroup: ConversationTaskGroup } : {}) }} /></AssistantRuntimeProvider>;
+  return <AssistantRuntimeProvider runtime={runtime}>{named && <Registration custom={custom} />}<ConversationThread composer={null} components={{ ...(enabled ? { ToolFallback: ConversationToolResult } : {}), ToolTimeline: ToolTimelineView, ...(task ? { TaskGroup: ConversationTaskGroup } : {}) }} /></AssistantRuntimeProvider>;
 }
 it("keeps content visible outside timeline summaries and disables cleanly", async () => {
   expect(projectToolTimeline([{ ...tool, status: { type: "complete" } }]).calls[0]?.protected).toBe(true);
@@ -151,7 +152,7 @@ it.each(["live", "snapshot"])("renders actual HttpAgent %s events through the of
     ];
     return new Response(events.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   } });
-  function Host() { const current = useAgUiRuntime({ agent }); useEffect(() => { runtime = current; }, [current]); return <AssistantRuntimeProvider runtime={current}><ConversationThread composer={null} components={{ ToolFallback: ConversationToolResult, ToolTimeline: ConversationToolTimeline }} /></AssistantRuntimeProvider>; }
+  function Host() { const current = useAgUiRuntime({ agent }); useEffect(() => { runtime = current; }, [current]); return <AssistantRuntimeProvider runtime={current}><ConversationThread composer={null} components={{ ToolFallback: ConversationToolResult, ToolTimeline: ToolTimelineView }} /></AssistantRuntimeProvider>; }
   const { el } = await mount(<Host />);
   await act(async () => { runtime.thread.append("Generate media"); });
   for (let i = 0; i < 100 && !el.querySelector("audio"); i++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });

@@ -5,6 +5,7 @@ import { AssistantRuntimeProvider, useLocalRuntime, type AssistantRuntime, type 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationThread, ConversationToolTimeline, ConversationTaskGroup } from "../src/public.js";
 import { AgentUILocaleProvider } from "../src/locale.js";
+const ToolTimelineView = () => <ConversationToolTimeline />;
 const roots: Root[] = [];
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
@@ -24,7 +25,7 @@ async function mount(content: Content, enabled = true, tasks = false, status?: E
     const current = useLocalRuntime({ run: async () => ({ content: [] }) }, { initialMessages: [message(content, status)] });
     useEffect(() => { runtime = current; }, [current]);
     return <AgentUILocaleProvider locale={locale}><AssistantRuntimeProvider runtime={current}>
-      <ConversationThread components={{ TransientMessages: EmptyScopedTransientMessages, ...(enabled ? { ToolTimeline: ConversationToolTimeline } : {}), ...(tasks ? { TaskGroup: ConversationTaskGroup } : {}) }} />
+      <ConversationThread components={{ TransientMessages: EmptyScopedTransientMessages, ...(enabled ? { ToolTimeline: ToolTimelineView } : {}), ...(tasks ? { TaskGroup: ConversationTaskGroup } : {}) }} />
     </AssistantRuntimeProvider></AgentUILocaleProvider>;
   }
   await act(async () => root.render(<Host />));

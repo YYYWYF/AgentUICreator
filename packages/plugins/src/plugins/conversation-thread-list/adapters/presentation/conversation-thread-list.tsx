@@ -18,7 +18,7 @@ export interface ConversationThreadListPluginProps
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
   headerActions?: ReactNode;
-  children?: ReactNode;
+  renderList?: (defaultList: ReactNode) => ReactNode;
   snapshot?: {
     activeConversationId?: string | undefined;
     listStatus?: string;
@@ -40,7 +40,7 @@ export function CanonicalConversationThreadList({
   searchProps,
   itemProps,
   components,
-  children,
+  renderList,
   headerActions,
   snapshot = {},
   onRefresh,
@@ -51,6 +51,15 @@ export function CanonicalConversationThreadList({
 }: ConversationThreadListPluginProps) {
   const labels = useAgentUILocale('threadList');
   const conversationNavigation = useConversationNavigation();
+  const defaultList = (
+    <PolicyThreadList
+      {...(showSearch === undefined ? {} : { showSearch })}
+      {...(showArchived === undefined ? {} : { showArchived })}
+      {...(searchProps === undefined ? {} : { searchProps })}
+      {...(itemProps === undefined ? {} : { itemProps })}
+      {...(components === undefined ? {} : { components })}
+    />
+  );
 
   return (
     <aside
@@ -70,15 +79,7 @@ export function CanonicalConversationThreadList({
       data-ui-plugin='conversation-thread-list'
     >
       {headerActions && <div className='conversation-thread-list-header-actions'>{headerActions}</div>}
-      {children ?? (
-        <PolicyThreadList
-          {...(showSearch === undefined ? {} : { showSearch })}
-          {...(showArchived === undefined ? {} : { showArchived })}
-          {...(searchProps === undefined ? {} : { searchProps })}
-          {...(itemProps === undefined ? {} : { itemProps })}
-          {...(components === undefined ? {} : { components })}
-        />
-      )}
+      {renderList ? renderList(defaultList) : defaultList}
 
       {snapshot.listStatus === 'error' ? (
         <div className='conversation-thread-list-error' role='alert'>
@@ -128,13 +129,15 @@ export function CanonicalConversationThreadList({
 export interface ConversationThreadListRailActionProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   enabled?: boolean;
-  buttonProps?: ComponentProps<typeof ConversationThreadListNew>;
-  tooltipProps?: ComponentProps<typeof AgentUITooltip>;
-  tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>;
+  icon?: ReactNode;
+  buttonProps?: Omit<ComponentProps<typeof ConversationThreadListNew>, 'children'>;
+  tooltipProps?: Omit<ComponentProps<typeof AgentUITooltip>, 'children'>;
+  tooltipContentProps?: Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>;
 }
 /** @deprecated Place the independent conversation-new Plugin in the application layout. */
 export function CanonicalConversationThreadListRailAction({
   enabled = true,
+  icon,
   buttonProps,
   tooltipProps,
   tooltipContentProps,
@@ -159,12 +162,12 @@ export function CanonicalConversationThreadListRailAction({
               }
             }}
           >
-            {buttonProps?.children ?? <Plus aria-hidden='true' />}
+            {icon ?? <Plus aria-hidden='true' />}
           </ConversationThreadListNew>
         }
       />
       <AgentUITooltipContent side='right' {...tooltipContentProps}>
-        {tooltipContentProps?.children ?? labels.newThread}
+        {labels.newThread}
       </AgentUITooltipContent>
     </AgentUITooltip>
   );

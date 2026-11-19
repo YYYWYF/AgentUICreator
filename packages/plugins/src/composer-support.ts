@@ -9,7 +9,10 @@ export { TooltipIconButton } from "./internal/adapters-generated/assistant-ui/co
 export { ComposerPrimitive, QueueItemPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
 export { XIcon } from "lucide-react";
 
-export type ConversationComposerInputProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>;
+export type ConversationComposerInputProps = Omit<
+  import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>,
+  "cacheMeasurements" | "submitOnEnter" | `unstable_${string}`
+>;
 export type ConversationComposerRootProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Root>;
 export type ConversationComposerDropzoneProps = import("react").ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.AttachmentDropzone>;
 

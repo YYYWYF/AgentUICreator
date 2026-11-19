@@ -8,9 +8,20 @@ title: "提及搜索与快捷命令"
 
 以下路径以 `src/agent-ui/` 为源码目录。使用前先启用 `mention-trigger`，或 `slash-command-trigger` 与 `conversation-command-source`。
 
-## @ 提及搜索
+**先选择你要接入或修改的功能：**
 
-### 接入配置
+| 你的需求 | 从哪里开始 | 修改位置 |
+| --- | --- | --- |
+| 输入 @ 搜索员工或文档 | [接入 @ 搜索](#-提及搜索) | `plugins/mention-trigger/index.tsx` |
+| 输入 / 加载业务命令 | [接入 / 命令](#-快捷命令) | `plugins/conversation-command-source/definition.ts` |
+| 改选中后插入草稿的文字 | [改变选中行为](#改变选中行为) | 对应触发器的 `onSelect` |
+| 保留正文标签并发送选中对象 | [发送结构化数据](#插件提供数据composer-组装请求) | 来源中的选项数据与 Composer 的 `requestAdapter` |
+
+## 接入 @ 提及搜索 {#-提及搜索}
+
+**第 1 步：填写查询请求。**
+
+<span id="接入配置"></span>
 
 打开 **`src/agent-ui/plugins/mention-trigger/index.tsx`**，在文件顶部已有的 **`source.search()`** 中填写查询请求：
 
@@ -29,7 +40,10 @@ export const source: ConversationMentionSource = {
 
 父组件可通过 `<ConversationMentionTrigger source={mentionSource} />` 传入搜索配置；此时请求写在 `mentionSource.search()` 中。
 
-### 数据格式
+**第 2 步：按下面的字段返回查询结果。**
+
+<details class="dev-guide-details" id="数据格式">
+<summary>查看搜索结果字段与完整示例</summary>
 
 `source.search()` 异步返回以下数组；没有匹配结果时返回 `[]`：
 
@@ -53,9 +67,13 @@ export const source: ConversationMentionSource = {
 
 接口字段不同时，在 `source.search()` 返回前转换为上述格式。
 
-## / 快捷命令
+</details>
 
-### 接入配置
+## 接入 / 快捷命令 {#-快捷命令}
+
+**第 1 步：填写命令列表请求。**
+
+<span id="接入配置-1"></span>
 
 打开 **`src/agent-ui/plugins/conversation-command-source/definition.ts`**，在文件顶部已有的 **`businessCommands.loadCommands()`** 中填写命令列表请求：
 
@@ -74,7 +92,10 @@ export const businessCommands = {
 
 命令注册器由 `@za38.03/agent-ui-plugins/composer-triggers` 提供，模板不再复制 `services/composer-triggers.ts`。业务命令仍在上述插件文件中配置。
 
-### 数据格式
+**第 2 步：按命令类型返回指令或页面操作。**
+
+<details class="dev-guide-details" id="数据格式-1">
+<summary>查看命令字段、指令模式与动作示例</summary>
 
 `businessCommands.loadCommands()` 返回以下数组；返回 `[]` 时只保留默认“新建会话”命令：
 
@@ -97,6 +118,7 @@ export const businessCommands = {
 | `description` | `string` | 可选，菜单中的补充说明。 |
 | `mode` | `'directive'` 或 `'action'` | 必填，`directive` 将指令加入草稿，由用户发送；`action` 在选中时执行 `execute()`。 |
 | `disabled` | `boolean` | 可选，是否禁用该命令，默认为 `false`。 |
+| `data` | `unknown` | 可选，项目自定义的 JSON 业务数据；发送时由 Composer 读取选中项并组装。 |
 
 `label` 和 `description` 使用当前界面语言的文案。接口字段不同时，在 `businessCommands.loadCommands()` 返回前转换为上述格式。
 
@@ -115,6 +137,8 @@ return [{
 ```
 
 接口返回动作类命令时，在项目代码中按命令 ID 补上 `execute()` 后再返回。
+
+</details>
 
 ## 可选：改变选中后的草稿内容 {#改变选中行为}
 
@@ -176,51 +200,49 @@ return [{
 
 提供回调就完全替换默认处理，包括 `/ action` 的执行。返回后不再插入默认引用，不自动发送。抛错时保留草稿并显示本地化错误，不退回默认行为。需要异步数据时先在来源中加载；异步页面操作可继续使用默认 `action.execute()`。
 
-未配置 `requestAdapter` 时，自定义文本按普通文本显示。需要结构化数据时使用下面的 `requestAdapter`；最终参数位置由 Composer 决定。
+自定义普通文本按普通文本显示；要保留标签，应返回合法的引用标记。实际插入的非空文本仍绑定原始选中项，Composer 可以读取并组装其数据，见下文。
 
 </details>
 
 ## 可选：把选中对象作为结构化数据发送 {#插件提供数据composer-组装请求}
 
-业务代码写在项目自有应用层：@ 与 / 定义选中后产生的 JSON，Composer 定义最终请求。无需接管插件源码，不修改 `project-config` 或 AppUIModel。
+业务代码写在项目自有应用层：@ 与 / 的来源直接定义候选项和业务数据，触发器保留正文引用并记录选中项，Composer 定义最终请求。无需接管插件源码，不修改 `project-config` 或 AppUIModel。
 
-配置分两步：先由触发器提供数据，再由 Composer 决定最终请求字段。
+触发器没有 `requestAdapter`。选中时只更新草稿，不发送请求；发送时由 Composer 的 `requestAdapter` 将选中项放到 `forwardedProps`，正文中的引用标记保持不变。
 
-### 第 1 步：触发器产出 JSON {#-与--的-requestadapter定义数据格式}
+### 第 1 步：在来源中定义选项数据 {#-与--的选项数据}
 
-在项目 `plugins/mention-trigger/index.tsx` 的已有组件调用处传入 `requestAdapter`：
+在项目 `plugins/mention-trigger/index.tsx` 的 `source.search()` 中返回候选项，业务字段可以直接放在 `data` 中：
 
-```tsx
-<Implementation
-  {...props}
-  source={props.source ?? source}
-  requestAdapter={item => ({ employeeId: item.id, category: item.type })}
-/>
+```json
+{
+  "id": "employee_84721",
+  "type": "user",
+  "label": "张三",
+  "data": { "employeeId": "employee_84721", "category": "user" }
+}
 ```
 
-回调同步接收一次选中的原始对象，包含 `id/type/label/description/data`，返回任意 JSON 值。插件通过公开的 `useComposer().setData` 保存结果，并将它绑定到本次引用；删除引用会移除对应数据。每次选择的数据独立保存，重复选择也会保留。
+`id/type/label` 用于引用身份与标签展示，`description` 用于菜单说明，`data` 的结构由项目决定。选中项会以 JSON 快照绑定到本次引用；删除引用会移除对应数据，重复选择会保留多项记录。`data` 应为 JSON，不放函数、DOM 或循环对象。
 
-`/` 在项目 `plugins/slash-command-trigger/index.tsx` 中配置：
+`/` 的业务数据直接写在项目 `plugins/conversation-command-source/definition.ts` 返回的命令项中：
 
-```tsx
-<Implementation
-  {...props}
-  source={source}
-  requestAdapter={command => ({ operation: command.id, params: command.data ?? null })}
-/>
+```json
+{
+  "id": "summarize",
+  "label": "总结",
+  "mode": "directive",
+  "data": { "operation": "summarize", "params": null }
+}
 ```
 
-- **命令数据**：包含 `id/label/mode/description/disabled/data`，不包含 `execute` 函数。
-- **动作命令**：默认 `action` 仍在选中时执行项目的 `execute()`，不自动进入消息；替换动作使用 `onSelect`。
-- **发送适配**：`requestAdapter` 处理实际插入草稿的命令。
+- **命令选中项**：包含 `id/label/mode` 及已有的 `description/disabled/data`，不包含 `execute` 函数。
+- **动作命令**：默认 `action` 在选中时执行项目的 `execute()`，不自动进入消息或结构化选择；替换动作使用 `onSelect`。
+- **正文引用**：默认保留 `:user[张三]{name=employee_84721}` 和 `:command[总结]{name=summarize}`。Composer 只组装外带参数时，不会删除这些标记。
 
-| 配置 | 正文与参数行为 |
-| --- | --- |
-| 未配置 `requestAdapter` | 保留默认引用正文和原有请求格式；原始选择仍可由 Composer 适配器读取。 |
-| 配置 `requestAdapter` | 本地保留引用标签，发送正文移除该引用；数据默认放入 `forwardedProps[插件实例ID]` 的数组。 |
-| 同时配置 `onSelect` 与 `requestAdapter` | 自定义文字和 JSON 数据可以一起发送。 |
+未配置 Composer 适配器时，@ 与 / 沿用正文引用格式，不自动添加结构化外带字段。`onSelect` 继续用于自定义插入文字或取消选择。
 
-`onSelect` 继续用于自定义插入文字或取消选择。选中对象中的附加 `data` 应为 JSON 数据。
+已有项目若配置了触发器 `requestAdapter`，移除该属性，将其业务字段选择逻辑移到 Composer 的回调中，从 `selections` 读取原始选中项。此 API 调整不会自动改写既有项目文件。
 
 ### 第 2 步：Composer 组装最终请求 {#composer-的-requestadapter决定最终字段}
 
@@ -229,12 +251,12 @@ return [{
 ```tsx
 <Implementation
   {...props}
-  requestAdapter={({ request, pluginData }) => ({
+  requestAdapter={({ request, selections }) => ({
     ...request,
     forwardedProps: {
       ctx: {
-        employees: pluginData['employee-mention'] ?? [],
-        commands: pluginData['command-picker'] ?? [],
+        employees: selections['employee-mention'] ?? [],
+        commands: selections['command-picker'] ?? [],
       },
     },
   })}
@@ -245,15 +267,27 @@ return [{
 
 ```json
 {
-  "messages": [{ "id": "本轮消息ID", "role": "user", "content": "查询待办" }],
+  "messages": [{
+    "id": "本轮消息ID",
+    "role": "user",
+    "content": ":user[张三]{name=employee_84721} :command[总结]{name=summarize} 查询待办"
+  }],
   "forwardedProps": {
     "ctx": {
-      "employees": [{ "employeeId": "employee_84721", "category": "user" }],
-      "commands": [{ "operation": "summarize", "params": null }]
+      "employees": [{
+        "id": "employee_84721", "type": "user", "label": "张三",
+        "data": { "employeeId": "employee_84721", "category": "user" }
+      }],
+      "commands": [{
+        "id": "summarize", "label": "总结", "mode": "directive",
+        "data": { "operation": "summarize", "params": null }
+      }]
     }
   }
 }
 ```
+
+上例发送完整选中项；如果后端只需要其中的 `data` 或其他字段，在同一个 Composer 回调中收窄并提取即可。@ 与 / 在 `pluginData` 中也提供相同的原始选中项数组。
 
 `requestAdapter({ request, pluginData, selections })` 同步返回完整的 AG-UI 请求：
 
@@ -266,6 +300,8 @@ return [{
 返回值就是最终请求，之后不再合并或补写 `forwardedProps`。用户可以任意重排、删除、改名，也可以返回 `forwardedProps: {}`。需要保留默认字段时，检查 `request.forwardedProps` 是对象后显式展开；其他请求字段通常用 `...request` 保留。AG-UI 的标准字段仍须满足协议类型。
 
 也可以修改 `request.messages` 将 JSON 写入正文，或修改 `request.context` 放入标准的 `{ description, value }` 条目。插件只产出数据，不存在 @、/ 各自修改最终请求的先后顺序。
+
+历史消息要继续显示标签，后端保存并返回带引用标记的正文即可；只返回普通 `@张三` 或 `/总结` 文本不会恢复标签，见[历史数据格式](./history-backend#数据格式参考)。
 
 <details class="dev-guide-details" id="第三方插件用同一个接口">
 <summary>让自己的插件提交草稿数据</summary>
@@ -307,7 +343,7 @@ export function OrderDraftData({ orderId, children }: {
 <details class="dev-guide-details" id="技能引用和建议问题">
 <summary>技能、引用和建议问题怎样加入同一份请求</summary>
 
-这三个插件同样在各自应用层配置 `requestAdapter`，内部通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
+技能、引用和建议问题保留各自的 `requestAdapter`，内部通过 `useComposer().setData` 交付 JSON。Composer 统一取得 `pluginData` 和原始 `selections`，返回最终请求：
 
 ```tsx
 <Implementation {...props}
@@ -334,14 +370,20 @@ export function OrderDraftData({ orderId, children }: {
 <details class="dev-guide-details" id="发送重发与恢复">
 <summary>排队、重试、恢复和刷新后的数据生命周期</summary>
 
-@、/ 的 `requestAdapter(item)` 在选择时调用；Composer 的 `requestAdapter({ request, pluginData, selections })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
+@、/ 在选择时保存原始选中项的 JSON 快照；Composer 的 `requestAdapter({ request, pluginData, selections })` 在每次实际请求发送前调用，包括工具续传和中断恢复。续传读取原次提交的数据快照与本次协议字段，不读取下一条草稿，也不会重新执行选择动作。一个 Agent 的 Composer 只注册一个最终适配器；第三方插件只提交数据。
 
 按钮、回车与原生队列共用发送链。提交后清理本次草稿数据，下一条消息不自动继承。队列数据按提交时固定，后续选择、对象修改或切换 Thread 不改变已有快照。编辑重发只带仍存在的引用；重试使用原消息的数据。原生发送配置保持原有生命周期，默认业务参数统一发送到 `forwardedProps.ctx`。
 
-刷新后如需恢复结构化数据与引用编辑能力，业务历史需保留原始前端消息及其私有元数据；仅保存处理后的正文无法重建原始选择。没有元数据的旧普通引用继续作为正文发送，不会凭空补造业务数据。内部草稿元数据和选路控制字段在适配器之前剥离，不自动发送给后端。
+刷新后，正文保留引用标记即可恢复标签展示。若还要恢复原始选中项数据、编辑重发时的结构化参数，则需另外保留对应选择快照及关联信息；仅凭引用标记无法还原 `data`。当前数据生命周期使用原始前端消息的私有元数据绑定选择，内部草稿元数据和选路控制字段在适配器之前剥离，不自动发送给后端；项目需按历史存储约定保存和恢复这些信息。没有元数据的旧引用继续作为正文发送，不会凭空补造业务数据。
 
-@、/ 的 `requestAdapter` 抛错或返回非 JSON 时保留原输入并显示现有错误提示。Composer 的 `requestAdapter` 抛错、返回 Promise 或返回无效请求时，通过 `onError` 报告并停止发送，不退回默认请求；修正后可以重试。
+@、/ 的选中项包含非 JSON 数据，或 `onSelect` 抛错时，保留原输入并显示现有错误提示。Composer 的 `requestAdapter` 抛错、返回 Promise 或返回无效请求时，通过 `onError` 报告并停止发送，不退回默认请求；修正后可以重试。
 
 
 
 </details>
+
+## 检查查询与发送结果 {#检查查询与发送结果}
+
+分别输入 @ 和 /，检查菜单结果及选中后的草稿；若配置了页面动作，确认选中时执行的是预期操作。
+
+调试时在浏览器 Network 查看最终请求体，检查引用删除、编辑重发、排队和下一条普通消息。这些配置属于项目应用层，npm 升级和插件实现源码同步不会覆盖它们。

@@ -18,20 +18,18 @@ export interface AuthAccountUser {
   avatar?: string | undefined;
 }
 export interface AuthAccountPluginProps extends Omit<ComponentProps<'div'>, 'children'> {
-  signOutText?: ReactNode;
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
   hostUser?: AuthAccountUser | null | undefined;
   session?: { signOut(): Promise<void> } | undefined;
   snapshot?: { user: AuthAccountUser | null; busy: boolean };
-  buttonProps?: ComponentProps<typeof AgentUIPopoverTrigger>;
-  menuProps?: ComponentProps<typeof AgentUIPopoverContent>;
-  signOutButtonProps?: ComponentProps<typeof Button>;
+  buttonProps?: Omit<ComponentProps<typeof AgentUIPopoverTrigger>, 'children'>;
+  menuProps?: Omit<ComponentProps<typeof AgentUIPopoverContent>, 'children'>;
+  signOutButtonProps?: Omit<ComponentProps<typeof Button>, 'children'>;
 }
 export function CanonicalAuthAccountPlugin({
   renderSlot: _renderSlot,
   renderScopedSlot: _renderScopedSlot,
-  signOutText,
   hostUser,
   session,
   snapshot = { user: null, busy: false },
@@ -116,12 +114,12 @@ export function CanonicalAuthAccountPlugin({
                 }
               }}
             >
-              {signOutText ?? signOutButtonProps?.children ?? (
+              {
                 <>
                   <LogOut aria-hidden='true' />
                   <span>{messages.signOut}</span>
                 </>
-              )}
+              }
             </Button>
           </div>
         </AgentUIPopoverContent>

@@ -1,12 +1,19 @@
 # 多内容侧栏
 
-`workbench-panel` 提供右侧多标签面板，其他插件通过 `open(内容ID)` 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。
+在同一工作台中打开和切换多个内容标签，关闭或收起时保留挂载。
 
-![用户配置内容后的多内容侧栏：顶部可切换标签、关闭内容或收起面板](/images/plugins/workbench-panel.png)
+<span id="常见需求"></span>
+<span id="代码示例"></span>
 
-以下路径相对于生成目录，默认为 `src/agent-ui/`。新工作台已有侧栏容器，默认不配置内容、标签或打开按钮；用户接入自己的内容后使用。
+## 多内容侧栏
 
-## 把插件加入多内容侧栏
+<figure className="plugin-preview">
+
+![多内容侧栏界面](/images/plugins/workbench-panel.png)
+
+</figure>
+
+## 内容标签 \{#把插件加入多内容侧栏}
 
 内容是普通 UI Plugin，先按[创建自定义插件](/development/create-plugin.md)创建并注册，例如 `my-content`。然后在项目的侧栏入口中接入它：
 
@@ -49,7 +56,7 @@
 
 同步[项目插件注册表](/development/create-plugin.md#4-插件注册与验证)后完成接入。`contentA` 是插槽名，`content-a` 是对外打开使用的内容 ID，`my-content` 是插件 ID；按上面对应即可。
 
-## 让其他插件打开指定内容
+## 插件间打开内容 \{#让其他插件打开指定内容}
 
 调用方的 `definition.ts` 在原有 `inject` 中追加侧栏服务：
 
@@ -71,8 +78,157 @@ panel?.open('content-a');
 
 调用方可以在侧栏外的工具栏、消息卡片等位置，只要与侧栏处于同一个 Agent 服务作用域。不需要再给内容插件注册单独的打开方法，也不需要动态修改 `app-ui.json`。
 
-### 服务方法与状态
-
-`open(id)` 展开并选中内容，已关闭的标签也可重新打开；`open()` 恢复上次内容，`close(id)` 关闭标签，`collapse()` 收起侧栏，`activate(id)` 只切换选中项并保持展开状态。`getSnapshot()` / `subscribe()` 用于读取和订阅状态。
+<span id="服务方法与状态"></span>
 
 内容 ID 必须与服务及 `items` 一致。状态只保留在当前页面生命周期内，刷新后重置；按会话保存或持久化数据由内容插件处理。通用依赖与订阅规则见[自定义服务](/development/plugin-api.md#自定义服务)。
+
+## 设置侧栏宽度 \{#设置侧栏宽度}
+
+<span id="example-1"></span>
+
+panelWidth 单位为像素。主区域较窄时，面板仍不会超过整个容器宽度的 45%。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
+  return <WorkbenchPanel {...props}
+    panelWidth={420} />;
+}
+```
+
+<span id="example-2"></span>
+
+## 受控展开状态 \{#受控展开状态}
+
+open 由项目管理，onOpenChange 同步用户收起/展开操作；已有 service 和 items 继续传入。
+
+```tsx
+import { useState, type ComponentProps } from 'react';
+import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
+  const [open, setOpen] = useState(false);
+  return <WorkbenchPanel {...props}
+    open={open}
+    onOpenChange={setOpen} />;
+}
+```
+
+## 侧栏状态联动 \{#hook}
+
+业务工具栏需要高亮当前内容时，声明 `agent-ui.workbench-panel` 依赖，用 `usePluginService()` 取得同一 Agent 的服务，再用 `usePluginServiceSnapshot()` 订阅：
+
+```tsx
+import {
+  WORKBENCH_PANEL_SERVICE, usePluginService, usePluginServiceSnapshot,
+  type WorkbenchPanelService, type WorkbenchPanelSnapshot,
+} from '@za38.03/agent-ui-plugins';
+
+const fallback: WorkbenchPanelSnapshot = {
+  open: false, activeItemId: '', visibleItemIds: [],
+};
+
+export function ReportTab({ label }: { label: string }) {
+  const panel = usePluginService<WorkbenchPanelService>(WORKBENCH_PANEL_SERVICE);
+  const snapshot = usePluginServiceSnapshot(panel, fallback);
+  return <button type="button" disabled={!panel}
+    aria-pressed={snapshot.open && snapshot.activeItemId === 'report'}
+    onClick={() => panel?.open('report')}>{label}</button>;
+}
+```
+
+先在原侧栏 `items` 和服务中登记 `report`，`label` 从项目文案传入。点击打开报告；其他入口切换标签或收起侧栏时，按钮的选中状态也随之更新。缺少服务时禁用按钮，fallback 不会创建新侧栏。
+
+## 打开指定内容 \{#从结果卡片打开侧栏}
+
+组件与服务位于同一 Agent，并声明 `agent-ui.workbench-panel` 依赖。
+
+```tsx
+import {
+  WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService,
+} from '@za38.03/agent-ui-plugins';
+
+export function OpenReport({ contentId, label }: { contentId: string; label: string }) {
+  const panel = usePluginService<WorkbenchPanelService>(WORKBENCH_PANEL_SERVICE);
+  return <button type="button" disabled={!panel}
+    onClick={() => panel?.open(contentId)}>{label}</button>;
+}
+```
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+`WorkbenchPanel` / `WorkbenchPanelPlugin` 的属性类型均为 `WorkbenchPanelProps`，不继承全部 `div` 属性。
+
+| 属性                                  | 类型                                     | 默认行为                                 |
+| ----------------------------------- | -------------------------------------- | ------------------------------------ |
+| `service?`                          | `WorkbenchPanelService`                | 原始展示组件显式接收；插件组件默认从当前服务作用域取得          |
+| `renderMain?`                       | `() => ReactNode`                      | 主内容的备用渲染入口；已有 main 插槽优先              |
+| `items?`                            | `readonly WorkbenchPanelItem[]`        | 默认空数组，不内置内容                          |
+| `mainActions?`                      | `ReactNode`                            | 主操作区备用节点；已有 `mainActions` 插槽优先       |
+| `open?`                             | `boolean`                              | 受控展开状态，否则读取服务；没有服务时默认收起              |
+| `activeItemId?`                     | `string`                               | 受控选中项，否则读取服务与可见项                     |
+| `visibleItemIds?`                   | `readonly string[]`                    | 受控可见标签；否则读取服务，未传服务时从 items 和本地关闭记录推导 |
+| `onOpenChange?`                     | `(open: boolean) => void`              | 展开／收起变化通知                            |
+| `onActiveItemChange?`               | `(id: string) => void`                 | 当前内容变化通知                             |
+| `onVisibleItemsChange?`             | `(ids: readonly string[]) => void`     | 标签打开／关闭变化通知                          |
+| `panelWidth?`                       | `number`                               | 默认 `360` 像素，展示时不超过容器的 45%            |
+| `className?` / `style?`             | `string` / `CSSProperties`             | 整体容器样式                               |
+| `renderSlot?` / `renderScopedSlot?` | `Partial<UIPluginComponentProps>` 对应成员 | Runtime 组合入口；保留已有转发，本组件使用普通插槽        |
+
+`WorkbenchPanelItem` 的字段为：
+
+- 必需：`id: string`、`label: string`、`content: ReactNode`。
+- 可选：`icon?: ReactNode`。
+
+`id` 与服务登记一致，`label` 使用项目统一文案。关闭或收起只隐藏内容，所有 items 的内容继续挂载。
+
+原始展示组件没有服务时，需要通过 `open` / `onOpenChange` 控制展开；单独传入 items 不会创建展开状态服务。既有插件组件已经取得面板服务，普通项目继续保留该绑定。
+
+<span id="取数与联动"></span>
+
+其他插件既能打开、切换或关闭内容，也能订阅当前展开状态、选中项和可见标签。要实现“选中工单／文件后打开详情”，先更新共享业务服务，再调用 `open(内容ID)`；内容插件订阅同一服务取数，见[联动示例](/development/plugin-interaction.md#插件之间共享选择或结果)。
+
+### 服务方法 \{#服务}
+
+提供 `agent-ui.workbench-panel`，类型为 `WorkbenchPanelService`：
+
+- 状态接口：继承 `getSnapshot()` / `subscribe(listener)`。
+- 操作接口：`open(id?)`、`activate(id)`、`close(id)`、`collapse()`，均返回 `void`。
+
+`WorkbenchPanelSnapshot` 的字段为：
+
+| 字段               | 类型                  |
+| ---------------- | ------------------- |
+| `open`           | `boolean`           |
+| `activeItemId`   | `string`            |
+| `visibleItemIds` | `readonly string[]` |
+
+`createWorkbenchPanelService(itemIds = DEFAULT_WORKBENCH_PANEL_IDS)` 创建服务，默认 ID 数组为空。空白／重复 ID 或操作未知 ID 会报错。
+
+- 根入口或 `/workbench-panel`：导入 `WORKBENCH_PANEL_SERVICE`、工厂、服务与快照类型。
+- 根入口：导入 `DEFAULT_WORKBENCH_PANEL_IDS`。
+
+服务按 Agent 作用域创建，业务插件复用现有实例。
+
+<details className="plugin-faq" id="设置-opentrue-为什么仍然没有内容">
+<summary>设置 open=true 为什么仍然没有内容？</summary>
+
+需要有效的 items 和可见的选中内容。默认工作台没有内置内容；按本页接入步骤登记项目内容，再展开。
+
+</details>
+
+### 侧栏操作
+
+| 方法                              | 行为                    |
+| ------------------------------- | --------------------- |
+| `open(id)`                      | 展开并选中内容；已关闭的标签也可重新打开。 |
+| `open()`                        | 恢复上次内容。               |
+| `close(id)`                     | 关闭标签。                 |
+| `collapse()`                    | 收起侧栏。                 |
+| `activate(id)`                  | 只切换选中项，保持当前展开状态。      |
+| `getSnapshot()` / `subscribe()` | 读取和订阅状态。              |

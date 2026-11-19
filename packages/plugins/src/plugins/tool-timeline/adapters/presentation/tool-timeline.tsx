@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ComponentProps, type ReactNode } from 'react';
+import { useState, type ComponentProps } from 'react';
 import {
   FileSearchIcon,
   PenLineIcon,
@@ -14,15 +14,12 @@ import {
   useAuiState,
 } from '../../../../plugin-support.js';
 export interface ConversationToolTimelineProps extends Omit<ComponentProps<'div'>, 'children'> {
-  /** Supplied by the conversation scope; tool details render independently. */
-  children?: ReactNode;
   expanded?: boolean;
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
   visibleSteps?: number;
 }
 export function InternalConversationToolTimeline({
-  children: _children,
   expanded,
   defaultExpanded = false,
   onExpandedChange,

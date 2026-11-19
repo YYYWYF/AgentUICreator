@@ -4,77 +4,103 @@ title: "界面语言切换（locale-switch）"
 
 # 界面语言切换（locale-switch）
 
-切换语言后，当前对话和输入草稿会保留。它控制界面语言，Agent 用什么语言回答由 Agent 和业务配置决定。
+切换中文和英文界面，支持服务绑定和业务页面控制。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<span id="常见需求"></span>
+<span id="需求示例"></span>
+<span id="代码示例"></span>
+<span id="启用与使用"></span>
+<span id="定制选项"></span>
 
-![切换界面语言（locale-switch）界面示例](/images/plugins/locale-switch.png)
+## 语言选择
 
-## 启用与使用
+<figure className="plugin-preview">
 
-在 **Creator 输入框**输入 `/enable locale-switch`，点击下图中的 **「切换界面语言」**。
+![语言选择界面](/images/plugins/locale-switch.png)
 
-![Creator 启用菜单：点击「切换界面语言」，插件 ID 为 locale-switch](/images/plugins/enable/locale-switch.jpg)
+</figure>
 
-开发者启用语言按钮与应用语言设置。用户从该入口选择中文或英文；受控宿主收到 onLocaleChange 后更新 locale。
+## 紧凑的语言选择框 {#紧凑的语言选择框}
 
-## 定制选项
+<span id="example-1"></span>
 
-页面语言参数见[语言配置](/development/agent-options#界面语言切换)。控件属性如下：
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 选择框大小和外观 | 调整大小、宽度、颜色和边框。 |
-| 周围的间距 | 调整选择框与周围内容的距离。 |
-| 选项文字 | 修改“中文”“English”等显示文字，保留对应语言代码。 |
+沿用已有语言服务，只改控件大小。
 
-## 需求示例
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalLocaleSwitchPlugin } from '@za38.03/agent-ui-plugins';
 
-```text
-请修改「切换界面语言（locale-switch）」：
-修改：中文选项显示为【简体中文】，英文选项显示为【English】，选择框宽度设为【120px】。
-保留：zh-CN、en-US 语言代码和切换行为。
+export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin>) {
+  return <CanonicalLocaleSwitchPlugin {...props}
+    selectProps={{ ...props.selectProps, size: "sm" }} />;
+}
 ```
 
-## 属性
+<span id="example-2"></span>
 
-打开项目中的 `plugins/locale-switch/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 受控语言选择 {#受控语言选择}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+此例展示控件受控写法；业务页面还应把选中 locale 绑定到已有 Agent 语言配置，所有插件才会同步。
 
-组件：`CanonicalLocaleSwitchPlugin`；类型：`LocaleSwitchPluginProps`。继承 `section` 原生属性。
+```tsx
+import { useState, type ComponentProps } from 'react';
+import { CanonicalLocaleSwitchPlugin, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin>) {
+  const [locale, setLocale] = useState<AgentUILocaleCode>("zh-CN");
+  return <CanonicalLocaleSwitchPlugin {...props}
+    locale={locale}
+    onLocaleChange={setLocale} />;
+}
+```
+
+## 业务入口切换语言 {#从其他组件切换语言}
+
+组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
+
+```tsx
+import { usePluginService, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService }
+  from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';
+
+export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; label: string }) {
+  const service = usePluginService<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE);
+  return <button type="button" disabled={!service}
+    onClick={() => service?.setLocale(locale)}>{label}</button>;
+}
+```
+
+## API
+
+使用 `selectProps.id` 设置选择框标识；省略时自动生成唯一 ID。
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalLocaleSwitchPlugin` 上设置以下属性。
+
+继承 `section` 原生属性。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `locale?` | [`AgentUILocaleCode`](#agentuilocalecode) | 受控语言，优先于服务快照；均未提供时读取统一语言上下文 |
 | `onLocaleChange?` | [`(locale: AgentUILocaleCode) => void`](#agentuilocalecode) | 受控变化回调，优先于服务的 `setLocale` |
 | `service?` | [`{ getSnapshot(): { locale: AgentUILocaleCode }; subscribe(listener: () => void): () => void; setLocale(locale: AgentUILocaleCode): void }`](#agentuilocalecode) | 已有语言服务 |
-| `contextId?` | `string` | 默认 `locale`，选择框 ID 为 `${contextId}-control` |
+| `options?` | `readonly AgentUILocaleCode[]` | 限制或调整已有选项的顺序；默认全部选项 |
 | `disabled?` | `boolean` | 选择框禁用设置 |
-| `selectProps?` | `ComponentProps<typeof NativeSelect>` | 原生下拉框属性；`onChange` 先调用，`preventDefault()` 可阻止默认切换 |
-| `children?` | `ReactNode` | 替换默认语言选项 |
+| `selectProps?` | `Omit<ComponentProps<typeof NativeSelect>, 'children' \| 'value' \| 'defaultValue' \| 'disabled'>` | 下拉框样式、标识与事件；`onChange` 先调用，`preventDefault()` 可阻止默认切换 |
 
 没有变化回调且没有可用服务时，组件不显示。
 
-### 类型说明
+### 语言选择怎样生效 {#agentuilocalecode}
 
-#### AgentUILocaleCode
+`locale` 接受 `zh-CN`（简体中文）或 `en-US`（英文）。业务页面控制该值时，在 `onLocaleChange(nextLocale)` 中更新它；只传一个固定 `locale` 会保持固定语言。项目默认文案和业务新增文案的配置见[语言服务](./locale-provider)。
 
-```ts
-type AgentUILocaleCode = 'en-US' | 'zh-CN';
-```
+<span id="hook"></span>
 
-`en-US` 为英文，`zh-CN` 为简体中文。
+其他组件需要跟随当前语言显示业务内容时，使用[语言 Hook 与双语消息示例](./locale-provider#example-2)。切换语言调用同一服务的 `setLocale(locale)`，对应功能示例可用于业务页面已有的语言按钮；切换后各插件继续使用原 Thread 和草稿。
 
-### 类型查询
+### 服务方法 {#服务}
 
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalLocaleSwitchPlugin } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof CanonicalLocaleSwitchPlugin>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+消费 `agent-ui.locale`；服务及 `AgentUILocaleService` 类型见 [语言服务](./locale-provider#服务)。传入 `service` / `locale` / `onLocaleChange` 时沿用该组件公开属性约定。

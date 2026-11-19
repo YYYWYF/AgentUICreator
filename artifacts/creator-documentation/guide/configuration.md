@@ -16,7 +16,13 @@ CREATOR_MODEL_NAME=your-model-name
 
 Creator 默认从启动时的工作目录读取 `.agent-ui/creator/.env.local`；如果从其他目录启动，应将配置文件放在那个目录，或通过 `--config-root` 指定配置根目录（其下读取 `.agent-ui/creator/.env.local`）。切换目标工程不改变配置目录。同名的非空进程环境变量优先于文件配置。
 
-`.agent-ui` 不应整体忽略：`project.json`、`source-lock.json`、`plugin-ownership.json` 及源码 BASE 等项目记录需要随项目提交。新初始化的项目会生成 `.agent-ui/.gitignore`，忽略 `creator/`、`operator/`、`connection.local.json` 和 `visual-observations/`；已有项目保留自己的忽略规则，按需补充这些条目。共享 Mock 测试数据可以继续提交。
+`.agent-ui` 按内容决定是否提交，不要整体忽略：
+
+- **项目记录需要提交**：`project.json`、`source-lock.json`、`plugin-ownership.json` 及源码 BASE 等。
+- **本地数据忽略**：`creator/`、`operator/`、`connection.local.json`、`visual-observations/`。
+- **共享 Mock 测试数据**：可以继续提交。
+
+新项目会生成 `.agent-ui/.gitignore`；已有项目保留自己的规则，按需补充上述忽略条目。
 
 `--config-root` 指向工程或工具根目录，不是 `creator/` 目录。
 

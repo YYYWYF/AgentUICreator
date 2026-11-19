@@ -100,8 +100,11 @@ export interface CanonicalComposerProps extends Omit<ConversationComposerRootPro
   rows?: ConversationComposerInputProps['rows'];
   maxLength?: ConversationComposerInputProps['maxLength'];
   submitMode?: ConversationComposerInputProps['submitMode'];
-  inputProps?: ConversationComposerInputProps;
-  dropzoneProps?: ConversationComposerDropzoneProps;
+  inputProps?: Omit<
+    ConversationComposerInputProps,
+    'rows' | 'maxLength' | 'submitMode' | 'autoFocus' | 'children' | 'value' | 'defaultValue'
+  >;
+  dropzoneProps?: Omit<ConversationComposerDropzoneProps, 'children'>;
   autoFocus?: boolean | undefined;
   placeholder: string;
   inputAriaLabel: string;
@@ -134,17 +137,11 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   ...rootProps
 }) => {
   useComposerRequestAdapter(requestAdapter);
-  const { submitMode: inputSubmitMode, submitOnEnter, ...nativeInputProps } = inputProps ?? {};
-  const resolvedSubmitMode = submitMode ?? inputSubmitMode;
   const resolvedInputProps = {
-    ...nativeInputProps,
+    ...inputProps,
     ...(rows === undefined ? {} : { rows }),
     ...(maxLength === undefined ? {} : { maxLength }),
-    ...(resolvedSubmitMode === undefined
-      ? submitOnEnter === undefined
-        ? {}
-        : { submitOnEnter }
-      : { submitMode: resolvedSubmitMode }),
+    ...(submitMode === undefined ? {} : { submitMode }),
   };
   const inheritedHostConfig = useContext(ComposerHostConfigContext);
   const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
@@ -238,12 +235,7 @@ export type ConversationCanonicalComposerProps = Omit<
 export function ConversationCanonicalComposer(props: ConversationCanonicalComposerProps) {
   const labels = useAgentUILocale('composer');
   return (
-    <CanonicalComposer
-      {...props}
-      placeholder={labels.placeholder}
-      inputAriaLabel={labels.input}
-      queueLabels={labels}
-    />
+    <CanonicalComposer {...props} placeholder={labels.placeholder} inputAriaLabel={labels.input} queueLabels={labels} />
   );
 }
 export { ComposerTextareaInput as ConversationComposerTextareaInput } from './textarea.js';

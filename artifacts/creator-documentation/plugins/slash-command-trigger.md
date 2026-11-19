@@ -1,92 +1,113 @@
 # / 快捷命令（slash-command-trigger）
 
-用户可以搜索并选择项目已提供的命令。**操作类命令会执行相应动作**；**指令类命令会加入草稿，随问题一起发送**。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![快捷命令界面](/images/plugins/slash-command-trigger.png)
 
-![输入 / 使用命令（slash-command-trigger）界面示例](/images/plugins/slash-command-trigger.png)
+输入 / 后显示命令候选；指令插入草稿，动作执行项目操作。
 
-## 启用与使用
+输入 `/` 打开命令菜单。菜单中的指令会进入草稿供本次发送使用，动作则在选择时执行项目行为；插件已区分这两种流程，无需用户为普通选项自己调用 Composer。
 
-在 **Creator 输入框**输入 `/enable slash-command-trigger`，点击下图中的 **「输入 / 使用命令」**。
+## 选择指令，或执行一个动作
 
-![Creator 启用菜单：点击「输入 / 使用命令」，插件 ID 为 slash-command-trigger](/images/plugins/enable/slash-command-trigger.jpg)
+`directive` 模式选中后默认插入命令引用，例如 `:command[总结]{name=summarize}`，用户继续编辑后再发送。它本身不启动 Agent 请求。
 
-## 定制选项
+`action` 模式默认调用条目的 `execute()`，例如新建会话或打开项目面板；不把这个动作作为指令留在草稿，也不自动写入业务选择数据。默认命令源中的新建会话即属于动作模式。
 
-命令名称、列表和执行内容在[应用命令配置](/guide/adjustments/mention-and-commands.md)中说明。这个菜单可以调整：
+命令可来自公开 `source`，也可由业务插件通过[会话命令源](/plugins/conversation-command-source.md#随业务插件启停注册命令)注册。服务变化后菜单跟随更新，菜单查询与键盘选择由插件处理。
 
-| 可以改什么  | 效果                 |
-| ------ | ------------------ |
-| 候选列表提示 | 修改菜单标题和没有可选命令时的提示。 |
-| 命令失败提示 | 修改操作失败和重试时的文字。     |
+## 交给 Composer 的数据
 
-## 需求示例
 
-```text
-请修改「输入 / 使用命令（slash-command-trigger）」：
-修改：菜单标题改为【可用指令】，无结果提示改为【没有匹配的指令】，重试文字改为【再试一次】。
-保留：现有命令列表和执行行为。
+
+例如项目提供这个指令：
+
+```json
+{ "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
 ```
 
-## 属性
+选中后正文包含 `:command[总结]{name=summarize}`。假设触发器实例 ID 为 `task-command`，Composer 最终适配器读取到：
 
-打开项目中的 `plugins/slash-command-trigger/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+```json
+{
+  "pluginData": {
+    "task-command": [
+      { "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
+    ]
+  },
+  "selections": {
+    "task-command": [
+      { "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
+    ]
+  }
+}
+```
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+原始选择快照保留 `id/label/mode` 及实际提供的 `description/disabled/data`，不保存 `execute` 函数。两处均为数组；多个仍在正文中的引用可同时保留，删除引用就排除其数据。
 
-组件：`CanonicalConversationSlashCommandTrigger`；类型：`ConversationSlashCommandTriggerProps`。无独立根外观属性。
+**默认只发送正文引用，不自动附加结构化外带字段。** 命令业务数据由已有 [Composer `requestAdapter`](/plugins/composer.md#请求适配) 读取并决定发送格式；`slash-command-trigger` 没有局部 `requestAdapter`。命令源服务也不会另外提供一份数据。
 
-| 属性        | 类型                                                                  | 省略时 / 用途                    |
-| --------- | ------------------------------------------------------------------- | --------------------------- |
-| `source?` | [`ConversationSlashCommandSource`](#conversationslashcommandsource) | 从已有命令数据源读取命令列表；缺少时不显示命令候选界面 |
+普通触发器使用其插件实例键；嵌入其他业务插件时使用该实例的 `:command` 子键。动作默认没有上述条目，不能假设每次选择菜单都会产生 `pluginData`。
+
+## 选中后只插入纯文本 \{#选中命令后替换为纯文本}
+
+
+`onSelect` 接管默认指令插入和动作执行。返回值只替换当前 `/` 查询片段；下面插入名称，周围草稿由插件保留，不需要调用方拼接：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
+
+export function PlainCommand(props: ComponentProps<typeof CanonicalConversationSlashCommandTrigger>) {
+  return <CanonicalConversationSlashCommandTrigger {...props} onSelect={command => command.label} />;
+}
+```
+
+非空返回文字会绑定原始选择供 Composer 读取；`null` 移除查询，不记录数据。设置回调后，即使条目原来是 `action`，也不会再自动执行 `execute()`。回调抛错时恢复原查询和选择，不把失败操作当作一次新选择。
+
+## 发送、编辑与再次选择
+
+插入不等于发送。正常发送使用当前有效引用快照；排队、重试和工具续答保留原次提交的数据。编辑消息时移除命令引用，便不再携带该引用的数据。单独恢复正文标记只能恢复显示，原始业务 `data` 需随前端历史元数据保留，见 [Composer 的提交与历史规则](/plugins/composer.md#提交后的快照重发与会话切换)。
+
+## API
+
+
+
+在 `CanonicalConversationSlashCommandTrigger` 上设置以下属性。
+
+无独立根外观属性。
+
+| 属性          | 类型                                                                  | 省略时 / 用途                                                              |
+| ----------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `source?`   | [`ConversationSlashCommandSource`](#conversationslashcommandsource) | 从已有命令数据源读取命令列表；缺少时不显示命令候选界面                                           |
+| `onSelect?` | `(command, { text, range }) => string \| null`                      | 完全替换指令插入和动作执行；见[选中与发送格式](/development/composer-sources.md#在项目中替换选中行为) |
 
 `mode: 'directive'` 插入序列化指令引用，没有独立草稿文本属性，不自动发送消息。
 
 文案字段见统一 `conversationTriggers` 命名空间。
 
-### 类型说明
+### 命令来源与选中后的行为 \{#conversationslashcommandsource}
 
-#### ConversationSlashCommandSource
+`source.getSnapshot()` 同步返回 `readonly ConversationSlashCommand[]`，`source.subscribe(listener)` 通知菜单重新读取并返回取消订阅函数。异步业务请求由项目数据源执行，完成后更新同一个注册器；普通业务插件动态加入命令见[命令注册器](/plugins/conversation-command-source.md#随业务插件启停注册命令)。
 
-已有的命令数据源；命令项的结构见 [`ConversationSlashCommand`](#conversationslashcommand)。
 
-```ts
-interface ConversationSlashCommandSource {
-  getSnapshot(): readonly ConversationSlashCommand[];
-  subscribe(listener: () => void): () => void;
-}
-```
+| 命令字段           | 类型                            | 决定什么                                   |
+| -------------- | ----------------------------- | -------------------------------------- |
+| `id` / `label` | `string`                      | 稳定命令身份／菜单展示文字                          |
+| `description?` | `string`                      | 可选菜单说明                                 |
+| `disabled?`    | `boolean`                     | 当前命令是否不可选                              |
+| `mode`         | `'directive' \| 'action'`     | 插入草稿指令，或立即执行业务动作                       |
+| `execute`      | `() => void \| Promise<void>` | `action` 必需，只有选中后执行；`directive` 不提供此方法 |
+| `data?`        | `unknown`                     | 项目自定义的 JSON 业务数据，随原始选中项交给 Composer     |
 
-`getSnapshot` 读取命令列表，`subscribe` 订阅列表变化并返回取消订阅函数。
+默认情况下，`directive` 插入引用且不发送，`action` 调用 `execute()`。设置 `onSelect` 会接管这两种默认行为，前面的[纯文本插入示例](#选中命令后替换为纯文本)因此不会再执行动作。
 
-#### ConversationSlashCommand
 
-```ts
-type ConversationSlashCommand = {
-  id: string; // 命令标识
-  label: string; // 展示文字
-  description?: string; // 补充说明
-  disabled?: boolean; // 是否禁用
-} & (
-  | { mode: 'action'; execute(): void | Promise<void> }
-  | { mode: 'directive' }
-);
-```
+扩展 `/` 菜单有两个位置：在本组件传入 `source` 提供整份命令，或让其他业务插件通过[命令注册服务](/plugins/conversation-command-source.md#服务)动态加入自己的命令。`onSelect` 决定选中后的插入或动作，见[纯文本插入示例](#选中命令后替换为纯文本)。
 
-`action` 执行 `execute`；`directive` 插入指令引用。
+命令的业务参数直接放在来源的 `data` 中；[Composer requestAdapter](/plugins/composer.md#请求适配) 统一决定最终请求。未配置 Composer 适配器时只发送正文引用，不自动添加结构化外带字段。其他业务选择也可以通过 [Composer `setData()`](/plugins/composer.md#example-3) 写入本次草稿。
 
-### 类型查询
 
-React 原生属性及其他复杂类型可在编辑器中查询。通过公开组件取得完整属性类型：
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof CanonicalConversationSlashCommandTrigger>;
-```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
 
-触发器默认文案统一在 `locales.conversationTriggers` 修改。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。

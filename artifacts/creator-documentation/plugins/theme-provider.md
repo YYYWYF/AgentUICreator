@@ -1,35 +1,105 @@
 # 主题服务（theme-provider）
 
-统一管理助理界面的主题。内置浅色、深色和紫色，默认使用紫色主题。
+统一管理主题，并为自定义组件提供当前深浅配色。
 
-这是一个提供共享主题状态的插件，供界面和其他插件使用。可见的切换按钮由[主题切换插件](/plugins/theme-switch.md)提供；本页介绍主题服务的用途，手动配置见下方开发文档。
+<span id="常见需求"></span>
+<span id="代码示例"></span>
 
-## 可以调整什么
+## 共享主题
 
-| 你关心的内容  | 告诉 Creator 什么         |
-| ------- | --------------------- |
-| 默认主题    | 首次打开使用浅色、深色还是紫色。      |
-| 切换入口    | 是否允许用户切换，以及入口放在哪里。    |
-| 品牌外观    | 品牌色、圆角、字号等具体要求。       |
-| 与业务页面同步 | 是否跟随页面或系统主题、是否需要记住选择。 |
+<figure className="plugin-preview">
 
-## 怎么让 Creator 修改
+![共享主题界面](/images/plugins/theme-switch.png)
 
-在 Creator 输入框描述预期效果，例如：
+<figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
+</figure>
 
-```text
-助理首次打开使用深色主题，同时保留主题切换入口。
-品牌色改为 #1677ff，输入框圆角设为 12px。
-保留当前布局和按钮功能，不影响业务页面的其他组件。
-请检查浅色、深色主题下的文字与背景是否清楚。
+## 使用已有服务切换主题 \{#使用已有服务切换主题}
+
+<span id="example-1"></span>
+
+同一 Agent 内的按钮和主题选择框共享服务；切换后，所有订阅该主题的组件同步更新。组件声明 `agent-ui.theme` 依赖。
+
+```tsx
+import { usePluginService, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
+  from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
+
+export function DarkThemeButton() {
+  const service = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
+  const labels = useAgentUILocale('theme');
+  return <button type="button" disabled={!service}
+    onClick={() => service?.setTheme('dark')}>{labels.dark}</button>;
+}
 ```
 
-修改后，切换主题检查文字、按钮和弹层，确认会话和草稿保留。跟随系统主题、刷新后记住选择需要另行接入，请明确提出。
+<span id="example-2"></span>
 
-实际操作记录见[品牌色与样式定制](/guide/adjustments/themes.md)。
+## 主题适配 \{#让自定义内容随主题变化}
 
-## 手动接入
+使用项目已有语义变量；不在组件内根据语言或主题硬编码两套颜色。变量表见主题与样式指南。
+
+```tsx
+import type { ReactNode } from 'react';
+
+export function ThemedCard({ children }: { children: ReactNode }) {
+  return <section style={{
+    color: 'var(--foreground)', background: 'var(--background)',
+    border: '1px solid var(--border)', borderRadius: 12, padding: 16,
+  }}>{children}</section>;
+}
+```
+
+## 图表配色适配 \{#hook}
+
+自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useAgentUITheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
+
+```tsx
+import type { ReactNode } from 'react';
+import { useAgentUITheme } from '@za38.03/agent-ui-runtime/ui';
+import { getAgentUIThemeColorScheme, type AgentUIColorScheme }
+  from '@za38.03/agent-ui-plugins';
+
+export function ThemeAwareChart({ renderChart }: {
+  renderChart: (scheme: AgentUIColorScheme) => ReactNode;
+}) {
+  const theme = useAgentUITheme();
+  return <>{renderChart(getAgentUIThemeColorScheme(theme))}</>;
+}
+```
+
+`renderChart` 接项目当前图表组件，收到 `light` 或 `dark`。普通文字、边框和背景优先使用前面示例中的语义 CSS 变量。
+
+<span id="从业务按钮切换主题"></span>
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+<span id="手动接入"></span>
 
 - 设置默认主题、修改品牌色与样式：[主题与样式](/development/theme-and-styling.md)。
 - 由业务页面控制主题并接收切换：[主题切换配置](/development/agent-options.md#主题切换)。
 - 在自定义插件中读取主题或使用主题服务：[内置领域 Hook](/development/plugin-api.md#内置领域-hook)。
+
+### 服务方法 \{#服务}
+
+提供 `agent-ui.theme`。服务标识 `AGENT_UI_THEME_SERVICE` 和类型 `AgentUIThemeService` 从 `@za38.03/agent-ui-runtime/ui/services/agent-ui-theme` 导入。
+
+| 成员                                | 用途             |
+| --------------------------------- | -------------- |
+| `getTheme(): AgentUITheme`        | 读取当前主题。        |
+| `setTheme(theme): void`           | 切换主题。          |
+| `subscribe(listener): () => void` | 订阅变化，返回取消订阅函数。 |
+| `Root?`                           | 可选展示根组件。       |
+
+应用首次装配时，`createAgentUIThemeService(initialTheme = AGENT_UI_DEFAULT_THEME)` 创建服务；普通插件消费现有实例。接收本地偏好等未知输入时，`readAgentUITheme(value: unknown): AgentUITheme` 将无效值回退到默认主题；需要提示用户输入无效而不是回退时，用 `isAgentUITheme(value)` 先判断。以上函数从 Plugins 根入口导入。
+
+`AgentUITheme` 是可选主题的类型，`AGENT_UI_THEME_PRESETS` 可用于构造选择项；`getAgentUIThemeColorScheme(theme)` 将主题转换为 `AgentUIColorScheme`，适合需要深浅模式的图表等第三方展示。
+
+新服务仅在应用装配时创建，其他插件消费已有服务。
+
+<span id="可以调整什么"></span>
+
+<span id="怎么让-creator-修改"></span>

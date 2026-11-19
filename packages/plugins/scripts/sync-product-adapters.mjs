@@ -80,7 +80,7 @@ export function applySearchPresentationLabels(source, localPath) {
   };
   replace('  searching,\n', '  searching,\n  labels,\n');
   if (localPath.endsWith("web-search.tsx")) {
-    replace('  cycle: number;\n', '  cycle: number;\n  labels?: { searching: string; complete: string };\n');
+    replace('  searching: boolean;\n', '  searching: boolean;\n  labels?: { searching: string; complete: string };\n');
     replace('            Searching\n', '            {labels?.searching ?? "Searching"}\n');
     replace('            Read 3 sources\n', '            {labels?.complete.replace("{count}", String(results.length)) ?? "Read 3 sources"}\n');
   } else {
@@ -220,6 +220,8 @@ export function applyProductAdaptations(source, localPath) {
     installed = replaceExactlyOnce(installed, '              <span\n                className="block h-full', '              <span\n                data-slot="agent-ui-retrieval-score-fill"\n                className="block h-full', localPath);
   }
   if (localPath === "components/assistant-ui/elements/web-search.tsx") {
+    installed = replaceExactlyOnce(installed, '  cycle,\n', '', localPath);
+    installed = replaceExactlyOnce(installed, '  cycle: number;\n', '', localPath);
     installed = replaceExactlyOnce(installed, 'className="flex min-h-[5.75rem] flex-col"', 'className={cn("flex flex-col", searching && "min-h-[5.75rem]")}', localPath);
     installed = replaceExactlyOnce(installed, '  domain: string;\n}', `  domain: string;
   url?: string;
@@ -236,7 +238,7 @@ function webSearchHref(value: unknown): string | undefined {
     installed = replaceExactlyOnce(installed,
       '{take(results, visibleResults).map((result) => (',
       '{take(results, visibleResults).map((result, index) => {\n          const href = webSearchHref(result.url);\n          return (', localPath);
-    installed = replaceExactlyOnce(installed, 'key={`${cycle}-${result.domain}`}', 'key={`${cycle}-${index}`}', localPath);
+    installed = replaceExactlyOnce(installed, 'key={`${cycle}-${result.domain}`}', 'key={index}', localPath);
     installed = replaceExactlyOnce(installed, `            <span className="text-foreground/90 min-w-0 flex-1 truncate text-[13.5px]">
               {result.title}
             </span>`, `            <div className="min-w-0 flex-1">
@@ -307,7 +309,16 @@ function webSearchHref(value: unknown): string | undefined {
     installed = installed.replaceAll(emptyNode, '<div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">');
   }
   if (localPath === "components/assistant-ui/elements/reasoning.aui.tsx") {
-    installed = replaceExactlyOnce(installed, 'function ReasoningRoot({ onAnimationStart, ...props }, ref)', 'function ReasoningRoot({ onAnimationStart, streaming, ...props }, ref)', localPath);
+    installed = replaceExactlyOnce(installed, '  type ReasoningRootProps,', '  type ReasoningRootProps as BaseReasoningRootProps,', localPath);
+    installed = replaceExactlyOnce(installed, 'export type { ReasoningRootProps } from "./reasoning";', 'export type ReasoningRootProps = Omit<BaseReasoningRootProps, "onAnimationStart">;', localPath);
+    installed = replaceExactlyOnce(installed, 'function ReasoningRoot({ onAnimationStart, ...props }, ref)', 'function ReasoningRoot({ streaming, ...props }, ref)', localPath);
+    installed = replaceExactlyOnce(installed, `  const handleAnimationStart = useCallback(() => {
+    lockScroll();
+    onAnimationStart?.();
+  }, [lockScroll, onAnimationStart]);
+
+`, '', localPath);
+    installed = replaceExactlyOnce(installed, 'onAnimationStart={handleAnimationStart}', 'onAnimationStart={lockScroll}', localPath);
     installed = replaceExactlyOnce(installed, '      {...props}\n    />', '      {...props}\n      {...(streaming === undefined ? {} : { streaming })}\n      data-agent-state={streaming ? "running" : "idle"}\n    />', localPath);
   }
   return applySearchPresentationLabels(installed, localPath);

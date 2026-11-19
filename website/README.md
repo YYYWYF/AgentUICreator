@@ -10,15 +10,69 @@ not establish real-backend acceptance. Images enlarge in place when clicked.
 
 Public documentation has two working paths: Creator guides explain how to request
 and verify changes; developer guides explain where to edit, how to integrate, and
-which public props, methods and events to use. Plugin references serve both paths
-with screenshots, Creator requests and concrete manual development seams. Keep
-shared instructions in their owning guide, and verify APIs against current public
-exports. Keep internal design history, provenance and release authoring out of the
-public site. Preserve the generated frontend's independence from development tools.
+which public props, methods and events to use. Plugin references describe the delivered Plugin, including the behavior it already
+implements, its defaults and its lifecycle. Organize the outline around actual
+capabilities: automatic transitions, user interaction, data-driven updates and
+fallback behavior. A reader must understand what works after enabling the Plugin
+and supplying its data, without having to recreate that logic in an example.
 
-Cross-refresh run resumption is an internal experiment pending a product decision.
-Keep its guides, API entries and demo labels out of the public site and generated
-documentation until its product scope is explicitly approved.
+Open each Plugin reference with an actual screenshot and a short caption describing
+the pictured state. Place further screenshots beside the behavior they explain,
+including state transitions where relevant; a completed result cannot illustrate a
+loading state. Keep screenshots inline without an added frame or panel. Retain the
+Plugin's own visual border when it is part of the actual interface.
+Every Plugin driven by backend AG-UI data must retain a dedicated integration
+section with event order, exact names, payload fields and identifier relationships,
+plus the data conditions for loading, completion, errors and fallback. Include a
+concrete wire example in that page. Plugins that read shared message/run state
+must explain the standard events driving it rather than inventing a Plugin-specific
+backend event. Frontend props and screenshots do not replace this protocol contract.
+Link to shared SSE framing and approval details while keeping the Plugin's actual
+input format local and visible in its outline.
+Plugins that feed Composer explain their own raw selection, `pluginData` and
+`selections` shape, default request placement, local adapter effects and cleanup
+rules on their own page. Composer links to those contracts and documents the
+complete final request plus shared draft hooks and operations. Native-only
+contributors, such as attachments and dictation, explain their message/draft
+path without inventing plugin-data entries.
+Put wire/data examples beside
+the relevant integration explanation. Introduce customization only after defaults
+are clear, and state which built-in behaviors continue to work and which parts a
+replacement renderer must provide. Preserve the existing Plugin entry's context,
+message/tool bindings and operations in examples. Do not imply that users must set
+presentation props to obtain behavior the Plugin already supplies. Keep prop,
+method and data lookup tables in the final API section. Each Plugin's structure
+follows its own behavior; do not require a quota of prop demos or identical sections.
+Ant Design is a reference for feature navigation, visual examples, collapsed code
+and API placement, not a reason to describe a Plugin as one isolated component.
+Avoid export inventories, copied type declarations and generic outline entries
+such as “common needs”, “requirement examples” or “code examples”. Creator requests
+and step-by-step integration instructions belong in their owning guides.
+Keep internal design history, provenance and release authoring out of the public
+site, and preserve the generated frontend's independence from development tools.
+
+Development code fences are collapsed by default through `theme/remark-collapsed-code.ts`.
+AG-UI event streams (JSONL, SSE and JSON event examples) use the original visible
+code block, without a disclosure wrapper or summary. Keep these stream examples
+outside explicitly collapsed guide sections as well.
+Native disclosures remain keyboard accessible and work in the static site before
+hydration. Preserve raw code fences in generated Markdown for offline readers and
+agents. Existing explicit disclosures keep their own grouping.
+
+Verify code against current public declarations with `pnpm test:documentation`.
+Explain the required context, defaults, callback behavior and expected result beside
+the example that uses them. Show actual customization logic when a feature needs
+composition; forwarding a built-in hook's output does not teach custom grouping.
+Distinguish presentation options from upload, persistence, authentication or backend
+execution. Reuse an existing example or link to its owning guide when it already
+explains an operation. Put import paths and types beside their working use; explain
+payload fields with behavior and actual data instead of standalone type aliases.
+Shared tool status and interaction contracts belong in the tool-details reference;
+result Plugins link to that explanation instead of repeating it.
+
+Public documentation describes cross-refresh long-task observation as under
+development and currently unsupported. Keep experimental integration guides,
+API entries and demo labels out of the public site and generated documentation.
 
 Write public instructions around the project files, settings and actions the reader
 uses. Keep package-internal ownership rules and implementation editing restrictions

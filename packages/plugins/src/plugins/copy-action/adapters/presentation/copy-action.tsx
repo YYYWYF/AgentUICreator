@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, type ComponentProps, type FC } from 'react';
+import { useEffect, useRef, useState, type ComponentProps, type FC, type ReactNode } from 'react';
 import {
   CheckIcon,
   CopyIcon,
@@ -7,9 +7,12 @@ import {
   useAgentUILocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
-export type CanonicalResponseCopyActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
+export type CanonicalResponseCopyActionProps = Omit<
+  ComponentProps<typeof TooltipIconButton>,
+  'tooltip' | 'children'
+> & { icon?: ReactNode };
 export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> = ({
-  children,
+  icon,
   onClick,
   disabled: disabledProp,
   ...buttonProps
@@ -62,12 +65,11 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
           }
         }}
       >
-        {children ??
-          (copied ? (
-            <CheckIcon data-slot='copy-action-copied' className='animate-in zoom-in-50 fade-in duration-200 ease-out' />
-          ) : (
-            <CopyIcon data-slot='copy-action-idle' className='animate-in zoom-in-75 fade-in duration-150' />
-          ))}
+        {copied ? (
+          <CheckIcon data-slot='copy-action-copied' className='animate-in zoom-in-50 fade-in duration-200 ease-out' />
+        ) : (
+          (icon ?? <CopyIcon data-slot='copy-action-idle' className='animate-in zoom-in-75 fade-in duration-150' />)
+        )}
       </TooltipIconButton>
       {failed && (
         <span role='status' data-slot='copy-action-error' className='text-destructive text-xs'>

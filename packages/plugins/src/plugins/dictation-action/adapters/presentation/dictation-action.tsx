@@ -1,5 +1,5 @@
 'use client';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   AuiIf,
   ComposerActions,
@@ -8,12 +8,15 @@ import {
   TooltipIconButton,
   useAgentUILocale,
 } from '../../../../plugin-support.js';
-export type ConversationComposerDictateProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
-export type ConversationComposerStopDictationProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
-export function ConversationComposerDictate({
-  children,
-  ...props
-}: ConversationComposerDictateProps = {}) {
+export type ConversationComposerDictateProps = Omit<
+  ComponentProps<typeof TooltipIconButton>,
+  'tooltip' | 'children'
+> & { icon?: ReactNode };
+export type ConversationComposerStopDictationProps = Omit<
+  ComponentProps<typeof TooltipIconButton>,
+  'tooltip' | 'children'
+> & { icon?: ReactNode };
+export function ConversationComposerDictate({ icon, ...props }: ConversationComposerDictateProps = {}) {
   const messages = useAgentUILocale('composer');
   return (
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation == null}>
@@ -29,16 +32,13 @@ export function ConversationComposerDictate({
           aria-label={messages.startVoice}
           {...props}
         >
-          {children ?? <MicIcon data-slot='agent-ui-composer-tool-icon' className='aui-composer-dictate-icon size-4' />}
+          {icon ?? <MicIcon data-slot='agent-ui-composer-tool-icon' className='aui-composer-dictate-icon size-4' />}
         </TooltipIconButton>
       </ComposerActions.Dictate>
     </AuiIf>
   );
 }
-export function ConversationComposerStopDictation({
-  children,
-  ...props
-}: ConversationComposerStopDictationProps = {}) {
+export function ConversationComposerStopDictation({ icon, ...props }: ConversationComposerStopDictationProps = {}) {
   const messages = useAgentUILocale('composer');
   return (
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation != null}>
@@ -54,7 +54,7 @@ export function ConversationComposerStopDictation({
           aria-label={messages.stopVoice}
           {...props}
         >
-          {children ?? (
+          {icon ?? (
             <SquareIcon
               data-slot='agent-ui-composer-recording-stop-icon'
               className='aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current'

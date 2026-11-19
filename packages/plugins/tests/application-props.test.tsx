@@ -23,7 +23,10 @@ async function mount(children: ReactNode) {
   return { host, get runtime() { return runtime; }, async rerender(next: ReactNode) { content = next; await act(async () => root!.render(<Host />)); } };
 }
 it("static suggestion props use the existing composer and respect prevented selections", async () => {
-  const result = await mount(<ConversationCanonicalSuggestions items={[{ title: "My account", label: "Business description", prompt: "Read my account" }]} sendOnSelect={false} />);
+  const renderSuggestion = vi.fn((_item: { prompt: string }, view: ReactNode) => <section data-suggestion-renderer>{view}</section>);
+  const result = await mount(<ConversationCanonicalSuggestions items={[{ title: "My account", label: "Business description", prompt: "Read my account" }]} sendOnSelect={false} renderSuggestion={renderSuggestion} />);
+  expect(renderSuggestion).toHaveBeenCalledWith(expect.objectContaining({ prompt: "Read my account" }), expect.anything());
+  expect(result.host.querySelector("[data-suggestion-renderer]")).not.toBeNull();
   const button = result.host.querySelector("button")!;
   expect(button.textContent).toContain("My account");
   expect(button.textContent).toContain("Business description");
@@ -80,15 +83,15 @@ it("surface structural fallbacks preserve adapter behavior", async () => {
   expect(host.querySelector("[data-autofocus]")?.getAttribute("data-autofocus")).toBe("true");
   expect(host.textContent).toContain("Project welcome");
 });
-it("login button children remain configurable without losing submit semantics", async () => {
+it("login labels use the locale layer without losing submit semantics", async () => {
   const signIn = vi.fn(async () => {});
-  const { host } = await mount(<CanonicalAuthGatePlugin session={{ signIn }} state={{ status: "anonymous", user: null, busy: false, error: null }} submitButtonProps={{ children: "Enter business app" }} />);
+  const { host } = await mount(<AgentUILocaleProvider messages={{auth:{signIn:"Enter business app"}}}><CanonicalAuthGatePlugin session={{ signIn }} state={{ status: "anonymous", user: null, busy: false, error: null }} /></AgentUILocaleProvider>);
   expect(host.querySelector("button")?.textContent).toBe("Enter business app");
   expect(host.querySelector("button")?.type).toBe("submit");
 });
-it("account sign-out children remain configurable", async () => {
+it("account sign-out labels use the locale layer", async () => {
   const signOut = vi.fn(async () => {});
-  const { host } = await mount(<CanonicalAuthAccountPlugin session={{ signOut }} snapshot={{ user: { userId: "1", userName: "Project user" }, busy: false }} signOutButtonProps={{ children: "Leave business app" }} />);
+  const { host } = await mount(<AgentUILocaleProvider messages={{auth:{signOut:"Leave business app"}}}><CanonicalAuthAccountPlugin session={{ signOut }} snapshot={{ user: { userId: "1", userName: "Project user" }, busy: false }} /></AgentUILocaleProvider>);
   await act(async () => host.querySelector<HTMLButtonElement>("button")!.click());
   expect(document.body.textContent).toContain("Leave business app");
 });

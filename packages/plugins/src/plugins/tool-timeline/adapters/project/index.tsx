@@ -11,5 +11,5 @@ export function ConversationToolTimelinePlugin({
   if (scope?.kind !== 'conversation.tool-timeline') {
     return null;
   }
-  return <ConversationToolTimeline {...scope.value} {...props} />;
+  return <ConversationToolTimeline {...props} />;
 }

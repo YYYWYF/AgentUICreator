@@ -1,45 +1,72 @@
 # 回复复制（copy-action）
 
-回复完成后点击复制，即可把文本粘贴到其他地方。一次回复分成多条消息时，会按这次回复一起复制。
+复制当前版本整次回答的文字，包含工具续跑后产生的多段助理内容。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
 
-![复制回复（copy-action）界面示例](/images/plugins/copy-action.png)
 
-## 启用与使用
 
-在 **Creator 输入框**输入 `/enable copy-action`，点击下图中的 **「复制回复」**。
 
-![Creator 启用菜单：点击「复制回复」，插件 ID 为 copy-action](/images/plugins/enable/copy-action.jpg)
+## 复制完整回复
 
-## 定制选项
 
-| 可以改什么   | 效果               |
-| ------- | ---------------- |
-| 鼠标提示    | 修改鼠标移到复制按钮上时的提示。 |
-| 按钮图标或文字 | 替换复制图标，或直接显示文字。  |
-| 按钮大小和外观 | 调整大小、颜色、边框和圆角。   |
-| 暂时不可点击  | 需要时将按钮设为不可点击。    |
+![复制完整回复界面](/images/plugins/copy-action.png)
 
-## 需求示例
+在已有回复操作栏中使用，组件读取当前回答的内容与可用状态。
 
-```text
-请修改「复制回复（copy-action）」：
-修改：按钮显示文字【复制答案】，悬停提示改为【复制完整回答】。
-保留：复制完整回复的行为。
+```tsx
+import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
+
+export function ResponseAction() {
+  return <ConversationCanonicalResponseCopyAction />;
+}
 ```
 
-## 属性
+## 按钮尺寸与提示位置 \{#尺寸与提示位置}
 
-打开项目中的 `plugins/copy-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+调整复制按钮的展示；按钮继续操作当前整次回复。
 
-组件：`ConversationCanonicalResponseCopyAction`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalResponseCopyAction>) {
+  return <ConversationCanonicalResponseCopyAction {...props}
+    variant="ghost"
+    size="icon-sm"
+    side="top" />;
+}
+```
+
+
+## 禁用状态 \{#按业务状态禁用}
+
+
+![复制完整回复界面](/images/plugins/features/copy-action-states.png)
+
+同一次回答中的可用与禁用状态。
+
+示例直接禁用；实际项目把 true 换成自己的权限或业务状态表达式。组件仍叠加当前会话的可用性判断。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalResponseCopyAction>) {
+  return <ConversationCanonicalResponseCopyAction {...props}
+    disabled={true} />;
+}
+```
+
+## API
+
+
+
+组件：`ConversationCanonicalResponseCopyAction`。保留提示按钮的原生样式、事件与 icon 属性；默认提示从 locales 读取。
 
 | 属性          | 类型                                              | 省略时 / 用途                           |
 | ----------- | ----------------------------------------------- | ---------------------------------- |
-| `children?` | `ReactNode`                                     | 默认复制图标，复制成功后短暂切换为成功图标              |
+| `icon?`     | `ReactNode`                                     | 自定义操作图标；文案使用统一 locale              |
 | `disabled?` | `boolean`                                       | 与回答生成中／没有正文的禁用条件叠加                 |
 | `onClick?`  | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行复制；`preventDefault()` 可阻止默认动作 |
 
@@ -47,7 +74,13 @@
 
 ### 按钮属性
 
-提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
+
+- 状态与事件：`disabled`、`onClick`。
+- 内容与样式：`icon`、`className`、`style`。
+- 组合与无障碍：`render`、`nativeButton` 和无障碍属性。
+
+组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 
 | 属性         | 类型                                                                                           | 省略时 / 用途          |
 | ---------- | -------------------------------------------------------------------------------------------- | ----------------- |
@@ -57,17 +90,7 @@
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalResponseCopyAction>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
-
 默认提示文案只读取 `locales.common.copy`，失败提示读取 `locales.copyAction.failed`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+
+自定义“复制到业务表单”等操作时，在已有回复页脚中调用 `useConversationResponseRuntime()`，使用 `text` 取得当前版本的整次回答；它会包含工具续跑后的多段助理文字。业务动作可沿用[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)的按钮示例，将 `save` 接到自己的表单方法。只改复制按钮外观时，使用前面的组件属性即可。

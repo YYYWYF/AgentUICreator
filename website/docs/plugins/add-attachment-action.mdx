@@ -4,53 +4,121 @@ title: "附件添加（add-attachment-action）"
 
 # 附件添加（add-attachment-action）
 
-点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。
+<figure className="plugin-preview">
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![附件选择界面](/images/plugins/add-attachment-action.jpg)
 
-![添加附件（add-attachment-action）界面示例](/images/plugins/add-attachment-action.jpg)
+<figcaption>文件已加入草稿，输入区显示附件与移除入口；继续填写问题后一起发送。</figcaption>
+</figure>
 
-## 启用与使用
+通过现有附件能力把文件加入当前草稿。选择后由 Composer 显示附件项、移除入口与准备状态；配置上传服务时在发送阶段上传，用户无需自己把按钮、上传和消息正文串起来。
 
-在 **Creator 输入框**输入 `/enable add-attachment-action`，点击下图中的 **「添加附件」**。
+## 选择、移除并随消息发送
 
-![Creator 启用菜单：点击「添加附件」，插件 ID 为 add-attachment-action](/images/plugins/enable/add-attachment-action.jpg)
+按钮打开文件选择器，接受类型取自当前附件适配器；可多选时一次加入多个文件。草稿中的附件可以在发送前移除，正文仍可继续编辑。
 
-## 定制选项
+生成项目默认使用本地 Base64 附件适配器，单文件上限 20 MiB；这不等于已接入业务文件服务。需要地址型附件时，按[附件上传服务](/development/attachment-upload)接入现有 Host。上传、认证与失败处理配置属于附件服务，不是本按钮的外观属性。
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 按钮提示 | 修改鼠标移到按钮上时的提示和读屏名称。 |
-| 一次选几个文件 | 选择每次只能选一个文件，或允许多选。 |
-| 按钮图标 | 把加号换成其他图标，或显示文字。 |
-| 大小和样式 | 调整按钮大小、颜色、边框和圆角。 |
+## 与 Composer 联动
 
-## 需求示例
+附件进入原生 `composer.attachments`，**不另建 `pluginData[附件插件ID]` 或 `selections` 条目**。发送时由当前 AG-UI 适配器把它转换到用户消息的 `content` 数组，和正文一起进入最终 `request`。
 
-```text
-请修改「添加附件（add-attachment-action）」：
-修改：文件选择设为【单选】，按钮提示改为【添加文件】。
-保留：原有上传和移除附件的行为。
+例如输入“请总结附件中的内容”，并通过上传服务得到 PDF 地址，用户消息可以是：
+
+```json
+{
+  "id": "user-1",
+  "role": "user",
+  "content": [
+    { "type": "text", "text": "请总结附件中的内容" },
+    {
+      "type": "document",
+      "source": { "type": "url", "value": "https://files.example.com/order.pdf", "mimeType": "application/pdf" },
+      "metadata": { "filename": "order.pdf" }
+    }
+  ]
+}
 ```
 
-## 属性
+这是 `request.messages` 中的一条消息示例，不是整个请求。当前适配器将 PDF 等普通文件转换为 `document`，图片、音频和视频分别使用 `image/audio/video`，不要自行把 PDF 固定拼成 `type: 'file'`。
 
-打开项目中的 `plugins/add-attachment-action/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+本地内嵌数据使用 `source.type: 'data'`，`value` 为不带 `data:...;base64,` 前缀的 Base64，并带 `mimeType`，例如图片片段：
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+```json
+{
+  "type": "image",
+  "source": { "type": "data", "value": "aGVsbG8=", "mimeType": "image/png" },
+  "metadata": { "filename": "diagram.png" }
+}
+```
 
-组件：`ConversationComposerAddAttachment`；类型：`ConversationComposerAddAttachmentProps`。保留提示按钮的原生样式、事件与 children 属性；默认提示从 locales 读取。
+这里的 Base64 只是格式占位，实际值由附件适配器生成。最终 [Composer `requestAdapter`](./composer#请求适配)接收到的 `request.messages` 已包含转换后的附件；只改业务字段时保留这些内容，避免把整个消息替换为纯文本而丢失文件。
+
+## 其他插件添加或移除附件
+
+业务文件按钮使用 `useConversationComposer().addAttachment(file)`，传入浏览器 `File`，不要把 `File` 塞进 `setData()`。同一控制器的 `attachments` 提供 `{ id, name }`，`removeAttachment(id)` 按 ID 移除；这份展示列表不是完整的媒体请求格式或上传状态。完整示例见 [Composer 的控制器](./composer#响应式草稿控制器)。
+
+添加与移除返回 Promise，调用方处理失败。提交前移除的文件不进入本次消息；已接受提交的附件快照不受下一条草稿修改影响。
+
+## 文件单选 {#单文件选择}
+
+<span id="example-1"></span>
+
+multiple 控制文件选择器一次能选择多少文件；不限制整个草稿累计添加的附件数量，也不负责上传。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationComposerAddAttachment>) {
+  return <ConversationComposerAddAttachment {...props}
+    multiple={false} />;
+}
+```
+
+<span id="example-2"></span>
+
+## 按钮外观 {#小号描边按钮}
+
+size 和 variant 直接传给按钮，side 控制提示出现的位置。已有上传适配继续使用。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationComposerAddAttachment>) {
+  return <ConversationComposerAddAttachment {...props}
+    size="sm"
+    variant="outline"
+    side="top" />;
+}
+```
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `ConversationComposerAddAttachment` 上设置以下属性。
+
+保留提示按钮的原生样式、事件与 icon 属性；默认提示从 locales 读取。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
+| `icon?` | `ReactNode` | 自定义操作图标；文案使用统一 locale |
 | `multiple?` | `boolean` | 文件选择器是否允许多选；省略时使用现有附件组件的默认设置 |
-| `children?` | `ReactNode` | 默认加号图标 |
 
 默认提示方向为 `bottom`，按钮为 `ghost`／`icon`。上传地址和上传方法继续使用项目已有的附件服务配置。
 
 ### 按钮属性
 
-提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性，包括 `disabled`、`onClick`、`children`、`className`、`style`、`render`、`nativeButton` 和无障碍属性。组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
+提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
+
+- 状态与事件：`disabled`、`onClick`。
+- 内容与样式：`icon`、`className`、`style`。
+- 组合与无障碍：`render`、`nativeButton` 和无障碍属性。
+
+组件会叠加运行状态判断，传入 `disabled={false}` 不会解除当前会话的禁用条件。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -60,17 +128,23 @@ title: "附件添加（add-attachment-action）"
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationComposerAddAttachment>;
-```
-
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
-
 默认提示与无障碍文案只读取 `locales.composer.addAttachment`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+
+<details className="plugin-faq">
+<summary>multiple={false} 能限制整个会话只能上传一个文件吗？</summary>
+
+不能。它只限制一次文件选择。累计数量、类型、大小和实际上传由项目附件适配实现。
+
+</details>
+
+<span id="multiple-能限制整个会话只能上传一个文件吗"></span>
+
+<span id="代码示例"></span>
+
+<span id="启用与使用"></span>
+
+<span id="常见需求"></span>
+
+<span id="附件选择"></span>
+
+<span id="需求示例"></span>

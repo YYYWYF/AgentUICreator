@@ -6,7 +6,7 @@ export function ConversationNewPlugin(props: ComponentProps<typeof Implementatio
   return (
     <Implementation
       showLabel={false}
-      children={<CirclePlus aria-hidden='true' style={{ width: 20, height: 20, color: 'var(--muted-foreground)' }} />}
+      icon={<CirclePlus aria-hidden='true' style={{ width: 20, height: 20, color: 'var(--muted-foreground)' }} />}
       {...props}
     />
   );

@@ -1,40 +1,143 @@
 # 会话服务（conversation-service）
 
-让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。
+共享列表、历史缓存和会话操作，支持刷新、订阅和独立详情读取。
 
-这是一个提供共享会话管理能力的插件，负责会话状态、缓存和操作。它与[会话数据源](/plugins/conversation-data-source.md)配合，并供[会话列表](/plugins/conversation-thread-list.md)等界面插件使用，通常没有独立界面。
+<span id="常见需求"></span>
+<span id="代码示例"></span>
 
-## 什么时候需要关心
+## 会话管理
 
-- 列表中有会话，但点击后没有打开对应记录。
-- 删除或重命名成功后，列表没有正确更新。
-- 加载失败后没有提示，或无法重试。
+<figure className="plugin-preview">
 
-正常使用时，无需了解服务接口，也不需要另建一套会话管理。
+![会话管理界面](/images/plugins/conversation-thread-list.png)
 
-## 实现与项目配置
+<figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
+</figure>
+
+## 刷新当前历史列表 \{#刷新当前历史列表}
+
+<span id="example-1"></span>
+
+放在同一 Agent 作用域的项目插件中，并在定义中声明 agent-ui.conversations 依赖。失败交给项目已有错误提示处理。
+
+```tsx
+import { useState } from 'react';
+import { usePluginService, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService }
+  from '@za38.03/agent-ui-plugins/conversation-service';
+
+export function RefreshHistory({ onError }: { onError: (error: unknown) => void }) {
+  const service = usePluginService<ConversationService>(AGENT_UI_CONVERSATION_SERVICE);
+  const labels = useAgentUILocale('threadList');
+  const [pending, setPending] = useState(false);
+  return <button type="button" disabled={!service || pending} onClick={async () => {
+    if (!service || pending) return;
+    setPending(true);
+    try { await service.refresh(); } catch (error: unknown) { onError(error); }
+    finally { setPending(false); }
+  }}>{labels.retry}</button>;
+}
+```
+
+<span id="example-2"></span>
+
+## 读取另一段历史而不切换当前对话 \{#读取另一段历史而不切换当前对话}
+
+loadConversation 只读详情；不会用该历史替换当前 Thread。回调由项目显示预览或错误。
+
+```tsx
+import { usePluginService } from '@za38.03/agent-ui-plugins';
+import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService, type ConversationDetail }
+  from '@za38.03/agent-ui-plugins/conversation-service';
+
+export function ReadHistory({ id, label, onLoaded, onError }: {
+  id: string; label: string;
+  onLoaded: (detail: ConversationDetail) => void;
+  onError: (error: unknown) => void;
+}) {
+  const service = usePluginService<ConversationService>(AGENT_UI_CONVERSATION_SERVICE);
+  return <button type="button" disabled={!service} onClick={() => {
+    void service?.loadConversation(id).then(onLoaded, onError);
+  }}>{label}</button>;
+}
+```
+
+## 订阅会话列表 \{#订阅会话列表}
+
+组件与服务位于同一 Agent，并声明 `agent-ui.conversations` 依赖。
+
+```tsx
+import { useConversations } from '../../services/hooks/useConversations';
+
+export function ConversationCount() {
+  const { snapshot, serviceAvailable } = useConversations();
+  return serviceAvailable ? <output>{snapshot.conversations.length}</output> : null;
+}
+```
+
+`snapshot.conversations` 随刷新、重命名、删除等操作更新，`serviceAvailable` 为 `false` 时隐藏计数。这个组件不主动请求列表；需要刷新使用前面的 `RefreshHistory`。相对路径指向项目已有 Hook，移动组件时同步调整。
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+<span id="实现与项目配置"></span>
 
 本插件管理会话列表、详情加载与缓存、当前选中的会话，以及删除、重命名和归档等操作。会话数据源负责读取接口，本插件将这些数据和操作提供给界面，消息与运行继续由应用已有的 Runtime 管理。
 
 历史记录的持久化由业务后端完成。手动接入接口或调整操作时，按下方开发文档修改项目配置。
 
-## 怎么让 Creator 修改
-
-描述具体问题和预期结果，例如：
-
-```text
-会话列表能显示历史会话，但点击后没有打开对应的聊天记录。
-请检查现有历史数据源与会话服务的连接，修复切换问题，
-保留页面布局、新建会话和其他会话操作。
-加载失败时要有提示，并允许重试。
-```
-
-修改后，打开不同的历史会话，确认名称和消息对应正确；再检查失败提示与重试。
-
-## 相关接口
+<span id="相关接口"></span>
 
 - 接入历史接口、数据格式和会话管理操作：[接入历史会话](/development/history-backend.md)。
 - 从业务页面发送消息、停止运行或新建会话：[用业务页面控制 Agent](/development/react-host-control.md)。
 - 编写需要读取或共享服务的自定义插件：[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。
 
 调整列表组件的外观与属性，见[会话列表](/plugins/conversation-thread-list.md)。
+
+<span id="取数与联动"></span>
+
+其他插件可以订阅列表和当前会话信息，也可以用 `loadConversation(id)` 读取指定历史而不切换聊天。需要统一的消息结构时再调用 `projectConversationDetail(detail)`；适合历史比较、摘要等功能，见[取数示例](/development/plugin-interaction.md#读取历史不切换聊天)。
+
+<span id="hook"></span>
+
+| 入口                                                                      | 返回与使用位置                                                                                                 |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 项目 `services/hooks/useConversations` 的 `useConversations()`             | 返回 `{ snapshot, serviceAvailable }`；只依赖服务上下文。                                                           |
+| 项目 `services/hooks/useConversationActions` 的 `useConversationActions()` | 提供 `refresh`、`selectConversation`、`loadConversation`、删除、重命名、归档、恢复归档及 `serviceAvailable`；依赖已有会话 Runtime。 |
+| npm 根入口的 `useConversationActions(): ConversationActions`                | 只提供选择、删除、重命名、归档和恢复归档；没有 `refresh` / `loadConversation`。                                                 |
+
+项目 Hook 与 npm 同名 Hook 的签名不同，按实际导入入口使用。
+
+### 服务方法 \{#服务}
+
+提供 `agent-ui.conversations` 与供 Runtime 消费的 `agent-ui.thread-binding`，依赖 `agent-ui.conversation-data-source`。
+
+| 服务成员                                                                      | 返回值与用途                                                                |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `getSnapshot()` / `subscribe(listener: () => void)`                       | 当前 `ConversationSnapshot` / `() => void`，订阅后重新读取快照                    |
+| `refresh()`                                                               | `Promise<void>`，刷新列表                                                  |
+| `selectConversation(id)`                                                  | `Promise<ConversationDetail \| undefined>`，服务级详情选择；UI 导航优先使用项目操作 Hook |
+| `loadConversation(id)`                                                    | `Promise<ConversationDetail>`，独立读取详情，不切换当前 Thread                     |
+| `deleteConversation(id: string)`                                          | `Promise<void>`，删除业务记录并更新列表                                           |
+| `renameConversation?(id: string, title: string)`                          | `Promise<void>`，重命名并更新已有缓存                                            |
+| `archiveConversation?(id: string)` / `unarchiveConversation?(id: string)` | `Promise<void>`，归档／恢复；数据源需实现相应操作                                      |
+| `showConversation(id)` / `showLiveConversation()`                         | 更新业务视图选择，不代替 Runtime 导航                                               |
+| `resetForNewConversation()`                                               | Runtime 已新建／切换后同步服务状态，不自行创建 Thread                                    |
+
+`ConversationSnapshot` 按用途包含：
+
+- 会话数据：`mode`、`conversations`、`activeConversationId?`、`activeConversation?`。
+- 加载状态：`listStatus`、`detailStatus`，值为 `idle | loading | ready | error`。
+- 错误信息：`listError?`、`detailError?`、`detailErrorConversationId?`。
+
+需要将历史详情转换成统一消息结构时，从 `/conversation-service` 导入 `projectConversationDetail(detail)`，传入已取得的 `ConversationDetail`，返回投影后的消息列表；完整例子见[读取历史不切换聊天](/development/plugin-interaction.md#读取历史不切换聊天)。校验未知业务响应时，可以使用同入口的 `conversationSummarySchema.safeParse(value)` / `conversationDetailSchema.safeParse(value)`，先处理失败，再将合法结果交给服务。
+
+应用装配使用 `createConversationService({ dataSource })` 创建一次服务，清理时调用其 `dispose()`；其他插件取得已有服务。`createConversationThreadBindingFactory(service)` / `createConversationServiceThreadBinding()` 用于现有 Host 的 Thread 绑定，普通列表或结果卡片无需调用。
+
+[刷新后继续观察未结束的长任务](/development/history-backend.md#刷新后继续观察长任务开发中)开发中，暂不支持；历史加载仅恢复已保存的记录。
+
+<span id="什么时候需要关心"></span>
+
+<span id="怎么让-creator-修改"></span>

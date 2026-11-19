@@ -86,7 +86,10 @@ import type { Context, FC, ComponentProps } from "react";
 export { useAgentUILocale } from "./locale.js";
 export { ComposerPrimitive, QueueItemPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
 export { XIcon } from "lucide-react";
-export type ConversationComposerInputProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>;
+export type ConversationComposerInputProps = Omit<
+  ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>,
+  "cacheMeasurements" | "submitOnEnter" | \`unstable_\${string}\`
+>;
 export type ConversationComposerRootProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Root>;
 export type ConversationComposerDropzoneProps = ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.AttachmentDropzone>;
 export const ComposerHostConfigContext: Context<{ autoFocus: boolean }>;
@@ -112,7 +115,7 @@ export const QuestionFlow: FC<import("./public.js").ConversationQuestionFlowProp
 export function useAssistantResponseRuntime(): import("./public.js").ConversationResponseRuntime;
 export function useConversationCommandDecision(toolCallId: string): import("./public.js").ConversationCommandDecisionBinding | undefined;
 type DisclosureRoot = Omit<CollapsiblePrimitive.Root.Props, "onOpenChange"> & { onOpenChange?: (open: boolean) => void; variant?: "outline" | "ghost" | "muted" | null };
-export const ReasoningRoot: FC<Omit<DisclosureRoot, "onAnimationStart"> & { streaming?: boolean; onAnimationStart?: () => void }>;
+export const ReasoningRoot: FC<Omit<DisclosureRoot, "onAnimationStart"> & { streaming?: boolean }>;
 export const ReasoningTrigger: FC<CollapsiblePrimitive.Trigger.Props & { active?: boolean; duration?: number }>;
 export const ReasoningContent: FC<CollapsiblePrimitive.Panel.Props>;
 export const ReasoningText: FC<ComponentProps<"div">>;

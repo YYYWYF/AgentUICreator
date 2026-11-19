@@ -6,6 +6,8 @@ title: "给 Agent 传递业务参数"
 
 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。
 
+@ 与 / 的业务数据直接定义在来源的候选项中，触发器保留正文引用并记录原始选中项；其他插件使用 `useComposer().setData` 提交数据。Composer 的 `requestAdapter` 统一决定最终 `forwardedProps`，见[插件发送参数](./composer-sources#插件提供数据composer-组装请求)。
+
 ## 业务参数 ctx
 
 在 `<Agent />` 上设置 `ctx`，每次发送消息时都会带上这些默认参数：

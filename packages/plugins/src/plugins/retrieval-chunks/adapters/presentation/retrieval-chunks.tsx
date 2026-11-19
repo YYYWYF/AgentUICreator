@@ -8,17 +8,11 @@ import {
 } from '../../../../public.js';
 import { projectRetrievalChunks } from './projection.js';
 export interface RetrievalChunksPluginProps extends ConversationToolCallProps, UIPluginElementProps {
-  query?: ComponentProps<typeof RetrievalChunks>['query'];
-  chunks?: ComponentProps<typeof RetrievalChunks>['chunks'];
-  searching?: ComponentProps<typeof RetrievalChunks>['searching'];
   visibleCount?: ComponentProps<typeof RetrievalChunks>['visibleCount'];
   renderRetrieval?: (props: RetrievalChunksProps, tool: ConversationToolCallProps) => ReactNode;
   Fallback?: ComponentType<ConversationToolCallProps>;
 }
 export function CanonicalRetrievalChunks({
-  query,
-  chunks,
-  searching,
   visibleCount,
   className,
   style,
@@ -40,18 +34,14 @@ export function CanonicalRetrievalChunks({
     'aria-describedby': ariaDescription,
     onClick,
   };
-  const overrides = Object.fromEntries(
-    Object.entries({ query, chunks, searching, visibleCount }).filter(([, value]) => value !== undefined),
-  );
   const view = projectRetrievalChunks(tool);
   if (view === null) {
     return <Fallback {...tool} />;
   }
   const props: RetrievalChunksProps = {
     ...view,
-    ...overrides,
+    ...(visibleCount === undefined ? {} : { visibleCount }),
     ...rootProps,
-
   };
   return <>{renderRetrieval ? renderRetrieval(props, tool) : <RetrievalChunks {...props} />}</>;
 }

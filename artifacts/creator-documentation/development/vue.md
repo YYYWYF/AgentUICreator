@@ -117,7 +117,12 @@ const moduleUrl = new URL('/agent-ui.js', window.location.origin).href;
 await import(/* @vite-ignore */ moduleUrl);
 ```
 
-`/agent-ui.js` 对应复制后发布的静态文件，部署到子目录时调整为实际 URL。这份 ESM 资源来自自己的 React 工程，包含该工程的定制。官方包公开的 `@za38.03/agent-ui-web-component/agent-ui.js` 则是 classic script，加载方式见 [Web Component 接入](/development/web-component.md#加载独立脚本)。使用定制资源时**移除官方包的注册导入**，避免同时加载两份实现。
+| 资源                                            | 来源与加载方式                                                                             |
+| --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `/agent-ui.js`                                | 自己的 React 工程构建出的 ESM 资源，包含该工程的定制；复制后随业务工程发布。部署到子目录时调整实际 URL。                        |
+| `@za38.03/agent-ui-web-component/agent-ui.js` | 官方包的 classic script，加载方式见 [Web Component 接入](/development/web-component.md#加载独立脚本)。 |
+
+使用定制资源时，**移除官方包的注册导入**，避免同时加载两份实现。
 
 ## 更新与验证
 

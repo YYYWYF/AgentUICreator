@@ -1,12 +1,15 @@
 'use client';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { ComposerActions, PlusIcon, TooltipIconButton, useAgentUILocale } from '../../../../plugin-support.js';
-export type ConversationComposerAddAttachmentProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
+export type ConversationComposerAddAttachmentProps = Omit<
+  ComponentProps<typeof TooltipIconButton>,
+  'tooltip' | 'children'
+> & { icon?: ReactNode } & {
   multiple?: boolean;
 };
 export function ConversationComposerAddAttachment({
   multiple,
-  children,
+  icon,
   ...props
 }: ConversationComposerAddAttachmentProps = {}) {
   const messages = useAgentUILocale('composer');
@@ -26,7 +29,7 @@ export function ConversationComposerAddAttachment({
         />
       }
     >
-      {children ?? <PlusIcon data-slot='agent-ui-composer-tool-icon' className='aui-attachment-add-icon size-4' />}
+      {icon ?? <PlusIcon data-slot='agent-ui-composer-tool-icon' className='aui-attachment-add-icon size-4' />}
     </ComposerActions.AddAttachment>
   );
 }

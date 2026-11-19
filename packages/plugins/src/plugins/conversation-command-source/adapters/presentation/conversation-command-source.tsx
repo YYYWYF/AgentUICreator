@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 export interface ConversationCommandSourcePluginProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
-  children?: ReactNode;
 }
-export function CanonicalConversationCommandSourcePlugin(props: ConversationCommandSourcePluginProps) {
-  return <>{props.children ?? null}</>;
+export function CanonicalConversationCommandSourcePlugin(_props: ConversationCommandSourcePluginProps) {
+  return null;
 }

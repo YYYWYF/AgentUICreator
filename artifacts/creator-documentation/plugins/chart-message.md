@@ -1,104 +1,128 @@
 # 图表展示（chart-message）
 
-例如把四个季度的销售额显示为条形图，同时保留项目名称和数值，用户不用只阅读一段数字。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![图表结果界面](/images/plugins/chart-message.png)
 
-![查看图表（chart-message）界面示例](/images/plugins/chart-message.png)
+结构化数据直接展示为条形图，标题、项目和数值文字与对应条形放在一起。
 
-## 启用与使用
+将 Agent 返回的结构化数据展示为条形图，自动显示标题、项目名称、数值和相对长度。
 
-在 **Creator 输入框**输入 `/enable chart-message`，点击下图中的 **「查看图表」**。
+## 收到图表数据后展示
 
-![Creator 启用菜单：点击「查看图表」，插件 ID 为 chart-message](/images/plugins/enable/chart-message.jpg)
+有效图表消息到达后，插件按数据顺序绘制各项，不需要业务代码先计算每条柱子的宽度。图表标题和项目名称来自消息中的业务数据。
 
-## 显示条件与数据来源
+每项必须有名称和有限数值；数据结构无效时不显示图表，不会用示例值补齐缺失数据。
 
-**Agent 服务接入：**&#x542F;用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+## 数值与条形长度
+
+条形长度按照当前图表中的最大数值计算，比较基准至少为 1；数值文字默认直接显示原值。负数保留其数值文字，条形长度按 0 展示。
+
+插件提供的是这种相对长度的条形展示，不会自动选择折线、饼图或其他图表类型。需要其他图形时可以替换整个图表展示。
+
+## 随消息数据更新
+
+会话传入的图表数据变化时，标题、项目和条形一起更新。正式回答正文和图表数据分别展示，普通回答中的一段 JSON 不会自动成为图表。
+
+## 接入图表消息 \{#显示条件与数据来源}
+
+启用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"CUSTOM","name":"chart","value":{"title":"季度销售额","items":[{"label":"第一季度","value":120},{"label":"第二季度","value":180}]}}
 ```
 
-`title` 为字符串；`items` 为数组，每项包含字符串 `label` 和有限数值 `value`。字段或类型无效时不渲染图表。注册在 `dataMessageUIs` 的名称是 `chart`，不是插件 ID `chart-message`；不要把这段 JSON 填进普通文字消息。
+- **数据结构**：`title` 为字符串；`items` 为数组，每项包含字符串 `label` 和有限数值 `value`。
+- **无效数据**：字段或类型无效时不渲染图表。
+- **注册名称**：`dataMessageUIs` 中使用 `chart`，不是插件 ID `chart-message`。
 
-## 定制选项
+这段 JSON 需作为数据消息发送，不要填进普通文字消息。
 
-| 可以改什么     | 效果                          |
-| --------- | --------------------------- |
-| 图表大小和间距   | 调整图表宽度，以及各条数据之间的距离。         |
-| 标题和文字     | 调整标题、名称和数值的字号、颜色。           |
-| 条形外观      | 调整条形的高度、颜色和圆角。              |
-| 数字格式      | 例如把 12345 显示为 12,345，或添加单位。 |
-| 单条数据或整张图表 | 自定义每条数据的排版，或替换整个图表展示。       |
 
-## 需求示例
+`renderChart(data)` 可读取图表的 `title` 和 `items`，`renderItem(item, index, data)` 可读取单项和整份数据。把它们传给项目的表格、明细或导出组件即可复用同一份结果。需要独立插件同步选择时，使用[共享 Service](/development/plugin-interaction.md#插件之间共享选择或结果)。
 
-```text
-请修改「查看图表（chart-message）」：
-修改：条形颜色改为【蓝色】，高度设为【8px】，数值显示【千位分隔符】。
-保留：Agent 返回的名称和数值。
-```
 
-## 属性
+## 使用本地化数值格式 \{#本地化数值格式}
 
-打开项目中的 `plugins/chart-message/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+在项目已有图表消息入口格式化数值文字，条形比例仍使用原始数值计算：
 
-组件：`CanonicalChartMessage`；类型：`ChartMessageProps`。继承 `figure` 原生属性，排除 `children`、原生 `title`。
-
-| 属性             | 类型                                                                                                  | 省略时 / 用途                                               |
-| -------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `data`         | `unknown`                                                                                           | 必需；校验为 [`ChartMessageData`](#chartmessagedata)，无效时不渲染  |
-| `title?`       | `ReactNode`                                                                                         | 默认数据中的图表标题                                             |
-| `classNames?`  | [`Partial<Record<ChartRegion, string>>`](#chartregion)                                              | 图表各部分的样式类                                              |
-| `styles?`      | [`Partial<Record<ChartRegion, CSSProperties>>`](#chartregion)                                       | 图表各部分的内联样式                                             |
-| `formatValue?` | [`(value: number, item: ChartMessageItem) => ReactNode`](#chartmessageitem)                         | 默认直接显示数值                                               |
-| `renderItem?`  | [`(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode`](#chartmessageitem) | 替换单条图表内容，完整数据见 [`ChartMessageData`](#chartmessagedata) |
-| `renderChart?` | [`(data: ChartMessageData) => ReactNode`](#chartmessagedata)                                        | 替换整个图表，自行处理根外观与标题                                      |
-
-### 类型说明
-
-#### ChartMessageData
-
-图表的完整数据；`items` 中每项的结构见 [`ChartMessageItem`](#chartmessageitem)。
-
-```ts
-interface ChartMessageData {
-  title: string; // 图表标题
-  items: readonly ChartMessageItem[]; // 图表数据项
-}
-```
-
-#### ChartMessageItem
-
-```ts
-interface ChartMessageItem {
-  label: string; // 数据项名称
-  value: number; // 数据项数值，必须为有限数
-}
-```
-
-#### ChartRegion
-
-本页对样式分区键的简称，不是额外的 npm 导出类型。
-
-```ts
-type ChartRegion = 'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value';
-```
-
-依次对应标题、列表、单项、名称、条形背景、数值条和数值文字。
-
-### 类型查询
-
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
-
-```ts
+```tsx
 import type { ComponentProps } from 'react';
-import type { CanonicalChartMessage } from '@za38.03/agent-ui-plugins';
+import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
+import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof CanonicalChartMessage>;
+export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>) {
+  const locale = useAgentUILocaleCode();
+  return <Implementation {...props}
+    formatValue={value => new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)} />;
+}
 ```
 
-完整格式化与渲染示例见[手动修改插件：已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。
+## 将同一份数据改为表格 \{#用表格展示同一份图表数据}
+
+
+`renderChart` 接收已校验的数据。需要精确比较数值时，可以替换整个默认图表：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
+
+export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    renderChart={chart => (
+      <table>
+        <caption>{chart.title}</caption>
+        <tbody>{chart.items.map((item, index) => (
+          <tr key={index}><th scope="row">{item.label}</th><td>{item.value}</td></tr>
+        ))}</tbody>
+      </table>
+    )} />;
+}
+```
+
+替换后不再绘制默认条形，标题、布局和样式由新展示负责；消息读取和数据校验仍由插件处理。
+
+## API
+
+以下选项用于定制已有消息展示。`data` 由已注册的消息入口提供；正常使用无需另建一份展示数据。
+
+
+
+继承 `figure` 原生属性，排除 `children`、原生 `title`。
+
+| 属性             | 类型                                                                                                                        | 省略时 / 用途                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `data`         | `unknown`                                                                                                                 | 必需；校验为 [`ChartMessageData`](#chartmessagedata)，无效时不渲染  |
+| `classNames?`  | [`Partial<Record<'caption' \| 'list' \| 'item' \| 'label' \| 'track' \| 'bar' \| 'value', string>>`](#chartregion)        | 图表各部分的样式类                                              |
+| `styles?`      | [`Partial<Record<'caption' \| 'list' \| 'item' \| 'label' \| 'track' \| 'bar' \| 'value', CSSProperties>>`](#chartregion) | 图表各部分的内联样式                                             |
+| `formatValue?` | [`(value: number, item: ChartMessageItem) => ReactNode`](#chartmessageitem)                                               | 默认直接显示数值                                               |
+| `renderItem?`  | [`(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode`](#chartmessageitem)                       | 替换单条图表内容，完整数据见 [`ChartMessageData`](#chartmessagedata) |
+| `renderChart?` | [`(data: ChartMessageData) => ReactNode`](#chartmessagedata)                                                              | 替换整个图表，自行处理根外观与标题                                      |
+
+### 图表数据与样式位置 \{#chartmessagedata}
+
+`renderChart(data)` 取得已经校验的数据；例如以下对象会显示两个数值项：
+
+```json
+{ "title": "待办数量", "items": [{ "label": "处理中", "value": 12 }, { "label": "已完成", "value": 30 }] }
+```
+
+
+`title: string` 是图表标题；`items` 为只读数组，每项必需 `label: string` 和有限数 `value: number`。`formatValue` 只改变数值的显示，`renderItem` 取得该项、原数组索引和整个图表；需要显示同一数据的表格时，使用前面的表格示例。
+
+
+`classNames` / `styles` 的键直接对应可修改的视觉位置：
+
+| 键                 | 修改哪里           |
+| ----------------- | -------------- |
+| `caption`         | 图表标题           |
+| `list` / `item`   | 整个列表／单条记录      |
+| `label` / `value` | 项目名称／格式化后的数值文字 |
+| `track` / `bar`   | 条形背景／表示数值的条形   |
+
+例如 `styles={{ value: { fontWeight: 600 } }}` 只加粗数值；`renderChart` 完全替换内容时，这些默认区域由自定义内容自行实现。
+
+
+
+
+

@@ -4,97 +4,142 @@ title: "消息引用（conversation-quote）"
 
 # 消息引用（conversation-quote）
 
-选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。
+<figure className="plugin-preview">
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![消息引用界面](/images/plugins/conversation-quote.png)
 
-![引用消息（conversation-quote）界面示例](/images/plugins/conversation-quote.png)
+<figcaption>消息中的选中文本出现在引用预览；补充问题后一起发送，关闭预览取消引用。</figcaption>
+</figure>
 
-## 启用与使用
+选中已有消息中的一段文字后发起引用，输入区立即显示引用预览。用户可以补充问题，也可以直接移除预览；插件已经把选择工具栏、原消息标识和当前草稿连起来。
 
-在 **Creator 输入框**输入 `/enable conversation-quote`，点击下图中的 **「引用消息」**。
+## 引用一段消息再提问
 
-![Creator 启用菜单：点击「引用消息」，插件 ID 为 conversation-quote](/images/plugins/enable/conversation-quote.jpg)
+选择消息内容后使用引用入口，预览中保留这段内容。正文与引用分别编辑，关闭预览取消本次引用，不会删除原消息。默认发送时，将引用转换为 Markdown 引用段落，加在用户输入之前。
 
-### 发送格式
+例如引用“合同下周到期”，再输入“请提醒我续签”，发送的用户正文为：
 
-引用默认以 Markdown 引用格式拼在当前用户消息的 `messages[].content` 前面，不放入 `ctx` 或 `context`。例如引用「这段说明」后输入「是什么意思？」，请求体片段为：
+```text
+> 合同下周到期
+
+请提醒我续签
+```
+
+不需要自己给 Composer 拼接这段前缀。只希望后端接收消息 ID 和原文时，使用下方局部适配器替换默认引用前缀。
+
+## 交给 Composer 的数据
+
+<span id="发送格式"></span>
+
+<span id="example-1"></span>
+
+<span id="引用携带原消息标识"></span>
+
+<span id="自定义引用数据"></span>
+
+原始引用只有消息标识和所选正文。假设引用插件实例 ID 为 `quote`，未配置局部适配器时，Composer 最终适配器收到：
 
 ```json
 {
-  "messages": [
-    {
-      "role": "user",
-      "content": "> 这段说明\n\n是什么意思？"
-    }
-  ]
+  "pluginData": { "quote": { "messageId": "message-1", "text": "合同下周到期" } },
+  "selections": { "quote": [{ "messageId": "message-1", "text": "合同下周到期" }] }
 }
 ```
 
-含附件等多模态内容时，引用作为 content 数组最前面的文本项。后续普通提问不会自动再次携带这段引用。
+`pluginData.quote` 是**对象**，`selections.quote` 是原始选择数组。默认行为是前面的 Markdown 正文，不会再自动增加 `forwardedProps.quote`。
 
-## 定制选项
+在已有应用入口转换为后端所需字段：
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 引用按钮提示 | 修改选中文字后出现的“引用”按钮文案。 |
-| 移除引用提示 | 修改草稿里移除引用按钮的读屏名称。 |
-| 引用预览样式 | 调整输入框上方引用内容的排版和外观。 |
-| 选中文字后的工具条 | 替换引用工具条的图标、布局和外观。 |
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationQuotePlugin as Implementation } from '@za38.03/agent-ui-plugins/conversation-quote';
 
-## 需求示例
-
-```text
-请修改「引用消息（conversation-quote）」：
-修改：引用按钮文字改为【引用这段】，草稿中的引用预览加上【浅蓝色背景】。
-保留：选中引用、移除引用和发送时携带引用的行为。
+export function ConversationQuotePlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props}
+    requestAdapter={quote => ({ sourceMessageId: quote.messageId, passage: quote.text })} />;
+}
 ```
 
-## 属性
+局部适配器在选择变化时同步执行，返回 JSON。此时 `pluginData.quote` 改为 `{ sourceMessageId, passage }`，原始 `selections.quote` 保持不变；默认请求改为：
 
-打开项目中的 `plugins/conversation-quote/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+```json
+{ "forwardedProps": { "quote": { "sourceMessageId": "message-1", "passage": "合同下周到期" } } }
+```
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+配置局部适配器后不再自动拼接 Markdown 引用前缀。Composer 的[最终适配器](./composer#请求适配)可以继续移动这些字段、写入 AG-UI `context` 或重新组织正文；它返回的是完整最终请求。
 
-组件：`CanonicalConversationQuote`；类型：`ConversationQuotePluginProps`。没有独立的界面容器；预览与选择工具栏为两个表面。
+实例键以实际 AppUIModel 实例为准，嵌入其他插件时使用该实例的 `:quote` 子键。局部回调抛错或返回非法 JSON 时保留原引用并提示错误，不用失败结果替换草稿。
+
+## 取消、发送与恢复引用
+
+关闭预览后，这份引用不再参与本次请求。普通发送被接受后释放本次待发送数据；排队、重试和续答沿用原次快照。后续修改引用不会改写已提交请求。
+
+插件订阅原生 `composer.quote`，因此业务卡片使用 `setQuote()` 也会更新同一个预览与数据，不需要再手动调用 `setData()`。已有消息的编辑与历史恢复还需要保留前端元数据，见 [Composer 生命周期](./composer#提交后的快照重发与会话切换)。
+
+## 业务卡片引用 {#hook}
+
+业务结果卡片要把一段文字引用到当前草稿时，使用 Composer 的 `setQuote({ text, messageId })`。`text` 是选中的原文，`messageId` 是来源消息的实际 ID：
+
+```tsx
+import { useComposer } from '@za38.03/agent-ui-plugins';
+
+export function QuotePassage({ text, messageId, label }: {
+  text: string;
+  messageId: string;
+  label: string;
+}) {
+  const composer = useComposer();
+  return <button type="button"
+    onClick={() => composer.setQuote({ text, messageId })}>{label}</button>;
+}
+```
+
+把组件放入已有消息卡片中，`label` 来自项目文案。点击后，现有输入区的引用预览更新，用户仍需发送草稿；`setQuote(undefined)` 清除引用。引用数据的发送格式见[自定义引用数据](#自定义引用数据)。
+
+只有手动组合会话边界时才需要 `useConversationQuoteLifecycle(): void`，从 Plugins 根入口导入，在边界卸载时清理该 Thread 的待引用内容。生成项目已经安装此生命周期。定位自定义引用工具栏需要的 `useThreadRootElementRef()` 从 Runtime `/plugin-api` 导入，返回已有根元素 ref 或 `null`，不创建容器。
+
+## 隐藏选择工具栏，保留引用预览 {#隐藏选择工具栏保留引用预览}
+
+<span id="example-2"></span>
+
+renderToolbar 返回 null 后不显示默认选择工具栏；引用仍可由项目已有引用入口或 useComposer 设置。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalConversationQuote>) {
+  return <CanonicalConversationQuote {...props}
+    renderToolbar={() => null} />;
+}
+```
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalConversationQuote` 上设置以下属性。
+
+没有独立的界面容器；预览与选择工具栏为两个表面。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
+| `requestAdapter?` | `(quote: ConversationQuoteData) => ComposerData` | 同步定义引用 JSON；省略时保留 Markdown 引用正文 |
 | `renderPreview?` | `() => ReactNode` | 自定义引用预览 |
 | `renderToolbar?` | `() => ReactNode` | 自定义选择工具栏 |
-| `children?` | `ReactNode` | 替换默认预览与工具栏 |
-| `requestAdapter?` | `(quote: ConversationQuoteData) => ComposerData` | 同步定义引用 JSON；省略时保留 Markdown 引用正文 |
 
-默认组件没有根级 `className`／`style`；结构替换使用渲染回调或 children。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
+默认组件没有根级 `className`／`style`；预览与工具栏分别使用 renderPreview、renderToolbar。引用的保存、移除和切换会话时的清理，仍由现有会话处理。
 
-### 类型查询
+- **文案**：在 `locales.conversationQuote.quote` / `dismiss` 中修改引用与关闭文字，保持 `en-US` / `zh-CN` 对应。
+- **结构**：`renderPreview` 与 `renderToolbar` 是无参数的渲染回调。
 
-可在编辑器中通过公开组件取得完整属性类型：
+<span id="代码示例"></span>
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
+<span id="启用与使用"></span>
 
-type ImplementationProps = ComponentProps<typeof CanonicalConversationQuote>;
-```
+<span id="常见需求"></span>
 
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+<span id="消息引用"></span>
 
-引用与关闭文案统一在 `locales.conversationQuote.quote` / `dismiss` 修改。`renderPreview` 与 `renderToolbar` 是无参数的结构渲染回调。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
-
-## 自定义引用数据
-
-在已有应用层组件上设置：
-
-```tsx
-<Implementation {...props}
-  requestAdapter={quote => ({ sourceMessageId: quote.messageId, passage: quote.text })} />
-```
-
-回调接收 `{ text: string, messageId: string }`，同步返回 JSON。插件仍使用原生引用预览与移除行为，通过 `useComposer().setData` 保存数据。配置回调后，默认 Markdown 引用不再拼进正文，数据默认放入 `forwardedProps[引用插件实例ID]`；省略回调时发送格式与前文相同。
-
-Composer 的 `requestAdapter` 同时取得 `pluginData[引用插件实例ID]` 与 `selections[同一ID]`，可以将引用放到任意业务字段、AG-UI Context 或正文。它返回的请求是最终结果，见[统一组装](./composer#请求适配)。
-
-取消引用后不携带这份数据；编辑重发只保留当前消息仍有的引用。排队、重试和中断恢复使用原次提交的快照。原始引用保留在本地消息元数据中，若刷新后还需还原，应在业务历史中保留前端元数据。
-
-回调抛错或返回非 JSON 时恢复上一次有效引用，不退回默认格式发送失败的选择；错误文案使用 `conversationQuote.requestFailed`。
+<span id="需求示例"></span>

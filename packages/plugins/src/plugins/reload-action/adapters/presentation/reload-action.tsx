@@ -1,14 +1,17 @@
 'use client';
-import { type ComponentProps, type FC } from 'react';
+import { type ComponentProps, type FC, type ReactNode } from 'react';
 import {
   RefreshCwIcon,
   TooltipIconButton,
   useAgentUILocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
-export type CanonicalResponseReloadActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'>;
+export type CanonicalResponseReloadActionProps = Omit<
+  ComponentProps<typeof TooltipIconButton>,
+  'tooltip' | 'children'
+> & { icon?: ReactNode };
 export const CanonicalResponseReloadAction: FC<CanonicalResponseReloadActionProps> = ({
-  children,
+  icon,
   onClick,
   disabled: disabledProp,
   ...buttonProps
@@ -28,7 +31,7 @@ export const CanonicalResponseReloadAction: FC<CanonicalResponseReloadActionProp
         }
       }}
     >
-      {children ?? <RefreshCwIcon />}
+      {icon ?? <RefreshCwIcon />}
     </TooltipIconButton>
   );
 };

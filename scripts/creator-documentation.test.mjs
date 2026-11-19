@@ -11,6 +11,8 @@ import { artifactPath, documentationIdentity, isDocumentationResource, logicalPa
 import { packageRepository } from './package-repository.mjs';
 import { buildAgentDocumentation, documentationSections, portableReferenceLinks, referenceManifest } from './creator-agent-documentation.mjs';
 import { spawnPnpmSync } from './pnpm-process.mjs';
+import { createRequire } from 'node:module';
+import { runInNewContext } from 'node:vm';
 
 test('documented thin application examples compile against installed public declarations', async t => {
   const repository = fileURLToPath(new URL('../', import.meta.url));
@@ -29,6 +31,129 @@ test('documented thin application examples compile against installed public decl
   await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx', module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022' }, include: ['*.tsx'] }));
   const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('guide interaction examples compile against public declarations', async t => {
+  const repository = fileURLToPath(new URL('../', import.meta.url));
+  const root = await mkdtemp(path.join(tmpdir(), 'Creator guide examples '));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'package.json'), '{"type":"module"}');
+  await symlink(path.join(repository, 'packages/creator/node_modules'), path.join(root, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  let index = 0;
+  for (const [name, marker] of [
+    ['plugin-api.md', 'export function LimitedComposer'],
+    ['attachment-upload.md', 'export function notifyAttachmentRemoval'],
+    ['web-component-api.md', 'export function listenAgentReady'],
+  ]) {
+    const source = await readFile(path.join(repository, 'website/docs/development', name), 'utf8');
+    const snippet = [...source.matchAll(/```tsx?\r?\n([\s\S]*?)\r?\n```/gu)]
+      .map(match => match[1]).find(code => code.includes(marker));
+    assert(snippet, `Missing interaction example: ${name}`);
+    assert.doesNotMatch(snippet, /\bany\b/u, `Project example must not use any: ${name}`);
+    await writeFile(path.join(root, `example-${index++}.tsx`), snippet);
+  }
+  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({
+    compilerOptions: {
+      noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx',
+      module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022',
+      exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true,
+      paths: {
+        '@za38.03/agent-ui-web-component': [path.join(repository, 'packages/web-component/dist/types.d.ts')],
+      },
+    }, include: ['*.tsx'],
+  }));
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('plugin feature examples precede API tables and compile against public declarations', async t => {
+  const repository = fileURLToPath(new URL('../', import.meta.url));
+  const root = await mkdtemp(path.join(tmpdir(), 'Creator 插件 examples '));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'package.json'), '{"type":"module"}');
+  await symlink(path.join(repository, 'packages/creator/node_modules'), path.join(root, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  // Use the generated project's maintained hooks and authentication contract for
+  // examples that import project services instead of an npm Hook with that name.
+  await mkdir(path.join(root, 'services/hooks'), { recursive: true });
+  await mkdir(path.join(root, 'services/auth'), { recursive: true });
+  for (const name of ['useAuthSession', 'useConversations']) {
+    await cp(path.join(repository, 'packages/plugins/src/shared/project/services/hooks', `${name}.ts`),
+      path.join(root, 'services/hooks', `${name}.ts`));
+  }
+  await cp(path.join(repository, 'packages/plugins/src/plugins/auth-gate/adapters/project-support/services/auth/session.ts'),
+    path.join(root, 'services/auth/session.ts'));
+  await writeFile(path.join(root, 'services/conversations.ts'), "export * from '@za38.03/agent-ui-plugins/conversation-service';\n");
+  const catalog = JSON.parse(await readFile(path.join(repository, 'packages/plugins/src/catalog/plugin-delivery.json'), 'utf8'));
+  let count = 0;
+  for (const { id } of catalog) {
+    let text;
+    for (const extension of ['mdx', 'md']) {
+      try { text = await readFile(path.join(repository, 'website/docs/plugins', `${id}.${extension}`), 'utf8'); break; }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
+    }
+    assert(text, `Missing plugin page: ${id}`);
+    const headings = [...text.matchAll(/^## (.+)$/gmu)].map(match => match[1]);
+    assert.equal(headings.at(-1), 'API', `API must follow the feature examples: ${id}`);
+    assert(headings.length >= 3, `Missing functional outline: ${id}`);
+    assert.doesNotMatch(text, /^## (?:常见需求|需求示例|代码示例|启用与使用|开发 API)$/mu,
+      `Use feature names in the outline: ${id}`);
+    const features = text.split(/^## API\r?\n/mu)[0];
+    assert.match(features, /(?:!\[[^\]]*\]\(\/images\/|<img src="\/images\/)/u,
+      `Missing real component screenshot: ${id}`);
+    assert.doesNotMatch(features, /^\| (?:属性|字段|成员|方法) \|/mu,
+      `Reference tables belong after the feature examples: ${id}`);
+    // Built-in plugin behavior needs explanation, not an artificial number of prop demos.
+    // Compile complete examples across the page, including snippets in the API reference.
+    const snippets = [...new Set([...text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/gu)]
+      .map(match => match[1])
+      .filter(code => /^import /mu.test(code) && /^export (?:function|const|async function) /mu.test(code)))];
+    const directory = path.join(root, 'plugins', id);
+    await mkdir(directory, { recursive: true });
+    for (const [index, snippet] of snippets.entries()) {
+      assert.doesNotMatch(snippet, /\bany\b/u, `Project example must not use any: ${id}`);
+      await writeFile(path.join(directory, `example-${index + 1}.tsx`), snippet);
+      count++;
+    }
+  }
+  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({
+    compilerOptions: {
+      noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx',
+      module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022',
+      exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true,
+    }, include: ['plugins/**/*.tsx'],
+  }));
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  t.diagnostic(`Compiled ${count} recipes and API examples from ${catalog.length} plugin pages.`);
+});
+
+test('documented history grouping covers local calendar boundaries and business fallback', async () => {
+  const require = createRequire(new URL('../packages/creator/package.json', import.meta.url));
+  const ts = require('typescript-ui-audit');
+  const text = await readFile(new URL('../website/docs/plugins/conversation-thread-list.mdx', import.meta.url), 'utf8');
+  const snippet = [...text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/gu)]
+    .map(match => match[1]).find(code => code.includes('export function recentGroup'));
+  assert(snippet, 'Missing complete history grouping recipe');
+  const source = ts.createSourceFile('history.tsx', snippet, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const functions = source.statements.filter(node => ts.isFunctionDeclaration(node)
+    && ['recentGroup', 'categoryOf'].includes(node.name?.text)).map(node => node.getText(source)).join('\n');
+  const result = ts.transpileModule(functions, { compilerOptions: { module: ts.ModuleKind.CommonJS } });
+  const exports = {};
+  runInNewContext(result.outputText, { exports, Date, Number });
+  const now = new Date(2026, 10, 18, 12);
+  const start7 = new Date(2026, 10, 12).getTime();
+  const start30 = new Date(2026, 9, 20).getTime();
+  assert.equal(exports.recentGroup(now.getTime(), now), 'recent7');
+  assert.equal(exports.recentGroup(start7, now), 'recent7');
+  assert.equal(exports.recentGroup(start7 - 1, now), 'recent30');
+  assert.equal(exports.recentGroup(start30, now), 'recent30');
+  assert.equal(exports.recentGroup(start30 - 1, now), 'earlier');
+  assert.equal(exports.recentGroup(NaN, now), 'earlier');
+  assert.equal(exports.categoryOf({ group: 'work' }), 'work');
+  assert.equal(exports.categoryOf({ group: 'study' }), 'study');
+  for (const custom of [undefined, null, {}, { group: 'unknown' }, { group: 42 }]) {
+    assert.equal(exports.categoryOf(custom), 'other');
+  }
 });
 
 async function fixture(t) {

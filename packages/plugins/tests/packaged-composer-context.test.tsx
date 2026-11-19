@@ -33,7 +33,7 @@ it("published Composer forwards application input and root props and preserves c
     return <AssistantRuntimeProvider runtime={runtime}>
       <ConversationComposerPlugin renderSlot={(_slot, fallback) => fallback} renderScopedSlot={() => null}
         aria-label={"custom-form"} beforeInput={<span data-testid="application-before">custom</span>}
-        inputProps={{ submitMode: "ctrlEnter", minRows: 2, maxRows: 8, placeholder: "custom-placeholder", "aria-label": "custom-input", onKeyDown: () => keys++ }} />
+        submitMode="ctrlEnter" inputProps={{ minRows: 2, maxRows: 8, placeholder: "custom-placeholder", "aria-label": "custom-input", onKeyDown: () => keys++ }} />
     </AssistantRuntimeProvider>;
   }
   const container = document.createElement("div"); document.body.append(container);

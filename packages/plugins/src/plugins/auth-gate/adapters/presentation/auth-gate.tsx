@@ -4,21 +4,19 @@ import { Button, Input, useAgentUILocale } from '../../../../public.js';
 import type { AuthSessionSnapshot } from './auth-contract.js';
 export interface AuthGatePluginProps extends Omit<ComponentProps<'div'>, 'children' | 'title'> {
   title?: ReactNode;
-  submitText?: ReactNode;
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
   session?: { signIn(input: { account: string; password: string }): Promise<void> } | undefined;
   state?: AuthSessionSnapshot;
-  formProps?: ComponentProps<'form'>;
-  accountInputProps?: ComponentProps<typeof Input>;
-  passwordInputProps?: ComponentProps<typeof Input>;
-  submitButtonProps?: ComponentProps<typeof Button>;
+  formProps?: Omit<ComponentProps<'form'>, 'children'>;
+  accountInputProps?: Omit<ComponentProps<typeof Input>, 'children' | 'value' | 'defaultValue'>;
+  passwordInputProps?: Omit<ComponentProps<typeof Input>, 'children' | 'value' | 'defaultValue'>;
+  submitButtonProps?: Omit<ComponentProps<typeof Button>, 'children'>;
 }
 export function CanonicalAuthGatePlugin({
   renderSlot: _renderSlot,
   renderScopedSlot: _renderScopedSlot,
   title,
-  submitText,
   session,
   state = { status: 'checking', user: null, busy: false, error: null },
   formProps,
@@ -90,7 +88,7 @@ export function CanonicalAuthGatePlugin({
           <p role='alert'>{state.error === 'sign-in-failed' ? messages.signInFailed : messages.signOutFailed}</p>
         )}
         <Button type='submit' disabled={state.busy || !session} {...submitButtonProps}>
-          {submitText ?? submitButtonProps?.children ?? (state.busy ? messages.working : messages.signIn)}
+          {state.busy ? messages.working : messages.signIn}
         </Button>
       </form>
     </div>

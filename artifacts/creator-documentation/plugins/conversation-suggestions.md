@@ -1,54 +1,183 @@
 # 开场建议（conversation-suggestions）
 
-例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置**填入输入框或直接发起提问**。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![建议问题界面](/images/plugins/conversation-suggestions.png)
 
-![使用开场建议（conversation-suggestions）界面示例](/images/plugins/conversation-suggestions.png)
+会话中的建议卡片；卡片展示标题和说明，实际发送内容由 prompt 决定。
 
-## 启用与使用
+把固定业务问题或当前会话的建议展示为入口。默认点击即把建议问题交给现有 Composer 发送；也可以只填写草稿，让用户补充后再发送。插件已处理建议项、草稿与选中数据之间的关联。
 
-在 **Creator 输入框**输入 `/enable conversation-suggestions`，点击下图中的 **「使用开场建议」**。
+## 点击建议并发送问题
 
-![Creator 启用菜单：点击「使用开场建议」，插件 ID 为 conversation-suggestions](/images/plugins/enable/conversation-suggestions.jpg)
+省略 `items` 时读取当前会话建议；项目也可以提供固定业务建议。`title` 是展示标题，`label` 是说明，`prompt` 才是实际填写或发送的正文。显示标题不等于发送标题。
 
-## 定制选项
+默认 `sendOnSelect` 为 `true`。设为 `false` 后只填写同一个草稿，不发请求；之后仍通过原来的附件、引用和发送入口完成问题。`clearComposer` 控制是否替换已有草稿；不清空时沿用现有追加逻辑。
 
-| 可以改什么     | 效果                   |
-| --------- | -------------------- |
-| 建议内容      | 在项目组件中传入业务问题、标题和说明。  |
-| 点击后是否立即发送 | 选择只把问题填入草稿，或点击后直接发送。 |
-| 建议按钮样式    | 调整按钮大小、边框和颜色。        |
-| 标题和说明样式   | 调整每个建议的字号、颜色和间距。     |
-| 列表排版      | 调整整组建议的布局和间距。        |
-| 单个建议的展示   | 为每条建议增加图标，或重新安排文字。   |
+## 点击建议后只填写草稿 \{#点击建议后只填写草稿}
 
-## 需求示例
 
-```text
-请修改「使用开场建议（conversation-suggestions）」：
-修改：点击建议后【只填入草稿，不立即发送】，按钮间距设为【12px】。
-保留：现有建议内容。
+用户点击后可继续编辑，再通过发送按钮提交。clearComposer 控制选择时是否清空原草稿。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalSuggestions>) {
+  return <ConversationCanonicalSuggestions {...props}
+    sendOnSelect={false}
+    clearComposer={true} />;
+}
 ```
 
-## 属性
 
-打开项目中的 `plugins/conversation-suggestions/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 交给 Composer 的数据
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+例如项目提供下列建议项：
 
-组件：`ConversationCanonicalSuggestions`；类型：`ConversationCanonicalSuggestionsProps`。继承 `div` 原生属性。
+```json
+{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }
+```
 
-| 属性                  | 类型                                                                                  | 省略时 / 用途                                                 |
-| ------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `items?`            | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem)              | 省略时读取当前会话建议；空数组表示不显示列表项                                  |
-| `sendOnSelect?`     | `boolean`                                                                           | 默认 `true`；`false` 时将建议写入输入框                              |
-| `clearComposer?`    | `boolean`                                                                           | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置                           |
-| `buttonProps?`      | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |
-| `classNames?`       | `Partial<Record<'title' \| 'description', string>>`                                 | 标题与说明的样式类                                                |
-| `styles?`           | `Partial<Record<'title' \| 'description', CSSProperties>>`                          | 标题与说明的内联样式                                               |
-| `renderSuggestion?` | `ConversationCanonicalSuggestionsProps['renderSuggestion']`                         | 自定义当前会话的建议列表项，仅在未传 `items` 时使用                           |
-| `children?`         | `ReactNode`                                                                         | 替换整个默认建议内容                                               |
+假设插件实例 ID 为 `suggestions`，选择后，最终 Composer 适配器可读取：
+
+```json
+{
+  "pluginData": {
+    "suggestions": [{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }]
+  },
+  "selections": {
+    "suggestions": [{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }]
+  }
+}
+```
+
+这里 `pluginData.suggestions` 与 `selections.suggestions` 都是**数组**。原始条目保留实际存在的 `prompt/title/label/data`；运行时建议以它真正提供的字段为准，不额外补造业务数据。
+
+**默认只发送 `prompt`，不自动增加结构化外带字段。** `sendOnSelect={false}` 时先保留数据供之后提交；删除草稿中对应问题文本后不再携带该条选择。清空原草稿的选择会清理本建议入口先前的数据，不清理别的插件。
+
+## 为建议附加业务参数 \{#自定义建议问题的数据}
+
+已有建议入口可以同步转换每条选择，例如取出订单 ID。下例继续使用项目传入的建议和文案：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationSuggestionsPlugin as Implementation } from '@za38.03/agent-ui-plugins/conversation-suggestions';
+
+export const ConversationSuggestionsPlugin = (props: ComponentProps<typeof Implementation>) => {
+  return <Implementation {...props}
+    requestAdapter={item => ({ selectedQuestion: item.prompt, business: item.data ?? null })} />;
+};
+```
+
+回调返回 JSON，`pluginData.suggestions` 变为返回值组成的数组，`selections.suggestions` 仍保留原始条目。即使回调返回一个对象或字符串，外层仍然是数组。默认请求中的对应字段为：
+
+```json
+{
+  "forwardedProps": {
+    "suggestions": [{ "selectedQuestion": "查询这笔订单的进度", "business": { "orderId": "O-1" } }]
+  }
+}
+```
+
+需要不同最终字段位置时，在 [Composer `requestAdapter`](/plugins/composer.md#请求适配) 中继续转换。上例只改业务数据，正文仍使用 `prompt`。实例键以实际实例 ID 为准；嵌入其他插件时使用其 `:suggestions` 子键。
+
+局部回调抛错或返回非 JSON 时取消本次选择动作并保留草稿，使用 `starterSuggestions.requestFailed` 提示。正常提交、排队与续答保留本次选择快照，后续点击不会改写已提交数据。
+
+## 固定的双语开场建议 \{#固定的双语开场建议}
+
+title 是卡片上的名称，label 是附加说明，prompt 是实际填入或发送的正文。下面点击建议后先填写草稿，不立即发送。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalSuggestions, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+
+const messages = {
+  'zh-CN': { title: '总结材料', description: '提取重点与后续行动', prompt: '请总结我提供的材料，列出重点与后续行动。' },
+  'en-US': { title: 'Summarize material', description: 'Find key points and next steps', prompt: 'Summarize the material I provide, including key points and next steps.' },
+};
+export function Example(props: ComponentProps<typeof ConversationCanonicalSuggestions>) {
+  const labels = messages[useAgentUILocaleCode()];
+  return <ConversationCanonicalSuggestions {...props} sendOnSelect={false}
+    items={[{ title: labels.title, label: labels.description, prompt: labels.prompt }]} />;
+}
+```
+
+## 自定义运行时建议 \{#自定义运行时建议并保留原点击行为}
+
+未传固定 `items` 时，回调取得当前运行时建议的标题、说明和完整问题。下面将可见结构改为粗体标题与说明，仍使用现有 Trigger 提交或填入草稿：
+
+```tsx
+import type { ComponentProps } from 'react';
+import {
+  ConversationCanonicalSuggestions, ConversationSuggestionTrigger,
+} from '@za38.03/agent-ui-plugins';
+
+export function RuntimeSuggestions(props:
+  Omit<ComponentProps<typeof ConversationCanonicalSuggestions>, 'items'>) {
+  return <ConversationCanonicalSuggestions {...props}
+    renderSuggestion={(suggestion, defaultView) => <div className="project-suggestion">{defaultView}</div>} />;
+}
+```
+
+渲染器同时适用于固定业务建议和运行时建议。复用 defaultView 保留标题、发送行为、草稿与请求参数采集。
+
+`buttonProps.onClick` 调用 `preventDefault()` 会取消本次数据采集与默认动作。完全替换交互节点时，需要保留原有 Trigger 的提交与采集行为，不能只画一个外观相同的按钮。
+
+## 回复后继续追问
+
+会话运行时提供回复后的建议时，默认建议行沿用同一套选择采集，数据形状和本页相同。它展示已有建议，不负责向后端生成建议。
+
+需要逐项转换时，在已有 Thread 组件组合中替换 `FollowupSuggestions`，保留其他组件与 Composer 配置：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationThread, ConversationFollowupSuggestions } from '@za38.03/agent-ui-plugins';
+
+function Followups() {
+  return <ConversationFollowupSuggestions requestAdapter={item => ({ followup: item.prompt })} />;
+}
+
+export function ProjectThread(props: ComponentProps<typeof ConversationThread>) {
+  return <ConversationThread {...props}
+    components={{ ...props.components, FollowupSuggestions: Followups }} />;
+}
+```
+
+独立 `ConversationSuggestion` 可提供 `requestItem` 作为完整原始条目；省略时仅按 `{ prompt }` 采集。`ConversationSuggestionTrigger` 从当前运行时建议作用域读取条目。
+
+## 隐藏建议问题 \{#隐藏当前建议}
+
+传入空 items 明确覆盖会话提供的建议。省略 items 则继续读取当前会话建议。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof ConversationCanonicalSuggestions>) {
+  return <ConversationCanonicalSuggestions {...props}
+    items={[]} />;
+}
+```
+
+
+## API
+
+
+
+在 `ConversationCanonicalSuggestions` 上设置以下属性。
+
+继承 `div` 原生属性，排除 `children`。
+
+| 属性                  | 类型                                                                                                | 省略时 / 用途                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `items?`            | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem)                            | 省略时读取当前会话建议；空数组表示不显示列表项                                  |
+| `requestAdapter?`   | `(item: ConversationSuggestionRequestItem) => ComposerData`                                       | 同步定义选中建议的 JSON，正文仍沿用 prompt；最终请求由 Composer 组装            |
+| `sendOnSelect?`     | `boolean`                                                                                         | 默认 `true`；`false` 时将建议写入输入框                              |
+| `clearComposer?`    | `boolean`                                                                                         | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置                           |
+| `buttonProps?`      | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer' \| 'children'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |
+| `classNames?`       | `Partial<Record<'title' \| 'description', string>>`                                               | 标题与说明的样式类                                                |
+| `styles?`           | `Partial<Record<'title' \| 'description', CSSProperties>>`                                        | 标题与说明的内联样式                                               |
+| `renderSuggestion?` | `(item: ConversationSuggestionItem, defaultView: ReactNode) => ReactNode`                         | 定制每条固定或运行时建议；复用默认节点可保留已有交互                               |
 
 `SuggestionActions` 来自公开 `/plugin-support` 入口。
 
@@ -79,29 +208,21 @@ getConversationStarterSuggestions: (_locale, messages) => [
 
 将必需的 locale 标签设为 `''` 会回退到默认文案，不能用于隐藏说明。`title` 控制展示标题，`prompt` 控制发送内容；检查两种语言下完整问句、说明是否存在及实际发送行为。
 
-### 类型说明
+### 一条建议如何展示和发送 \{#conversationsuggestionitem}
 
-#### ConversationSuggestionItem
+`items` 中每项必需 `prompt: string`，这是写入草稿或发送的正文。`title?: string` 控制可见标题，省略时显示 `prompt`；`label?: string` 是标题下方的说明，省略时不显示说明。
 
-一条建议的内容。
+例如，业务上可以用简短标题“订单进度”展示按钮，让 `prompt` 保留完整问题；前面的双语示例已经分开设置这两个字段。`data?: ComposerData` 用于附带订单 ID 等 JSON，如何采集和发送见[自定义建议问题的数据](#自定义建议问题的数据)。
 
-```ts
-interface ConversationSuggestionItem {
-  prompt: string; // 选择后发送或写入输入框的文本
-  title?: string; // 展示标题，省略时显示 prompt
-  label?: string; // 标题下方的附加说明
-}
-```
+文案由项目语言层提供；订单 ID 等业务数据保持原值。
 
-### 类型查询
 
-React 原生属性、组件组合及嵌套会话数据等复杂类型，可在编辑器中查询。通过公开组件取得完整属性类型：
+为什么 renderSuggestion 没有改变固定 items 的样式？
 
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
+现在同时适用于固定 items 与运行时建议，回调接收当前项和默认展示节点。
 
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalSuggestions>;
-```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+
+
+

@@ -144,7 +144,7 @@ export interface PolicyThreadListProps extends Omit<ComponentProps<typeof Conver
   showSearch?: boolean;
   /** Include the archive section, with the same search and item customizations. */
   showArchived?: boolean;
-  searchProps?: Partial<ComponentProps<typeof ConversationThreadListSearch>>;
+  searchProps?: Partial<Omit<ComponentProps<typeof ConversationThreadListSearch>, 'children' | 'defaultValue'>>;
   itemProps?: ConversationThreadListItemProps;
   components?: { ThreadListItem?: ComponentType };
 }

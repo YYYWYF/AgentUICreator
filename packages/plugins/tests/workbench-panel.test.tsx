@@ -30,7 +30,7 @@ it('has no built-in content, tabs or opener buttons, and accepts an empty servic
   cleanups.push(() => root.unmount());
   await act(async () => root.render(<AgentUILocaleProvider locale="en-US">
     <WorkbenchPanelActions service={service} />
-    <WorkbenchPanel service={service}><input data-testid="main-draft" /></WorkbenchPanel>
+    <WorkbenchPanel service={service} renderMain={()=> <input data-testid="main-draft" />}/>
   </AgentUILocaleProvider>));
   expect(container.querySelector('[data-testid="main-draft"]')).not.toBeNull();
   expect(container.querySelectorAll('[role="tab"], textarea, [data-ui-plugin="workbench-panel-actions"]')).toHaveLength(0);
@@ -90,7 +90,7 @@ it('keeps main and every content subtree mounted across external calls, tab keys
   cleanups.push(() => container.remove(), () => root.unmount());
   await act(async () => root.render(<AgentUILocaleProvider locale="en-US">
     <WorkbenchPanelActions service={service} items={contentItems} />
-    <WorkbenchPanel service={service} items={contentItems}><input aria-label="conversation-draft" /></WorkbenchPanel>
+    <WorkbenchPanel service={service} items={contentItems} renderMain={()=> <input aria-label="conversation-draft" />}/>
   </AgentUILocaleProvider>));
   const main = container.querySelector<HTMLInputElement>('[aria-label="conversation-draft"]')!;
   const notes = container.querySelectorAll('textarea')[0]!;
@@ -140,7 +140,7 @@ it('uses controlled props and callbacks without replacing the main subtree', asy
   const onOpenChange = vi.fn(), onActiveItemChange = vi.fn(), onVisibleItemsChange = vi.fn();
   await act(async () => root.render(<WorkbenchPanel items={contentItems} open activeItemId="content-a"
     onOpenChange={onOpenChange} onActiveItemChange={onActiveItemChange}
-    visibleItemIds={contentIds} onVisibleItemsChange={onVisibleItemsChange}>main</WorkbenchPanel>));
+    visibleItemIds={contentIds} onVisibleItemsChange={onVisibleItemsChange} renderMain={()=> "main"}/>));
   await act(async () => container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1]!.click());
   expect(onActiveItemChange).toHaveBeenCalledWith('content-b');
   expect(onOpenChange).toHaveBeenCalledWith(true);

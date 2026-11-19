@@ -4,65 +4,117 @@ title: "新建会话（conversation-new）"
 
 # 新建会话（conversation-new）
 
-点击后进入空白对话，可以重新输入问题；之前的会话记录仍保留在历史列表中。
+创建并切换到空白 Thread，保留原有历史和已挂载后台会话。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<span id="常见需求"></span>
+<span id="需求示例"></span>
+<span id="代码示例"></span>
+<span id="启用与使用"></span>
 
-![新建会话（conversation-new）界面示例](/images/plugins/conversation-new.png)
+## 新建会话
 
-## 启用与使用
+<figure className="plugin-preview">
 
-在 **Creator 输入框**输入 `/enable conversation-new`，点击下图中的 **「新建会话」**。
+![新建会话界面](/images/plugins/conversation-new.png)
 
-![Creator 启用菜单：点击「新建会话」，插件 ID 为 conversation-new](/images/plugins/enable/conversation-new.jpg)
+</figure>
 
-在会话列表或现有页面的新建入口创建对话。开发者加入此能力后，检查新建后输入区和列表是否指向新会话。
+## 图标模式 {#只显示新建图标}
 
-## 定制选项
+<span id="example-1"></span>
 
-| 可以改什么 | 效果 |
-| --- | --- |
-| 显示文字还是只显示图标 | 选择显示按钮文字，或只显示加号。 |
-| 按钮图标和文字 | 换成自己的图标或按钮内容。 |
-| 按钮大小和外观 | 调整大小、颜色、边框和圆角。 |
-| 按钮周围的间距 | 调整按钮与周围内容的距离。 |
-| 鼠标提示 | 修改提示内容和出现的位置。 |
 
-## 需求示例
+隐藏可见文字时，组件继续提供本地化的无障碍名称。
 
-```text
-请修改「新建会话（conversation-new）」：
-修改：按钮改为【只显示图标】，圆角设为【8px】。
-保留：新建会话和保留历史记录的行为。
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationNew } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalConversationNew>) {
+  return <CanonicalConversationNew {...props}
+    showLabel={false} />;
+}
 ```
 
-## 属性
+<span id="example-2"></span>
 
-打开项目中的 `plugins/conversation-new/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 文字按钮与右侧提示 {#文字按钮与右侧提示}
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+入口大小通过 buttonProps.style 设置，提示的位置由 tooltipContentProps 设置。buttonProps 使用原生按钮属性，没有 size/variant 属性。
 
-组件：`CanonicalConversationNew`；类型：`ConversationNewPluginProps`。继承外层 `div` 原生属性，但 `onClick` 单独转发给按钮。
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalConversationNew } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalConversationNew>) {
+  return <CanonicalConversationNew {...props}
+    showLabel
+    buttonProps={{ ...props.buttonProps, style: { ...props.buttonProps?.style, paddingInline: 12, minHeight: 32 } }}
+    tooltipContentProps={{ ...props.tooltipContentProps, side: "right" }} />;
+}
+```
+
+## 业务入口新建会话 {#从业务工具栏新建会话}
+
+把按钮放到现有插件中；`label` 由项目文案提供，`onError` 接已有错误提示。点击调用现有新建动作，不用自己生成 threadId。
+
+```tsx
+import { useState } from 'react';
+import { usePluginActions } from '@za38.03/agent-ui-plugins';
+
+export function NewConversationAction({ label, onError }: {
+  label: string;
+  onError: (error: unknown) => void;
+}) {
+  const actions = usePluginActions();
+  const [pending, setPending] = useState(false);
+  return <button type="button" disabled={pending} onClick={async () => {
+    if (pending) return;
+    setPending(true);
+    try { await actions.startNewConversation(); }
+    catch (error: unknown) { onError(error); }
+    finally { setPending(false); }
+  }}>{label}</button>;
+}
+```
+
+等待期间禁用重复点击；完成后由原 Host 切换到新对话，历史会话仍由原来的列表和 Runtime 管理。
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+在 `CanonicalConversationNew` 上设置以下属性。
+
+继承外层 `div` 原生属性，排除 children 与 onClick。点击回调统一使用 buttonProps.onClick。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
+| `icon?` | `ReactNode` | 自定义按钮图标 |
 | `showLabel?` | `boolean` | 组件默认 `true`；部分初始化模板设置为 `false`，仅显示图标但保留无障碍名称 |
 | `disabled?` | `boolean` | 禁用新建按钮 |
-| `onClick?` | `ComponentProps<typeof ConversationThreadListNew>['onClick']` | 新建按钮点击回调 |
-| `buttonProps?` | `ComponentProps<typeof ConversationThreadListNew>` | 按钮属性，保留默认新建与导航行为 |
-| `tooltipProps?` | `ComponentProps<typeof AgentUITooltip>` | 提示根组件配置 |
-| `tooltipContentProps?` | `ComponentProps<typeof AgentUITooltipContent>` | 提示内容与位置配置 |
-| `children?` | `ReactNode` | 自定义按钮内容 |
+| `buttonProps?` | `Omit<ComponentProps<typeof ConversationThreadListNew>, 'children' \| 'disabled'>` | 按钮属性，保留默认新建与导航行为 |
+| `tooltipProps?` | `Omit<ComponentProps<typeof AgentUITooltip>, 'children'>` | 提示根组件配置 |
+| `tooltipContentProps?` | `Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>` | 提示位置与外观配置，内容沿用 locale |
 
-### 类型查询
+<span id="hook"></span>
 
-可在编辑器中通过公开组件取得完整属性类型：
+业务工具栏需要添加自己的“新建会话”入口时，从 `@za38.03/agent-ui-plugins` 调用 `usePluginActions().startNewConversation()`，放在已有插件组件内，见示例。
 
-```ts
-import type { ComponentProps } from 'react';
-import type { CanonicalConversationNew } from '@za38.03/agent-ui-plugins';
+需要导航到已有记录时，从同一入口导入 `useConversationNavigation()`，返回 `ConversationNavigation`：
 
-type ImplementationProps = ComponentProps<typeof CanonicalConversationNew>;
-```
+| 方法 | 参数与返回值 | 调用结果 |
+| --- | --- | --- |
+| `switchToThread(threadId)` | `(string) → Promise<unknown>` | 切换到指定 Thread；调用方等待导航并处理失败 |
+| `switchToNewThread()` | `() → Promise<unknown>` | 进入新会话；普通插件新建优先使用前面的插件动作 |
+| `reloadCurrentThread()` | `() → Promise<void>` | 重新加载当前 Thread；不等于重新生成一条回答 |
 
-组件定制方式见[组件定制指南](/development/component-customization)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition)。
+不要在组件渲染或订阅回调里新建会话。当前 Thread、业务路由与后台运行的关系见[多个助理](/development/multiple-agents)。
+
+<details className="plugin-faq" id="新建会话会停止后台的对话吗">
+<summary>新建会话会停止后台的对话吗？</summary>
+
+新建创建独立 Thread。已挂载的后台会话沿用已有生命周期；需要停止时使用对应会话的停止操作。
+
+</details>

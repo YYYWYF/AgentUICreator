@@ -83,7 +83,7 @@
     {
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
       "upstreamInstalledSha256": "4109512287000def5ebad664f77249a854bf4f5549e2f0cbd9da118ab11f1905",
-      "installedSha256": "5783ec51e6ee29844790853aa5acf263b0f57b6805cb71d40e3ac304504bc834"
+      "installedSha256": "97b81e0770f0a2e664e1fc6b6acff565b9d75a13578b2918abbae919d0d17670"
     },
     {
       "localPath": "components/assistant-ui/elements/reasoning.tsx",
@@ -153,7 +153,7 @@
     {
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamInstalledSha256": "032f0ce13ef9f537fff0dcc38b7c37a4986b3a8ec1fe11d457864a3a90ca4c97",
-      "installedSha256": "cbc68b7638a154d29f67ca20ce52b33533600c86554624b6464fccb06d650deb"
+      "installedSha256": "c96ab4586a2e0bc94e800a495834cf39846919b9632ef86b41c972cf27958fb2"
     },
     {
       "localPath": "components/ui/badge.tsx",

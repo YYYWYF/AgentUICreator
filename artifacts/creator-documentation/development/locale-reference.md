@@ -10,7 +10,7 @@
 
 <!-- locale-reference:start -->
 
-以下 38 个命名空间、466 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
+以下 38 个命名空间、469 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
 
 默认值以字符串字面量展示，`""` 表示空字符串，`\n` 表示换行；引号不属于文案。这里只列出 npm 的默认值，项目和 Host 的已有覆盖可能使实际显示不同。字段是否显示取决于启用的插件、组件和当前状态。
 
@@ -32,6 +32,7 @@
 | `conversation.reasoningDuration`        | <code>"（\{seconds}秒）"</code>            | <code>" (\{seconds}s)"</code>                                                                          |
 | `conversation.editCancel`               | <code>"取消"</code>                       | <code>"Cancel"</code>                                                                                  |
 | `conversation.editUpdate`               | <code>"更新"</code>                       | <code>"Update"</code>                                                                                  |
+| `starterSuggestions.requestFailed`      | <code>"无法使用此建议问题，请重试。"</code>           | <code>"Unable to use this suggestion. Please try again."</code>                                        |
 | `starterSuggestions.architectureTitle`  | <code>"账户交易查询"</code>                   | <code>"Account lookup"</code>                                                                          |
 | `starterSuggestions.architectureLabel`  | <code>"查询余额、账单与交易明细"</code>             | <code>"View balances, statements and transactions"</code>                                              |
 | `starterSuggestions.architecturePrompt` | <code>"如何查询账户余额、账单和交易明细？"</code>        | <code>"How can I view my account balance, statements, and transaction history?"</code>                 |
@@ -61,6 +62,7 @@
 | `threadList.today`                      | <code>"今天"</code>                       | <code>"Today"</code>                                                                                   |
 | `threadList.yesterday`                  | <code>"昨天"</code>                       | <code>"Yesterday"</code>                                                                               |
 | `threadList.earlier`                    | <code>"更早"</code>                       | <code>"Earlier"</code>                                                                                 |
+| `conversationQuote.requestFailed`       | <code>"无法使用此引用，请重试。"</code>             | <code>"Unable to use this quote. Please try again."</code>                                             |
 | `conversationQuote.quote`               | <code>"引用"</code>                       | <code>"Quote"</code>                                                                                   |
 | `conversationQuote.dismiss`             | <code>"取消引用"</code>                     | <code>"Dismiss quote"</code>                                                                           |
 | `quote.quote`                           | <code>"引用"</code>                       | <code>"Quote"</code>                                                                                   |
@@ -153,6 +155,7 @@
 | `skills.empty`                         | <code>"没有匹配的技能或工作流"</code>                    | <code>"No matching skills or workflows"</code>                                                                            |
 | `skills.unavailable`                   | <code>"暂无可用技能或工作流"</code>                     | <code>"No skills or workflows available"</code>                                                                           |
 | `skills.hint`                          | <code>"选择技能后输入需求，工作流点击启动"</code>              | <code>"Choose a skill, then write your request. Workflows start when you click Start."</code>                             |
+| `skills.selectionFailed`               | <code>"无法选择此技能，请重试。"</code>                   | <code>"Unable to select this skill. Please try again."</code>                                                             |
 | `skills.startFailed`                   | <code>"工作流启动失败，请重试。"</code>                   | <code>"Unable to start the workflow. Please try again."</code>                                                            |
 
 ### 工具、任务与人工确认

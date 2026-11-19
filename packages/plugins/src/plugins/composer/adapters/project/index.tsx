@@ -11,14 +11,12 @@ export function ConversationComposerPlugin({
   renderScopedSlot: _renderScopedSlot,
   ...props
 }: UIPluginComponentProps & ConversationCanonicalComposerProps) {
-  const { submitMode: inputSubmitMode, submitOnEnter, ...nativeInputProps } = props.inputProps ?? {};
-  const submitMode = props.submitMode ?? inputSubmitMode;
   const fallbackInput = (
     <ConversationComposerTextareaInput
-      {...nativeInputProps}
+      {...props.inputProps}
       {...(props.rows === undefined ? {} : { rows: props.rows })}
       {...(props.maxLength === undefined ? {} : { maxLength: props.maxLength })}
-      {...(submitMode === undefined ? (submitOnEnter === undefined ? {} : { submitOnEnter }) : { submitMode })}
+      {...(props.submitMode === undefined ? {} : { submitMode: props.submitMode })}
     />
   );
   return (

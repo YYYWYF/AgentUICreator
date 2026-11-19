@@ -1,5 +1,5 @@
 'use client';
-import { type ComponentProps, type FC } from 'react';
+import { type ComponentProps, type FC, type ReactNode } from 'react';
 import {
   ConversationActionMoreMenuItem,
   DownloadIcon,
@@ -7,22 +7,21 @@ import {
   useAgentUILocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
-export type ResponseExportMarkdownActionProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip'> & {
-  presentation?: 'button' | 'menu';
-  menuItemProps?: Partial<ComponentProps<typeof ConversationActionMoreMenuItem>>;
-};
-export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownActionProps> = ({
-  presentation = 'button',
-  menuItemProps,
-  ...buttonProps
-}) => {
+export type ResponseExportMarkdownActionProps =
+  | (Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip' | 'children'> & {
+      presentation?: 'button';
+      icon?: ReactNode;
+    })
+  | (Omit<ComponentProps<typeof ConversationActionMoreMenuItem>, 'children'> & {
+      presentation: 'menu';
+      icon?: ReactNode;
+    });
+export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownActionProps> = (props) => {
   const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   const disabled = response.isRunning || !response.text;
   const exportMarkdown = () => {
-    if (disabled) {
-      return;
-    }
+    if (disabled) return;
     const blob = new Blob([response.text], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     try {
@@ -34,43 +33,36 @@ export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownAct
       setTimeout(() => URL.revokeObjectURL(url), 40_000);
     }
   };
-  if (presentation === 'menu') {
+  if (props.presentation === 'menu') {
+    const { presentation: _presentation, icon, ...menuProps } = props;
     return (
       <ConversationActionMoreMenuItem
-        {...menuItemProps}
-        disabled={disabled || Boolean(menuItemProps?.disabled)}
+        {...menuProps}
+        disabled={disabled || !!menuProps.disabled}
         onSelect={(event) => {
-          menuItemProps?.onSelect?.(event);
-          if (!event.defaultPrevented) {
-            exportMarkdown();
-          }
+          menuProps.onSelect?.(event);
+          if (!event.defaultPrevented) exportMarkdown();
         }}
       >
-        {menuItemProps?.children ?? (
-          <>
-            <DownloadIcon className='size-4' />
-            {localeMessages.conversation.exportMarkdown}
-          </>
-        )}
+        {icon ?? <DownloadIcon className='size-4' />}
+        {localeMessages.conversation.exportMarkdown}
       </ConversationActionMoreMenuItem>
     );
   }
+  const { presentation: _presentation, icon, ...buttonProps } = props;
   return (
     <TooltipIconButton
+      {...buttonProps}
       tooltip={localeMessages.conversation.exportMarkdown}
       type='button'
-      {...buttonProps}
-      disabled={disabled || buttonProps?.disabled}
+      disabled={disabled || buttonProps.disabled}
       onClick={(event) => {
-        buttonProps?.onClick?.(event);
-        if (!event.defaultPrevented) {
-          exportMarkdown();
-        }
+        buttonProps.onClick?.(event);
+        if (!event.defaultPrevented) exportMarkdown();
       }}
     >
-      {buttonProps?.children ?? <DownloadIcon />}
+      {icon ?? <DownloadIcon />}
     </TooltipIconButton>
   );
 };
-
 export { CanonicalResponseExportMarkdownAction as ConversationCanonicalResponseExportMarkdownAction };

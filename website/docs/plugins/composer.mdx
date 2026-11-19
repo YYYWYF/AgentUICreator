@@ -4,116 +4,367 @@ title: "消息输入（composer）"
 
 # 消息输入（composer）
 
-需要在回复期间发送后续问题时，先按[消息排队](/development/message-queue)开启；该教程说明待发送列表、移除、停止和切换会话的行为。
+<figure className="plugin-preview">
 
-用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。
+![消息输入与发送界面](/images/plugins/composer.png)
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+<figcaption>输入区已填入问题；附件、语音与发送入口围绕同一份草稿工作。</figcaption>
+</figure>
 
-![输入消息（composer）界面示例](/images/plugins/composer.png)
+把正文、附件、引用和业务选择准备为当前会话的一条消息，再通过已有发送入口提交。输入区、发送按钮与业务插件共用草稿和运行状态。
 
-## 启用与使用
+## 准备并发送一条消息
 
-在 **Creator 输入框**输入 `/enable composer`，点击下图中的 **「输入消息」**。
+<span id="消息输入与发送"></span>
 
-![Creator 启用菜单：点击「输入消息」，插件 ID 为 composer](/images/plugins/enable/composer.jpg)
+默认 Enter 发送、Shift+Enter 换行。附件、引用和其他入口已配置到页面时，它们参与同一份草稿；没有相应入口时，Composer 不会自行生成业务候选或技能。
 
-打开已有对话页面，在输入区填写内容并发送。调整输入区时，可要求 Creator 保留附件、引用和发送入口。
+<figure className="plugin-preview">
 
-## 定制选项
+![界面示例](/images/plugins/add-attachment-action.jpg)
 
-| 可以改什么 | 效果 |
+<figcaption>附件进入草稿后显示附件项与移除入口，正文仍可继续编辑。</figcaption>
+</figure>
+
+配置附件上传服务时，点击发送才上传并取得文件地址。选择、移除和错误展示沿用当前附件流程，具体服务与输出格式见[附件与 Composer 的联动](./add-attachment-action#与-composer-联动)。
+
+<figure className="plugin-preview">
+
+![消息引用界面](/images/plugins/conversation-quote.png)
+
+<figcaption>选中的消息内容出现在输入区引用预览中；关闭预览即取消本次引用。</figcaption>
+</figure>
+
+引用先进入预览，用户可以继续修改问题；删除引用后，这份引用不再随消息发送。默认正文和结构化数据的区别见[引用交给 Composer 的数据](./conversation-quote#交给-composer-的数据)。
+
+## 运行、排队与等待用户操作
+
+普通发送、回车和已有输入区共用提交流程。生成中显示停止入口；开启消息排队后，普通发送入口可以把下一条消息加入队列。排队通过业务页面的 `<Agent enableMessageQueue />` 开启，新建项目默认关闭。
+
+待发送项尚未成为已处理的聊天记录。停止当前运行后，队列保留但不会立即自动发送下一项；必要的工具续传、审批与补充输入先沿用原有流程。完整行为见[发送与停止](./submit-action#与-composer-联动)和[消息排队](/development/message-queue)。
+
+等待审批或补充信息时，普通发送受到已有保护，草稿保留；用户继续处理原操作，而不是把普通输入当作审批回答。自定义业务发送入口也应使用下面带保护的草稿控制器。
+
+## 与哪些插件共享输入和发送
+
+每个插件提供的原始数据、默认发送位置和移除规则在它自己的页面说明。这里保留联动入口，避免把各插件的格式混写成一份通用对象：
+
+| 联动入口 | 对当前草稿或请求的作用 |
 | --- | --- |
-| 输入提示 | 修改输入框为空时显示的提示文字。 |
-| 输入框高度 | 设置初始行数、最小高度和内边距。 |
-| 字数限制 | 限制一条草稿最多可以输入多少字符。 |
-| 发送快捷键 | 选择回车发送、Ctrl/Cmd + Enter 发送，或关闭快捷键发送。 |
-| 自动进入输入状态 | 决定打开页面时是否自动把光标放到输入框。 |
-| 拖入附件 | 允许或禁止把文件拖入输入区。 |
-| 按钮和引用的位置 | 调整输入框上方内容、左右按钮和发送按钮的组合。 |
+| [@ 提及](./mention-trigger#交给-composer-的数据) | 插入正文引用，保留原始候选数组供最终适配器读取 |
+| [/ 快捷命令](./slash-command-trigger#交给-composer-的数据) | 指令模式插入引用；动作模式默认执行动作，不产生选择数据 |
+| [命令源](./conversation-command-source#与-composer-联动) | 提供 `/` 菜单数据，选择快照归命令触发器所有 |
+| [消息引用](./conversation-quote#交给-composer-的数据) | 默认加 Markdown 引用正文，也可转换为业务 JSON |
+| [技能](./skills#交给-composer-的数据) | 默认将技能 `ctx` 合入业务字段，或通过插件适配器提供 JSON |
+| [已选技能标签](./skills-selection#与-composer-联动) | 订阅并移除同一份技能选择，不再提供一份数据 |
+| [建议问题](./conversation-suggestions#交给-composer-的数据) | 默认发送或填入 prompt，保留原始建议项 |
+| [附件](./add-attachment-action#与-composer-联动) | 进入原生附件列表与消息内容，不在插件数据字典中另建记录 |
+| [语音](./dictation-action#与-composer-联动) | 按现有能力将识别文字写入正文，不自动产生音频附件 |
+| [发送／停止](./submit-action#与-composer-联动) | 提交、取消或为本次发送选择地址，不提供业务数据条目 |
+| [Lexical 输入](./lexical-composer-input#与-composer-联动) | 编辑同一份文本与指令标签，不额外生成选择数据 |
+| [消息编辑](./lexical-edit-composer#与-composer-联动) | 编辑已有消息，沿用该消息仍有效的选择快照 |
+| [会话界面](./conversation-surface#输入区与会话作用域) | 将输入区放进现有会话作用域，提供当前 Thread 与原有插槽组合 |
 
-## 需求示例
+这些键使用**插件实例 ID**，不一定等于插件 ID。实例为 `employee-mention` 时，用这个实例键读取；同一类插件可以有多个实例。嵌在其他插件中的入口可能使用命名子作用域，格式见各插件页。
 
-```text
-请修改「输入消息（composer）」：
-修改：输入提示改为【请输入你的问题】，初始显示【3】行，发送快捷键改为【Ctrl/Cmd + Enter】。
-保留：附件、引用和发送按钮。
+## Composer 接受的数据与最终请求
+
+输入区中的内容通过两条路径参与发送：
+
+- **原生草稿**：正文、引用和附件由当前会话转换为 `request.messages`。仅文字时 `content` 可以是字符串；带附件时可以是文字和媒体片段组成的数组。
+- **插件业务数据**：通过 `setData()` 提交 JSON，最终适配器从 `pluginData` 和 `selections` 取得它们。默认是否进入外带字段，由各插件自己的提交规则决定。
+
+`ComposerData` 支持字符串、有限数值、布尔值、`null`、这些值组成的数组和普通对象。不能放函数、`undefined`、`NaN`、文件对象、DOM、类实例或循环引用；原始 `File` 用附件接口加入。
+
+`requestAdapter` 的返回值必须是完整、符合当前 AG-UI 契约的 `RunAgentInput`，不是一个业务对象片段。下面是仅含文字的一次请求示例：
+
+```json
+{
+  "threadId": "thread-1",
+  "runId": "run-1",
+  "state": {},
+  "messages": [{ "id": "user-1", "role": "user", "content": "请查询这笔订单" }],
+  "tools": [],
+  "context": [],
+  "forwardedProps": { "ctx": { "tenantId": "t-1" } }
+}
 ```
 
-## 属性
+`messages` 还可能包含历史消息、工具调用与工具结果；续答时也需要它们。业务通常展开原有 `request`，只修改约定的字段，保留实际运行 ID、消息关联、工具与状态。
 
-打开项目中的 `plugins/composer/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+附件片段在[附件页](./add-attachment-action#与-composer-联动)给出；正文引用和业务选择分别见前面的联动入口。它们不会因为设置了最终适配器而自动变成某种固定业务格式。
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
+## 读取本次请求、插件数据和原始选择 {#请求适配}
 
-输入组件：`ConversationCanonicalComposer`；类型：`ConversationCanonicalComposerProps`。继承表单原生属性，排除 `children`。
+最终适配器接收 `{ request, pluginData, selections }`。`request` 已完成默认组装，包含正文、附件、Host 业务字段，以及各插件启用的默认发送内容。
+
+`pluginData` 按数据所有者归组：普通 `setData(value)` 保留值本身；同一所有者带正文引用绑定的数据以数组提供，便于保留多次选择。`selections` 的值始终是原始选择数组；未设置 `selection` 时，对应所有者的数组为空。没有活跃数据的所有者键可以不存在。
+
+例如订单卡片实例 `order-picker` 调用 `useComposer('order').setData({ orderId: 'A1001' })` 后，一次适配器输入可以是：
+
+```json
+{
+  "request": {
+    "threadId": "thread-1",
+    "runId": "run-1",
+    "state": {},
+    "messages": [{ "id": "user-1", "role": "user", "content": "请查询这笔订单" }],
+    "tools": [],
+    "context": [],
+    "forwardedProps": {
+      "ctx": { "tenantId": "t-1" },
+      "order-picker:order": { "orderId": "A1001" }
+    }
+  },
+  "pluginData": { "order-picker:order": { "orderId": "A1001" } },
+  "selections": { "order-picker:order": [] }
+}
+```
+
+使用引用型选择、插件自己的适配器或 `includeInRequest: false` 时，这三个对象可以不同；不要从 `forwardedProps` 反推完整选择，也不要把所有 `pluginData` 都当作数组。各插件页提供其实际 JSON 示例。
+
+## 统一组装业务字段
+
+在项目已有 `plugins/composer/index.tsx` 的实现调用处配置一个最终适配器。下面保留已有外带字段，并把各插件数据和原始选择集中放到 `business`：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
+import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData, selections }) => {
+  const previous: unknown = request.forwardedProps;
+  return {
+    ...request,
+    forwardedProps: {
+      ...(isRecord(previous) ? previous : {}),
+      business: { pluginData, selections },
+    },
+  };
+};
+
+export function ConversationComposerPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props} requestAdapter={requestAdapter} />;
+}
+```
+
+这份业务结构是示例约定，可以按后端需要提取 ID、改名或删除。返回 `forwardedProps: {}` 可以移除全部外带字段；返回后不会再自动合并默认内容。它不会改变未被修改的正文或附件。
+
+若后端使用标准 AG-UI Context，也可以将 JSON 编码为字符串后追加到已有 Context：
+
+```tsx
+import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
+
+export const addBusinessContext: ComposerRequestAdapter = ({ request, pluginData }) => ({
+  ...request,
+  context: [...request.context, {
+    description: 'Selected business data',
+    value: JSON.stringify(pluginData),
+  }],
+});
+```
+
+Context 的每项为 `{ description: string, value: string }`。修改 `messages` 时，用户消息的 `content` 可能是字符串或片段数组；保留数组中的图片、文档等片段，不要直接把整个内容数组转换为普通字符串。
+
+多个插件默认写入同名业务字段并发生冲突时，没有最终适配器的发送会报错。配置适配器后，从各自的 `pluginData` 读取并明确合并；已有 Host 字段和插件原始选择也分别保留在适配器输入中。
+
+同一个 Agent 只注册一个最终适配器；各插件负责提供各自的数据。回调同步返回请求，不能返回 Promise。抛错、非 JSON 或不符合请求契约时，本次发送报错，不回退为另一份默认请求。它也会参与工具续传和中断恢复，因此只做数据转换，不在回调中执行上传、创建订单等副作用。
+
+## 从业务卡片填入问题和参数 {#从订单卡片填入问题并携带订单-id}
+
+<span id="example-3"></span>
+
+下面的按钮位于已有 Agent／Conversation 中的订单卡片插件。问题和按钮文字由项目文案提供，订单 ID 来自业务数据：
+
+```tsx
+import { useComposer } from '@za38.03/agent-ui-plugins';
+
+export function AskAboutOrder({ orderId, prompt, label }: {
+  orderId: string; prompt: string; label: string;
+}) {
+  const composer = useComposer('order');
+  return <button type="button" onClick={() => {
+    composer.setText(prompt);
+    composer.setData({ orderId });
+  }}>{label}</button>;
+}
+```
+
+点击会**替换当前正文**并登记该调用方的业务数据，此时不发送。用户仍能修改问题、添加附件，再使用原有发送入口。数据不等于可见标签，`setData()` 不会自行在输入框里绘制订单卡片。
+
+`useComposer('order')` 的所有者为 `插件实例ID:order`；不传名称时使用实例 ID。没有插件实例 Provider 时以 `standalone` 为基础，但这些方法仍需位于已有会话内，结构化数据还需要当前 Composer 数据上下文。
+
+同一调用方普通写入会替换自己的旧值；带 `reference` 的写入可以保留多个选择。`clearData()` 只释放当前调用方的数据，通常不清空正文、附件或其他插件的数据；有私有引用绑定时会恢复其公开回退文字。`setData()` 返回的释放函数只释放这次写入，旧函数不会移除后来的新选择。
+
+## 让其他插件实时跟随草稿 {#hook}
+
+<span id="取数与联动"></span>
+
+其他插件需要随输入字数、附件数量或运行状态更新界面时，使用 `useConversationComposer()`。它响应式读取现有草稿，返回的 `setText`、`send`、`cancel`、`addAttachment`、`removeAttachment` 也操作这一份草稿：
+
+```tsx
+import { useConversationComposer } from '@za38.03/agent-ui-plugins';
+
+export function DraftSummary({ format }: {
+  format: (characters: number, attachments: number) => string;
+}) {
+  const composer = useConversationComposer();
+  return <output>{format(composer.text.length, composer.attachments.length)}</output>;
+}
+```
+
+`format` 来自项目语言层。正文或附件变化后重新渲染，不需要轮询；这里的 `attachments` 提供当前附件的 `id` 和 `name`，不是已经转换好的 AG-UI 媒体片段。
+
+需要原生引用等完整草稿快照时，组合 `useComposer().subscribe` 与 `getState()`。单独调用 `getState()` 只读一次，不会因为用户继续输入而主动更新这个组件：
+
+```tsx
+import { useSyncExternalStore, type ReactNode } from 'react';
+import { useComposer } from '@za38.03/agent-ui-plugins';
+
+export function DraftPreview({ render }: {
+  render: (value: { text: string; attachmentCount: number; quoteText: string | undefined }) => ReactNode;
+}) {
+  const composer = useComposer();
+  const draft = useSyncExternalStore(composer.subscribe, composer.getState, composer.getState);
+  return <>{render({
+    text: draft.text,
+    attachmentCount: draft.attachments.length,
+    quoteText: draft.quote?.text,
+  })}</>;
+}
+```
+
+原生快照不是 `pluginData`／`selections` 的实时读取接口。这两个字典在最终请求组装时提供；需要多个插件实时共享“选中订单”“当前筛选条件”时，使用[共享业务服务](/development/plugin-interaction#插件之间共享选择或结果)，再由拥有选择的插件提交发送数据。
+
+Hook 随当前会话重新绑定；保留的旧句柄仍绑定原 Thread。长时间保存句柄的业务回调要明确其归属，不能把旧句柄当作自动指向当前会话的全局对象。
+
+## 自定义发送入口并保留运行保护 {#实时显示草稿字数定制发送与停止操作}
+
+<span id="example-4"></span>
+
+只改样式时直接定制[发送／停止插件](./submit-action)。确需自己组合操作区时，继续读取当前控制器与等待用户操作状态：
+
+```tsx
+import { useAgentUILocale, useConversationComposer } from '@za38.03/agent-ui-plugins';
+import { useConversationComposerAwaitingReply } from '@za38.03/agent-ui-runtime/plugin-api';
+
+export function DraftActions({ formatCount }: { formatCount: (count: number) => string }) {
+  const composer = useConversationComposer();
+  const awaitingReply = useConversationComposerAwaitingReply();
+  const messages = useAgentUILocale('composer');
+  return <div>
+    <output>{formatCount(composer.text.length)}</output>
+    {awaitingReply && <p role="status">{messages.awaitingReply}</p>}
+    <button type="button"
+      disabled={composer.disabled || !composer.canSend || awaitingReply}
+      onClick={() => composer.send()}>
+      {composer.isRunning ? messages.queueSend : messages.send}
+    </button>
+    <button type="button" disabled={!composer.canCancel}
+      onClick={() => composer.cancel()}>{messages.stop}</button>
+  </div>;
+}
+```
+
+`canSend` 已结合草稿准备情况和运行／排队能力，但它本身不表示等待审批保护已经解除；`send()` 会再执行该保护。这个方法返回 `void`，不是业务 HTTP 保存回执。`useComposer().send()` 是原生提交入口；自定义业务发送按钮优先使用上例的受保护控制器。
+
+`addAttachment(file)` 与 `removeAttachment(id)` 返回 Promise，调用方处理失败；前者走当前附件准备与上传配置，后者按 ID 操作草稿。它们不会把文件登记成一个 `pluginData` 条目。
+
+## 提交后的快照、重发与会话切换
+
+提交时固定本次数据；附件准备、排队、工具续传或中断恢复期间，后续草稿的修改不改变原次提交。已接受提交后清理本次待发送数据，不让普通下一条消息自动继承业务选择。
+
+编辑已有消息时，根据该消息仍存在的引用重新组装；移除引用后不再携带其选择。重试与续答读取原次消息的快照，最终适配器仍可能再次执行。
+
+不同 Thread 的草稿与队列分开。技能、引用等插件还有自己的清理规则，见各页；不能假设每个选择都在切换后继续保留。刷新后若要编辑重发并恢复原始 `data`，历史集成需另行保留对应前端消息元数据；只保存正文引用标记不能还原原始业务数据。私有草稿元数据不会自动成为最终请求字段。
+
+## 调整高度与发送快捷键 {#高度和字数限制}
+
+<span id="example-1"></span>
+<span id="example-2"></span>
+<span id="发送快捷键与附件输入"></span>
+
+<figure className="plugin-preview">
+
+![界面示例](/images/plugins/features/composer-height.png)
+
+<figcaption>同一输入框的 1 行和 3 行初始高度，均沿用原有发送行为。</figcaption>
+</figure>
+
+在项目已有输入入口设置根级行数、长度与提交方式，继续保留子插件转发：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
+
+export function ConversationComposerPlugin(props: ComponentProps<typeof Implementation>) {
+  return <Implementation {...props} rows={3} maxLength={2000} submitMode="ctrlEnter"
+    inputProps={{ ...props.inputProps, minRows: 3, maxRows: 8 }} />;
+}
+```
+
+Ctrl+Enter 在 Windows／Linux 上使用 Ctrl，在 macOS 上使用 Cmd。已经提供自定义 `input` 或输入子插件时，输入自身要接收其支持的配置；根参数不会自动改造任意编辑器。
+
+## API
+
+<span id="属性"></span>
+<span id="开发-api"></span>
+
+项目已有入口使用 `@za38.03/agent-ui-plugins/composer` 的 `ConversationComposerPlugin`；组合组件 `ConversationCanonicalComposer` 使用同一组输入属性。
+
+继承表单原生属性，排除 `children`。
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `rows?` | `number` | 默认输入框行数，最终默认 `1`；覆盖 `inputProps.rows` |
-| `maxLength?` | `number` | 最大长度；覆盖 `inputProps.maxLength` |
-| `submitMode?` | `'enter' \| 'ctrlEnter' \| 'none'` | 优先于 `inputProps.submitMode`；最终未设置时底层默认 `enter` |
+| `rows?` | `number` | 默认输入框行数，最终默认 `1` |
+| `maxLength?` | `number` | 最大长度 |
+| `submitMode?` | `'enter' \| 'ctrlEnter' \| 'none'` | 默认 `enter`；`ctrlEnter` 在 macOS 上为 Cmd+Enter |
 | `autoFocus?` | `boolean` | 使用所在输入区的自动聚焦设置 |
 | `compact?` | `boolean` | 继承表单组件的紧凑模式开关，默认 `false` |
-| `inputProps?` | `ConversationComposerInputProps` | 默认输入框属性，见下表 |
-| `dropzoneProps?` | `ConversationComposerDropzoneProps` | 附件拖放区属性，类型来自现有 AttachmentDropzone |
-| `triggers?` | `ReactNode` | 提及／命令触发器内容 |
+| `inputProps?` | `Omit<ConversationComposerInputProps, 'rows' \| 'maxLength' \| 'submitMode' \| 'autoFocus' \| 'children' \| 'value' \| 'defaultValue'>` | 默认输入框的其他属性，见下表 |
+| `dropzoneProps?` | `Omit<ConversationComposerDropzoneProps, 'children'>` | 附件拖放区属性，类型来自现有 AttachmentDropzone |
+| `triggers?` | `ReactNode` | 输入框上方的内容 |
 | `beforeInput?` | `ReactNode` | 输入框前的内容，例如引用预览 |
 | `input?` | `ReactNode` | 替换默认 textarea；自定义输入自行接收其属性 |
 | `leadingActions?` | `ReactNode` | 前部操作区 |
 | `trailingActions?` | `ReactNode` | 后部操作区 |
 | `submitAction?` | `ReactNode` | 提交操作区 |
 | `onSubmit?` | `ConversationComposerRootProps['onSubmit']` | 表单提交回调；保留默认发送与等待回复检查 |
-| `requestAdapter?` | `ComposerRequestAdapter` | 同步定制最终 AG-UI 请求，见下方请求适配；省略时沿用默认组装 |
+| `requestAdapter?` | `ComposerRequestAdapter` | 同步定制最终 AG-UI 请求，见请求适配；省略时沿用默认组装 |
 
-`inputProps` 继承自动增高 textarea 的原生属性，包括 `rows`、`maxLength`、`minRows`、`maxRows`、`onChange`、`onKeyDown`、`className`、`style`，另有：
+`inputProps` 支持输入区的 `minRows`、`maxRows`、`onChange`、`onKeyDown`、`className`、`style` 等属性。`rows`、`maxLength`、`submitMode` 和 `autoFocus` 只在根属性设置，输入值由会话管理；不提供测量缓存与实验接口。另有：
 
 | 嵌套属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `inputProps.submitMode?` | `'enter' \| 'ctrlEnter' \| 'none'` | 默认 `enter`；`ctrlEnter` 在 macOS 上为 Cmd+Enter |
 | `inputProps.cancelOnEscape?` | `boolean` | 默认 `true`，Esc 取消编辑 |
 | `inputProps.addAttachmentOnPaste?` | `boolean` | 默认 `true`，粘贴文件时添加附件 |
+| `inputProps.onHeightChange?` | `(height: number, meta: { rowHeight: number }) => void` | 高度变化时通知，单位为像素；`rowHeight` 为单行测量高度，可用于同步项目外层布局 |
 | `inputProps.asChild?` | `boolean` | 把输入属性传给已有子元素 |
 | `inputProps.render?` | `ReactElement` | 自定义输入容器 |
-| `inputProps.unstable_focusOnRunStart?` | `boolean` | 实验接口，默认 `true`；运行开始时按底层条件聚焦 |
-| `inputProps.unstable_focusOnScrollToBottom?` | `boolean` | 实验接口，默认 `true`；滚动到底部时聚焦 |
-| `inputProps.unstable_focusOnThreadSwitched?` | `boolean` | 实验接口，默认 `true`；切换会话时聚焦 |
-| `inputProps.unstable_insertNewlineOnTouchEnter?` | `boolean` | 实验接口，默认 `false`；触控主设备的 Enter 插入换行 |
 
-`dropzoneProps` 继承 `div` 原生属性，另公开 `asChild?: boolean`、`render?: ReactElement`、`disabled?: boolean`。当前 Composer 默认通过 `asChild` 把拖放事件交给已有容器处理；`disabled` 与会话禁用状态叠加。它不是另一个上传服务配置入口。
+`dropzoneProps` 继承 `div` 原生属性，并公开：
+
+- `asChild?: boolean`：把拖放事件交给已有容器；当前 Composer 默认使用这种方式。
+- `render?: ReactElement`：自定义渲染元素。
+- `disabled?: boolean`：禁用状态与当前会话条件叠加。
+
+上传服务在项目服务配置中接入，不通过 `dropzoneProps` 配置。
+
+单独组合 `ConversationComposerTextareaInput` 时，上述输入属性直接传给该组件，完整属性类型同样使用 `ConversationComposerInputProps` 查询。
 
 同一位置已经配置子插件时，优先显示该子插件；没有配置时，才使用相应的内容属性。`input` 已替换时，根上的 `rows` 等不会自动配置任意自定义组件。
-
-### 类型查询
-
-可在编辑器中通过公开组件取得完整属性类型：
-
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationCanonicalComposer } from '@za38.03/agent-ui-plugins';
-
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
-```
 
 具体属性和保留插槽的修改示例见[输入框定制](/development/component-customization)。
 
 默认输入提示、无障碍名称和排队文案统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
-## 开发 API
+### 写入与订阅原生草稿
 
-### Hook
-
-从用途选择 Hook：
-
-- **修改草稿和写入参数**：`useComposer(name?)` 提供当前输入区的操作与 JSON 草稿数据。
-- **响应式读取输入状态**：`useConversationComposer()` 提供输入状态、附件与发送／取消操作。
-- **判断是否等待用户处理**：`useConversationComposerAwaitingReply()` 返回是否等待审批或补充输入。
-- **读取等待标识**：`useConversationComposerGuardState()` 同时返回 `interruptKey`。
-- **适配最终请求**：`useComposerRequestAdapter(adapter)` 为已接管的 Composer 实现注册当前会话唯一的同步请求适配器；普通业务插件使用 `setData`。
-
-具体签名与示例见下方。
-
-从 `@za38.03/agent-ui-plugins` 导入 `useComposer`。它复用当前 Thread 的原生输入区，需要已有 Conversation 上下文；`setData` 还需要 Agent UI 提供的草稿数据上下文。
+从 `@za38.03/agent-ui-plugins` 导入 `useComposer(name?)`，用法见[订单卡片示例](#example-3)。它返回操作当前草稿的方法；`setData` 还需要 Agent UI 提供的草稿数据上下文。
 
 | 成员 | 参数与返回值 | 用途 |
 | --- | --- | --- |
@@ -121,7 +372,7 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
 | `setQuote(quote)` | `{ text, messageId } \| undefined → void` | 设置或清除原生引用 |
 | `getState()` | 原生 Composer 状态快照 | 读取 `text`、`canSend` 等；此调用自身不订阅变化 |
 | `setText(text)` | `string → void` | 修改同一份输入草稿 |
-| `send()` | `void` | 通过当前输入区提交草稿 |
+| `send()` | `() → void` | 通过原生输入区提交草稿；自定义发送按钮使用下方带等待回复检查的 `useConversationComposer().send()` |
 | `setData(data, options?)` | `(ComposerData, ComposerDataOptions?) → () => void` | 设置本插件的 JSON 草稿数据 |
 | `clearData()` | `void` | 清除当前 Thread 中本调用方拥有的数据；私有引用恢复为公开的 fallback 文本 |
 
@@ -140,50 +391,87 @@ type ImplementationProps = ComponentProps<typeof ConversationCanonicalComposer>;
 | `selection?` | `ComposerData` | 保留原始选择，供最终适配器读取 |
 | `includeInRequest?` | `boolean`，默认 `true` | 是否按实例 ID 自动进入外带参数；`false` 仍可由适配器读取，并可显式提供默认组装字段 |
 
-`useConversationComposer(): ConversationComposerController` 响应式提供以下状态与操作：
+### 响应式草稿控制器
 
-| 类别 | 成员 |
-| --- | --- |
-| 草稿 | `text`、`setText(text)` |
-| 附件状态 | `attachments`、`attachmentAccept`、`attachmentsEnabled` |
-| 可用状态 | `isRunning`、`disabled`、`canSend`、`canCancel` |
-| 发送与取消 | `send()`、`cancel()` |
-| 附件操作 | `addAttachment(file): Promise<void>`、`removeAttachment(id): Promise<void>` |
+从 `@za38.03/agent-ui-plugins` 导入 `useConversationComposer()`，返回 `ConversationComposerController`。草稿、附件或运行状态变化时，使用它的组件会重新渲染，见[自定义操作区示例](#example-4)。
 
-它不提供结构化数据写入；这类写入使用 `useComposer`，不要混作同一接口。
+| 成员 | 类型或签名 | 怎么用 |
+| --- | --- | --- |
+| `text` | `string` | 当前草稿正文，可用于字数提示或预览 |
+| `setText(text)` | `(string) → void` | 修改当前输入框正文 |
+| `attachments` | `readonly ConversationComposerAttachment[]` | 每项有 `id: string` 和 `name: string`，用于显示附件列表、按 ID 移除 |
+| `attachmentAccept` | `string` | 当前接受的文件类型，可传给文件输入的 `accept` |
+| `attachmentsEnabled` | `boolean` | 当前 Thread 是否支持附件；据此显示附件入口 |
+| `isRunning` | `boolean` | 当前 Thread 是否正在运行；据此区分普通发送与排队提示 |
+| `disabled` | `boolean` | 当前输入是否因会话禁用或语音输入状态而禁用 |
+| `canSend` | `boolean` | 原生草稿是否就绪且当前运行／队列允许发送；不包含等待审批检查 |
+| `canCancel` | `boolean` | 当前 Composer 是否允许取消；据此启用停止按钮 |
+| `send()` | `() → void` | 检查等待回复状态后提交草稿；允许时走现有消息队列 |
+| `cancel()` | `() → void` | 取消当前运行，不负责移除待发送项；详见[消息排队](/development/message-queue#3-停止审批和切换会话) |
+| `addAttachment(file)` | `(File) → Promise<void>` | 将浏览器文件加入当前草稿；调用方处理异步失败，上传仍使用项目附件服务 |
+| `removeAttachment(id)` | `(string) → Promise<void>` | 按附件 ID 移除；调用方处理异步失败 |
 
-### 请求适配
+结构化业务参数仍通过 `useComposer().setData()` 写入。
 
-`ComposerRequestAdapter` 的签名为 `(input: ComposerRequestAdapterInput) => RunAgentInput`；`RunAgentInput` 从 `@ag-ui/client` 导入。输入含：
+### 等待审批与补充输入
+
+从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useConversationComposerAwaitingReply()`，返回 `boolean`。为 `true` 时，可像[上例](#example-4)一样禁用普通发送并显示 `locales.composer.awaitingReply`，让用户先处理原审批或补充问题。
+
+若项目需要在**新的中断到来时**重置自定义提示的关闭状态，同一入口的 `useConversationComposerGuardState()` 返回 `{ awaitingReply: boolean; interruptKey: string }`；以 `interruptKey` 区分中断，避免把上一轮提示的关闭状态带到下一轮。常规按钮只需要前一个布尔 Hook。
+
+这些状态由已有 Host 提供。普通业务插件直接读取；`ConversationComposerGuardProvider` 用于手动集成时传入已有中断状态，它本身不检测 Agent 是否暂停。
+
+### 最终请求适配器
+
+<span id="composerrequestadapterinput"></span>
+
+`ComposerRequestAdapter`、`ComposerRequestAdapterInput`、`ComposerData` 与 `ComposerDataOptions` 从 `@za38.03/agent-ui-plugins` 导入。`RunAgentInput` 从 `@ag-ui/client` 导入。
 
 | 字段 | 类型 | 内容 |
 | --- | --- | --- |
-| `request` | `RunAgentInput` | 已完成默认组装的请求 |
-| `pluginData` | `Readonly<Record<string, ComposerData>>` | 按插件实例 ID 或命名子作用域归组的数据 |
-| `selections` | `Readonly<Record<string, readonly ComposerData[]>>` | 各调用方保留的原始选择 |
+| `request` | `RunAgentInput` | 已完成默认组装的请求；展开后修改约定字段 |
+| `pluginData` | `Readonly<Record<string, ComposerData>>` | 按实例或命名子作用域归组的有效数据 |
+| `selections` | `Readonly<Record<string, readonly ComposerData[]>>` | 同一批数据保留的原始选择数组 |
 
-请求参数按以下规则组装：
+`ComposerRequestAdapter = (input: ComposerRequestAdapterInput) => RunAgentInput`。返回完整同步结果，不返回 Promise 或请求片段。
 
-- **默认位置**：允许发送的插件数据放入 `request.forwardedProps` 的对应调用方键下。没有适配器时，与已有字段同名会报错。
-- **配置适配器后**：`request` 保留同名的已有字段，插件数据仍在 `pluginData` 中，由适配器决定如何使用。
-- **最终结果**：适配器返回的请求不再合并默认 `forwardedProps`；需要保留原字段时，显式展开。
+`useComposerRequestAdapter(adapter | undefined): void` 是手动组合 Composer 时的注册入口，随卸载注销。普通项目使用已有 Composer 的 `requestAdapter` 属性；同一 Agent 只注册一个最终适配器。
 
-同一个 Agent 只能注册一个最终适配器。普通应用在已有 Composer JSX 上传 `requestAdapter`，不要在每个业务插件里分别注册；工具续传和中断恢复会对原次提交的数据再次调用它。
+### 最终请求的主要字段
 
-```tsx
-import {
-  ConversationCanonicalComposer, type ComposerRequestAdapter,
-} from '@za38.03/agent-ui-plugins';
-import type { ComponentProps } from 'react';
+下面对应前面的完整 JSON 示例。已有运行提供这些字段；适配器展开原请求后修改业务约定，避免重新生成运行和消息身份。
 
-const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) => ({
-  ...request,
-  forwardedProps: { pluginData },
-});
+| 字段 | 数据格式 | 使用方式 |
+| --- | --- | --- |
+| `threadId` / `runId` | `string` | 当前会话与本次运行身份，沿用原请求 |
+| `messages` | `Message[]` | 保留历史、用户消息、工具调用及结果；用户 `content` 可为字符串或内容片段数组 |
+| `state` | JSON | 当前 Agent 状态，沿用原请求中的实际结构 |
+| `tools` | `Tool[]` | 当前运行可用工具声明，通常保留原值 |
+| `context` | `{ description: string; value: string }[]` | 追加上下文时把业务 JSON 编码为 `value` 字符串 |
+| `forwardedProps` | JSON | 后端约定的外带数据，可由最终适配器重新组织 |
 
-export function ProjectComposer(props: ComponentProps<typeof ConversationCanonicalComposer>) {
-  return <ConversationCanonicalComposer {...props} requestAdapter={requestAdapter} />;
-}
-```
+其他由当前协议或运行提供的字段也通过 `...request` 保留。最终结果须符合项目实际安装版本的 `RunAgentInput`，不能只返回这张表中的一部分。
 
-在项目已有的 Composer 入口应用这个属性并保留其组合；不要额外挂载第二个 Composer。若要保留原外带字段，先将 `request.forwardedProps` 作为 `unknown` 检查为对象后再展开。
+<span id="业务数据随消息发送"></span>
+
+<span id="为什么设置-rows-后自定义输入没有变化"></span>
+
+<span id="代码示例"></span>
+
+<span id="启用与使用"></span>
+
+<span id="填入文字引用和业务参数"></span>
+
+<span id="定制选项"></span>
+
+<span id="常见需求"></span>
+
+<span id="等待审批时调整操作区"></span>
+
+<span id="草稿状态与发送控制"></span>
+
+<span id="让界面跟随输入与运行状态更新"></span>
+
+<span id="需求示例"></span>
+
+<span id="高度与字数限制"></span>

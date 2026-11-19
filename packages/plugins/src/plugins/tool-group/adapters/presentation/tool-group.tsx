@@ -12,7 +12,7 @@ export interface ConversationCanonicalToolGroupProps
   expanded?: boolean;
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
-  buttonProps?: Partial<ComponentProps<typeof InternalToolGroupTrigger>>;
+  buttonProps?: Partial<Omit<ComponentProps<typeof InternalToolGroupTrigger>, 'active' | 'count' | 'children'>>;
   contentProps?: Omit<ComponentProps<typeof InternalToolGroupContent>, 'children'>;
 }
 export function ConversationCanonicalToolGroup({
@@ -45,9 +45,9 @@ export function ConversationCanonicalToolGroup({
       }}
     >
       <InternalToolGroupTrigger
+        {...buttonProps}
         count={group.indices.length}
         active={group.status.type === 'running'}
-        {...buttonProps}
       />
       <InternalToolGroupContent {...contentProps}>{children}</InternalToolGroupContent>
     </InternalToolGroupRoot>

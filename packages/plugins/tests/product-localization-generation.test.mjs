@@ -2,6 +2,20 @@ import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
 import { applyProductLocalization, prepareProductAdapters } from "../scripts/sync-product-adapters.mjs";
 
+it.each([
+  ["web-search", "web-search"],
+  ["reasoning", "reasoning.aui"],
+])("regenerates the reduced %s presentation API without changing upstream source", async (plugin, name) => {
+  const localPath = `components/assistant-ui/elements/${name}.tsx`;
+  const directory = new URL(`../src/plugins/${plugin}/`, import.meta.url);
+  const vendor = new URL(`upstream/assistant-ui/${localPath}`, directory);
+  const original = await readFile(vendor, "utf8");
+  const generated = (await prepareProductAdapters()).files.find(file => file.localPath === localPath);
+  const maintained = await readFile(new URL(`adapters/presentation/assistant-ui/${localPath}`, directory), "utf8");
+  expect(generated.source).toBe(maintained);
+  expect(await readFile(vendor, "utf8")).toBe(original);
+});
+
 it("regenerates all repeated presentation seams and preserves protocol results", async () => {
   const first = await prepareProductAdapters();
   const second = await prepareProductAdapters();

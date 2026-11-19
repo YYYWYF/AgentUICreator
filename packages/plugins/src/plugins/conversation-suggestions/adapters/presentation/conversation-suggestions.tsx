@@ -1,7 +1,7 @@
 'use client';
 import type { ConversationSuggestionRequestAdapter } from '@za38.03/agent-ui-plugins';
 import type { ComposerData } from '@za38.03/agent-ui-runtime/plugin-api';
-import type { ComponentProps, CSSProperties, ReactNode } from 'react';
+import { Fragment, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { ConversationParts, SuggestionActions } from '../../../../plugin-support.js';
 import { ConversationSuggestion, ConversationSuggestionTrigger } from '../../../../public.js';
 export interface ConversationSuggestionItem {
@@ -15,11 +15,10 @@ export interface ConversationCanonicalSuggestionsProps extends Omit<ComponentPro
   sendOnSelect?: boolean;
   requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
   clearComposer?: boolean;
-  buttonProps?: Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' | 'clearComposer'>;
+  buttonProps?: Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' | 'clearComposer' | 'children'>;
   classNames?: Partial<Record<'title' | 'description', string>>;
   styles?: Partial<Record<'title' | 'description', CSSProperties>>;
-  renderSuggestion?: Extract<ComponentProps<typeof ConversationParts.Suggestions>, { children: unknown }>['children'];
-  children?: ReactNode;
+  renderSuggestion?: (item: ConversationSuggestionItem, defaultView: ReactNode) => ReactNode;
 }
 export function ConversationCanonicalSuggestions({
   items,
@@ -30,7 +29,6 @@ export function ConversationCanonicalSuggestions({
   classNames,
   styles,
   renderSuggestion,
-  children,
   ...elementProps
 }: ConversationCanonicalSuggestionsProps) {
   const behavior = { send: sendOnSelect, ...(clearComposer === undefined ? {} : { clearComposer }) };
@@ -48,9 +46,9 @@ export function ConversationCanonicalSuggestions({
       className={['conversation-suggestions-plugin', elementProps.className].filter(Boolean).join(' ')}
       data-ui-plugin='conversation-suggestions'
     >
-      {children ??
-        (items !== undefined ? (
-          items.map((item, index) => (
+      {items !== undefined ? (
+        items.map((item, index) => {
+          const view = (
             <ConversationSuggestion
               key={`${index}:${item.prompt}`}
               prompt={item.prompt}
@@ -64,24 +62,28 @@ export function ConversationCanonicalSuggestions({
               <span {...titleProps}>{item.title ?? item.prompt}</span>
               {item.label === undefined ? null : <span {...descriptionProps}>{item.label}</span>}
             </ConversationSuggestion>
-          ))
-        ) : (
-          <ConversationParts.Suggestions>
-            {renderSuggestion ??
-              (() => (
-                <ConversationSuggestionTrigger
-                  data-agent-ui-owned=''
-                  className='conversation-suggestion'
-                  {...behavior}
-                  requestAdapter={requestAdapter}
-                  {...buttonProps}
-                >
-                  <SuggestionActions.Title {...titleProps} />
-                  <SuggestionActions.Description {...descriptionProps} />
-                </ConversationSuggestionTrigger>
-              ))}
-          </ConversationParts.Suggestions>
-        ))}
+          );
+          return renderSuggestion ? <Fragment key={`${index}:${item.prompt}`}>{renderSuggestion(item, view)}</Fragment> : view;
+        })
+      ) : (
+        <ConversationParts.Suggestions>
+          {({ suggestion }) => {
+            const view = (
+              <ConversationSuggestionTrigger
+                data-agent-ui-owned=''
+                className='conversation-suggestion'
+                {...behavior}
+                requestAdapter={requestAdapter}
+                {...buttonProps}
+              >
+                <SuggestionActions.Title {...titleProps} />
+                <SuggestionActions.Description {...descriptionProps} />
+              </ConversationSuggestionTrigger>
+            );
+            return renderSuggestion ? renderSuggestion(suggestion, view) : view;
+          }}
+        </ConversationParts.Suggestions>
+      )}
     </div>
   );
 }

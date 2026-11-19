@@ -1,14 +1,109 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createRequire } from "node:module";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import { spawnPnpm, spawnPnpmSync } from "./pnpm-process.mjs";
 
 const args = process.argv.slice(2);
 const rootIndex = args.indexOf("--project-root");
 const root = rootIndex < 0 ? fileURLToPath(new URL("..", import.meta.url)) : path.resolve(args[rootIndex + 1]);
+
+// Exercise the installed native optimizer, not just Node filesystem mocks.
+// This mode does not launch Creator, install packages, or modify project sources.
+async function diagnoseDevelopmentCache() {
+  const require = createRequire(path.join(root, "apps/creator-workbench/package.json"));
+  const { resolveConfig, optimizeDeps } = await import(pathToFileURL(require.resolve("vite")).href);
+  const esbuildRequire = createRequire(require.resolve("vite"));
+  const esbuildPackage = esbuildRequire.resolve("esbuild/package.json");
+  const report = {
+    time: new Date().toISOString(),
+    root,
+    platform: process.platform,
+    architecture: process.arch,
+    node: process.version,
+    esbuild: JSON.parse(await readFile(esbuildPackage, "utf8")).version,
+    checks: [],
+    permissions: [],
+  };
+  const permissionTargets = new Set([root]);
+  if (process.platform === "win32") {
+    const nativeRequire = createRequire(esbuildPackage);
+    permissionTargets.add(nativeRequire.resolve(`@esbuild/win32-${process.arch}/esbuild.exe`));
+  }
+  const generations = new Set();
+  const errorText = error => error instanceof Error ? error.message : String(error);
+  for (let round = 1; round <= 3; round++) {
+    for (const role of ["workbench", "host-preview"]) {
+      const check = { round, role, cacheDir: null, nodeWrite: false, nativeWrite: false };
+      report.checks.push(check);
+      try {
+        const config = await resolveConfig({
+          root: path.join(root, role === "workbench" ? "apps/creator-workbench" : "examples/creator-host-sandbox"),
+          configFile: path.join(root, "apps/creator-workbench", role === "workbench" ? "vite.config.ts" : "host-preview.vite.config.ts"),
+          logLevel: "silent",
+        }, "serve");
+        // Diagnose the native executable's access separately from the Windows
+        // host writer used by normal pnpm dev, so a recovered write cannot be
+        // mistaken for evidence that esbuild itself can write this directory.
+        for (const optimization of [config.optimizeDeps, config.environments.client?.optimizeDeps]) {
+          const options = optimization?.esbuildOptions;
+          if (options?.plugins) optimization.esbuildOptions = {
+            ...options,
+            plugins: options.plugins.filter(plugin => plugin.name !== "agent-ui-windows-development-output"),
+          };
+        }
+        check.cacheDir = config.cacheDir;
+        generations.add(path.resolve(config.cacheDir, "../.."));
+        permissionTargets.add(config.cacheDir);
+        const probe = path.join(config.cacheDir, "node-write-probe.js.map");
+        const renamed = `${probe}.ready`;
+        try {
+          await writeFile(probe, "{}", { flag: "wx" });
+          await rename(probe, renamed);
+          check.nodeWrite = true;
+        } finally {
+          await rm(probe, { force: true });
+          await rm(renamed, { force: true });
+        }
+        const result = await optimizeDeps(config, true);
+        check.nativeWrite = Object.keys(result.optimized).length > 0;
+        if (!check.nativeWrite) throw new Error("Native optimizer produced no dependencies");
+      } catch (error) {
+        check.error = errorText(error);
+      }
+      console.log(`[cache diagnosis] round ${round} ${role}: Node=${check.nodeWrite}, esbuild=${check.nativeWrite}${check.error ? `; ${check.error}` : ""}`);
+    }
+  }
+  if (process.platform === "win32") {
+    const execute = promisify(execFile);
+    for (const target of permissionTargets) {
+      try {
+        const { stdout, stderr } = await execute("icacls.exe", [target], { windowsHide: true, timeout: 5000 });
+        report.permissions.push({ target, stdout, stderr });
+      } catch (error) {
+        report.permissions.push({ target, error: errorText(error) });
+      }
+    }
+  }
+  for (const directory of generations) {
+    // These exact generations were created above and their optimizers finished.
+    try { await rm(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+    catch (error) { report.checks.push({ cleanup: directory, error: errorText(error) }); }
+  }
+  const output = path.join(root, "node_modules/.cache", `agent-ui-cache-diagnosis-${Date.now()}.json`);
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
+  console.log(`Cache diagnosis saved: ${output}`);
+  return report.checks.every(check => check.nodeWrite && check.nativeWrite);
+}
+
+if (args.includes("--diagnose-cache")) {
+  process.exitCode = await diagnoseDevelopmentCache() ? 0 : 1;
+} else {
 async function freePort() {
   const server = net.createServer();
   await new Promise((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
@@ -101,3 +196,4 @@ try {
 
 console.log("Source-copy pnpm dev: Host, Creator Dock, workspace readiness, Agent proxy, and Chromium rendering passed.");
 console.log(`DEV_STARTUP_TIMING ${JSON.stringify(timing)}`);
+}

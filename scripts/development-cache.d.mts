@@ -10,5 +10,7 @@ export function prepareDevelopmentCache(
     base?: string;
     warn?: (message: string) => void;
     remove?: typeof import("node:fs").rmSync;
+    /** Used only to protect caches whose Vite process may still be running. */
+    isProcessAlive?: (pid: number) => boolean;
   },
 ): string;

@@ -26,9 +26,9 @@ const noopSubscribe = () => () => {};
 function useTriggerEnabled() {
   return useAuiState(s => !s.thread.isDisabled && !s.thread.isLoading && s.thread.composer.isEditing && s.thread.composer.type === "thread" && !s.thread.composer.dictation);
 }
-export function InternalConversationMentionTrigger({ source, labels, debounceMs, onSelect, requestAdapter }: ConversationMentionTriggerProps) {
+export function InternalConversationMentionTrigger({ source, labels, debounceMs, onSelect }: ConversationMentionTriggerProps) {
   const aui = useAui();
-  const captureRequest = useMentionRequest(requestAdapter);
+  const captureRequest = useMentionRequest();
   const cursor = useRef<((position: number) => void) | undefined>(undefined);
   const rangeRef = useRef<{ match: TriggerMatch; text: string } | null>(null);
   const itemsRef = useRef<readonly ConversationMentionItem[]>([]);
@@ -61,7 +61,7 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs,
       if (controller.signal.aborted) return [];
       const ids = new Set<string>();
       const safe = result.filter(item => {
-        if (!item.id || !item.label || (!onSelect && !requestAdapter && !serializeConversationDirective(item)) || ids.has(item.id)) return false;
+        if (!item.id || !item.label || (!onSelect && !serializeConversationDirective(item)) || ids.has(item.id)) return false;
         ids.add(item.id); return true;
       });
       resolvedQuery.current = query;
@@ -72,7 +72,7 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs,
       if (!controller.signal.aborted) setError("search");
       throw error;
     }
-  }, [source, onSelect, requestAdapter]);
+  }, [source, onSelect]);
   useLayoutEffect(() => {
     setError(null); resolvedQuery.current = null; itemsRef.current = []; rangeRef.current = null;
     return () => { request.current?.abort(); request.current = null; };
@@ -90,8 +90,8 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs,
     if (!enabled || !original || !capture || composer.getState().text !== queryRemoved(capture)) return true;
     try {
       let value = onSelect ? onSelect(original, { text: capture.text, range: { start: capture.match.offset, end: capture.match.endOffset } })
-        : requestAdapter ? original.label : serializeConversationDirective(original);
-      if (value) value = captureRequest(original, onSelect ? value ?? original.label : original.label, value ?? original.label, serializeConversationDirective(original) ?? original.label, onSelect !== undefined);
+        : serializeConversationDirective(original);
+      if (value) value = captureRequest(original, value);
       if (value !== null && typeof value !== 'string') throw new Error('Invalid trigger selection result.');
       const before = capture.text.slice(0, capture.match.offset);
       const after = capture.text.slice(capture.match.endOffset);
@@ -102,7 +102,7 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs,
       composer.setText(capture.text); cursor.current?.(capture.match.endOffset); setError('invalid');
     }
     return true;
-  }, [aui, enabled, onSelect, requestAdapter, captureRequest]);
+  }, [aui, enabled, onSelect, captureRequest]);
   if (!enabled || source === undefined) return null;
   return <>
     <ComposerTriggerPopover char="@" adapter={adapter} isLoading={completion.isLoading} matcher={matcher}
@@ -114,9 +114,9 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs,
     {error && <div data-agent-ui-owned="" role="status" data-slot="composer-trigger-error">{error === "invalid" ? labels.invalidItem : labels.searchFailed} <button data-agent-ui-owned="" type="button" onClick={() => { setError(null); setRetry(value => value + 1); }}>{labels.retry}</button></div>}
   </>;
 }
-export function InternalConversationCommandTrigger({ source, labels, onSelect, requestAdapter }: ConversationCommandTriggerProps) {
+export function InternalConversationCommandTrigger({ source, labels, onSelect }: ConversationCommandTriggerProps) {
   const aui = useAui();
-  const captureRequest = useCommandRequest(requestAdapter);
+  const captureRequest = useCommandRequest();
   const cursor = useRef<((position: number) => void) | undefined>(undefined);
   const enabled = useTriggerEnabled();
   const threadId = useAuiState(s => s.threads.mainThreadId);
@@ -137,11 +137,11 @@ export function InternalConversationCommandTrigger({ source, labels, onSelect, r
   const adapter = useMemo(() => ({ categories: () => [], categoryItems: () => [], search: (query: string) => {
     const ids = new Set<string>();
     return commands.filter(command => {
-      if (!command.id || !command.label || ids.has(command.id) || (!onSelect && !requestAdapter && !serializeConversationDirective({ ...command, type: "command" }))) return false;
+      if (!command.id || !command.label || ids.has(command.id) || (!onSelect && !serializeConversationDirective({ ...command, type: "command" }))) return false;
       ids.add(command.id);
       return !command.disabled && `${command.id} ${command.label} ${command.description ?? ""}`.toLocaleLowerCase().includes(query.toLocaleLowerCase());
     }).map(command => ({ id: command.id, type: "command", label: command.label, ...(command.description === undefined ? {} : { description: command.description }) }));
-  } }), [commands, onSelect, requestAdapter]);
+  } }), [commands, onSelect]);
   const select = useCallback((item: Unstable_TriggerItem, setCursor: (position: number) => void) => {
     const command = source?.getSnapshot().find(command => command.id === item.id);
     if (!command || command.disabled || busyRef.current || !enabled) return true;
@@ -151,9 +151,9 @@ export function InternalConversationCommandTrigger({ source, labels, onSelect, r
     const expected = capture ? queryRemoved(capture) : undefined;
     if (!capture || composer.getState().text !== expected) { setError(labels.invalidItem); return true; }
     try {
-      let value = onSelect === undefined ? requestAdapter ? command.label : serializeConversationDirective({ ...command, type: 'command' })
+      let value = onSelect === undefined ? serializeConversationDirective({ ...command, type: 'command' })
         : onSelect(command, { text: capture.text, range: { start: capture.match.offset, end: capture.match.endOffset } });
-      if (value) value = captureRequest(commandRequestItem(command), onSelect ? value ?? command.label : command.label, value ?? command.label, serializeConversationDirective({ ...command, type: 'command' }) ?? command.label, onSelect !== undefined);
+      if (value) value = captureRequest(commandRequestItem(command), value);
       if (value !== null && typeof value !== 'string') throw new Error('Invalid trigger selection result.');
       const before = capture.text.slice(0, capture.match.offset);
       const after = capture.text.slice(capture.match.endOffset);
@@ -165,7 +165,7 @@ export function InternalConversationCommandTrigger({ source, labels, onSelect, r
       setError(labels.commandFailed);
     }
     return true;
-  }, [aui, source, enabled, labels.invalidItem, labels.commandFailed, onSelect, requestAdapter, captureRequest]);
+  }, [aui, source, enabled, labels.invalidItem, labels.commandFailed, onSelect, captureRequest]);
   const execute = useCallback((item: Unstable_TriggerItem) => {
     const command = source?.getSnapshot().find(command => command.id === item.id);
     if (!command || command.mode !== "action" || command.disabled) return;

@@ -35,7 +35,6 @@ export function WebSearch({
   visibleResults,
   searching,
   labels,
-  cycle,
   className,
   ...props
 }: Omit<ComponentProps<'div'>, 'children' | 'query' | 'results' | 'visibleResults' | 'searching' | 'cycle'> & {
@@ -43,7 +42,6 @@ export function WebSearch({
   results: readonly WebSearchResult[];
   visibleResults: number;
   searching: boolean;
-  cycle: number;
   labels?: { searching: string; complete: string };
 }) {
   const localeMessages = useAgentUILocale();
@@ -81,7 +79,7 @@ export function WebSearch({
           return (
             <div
               data-agent-ui-owned=''
-              key={`${cycle}-${index}`}
+              key={index}
               className='fade-in slide-in-from-bottom-1 animate-in fill-mode-both hover:bg-foreground/[0.03] -mx-2.5 flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-300'
             >
               <span

@@ -5,7 +5,6 @@ export type { ChartMessageData, ChartMessageItem } from './projection.js';
 export interface ChartMessageProps
   extends DataMessageUIRenderProps<unknown>,
     Omit<ComponentProps<'figure'>, 'children' | 'title'> {
-  title?: ReactNode;
   classNames?: Partial<Record<'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value', string>>;
   styles?: Partial<Record<'caption' | 'list' | 'item' | 'label' | 'track' | 'bar' | 'value', CSSProperties>>;
   formatValue?: (value: number, item: ChartMessageItem) => ReactNode;
@@ -14,7 +13,6 @@ export interface ChartMessageProps
 }
 export function CanonicalChartMessage({
   data,
-  title,
   classNames,
   styles,
   formatValue,
@@ -38,7 +36,7 @@ export function CanonicalChartMessage({
       aria-label={rootProps['aria-label'] ?? chart.title}
     >
       <figcaption className={classNames?.caption} style={styles?.caption}>
-        {title ?? chart.title}
+        {chart.title}
       </figcaption>
       <ul className={classNames?.list} style={styles?.list}>
         {chart.items.map((item, index) => (

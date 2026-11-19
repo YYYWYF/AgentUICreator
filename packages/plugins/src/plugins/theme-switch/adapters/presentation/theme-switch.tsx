@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { useId, type ComponentProps, type ReactNode } from 'react';
 import { useAgentUIThemeSnapshot } from '../../../../plugin-support.js';
 import {
   AGENT_UI_THEME_PRESETS,
@@ -12,28 +12,27 @@ import {
 export interface ThemeSwitchPluginProps extends Omit<ComponentProps<'section'>, 'children'> {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
-  contextId?: string;
   service?:
     | { getTheme(): string; setTheme(theme: AgentUITheme): void; subscribe(listener: () => void): () => void }
     | undefined;
   theme?: AgentUITheme | undefined;
   onThemeChange?: ((theme: AgentUITheme) => void) | undefined;
   disabled?: boolean;
-  selectProps?: ComponentProps<typeof NativeSelect>;
-  children?: ReactNode;
+  selectProps?: Omit<ComponentProps<typeof NativeSelect>, 'children' | 'value' | 'defaultValue' | 'disabled'>;
+  options?: readonly AgentUITheme[];
 }
 export function CanonicalThemeSwitchPlugin({
   renderSlot: _renderSlot,
   renderScopedSlot: _renderScopedSlot,
-  contextId = 'theme',
   service,
   theme: controlledTheme,
   onThemeChange,
   selectProps,
   disabled,
-  children,
+  options,
   ...rootProps
 }: ThemeSwitchPluginProps) {
+  const controlId = useId();
   const locale = useAgentUILocale('theme');
   const observedTheme = useAgentUIThemeSnapshot(controlledTheme === undefined ? service : undefined);
   const theme = controlledTheme ?? observedTheme;
@@ -61,7 +60,7 @@ export function CanonicalThemeSwitchPlugin({
         disabled={disabled}
         aria-label={locale.settings}
         className='theme-switch-plugin-control'
-        id={`${contextId}-control`}
+        id={controlId}
         value={theme}
         {...selectProps}
         onChange={(event) => {
@@ -75,14 +74,11 @@ export function CanonicalThemeSwitchPlugin({
           }
         }}
       >
-        {children ??
-          Object.keys(AGENT_UI_THEME_PRESETS)
-            .filter(isAgentUITheme)
-            .map((preset) => (
-              <NativeSelectOption key={preset} value={preset}>
-                {locale[preset]}
-              </NativeSelectOption>
-            ))}
+        {(options ?? Object.keys(AGENT_UI_THEME_PRESETS).filter(isAgentUITheme)).map((preset) => (
+          <NativeSelectOption key={preset} value={preset}>
+            {locale[preset]}
+          </NativeSelectOption>
+        ))}
       </NativeSelect>
     </section>
   );

@@ -1122,15 +1122,15 @@ export interface ToolFallbackPresentationProps extends UIPluginElementProps {
   onExpandedChange?: (expanded: boolean) => void;
   buttonProps?: Omit<
     React.ComponentProps<typeof ToolFallbackTrigger>,
-    'toolName' | 'status' | 'responseDeliveryStatus'
+    'toolName' | 'status' | 'responseDeliveryStatus' | 'children'
   >;
-  contentProps?: React.ComponentProps<typeof ToolFallbackContent>;
+  contentProps?: Omit<React.ComponentProps<typeof ToolFallbackContent>, 'children'>;
   argsProps?: Omit<React.ComponentProps<typeof ToolFallbackArgs>, 'argsText' | 'children'>;
   resultProps?: Omit<React.ComponentProps<typeof ToolFallbackResult>, 'result' | 'children'>;
   renderResult?: (result: unknown) => React.ReactNode;
   errorProps?: Omit<React.ComponentProps<typeof ToolFallbackError>, 'status' | 'children'>;
   approvalProps?: Omit<React.ComponentPropsWithoutRef<'div'>, 'children'>;
-  children?: React.ReactNode;
+  renderDetails?: (defaultDetails: React.ReactNode) => React.ReactNode;
 }
 type ToolFallbackProps = React.ComponentProps<ToolCallMessagePartComponent> &
   Pick<ConversationToolCallProps, 'decisionRequest' | 'submitDecision'> &
@@ -1166,7 +1166,7 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
   renderResult,
   errorProps,
   approvalProps,
-  children,
+  renderDetails,
 }) => {
   const isCancelled = status?.type === 'incomplete' && status.reason === 'cancelled';
   const isRequiresAction = status?.type === 'requires-action';
@@ -1201,6 +1201,44 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
     }
   }, [approval, isRequiresAction, status?.type]);
 
+  const details = (
+    <>
+      <ToolFallbackError status={status} {...errorProps} />
+      <ToolFallbackArgs argsText={argsText} className={cn(isCancelled && 'opacity-60')} {...argsProps} />
+      {shouldRenderApproval && (
+        <ToolFallbackApproval
+          addResult={addResult}
+          resume={resume}
+          interrupt={interrupt}
+          approval={approval}
+          respondToApproval={respondToApproval}
+          decisionRequest={decisionRequest}
+          submitDecision={submitDecision}
+          status={status}
+          {...approvalProps}
+          onFocusCapture={(event) => {
+            approvalProps?.onFocusCapture?.(event);
+            const root = event.currentTarget.closest('[data-slot="tool-fallback-root"]');
+            triggerRef.current = root?.querySelector<HTMLButtonElement>('[data-slot="tool-fallback-trigger"]') ?? null;
+            approvalElementRef.current = event.currentTarget;
+            approvalHadFocusRef.current = true;
+          }}
+          onBlurCapture={(event) => {
+            approvalProps?.onBlurCapture?.(event);
+            const relatedTarget = event.relatedTarget;
+            const stillFocused = relatedTarget
+              ? event.currentTarget.contains(relatedTarget as Node)
+              : event.currentTarget.contains(event.currentTarget.ownerDocument.activeElement);
+            if (!stillFocused) {
+              approvalHadFocusRef.current = false;
+            }
+          }}
+        />
+      )}
+      {renderResult ? renderResult(result) : <ToolFallbackResult result={result} {...resultProps} />}
+    </>
+  );
+
   return (
     <ToolFallbackRoot
       className={className}
@@ -1216,57 +1254,13 @@ const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
         onExpandedChange?.(value);
       }}
     >
-      {
-        <>
-          <ToolFallbackTrigger
-            toolName={toolName}
-            status={status}
-            responseDeliveryStatus={responseDeliveryStatus}
-            {...buttonProps}
-          />
-          <ToolFallbackContent {...contentProps}>
-            {contentProps?.children ?? (
-              <>
-                <ToolFallbackError status={status} {...errorProps} />
-                <ToolFallbackArgs argsText={argsText} className={cn(isCancelled && 'opacity-60')} {...argsProps} />
-                {shouldRenderApproval && (
-                  <ToolFallbackApproval
-                    addResult={addResult}
-                    resume={resume}
-                    interrupt={interrupt}
-                    approval={approval}
-                    respondToApproval={respondToApproval}
-                    decisionRequest={decisionRequest}
-                    submitDecision={submitDecision}
-                    status={status}
-                    {...approvalProps}
-                    onFocusCapture={(event) => {
-                      approvalProps?.onFocusCapture?.(event);
-                      const root = event.currentTarget.closest('[data-slot="tool-fallback-root"]');
-                      triggerRef.current =
-                        root?.querySelector<HTMLButtonElement>('[data-slot="tool-fallback-trigger"]') ?? null;
-                      approvalElementRef.current = event.currentTarget;
-                      approvalHadFocusRef.current = true;
-                    }}
-                    onBlurCapture={(event) => {
-                      approvalProps?.onBlurCapture?.(event);
-                      const relatedTarget = event.relatedTarget;
-                      const stillFocused = relatedTarget
-                        ? event.currentTarget.contains(relatedTarget as Node)
-                        : event.currentTarget.contains(event.currentTarget.ownerDocument.activeElement);
-                      if (!stillFocused) {
-                        approvalHadFocusRef.current = false;
-                      }
-                    }}
-                  />
-                )}
-                {renderResult ? renderResult(result) : <ToolFallbackResult result={result} {...resultProps} />}
-                {children}
-              </>
-            )}
-          </ToolFallbackContent>
-        </>
-      }
+      <ToolFallbackTrigger
+        toolName={toolName}
+        status={status}
+        responseDeliveryStatus={responseDeliveryStatus}
+        {...buttonProps}
+      />
+      <ToolFallbackContent {...contentProps}>{renderDetails ? renderDetails(details) : details}</ToolFallbackContent>
     </ToolFallbackRoot>
   );
 };

@@ -15,54 +15,57 @@
 - [功能概览](/plugins/index.md): 了解 Agent UI 的界面形态、业务对话、任务协作和结果交付能力。
 - [插件默认启用情况](/plugins/default-plugins.md): 查看三种模板中默认启用和按需启用的官方插件。
 - [AG-UI 数据格式与插件数据接入](/plugins/ag-ui-data.md): 了解 AG-UI 数据格式，查询各插件的数据来源、事件格式和不显示时的检查方法。
-- [会话界面（conversation-surface）](/plugins/conversation-surface.md): 用户可以在同一区域阅读已有对话、查看新回复并继续提问；工具结果、计划等内容会显示在对应的消息中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [会话列表（conversation-thread-list）](/plugins/conversation-thread-list.md): 点击记录打开对话，可搜索会话并使用已接入的管理操作。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [新建会话（conversation-new）](/plugins/conversation-new.md): 点击后进入空白对话，可以重新输入问题；之前的会话记录仍保留在历史列表中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [开场建议（conversation-suggestions）](/plugins/conversation-suggestions.md): 例如显示「查询账单」「了解转账流程」等入口。点击后按项目配置填入输入框或直接发起提问。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [临时通知（transient-assistant-messages）](/plugins/transient-assistant-messages.md): 提示显示在对话的对应位置，但不作为用户问题发送给 Agent，也不写入后端聊天历史。它只保留在当前页面内存中，适合临时通知。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [多内容侧栏](/plugins/workbench-panel.md): workbench-panel 提供右侧多标签面板，其他插件通过 open(内容ID) 打开指定内容。切换、关闭标签和收起时保留内容组件挂载，不中断正在进行的对话。当前仅支持工作台。 以下路径相对于生成目录，默认为 src/agent-ui/。新工作台已有侧栏容器，默认不配置内容、标签或打开按钮；用户接入自己的内容后使用。
-- [消息输入（composer）](/plugins/composer.md): 需要在回复期间发送后续问题时，先按消息排队开启；该教程说明待发送列表、移除、停止和切换会话的行为。 用户可以输入和修改草稿。附件、引用、语音和发送按钮按项目配置组合在这个区域中。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [发送与停止（submit-action）](/plugins/submit-action.md): 排队的启用方式和停止／审批时的行为见消息排队；带 endpoint 的工作流按钮在运行中不排队。 输入问题后点击发送，Agent 开始回复。回复期间点击停止可请求中止；项目支持排队时，也可以把下一条消息加入队列。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [附件添加（add-attachment-action）](/plugins/add-attachment-action.md): 点击后选择文件，文件会出现在当前草稿的附件区。发送前可以移除；默认读取为 Base64；可通过 Agent 配置文件类型、大小限制或上传地址。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [消息引用（conversation-quote）](/plugins/conversation-quote.md): 选中文字并点击「引用」后，输入框上方会显示引用内容。用户可以围绕这段文字追问，也可以取消引用。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [消息与标签编辑（lexical-edit-composer）](/plugins/lexical-edit-composer.md): 将鼠标移到已发送的用户消息上，点击旁边的「编辑」按钮，原有 @ 对象和 / 指令标签会回填到编辑框。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。 原消息的位置会切换为编辑框，修改后可以「更新」或「取消」，下方仍保留已有回复。
-- [@ 提及搜索（mention-trigger）](/plugins/mention-trigger.md): 例如输入「@产品」后选择「产品说明文档」。选择结果会带上对象 ID，方便 Agent 按项目约定识别引用的是哪一份资料。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [/ 快捷命令（slash-command-trigger）](/plugins/slash-command-trigger.md): 用户可以搜索并选择项目已提供的命令。操作类命令会执行相应动作；指令类命令会加入草稿，随问题一起发送。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [输入标签展示（lexical-composer-input）](/plugins/lexical-composer-input.md): 用户仍然可以正常输入文字、移动光标；引用对象和指令各自显示为一个完整标签，删除时按整个标签处理。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [语音输入（开发中）](/plugins/dictation-action.md): 点击语音按钮开始听写，再次操作停止。识别出的文字进入输入框，用户确认或修改后再发送。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [回复操作栏（response-footer）](/plugins/response-footer.md): 同一次回复即使分成多段，也只在最后显示一组操作。具体显示哪些按钮，由项目选择的操作插件决定。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [回复复制（copy-action）](/plugins/copy-action.md): 回复完成后点击复制，即可把文本粘贴到其他地方。一次回复分成多条消息时，会按这次回复一起复制。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [回复重新生成（reload-action）](/plugins/reload-action.md): 点击回复下方的重新生成按钮后，会发起新的生成。项目提供分支切换时，可以比较和切换不同版本的回复。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [Markdown 回复导出（export-markdown-action）](/plugins/export-markdown-action.md): 在回复的更多菜单中选择导出，浏览器会下载文件。导出的是这次回复，不是全部聊天记录。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [回复评价（feedback-actions）](/plugins/feedback-actions.md): 用户点击正向或负向评价后，按钮会显示当前选择。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [思考内容展示（reasoning）](/plugins/reasoning.md): Agent 提供思考内容时，对话中会出现「思考」区域，并随返回内容更新。它展示思考文字；只有「正在思考」提示时，并没有这些详情。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [工具调用分组（tool-group）](/plugins/tool-group.md): 收起时显示调用数量，例如「2 次工具调用」。展开后可以看到组内每个工具的名称和状态，并继续打开单次调用的详情。 组内出现等待审批或用户操作的工具时，默认自动展开，直接显示待处理内容；仍可手动收起。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [工具调用详情（tool-fallback）](/plugins/tool-fallback.md): 工具调用是 Agent 发起的一次具体操作，例如读取项目配置。点击工具名称可展开参数、结果或错误；需要确认的操作会提供允许或拒绝入口。工具组负责归类多次调用，本插件负责展示其中每一次调用的内容。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [工具结果（tool-result）](/plugins/tool-result.md): 工具返回文本、图片、音频、视频或文档时，按内容顺序展示文本、图片预览、播放器和文件下载入口。图片、播放器和文件卡片复用 assistant-ui 的现有组件与 Agent UI 主题。
-- [询问用户](/plugins/ask-user-question.md): ask-user-question 让 Agent 在对话中提出问题，收集单选、多选或文字回答，再根据答案继续处理。它是正式 UI 插件，随 @za38.03/agent-ui-plugins 提供，默认按需启用。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
+- [会话界面（conversation-surface）](/plugins/conversation-surface.md): 组合消息、欢迎内容、建议和输入区，复用已有 Conversation 生命周期。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [会话列表（conversation-thread-list）](/plugins/conversation-thread-list.md): 提供标题搜索、归档、会话操作和自定义时间或业务分组。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [新建会话（conversation-new）](/plugins/conversation-new.md): 创建并切换到空白 Thread，保留原有历史和已挂载后台会话。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [开场建议（conversation-suggestions）](/plugins/conversation-suggestions.md): 把固定业务问题或当前会话的建议展示为入口。默认点击即把建议问题交给现有 Composer 发送；也可以只填写草稿，让用户补充后再发送。插件已处理建议项、草稿与选中数据之间的关联。
+- [临时通知（transient-assistant-messages）](/plugins/transient-assistant-messages.md): 在当前会话插入临时提示，不发送给 Agent，也不保存到业务历史。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [多内容侧栏](/plugins/workbench-panel.md): 在同一工作台中打开和切换多个内容标签，关闭或收起时保留挂载。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [侧栏打开按钮（workbench-panel-actions）](/plugins/workbench-panel-actions.md): 为已登记的侧栏内容显示打开按钮，复用同一个面板服务。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [消息输入（composer）](/plugins/composer.md): 把正文、附件、引用和业务选择准备为当前会话的一条消息，再通过已有发送入口提交。输入区、发送按钮与业务插件共用草稿和运行状态。
+- [发送与停止（submit-action）](/plugins/submit-action.md): 围绕当前 Composer 显示发送与停止入口。按钮已有运行状态、排队能力和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
+- [附件添加（add-attachment-action）](/plugins/add-attachment-action.md): 通过现有附件能力把文件加入当前草稿。选择后由 Composer 显示附件项、移除入口与准备状态；配置上传服务时在发送阶段上传，用户无需自己把按钮、上传和消息正文串起来。
+- [消息引用（conversation-quote）](/plugins/conversation-quote.md): 选中已有消息中的一段文字后发起引用，输入区立即显示引用预览。用户可以补充问题，也可以直接移除预览；插件已经把选择工具栏、原消息标识和当前草稿连起来。
+- [消息与标签编辑（lexical-edit-composer）](/plugins/lexical-edit-composer.md): 编辑已有用户消息中的文字和引用标签，并沿用消息编辑原有的保存、取消与重新提交流程。它服务于当前被编辑的消息，和底部准备下一条问题的 Composer 具有不同的草稿作用域。
+- [@ 提及搜索（mention-trigger）](/plugins/mention-trigger.md): 在草稿中输入 @ 后搜索项目提供的人、文件或资料，选中后插入引用。插件已处理搜索弹层、键盘选择、请求取消和引用插入；用户选好对象后继续编辑，再通过 Composer 发送。
+- [/ 快捷命令（slash-command-trigger）](/plugins/slash-command-trigger.md): 输入 / 打开命令菜单。菜单中的指令会进入草稿供本次发送使用，动作则在选择时执行项目行为；插件已区分这两种流程，无需用户为普通选项自己调用 Composer。
+- [输入标签展示（lexical-composer-input）](/plugins/lexical-composer-input.md): 让当前草稿中的 @ 提及和 / 指令以标签形式编辑。它替换输入界面，继续使用现有 Composer 的文本、会话和发送流程；选择、删除标签与中文输入法处理已内置。
+- [语音输入（开发中）](/plugins/dictation-action.md): 在已有语音能力可用时，开始听写并将识别结果写入当前草稿；录音期间显示停止听写入口。默认使用受支持的浏览器语音识别，需要麦克风权限和可用设备。业务转写服务接入仍在开发中，见语音转写服务。
+- [技能与工作流选择（skills）](/plugins/skills.md): 为本次问题选择一个技能，或显式启动项目工作流。技能栏、当前技能标签和 Composer 已共享选择状态；选中技能不会立即发送，也不需要用户再手动把技能写进草稿。
+- [当前技能标签（skills-selection）](/plugins/skills-selection.md): 显示当前 Thread 已选技能，并提供移除入口。技能来自技能栏，标签自动订阅同一份服务；未选择技能时不显示，不需要调用方自己维护第二份选中状态。
+- [回复操作栏（response-footer）](/plugins/response-footer.md): 在完整回答后组合复制、重试、评价、导出和版本切换操作。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [回复复制（copy-action）](/plugins/copy-action.md): 复制当前版本整次回答的文字，包含工具续跑后产生的多段助理内容。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [回复重新生成（reload-action）](/plugins/reload-action.md): 为当前整次回答重新发起生成，并沿用原有回复版本与分支生命周期。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [Markdown 回复导出（export-markdown-action）](/plugins/export-markdown-action.md): 将当前版本的完整回答导出为 Markdown，支持独立按钮和菜单入口。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [回复评价（feedback-actions）](/plugins/feedback-actions.md): 为整次回答提供赞与踩操作，通过项目反馈服务保存评价。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [思考内容展示（reasoning）](/plugins/reasoning.md): 在回答中展示 Agent 返回的思考过程。插件会随思考状态自动展开、更新和收起，用户也可以随时展开查看。 启用插件并接入思考数据后，以下行为自动生效，无需自行管理展开状态。
+- [工具调用分组（tool-group）](/plugins/tool-group.md): 将会话中归入同一组的工具调用集中展示，自动显示调用数量和运行状态，并保留每个工具原有的详情与操作。
+- [工具调用详情（tool-fallback）](/plugins/tool-fallback.md): 显示工具参数、结果和错误，保留原调用的审批与中断恢复。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [工具结果（tool-result）](/plugins/tool-result.md): 将工具返回的文字、图片、音频、视频和文档按类型展示，并保留当前工具原有的状态、详情与操作入口。
+- [询问用户](/plugins/ask-user-question.md): 展示工具提出的选择题或文字题，支持用户提交、只读回执和独立问卷。 <span id="常见需求"></span> <span id="代码示例"></span> <span id="添加到项目"></span>
 - [人机交互与操作确认](/plugins/human-interaction.md): 让 Agent 在需要用户作决定或补充信息时，先停下来提问，再根据用户的选择继续处理。 例如，Agent 可以先问「允许删除这些临时文件吗？」，也可以问「首页要用哪种布局？」。用户在对话中的卡片上确认或回答，不用猜应该在聊天框里输入什么。
-- [思考状态提示（thinking-indicator）](/plugins/thinking-indicator.md): 对话中会出现带动画的小提示；已有思考详情、工具活动或正文可展示时，会按配置让位给实际内容。它提示正在等待，不展示具体思考文字或任务完成百分比。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [工具执行时间线（tool-timeline）](/plugins/tool-timeline.md): 摘要显示工具调用的数量和运行状态；展开后按步骤展示动作及具体目标，例如读取的文件路径或执行的命令。它关注这条回复用了哪些工具，不表示构建或测试等后台作业的完成百分比。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [SubAgent 任务与结果（task-group）](/plugins/task-group.md): 多个 SubAgent 任务显示为可展开的卡片。用户可以分别查看任务名称、执行状态，以及返回的过程和结果；某个 SubAgent 失败时保留该项失败状态。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [Agent 工作状态（agent-status-message）](/plugins/agent-status-message.md): 状态卡片用简短文字说明当前工作，并随这项工作的运行状态显示进行中或已完成等标记；有耗时数据时也可显示耗时。它不列计划步骤，也不显示完成百分比。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [任务计划与完成状态（agent-plan-message）](/plugins/agent-plan-message.md): 例如依次列出「检查代码」「修改界面」「执行验证」。Agent 更新计划时，卡片里的当前步骤和完成标记随之变化。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [后台任务进度（job-progress-message）](/plugins/job-progress-message.md): 例如一次 CI 作业依次经过拉取代码、安装依赖、构建和测试。卡片显示当前阶段、进度及最终结果；业务支持取消时，还会提供取消按钮。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [上下文检索结果（context-retrieval-message）](/plugins/context-retrieval-message.md): 例如 Agent 查询请假制度后，卡片按检索词列出供它参考的制度片段，用户可以展开阅读。它展示已提供给 Agent 的上下文；文档检索片段插件则展示文档搜索工具的命中结果。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [生成文件（generated-file-message）](/plugins/generated-file-message.md): 例如生成一份报告后，对话中会出现文件名和下载入口。文件内容和可访问地址由业务服务提供。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [图表展示（chart-message）](/plugins/chart-message.md): 例如把四个季度的销售额显示为条形图，同时保留项目名称和数值，用户不用只阅读一段数字。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [引用来源（source-citations-message）](/plugins/source-citations-message.md): 来源会显示为带标题的入口。用户可以打开可访问的网页，或查看文档来源标识，确认回答引用了哪份资料。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [文档检索片段（retrieval-chunks）](/plugins/retrieval-chunks.md): 例如搜索退款规则后，卡片显示命中的文档、相关段落及可用的评分等信息；有多个结果时可逐项查看。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [网页搜索结果（web-search）](/plugins/web-search.md): 结果显示可用的网页标题、摘要和来源，用户可以选择结果并打开原网页。搜索本身由 Agent 或业务搜索服务执行。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [Agent 名称与头像（agent-identity）](/plugins/agent-identity.md): 例如把默认助手名称换成「客服助手」，配上产品头像和说明，方便用户识别正在使用哪个助手。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [主题切换（theme-switch）](/plugins/theme-switch.md): 选择后，对话区域等受主题控制的界面会同步更新外观，当前会话继续保留。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [界面语言切换（locale-switch）](/plugins/locale-switch.md): 切换语言后，当前对话和输入草稿会保留。它控制界面语言，Agent 用什么语言回答由 Agent 和业务配置决定。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [账号信息与退出登录（auth-account）](/plugins/auth-account.md): 例如在侧栏底部显示用户名和头像，点击后打开账号菜单。直接传入业务用户资料时只显示身份；插件管理认证会话时，可提供退出登录。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [登录认证（开发中）](/plugins/auth-gate.md): 检查登录状态时显示等待；未登录时显示账号、密码和登录按钮。认证成功后，应用再显示允许访问的聊天内容。 日常调整可以交给 Creator；需要自己写代码时，直接查看属性。
-- [会话数据源（conversation-data-source）](/plugins/conversation-data-source.md): 连接业务系统中的历史会话，让用户查看会话列表和之前的聊天记录。接入这项能力时，最重要的是提供实际接口资料。 这是一个提供数据的插件，负责请求历史接口并转换返回格式。它与会话服务配合，数据由会话列表等界面插件展示，本身没有独立的列表界面。 请求和业务响应转换位于项目的 services/conversations/data-source.ts。默认后端使用 returnCode/errorMsg/body，详情消息位于 max_message_checkpoint.values.messages；项目方法将其转换为会话服务使用的 history，后端无需改成前端内部格式。
-- [会话服务（conversation-service）](/plugins/conversation-service.md): 让会话列表、会话切换和历史加载使用同一份会话信息。通常沿用项目现有配置，不需要单独修改。 这是一个提供共享会话管理能力的插件，负责会话状态、缓存和操作。它与会话数据源配合，并供会话列表等界面插件使用，通常没有独立界面。
-- [语言服务（locale-provider）](/plugins/locale-provider.md): 统一管理助理界面的语言和文案。生成项目默认中文，支持中文和英文。 这是一个提供共享语言状态与文案的插件，其他插件从中读取当前语言和界面文字。可见的语言选择入口由界面语言切换插件提供，语言服务本身通常没有独立界面。
-- [主题服务（theme-provider）](/plugins/theme-provider.md): 统一管理助理界面的主题。内置浅色、深色和紫色，默认使用紫色主题。 这是一个提供共享主题状态的插件，供界面和其他插件使用。可见的切换按钮由主题切换插件提供；本页介绍主题服务的用途，手动配置见下方开发文档。
-- [会话命令源（conversation-command-source）](/plugins/conversation-command-source.md): 管理输入框 / 菜单中的命令，例如“新建会话”。你可以让 Creator 增加命令、修改名称，或调整选中后的行为。 这是一个提供命令数据与操作的插件，菜单由/ 快捷命令插件展示。命令源维护可用命令及选择行为，通常没有独立界面。
+- [思考状态提示（thinking-indicator）](/plugins/thinking-indicator.md): 在 Agent 尚未开始正式回答时提供轻量状态提示，并根据当前消息中的实际活动决定何时显示、让位或消失。
+- [工具执行时间线（tool-timeline）](/plugins/tool-timeline.md): 将当前助理消息中的工具活动汇总为可展开的执行时间线，自动更新调用摘要、执行目标和可用的文件变更统计。
+- [SubAgent 任务与结果（task-group）](/plugins/task-group.md): 将同一回答中的嵌套任务展示为任务卡片，汇总运行情况，并支持展开查看子任务过程与结果。
+- [Agent 工作状态（agent-status-message）](/plugins/agent-status-message.md): 将一次状态工具调用展示为工作状态卡片。说明文字来自工具参数，工作中、等待中和完成状态由工具生命周期自动决定。
+- [任务计划与完成状态（agent-plan-message）](/plugins/agent-plan-message.md): 将 Agent 提供的计划展示为步骤列表，自动区分已完成、当前执行和未开始的步骤，并随计划消息更新完成进度。
+- [后台任务进度（job-progress-message）](/plugins/job-progress-message.md): 展示长任务的阶段进度、预计剩余时间和最终结果，并沿用当前运行已经接入的停止操作。
+- [上下文检索结果（context-retrieval-message）](/plugins/context-retrieval-message.md): 展示 Agent 取回的知识库、长期记忆等上下文，自动按查询分组，并以可展开的摘要显示片段总数。
+- [生成文件（generated-file-message）](/plugins/generated-file-message.md): 将文件生成工具的成功结果展示为文件卡片，自动读取文件名、类型和访问地址，并提供对应的文件展示与下载入口。
+- [图表展示（chart-message）](/plugins/chart-message.md): 将 Agent 返回的结构化数据展示为条形图，自动显示标题、项目名称、数值和相对长度。
+- [引用来源（source-citations-message）](/plugins/source-citations-message.md): 将来源工具的成功结果展示为引用来源列表，自动区分网页和文档来源，并保留来源的真实标识。
+- [文档检索片段（retrieval-chunks）](/plugins/retrieval-chunks.md): 将文档检索工具的查询和命中片段展示在回答中，自动切换检索中与结果状态，并显示来源、定位和相关度。
+- [网页搜索结果（web-search）](/plugins/web-search.md): 将网页搜索工具的查询和结果展示在回答中，自动切换搜索中与结果状态，并为有有效地址的网页提供打开入口。
+- [Agent 名称与头像（agent-identity）](/plugins/agent-identity.md): 在界面中展示助手名称、Logo 和可选说明，并跟随统一的界面语言选择名称。
+- [主题切换（theme-switch）](/plugins/theme-switch.md): 在浅色、深色和紫色主题间切换，支持服务绑定和受控选择。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span> <span id="定制选项"></span>
+- [界面语言切换（locale-switch）](/plugins/locale-switch.md): 切换中文和英文界面，支持服务绑定和业务页面控制。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span> <span id="定制选项"></span>
+- [账号信息与退出登录（auth-account）](/plugins/auth-account.md): 显示业务用户或认证服务中的身份，并复用现有退出流程。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [登录认证（开发中）](/plugins/auth-gate.md): 按现有认证状态显示等待、登录表单或开放聊天，业务认证仍由项目服务处理。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [会话数据源（conversation-data-source）](/plugins/conversation-data-source.md): 将业务历史响应映射为会话列表和详情，并提供删除、重命名及归档方法。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [会话服务（conversation-service）](/plugins/conversation-service.md): 共享列表、历史缓存和会话操作，支持刷新、订阅和独立详情读取。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [语言服务（locale-provider）](/plugins/locale-provider.md): 共享界面语言和文案，支持官方字段覆盖与业务双语内容。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [主题服务（theme-provider）](/plugins/theme-provider.md): 统一管理主题，并为自定义组件提供当前深浅配色。 <span id="常见需求"></span> <span id="代码示例"></span>
+- [会话命令源（conversation-command-source）](/plugins/conversation-command-source.md): 集中提供 / 菜单中的指令和动作。业务插件启用时注册自己的命令，停用时注销；菜单订阅这个集合，不需要每个业务插件自己再实现一套搜索弹层。
 
 ## Creator
 
@@ -92,36 +95,38 @@
 ## 开发文档
 
 - [开发文档](/development/index.md): 自己编写 Agent 前端时，查找工程入口、接入指南、组件属性、方法与事件。
-- [React 工程接入](/development/react.md): 先在现有 React 工程中完成初始化。以下假设源码位置为 src/agent-ui，实际导入路径以「查看接入方法」为准。 示例保存为 src/AssistantPage.tsx，再在业务页面（如 src/App.tsx）导入并渲染 <AssistantPage />： 把组件放入现有业务内容区域。已有顶部栏时，使用剩余内容区高度；flex/grid 父容器通常还需要 min-height: 0，以便消息区内部滚动。保留原有业务导航，不为嵌入助理额外引入页面体系。 上例适用于工作台占据完整内容区。嵌入式的宽高由宿主容器决定，助手则通过自带的悬浮入口展开。挂载前按各模板的说明分配空间并检查遮挡。
+- [React 工程接入](/development/react.md): 先在现有 React 工程中完成初始化。以下假设源码位置为 src/agent-ui，实际导入路径以「查看接入方法」为准。 按下面四步接入；构建工具配置只需选择与你的工程对应的一项。
 - [Vue 工程接入](/development/vue.md): Vue 页面通过 Web Component 显示 Agent UI。Vue 工程负责放置组件、传入配置和监听事件；助理的组件实现和定制在提供该 Web Component 的 React 工程中维护。 按是否需要定制选择接入方式：
 - [HTML 与其他框架嵌入](/development/web-component.md): 独立 Web Component 将 React、Runtime 与所选 Plugin 构建到部署资源中。业务页面无需编译 TSX，但需要现代 Custom Elements、Shadow DOM 等浏览器能力。 接入自己生成的定制产物时，展示形态沿用 React 工程初始化时选择的模板。工作台和嵌入式需要宿主提供宽高，助手自带悬浮入口；尺寸和放置方式见各模板的说明。
 - [用业务页面控制 Agent](/development/react-host-control.md): 本页说明如何在已有业务页面中放置控制按钮，打开或隐藏助理、发送消息、停止运行及新建会话。这些操作由业务页面代码发起，复用已挂载的 Agent；修改插件内部外观与行为见手动修改插件教程。
-- [多 Agent 与工作流入口](/development/multiple-agents.md): 一个业务页面可以组合多个独立助手，也可以让同一个助手的多个工作流按钮调用不同 URL。本页按场景介绍对应的配置方式。
+- [多 Agent 与工作流入口](/development/multiple-agents.md): 一个业务页面可以组合多个独立助手，也可以让同一个助手的多个工作流按钮调用不同 URL。本页按场景介绍对应的配置方式。 先按你的场景选择一种配置方式： <span id="场景选择"></span> 这些场景都可以使用工作台、悬浮助手或嵌入式 UI。产品形态由各 project 绑定的 Shell 决定，见模板说明。同一工程可以维护多份 UI 配置。
 - [消息排队](/development/message-queue.md): 启用 Composer 后续消息队列，理解发送、停止、审批和会话切换时的行为。
 - [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。
 - [业务服务接入总览](/development/service-integration.md): 找到接口配置文件，选择默认 HTTP 协议或项目适配器，接入自己的业务服务。
 - [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见AG-UI 数据格式与插件数据接入。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
-- [接入历史会话服务](/development/history-backend.md): 历史接口的请求和响应转换都在项目的 src/agent-ui/services/conversations/data-source.ts 中。初始化已生成 list/get/delete/rename/archive/unarchive 六个方法，直接修改对应方法即可。 聊天记录由业务后端保存。以下路径以 src/agent-ui/ 为起点，源码目录不同时替换这个前缀。
-- [附件上传服务](/development/attachment-upload.md): 本页说明如何把用户选择的文件上传到自己的文件服务，再将文件 URL 随消息交给 Agent。
+- [接入历史会话服务](/development/history-backend.md): 本页说明如何让会话列表和聊天记录使用你的业务后端。聊天记录由后端保存，前端负责读取和展示。 先按现有项目选择一种接入方式，完成对应一节即可： 前两种方式的文件位于 src/agent-ui/ 下；源码目录不同时替换这个前缀。三种方式都保留 conversation-data-source 和 conversation-service 插件启用。 只想调整打开方式或列表按钮，直接看会话行为配置。需要核对字段时，再查阅末尾的数据格式参考。
+- [附件上传服务](/development/attachment-upload.md): 本页说明如何把用户选择的文件上传到自己的文件服务，再将文件 URL 随消息交给 Agent。 <span id="选择接入方式"></span> 上传配置直接传给业务页面中的 <Agent attachments={...} />，如下例所示。 业务系统已经有文件 URL 时，无需再次上传，见发送已有附件 URL。需要改变附件交互流程时，见本页最后的进阶定制。
 - [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 Runtime 已有 dictation.url、dictation.dataSource.transcribe() 和完整 dictationAdapter 的适配入口，并有录音、取消和返回文本的受控测试。真实业务服务、浏览器录音格式与麦克风权限仍需分别验证，当前接入文档保持开发中状态。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
 - [回复评价服务](/development/feedback-service.md): 默认点赞／点踩只保留当前会话界面的选择。需要保存到业务系统时，通过 feedback 配置。配置不会自动在历史加载时恢复服务端的评价选择。
 - [一号通登录（开发中）](/development/auth-service.md): 一号通登录接入开发中。当前只支持业务系统在外部自行完成登录，再将用户凭据和用户信息传给 Agent UI。
-- [提及搜索与快捷命令](/development/composer-sources.md): 输入 @ 搜索员工、文档等业务对象；输入 / 选择快捷命令。 以下路径以 src/agent-ui/ 为源码目录。使用前先启用 mention-trigger，或 slash-command-trigger 与 conversation-command-source。
+- [提及搜索与快捷命令](/development/composer-sources.md): 输入 @ 搜索员工、文档等业务对象；输入 / 选择快捷命令。 以下路径以 src/agent-ui/ 为源码目录。使用前先启用 mention-trigger，或 slash-command-trigger 与 conversation-command-source。 先选择你要接入或修改的功能：
 - [前端工具与自定义工具 UI](/development/frontend-tools.md): 前端工具支持两种用法，按业务需要选择：
-- [给 Agent 传递业务参数](/development/business-context.md): 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。
+- [给 Agent 传递业务参数](/development/business-context.md): 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。 @ 与 / 的业务数据直接定义在来源的候选项中，触发器保留正文引用并记录原始选中项；其他插件使用 useComposer().setData 提交数据。Composer 的 requestAdapter 统一决定最终 forwardedProps，见插件发送参数。
 - [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md): 按步骤定义自定义 CUSTOM 事件的数据类型并渲染消息卡片。
 - [工程结构与修改入口](/development/project-structure.md): 初始化后，Agent UI 源码默认放在 src/agent-ui/。以下路径都相对于这个目录；初始化时选择了其他目录，就在实际目录中找同名文件。 修改组件前，先检查项目入口的导入和导出。官方插件默认由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
-- [布局与插件组合](/development/layout-and-composition.md): Agent UI 把会话列表、输入框、附件、复制等功能做成了插件。你可以按需启用、调整位置，也可以把多个插件组合起来。 本页说明如何手动修改布局配置。界面排列、插件实例及组合保存在 app-ui.json 中，组件属性和渲染代码放在项目插件入口。 日常调整可以直接把需求告诉 Creator，见布局调整示例。自己编辑时，先找到下文的配置文件，保留现有实例 ID，再按需修改位置、尺寸和组合。
+- [布局与插件组合](/development/layout-and-composition.md): 调整会话列表、输入区和按钮的位置、尺寸或启停时，先按需求找到修改入口： 以下以 src/agent-ui/ 为生成目录，已有工程使用其他目录时替换这个前缀。日常调整也可以直接告诉 Creator，见布局调整示例。
 - [自定义 Shell](/development/shell-customization.md): 在项目中修改助手外壳、容器与展开收起行为，保持会话和后台运行。
-- [手动修改插件：样式与业务逻辑](/development/component-customization.md): 从定位已有插件开始，完整修改样式、文案、组件结构和业务请求，并了解共享服务与本地实现的维护方式。
+- [手动修改插件：样式与业务逻辑](/development/component-customization.md): 按需求定位插件入口，修改样式、文案、业务请求或共享状态，并检查页面效果。
 - [主题与样式](/development/theme-and-styling.md): 选择助理的主题、修改品牌色或调整组件样式时，从这里开始。定制沿用生成工程已有的 UI 库、样式方案和版本。需要 Creator 帮你修改时，见品牌色与样式定制。 本页导航：选择主题 · 修改样式 · 检查效果。修改界面文字和中英文配置见语言与文案。
 - [语言与文案](/development/localization.md): 本页说明如何选择界面语言、修改欢迎语和按钮文字，以及新增业务文案。需要 Creator 帮你修改时，见语言与文案定制。 本页导航：选择语言 · 修改已有文案 · 读取文案 · 新增业务文案。查找可覆盖的字段和默认翻译，见文案字段参考。
 - [文案字段参考](/development/locale-reference.md): 查找可覆盖的界面文案字段及其中英文默认值。配置步骤和代码示例见语言与文案。 按功能查找下面的字段，再构造 Agent.locales 覆盖对象。当前项目安装版本的 AgentUILocaleOverrides 类型是可用字段的依据，编辑器可以补全字段并检查拼写；网站清单对应当前文档版本。
-- [创建自定义插件](/development/create-plugin.md): 已有插件的属性和组合无法满足需求时，可以在项目中编写新的 React 插件。先到插件检查可复用能力；只需让 Creator 帮你新增功能时，见增加新的界面功能。 以下路径相对于生成目录，默认为 src/agent-ui/。 开发时可以直接复用会话操作、状态 Hook、服务、事件、子插槽和消息展示接口。先查公共能力速查，各项提供使用前提和代码示例；插件组件和业务页面的接口入口也在其中区分。 下面先创建一个可显示的插件，再完成向其他插件提供方法：声明服务接口、注册方法、由另一个插件调用，并订阅状态更新界面。 如果要将自己的内容放到工作台右侧，并由其他插件调用打开，见多内容侧栏的接入与调用步骤。
+- [创建自定义插件](/development/create-plugin.md): 已有插件的属性和组合无法满足需求时，可以在项目中编写新的 React 插件。先到插件检查可复用能力；只需让 Creator 帮你新增功能时，见增加新的界面功能。 以下路径相对于生成目录，默认为 src/agent-ui/。 先完成第 1～4 步，让新插件显示出来。需要跨插件调用时，再阅读可选示例。
+- [插件联动与取数](/development/plugin-interaction.md): 从插件读取会话、结果和共享数据，并调用输入框、技能、命令与侧栏操作。
+- [插件按需打包](/development/plugin-bundling.md): 了解 Plugins 的按需打包能力，以及开发插件时的导入和样式使用方式。
 - [源码接管与更新参考](/development/source-takeover.md): 修改文件、组件和本地实现的连贯步骤，统一见手动修改插件：样式与业务逻辑。本页用于核对接管后的维护范围。
 - [Agent API](/development/react-host-api.md): 单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。
 - [Web Component API](/development/web-component-api.md): 在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。 本页导航：配置 · 事件。
-- [插件 API](/development/plugin-api.md): 项目插件由能力声明、组件和可选的服务生命周期组成。创建文件与注册步骤见创建自定义插件。修改已有官方插件外观时，先使用组件公开属性。 需要从定位文件一路完成样式、业务请求和服务修改时，按手动修改插件教程操作；本页提供各项 API 的签名和专题示例。 本页导航：能力速查 · 类型入口 · 插件定义 · 组件与子插槽 · 状态与操作 · 服务与订阅。
+- [插件 API](/development/plugin-api.md): 本页按开发任务查找插件接口、参数和示例。创建文件与注册见创建自定义插件，修改已有组件见手动修改插件。 先从速查表选择要用的能力，再展开对应条目。从其他插件取数或调用操作，见插件联动与取数。
 
 ## 更新日志
 

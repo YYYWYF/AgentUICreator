@@ -1,0 +1,47 @@
+{
+  "capturedDate": "2026-11-18",
+  "source": "/Users/yifei/Coding/agentui_test/plugin-documentation-features-20261118",
+  "viewport": {
+    "width": 1280,
+    "height": 1200
+  },
+  "deviceScaleFactor": 2,
+  "scenario": "Actual public Plugin components in an isolated copy of the canonical Host; local SSE Mock only.",
+  "screenshots": [
+    {
+      "id": "composer-height",
+      "file": "composer-height.png",
+      "sha256": "c03ea4eaacacdf3b626e4b7d6c57a3a2b9ac8a36e3096398a5de7b3af902b4a5"
+    },
+    {
+      "id": "skills",
+      "file": "skills.png",
+      "sha256": "5263813defda3f1bc288d9732686d2f74f701dceadafd52b1d76e2c2032edbf0"
+    },
+    {
+      "id": "skills-selection",
+      "file": "skills-selection.png",
+      "sha256": "e744b8b980bb191ac37096ae6ad4138a5bda3e73bda9d467ccf3fd32353d2ace"
+    },
+    {
+      "id": "workbench-panel-actions",
+      "file": "workbench-panel-actions.png",
+      "sha256": "6c0197b85a5d9db78ae86a77d54817f4d8f547b559762a0e5c158462b4bc70fd"
+    },
+    {
+      "id": "reload-action",
+      "file": "reload-action-states.png",
+      "sha256": "c249b28a81e68bcd9028e911716c379a72892a8b6cd1bbd9c4b7d5de3863857d"
+    },
+    {
+      "id": "copy-action",
+      "file": "copy-action-states.png",
+      "sha256": "9ec54014064329cca96291b0e8d4fc2190b9ea41255db4df5489b20f2db5fc49"
+    },
+    {
+      "id": "export-markdown-action",
+      "file": "export-markdown-action-states.png",
+      "sha256": "1a3e61cd44999d7bdaac7711445d138daa38edb08375b184836233545f3f42f7"
+    }
+  ]
+}

@@ -1,20 +1,49 @@
 # 思考内容展示（reasoning）
 
-Agent 提供思考内容时，对话中会出现「思考」区域，并随返回内容更新。它展示思考文字；只有「正在思考」提示时，并没有这些详情。
 
-日常调整可以交给 Creator；需要自己写代码时，直接查看[属性](#属性)。
+![思考中的自动展开](/images/plugins/behavior/reasoning-running.jpg)
 
-![展开 Agent 思考内容（reasoning）界面示例](/images/plugins/reasoning.png)
+思考进行中：标题显示活动状态，正文自动展开并持续接收内容。
 
-## 启用与使用
+在回答中展示 Agent 返回的思考过程。插件会随思考状态自动展开、更新和收起，用户也可以随时展开查看。
 
-在 **Creator 输入框**输入 `/enable reasoning`，点击下图中的 **「展开 Agent 思考内容」**。
+启用插件并接入思考数据后，以下行为自动生效，无需自行管理展开状态。
 
-![Creator 启用菜单：点击「展开 Agent 思考内容」，插件 ID 为 reasoning](/images/plugins/enable/reasoning.jpg)
+## 思考时自动展开
 
-## 显示条件与数据来源
+Agent 开始输出思考内容时，思考区域自动展开，标题显示进行中的状态，正文随接收到的内容逐步更新。思考内容和正式回答分开展示。
 
-**Agent 服务接入：**&#x53D1;送专用 reasoning 事件，普通 `TEXT_MESSAGE_CONTENT` 中的文字不会自动变成思考区域。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+## 思考结束后自动收起
+
+当前这段思考结束后，思考区域默认自动收起，减少对正式回答的占用。标题和内容仍保留，用户可以再次展开查看。
+
+
+![思考结束后的自动收起](/images/plugins/behavior/reasoning-finished.jpg)
+
+同一段思考结束后自动收起，标题保留；这一步没有手动切换展开状态。
+
+这套行为跟随当前思考分组的运行状态，不需要业务代码监听结束事件后调用关闭方法。如果用户已经手动切换过展开状态，插件会尊重当前区域中的用户选择。
+
+## 手动展开与回看
+
+点击思考标题，可以展开或收起正文。用户在思考过程中主动收起后，新的内容到来不会强制重新展开；主动展开后，思考结束也不会覆盖这个选择。
+
+
+![结束后重新展开思考内容](/images/plugins/behavior/reasoning-reopened.jpg)
+
+点击已结束的思考标题后，保留下来的原始内容再次显示。
+
+## 长内容实时跟随
+
+思考正文在限定高度的区域中展示，较长内容可以在区域内滚动。流式输出期间，插件自动跟随最新内容。
+
+用户向上滚动查看前面的内容时，自动跟随暂停，避免阅读位置被新内容拉走；滚动回到底部后恢复跟随。这部分滚动行为也由插件内置处理。
+
+## 接入思考数据 \{#显示条件与数据来源}
+
+`reasoning` 使用会话中的思考数据，通常放在会话界面的 `reasoningGroup` 位置。现有插件入口负责取得当前思考分组和正文，业务代码无需另行创建一份思考状态。
+
+Agent 服务通过 reasoning 事件传递内容。下面是一段思考的事件示例，省略了外层运行开始、结束和 SSE 包装；完整包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)：
 
 ```jsonl
 {"type":"REASONING_START","messageId":"reasoning-1"}
@@ -24,58 +53,79 @@ Agent 提供思考内容时，对话中会出现「思考」区域，并随返�
 {"type":"REASONING_END","messageId":"reasoning-1"}
 ```
 
-外层 reasoning 和其中的文本各自保持 ID 一致。内容可分多条 `REASONING_MESSAGE_CONTENT` 逐步发送；结束后仍可发送正式回答。插件须启用并组合到会话的思考展示位置；没有思考内容时不会凭空生成文字。
+外层 reasoning 和其中的文本各自保持 ID 一致。正文可以通过多条 `REASONING_MESSAGE_CONTENT` 持续追加，结束后仍可发送正式回答。会话运行时处理这些事件，插件根据得到的思考内容和状态更新界面。
 
-## 定制选项
+插件须启用并组合到会话的思考展示位置。如果服务只返回普通 `TEXT_MESSAGE_CONTENT` 回答文字，页面不会额外出现思考区域。
 
-| 可以改什么     | 效果                                     |
-| --------- | -------------------------------------- |
-| 开始时展开还是收起 | 选择默认展开或收起思考内容。                         |
-| 背景和边框     | outline 显示边框，ghost 使用透明背景，muted 使用淡背景。 |
-| 正文排版      | 调整思考文字的字号、颜色和行距。                       |
-| 标题和内容区样式  | 调整标题按钮、内容区的间距和外观。                      |
 
-## 需求示例
+## 思考结束后保持展开 \{#初始展开}
 
-```text
-请修改「展开 Agent 思考内容（reasoning）」：
-修改：思考内容默认【收起】，正文字号设为【13px】，行高设为【1.6】。
-保留：原有思考内容和展开、收起操作。
+
+需要直接展示完整思考过程时，在项目已有 `plugins/reasoning/index.tsx` 的实现调用处增加 `defaultExpanded`。下面保留当前思考分组与正文的绑定：
+
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationReasoningPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.reasoning-group') return null;
+  return <Implementation {...scope.value} {...props}
+    defaultExpanded />;
+}
 ```
 
-## 属性
+思考结束后保持展开，用户仍可手动收起；无需另写状态监听或结束回调。
 
-打开项目中的 `plugins/reasoning/index.tsx`，在已有公开组件调用处设置属性或调整组合。修改外观时，保留文件中读取会话状态、调用服务、显示子插件和注册消息组件的代码。
+## 调整思考区域外观
 
-`?` 表示可选；“省略时”描述当前组件行为。`ReactNode`、`CSSProperties`、`ComponentProps` 等为 React 类型；完整类型以项目实际安装版本为准。
 
-组件：`ConversationCanonicalReasoningGroup`；类型：`ConversationCanonicalReasoningGroupProps`。继承公开 ReasoningRoot 的属性，排除 `children`、`open`、`defaultOpen`、`onOpenChange` 后单独定义如下。插件入口将属性变为可选；缺少 `group` 时不渲染。
+柔和背景和正文高度只影响展示，自动展开、收起和滚动跟随继续由插件处理：
 
-| 属性                  | 类型                                                          | 省略时 / 用途                           |
-| ------------------- | ----------------------------------------------------------- | ---------------------------------- |
-| `group`             | `ConversationMessagePartGroup`                              | 会话运行环境提供的当前推理分组；单独使用展示组件时必需        |
-| `children?`         | `ReactNode`                                                 | 分组中的推理内容                           |
-| `expanded?`         | `boolean`                                                   | 受控展开                               |
-| `defaultExpanded?`  | `boolean`                                                   | 初始默认 `false`；非受控时流式推理可自动展开         |
-| `onExpandedChange?` | `(expanded: boolean) => void`                               | 展开变化通知                             |
-| `buttonProps?`      | `ComponentProps<typeof ReasoningTrigger>`                   | 标题按钮，可配置 `active`、`duration` 和原生属性 |
-| `contentProps?`     | `Omit<ComponentProps<typeof ReasoningContent>, 'children'>` | 折叠内容面板属性                           |
-| `textProps?`        | `Omit<ComponentProps<typeof ReasoningText>, 'children'>`    | 正文 `div` 属性                        |
-| `variant?`          | `'outline' \| 'ghost' \| 'muted' \| null`                   | 根区域样式，底层默认 `outline`               |
-| `streaming?`        | `boolean`                                                   | 默认从 `group.status` 推导；覆盖流式展示标记     |
-| `onAnimationStart?` | `() => void`                                                | 折叠／流式状态动画开始前通知                     |
+```tsx
+import type { ComponentProps } from 'react';
+import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+export function ConversationReasoningPlugin(props: ComponentProps<typeof Implementation>) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.reasoning-group') return null;
+  return <Implementation {...scope.value} {...props}
+    variant="muted"
+    textProps={{ ...props.textProps, style: { ...props.textProps?.style, maxHeight: 360 } }} />;
+}
+```
+
+## API
+
+以下选项用于定制已有分组展示。当前分组与内部消息由会话提供，正常使用无需重新组织这些数据。
+
+
+
+插件的 `group` 和正文沿用当前思考区域的绑定。下表中的 `expanded` 用于确实需要业务接管展开状态的场景；正常接入保留自动策略即可。
+
+| 属性                  | 类型                                                                                    | 省略时 / 用途                                           |
+| ------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `group`             | `ConversationMessagePartGroup`                                                        | 会话运行环境提供的当前推理分组；单独使用展示组件时必需                        |
+| `children?`         | `ReactNode`                                                                           | Runtime 提供的分组推理内容，不作为普通用户配置                        |
+| `expanded?`         | `boolean`                                                                             | 由项目控制展开状态，替代内置的自动展开与收起策略                           |
+| `defaultExpanded?`  | `boolean`                                                                             | 默认 `false`；未手动切换时，思考中展开、结束后收起。初始化为 `true` 时结束后保持展开 |
+| `onExpandedChange?` | `(expanded: boolean) => void`                                                         | 用户切换展开状态时通知；自动流式切换不通过该回调通知                         |
+| `buttonProps?`      | `Omit<ComponentProps<typeof ReasoningTrigger>, 'active' \| 'duration' \| 'children'>` | 标题按钮外观与原生属性；运行状态与耗时由会话提供                           |
+| `contentProps?`     | `Omit<ComponentProps<typeof ReasoningContent>, 'children'>`                           | 折叠内容面板属性                                           |
+| `textProps?`        | `Omit<ComponentProps<typeof ReasoningText>, 'children'>`                              | 正文 `div` 属性                                        |
+| `variant?`          | `'outline' \| 'ghost' \| 'muted' \| null`                                             | 根区域样式，底层默认 `outline`                               |
 
 根组件还继承外观、无障碍与其余折叠根组件属性。这里的 `ReasoningTrigger` 等类型从公开 `/plugin-support` 入口取得。
 
-### 类型查询
 
-可在编辑器中通过公开组件取得完整属性类型：
 
-```ts
-import type { ComponentProps } from 'react';
-import type { ConversationCanonicalReasoningGroup } from '@za38.03/agent-ui-plugins';
 
-type ImplementationProps = ComponentProps<typeof ConversationCanonicalReasoningGroup>;
-```
 
-组件定制方式见[组件定制指南](/development/component-customization.md)；配置位置和子插件顺序见[布局与插件组合](/development/layout-and-composition.md)。
+
+
+
+defaultExpanded 与 expanded 有什么区别？
+
+`defaultExpanded` 决定未手动操作时的静止展开状态，思考中仍自动展开。`expanded` 则交由项目控制，会替代自动策略，需配合 `onExpandedChange` 更新。

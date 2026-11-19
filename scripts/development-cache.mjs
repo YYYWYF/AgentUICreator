@@ -12,7 +12,17 @@ export function workspaceDevelopmentId(root, platform = process.platform) {
     .slice(0, 24);
 }
 
-/** A single dev session starts fresh; old cache cleanup is best-effort. */
+function processExists(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    // EPERM and other unknown results do not prove that an owner has stopped.
+    return error.code !== "ESRCH";
+  }
+}
+
+/** Start fresh without deleting caches still owned by a running Vite process. */
 export function prepareDevelopmentCache(
   root,
   role,
@@ -20,6 +30,7 @@ export function prepareDevelopmentCache(
     base = path.join(root, "node_modules", ".cache"),
     warn = console.warn,
     remove = fs.rmSync,
+    isProcessAlive = processExists,
   } = {},
 ) {
   const parent = path.join(
@@ -29,7 +40,9 @@ export function prepareDevelopmentCache(
     role,
   );
   fs.mkdirSync(parent, { recursive: true });
-  const current = fs.mkdtempSync(path.join(parent, "run-"));
+  // Put ownership in the directory name from creation, so cleanup never sees
+  // a half-written owner file. This is cleanup safety, not a startup lock.
+  const current = fs.mkdtempSync(path.join(parent, `run-${process.pid}-`));
   // Preserve the node_modules boundary used by React/Babel source transforms.
   // Disposable output stays in the project's cache, separate from packages.
   const cacheDir = path.join(current, "node_modules", ".vite");
@@ -58,6 +71,13 @@ export function prepareDevelopmentCache(
     for (const entry of fs.readdirSync(parent, { withFileTypes: true })) {
       const target = path.join(parent, entry.name);
       if (target === current) continue;
+      const owner = /^run-([1-9][0-9]*)-[a-zA-Z0-9]{6}$/u.exec(entry.name);
+      if (entry.isDirectory() && owner) {
+        // Vite resolves the replacement config BEFORE closing the old server.
+        // A config restart must not remove the old optimizer's output midway.
+        if (!isProcessAlive(Number(owner[1]))) clear(target);
+        continue;
+      }
       // Include cache generations and metadata left by the previous implementation.
       const owned =
         (entry.isDirectory() &&

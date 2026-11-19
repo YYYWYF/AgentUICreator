@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 export interface ConversationDataSourcePluginProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
-  children?: ReactNode;
 }
-export function CanonicalConversationDataSourcePlugin(props: ConversationDataSourcePluginProps) {
-  return <>{props.children ?? null}</>;
+export function CanonicalConversationDataSourcePlugin(_props: ConversationDataSourcePluginProps) {
+  return null;
 }
