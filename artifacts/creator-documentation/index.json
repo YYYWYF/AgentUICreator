@@ -10,12 +10,12 @@
     "@za38.03/agent-ui-web-component": "0.0.11",
     "@za38.03/agent-ui-creator": "0.0.11"
   },
-  "sourceDigest": "1d22e6041e70442fb83754ee8675328555e7964e6653cd3daa6fc54b1cf5dfbe",
+  "sourceDigest": "84b26222c66b12cd4af3e87e292b1faca7b02fc313e2a6df9b3f678284441317",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 245462,
-      "sha256": "30af4b4d72623bd445c5080d952f22dd77cc3c45371df3fce8ec15e53af263c6"
+      "bytes": 245939,
+      "sha256": "bb07d7d9d95c8813d776d891af028e1468e7daea659e75e2a7369502e33cc59a"
     },
     {
       "path": "creator-index.md",
@@ -24,8 +24,8 @@
     },
     {
       "path": "development/agent-options.md",
-      "bytes": 8855,
-      "sha256": "4db51f24c3cd7e7bbf6b45a0615f7173bb1c1492f4deab8aed058684d6b0e304"
+      "bytes": 9128,
+      "sha256": "30e052c87045736dd327e2b7acd195d690f88d6684e71cdecade9abc3c09d512"
     },
     {
       "path": "development/attachment-upload.md",
@@ -54,8 +54,8 @@
     },
     {
       "path": "development/connect-agent.md",
-      "bytes": 10836,
-      "sha256": "3b63a74766e8a4725da4a6eee4e167864f65ad0d3e4965ec8c9799534429fcdd"
+      "bytes": 14798,
+      "sha256": "8f48b6c568feeee4cd9d1dfd7daef90fcfcfbcdd167ff5913ed59a0b7208d00a"
     },
     {
       "path": "development/create-plugin.md",
@@ -134,8 +134,8 @@
     },
     {
       "path": "development/react-host-api.md",
-      "bytes": 30044,
-      "sha256": "aa55ca94009aea2f4508e4df7fdadceaabb29d89e6b658b975fa2ef5858eb12d"
+      "bytes": 30465,
+      "sha256": "3241d6a130e37af971498ccfb297eaaddfd42c7bf3ff97a2add92ac982365a4e"
     },
     {
       "path": "development/react-host-control.md",
@@ -179,8 +179,8 @@
     },
     {
       "path": "development/web-component-api.md",
-      "bytes": 7241,
-      "sha256": "895986529a47aa60b4490d324a78cc39bbd093d62a2df23393209d0f7df23331"
+      "bytes": 7674,
+      "sha256": "c5b858561015c3527c014e65bdf2d4fe0045b2d98c416a89b3bbe24223889273"
     },
     {
       "path": "development/web-component.md",
@@ -284,8 +284,8 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 1056222,
-      "sha256": "18da9be24e5ba4afd90ebbbf53d216a39f1d892b85a260b95d82d183245bb139"
+      "bytes": 1061311,
+      "sha256": "410ed125231832ebffac4c5d585cf1501fd36c9ba509be03218db96403aa0b39"
     },
     {
       "path": "llms.txt",
@@ -659,8 +659,8 @@
     },
     {
       "path": "references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md",
-      "bytes": 7836,
-      "sha256": "b03103306b281b7b1f8aea21c6f278708501719e498306ecb2c0428113ae3036"
+      "bytes": 8421,
+      "sha256": "d08deedfc228842175e88ba7a945f747e2b870b7a703268bf9017254413e8b53"
     },
     {
       "path": "references/docs/architecture/plugin-authoring-contract.md",

@@ -149,6 +149,8 @@ export function Chat() {
 
 `threadId` 使用业务保存的会话 ID，`initialThreadId` 只在初始化时生效，之后通过会话列表或导航切换。历史数据的接入见[接入历史会话](/development/history-backend.md)。
 
+需要首次发送前通过业务接口申请新会话 ID 时，使用可选的 [`beforeRequest`](/development/connect-agent.md#发送前准备请求)。返回的 `threadId` 会绑定到当前 Thread，后续请求自动沿用；这条新建路径不加载已有历史。
+
 ## 其他配置入口
 
 | 设置             | 当前入口                                                                                                              |

@@ -2,6 +2,7 @@ import type { AgentUITheme } from "../../presentation.js";
 import type { AgentUILocaleCode } from "../../locale.js";
 import type { AppUIModel } from "../framework/contracts/app-ui-model.js";
 import type { ServiceRequestConfig } from "../../service-config.js";
+import type { AgentUIBeforeRequest } from "../../before-request.js";
 
 export interface AgentUIEmbeddedAgent {
   agentId: string;
@@ -9,6 +10,7 @@ export interface AgentUIEmbeddedAgent {
   hidden?: boolean;
   threadId?: string;
   request?: ServiceRequestConfig;
+  beforeRequest?: AgentUIBeforeRequest;
   appUIModel?: AppUIModel;
 }
 
@@ -20,6 +22,7 @@ export interface AgentUICompatibilityConfig {
   theme?: AgentUITheme;
   /** Persisted conversation identity; requires the project history service. */
   threadId?: string;
+  beforeRequest?: AgentUIBeforeRequest;
   appUIModel?: AppUIModel;
 }
 

@@ -52,6 +52,8 @@ import type {
 import type { ConversationToolkit, ConversationTransientMessageService } from "./plugin-api/index.js";
 import type { ReactNode } from "react";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
+export type { AgentUIBeforeRequest, AgentUIRequestInput, AgentUIRequestPatch } from "./before-request.js";
+import type { AgentUIBeforeRequest } from "./before-request.js";
 
 export { projectLangChainHistory } from "./history/langchain-history-projector.js";
 
@@ -77,6 +79,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   ctx?: AgentUIContext | undefined;
   /** Custom AG-UI transport; receives an empty URL when endpoint is omitted, plus merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
+  /** Optional asynchronous preparation of each AG-UI request. */
+  beforeRequest?: AgentUIBeforeRequest | undefined;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
   toolkit?: ConversationToolkit | undefined;
@@ -154,10 +158,13 @@ import type { ConversationFrontendToolPort } from "./tools/types.js";
 
 export function createEphemeralConversationThreadBinding(initialThreadId?: string): ConversationThreadBinding {
   let threadId = initialThreadId ?? crypto.randomUUID();
+  const drafts = new Set(initialThreadId === undefined ? [threadId] : []);
   const listeners = new Set<() => void>();
 
   return {
     getThreadId: () => threadId,
+    getThreadIsNew: id => drafts.has(id),
+    reserveThread: id => { drafts.add(id); },
     activateThread(id) {if(threadId===id)return;threadId=id;for(const listener of listeners)listener();},
     subscribe(listener) {
       listeners.add(listener);
@@ -165,6 +172,7 @@ export function createEphemeralConversationThreadBinding(initialThreadId?: strin
     },
     async createNewThread() {
       threadId = crypto.randomUUID();
+      drafts.add(threadId);
       for (const listener of listeners) listener();
       return threadId;
     },

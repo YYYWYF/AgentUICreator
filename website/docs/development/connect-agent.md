@@ -100,6 +100,63 @@ data: {"type":"RUN_FINISHED","threadId":"thread-123","runId":"run-456","outcome"
 
 **Creator 开发预览当前会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此预览请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请关闭临时连接并在普通业务页面测试。
 
+## 发送前准备请求
+
+需要在首次发送前调用业务接口申请会话 ID，或为每次运行补充参数时，给 `<Agent />` 传入可选的 `beforeRequest`。它支持同步或异步返回部分 AG-UI `RunAgentInput` 字段；省略时保持原有请求行为，生成项目不会默认添加这个回调。
+
+```tsx
+import type { AgentUIBeforeRequest } from '@za38.03/agent-ui-runtime';
+import { Agent } from './agent-ui';
+
+const beforeRequest: AgentUIBeforeRequest = async (input, { signal }) => {
+  if (input.threadId) return {};
+
+  const response = await fetch('/api/conversations', {
+    method: 'POST',
+    signal,
+  });
+  if (!response.ok) throw new Error('CREATE_CONVERSATION_FAILED');
+  const result: unknown = await response.json();
+  if (typeof result !== 'object' || result === null ||
+      !('threadId' in result) || typeof result.threadId !== 'string') {
+    throw new Error('INVALID_CONVERSATION_ID');
+  }
+  return { threadId: result.threadId };
+};
+
+export function AssistantPage() {
+  return <Agent endpoint="/api/agent" beforeRequest={beforeRequest} />;
+}
+```
+
+请求会先经过项目输入适配和 `ctx` 组装，再等待 `beforeRequest`，最后交给默认或自定义 `fetch` 发送。回调接收 `AgentUIRequestInput` 草稿和取消信号，返回 `AgentUIRequestPatch`、`void` 或对应 Promise；这三个类型与 `AgentUIBeforeRequest` 都从 Runtime 导入。
+
+### 调用与身份规则
+
+- **每次请求都调用**：首次发送、后续消息、重试、前端工具续传和审批恢复均经过回调；历史查询、附件上传等独立服务不经过它。
+- **`threadId` 按会话保存**：新会话首次回调的 `input.threadId` 为 `undefined`。返回业务 ID 后，Runtime 将其绑定到当前 Thread，后续回调、请求、Host 状态和 Thread 句柄沿用它；未返回时才补全默认 ID。打开已有会话时，回调直接收到已有 ID。
+- **`runId` 按本次运行确定**：回调中的 `input.runId` 待补全，可返回业务接口分配的 `runId`；省略则使用本次运行的默认 ID。新一轮运行单独确定 ID，后端事件需与最终请求中的 ID 一致。
+- **已绑定的会话身份保持稳定**：回调返回另一个 `threadId` 会使本次请求失败；切换会话使用新建或打开会话方法。同一助手内不能为两个 Thread 绑定相同业务 ID。
+- **尚未发送时使用本地草稿标识**：首次请求完成身份准备后会发布正式 ID 的 `thread-change`。此前 `ready`、`createThread()` 和 `getThreads()` 中的 ID 用于当前页面内定位草稿；需要保存业务 ID 时，读取绑定后的状态或监听该事件。
+
+### 返回字段如何合并
+
+返回值中定义的顶层字段覆盖默认值；`undefined` 保留原值。`messages`、`tools`、`context` 等数组整体替换，`state` 整体替换；`forwardedProps` 按键合并，其中的 `ctx` 再按键合并一层，其他嵌套对象整体替换。
+
+例如，下面会保留已有 `forwardedProps`、`ctx` 的其他字段：
+
+```ts
+const beforeRequest: AgentUIBeforeRequest = () => ({
+  forwardedProps: { ctx: { tenantId: 'tenant-1' } },
+});
+```
+
+回调拿到的是请求副本；通过返回值提交修改。业务扩展参数放入 `forwardedProps`，不要添加 AG-UI 协议未声明的顶层字段。
+
+回调抛错或 Promise 失败时，不发送 AG-UI 请求，错误通过 `onError` 和程序化发送的 Promise 报告；消息保留在当前 Thread 中供重试。成功绑定 ID 后即使网络发送失败，重试也复用该 ID。停止运行或卸载会中止 `signal`；业务接口应传递它，取消后迟到的结果不会绑定 ID 或触发发送。
+
+`AgentApplication`、`AgentUIApplication` 和直接使用的 `ConversationRuntimeProvider` 支持同名属性。更新回调后，后续请求使用新回调，已绑定身份保留。Creator 临时预览绕过业务 `beforeRequest`，关闭临时连接后恢复。
+
 ## 自定义请求函数
 
 接口需要动态获取凭据、增加业务包装或复用请求模块时，新建 `src/agent-ui/services/agent-transport.ts`。下面示例假设网关接收 `{ input: RunAgentInput }`，并仍然返回 AG-UI SSE；如果网关直接接收标准请求，移除 `body` 的包装即可：

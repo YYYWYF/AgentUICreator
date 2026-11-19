@@ -26,6 +26,7 @@ export function createConversationThreadBindingHost(initialThreadId?: string) {
     getThreadId: () => target.getThreadId(),
     getIsDisabled: () => target.getIsDisabled?.() ?? false,
     getThreadIsDisabled: (id) => target.getThreadIsDisabled?.(id) ?? false,
+    getThreadIsNew: (id) => target.getThreadIsNew?.(id) ?? fallback.getThreadIsNew?.(id) ?? false,
     loadThread: (id) =>
       target.loadThread?.(id) ?? Promise.resolve({ messages: [] }),
     activateThread: (id) => target.activateThread?.(id),

@@ -34,6 +34,8 @@ AppUIModel 选择实际 Plugin；Runtime 解析语义 Slot。普通 content Slot
 
 Thread 绑定在一次挂载期间保持稳定。项目的 `services/conversations/data-source.ts` 直接提供 list/get/delete/rename/archive/unarchive 方法，拥有请求、鉴权和业务响应转换。list 返回会话数组，get 返回带 history 的统一详情；npm 不提供历史 HTTP 工厂或自动识别后端包装。项目应用层按 Agent 实例绑定地址和请求传输，保留预览代理及取消信号；也可通过 `Agent.conversationDataSource` 替换数据源。
 
+应用可通过可选的异步 `beforeRequest` 在首次发送时分配新会话的后端身份。未绑定的 Thread 使用 assistant-ui 本地草稿标识；回调返回的 `threadId` 或随后补全的默认 ID 在首次请求前绑定，此后保持稳定。Runtime 保留原生 Thread/消息实例，将 Host 句柄、历史管理调用和后续 AG-UI 请求映射到该正式身份；不因分配身份创建另一套 Runtime。回调对每个出站请求执行，`runId` 按本次运行确定，取消和失败不得发送迟到请求。生成项目不默认配置此回调。
+
 `conversation-service` 插件拥有业务 DTO/DataSource 契约、列表/详情缓存与会话管理，处理 `<think>` 等历史兼容，并提供通用 `agent-ui.thread-binding` 工厂。项目薄应用层负责服务创建、注册和清理；Runtime 通过通用接口加载消息、封装 assistant-ui 官方转换并运行会话，不创建具体业务会话服务。直接调用 Runtime 转换器不包含插件的特殊兼容。读取历史不发起新 Agent 推理，也不在历史 Tool UI 挂载时执行工具。
 
 历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流。插件可调用业务接口管理保存的会话，但数据库持久化属于业务后端，canonical 会话分支与运行生命周期仍使用 assistant-ui，不另建仓库或 Runtime。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。

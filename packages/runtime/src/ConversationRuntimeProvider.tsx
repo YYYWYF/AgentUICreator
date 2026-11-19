@@ -68,6 +68,8 @@ import type { AgentUIContext } from "@za38.03/agent-ui-core";
 import { useAgentUIThreadRegistrar } from "./host/AgentUIProvider.js";
 import { ConversationRequestRouting } from "./compatibility/conversation-request-routing.js";
 import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
+import type { AgentUIBeforeRequest } from "./before-request.js";
+import { installConversationBeforeRequest } from "./compatibility/conversation-before-request.js";
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -90,6 +92,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   ctx?: AgentUIContext | undefined;
   /** Custom AG-UI transport; receives an empty URL when endpoint is omitted, plus merged request configuration. */
   fetch?: HttpAgentConfig["fetch"];
+  beforeRequest?: AgentUIBeforeRequest | undefined;
   /** Internal Host preview override also applies to workflow requests. */
   requestEndpointOverride?: string | undefined;
   threadBinding: ConversationThreadBinding<TState>;
@@ -156,6 +159,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   request,
   ctx,
   fetch: requestFetch,
+  beforeRequest,
   requestEndpointOverride,
   threadBinding,
   frontendTools: providedFrontendTools,
@@ -181,6 +185,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
   useLayoutEffect(() => { ctxRef.current = ctx; }, [ctx]);
   const fetchRef = useRef(requestFetch);
   useLayoutEffect(() => { fetchRef.current = requestFetch; }, [requestFetch]);
+  const beforeRequestRef = useRef(beforeRequest);
+  useLayoutEffect(() => { beforeRequestRef.current = beforeRequest; }, [beforeRequest]);
   const frontendTools = useFrontendToolSource(providedFrontendTools);
   const toolkit = useFrontendToolkit(providedToolkit);
   // Compare HTTP options by value, but keep custom implementations out of serialization.
@@ -236,7 +242,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
         : { suggestions: staticSuggestions }),
     });
   }, [suggestions, resolvedToolkit]);
-  const persistence = useMemo(() => createConversationRemoteThreadListAdapter(threadBinding), [threadBinding]);
+  const persistence = useMemo(() => createConversationRemoteThreadListAdapter(threadBinding, () => beforeRequestRef.current !== undefined), [threadBinding]);
   const sessions = useMemo(() => new ConversationThreadSessions<TState>(), [threadBinding]);
   const outerRuntime = useRef<AssistantRuntime | null>(null);
   const runtimeHook = useCallback(function useConversationThreadRuntime() {
@@ -244,28 +250,41 @@ export function ConversationRuntimeProvider<TState = unknown>({
       resolvedFeedback, enableMessageQueue } = useSyncExternalStore(optionsStore.subscribe, optionsStore.getSnapshot, optionsStore.getSnapshot);
     const aui = useAui();
     const item = aui.threadListItem().getState();
-    // Pin ownership at mount. Optimistic assistant-ui IDs never become backend IDs.
-    const [ownedId] = useState(() => persistence.identity(item.id, item.remoteId));
+    // Keep the upstream runtime mounted while the first request binds a backend ID.
+    const [owner] = useState(() => {
+      const inputSessionId = persistence.identity(item.id, item.remoteId);
+      return { localId: item.id, inputSessionId, getId: () => persistence.identity(item.id, item.remoteId) };
+    });
+    const ownedId = useSyncExternalStore(persistence.subscribe, owner.getId, owner.getId);
     // Observe upstream-owned user messages synchronously before transport starts.
     const quoteMessagesRef = useRef(new Map<string, ThreadMessage>());
     const commandForwarderRef = useRef<ReturnType<typeof installConversationCommandForwarding> | undefined>(undefined);
     const agent = useMemo(() => {
       const routing = new ConversationRequestRouting(endpoint, () => ctxRef.current);
-      const created = unstable_agentFactory({ endpoint, threadId: ownedId, getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint(), getFetch: () => fetchRef.current });
+      const created = unstable_agentFactory({ endpoint, threadId: owner.getId(), getRequestConfig: () => requestRef.current, getRequestEndpoint: () => requestEndpointOverride ?? routing.getEndpoint(), getFetch: () => fetchRef.current });
       commandForwarderRef.current = installConversationCommandForwarding(created);
       created.use(routing);
       return installConversationQuoteContext(created, () => [...quoteMessagesRef.current.values()]);
-    }, [endpoint, requestEndpointOverride, ownedId, unstable_agentFactory]);
+    }, [endpoint, requestEndpointOverride, owner, unstable_agentFactory]);
     const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
     const nativeRuntimeRef = useRef<AssistantRuntime | undefined>(undefined);
     const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
-      getThreadId: () => ownedId,
-      subscribe: listener => threadBinding.subscribe(listener),
+      getThreadId: owner.getId,
+      subscribe: listener => {
+        const stopBinding = threadBinding.subscribe(listener);
+        const stopIdentity = persistence.subscribe(listener);
+        return () => { stopBinding(); stopIdentity(); };
+      },
       createNewThread: () => threadBinding.createNewThread(),
-    }), [ownedId, threadBinding]);
+    }), [owner, threadBinding, persistence]);
     const toolContinuation = useMemo(() => {
       const guard = installCancelledToolContinuationGuard(agent);
       installConversationOutgoingMessages(agent, requestParts, () => nativeRuntimeRef.current, () => [...quoteMessagesRef.current.values()]);
+      installConversationBeforeRequest(agent, {
+        getBeforeRequest: () => beforeRequestRef.current,
+        getThreadId: () => persistence.requestThreadId(owner.localId),
+        bindThreadId: id => persistence.bindThreadId(owner.localId, id),
+      });
       return guard;
     }, [agent]);
     // Composer cancellation can stop a frontend tool after the wire run has
@@ -282,7 +301,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
         let loaded: ConversationLoadedThread<TState>;
         try {
           loaded = item.remoteId === undefined ? { messages: [] } :
-            await (threadBinding.loadThread?.(ownedId) ?? threadBinding.selectThread?.(ownedId) ?? Promise.resolve({ messages: [] }));
+            await (threadBinding.loadThread?.(owner.getId()) ?? threadBinding.selectThread?.(owner.getId()) ?? Promise.resolve({ messages: [] }));
         } catch (error) {
           setHistoryFailed(true);
           throw error;
@@ -310,7 +329,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
       async *resume(options) {
         const capability = resumeRef.current;
-        if (capability === undefined) throw new Error(`No resumable run for conversation ${ownedId}`);
+        if (capability === undefined) throw new Error(`No resumable run for conversation ${owner.getId()}`);
         for await (const update of capability.stream(options.abortSignal)) {
           if (options.abortSignal.aborted) return;
           yield toAssistantRunResult(update);
@@ -320,7 +339,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
         if (message.role === "user") quoteMessagesRef.current.set(message.id, message);
         await aui.threadListItem().initialize();
       },
-    }), [aui, ownedId, threadBinding]);
+    }), [aui, owner, threadBinding]);
     const isDisabled = useSyncExternalStore(
       ownedBinding.subscribe,
       () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
@@ -340,12 +359,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
         };
         try {
           void Promise.resolve(resolvedFeedback.submit({
-            threadId: ownedId, messageId: message.id, type,
+            threadId: owner.getId(), messageId: message.id, type,
             ...(comment === undefined ? {} : { comment }),
           })).catch(report);
         } catch (error) { report(error); }
       },
-    }), [resolvedFeedback, ownedId, item.id, onError]);
+    }), [resolvedFeedback, owner, item.id, onError]);
     // Upstream reports getter errors through onError but still sends the run.
     // Keep that non-fatal error out of the bridge's inference-failure state.
     const contextError = useRef<Error | undefined>(undefined);
@@ -377,7 +396,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
     });
     nativeRuntimeRef.current = runtime;
-    useLayoutEffect(() => requestParts.attach(ownedId, runtime), [ownedId, runtime]);
+    useLayoutEffect(() => requestParts.attach(owner.inputSessionId, runtime), [owner, runtime]);
     useEffect(() => {
       // The initial controlled thread is already regular, so upstream does
       // not arm its new-thread trigger. Reuse the public title lifecycle once.
@@ -413,7 +432,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     }), [runtime, ownedBinding, applicationEvents, commandForwarder, toolContinuation]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
-      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding,
+      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding, inputSessionId: owner.inputSessionId,
       clearPendingQuote: () => runtime.thread.composer.setQuote(undefined),
       ...(frontendTools === undefined ? {} : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
     }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime]);
@@ -506,7 +525,7 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
   // session registers in layout, before the browser can receive another event.
   const currentBridge = bridge ?? previousBridge.current;
   if (currentBridge === undefined) return null;
-  return <ConversationComposerDataContext.Provider value={{ runtime: requestParts, threadId: currentBridge.agentRuntime.getSnapshot().conversation.id }}>
+  return <ConversationComposerDataContext.Provider value={{ runtime: requestParts, threadId: currentBridge.inputSessionId ?? currentBridge.agentRuntime.getSnapshot().conversation.id }}>
     <ConversationRuntimeBridgeProvider bridge={currentBridge}>
     <ConversationComposerGuard bridge={currentBridge} transientMessages={transientMessages}>
       <ConversationQuoteLifecycleProvider clearPendingQuote={currentBridge.clearPendingQuote}>

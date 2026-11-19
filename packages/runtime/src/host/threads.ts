@@ -37,7 +37,7 @@ export class HostThreads {
     for (const listener of [...this.listeners]) listener();
   };
   register(runtime: AgentUIThreadRuntime) {
-    const id = runtime.getSnapshot().conversation.id;
+    let id = runtime.getSnapshot().conversation.id;
     // Upstream may commit the replacement bridge before retiring the previous
     // one (including optimistic identity promotion). Cleanup is owner-checked.
     const handle: AgentUIThread = {
@@ -47,7 +47,16 @@ export class HostThreads {
       abortRun: runtime.abort.bind(runtime),
     };
     this.sources.set(id, handle);
-    const unsubscribe = runtime.subscribe(this.publish);
+    const unsubscribe = runtime.subscribe(() => {
+      const nextId = runtime.getSnapshot().conversation.id;
+      if (nextId !== id) {
+        const ownsEntry = this.sources.get(id) === handle;
+        if (ownsEntry) this.sources.delete(id);
+        id = nextId;
+        if (ownsEntry && !this.sources.has(id)) this.sources.set(id, handle);
+      }
+      this.publish();
+    });
     this.publish();
     return () => {
       unsubscribe();

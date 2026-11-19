@@ -54,6 +54,8 @@ export interface ConversationThreadBinding<TState = unknown> {
   getThreadId(): string;
   getIsDisabled?(): boolean;
   getThreadIsDisabled?(threadId: string): boolean;
+  /** True for an in-page, unpersisted conversation rather than restored history. */
+  getThreadIsNew?(threadId: string): boolean;
   /** Load once per upstream-owned runtime, independently of navigation. */
   loadThread?(threadId: string): Promise<ConversationLoadedThread<TState>>;
   /** Synchronize business selection without loading or replacing runtime state. */

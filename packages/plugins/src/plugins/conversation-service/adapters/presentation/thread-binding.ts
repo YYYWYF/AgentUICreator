@@ -210,6 +210,7 @@ export function createConversationServiceThreadBinding<TState = unknown>(
     getThreadId: () => activeThreadId,
     getIsDisabled: () => getThreadIsDisabled(activeThreadId),
     getThreadIsDisabled,
+    getThreadIsNew: (id) => ephemeralThreadIds.has(id) && !hasPersistedThread(id),
     loadThread,
     activateThread,
     reserveThread: (id) => {

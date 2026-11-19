@@ -35,6 +35,7 @@ function MultiBridgeContent({ config, emit, agentProps, onAgents }: Props) {
     {...agentProps} agentId={instance.agentId}
     project={instance.appUIModel ? { ...project, appUIModelSource: JSON.stringify(instance.appUIModel) } : project}
     endpoint={instance.endpoint} initialThreadId={instance.threadId} request={instance.request}
+    beforeRequest={instance.beforeRequest ?? agentProps?.beforeRequest}
     locale={config.locale} theme={config.theme} hidden={instance.hidden}
     onThemeChange={theme => emit("theme-change", { theme, agentId: instance.agentId })}
     onError={error => emit("agent-error", { code: "AGENT_UI_RUNTIME_ERROR", error, agentId: instance.agentId })}>
@@ -56,6 +57,7 @@ function BridgeSession({ config, emit, agentProps }: Props) {
     <BridgeEvents emit={emit} />
     <AgentApplication project={project} {...agentProps} endpoint={config.endpoint}
       locale={config.locale} theme={config.theme} initialThreadId={config.threadId}
+      beforeRequest={config.beforeRequest ?? agentProps?.beforeRequest}
       onThemeChange={onThemeChange} onError={onError} />
   </AgentUIProvider>;
 }

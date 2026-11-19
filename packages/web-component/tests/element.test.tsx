@@ -33,6 +33,15 @@ describe("host bridge lifecycle", () => {
     expect(preRegistered.config.endpoint).toBe("/pre-registered");
     expect(preRegistered.shadowRoot?.querySelector("[data-shell]")).not.toBeNull();
   });
+  it("preserves optional request callbacks supplied through config properties", async () => {
+    const beforeRequest = vi.fn(async () => ({ threadId: "business" }));
+    const element = await mount({ beforeRequest });
+    expect(calls.configs.at(-1)?.beforeRequest).toBe(beforeRequest);
+    expect(element.config.beforeRequest).toBe(beforeRequest);
+    expect(resolveConfig({ agents: [{ agentId: "one", beforeRequest }] }, {}).agents?.[0]?.beforeRequest).toBe(beforeRequest);
+    expect(() => resolveConfig({ beforeRequest: "invalid" as unknown as NonNullable<AgentUIConfig["beforeRequest"]> }, {})).toThrow("AGENT_UI_INVALID_BEFORE_REQUEST");
+    expect(() => resolveConfig({ agents: [{ agentId: "one", beforeRequest: "invalid" as unknown as NonNullable<AgentUIConfig["beforeRequest"]> }] }, {})).toThrow("AGENT_UI_INVALID_AGENTS");
+  });
   it("accepts multiple explicit assistant endpoints and rejects ambiguous identities", () => {
     const agents = [
       { agentId: "a", endpoint: "/a", threadId: "same" },

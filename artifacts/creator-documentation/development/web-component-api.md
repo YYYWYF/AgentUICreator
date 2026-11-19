@@ -51,6 +51,7 @@ if (element) element.config = config;
 - **更新**：每次赋一个新对象；直接修改读取到的对象不会更新界面。保留其他配置可用 `element.config = { ...element.config, theme: 'dark' }`。
 - **优先级**：`config` 中已设置的字段优先；未设置对应字段时，才使用 HTML 属性。
 - **布局模型**：`appUIModel` 只能通过 `config` 设置。
+- **发送前回调**：单助手可设置 `element.config = { ...element.config, beforeRequest }`；多助手在对应的 `config.agents` 项设置 `beforeRequest`。该函数只支持 JavaScript property，不支持 HTML attribute 或 JSON 序列化。也可在 React 生产工程的 `agentProps.beforeRequest` 中设置。签名及 ID 绑定规则见[发送前准备请求](/development/connect-agent.md#发送前准备请求)。
 
 默认值和移除配置后的行为：
 

@@ -5570,14 +5570,14 @@
       "path": "development/agent-options.md",
       "title": "Agent 参数与配置",
       "summary": "通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。",
-      "sha256": "4db51f24c3cd7e7bbf6b45a0615f7173bb1c1492f4deab8aed058684d6b0e304",
+      "sha256": "30e052c87045736dd327e2b7acd195d690f88d6684e71cdecade9abc3c09d512",
       "sections": [
         {
           "id": "s1",
           "title": "Agent 参数与配置",
           "level": 1,
           "start": 0,
-          "end": 5987
+          "end": 6128
         },
         {
           "id": "s5",
@@ -5612,14 +5612,14 @@
           "title": "打开已有会话",
           "level": 2,
           "start": 4839,
-          "end": 5048
+          "end": 5189
         },
         {
-          "id": "s152",
+          "id": "s154",
           "title": "其他配置入口",
           "level": 2,
-          "start": 5048,
-          "end": 5987
+          "start": 5189,
+          "end": 6128
         }
       ]
     },
@@ -5697,14 +5697,14 @@
       "path": "development/connect-agent.md",
       "title": "连接 AG-UI 服务",
       "summary": "生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见AG-UI 数据格式与插件数据接入。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。",
-      "sha256": "3b63a74766e8a4725da4a6eee4e167864f65ad0d3e4965ec8c9799534429fcdd",
+      "sha256": "8f48b6c568feeee4cd9d1dfd7daef90fcfcfbcdd167ff5913ed59a0b7208d00a",
       "sections": [
         {
           "id": "s1",
           "title": "连接 AG-UI 服务",
           "level": 1,
           "start": 0,
-          "end": 6712
+          "end": 9116
         },
         {
           "id": "s9",
@@ -5729,31 +5729,52 @@
         },
         {
           "id": "s99",
-          "title": "自定义请求函数",
+          "title": "发送前准备请求",
           "level": 2,
           "start": 3863,
-          "end": 5387
+          "end": 6267
         },
         {
-          "id": "s141",
+          "id": "s130",
+          "title": "调用与身份规则",
+          "level": 3,
+          "start": 4971,
+          "end": 5563
+        },
+        {
+          "id": "s138",
+          "title": "返回字段如何合并",
+          "level": 3,
+          "start": 5563,
+          "end": 6267
+        },
+        {
+          "id": "s156",
+          "title": "自定义请求函数",
+          "level": 2,
+          "start": 6267,
+          "end": 7791
+        },
+        {
+          "id": "s198",
           "title": "同一会话调用不同工作流",
           "level": 2,
-          "start": 5387,
-          "end": 5730
+          "start": 7791,
+          "end": 8134
         },
         {
-          "id": "s149",
+          "id": "s206",
           "title": "验证实际响应",
           "level": 2,
-          "start": 5730,
-          "end": 5960
+          "start": 8134,
+          "end": 8364
         },
         {
-          "id": "s158",
+          "id": "s215",
           "title": "临时连接测试",
           "level": 2,
-          "start": 5960,
-          "end": 6712
+          "start": 8364,
+          "end": 9116
         }
       ]
     },
@@ -6754,119 +6775,119 @@
       "path": "development/react-host-api.md",
       "title": "Agent API",
       "summary": "单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。",
-      "sha256": "aa55ca94009aea2f4508e4df7fdadceaabb29d89e6b658b975fa2ef5858eb12d",
+      "sha256": "3241d6a130e37af971498ccfb297eaaddfd42c7bf3ff97a2add92ac982365a4e",
       "sections": [
         {
           "id": "s1",
           "title": "Agent API",
           "level": 1,
           "start": 0,
-          "end": 22002
+          "end": 22297
         },
         {
           "id": "s7",
           "title": "属性",
           "level": 2,
           "start": 324,
-          "end": 9608
+          "end": 9903
         },
         {
           "id": "s11",
           "title": "Agent 属性表",
           "level": 3,
           "start": 413,
-          "end": 9092
+          "end": 9387
         },
         {
-          "id": "s46",
+          "id": "s47",
           "title": "运行上下文回调",
           "level": 4,
-          "start": 8322,
-          "end": 9092
+          "start": 8617,
+          "end": 9387
         },
         {
-          "id": "s56",
+          "id": "s57",
           "title": "Provider 属性表",
           "level": 3,
-          "start": 9092,
-          "end": 9608
+          "start": 9387,
+          "end": 9903
         },
         {
-          "id": "s65",
+          "id": "s66",
           "title": "方法",
           "level": 2,
-          "start": 9608,
-          "end": 16602
+          "start": 9903,
+          "end": 16897
         },
         {
-          "id": "s67",
+          "id": "s68",
           "title": "会话方法",
           "level": 3,
-          "start": 9615,
-          "end": 16602
+          "start": 9910,
+          "end": 16897
         },
         {
-          "id": "s91",
+          "id": "s92",
           "title": "输入参数结构",
           "level": 4,
-          "start": 13838,
-          "end": 14790
+          "start": 14133,
+          "end": 15085
         },
         {
-          "id": "s108",
+          "id": "s109",
           "title": "发送已有附件 URL",
           "level": 4,
-          "start": 14790,
-          "end": 16602
+          "start": 15085,
+          "end": 16897
         },
         {
-          "id": "s147",
+          "id": "s148",
           "title": "Hooks",
           "level": 2,
-          "start": 16602,
-          "end": 17877
+          "start": 16897,
+          "end": 18172
         },
         {
-          "id": "s158",
+          "id": "s159",
           "title": "状态与事件",
           "level": 2,
-          "start": 17877,
-          "end": 20077
+          "start": 18172,
+          "end": 20372
         },
         {
-          "id": "s181",
+          "id": "s182",
           "title": "订阅 Agent 业务事件",
           "level": 3,
-          "start": 19054,
-          "end": 20077
+          "start": 19349,
+          "end": 20372
         },
         {
-          "id": "s208",
+          "id": "s209",
           "title": "错误处理",
           "level": 2,
-          "start": 20077,
-          "end": 21193
+          "start": 20372,
+          "end": 21488
         },
         {
-          "id": "s222",
+          "id": "s223",
           "title": "相关接入",
           "level": 2,
-          "start": 21193,
-          "end": 22002
+          "start": 21488,
+          "end": 22297
         },
         {
-          "id": "s224",
+          "id": "s225",
           "title": "提供宿主页面操作",
           "level": 3,
-          "start": 21202,
-          "end": 21436
+          "start": 21497,
+          "end": 21731
         },
         {
-          "id": "s233",
+          "id": "s234",
           "title": "外壳定制",
           "level": 3,
-          "start": 21436,
-          "end": 22002
+          "start": 21731,
+          "end": 22297
         }
       ]
     },
@@ -6877,21 +6898,21 @@
       "path": "development/web-component-api.md",
       "title": "Web Component API",
       "summary": "在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。 本页导航：配置 · 事件。",
-      "sha256": "895986529a47aa60b4490d324a78cc39bbd093d62a2df23393209d0f7df23331",
+      "sha256": "c5b858561015c3527c014e65bdf2d4fe0045b2d98c416a89b3bbe24223889273",
       "sections": [
         {
           "id": "s1",
           "title": "Web Component API",
           "level": 1,
           "start": 0,
-          "end": 4914
+          "end": 5199
         },
         {
           "id": "s7",
           "title": "配置",
           "level": 2,
           "start": 103,
-          "end": 2994
+          "end": 3279
         },
         {
           "id": "s9",
@@ -6905,35 +6926,35 @@
           "title": "Attributes 与优先级",
           "level": 3,
           "start": 886,
-          "end": 1765
+          "end": 2050
         },
         {
-          "id": "s61",
+          "id": "s62",
           "title": "配置更新行为",
           "level": 3,
-          "start": 1765,
-          "end": 1974
+          "start": 2050,
+          "end": 2259
         },
         {
-          "id": "s67",
+          "id": "s68",
           "title": "多助手配置与控制",
           "level": 3,
-          "start": 1974,
-          "end": 2994
+          "start": 2259,
+          "end": 3279
         },
         {
-          "id": "s92",
+          "id": "s93",
           "title": "事件",
           "level": 2,
-          "start": 2994,
-          "end": 4914
+          "start": 3279,
+          "end": 5199
         },
         {
-          "id": "s105",
+          "id": "s106",
           "title": "监听就绪并在页面卸载时清理",
           "level": 3,
-          "start": 3984,
-          "end": 4914
+          "start": 4269,
+          "end": 5199
         }
       ]
     },
@@ -7283,14 +7304,14 @@
       "topic": "职责与所有权",
       "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。",
       "title": "Conversation Domain 架构",
-      "sha256": "b03103306b281b7b1f8aea21c6f278708501719e498306ecb2c0428113ae3036",
+      "sha256": "d08deedfc228842175e88ba7a945f747e2b870b7a703268bf9017254413e8b53",
       "sections": [
         {
           "id": "s1",
           "title": "Conversation Domain 架构",
           "level": 1,
           "start": 0,
-          "end": 4278
+          "end": 4541
         },
         {
           "id": "s5",
@@ -7318,28 +7339,28 @@
           "title": "Thread 与历史",
           "level": 2,
           "start": 1644,
-          "end": 2873
+          "end": 3136
         },
         {
-          "id": "s47",
+          "id": "s49",
           "title": "Frontend Tool 与 HITL",
           "level": 2,
-          "start": 2873,
-          "end": 3172
+          "start": 3136,
+          "end": 3435
         },
         {
-          "id": "s53",
+          "id": "s55",
           "title": "数据、事件与展示",
           "level": 2,
-          "start": 3172,
-          "end": 4156
+          "start": 3435,
+          "end": 4419
         },
         {
-          "id": "s63",
+          "id": "s65",
           "title": "验证边界",
           "level": 2,
-          "start": 4156,
-          "end": 4278
+          "start": 4419,
+          "end": 4541
         }
       ]
     },
