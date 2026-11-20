@@ -73,9 +73,16 @@ inspectNav(json(path.join(docs, '_nav.json')));
 const articles = [...pages.keys()].filter(page => page !== 'index.mdx');
 assert.deepEqual(articles.filter(page => !destinations.has(page)), [], 'Articles missing from their menu');
 
+const deliveries = json(path.join(website, '../packages/plugins/src/catalog/plugin-delivery.json'));
+for (const { id } of deliveries) {
+  const page = resolvePage(`/plugins/${id}`);
+  assert(page, `Missing official Plugin article: ${id}`);
+}
+
 let localLinks = 0;
 for (const [name, file] of pages) {
-  const source = read(file).replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\s*$/gmu, '');
+  const markdown = read(file);
+  const source = markdown.replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\s*$/gmu, '');
   for (const [, href] of source.matchAll(/!?\[[^\]]*\]\(([^\s)]+)\)/gu)) {
     if (!href.startsWith('.') && !href.startsWith('/') && !href.startsWith('#')) continue;
     const [target, anchor] = href.split(/#(.*)/su);
@@ -96,6 +103,10 @@ for (const [name, file] of pages) {
     const output = path.join(website, 'doc_build', name.replace(/\.(md|mdx)$/u, '.html'));
     assert(existsSync(output), `Missing built page: ${name}`);
     const html = read(output);
+    const visibleData = new Set([...markdown.matchAll(/^(`{3,}|~{3,})([^\n]*)\n([\s\S]*?)^\1\s*$/gmu)]
+      .filter(([, , info]) => info.split(/\s/u).includes('ag-ui'))
+      .map(([, , , code]) => code.trim().replace(/\r\n/gu, '\n')));
+    const missingData = new Set(visibleData);
     // Event streams remain plain code blocks; development examples use disclosures.
     const disclosures = [];
     for (const match of html.matchAll(/<\/?details\b[^>]*>|<div\b[^>]*class="[^"]*\brp-codeblock(?:\s|")[^>]*>/gu)) {
@@ -108,14 +119,19 @@ for (const [name, file] of pages) {
         const codeEnd = html.indexOf('</code>', codeStart);
         assert(codeStart >= 0 && codeEnd > codeStart, `Missing code content: ${name}`);
         const content = html.slice(codeStart, codeEnd).replace(/<[^>]*>/gu, '')
-          .replace(/&quot;|&#34;|&#x22;/giu, '"');
-        const eventStream = language === 'jsonl' || language === 'sse' ||
+          .replace(/&quot;|&#34;|&#x22;/giu, '"')
+          .replace(/&lt;/gu, '<').replace(/&gt;/gu, '>').replace(/&amp;/gu, '&');
+        const normalized = content.trim().replace(/\r\n/gu, '\n');
+        const protocolData = visibleData.has(normalized);
+        missingData.delete(normalized);
+        const eventStream = protocolData || language === 'jsonl' || language === 'sse' ||
           ([undefined, 'json', 'text', 'plaintext'].includes(language) &&
             /"type"\s*:\s*"(?:CUSTOM|RAW|(?:RUN|TEXT_MESSAGE|TOOL_CALL|REASONING|STATE|ACTIVITY|MESSAGES|STEP|SUBAGENT)_[A-Z_]+)"/u.test(content));
         if (eventStream) assert.equal(disclosures.length, 0, `AG-UI events must use a plain visible code block: ${name}`);
         else assert(disclosures.some(closed => closed), `Development code must be collapsed by default: ${name}`);
       }
     }
+    assert.equal(missingData.size, 0, `AG-UI payload examples missing from built page: ${name}`);
     if (destinations.has(name)) {
       const sidebar = read(output).match(/<aside class="rp-doc-layout__sidebar(?:\s|")[\s\S]*?<\/aside>/u)?.[0];
       if (/^sidebar:\s*false\s*$/mu.test(source)) {

@@ -13,15 +13,17 @@
 
 本教程以 **React + Vite** 工程为例，带你安装 **Creator**、创建 Agent UI，再把助理放进页面，完成首次对话和第一次界面定制。生成的代码就在你的工程里，你可以继续用 Creator 定制，也可以直接编辑，并随自己的应用独立构建和部署。
 
-![招行客户服务演示工作台，右上角是 Creator 入口。](/images/start/01-business-before.png)
+![招行客户服务工作台，右侧已展开智能助手，显示欢迎语、推荐问题和消息输入框。](/images/guide/examples/20261106/cmb-tickets-assistant-final.jpg)
+
+:::tip Node.js 环境要求
+安装和使用 Creator，以及开发和构建生成的 Agent 前端工程，最低要求 **Node.js 20.0.0**。
+:::
 
 ## 1. 安装并启动 Creator
 
 先安装 Creator，配置启动脚本和页面入口，再启动服务。打开开发页面后，就可以进入 Creator 面板，选择要安装的 Agent UI 模板。
 
-:::tip 环境要求
-安装和使用 Creator 要求 **Node.js 22，最低版本为 `22.0.0`**；也支持 Node.js 24（最低 `24.22.1`）。以下步骤使用 React + Vite 工程，命令以 pnpm 为例；包管理器沿用工程现有配置。
-:::
+以下步骤使用 React + Vite 工程，命令以 pnpm 为例；包管理器沿用工程现有配置。
 
 ### 安装工具
 
@@ -194,8 +196,7 @@ src/agent-ui/                        # 生成的 Agent 前端源码
     │   ├── endpoint.ts              # 解析配置的历史服务地址
     │   └── data-source.ts           # 直接编辑会话列表、详情、删除等方法
     └── hooks/                       # 组件调用会话服务的 React Hook
-        ├── useConversations.ts      # 读取会话列表与当前会话状态
-        └── useConversationActions.ts # 切换、删除、重命名等会话操作
+        └── useConversations.ts      # 按需订阅历史状态，以及刷新、切换和管理操作
 ```
 
 工程根目录还会生成供开发工具使用的记录和入口：

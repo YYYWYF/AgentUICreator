@@ -6,7 +6,7 @@
       "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx",
       "localPath": "quote-selection-root.tsx",
       "upstreamSha256": "14cb0f49f64be6e69a907e1b058893d7c95460006e83ef0883cbe197439e09a9",
-      "installedSha256": "cc532497efe027cce68b4fca4b22c2febb485b4d26c9be203f2caf559cbfb06c"
+      "installedSha256": "9abf6dbea3b2b545cef04b37dc1de0d77cb1575cf2bb5b56879d0e18beb12b14"
     },
     {
       "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarQuote.tsx",

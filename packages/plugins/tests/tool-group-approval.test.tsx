@@ -8,11 +8,10 @@ import {
   ConversationCanonicalToolGroup,
   ConversationCommandDecisionProvider,
   ConversationThread,
-  ConversationToolFallback,
+  ConversationToolResult,
   toConversationMessagePartGroup,
   type ConversationCommandDecisionBinding,
-  type ConversationMessagePartGroup,
-} from "../src/public.js";
+  type ConversationMessagePartGroup} from "../src/public.js";
 import { ConversationToolGroupPlugin as PackageGroup } from "../dist/tool-group/index.js";
 import { ConversationToolGroupPlugin as PortableGroup } from "../dist/sources/takeover/tool-group/index";
 
@@ -54,7 +53,7 @@ function Host({ content, decisions = new Map(), Group }: {
   return <AssistantRuntimeProvider runtime={runtime}><AgentUILocaleProvider locale="zh-CN">
     <ConversationCommandDecisionProvider decisions={decisions}>
       <ConversationThread composer={null} components={{
-        ToolFallback: ConversationToolFallback,
+        ToolFallback: ConversationToolResult,
         ...(ToolGroup ? { ToolGroup } : {}),
       }} />
     </ConversationCommandDecisionProvider>

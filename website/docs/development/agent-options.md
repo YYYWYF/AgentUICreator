@@ -22,7 +22,7 @@ export function Chat() {
 
 Agent 接口需要鉴权时，通过 `request.headers` 传入请求头，通过 `request.credentials` 设置 Cookie 策略，完整示例及开发预览限制见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。
 
-每次发送时，AG-UI 请求的 `messages` 默认只包含本次用户消息，不附带历史用户和 AI 消息。前端继续展示完整历史，后端按 `threadId` 维护会话上下文。前端工具续传只带本次工具结果；中断恢复通过 `resume` 传递，没有新消息时 `messages` 为空。
+普通发送默认只带本次用户消息，前端仍展示完整历史，后端按 `threadId` 维护上下文。工具续传和审批恢复格式见[请求体与响应流](./connect-agent#请求体与响应流)。
 
 参数可传字符串、用户资料或回调，完整字段见[Agent 属性表](/development/react-host-api#agent-属性表)。用户资料的传法例如：
 
@@ -96,14 +96,9 @@ export function OrderAssistant({ selectedOrder }: { selectedOrder: Order }) {
 
 每个条目包含字符串 `description` 和 `value`。对象用 `JSON.stringify()` 转成字符串；后端从 `RunAgentInput.context` 读取，并按双方约定解析。回调可以直接读取 React props、state 或业务 store。页面更新后，下次请求会读取最新值，不会自动向正在执行的 Agent 推送变化。
 
-此用法遵循 [assistant-ui 的 Run context 约定](https://github.com/assistant-ui/assistant-ui/blob/d8124e7b427021d977abf9aabc9a057705a81644/apps/docs/content/docs/runtimes/ag-ui/runtime-options.mdx#run-context)：
+回调同步读取已有数据，每次请求前重新执行。读取失败会报告 `onError`，请求继续；需要等待业务接口或准备失败时停止发送，使用 [`beforeRequest`](./connect-agent#发送前准备请求)。
 
-- 回调同步返回条目数组，不能使用 `async`；需要请求接口时，先由业务页面加载数据。
-- 每次运行都会重新调用，包括工具续跑和审批恢复；返回条目追加在已有 system context 之后。
-- 回调也能读取 `{ messages, runConfig }`：`messages` 是本次运行转换后的 AG-UI 消息，恢复时对应恢复请求使用的记录范围；`runConfig` 是运行配置，可通过 `runConfig?.custom` 读取自定义配置。
-- 回调抛错时调用 `onError`，请求仍会继续发送，但不包含这次回调提供的条目。
-
-`context` 用于为本次请求补充信息，不会自动拼进用户消息。AG-UI 共享 `state` 通过 `STATE_SNAPSHOT` / `STATE_DELTA` 等协议状态事件同步，与这里的请求上下文独立。`context` 来自浏览器，后端仍须独立校验身份和权限。
+`context` 单独传递，不会自动拼进用户正文。身份和权限仍由后端校验。
 
 ## 主题切换
 

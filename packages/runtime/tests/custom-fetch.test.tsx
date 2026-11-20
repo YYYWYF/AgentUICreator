@@ -4,8 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import {
   ConversationRuntimeProvider, createEphemeralConversationThreadBinding,
   createAgentUIFrontendTools, useConversationRuntimeBridge,
-  type ConversationRuntimeBridge, type ConversationRuntimeProviderProps,
-} from "../src/public.js";
+  type ConversationRuntimeBridge, type ConversationRuntimeProviderProps} from "../src/public.js";
 
 afterEach(() => vi.unstubAllGlobals());
 async function until(predicate: () => boolean) {

@@ -65,6 +65,7 @@ const previousRoutes: Record<string, string> = {
   '/plugins/stop-retry-edit': '/plugins/index.html#停止重试与编辑',
   '/plugins/reasoning-and-tools': '/plugins/index.html#思考工具与任务进度',
   '/plugins/approval-and-questions': '/plugins/index.html#提问与审批',
+  '/plugins/human-interaction': '/plugins/tool-result.html#操作确认',
   '/plugins/results-and-actions': '/plugins/index.html#来源文件与图表',
   '/plugins/history': '/plugins/index.html#会话与历史记录',
   '/plugins/appearance-and-account': '/plugins/index.html#主题语言与账号',

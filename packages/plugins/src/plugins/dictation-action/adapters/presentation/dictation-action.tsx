@@ -6,7 +6,7 @@ import {
   MicIcon,
   SquareIcon,
   TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
 } from '../../../../plugin-support.js';
 export type ConversationComposerDictateProps = Omit<
   ComponentProps<typeof TooltipIconButton>,
@@ -17,7 +17,7 @@ export type ConversationComposerStopDictationProps = Omit<
   'tooltip' | 'children'
 > & { icon?: ReactNode };
 export function ConversationComposerDictate({ icon, ...props }: ConversationComposerDictateProps = {}) {
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
   return (
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation == null}>
       <ComposerActions.Dictate asChild>
@@ -39,7 +39,7 @@ export function ConversationComposerDictate({ icon, ...props }: ConversationComp
   );
 }
 export function ConversationComposerStopDictation({ icon, ...props }: ConversationComposerStopDictationProps = {}) {
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
   return (
     <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation != null}>
       <ComposerActions.StopDictation asChild>

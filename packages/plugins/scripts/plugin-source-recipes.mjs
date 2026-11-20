@@ -18,7 +18,15 @@ export async function portableSource(delivery, target, text) {
     const local = `import ${typeOnly}{ ${owned.join(", ")} } from ${quote}./adapters/${delivery.implementationModule}${quote};`;
     return shared.length ? `import ${typeOnly}{ ${shared.join(", ")} } from ${quote}${importSource}${quote};\n${local}` : local;
   });
-  if (target.startsWith("adapters/")) text = text.replace(/(["'])\.\.\/\.\.\/\.\.\/\.\.\/(public|plugin-support|composer-support)\.js\1/gu, (statement, quote, entry) => entry === "public" ? `${quote}@za38.03/agent-ui-plugins${quote}` : entry === delivery.supportEntry ? `${quote}@za38.03/agent-ui-plugins/${entry}${quote}` : statement);
+  if (target.startsWith("adapters/")) {
+    // Logical source paths keep '/' on Windows too. Nested presentation modules
+    // need one extra parent segment per directory below adapters/.
+    const supportPrefix = "../".repeat(target.split("/").length + 2);
+    text = text.replace(/(["'])((?:\.\.\/)+)(public|plugin-support|composer-support)\.js\1/gu, (statement, quote, prefix, entry) => {
+      if (prefix !== supportPrefix) return statement;
+      return entry === "public" ? `${quote}@za38.03/agent-ui-plugins${quote}` : entry === delivery.supportEntry ? `${quote}@za38.03/agent-ui-plugins/${entry}${quote}` : statement;
+    });
+  }
   return /\.tsx?$/u.test(target) ? formatProjectCode(text) : text;
 }
 export function sourceEntries(delivery) {

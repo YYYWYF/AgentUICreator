@@ -48,3 +48,5 @@ export { readCompatibilityBinding, resolveCompatibilityConsumer } from "./projec
 
 export { preparePluginEnablement, completePluginEnablement } from "./project/plugin-enablement";
 export type { PluginEnablementPreparation } from "./project/plugin-enablement";
+export { getAgentUIPluginSourceTargets, planAgentUIPluginSourceTakeover, applyAgentUIPluginSourceTakeover } from "./project/plugin-source-commands";
+export type { PluginSourceTakeoverPlan } from "./project/plugin-source-commands";

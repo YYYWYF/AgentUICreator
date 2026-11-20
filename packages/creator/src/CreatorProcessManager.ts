@@ -4,6 +4,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
 import { access, readdir, stat } from "node:fs/promises";
 import path from "node:path";
+import { compileDevelopmentEntry } from "./development-source.js";
 import { creatorDistributionRoot } from "./creatorRuntimeDistribution.js";
 import { readCreatorHostConfigValue } from "./creatorRuntimeConfig.js";
 import type { CreatorAgentMode } from "./shared.js";
@@ -66,14 +67,15 @@ export class CreatorProcessManager {
     const distribution = creatorDistributionRoot();
     let entry = path.join(distribution, "dist/agent/server.js");
     const hotReload = /^(?:1|true|yes)$/iu.test(environment.CREATOR_HOT_RELOAD ?? readCreatorHostConfigValue(options.configRoot, "CREATOR_HOT_RELOAD") ?? "");
-    let importLoader: string | undefined;
+    let sourceEntry: string | undefined;
     if (hotReload) {
-      try { const source = path.join(distribution, "src/agent/server.ts"); await access(source); importLoader = import.meta.resolve("tsx"); entry = source; }
+      try { const source = path.join(distribution, "src/agent/server.ts"); await access(source); await import("esbuild"); sourceEntry = source; }
       catch { options.log?.("Creator source hot reload is unavailable in this installation; using the built Node runtime."); }
     }
+    if (sourceEntry) entry = await compileDevelopmentEntry(sourceEntry, path.join(distribution, "node_modules/.cache/agent-ui-development"));
     await access(entry);
     const token = randomBytes(32).toString("hex");
-    const child = spawn(process.execPath, [...(importLoader ? ["--import", importLoader] : []), entry, ...(importLoader ? ["--contracts-root", path.join(distribution, "contracts/creator")] : []), "--project-root", this.#root, "--skills-root", options.skillsRoot ?? path.join(distribution, "skills"), "--auth-token", token, "--port", "0", "--parent-pid", String(process.pid), ...(options.configRoot ? ["--config-root", path.resolve(options.configRoot)] : [])], {
+    const child = spawn(process.execPath, [entry, ...(sourceEntry ? ["--contracts-root", path.join(distribution, "contracts/creator")] : []), "--project-root", this.#root, "--skills-root", options.skillsRoot ?? path.join(distribution, "skills"), "--auth-token", token, "--port", "0", "--parent-pid", String(process.pid), ...(options.configRoot ? ["--config-root", path.resolve(options.configRoot)] : [])], {
       cwd: this.#root, env: { ...environment }, windowsHide: true, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"],
     });
     this.#child = child;
@@ -94,7 +96,7 @@ export class CreatorProcessManager {
       const endpoint = await this.#checkHealth({ host: "127.0.0.1", port, authToken: token });
       if (this.#disposed) throw new Error("CREATOR_RUNTIME_DISPOSED");
       this.#endpoint = endpoint; options.log?.(`typescript runtime ready pid=${child.pid} port=${port}`);
-      if (importLoader && !this.#watcher) {
+      if (sourceEntry && !this.#watcher) {
         this.#fingerprint = await this.#sourceFingerprint(distribution);
         this.#watcher = setInterval(() => { void this.#pollSource(distribution); }, 1000);
         this.#watcher.unref();

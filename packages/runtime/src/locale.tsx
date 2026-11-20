@@ -1,4 +1,4 @@
-import { useOptionalAgentUIProject } from "./ui/project-context.js";
+import { useOptionalProject } from "./ui/project-context.js";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { enUS } from "./locales/en-US.js";
 import { zhCN } from "./locales/zh-CN.js";
@@ -43,7 +43,7 @@ export function AgentUILocaleProvider({
   children: ReactNode;
 }) {
   const resolver =
-    useOptionalAgentUIProject()?.presentation?.resolveLocale ??
+    useOptionalProject()?.presentation?.resolveLocale ??
     resolveAgentUILocaleMessages;
   const value = useMemo(
     () => ({
@@ -57,12 +57,12 @@ export function AgentUILocaleProvider({
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
-export function useAgentUILocale(): AgentUILocaleMessages;
-export function useAgentUILocale<N extends keyof AgentUILocaleMessages>(
+export function useLocale(): AgentUILocaleMessages;
+export function useLocale<N extends keyof AgentUILocaleMessages>(
   namespace: N,
 ): AgentUILocaleMessages[N];
-export function useAgentUILocale(namespace?: string) {
+export function useLocale(namespace?: string) {
   const { messages } = useContext(Context);
   return namespace === undefined ? messages : messages[namespace];
 }
-export const useAgentUILocaleCode = () => useContext(Context).locale;
+export const useLocaleCode = () => useContext(Context).locale;

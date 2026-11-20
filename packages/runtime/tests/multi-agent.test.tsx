@@ -3,7 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { AgentUIConversationBinding } from "../src/host/AgentUIConversationBinding.js";
-import { AgentUIProvider, AgentUIAgentProvider, useAgentUIAgents, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
+import { AgentUIProvider, AgentUIAgentProvider, useAgents, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
 import { createAgentUIFrontendTools } from "../src/host/frontend-tools.js";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import type { ConversationThreadBinding } from "../src/threads/types.js";
@@ -49,7 +49,7 @@ async function fixture(bAttachmentAdapter?: AttachmentAdapter, frontendTools?: A
     emit({ type: "TEXT_MESSAGE_START", messageId: body.runId, role: "assistant" });
     return new Response(stream, { headers: { "Content-Type": "text/event-stream" } });
   }));
-  function Group() { agents = useAgentUIAgents(); return null; }
+  function Group() { agents = useAgents(); return null; }
   function Capture({ id }: { id: string }) { const aui = useAui(); natives.set(id, aui.threads.__internal_getAssistantRuntime!()); return <AgentUIConversationBinding />; }
   const binding = (): ConversationThreadBinding => ({ getThreadId: () => "same-id", loadThread: async () => ({ messages: [] }), subscribe: () => () => {}, createNewThread: async () => crypto.randomUUID() });
   const a = binding(), b = binding();

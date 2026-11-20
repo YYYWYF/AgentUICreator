@@ -1,6 +1,6 @@
 'use client';
 import type { ComponentProps } from 'react';
-import { ThinkingIndicator, useAgentUILocale, useAuiState } from '../../../../plugin-support.js';
+import { ThinkingIndicator, useLocale, useAuiState } from '../../../../plugin-support.js';
 import { thinkingPresentation, type ThinkingPresentationPolicy } from './policy.js';
 export interface ConversationThinkingIndicatorProps
   extends ThinkingPresentationPolicy,
@@ -11,7 +11,7 @@ export function InternalConversationThinkingIndicator({
   className,
   ...indicatorProps
 }: ConversationThinkingIndicatorProps) {
-  const messages = useAgentUILocale('thinkingIndicator');
+  const messages = useLocale('thinkingIndicator');
   const parts = useAuiState((s) => s.message.parts);
   const status = useAuiState((s) => s.message.status?.type);
   const tools = useAuiState((s) => s.tools.toolUIs);

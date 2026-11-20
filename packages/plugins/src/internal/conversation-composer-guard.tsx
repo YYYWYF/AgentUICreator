@@ -6,7 +6,7 @@ export {ConversationComposerGuardProvider} from "@za38.03/agent-ui-runtime/plugi
 
 import { useCallback, useContext, useLayoutEffect } from "react";
 import { useAui } from "@assistant-ui/react";
-import { useAgentUILocale } from "../locale.js";
+import { useLocale } from "../locale.js";
 import { useOptionalTransientMessageContext } from "./conversation-transient-messages.js";
 import { useThreadRootElementRef } from "./quote-thread-root.js";
 
@@ -15,13 +15,19 @@ const reminders = new WeakMap<object, Map<string, { interruptKey: string; messag
 
 /** Returns true when the attempted send was handled locally; never clears the draft. */
 export function useConversationComposerSendGuard() {
-  const { awaitingReply, interruptKey } = useContext(ConversationComposerGuardContext);
+  const guard = useContext(ConversationComposerGuardContext);
   const context = useOptionalTransientMessageContext();
-  useLayoutEffect(() => { if (context && !awaitingReply) reminders.get(context.service)?.delete(context.conversationId); }, [context?.service, context?.conversationId, awaitingReply]);
-  const messages = useAgentUILocale("composer");
+  useLayoutEffect(() => {
+    if (!context) return;
+    const clear = () => { if (context && !guard.getSnapshot().awaitingReply) reminders.get(context.service)?.delete(context.conversationId); };
+    clear();
+    return guard.subscribe(clear);
+  }, [context?.service, context?.conversationId, guard]);
+  const messages = useLocale("composer");
   const aui = useAui();
   const rootRef = useThreadRootElementRef();
   return useCallback(() => {
+    const { awaitingReply, interruptKey } = guard.getSnapshot();
     if (!awaitingReply) return false;
     if (aui.composer.getState().canSend) {
       let messageId: string | undefined;
@@ -51,5 +57,5 @@ export function useConversationComposerSendGuard() {
       });
     }
     return true;
-  }, [awaitingReply, interruptKey, context, messages.awaitingReply, aui, rootRef]);
+  }, [guard, context, messages.awaitingReply, aui, rootRef]);
 }

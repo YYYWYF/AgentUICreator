@@ -30,7 +30,7 @@
 
 ## 接入文档检索结果 \{#显示条件与数据来源}
 
-当前默认注册工具名为 `search_docs`。参数的 `query` 显示查询内容，结果从 `chunks` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+当前默认注册工具名为 `search_docs`。参数的 `query` 显示查询内容，结果从 `chunks` 数组读取。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"search_docs"}
@@ -92,11 +92,11 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 
 
-| 属性                 | 类型                                                                            | 省略时 / 用途                      |
-| ------------------ | ----------------------------------------------------------------------------- | ----------------------------- |
-| `visibleCount?`    | `number`                                                                      | 默认展示全部片段                      |
-| `renderRetrieval?` | `(props: RetrievalChunksProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个检索组件                     |
-| `Fallback?`        | `ComponentType<ConversationToolCallProps>`                                    | 默认 `ConversationToolFallback` |
+| 属性                 | 类型                                                                            | 省略时 / 用途                    |
+| ------------------ | ----------------------------------------------------------------------------- | --------------------------- |
+| `visibleCount?`    | `number`                                                                      | 默认展示全部片段                    |
+| `renderRetrieval?` | `(props: RetrievalChunksProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个检索组件                   |
+| `Fallback?`        | `ComponentType<ConversationToolCallProps>`                                    | 默认 `ConversationToolResult` |
 
 原始工具数据仍先经过校验，再应用自定义展示属性。
 
@@ -104,7 +104,7 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 `renderRetrieval(view, tool)` 提供已解析的检索内容和当前工具调用。点击片段时使用 `view.chunks` 中的来源与定位信息，业务记录可关联 `tool.toolCallId`；不要从卡片 DOM 反查片段。
 
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-result.md#当前工具调用的数据与操作)。
 
 ### 将片段关联到业务文档 \{#retrievalchunk}
 

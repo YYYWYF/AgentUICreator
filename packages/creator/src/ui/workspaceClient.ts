@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import {
   CREATOR_WORKSPACE_API_PATH,
   type CreatorProjectIssue,

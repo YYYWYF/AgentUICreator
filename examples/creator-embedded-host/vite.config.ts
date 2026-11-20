@@ -10,6 +10,7 @@ export default defineConfig(async ({ command }) => {
     throw error;
   }) : undefined;
   return {
+    ...(process.platform === "darwin" && process.versions.node.startsWith("20.") && Number(process.versions.node.split(".")[1]) < 12 ? { server: { watch: { usePolling: true } } } : {}),
     plugins: [
       react(), tailwindcss(),
       ...(mocks ? [

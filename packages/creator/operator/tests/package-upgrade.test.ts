@@ -171,7 +171,7 @@ it("real npm upgrade preserves Composer application/BASE and permits subsequent 
  await writeFile(path.join(root,".agent-ui/project.json"),JSON.stringify({mode:"assistant",sourceRoot:"src/ui"}));
  await cp(path.join(repo,"packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
  await writeFile(path.join(root,"src/ui/services/agent-ui-locale.ts"),'export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
- await writeFile(path.join(root,"src/ui/agent-ui/i18n/useAgentUILocale.ts"),'export {useAgentUILocale} from "@za38.03/agent-ui-plugins";');
+ await writeFile(path.join(root,"src/ui/agent-ui/i18n/useLocale.ts"),'export {useLocale} from "@za38.03/agent-ui-plugins";');
  await writeFile(path.join(root,"src/ui/runtime/composition.ts"),'export const createPluginCapabilityCatalog = (entries:unknown[]) => entries;');
  const model=JSON.stringify({root:{type:"slot",plugins:[{id:"existing-composer",pluginId:"composer",enabled:true}]}});await writeFile(path.join(root,"src/ui/app-ui/app-ui.json"),model);
  const manifest=JSON.parse(await readFile(path.join(root,"package.json"),"utf8"));manifest.scripts={build:"node check.cjs"};

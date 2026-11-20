@@ -1,17 +1,13 @@
 import { useLayoutEffect, useMemo } from 'react';
 import { useAui, useAuiState } from '@assistant-ui/react';
-import { usePluginService, usePluginServiceSnapshot } from '@za38.03/agent-ui-runtime/plugin-api';
-import { CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService, type ConversationSkillsLifecycle } from './service.js';
+import { usePluginService } from '@za38.03/agent-ui-runtime/plugin-api';
+import { CONVERSATION_SKILLS_SERVICE, type ConversationSkillsService, type ConversationSkillsLifecycle, type ConversationSkillComposerBinding } from './service.js';
+import type { ConversationSkillData } from './skill-data.js';
 
-export function useConversationSkillsState() {
+function useSkillSelectionController() {
   const service = usePluginService<ConversationSkillsService>(CONVERSATION_SKILLS_SERVICE);
   const aui = useAui();
   const threadId = useAuiState(state => state.threads.mainThreadId);
-  const disabled = useAuiState(state => state.thread.isDisabled || state.thread.isLoading);
-  const observable = useMemo(() => service ? {
-    getSnapshot: () => service.getSnapshot(threadId), subscribe: service.subscribe,
-  } : undefined, [service, threadId]);
-  const selected = usePluginServiceSnapshot(observable, null);
   const lifecycle = useMemo<ConversationSkillsLifecycle | undefined>(() => {
     const runtime = aui.threads.__internal_getAssistantRuntime?.();
     if (!runtime) return undefined;
@@ -44,5 +40,45 @@ export function useConversationSkillsState() {
     if (lifecycle) service?.connect(lifecycle);
     // Service setup owns the connection's cleanup, independently of either UI.
   }, [lifecycle, service]);
-  return { service, selected, threadId, disabled };
+  return useMemo(() => {
+    let snapshot: ConversationSkillsSnapshot | undefined;
+    const getSnapshot = () => {
+      const thread = aui.thread.getState();
+      const selected = service?.getSnapshot(threadId) ?? null;
+      const disabled = thread.isDisabled || thread.isLoading;
+      if (!snapshot || snapshot.selected !== selected || snapshot.disabled !== disabled) {
+        snapshot = { selected, disabled, threadId };
+      }
+      return snapshot;
+    };
+    return {
+      threadId,
+      serviceAvailable: service !== undefined,
+      getSnapshot,
+      subscribe(listener: () => void) {
+        const stopService = service?.subscribe(listener);
+        const stopThread = aui.subscribe(listener);
+        return () => { stopService?.(); stopThread(); };
+      },
+      select(skill: ConversationSkillData, composer: ConversationSkillComposerBinding) {
+        if (!service) throw new Error('CONVERSATION_SKILLS_SERVICE_UNAVAILABLE');
+        service.select(threadId, skill, composer);
+      },
+      clear() { service?.clear(threadId); },
+    };
+  }, [service, threadId, aui]);
+}
+
+export interface ConversationSkillsSnapshot {
+  readonly selected: ConversationSkillData | null;
+  readonly threadId: string;
+  readonly disabled: boolean;
+}
+export type ConversationSkillsController = ReturnType<typeof useSkillSelectionController>;
+export function useSkillSelection(): ConversationSkillsController;
+export function useSkillSelection<T>(selector: (snapshot: ConversationSkillsSnapshot) => T): T;
+export function useSkillSelection<T>(selector: ((snapshot: ConversationSkillsSnapshot) => T) | undefined): ConversationSkillsController | T;
+export function useSkillSelection<T>(selector?: (snapshot: ConversationSkillsSnapshot) => T): ConversationSkillsController | T {
+  const controller = useSkillSelectionController();
+  return usePluginService(controller, selector);
 }

@@ -1,5 +1,5 @@
 import {
-  useAgentUILocale,
+  useLocale,
   useConversationCanAnswerToolCall,
   type ConversationToolCallProps,
 } from '@za38.03/agent-ui-plugins';
@@ -12,7 +12,7 @@ import {
 import './collect-user-details.css';
 
 export function CollectUserDetailsToolUI(props: ConversationToolCallProps) {
-  const labels = useAgentUILocale('frontendTools');
+  const labels = useLocale('frontendTools');
   const canAnswer = useConversationCanAnswerToolCall();
   const [values, setValues] = useState<UserDetails>({ firstName: '', lastName: '', email: '', projectIdea: '' });
   const [busy, setBusy] = useState(false);

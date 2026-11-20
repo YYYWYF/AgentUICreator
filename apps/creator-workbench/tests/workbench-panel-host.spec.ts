@@ -25,7 +25,7 @@ export default definition;
 `);
   await writeFile(path.join(source, 'plugins/workbench-panel/index.tsx'), `
 import {useState, type ComponentProps} from 'react';
-import {useAgentUILocaleCode} from '@za38.03/agent-ui-plugins';
+import {useLocaleCode} from '@za38.03/agent-ui-plugins';
 import {WorkbenchPanelPlugin as Implementation} from '@za38.03/agent-ui-plugins/workbench-panel';
 import {panelMessages} from '../../application/panel-messages';
 function Content({label}: {label: string}) {
@@ -33,7 +33,7 @@ function Content({label}: {label: string}) {
   return <label>{label}<textarea value={value} onChange={event => setValue(event.target.value)} /></label>;
 }
 export function WorkbenchPanelPlugin(props: ComponentProps<typeof Implementation>) {
-  const labels = panelMessages(useAgentUILocaleCode());
+  const labels = panelMessages(useLocaleCode());
   return <Implementation {...props} items={[
     {id:'content-a',label:labels.a,content:<Content label={labels.a}/>},
     {id:'content-b',label:labels.b,content:<Content label={labels.b}/>},
@@ -42,11 +42,11 @@ export function WorkbenchPanelPlugin(props: ComponentProps<typeof Implementation
 `);
   await writeFile(path.join(source, 'plugins/workbench-panel-actions/index.tsx'), `
 import type {ComponentProps} from 'react';
-import {useAgentUILocaleCode} from '@za38.03/agent-ui-plugins';
+import {useLocaleCode} from '@za38.03/agent-ui-plugins';
 import {WorkbenchPanelActionsPlugin as Implementation} from '@za38.03/agent-ui-plugins/workbench-panel-actions';
 import {panelMessages} from '../../application/panel-messages';
 export function WorkbenchPanelActionsPlugin(props: ComponentProps<typeof Implementation>) {
-  const labels = panelMessages(useAgentUILocaleCode());
+  const labels = panelMessages(useLocaleCode());
   return <Implementation {...props} items={[{id:'content-a',label:labels.a},{id:'content-b',label:labels.b}]}/>;
 }
 `);

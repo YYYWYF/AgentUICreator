@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../../locale.js';
+import { useLocale } from '../../../../../../locale.js';
 
 import { memo, type ComponentProps, type FC } from 'react';
 import type { QuoteMessagePartComponent } from '@assistant-ui/react';
@@ -90,7 +90,7 @@ function SelectionToolbarQuote({
   children,
   ...props
 }: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <SelectionToolbarPrimitive.Quote
       data-agent-ui-owned=''
@@ -180,7 +180,7 @@ function ComposerQuotePreviewDismiss({
   children,
   ...props
 }: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const defaultClassName =
     'shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground';
 

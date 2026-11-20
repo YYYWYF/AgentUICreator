@@ -3,14 +3,16 @@ function hasChildren(value: unknown): value is { children: unknown[] } {
     'children' in value && Array.isArray(value.children);
 }
 
-function isCode(value: unknown): value is { type: 'code'; lang?: string | null; value: string } {
+function isCode(value: unknown): value is { type: 'code'; lang?: string | null; meta?: string | null; value: string } {
   return typeof value === 'object' && value !== null &&
     'type' in value && value.type === 'code' &&
     'value' in value && typeof value.value === 'string';
 }
 
-function isEventStream(code: { lang?: string | null; value: string }): boolean {
+function isEventStream(code: { lang?: string | null; meta?: string | null; value: string }): boolean {
   const language = code.lang?.split(/\s/u)[0]?.toLowerCase();
+  // Protocol payloads and request fragments may have no event `type` field.
+  if (code.meta?.split(/\s/u).includes('ag-ui')) return true;
   if (language === 'jsonl' || language === 'sse') return true;
   return [undefined, 'json', 'text', 'plaintext'].includes(language) &&
     /"type"\s*:\s*"(?:CUSTOM|RAW|(?:RUN|TEXT_MESSAGE|TOOL_CALL|REASONING|STATE|ACTIVITY|MESSAGES|STEP|SUBAGENT)_[A-Z_]+)"/u.test(code.value);

@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   conversationConnection,
-  createConversationDataSource,
-} from '../resources/registry/items/foundation/core-application/files/services/conversations/data-source';
+  createConversationDataSource} from '../resources/registry/items/foundation/core-application/files/services/conversations/data-source';
 import * as dataSourcePlugin from '../dist/conversation-data-source/index.js';
 import { projectConversationDetail as npmProjector } from '../dist/conversation-service/index.js';
 import { projectConversationDetail as sourceProjector } from '../dist/sources/takeover/conversation-service/index';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   resolveTransientMessageAnchor,
-  useAgentUILocale,
+  useLocale,
   useAuiState,
   useTransientMessages,
 } from '../../../../plugin-support.js';
@@ -20,9 +20,9 @@ export function ConversationTransientMessages({
   renderMessage,
   ...rootProps
 }: ConversationTransientMessagesProps) {
-  const messages = useTransientMessages();
+  const messages = useTransientMessages(messages => messages);
   const messageIds = useAuiState((state) => state.thread.messages);
-  const labels = useAgentUILocale('transientMessages');
+  const labels = useLocale('transientMessages');
   const ids = messageIds.map((message) => message.id);
   return (
     <>

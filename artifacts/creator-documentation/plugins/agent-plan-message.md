@@ -32,7 +32,7 @@
 
 ## 接入计划消息 \{#显示条件与数据来源}
 
-计划由 `activityType: "agent-plan"` 的 Activity 快照提供，后续 delta 更新同一个 `messageId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+计划由 `activityType: "agent-plan"` 的 Activity 快照提供，后续 delta 更新同一个 `messageId`。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"ACTIVITY_SNAPSHOT","messageId":"plan-1","activityType":"agent-plan","replace":true,"content":{"title":"生成报告","steps":[{"id":"search","label":"检索资料"},{"id":"write","label":"生成报告"}],"activeIndex":0}}
@@ -46,7 +46,7 @@
 
 无效数据不显示计划。
 
-先发完整快照，再逐条发送 JSON Patch；恢复实时运行时先重发最新完整快照。Runtime 将其映射到具名消息 `agui-activity/agent-plan`，服务端仍发送 `ACTIVITY_*`。工具次数、思考文字和耗时不会自动生成或推进计划。
+先发送完整快照，再用同一 `messageId` 逐条更新。步骤进度由 `activeIndex` 决定。
 
 
 `renderPlan(plan)` 提供计划标题、`steps` 和 `activeIndex`，可直接交给项目的业务步骤组件。它读取当前计划卡片的数据；需要独立插件同步业务选择或结果时，使用[共享 Service](/development/plugin-interaction.md#插件之间共享选择或结果)。
@@ -111,7 +111,7 @@ export function AgentPlanMessagePlugin(props: ComponentProps<typeof Implementati
 
 `steps` 可直接使用字符串数组；需要标题、说明和稳定标识时，每项使用 `{ id?: string; label: string; description?: string }`。
 
-```json
+```json ag-ui
 [ { "id": "read", "label": "读取材料", "description": "确认范围与约束" }, { "id": "answer", "label": "整理答复" } ]
 ```
 

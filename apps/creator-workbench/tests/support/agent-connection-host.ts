@@ -120,7 +120,7 @@ export async function createConnectionHostFixture(options: { extraOptimizeDeps?:
     const projectChecks = options.liveModel || options.projectChecks;
     const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite", ...(projectChecks ? ["vite", "@vitejs/plugin-react", "typescript", "tsx", "@types/react", "@types/react-dom", "@types/node"] : [])].map(name => [name, template.devDependencies[name]]));
     if (!options.existingHostRoot) {
-    await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies, ...(projectChecks ? {packageManager, scripts: { build: "node validate-build.mjs", typecheck:"node node_modules/typescript/bin/tsc --noEmit", "verify:ui":"node verify-ui.mjs" } } : {}) }));
+    await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies, ...(projectChecks ? {packageManager, scripts: { build: "node validate-build.mjs", typecheck:"node node_modules/typescript/lib/tsc.js --noEmit", "verify:ui":"node verify-ui.mjs" } } : {}) }));
     for (const name of Object.keys({ ...template.dependencies, ...devDependencies })) await link(hostRoot, name);
     await link(hostRoot, "html-to-image");
     await mkdir(path.join(hostRoot, "src"), { recursive: true });

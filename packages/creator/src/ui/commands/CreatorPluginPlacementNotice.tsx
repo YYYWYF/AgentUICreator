@@ -1,5 +1,5 @@
 import type { AgentUIPluginPlacementGuide } from "../../commands/types.js";
-import { formatLocaleMessage, useAgentUILocale } from "../i18n/locale.js";
+import { formatLocaleMessage, useCreatorLocale } from "../i18n/locale.js";
 
 export function parsePluginPlacementGuide(value: unknown): AgentUIPluginPlacementGuide | undefined {
   if (typeof value !== "object" || value === null ||
@@ -24,7 +24,7 @@ export function CreatorPluginPlacementNotice({ pluginId, pluginName, guide }: {
   pluginName: string;
   guide?: AgentUIPluginPlacementGuide | undefined;
 }) {
-  const messages = useAgentUILocale("commands");
+  const messages = useCreatorLocale("commands");
   return <section className="creator-markdown" aria-label={messages.manualPlacementTitle}>
     <p>{formatLocaleMessage(messages.preparedNeedsPlacement, pluginName, pluginId)}</p>
     {guide ? <>

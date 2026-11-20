@@ -6,6 +6,13 @@ import path from "node:path";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
 const provenance = [];
+// Publish pure catalog data without requiring Node's newer JSON import syntax.
+// Canonical manifests remain the only metadata owner; no Node helpers enter it.
+await build({
+  entryPoints: [path.join(root, "src/catalog/package-plugins.ts")],
+  outfile: path.join(root, "dist/catalog/package-plugins.js"),
+  bundle: true, packages: "external", format: "esm", platform: "neutral", target: "es2022",
+});
 // Bundle only these upstream adapters. React, Lexical and other project peers
 // stay external; generated projects need only product public imports.
 for (const [entry, dependency] of [

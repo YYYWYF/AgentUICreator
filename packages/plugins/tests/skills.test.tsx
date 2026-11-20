@@ -59,7 +59,7 @@ async function fixture(variant = variants[0]!, custom: { attachmentAdapter?: Att
   }
   const requests: RunAgentInput[] = [];
   let native!: AssistantRuntime;
-  let composer!: ReturnType<typeof useComposer>;
+  let composer!: import("@za38.03/agent-ui-plugins").ComposerController;
   let setPreviewVisible!: (visible: boolean) => void;
   let setBarVisible!: (visible: boolean) => void;
   function Capture() { native = useAui().threads.__internal_getAssistantRuntime!(); composer = useComposer('test-control'); return null; }
@@ -310,9 +310,9 @@ it('runs a project callback on click, blocks duplicates and reports failures', a
   await act(async () => button('更多').click());
   expect(document.querySelector('.skills-popover')?.closest('[data-agent-ui-conversation]')).toBeTruthy();
   expect(start).not.toHaveBeenCalled();
-  const trigger = document.querySelector<HTMLButtonElement>('[aria-label="启动: 生成周报"]')!;
+  const trigger = document.querySelector<HTMLButtonElement>('[aria-label="执行: 生成周报"]')!;
   await act(async () => { trigger.click(); trigger.click(); }); expect(start).toHaveBeenCalledTimes(1);
   await act(async () => reject(new Error('internal secret')));
-  expect(document.querySelector('[role="alert"]')?.textContent).toBe('工作流启动失败，请重试。');
+  expect(document.querySelector('[role="alert"]')?.textContent).toBe('操作执行失败，请重试。');
   expect(document.body.textContent).not.toContain('internal secret'); expect(trigger.disabled).toBe(false);
 });

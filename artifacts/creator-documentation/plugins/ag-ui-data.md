@@ -52,13 +52,15 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 
 `threadId`、`runId` 应使用当前请求的值；消息和工具调用 ID 应在各自生命周期内保持一致，不同对象使用不同 ID。文字增量使用 `delta`。
 
-文档中的事件示例与 F12 的 EventStream **Data** 列一致：每行一个完整 JSON 事件，按行依次发送，不加外层数组。实际 HTTP 响应仍需按上面的 SSE 格式为每条事件添加 `data:` 前缀，并在事件之间留一个空行。除页面特别列出的结束事件外，示例中的内容事件放在 `RUN_STARTED` 与对应结束事件之间。
+插件页的 `jsonl` 示例对应 F12 EventStream 的 **Data** 列：每行一个事件。实际发送时，加上 `data:` 前缀和空行，并补齐本次运行的开始与结束事件。
+
+工具参数和结果对象要放入对应事件字段，不作为独立事件发送。
 
 结束事件的格式分为：
 
 - 正常完成：`RUN_FINISHED`，可携带 `outcome: { "type": "success" }`。
 - 等待用户输入：`RUN_FINISHED`，携带 `outcome: { "type": "interrupt", "interrupts": [...] }`，其中 `interrupts` 是非空的中断描述数组。
-- 错误：`RUN_ERROR`，携带错误描述 `message`，可附错误码 `code`，例如 `{ "type": "RUN_ERROR", "message": "请求超时", "code": "TIMEOUT" }`。`RUN_ERROR` 后仍可以返回新事件。
+- 错误：`RUN_ERROR`，携带错误描述 `message`，可附错误码 `code`，例如 `{ "type": "RUN_ERROR", "message": "请求超时", "code": "TIMEOUT" }`。
 
 ## 按展示内容找事件
 
@@ -67,7 +69,7 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 | `conversation-surface`                       | `TEXT_MESSAGE_*`、消息历史及下方各类内容                             | [会话界面](/plugins/conversation-surface.md#显示条件与数据来源)       |
 | `reasoning`                                  | `REASONING_START`、`REASONING_MESSAGE_*`、`REASONING_END`  | [思考内容](/plugins/reasoning.md#显示条件与数据来源)                  |
 | `tool-group`、`tool-timeline`、`tool-fallback` | `TOOL_CALL_START/ARGS/END/RESULT`                        | [通用工具事件](#通用工具事件)                                        |
-| `tool-result`                                | 工具调用，以及 `TOOL_CALL_RESULT.content` 内容数组                  | [文本、图片、音视频和文档](/plugins/tool-result.md#启用与使用)            |
+| `tool-result`                                | 工具调用，以及序列化到 `TOOL_CALL_RESULT.content` 的内容数组             | [文本、图片、音视频和文档](/plugins/tool-result.md#显示条件与数据来源)        |
 | `ask-user-question`                          | 工具 `ask_user_question` 的调用参数；用户回答后续答                     | [提问与答案](/plugins/ask-user-question.md#agent-服务接入)        |
 | `task-group`                                 | 父工具调用、`SUBAGENT_*` 和带 `subagentRunId` 的子消息               | [SubAgent 任务](/plugins/task-group.md#显示条件与数据来源)          |
 | `agent-status-message`                       | 工具 `mock_agent_status` 的参数与调用状态                          | [状态文字](/plugins/agent-status-message.md#显示条件与数据来源)       |
@@ -85,10 +87,12 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result` 或 `tool-fallback`。
 
 ```jsonl
+{"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"lookup_order"}
 {"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"orderId\":\"O-1042\"}"}
 {"type":"TOOL_CALL_END","toolCallId":"call-1"}
 {"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"status\":\"shipped\"}"}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"success"}}
 ```
 
 `TOOL_CALL_ARGS.delta` 是 JSON **字符串增量**，拼接后才得到参数对象。`TOOL_CALL_END` 表示参数传输结束，工具仍可继续执行；`TOOL_CALL_RESULT` 才提供结果。业务 JSON 结果先序列化为 `content` 字符串，由当前适配层解析后交给插件；[多模态工具结果](/plugins/tool-result.md)使用标准内容数组。

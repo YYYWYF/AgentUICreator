@@ -1,5 +1,6 @@
-import { createContext, useContext, useLayoutEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { AgentUIProvider as AgentUIHostProvider, useAgentUI, useAgentUIUser, type AgentUIUser, type AgentUIHost, type AgentUIHostSnapshot } from "./AgentUIProvider.js";
+import { useStoreValue } from "../observation/use-store-value.js";
+import { createContext, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { AgentUIProvider as AgentUIHostProvider, useAgent, useHostUser, type AgentUIUser, type AgentUIHost, type AgentUIHostSnapshot } from "./AgentUIProvider.js";
 
 export interface AgentUIAgentIdentity { agentId: string }
 export interface AgentUIThreadRef { agentId: string; threadId: string }
@@ -92,20 +93,22 @@ export function AgentUIProvider({ user, children }: { user?: AgentUIUser | null 
   const [store] = useState(() => new AgentsStore());
   return <AgentUIHostProvider user={user}><AgentsContext.Provider value={store}>{children}</AgentsContext.Provider></AgentUIHostProvider>;
 }
-export function useOptionalAgentUIAgents(): AgentUIAgents | null { return useContext(AgentsContext); }
-export function useAgentUIAgents(): AgentUIAgents {
-  const store = useOptionalAgentUIAgents();
-  if (!store) throw new Error("AGENT_UI_AGENTS_PROVIDER_MISSING");
-  return store;
+export function useOptionalAgents(): AgentUIAgents | null { return useContext(AgentsContext); }
+export function useAgents(): AgentUIAgents;
+export function useAgents<T>(selector: (snapshot: AgentUIAgentsSnapshot) => T): T;
+export function useAgents<T>(selector: ((snapshot: AgentUIAgentsSnapshot) => T) | undefined): AgentUIAgents | T;
+export function useAgents<T>(selector?: (snapshot: AgentUIAgentsSnapshot) => T): AgentUIAgents | T {
+  const store = useOptionalAgents();
+  const read = () => {
+    if (!store) throw new Error("AGENT_UI_AGENTS_PROVIDER_MISSING");
+    return selector === undefined ? store : selector(store.getSnapshot());
+  };
+  return useStoreValue(store?.subscribe ?? (() => () => {}), read, selector !== undefined);
 }
-export function useAgentUIAgentsState<T>(selector: (snapshot: AgentUIAgentsSnapshot) => T): T {
-  const store = useAgentUIAgents();
-  return useSyncExternalStore(store.subscribe, () => selector(store.getSnapshot()), () => selector(store.getSnapshot()));
-}
-export function useAgentUIAgentIdentity() { return useContext(AgentIdentityContext); }
+export function useAgentIdentity() { return useContext(AgentIdentityContext); }
 function RegisterAgent({ identity, children }: { identity: AgentUIAgentIdentity; children: ReactNode }) {
   const store = useContext(AgentsContext);
-  const host = useAgentUI();
+  const host = useAgent();
   const { agentId } = identity;
   const value = useMemo(() => ({ agentId }), [agentId]);
   useLayoutEffect(() => {
@@ -116,6 +119,6 @@ function RegisterAgent({ identity, children }: { identity: AgentUIAgentIdentity;
 }
 /** Always supplies a separate Host and surface, even inside an existing Host. */
 export function AgentUIAgentProvider({ agentId, children }: AgentUIAgentIdentity & { children: ReactNode }) {
-  const user = useAgentUIUser();
+  const user = useHostUser();
   return <AgentUIHostProvider user={user}><RegisterAgent identity={{ agentId }}>{children}</RegisterAgent></AgentUIHostProvider>;
 }

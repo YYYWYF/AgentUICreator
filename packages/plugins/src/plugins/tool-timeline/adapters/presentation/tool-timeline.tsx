@@ -10,7 +10,7 @@ import {
   formatPresentationMessage,
   projectToolTimeline,
   timelineToolKind,
-  useAgentUILocale,
+  useLocale,
   useAuiState,
 } from '../../../../plugin-support.js';
 export interface ConversationToolTimelineProps extends Omit<ComponentProps<'div'>, 'children'> {
@@ -26,7 +26,7 @@ export function InternalConversationToolTimeline({
   visibleSteps,
   ...elementProps
 }: ConversationToolTimelineProps) {
-  const messages = useAgentUILocale('toolTimeline');
+  const messages = useLocale('toolTimeline');
   const parts = useAuiState((s) => s.message.parts);
   const tools = useAuiState((s) => s.tools.toolUIs);
   const projection = projectToolTimeline(parts, tools);

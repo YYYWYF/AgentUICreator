@@ -29,7 +29,7 @@ test('documented thin application examples compile against installed public decl
     await writeFile(path.join(root, `example${index++}.tsx`), snippet);
   }
   await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx', module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022' }, include: ['*.tsx'] }));
-  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'node', './node_modules/typescript/lib/tsc.js', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
@@ -62,7 +62,7 @@ test('guide interaction examples compile against public declarations', async t =
       },
     }, include: ['*.tsx'],
   }));
-  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'node', './node_modules/typescript/lib/tsc.js', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
@@ -100,8 +100,9 @@ test('plugin feature examples precede API tables and compile against public decl
     const features = text.split(/^## API\r?\n/mu)[0];
     assert.match(features, /(?:!\[[^\]]*\]\(\/images\/|<img src="\/images\/)/u,
       `Missing real component screenshot: ${id}`);
-    assert.doesNotMatch(features, /^\| (?:属性|字段|成员|方法) \|/mu,
-      `Reference tables belong after the feature examples: ${id}`);
+    // Protocol field tables belong beside integration examples; component API tables follow them.
+    assert.doesNotMatch(features, /^\| (?:属性|成员|方法) \|/mu,
+      `Component API tables belong after the feature examples: ${id}`);
     // Built-in plugin behavior needs explanation, not an artificial number of prop demos.
     // Compile complete examples across the page, including snippets in the API reference.
     const snippets = [...new Set([...text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/gu)]
@@ -122,9 +123,79 @@ test('plugin feature examples precede API tables and compile against public decl
       exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true,
     }, include: ['plugins/**/*.tsx'],
   }));
-  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'tsc', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'node', './node_modules/typescript/lib/tsc.js', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
   t.diagnostic(`Compiled ${count} recipes and API examples from ${catalog.length} plugin pages.`);
+});
+
+test('documented Composer adapters omit missing submissions and preserve explicit JSON values', async t => {
+  const repository = fileURLToPath(new URL('../', import.meta.url));
+  const require = createRequire(new URL('../packages/creator/package.json', import.meta.url));
+  const ts = require('typescript-ui-audit');
+  const root = await mkdtemp(path.join(tmpdir(), 'Creator Composer examples '));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(path.join(root, 'package.json'), '{"type":"module"}');
+  await symlink(path.join(repository, 'packages/creator/node_modules'), path.join(root, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  const request = {
+    threadId: 'thread-1', runId: 'run-1', state: {}, tools: [], context: [],
+    messages: [{ id: 'user-1', role: 'user', content: 'Keep the original message' }],
+    forwardedProps: { hostOnly: true, ctx: { tenantId: 't-1' } },
+  };
+  const examples = [
+    { page: 'plugins/composer.mdx', fields: [
+      ['employee-mention', 'mentions'], ['task-command', 'commands'], ['quote', 'quote'], ['suggestions', 'suggestions'],
+    ], target: 'ctx' },
+    { page: 'development/composer-sources.md', fields: [
+      ['employee-mention', 'employees'], ['command-picker', 'commands'],
+    ], target: 'ctx' },
+    { page: 'plugins/conversation-suggestions.mdx', fields: [['suggestions', 'suggestions']], target: 'forwardedProps' },
+  ];
+  for (const [index, { page, fields, target }] of examples.entries()) {
+    const text = await readFile(path.join(repository, 'website/docs', page), 'utf8');
+    const snippets = [...text.matchAll(/```tsx\r?\n([\s\S]*?)\r?\n```/gu)].map(match => match[1]);
+    const snippet = snippets.find(code => code.includes('export const requestAdapter:'));
+    assert(snippet, `Missing complete request adapter: ${page}`);
+    await writeFile(path.join(root, `example-${index}.tsx`), snippet);
+    const source = ts.createSourceFile('adapter.tsx', snippet, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const implementation = source.statements.filter(node =>
+      (ts.isFunctionDeclaration(node) && node.name?.text === 'record') ||
+      (ts.isVariableStatement(node) && node.declarationList.declarations.some(declaration => declaration.name.getText(source) === 'requestAdapter')),
+    ).map(node => node.getText(source)).join('\n');
+    const exports = {};
+    runInNewContext(ts.transpileModule(implementation, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports, Object, Array });
+    const apply = pluginData => exports.requestAdapter({ request, pluginData, sources: {} });
+    assert.equal(apply({}), request, `${page}: missing data must preserve the request`);
+    assert.equal(apply({ unrelated: { id: 'other' } }), request, `${page}: unrelated data must not add fields`);
+    for (const [owner, field] of fields) {
+      for (const value of [[], null, false, 0, '', { id: 'chosen' }]) {
+        const result = apply({ [owner]: value });
+        const expected = {
+          ...request,
+          forwardedProps: target === 'ctx'
+            ? { ...request.forwardedProps, ctx: { ...request.forwardedProps.ctx, [field]: value } }
+            : { ...request.forwardedProps, [field]: value },
+        };
+        assert.deepEqual(JSON.parse(JSON.stringify(result)), expected, `${page}: ${owner} must preserve its submitted value without adding other fields`);
+        assert.equal(result.messages, request.messages);
+      }
+    }
+    if (page === 'plugins/composer.mdx') {
+      const contextSnippet = snippets.find(code => code.includes('export const addBusinessContext:'));
+      assert(contextSnippet);
+      await writeFile(path.join(root, 'context.tsx'), contextSnippet);
+      const contextExports = {};
+      runInNewContext(ts.transpileModule(contextSnippet, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: contextExports, Object, JSON });
+      assert.equal(contextExports.addBusinessContext({ request, pluginData: {} }), request);
+      const result = contextExports.addBusinessContext({ request, pluginData: { explicit: null } });
+      assert.equal(result.context.at(-1).value, '{"explicit":null}');
+    }
+  }
+  await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
+    noEmit: true, strict: true, skipLibCheck: true, jsx: 'react-jsx', module: 'ESNext',
+    moduleResolution: 'Bundler', target: 'ES2022', exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true,
+  }, include: ['*.tsx'] }));
+  const result = spawnPnpmSync(['--filter', '@za38.03/agent-ui-creator', 'exec', 'node', './node_modules/typescript/lib/tsc.js', '-p', path.join(root, 'tsconfig.json')], { cwd: repository, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
 test('documented history grouping covers local calendar boundaries and business fallback', async () => {

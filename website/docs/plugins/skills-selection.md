@@ -13,9 +13,9 @@ title: "当前技能预览（开发中）"
 <figcaption>点击移除取消技能，保留正文、引用和附件。</figcaption>
 </figure>
 
-## 显示条件与数据来源 {#显示条件与数据来源}
+## 显示当前选择
 
-数据来自 `useConversationSkillsState().selected`，不依赖后端事件。当前 Thread 有技能选择时显示标签；没有选择时不占用内容空间。运行状态及项目的 `disabled` 控制移除按钮。
+数据来自 `useSkillSelection(snapshot => snapshot.selected)`。当前 Thread 有技能选择时显示标签；没有选择时不占用内容空间。运行状态及项目的 `disabled` 控制移除按钮。
 
 该插件声明 `inject: ['conversation.skills']`，依赖 `skills` 在 setup 中提供的服务。它只负责读取选择和调用 Service 取消选择，不从 Composer 读取 UI 状态。
 
@@ -42,7 +42,7 @@ title: "当前技能预览（开发中）"
 
 这是 AppUIModel 的局部片段；保留现有实例、引用插件和其他子插槽。通过正常的插件应用层生成流程添加两个本地 definition，不直接覆盖已有模型。两个插件均为按需启用，不默认加入初始化预设。
 
-隐藏、停用或移除预览只影响展示，当前技能仍可发送。隐藏或卸载选择器组件不会清空已有选择；停用整个 `skills` 插件会销毁 Service，预览也随依赖失效停用。点击移除按钮调用 `service.clear(threadId)`。发送、排队、重试和历史恢复由现有 Composer 数据能力处理，用户消息中的只读技能标签不依赖此输入区插件。
+隐藏、停用或移除预览只影响展示，当前技能仍可发送。隐藏或卸载选择器组件不会清空已有选择；停用整个 `skills` 插件会销毁 Service，预览也随依赖失效停用。点击移除按钮调用 `service.clear(threadId)`。发送、重试和历史恢复由现有 Composer 数据能力处理，用户消息中的只读技能标签不依赖此输入区插件。
 
 ## 定制预览 {#代码示例}
 
@@ -57,7 +57,7 @@ export function SkillsSelectionPlugin(props: ComponentProps<typeof Implementatio
 }
 ```
 
-可通过公开组件 `ConversationSkillsSelection` 组合默认预览；完全替换展示时，使用 `useConversationSkillsState()` 读取 `selected` 并调用 `service.clear(threadId)`，保持同一份 Service 状态。组件和样式调整先在项目应用层完成；确需修改内部实现时，仅接管 `skills-selection`。
+可通过公开组件 `ConversationSkillsSelection` 组合默认预览；完全替换展示时，使用 `useSkillSelection(snapshot => snapshot.selected)` 读取选择 并用 `useSkillSelection().clear()` 清除选择，保持同一份 Service 状态。组件和样式调整先在项目应用层完成；确需修改内部实现时，仅接管 `skills-selection`。
 
 ## 从内置预览迁移
 

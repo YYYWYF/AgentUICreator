@@ -1,5 +1,6 @@
 import { deliveries } from "./plugin-source-recipes.mjs";
 import { capturePresentationSources } from "./materialize-plugin-sources.mjs";
+import { splitMediaAdapter } from "./split-media-adapters.mjs";
 import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript-ui-audit";
@@ -33,8 +34,8 @@ function replaceExactlyOnce(source, before, after, localPath) {
 function applyAgentUIPortalContainerBridge(source, localPath) {
   if (!PORTAL_BRIDGE_FILES.includes(localPath)) return source;
   const hookImport = localPath.startsWith("components/ui/")
-    ? 'import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";\n'
-    : 'import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
+    ? 'import { usePortalContainer } from "../../../../style-boundary/AgentUIRoot";\n'
+    : 'import { usePortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
   const utilsImport = localPath.startsWith("components/ui/")
     ? 'import { cn } from "../../lib/utils";\n'
     : 'import { cn } from "../../../lib/utils";\n';
@@ -42,7 +43,7 @@ function applyAgentUIPortalContainerBridge(source, localPath) {
   if (localPath === "components/assistant-ui/elements/image.tsx") {
     installed = replaceExactlyOnce(installed,
       '  const [isOpen, setIsOpen] = useState(false);\n',
-      '  const [isOpen, setIsOpen] = useState(false);\n  const portalContainer = useAgentUIPortalContainer();\n', localPath);
+      '  const [isOpen, setIsOpen] = useState(false);\n  const portalContainer = usePortalContainer();\n', localPath);
     installed = replaceExactlyOnce(installed, '      {isOpen &&\n',
       '      {isOpen && portalContainer !== null &&\n', localPath);
     return replaceExactlyOnce(installed, '          document.body,\n',
@@ -53,13 +54,13 @@ function applyAgentUIPortalContainerBridge(source, localPath) {
     const primitive = `${name}Primitive`;
     installed = replaceExactlyOnce(installed,
       `function ${name}Portal({ ...props }: ${primitive}.Portal.Props) {\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} />;\n}`,
-      `function ${name}Portal({ ...props }: Omit<${primitive}.Portal.Props, "container">) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;\n}`, localPath);
+      `function ${name}Portal({ ...props }: Omit<${primitive}.Portal.Props, "container">) {\n  const portalContainer = usePortalContainer();\n  if (portalContainer === null) return null;\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;\n}`, localPath);
     return installed;
   }
   const primitive = localPath.includes("popover") ? "PopoverPrimitive" : "TooltipPrimitive";
   installed = replaceExactlyOnce(installed,
     `) {\n  return (\n    <${primitive}.Portal>`,
-    `) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return (\n    <${primitive}.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>`, localPath);
+    `) {\n  const portalContainer = usePortalContainer();\n  if (portalContainer === null) return null;\n  return (\n    <${primitive}.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>`, localPath);
   return installed;
 }
 
@@ -134,6 +135,16 @@ function applyReactRefForwarding(source, localPath) {
 export function applyProductAdaptations(source, localPath) {
   source = source.replace(/\r\n/g, "\n");
   let installed = applyReactRefForwarding(applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/follow-up-suggestions.aui.tsx") {
+    installed = replaceExactlyOnce(installed,
+      'import { AuiIf, useAuiState, ThreadPrimitive } from "@assistant-ui/react";',
+      'import { AuiIf, useAuiState } from "@assistant-ui/react";\nimport { ConversationSuggestion } from "@za38.03/agent-ui-plugins";', localPath);
+    installed = replaceExactlyOnce(installed, '<ThreadPrimitive.Suggestion', '<ConversationSuggestion', localPath);
+    installed = replaceExactlyOnce(installed, '</ThreadPrimitive.Suggestion>', '</ConversationSuggestion>', localPath);
+    installed = replaceExactlyOnce(installed,
+      '            prompt={suggestion.prompt}\n',
+      '            prompt={suggestion.prompt}\n            requestItem={{ prompt: suggestion.prompt, title: suggestion.title, label: suggestion.label }}\n', localPath);
+  }
   if (localPath === "components/assistant-ui/elements/image.tsx") {
     // Keep the loading placeholder, but let loaded auto-ratio thumbnails use
     // their actual height. Fixed-ratio previews retain their requested ratio.
@@ -370,7 +381,7 @@ export function applyPluginPresentationBridge(installed, filename) {
   if (hash(installed) !== delivery.upstreamBridge.reviewedAdaptedSha256) {
     throw new Error(`Plugin presentation upstream changed: ${delivery.id}. Review and merge the Plugin owner before updating its bridge baseline.`);
   }
-  return `export * from "../../../../../../plugins/${delivery.presentationOwner}/adapters/presentation/${delivery.implementationModule}.js";\n`;
+  return `export * from "../../../../../../plugins/${delivery.presentationOwner}/adapters/presentation/${delivery.upstreamBridge.module ?? delivery.implementationModule}.js";\n`;
 }
 
 // Product adaptations remove the browser-global/sidebar behavior and replace
@@ -448,7 +459,10 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
     installed = applyProductStyleOwnership(applyProductLocalization(installed, filename));
     installed = applyPluginPresentationBridge(installed, filename);
     installed = await formatProjectCode(cleanProductAdapter(installed, filename));
-    files.push({ localPath: filename, upstreamInstalledSha256: hash(clean), installedSha256: hash(installed), source: installed });
+    for (const module of splitMediaAdapter(filename, installed)) {
+      const source = await formatProjectCode(module.source);
+      files.push({ localPath: module.localPath, upstreamInstalledSha256: hash(clean), installedSha256: hash(source), source });
+    }
   }
   return { revision: provenance.revision, files };
 }

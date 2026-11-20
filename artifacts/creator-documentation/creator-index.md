@@ -34,7 +34,7 @@
 - [Mention 与 Slash 插件接入](references/docs/architecture/composer-mention-slash-plugin-integration.md)：输入框 @ 提及和 / 命令插件接入与薄应用层。
 - [Mention Backend Context Reference](references/docs/architecture/mention-backend-context.md)：提及对象 ID、后端上下文与发送协议；不按展示文案判断业务。
 - [Conversation Quote](references/docs/architecture/conversation-quote.md)：会话引用与草稿生命周期。
-- [Feedback 与消息排队](references/docs/architecture/message-feedback-and-queue.md)：消息反馈与运行中排队语义。
+- [Feedback](references/docs/architecture/message-feedback-and-queue.md)：消息反馈与运行中排队语义。
 - [Transient conversation messages](references/docs/architecture/transient-assistant-messages.md)：临时通知、共享内存 store、清理与不写入聊天历史的边界。
 - [多模态工具结果展示](references/docs/architecture/multimodal-output-phase-1.md)：工具结果中文本、图片、音频、视频与文件的有序展示。
 - [Web Search 与 Retrieval Tool UI](references/docs/architecture/web-search-retrieval-tool-ui-plugins.md)：网页搜索与检索工具 UI，searchTools locale、DOM/count/cycle props。

@@ -22,8 +22,8 @@
 - [临时通知（transient-assistant-messages）](/plugins/transient-assistant-messages.md): 在当前会话插入临时提示，不发送给 Agent，也不保存到业务历史。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
 - [多内容侧栏](/plugins/workbench-panel.md): 在同一工作台中打开和切换多个内容标签，关闭或收起时保留挂载。 <span id="常见需求"></span> <span id="代码示例"></span>
 - [侧栏打开按钮（workbench-panel-actions）](/plugins/workbench-panel-actions.md): 为已登记的侧栏内容显示打开按钮，复用同一个面板服务。 <span id="常见需求"></span> <span id="代码示例"></span>
-- [消息输入（composer）](/plugins/composer.md): 把正文、附件、引用和业务选择准备为当前会话的一条消息，再通过已有发送入口提交。输入区、发送按钮与业务插件共用草稿和运行状态。
-- [发送与停止（submit-action）](/plugins/submit-action.md): 围绕当前 Composer 显示发送与停止入口。按钮已有运行状态、排队能力和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
+- [消息输入（composer）](/plugins/composer.md): 在当前会话中输入文字，根据需要添加附件、引用消息或选择其他内容，准备好后一起发送。
+- [发送与停止（submit-action）](/plugins/submit-action.md): 围绕当前 Composer 显示发送与停止入口。按钮已有运行状态和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
 - [附件添加（add-attachment-action）](/plugins/add-attachment-action.md): 通过现有附件能力把文件加入当前草稿。选择后由 Composer 显示附件项、移除入口与准备状态；配置上传服务时在发送阶段上传，用户无需自己把按钮、上传和消息正文串起来。
 - [消息引用（conversation-quote）](/plugins/conversation-quote.md): 选中已有消息中的一段文字后发起引用，输入区立即显示引用预览。用户可以补充问题，也可以直接移除预览；插件已经把选择工具栏、原消息标识和当前草稿连起来。
 - [消息与标签编辑（lexical-edit-composer）](/plugins/lexical-edit-composer.md): 编辑已有用户消息中的文字和引用标签，并沿用消息编辑原有的保存、取消与重新提交流程。它服务于当前被编辑的消息，和底部准备下一条问题的 Composer 具有不同的草稿作用域。
@@ -31,7 +31,7 @@
 - [/ 快捷命令（slash-command-trigger）](/plugins/slash-command-trigger.md): 输入 / 打开命令菜单。菜单中的指令会进入草稿供本次发送使用，动作则在选择时执行项目行为；插件已区分这两种流程，无需用户为普通选项自己调用 Composer。
 - [输入标签展示（lexical-composer-input）](/plugins/lexical-composer-input.md): 让当前草稿中的 @ 提及和 / 指令以标签形式编辑。它替换输入界面，继续使用现有 Composer 的文本、会话和发送流程；选择、删除标签与中文输入法处理已内置。
 - [语音输入（开发中）](/plugins/dictation-action.md): 在已有语音能力可用时，开始听写并将识别结果写入当前草稿；录音期间显示停止听写入口。默认使用受支持的浏览器语音识别，需要麦克风权限和可用设备。业务转写服务接入仍在开发中，见语音转写服务。
-- [技能选择（开发中）](/plugins/skills.md): 开发中：技能相关文档仍在完善，接口说明和示例可能调整。 skills 在插件 setup 中提供 conversation.skills Service，保存当前技能选择。skills 插件提供选择栏；独立的 skills-selection 插件显示当前技能标签，发送后由用户消息显示只读标签。两个 UI 插件通过该 Service 共享状态；Composer 只收集待发送的数据和来源。 需要完整技能输入 UI 时，在 Composer 的 triggers 中组合 skills，在 beforeInput 中组合 skills-selection，具体模型见当前技能预览。两个插件均按需添加，初始化预设不会默认启用。
+- [技能选择（开发中）](/plugins/skills.md): 开发中：技能相关文档仍在完善，接口说明和示例可能调整。 skills 提供技能选择栏，skills-selection 显示当前选择并允许移除。发送后，用户消息中保留只读技能标签。 需要完整技能输入 UI 时，在 Composer 的 triggers 中组合 skills，在 beforeInput 中组合 skills-selection，具体模型见当前技能预览。两个插件均按需添加，初始化预设不会默认启用。
 - [当前技能预览（开发中）](/plugins/skills-selection.md): skills-selection 在输入框内显示当前技能和移除按钮。它与技能选择器是两个独立的 UI 插件，通过 conversation.skills Service 共享选择状态。
 - [回复操作栏（response-footer）](/plugins/response-footer.md): 在完整回答后组合复制、重试、评价、导出和版本切换操作。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
 - [回复复制（copy-action）](/plugins/copy-action.md): 复制当前版本整次回答的文字，包含工具续跑后产生的多段助理内容。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
@@ -40,17 +40,15 @@
 - [回复评价（feedback-actions）](/plugins/feedback-actions.md): 为整次回答提供赞与踩操作，通过项目反馈服务保存评价。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
 - [思考内容展示（reasoning）](/plugins/reasoning.md): 在回答中展示 Agent 返回的思考过程。插件会随思考状态自动展开、更新和收起，用户也可以随时展开查看。 启用插件并接入思考数据后，以下行为自动生效，无需自行管理展开状态。
 - [工具调用分组（tool-group）](/plugins/tool-group.md): 将会话中归入同一组的工具调用集中展示，自动显示调用数量和运行状态，并保留每个工具原有的详情与操作。
-- [工具调用详情（tool-fallback）](/plugins/tool-fallback.md): 显示工具参数、结果和错误，保留原调用的审批与中断恢复。 <span id="常见需求"></span> <span id="需求示例"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
-- [工具结果（tool-result）](/plugins/tool-result.md): 将工具返回的文字、图片、音频、视频和文档按类型展示，并保留当前工具原有的状态、详情与操作入口。
-- [询问用户](/plugins/ask-user-question.md): 展示工具提出的选择题或文字题，支持用户提交、只读回执和独立问卷。 <span id="常见需求"></span> <span id="代码示例"></span> <span id="添加到项目"></span>
-- [人机交互与操作确认](/plugins/human-interaction.md): 让 Agent 在需要用户作决定或补充信息时，先停下来提问，再根据用户的选择继续处理。 例如，Agent 可以先问「允许删除这些临时文件吗？」，也可以问「首页要用哪种布局？」。用户在对话中的卡片上确认或回答，不用猜应该在聊天框里输入什么。
+- [工具调用卡片（tool-result）](/plugins/tool-result.md): 展示一次工具调用的状态、参数、错误、审批和结果。结果支持普通文字、JSON，以及约定格式的图片、音频、视频和文档片段。 tool-result 是唯一公开的官方工具卡片插件。用户模板把它放在 conversation-surface 的 toolFallback 插槽；插槽名表示通用工具回退位置，不是第二个插件。专用工具 renderer 优先。 <span id="常见需求"></span> <span id="代码示例"></span> <span id="启用与使用"></span>
+- [询问用户](/plugins/ask-user-question.md): 展示工具提出的选择题或文字题，支持用户提交、只读回执和独立问卷。 插件注册前端 human 工具 ask_user_question，用户回答后通过 addResult() 提交工具结果并请求续答，不要求后端使用 interrupt。具体事件和续答要求见Agent 服务接入。 <span id="常见需求"></span> <span id="代码示例"></span> <span id="添加到项目"></span>
 - [思考状态提示（thinking-indicator）](/plugins/thinking-indicator.md): 在 Agent 尚未开始正式回答时提供轻量状态提示，并根据当前消息中的实际活动决定何时显示、让位或消失。
 - [工具执行时间线（tool-timeline）](/plugins/tool-timeline.md): 将当前助理消息中的工具活动汇总为可展开的执行时间线，自动更新调用摘要、执行目标和可用的文件变更统计。
 - [SubAgent 任务与结果（task-group）](/plugins/task-group.md): 将同一回答中的嵌套任务展示为任务卡片，汇总运行情况，并支持展开查看子任务过程与结果。
 - [Agent 工作状态（agent-status-message）](/plugins/agent-status-message.md): 将一次状态工具调用展示为工作状态卡片。说明文字来自工具参数，工作中、等待中和完成状态由工具生命周期自动决定。
 - [任务计划与完成状态（agent-plan-message）](/plugins/agent-plan-message.md): 将 Agent 提供的计划展示为步骤列表，自动区分已完成、当前执行和未开始的步骤，并随计划消息更新完成进度。
 - [后台任务进度（job-progress-message）](/plugins/job-progress-message.md): 展示长任务的阶段进度、预计剩余时间和最终结果，并沿用当前运行已经接入的停止操作。
-- [上下文检索结果（context-retrieval-message）](/plugins/context-retrieval-message.md): 展示 Agent 取回的知识库、长期记忆等上下文，自动按查询分组，并以可展开的摘要显示片段总数。
+- [上下文检索结果（context-retrieval-message）](/plugins/context-retrieval-message.md): 展示 Agent 取回的知识库、长期记忆等上下文，自动按查询分组，并以可展开的摘要显示片段总数。 服务端需要返回的事件和字段说明见服务端返回的 AG-UI 数据流。
 - [生成文件（generated-file-message）](/plugins/generated-file-message.md): 将文件生成工具的成功结果展示为文件卡片，自动读取文件名、类型和访问地址，并提供对应的文件展示与下载入口。
 - [图表展示（chart-message）](/plugins/chart-message.md): 将 Agent 返回的结构化数据展示为条形图，自动显示标题、项目名称、数值和相对长度。
 - [引用来源（source-citations-message）](/plugins/source-citations-message.md): 将来源工具的成功结果展示为引用来源列表，自动区分网页和文档来源，并保留来源的真实标识。
@@ -100,18 +98,17 @@
 - [HTML 与其他框架嵌入](/development/web-component.md): 独立 Web Component 将 React、Runtime 与所选 Plugin 构建到部署资源中。业务页面无需编译 TSX，但需要现代 Custom Elements、Shadow DOM 等浏览器能力。 接入自己生成的定制产物时，展示形态沿用 React 工程初始化时选择的模板。工作台和嵌入式需要宿主提供宽高，助手自带悬浮入口；尺寸和放置方式见各模板的说明。
 - [用业务页面控制 Agent](/development/react-host-control.md): 本页说明如何在已有业务页面中放置控制按钮，打开或隐藏助理、发送消息、停止运行及新建会话。这些操作由业务页面代码发起，复用已挂载的 Agent；修改插件内部外观与行为见手动修改插件教程。
 - [多 Agent 与工作流入口](/development/multiple-agents.md): 一个业务页面可以组合多个独立助手，也可以让同一个助手的多个工作流按钮调用不同 URL。本页按场景介绍对应的配置方式。 先按你的场景选择一种配置方式： <span id="场景选择"></span> 这些场景都可以使用工作台、悬浮助手或嵌入式 UI。产品形态由各 project 绑定的 Shell 决定，见模板说明。同一工程可以维护多份 UI 配置。
-- [消息排队](/development/message-queue.md): 启用 Composer 后续消息队列，理解发送、停止、审批和会话切换时的行为。
 - [Agent 参数与配置](/development/agent-options.md): 通过 Agent 参数设置服务地址、主题、语言，以及打开已有会话。首次挂载见 React 接入，完整类型见 Agent API。
-- [业务服务接入总览](/development/service-integration.md): 找到接口配置文件，选择默认 HTTP 协议或项目适配器，接入自己的业务服务。
+- [业务服务接入总览](/development/service-integration.md): 找到修改入口，接入 Agent、历史会话、附件上传和评价等业务服务。
 - [连接 AG-UI 服务](/development/connect-agent.md): 生成的 Agent 前端通过一个 AG-UI 接口与业务 Agent 通信。完成页面挂载后，在页面的 Agent 配置中填写服务地址，再验证消息与运行状态。 **修改位置：**业务项目挂载 <Agent /> 的文件，例如 src/AssistantPage.tsx。需要自定义请求时，新建 src/agent-ui/services/agent-transport.ts 并通过 fetch 传入。 具体插件需要的事件名、数据字段和完整 SSE 格式，见AG-UI 数据格式与插件数据接入。仅启用插件或返回普通文本，不能自动显示图表、计划或工具卡片。
 - [接入历史会话服务](/development/history-backend.md): 本页说明如何让会话列表和聊天记录使用你的业务后端。聊天记录由后端保存，前端负责读取和展示。 先按现有项目选择一种接入方式，完成对应一节即可： 前两种方式的文件位于 src/agent-ui/ 下；源码目录不同时替换这个前缀。三种方式都保留 conversation-data-source 和 conversation-service 插件启用。 只想调整打开方式或列表按钮，直接看会话行为配置。需要核对字段时，再查阅末尾的数据格式参考。
 - [附件上传服务](/development/attachment-upload.md): 本页说明如何把用户选择的文件上传到自己的文件服务，再将文件 URL 随消息交给 Agent。 <span id="选择接入方式"></span> 上传配置直接传给业务页面中的 <Agent attachments={...} />，如下例所示。 业务系统已经有文件 URL 时，无需再次上传，见发送已有附件 URL。需要改变附件交互流程时，见本页最后的进阶定制。
-- [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 Runtime 已有 dictation.url、dictation.dataSource.transcribe() 和完整 dictationAdapter 的适配入口，并有录音、取消和返回文本的受控测试。真实业务服务、浏览器录音格式与麦克风权限仍需分别验证，当前接入文档保持开发中状态。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
+- [语音转写服务（开发中）](/development/speech-to-text.md): 业务语音转写服务接入开发中，暂不提供接口配置、请求与响应协议或适配器教程。 当前可用的是语音按钮的浏览器识别方式，是否可用取决于浏览器、麦克风权限和部署环境。它把识别结果填入草稿，由用户确认后发送；不等于已经接通自己的转写服务。
 - [回复评价服务](/development/feedback-service.md): 默认点赞／点踩只保留当前会话界面的选择。需要保存到业务系统时，通过 feedback 配置。配置不会自动在历史加载时恢复服务端的评价选择。
 - [一号通登录（开发中）](/development/auth-service.md): 一号通登录接入开发中。当前只支持业务系统在外部自行完成登录，再将用户凭据和用户信息传给 Agent UI。
 - [提及搜索与快捷命令](/development/composer-sources.md): 输入 @ 搜索员工、文档等业务对象；输入 / 选择快捷命令。 以下路径以 src/agent-ui/ 为源码目录。使用前先启用 mention-trigger，或 slash-command-trigger 与 conversation-command-source。 先选择你要接入或修改的功能：
 - [前端工具与自定义工具 UI](/development/frontend-tools.md): 前端工具支持两种用法，按业务需要选择：
-- [给 Agent 传递业务参数](/development/business-context.md): 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。 @ 与 / 的业务数据直接定义在来源的候选项中，触发器保留正文引用并记录原始选中项；其他插件使用 useComposer().setData 提交数据。Composer 的 requestAdapter 统一决定最终 forwardedProps，见插件发送参数。
+- [给 Agent 传递业务参数](/development/business-context.md): 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。 页面参数用 ctx，页面摘要用 getRunContext。要发送 @、/ 等选中对象，见插件发送参数；需要异步准备参数或申请会话 ID，使用 beforeRequest。
 - [自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md): 按步骤定义自定义 CUSTOM 事件的数据类型并渲染消息卡片。
 - [工程结构与修改入口](/development/project-structure.md): 初始化后，Agent UI 源码默认放在 src/agent-ui/。以下路径都相对于这个目录；初始化时选择了其他目录，就在实际目录中找同名文件。 修改组件前，先检查项目入口的导入和导出。官方插件默认由项目入口导入 npm 实现；已经接管的插件则引用本地实现。
 - [布局与插件组合](/development/layout-and-composition.md): 调整会话列表、输入区和按钮的位置、尺寸或启停时，先按需求找到修改入口： 以下以 src/agent-ui/ 为生成目录，已有工程使用其他目录时替换这个前缀。日常调整也可以直接告诉 Creator，见布局调整示例。
@@ -124,7 +121,7 @@
 - [插件联动与取数](/development/plugin-interaction.md): 从插件读取会话、结果和共享数据，并调用输入框、技能、命令与侧栏操作。
 - [插件按需打包](/development/plugin-bundling.md): 了解 Plugins 的按需打包能力，以及开发插件时的导入和样式使用方式。
 - [源码接管与更新参考](/development/source-takeover.md): 修改文件、组件和本地实现的连贯步骤，统一见手动修改插件：样式与业务逻辑。本页用于核对接管后的维护范围。
-- [Agent API](/development/react-host-api.md): 单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgentUI() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。
+- [Agent API](/development/react-host-api.md): 单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgent() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。
 - [Web Component API](/development/web-component-api.md): 在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。 本页导航：配置 · 事件。
 - [插件 API](/development/plugin-api.md): 本页按开发任务查找插件接口、参数和示例。创建文件与注册见创建自定义插件，修改已有组件见手动修改插件。 先从速查表选择要用的能力，再展开对应条目。从其他插件取数或调用操作，见插件联动与取数。
 

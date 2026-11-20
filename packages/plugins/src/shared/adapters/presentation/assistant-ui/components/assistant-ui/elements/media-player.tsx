@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { useEffect, useRef, useState, type ComponentProps, type RefObject } from 'react';
 import { PauseIcon, PlayIcon } from 'lucide-react';
@@ -62,7 +62,7 @@ function useMediaDuration(mediaRef: RefObject<HTMLMediaElement | null>, src: str
 }
 
 export function AudioPlayer({ src, title, artwork, durationMs, className, ...props }: AudioPlayerProps) {
-  const messages = useAgentUILocale('media');
+  const messages = useLocale('media');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playback, setPlayback] = useState({
     src,
@@ -189,7 +189,7 @@ export function VideoPlayer({
   className,
   ...props
 }: VideoPlayerProps) {
-  const messages = useAgentUILocale('media');
+  const messages = useLocale('media');
   const videoRef = useRef<HTMLVideoElement>(null);
   const { duration, setDurationFromMetadata } = useMediaDuration(videoRef, src, durationMs);
   const ratioClassName =

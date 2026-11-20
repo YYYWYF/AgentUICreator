@@ -1,8 +1,7 @@
 import { expect, it, vi } from "vitest";
 import {
   createConversationService,
-  createConversationThreadBindingFactory,
-} from "../dist/sources/takeover/conversation-service/index";
+  createConversationThreadBindingFactory} from "../dist/sources/takeover/conversation-service/index";
 import { PluginServiceRuntimeContext as oldContext } from "../src/plugin-api/PluginServiceContext";
 import { PluginServiceRuntimeContext } from "@za38.03/agent-ui-runtime/plugin-api";
 

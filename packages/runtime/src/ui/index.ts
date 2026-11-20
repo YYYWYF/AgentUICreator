@@ -12,5 +12,5 @@ export type { RuntimeCompositionSnapshot } from "./runtime/composition/RuntimeCo
 
 export * from "./project-defaults.js";
 export { ConversationAdapter, ConversationWelcomeFallback, createConversationSemanticThreadComponents, type ConversationEmptyStateProps } from "./agent-ui/conversation/ConversationAdapter.js";
-export { useAgentUITheme } from "./agent-ui/theme/useAgentUITheme.js";
+export { useTheme } from "./agent-ui/theme/useTheme.js";
 export { createAgentBackendTransport, type AgentBackendTransport } from "./application/agent-backend-transport.js";

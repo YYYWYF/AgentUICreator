@@ -94,6 +94,7 @@ export function generatedProjectFixture(): Promise<string> {
       sourceRoot: "agent-ui", items: Object.fromEntries(managed.map(item => [item.id, sourceItemLock(item, registry)])),
     }));
     await writeGeneratedPluginRegistry(root);
+    await cp(path.join(root, "agent-ui/plugins/tool-result"), path.join(root, "plugins/tool-result"), { recursive: true });
     // Legacy template imports use the same freshly generated catalog as agent-ui.
     await cp(path.join(root, "agent-ui/plugins/registry.generated.ts"),
       path.join(root, "plugins/registry.generated.ts"));

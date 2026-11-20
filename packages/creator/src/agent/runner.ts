@@ -1,3 +1,4 @@
+import { installAbortSignalAny } from "./abort-signals.js";
 import { agentMessages } from "./messages.js";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
@@ -64,6 +65,7 @@ export class CreatorAgentRuntime {
   readonly verificationMode: string;
   readonly behaviorVerificationEnabled: boolean;
   constructor(readonly root: string, readonly skills: string, readonly contracts: string, configRoot?: string) {
+    installAbortSignalAny();
     this.environment = hostEnvironment(configRoot);
     this.mode = this.environment.CREATOR_AGENT_MODE ?? "domain-write";
     this.verificationMode = this.environment.CREATOR_VERIFICATION_MODE ?? "static_only";

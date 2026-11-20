@@ -9,7 +9,7 @@ import type {
   ConversationToolCallProps,
 } from "./plugin-api/conversation.js";
 import { useConversationToolRenderer } from "./conversation-support/tool-renderer-context.js";
-import { useOptionalAgentUIProject } from "./ui/project-context.js";
+import { useOptionalProject } from "./ui/project-context.js";
 import type { ConversationInputControllerFactory } from './plugin-api/input-controller.js';
 import type {
   AgentUILocaleCode,
@@ -59,27 +59,27 @@ export interface AgentUIPresentation {
     messages?: AgentUILocaleOverrides,
   ) => AgentUILocaleMessages;
 }
-export function useAgentUIPresentation(): AgentUIPresentation {
-  return useOptionalAgentUIProject()?.presentation ?? {};
+export function usePresentation(): AgentUIPresentation {
+  return useOptionalProject()?.presentation ?? {};
 }
 export function ConversationSurface(
   props: ConversationSurfacePresentationProps,
 ) {
-  const View = useAgentUIPresentation().Surface;
+  const View = usePresentation().Surface;
   return View ? <View {...props} /> : (props.children ?? null);
 }
 export function ConversationWelcome(props: {
   title: string;
   description?: string | undefined;
 }) {
-  const View = useAgentUIPresentation().Welcome;
+  const View = usePresentation().Welcome;
   return View ? <View {...props} /> : null;
 }
 export function ConversationEmptyState(props: {
   welcome?: ReactNode;
   suggestions?: ReactNode;
 }) {
-  const View = useAgentUIPresentation().EmptyState;
+  const View = usePresentation().EmptyState;
   return View ? (
     <View {...props} />
   ) : (
@@ -90,14 +90,14 @@ export function ConversationEmptyState(props: {
   );
 }
 export function ConversationCanonicalUserEditComposer() {
-  const View = useAgentUIPresentation().UserEditComposer;
+  const View = usePresentation().UserEditComposer;
   return View ? <View /> : null;
 }
 export function ConversationDefaultTool(
   props: ConversationToolCallProps & { resultOnly?: boolean },
 ) {
   const selected = useConversationToolRenderer();
-  const presentation = useAgentUIPresentation();
+  const presentation = usePresentation();
   const View = selected ?? presentation.ToolFallback;
   return View ? <View {...props} /> : null;
 }
@@ -105,19 +105,19 @@ export function AgentUIRoot(props: {
   theme: AgentUITheme;
   children: ReactNode;
 }) {
-  const View = useAgentUIPresentation().Root;
+  const View = usePresentation().Root;
   return View ? <View {...props} /> : props.children;
 }
 export function AgentUISidebarFrame(props: AgentUISidebarPresentationProps) {
-  const View = useAgentUIPresentation().Sidebar;
+  const View = usePresentation().Sidebar;
   return View ? <View {...props} /> : props.children;
 }
-export function useAgentUIThemeSnapshot(
+export function useThemeSnapshot(
   service:
     | { getTheme(): string; subscribe(listener: () => void): () => void }
     | undefined,
 ): string {
-  const fallback = useAgentUIPresentation().defaultTheme ?? "light";
+  const fallback = usePresentation().defaultTheme ?? "light";
   const subscribe = useCallback(
     (listener: () => void) => service?.subscribe(listener) ?? (() => {}),
     [service],

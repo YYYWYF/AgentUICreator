@@ -11,7 +11,7 @@ description: 从插件读取会话、结果和共享数据，并调用输入框�
 
 | 我想做什么 | 使用什么 |
 | --- | --- |
-| 读取当前消息、共享业务状态、运行或审批状态 | [会话状态 Hook](./plugin-api#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()`、`useAgentInterrupts()` |
+| 读取当前消息、共享业务状态、运行或审批状态 | [会话状态 Hook](./plugin-api#读取会话状态)：`useAgentRuntime(snapshot => snapshot.messages)`、`useAgentRuntime(snapshot => snapshot.state)`、`useAgentRuntime(snapshot => snapshot.run)`、`useAgentRuntime(snapshot => snapshot.interrupts)` |
 | 读取会话列表，或取得指定历史的消息 | [会话服务](/plugins/conversation-service)：订阅快照或调用 `loadConversation(id)`，见[独立读取历史](#读取历史不切换聊天) |
 | 结果卡片把文字、引用或附件放进当前输入框 | [Composer](/plugins/composer#hook)：`setText()`、`setQuote()`；附件使用 `useComposer().addAttachment(file)`，调用方处理异步失败 |
 | 多个插件共同提供本次发送参数 | 各自调用 [Composer `setData()`](/plugins/composer#请求适配)，由现有输入区统一汇总；填入后不自动发送 |
@@ -20,7 +20,7 @@ description: 从插件读取会话、结果和共享数据，并调用输入框�
 | 消息卡片打开详情侧栏，其他插件跟随当前标签 | [工作台侧栏服务](/plugins/workbench-panel#服务方法与状态)：打开、切换、关闭，以及订阅展开状态和可见标签 |
 | 读取已有登录服务的用户资料，或跟随主题、语言 | [账号](/plugins/auth-account#hook)、[主题服务](/plugins/theme-provider#服务)、[语言服务](/plugins/locale-provider#服务)；用户资料只用于展示，不代替接口鉴权 |
 | 在对话中显示业务提示，不发送新问题 | [临时通知](/plugins/transient-assistant-messages#hook)：`addMessage()` |
-| 给当前工具增加业务按钮，读取参数、结果和状态 | 沿用 renderer 的[工具调用数据](/plugins/tool-fallback#当前工具调用的数据与操作)；提交答案、审批时使用其提供的回调，历史展示保持只读 |
+| 给当前工具增加业务按钮，读取参数、结果和状态 | 沿用 renderer 的[工具调用数据](/plugins/tool-result#当前工具调用的数据与操作)；提交答案、审批时使用其提供的回调，历史展示保持只读 |
 
 ## 从结果插件取得数据
 
@@ -48,7 +48,7 @@ description: 从插件读取会话、结果和共享数据，并调用输入框�
 
 1. 沿用项目的[工单选择服务](./create-plugin#5-向其他插件提供方法)，由提供方注册一次；结果插件和详情插件都依赖 `tickets.selection`。
 2. 调用方再依赖 `agent-ui.workbench-panel`；提前将 `ticket-detail` 登记为[侧栏内容 ID](/plugins/workbench-panel#把插件加入多内容侧栏)。
-3. 在点击时更新选择并打开侧栏，详情插件用 `usePluginServiceSnapshot()` 订阅同一个工单服务，读取 `selectedId`。
+3. 在点击时更新选择并打开侧栏，详情插件用 `usePluginService()` 订阅同一个工单服务，读取 `selectedId`。
 
 下面的组件放在调用方插件中，`label` 来自项目文案；其定义的 `inject` 需包含上述两个服务：
 
@@ -96,5 +96,5 @@ export function useReadConversationMessages() {
 ## 当前的读取范围
 
 - 图表、文件、计划等结果插件目前没有独立的全局取数服务，内部解析函数也没有作为公共 API 开放。用上面的回调取得当前对象；需要其他插件持续读取时，通过项目 Service 共享。
-- Composer 支持各插件写入自己的 `setData()`，最终请求适配器可以读取汇总的 `pluginData`；目前没有跨插件的 `getData(插件ID)` 或实时订阅接口。多个插件需要同步业务选择时，使用共享 Service。
+- `useComposer().data` 可读取当前草稿汇总的数据，Hook 会跟随变化更新；各插件通过 `setData()` 写入自己的数据。需要在发送后继续共享业务选择时，使用共享 Service。
 - 普通 React 组件的内部状态不会自动成为其他插件的数据。共享方法在提供方声明 `provides`，消费方声明 `inject` 或 `optionalInject`；具体注册与订阅步骤见[服务接口](./plugin-api#自定义服务)。

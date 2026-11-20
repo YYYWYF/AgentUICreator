@@ -80,9 +80,9 @@ Preserve the target's UI library, enabled capabilities, scope bridge, semantic
 slots and original approval/interrupt/error renderers. New user/screen-reader copy
 uses the unified domain locale namespace with en-US/zh-CN parity; never patch
 vendor for localization. Read locale targets when changing them, not for every
-style edit. Official keys use `useAgentUILocale(namespace)` and `Agent.locales`;
+style edit. Official keys use `useLocale(namespace)` and `Agent.locales`;
 new business keys belong in the project's shared namespaced messages module,
-selected with the unified `useAgentUILocaleCode()` value. The official Hook is
+selected with the unified `useLocaleCode()` value. The official Hook is
 not an arbitrary namespace registry. Do not invent per-Plugin i18n hooks, locale
 state or Service abstractions. Follow the packaged Plugin API example.
 

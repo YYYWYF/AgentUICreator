@@ -33,7 +33,7 @@ it.each(['platform','assistant','embedded'] as const)('initializes %s with Agent
  expect(JSON.parse(await readFile(path.join(root,'.agent-ui/project.json'),'utf8'))).toEqual({sourceRoot:'src/agent-ui'});
  await expect(lstat(path.join(source,'config.ts'))).rejects.toMatchObject({code:'ENOENT'});
  await expect(lstat(path.join(source,'hooks'))).rejects.toMatchObject({code:'ENOENT'});
- for(const hook of ['useConversations','useConversationActions']) {
+ for(const hook of ['useConversations']) {
   expect(await readFile(path.join(source,'services','hooks',hook+'.ts'),'utf8')).toContain("from '../conversations'");
  }
  for(const service of ['agent-ui-theme','agent-ui-locale','composer-triggers']) {

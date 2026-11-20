@@ -15,7 +15,7 @@ title: "用业务页面控制 Agent"
 
 ## 第 1 步：挂载 Agent 与 Provider {#接入位置}
 
-从 `@za38.03/agent-ui-runtime` 导入 `AgentUIProvider`，包住业务按钮和项目导出的 `<Agent />`；按钮内通过 `useAgentUI()` 操作会话。服务地址、主题与适配器仍传给 Agent，完整字段见[属性表](/development/react-host-api#agent-属性表)。
+从 `@za38.03/agent-ui-runtime` 导入 `AgentUIProvider`，包住业务按钮和项目导出的 `<Agent />`；按钮内通过 `useAgent()` 操作会话。服务地址、主题与适配器仍传给 Agent，完整字段见[属性表](/development/react-host-api#agent-属性表)。
 
 面板开关由 React 状态控制；用 `hidden` 或 CSS 隐藏并保持 Agent 挂载，可保留会话。卸载 Agent 或 Provider 会结束会话。Provider 没有 `open()` / `close()` 方法，也不会自行启动会话；操作前需挂载 Agent 并等待就绪。**同一 Provider 内只放一个 `<Agent />`。**
 
@@ -25,11 +25,11 @@ title: "用业务页面控制 Agent"
 
 ```tsx
 // AgentMount.tsx：项目参数传给 Agent
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 import { Agent } from './agent-ui';
 
 export function AgentMount() {
-  const locale = useAgentUILocaleCode();
+  const locale = useLocaleCode();
   return <Agent endpoint="/agent" locale={locale}
     onError={error => console.error('AGENT_UI_HOST_ERROR', error)} />;
 }
@@ -42,9 +42,9 @@ export function AgentMount() {
 ```tsx
 // App.tsx
 import { useState, type ReactNode } from 'react';
-import { useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { useLocale } from '@za38.03/agent-ui-plugins';
 import { AgentMount } from './AgentMount';
-import { AgentUIProvider, useAgentUI, useAgentUIState } from '@za38.03/agent-ui-runtime';
+import { AgentUIProvider, useAgent } from '@za38.03/agent-ui-runtime';
 import './host-control.css';
 
 export function Workspace({ children }: { children: ReactNode }) {
@@ -56,10 +56,10 @@ export function Workspace({ children }: { children: ReactNode }) {
 }
 
 function BusinessPage({ children }: { children: ReactNode }) {
-  const { examples: copy } = useAgentUILocale();
-  const host = useAgentUI();
-  const ready = useAgentUIState(s => s.status === 'ready');
-  const busy = useAgentUIState(s =>
+  const { examples: copy } = useLocale();
+  const host = useAgent();
+  const ready = useAgent(s => s.status === 'ready');
+  const busy = useAgent(s =>
     s.runtime?.run.status === 'running' ||
     s.runtime?.run.status === 'awaiting-input');
   const [assistantOpen, setAssistantOpen] = useState(true);
@@ -126,7 +126,7 @@ function BusinessPage({ children }: { children: ReactNode }) {
 
 ## 可选：停止、新建会话与处理审批 {#其他方法示例}
 
-以下代码中的 `host` 均来自 Provider 内的 `const host = useAgentUI()`。
+以下代码中的 `host` 均来自 Provider 内的 `const host = useAgent()`。
 
 <details class="dev-guide-details" id="停止运行">
 <summary>停止运行</summary>
@@ -173,7 +173,7 @@ Agent 暂停等待用户处理的请求称为“中断”。上例处理一个�
 | `payload` | 填写用户的审批结果或补充信息；字段由当前请求的 `responseSchema` 和业务约定决定。 |
 | `status: 'cancelled'` | 用于取消处理。 |
 
-操作说明见[人机交互](/plugins/human-interaction)。
+工具卡片中的审批展示见[工具结果的操作确认](/plugins/tool-result#操作确认)。`ask_user_question` 问题卡片通过自身的 `addResult()` 提交答案，接入方式见[询问用户](/plugins/ask-user-question#提交状态与历史展示)。
 
 </details>
 
@@ -181,11 +181,11 @@ Agent 暂停等待用户处理的请求称为“中断”。上例处理一个�
 <summary>观察运行状态和事件</summary>
 
 ```tsx
-import { useAgentUIEvent, useAgentUIState } from '@za38.03/agent-ui-runtime';
+import { useAgentEvent, useAgent } from '@za38.03/agent-ui-runtime';
 
 function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
-  const status = useAgentUIState(s => s.runtime?.run.status ?? 'idle');
-  useAgentUIEvent('run-end', ({ run }) => onRunEnd(run.status));
+  const status = useAgent(s => s.runtime?.run.status ?? 'idle');
+  useAgentEvent('run-end', ({ run }) => onRunEnd(run.status));
   return <output>{status}</output>;
 }
 ```

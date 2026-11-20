@@ -40,7 +40,7 @@ Thread 绑定在一次挂载期间保持稳定。项目的 `services/conversatio
 
 历史数据、当前 Agent state、瞬时消息和应用事件分别处理，不将历史消息回放当成实时 AG-UI 事件流。插件可调用业务接口管理保存的会话，但数据库持久化属于业务后端，canonical 会话分支与运行生命周期仍使用 assistant-ui，不另建仓库或 Runtime。页面内提示通过 [临时消息服务](transient-assistant-messages.md) 展示，不写入 Agent 消息和历史。
 
-Composer、技能、引用及 @、/ 的具体输入规则属于 Plugins：默认请求组装、选择快照、引用文本转换和展示均由对应能力实现。Runtime 不依赖 Plugins，不解析这些业务数据；它只承载可选的输入控制器接口和共享通用 Context，在原生 Thread 生命周期内绑定并调用应用选定的实现。默认实现由 `createDefaultAgentUIPresentation()` 显式选择；底层 Runtime 单独使用时不加载官方输入规则。原生正文、引用、附件、队列和编辑生命周期仍归 assistant-ui。技能由两个 UI 插件通过 `conversation.skills` Service 共享选择，通用 `setData({ id, label })` 仅收集发送数据并自动记录来源；领域解析及消息元数据转换归 Skills，`ctx.skill` 只是生成项目 Composer `request-adapter.ts` 的可修改默认映射，不是 Composer 或 Runtime 的内置规则。
+所有输入插件只通过 setData 提交自身 JSON，由 Composer 汇总为唯一的 pluginData，并在一个最终适配器中组装请求；不维护第二份原始选择集合或插件级请求适配器。Composer、技能、引用及 @、/ 的具体输入规则属于 Plugins：默认请求组装、选择快照、引用文本转换和展示均由对应能力实现。Runtime 不依赖 Plugins，不解析这些业务数据；它只承载可选的输入控制器接口和共享通用 Context，在原生 Thread 生命周期内绑定并调用应用选定的实现。默认实现由 `createDefaultAgentUIPresentation()` 显式选择；底层 Runtime 单独使用时不加载官方输入规则。原生正文、引用、附件和编辑生命周期仍归 assistant-ui。技能由两个 UI 插件通过 `conversation.skills` Service 共享选择，通用 `setData({ id, label })` 仅收集发送数据并自动记录来源；领域解析及消息元数据转换归 Skills，`ctx.skill` 只是生成项目 Composer `request-adapter.ts` 的可修改默认映射，不是 Composer 或 Runtime 的内置规则。
 
 项目配置和自定义适配不属于插件实现 BASE，npm 升级保留它们；已接管的插件通过单独源码同步合并更新。本次移除旧工厂，不提供旧配置兼容。准确文件归属见 [插件所有权](npm-default-plugin-source-ownership.md#1-通用基础设施与应用配置)。
 

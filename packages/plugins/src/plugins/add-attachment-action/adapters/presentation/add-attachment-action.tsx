@@ -1,6 +1,7 @@
 'use client';
 import type { ComponentProps, ReactNode } from 'react';
-import { ComposerActions, PlusIcon, TooltipIconButton, useAgentUILocale } from '../../../../plugin-support.js';
+import { ComposerActions, PlusIcon, TooltipIconButton, useLocale } from '../../../../plugin-support.js';
+import { useComposer } from '../../../../composer-support.js';
 export type ConversationComposerAddAttachmentProps = Omit<
   ComponentProps<typeof TooltipIconButton>,
   'tooltip' | 'children'
@@ -12,7 +13,9 @@ export function ConversationComposerAddAttachment({
   icon,
   ...props
 }: ConversationComposerAddAttachmentProps = {}) {
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
+  const attachmentsEnabled = useComposer(state => state.attachmentsEnabled);
+  if (!attachmentsEnabled) return null;
   return (
     <ComposerActions.AddAttachment
       multiple={multiple}

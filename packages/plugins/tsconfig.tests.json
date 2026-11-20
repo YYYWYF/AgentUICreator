@@ -97,7 +97,6 @@
       ".",
       "./resources/registry/items/plugin/copy-action/files",
       "./resources/registry/items/plugin/feedback-actions/files",
-      "./resources/registry/items/plugin/tool-fallback/files",
       "./resources/registry/items/foundation/conversation/files",
       "./resources/registry/items/plugin/agent-status-message/files",
       "./resources/registry/items/plugin/add-attachment-action/files",

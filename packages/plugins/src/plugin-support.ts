@@ -1,7 +1,7 @@
 /** Shared runtime/context and primitive seams for source-owned UI plugins.
  * Presentation implementations themselves live in each Plugin directory.
  */
-export { useAgentUILocale } from "./locale.js";
+export { useLocale } from "./locale.js";
 export { useConversationCommandDecision } from "./internal/conversation-command-decisions.js";
 export { useAssistantResponseRuntime } from "./internal/assistant-response-runtime.js";
 export { TooltipIconButton } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
@@ -14,7 +14,7 @@ export { ToolGroupRoot, ToolGroupTrigger, ToolGroupContent } from "./internal/ad
 export { ComposerPrimitive, ComposerPrimitive as ComposerActions, useAuiState, ThreadPrimitive as ConversationParts, SuggestionPrimitive as SuggestionActions } from "@assistant-ui/react";
 export { ArrowUpIcon, SquareIcon, MicIcon, PlusIcon, HistoryIcon, SquarePenIcon, BotIcon, ChevronsUpDownIcon, LogOutIcon, UserRoundIcon, FileTextIcon, FileSearchIcon, PenLineIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 export { Button } from "./internal/adapters-generated/assistant-ui/components/ui/button.js";
-export { useOptionalAgentUI } from "@za38.03/agent-ui-runtime/plugin-api";
+export { useOptionalAgent } from "@za38.03/agent-ui-runtime/plugin-api";
 export { ResponseActionBarRoot, ResponseBranchPicker } from "./internal/composable-thread.js";
 export { ToolTimeline } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
 export { ThinkingIndicator } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/thinking-indicator.js";
@@ -33,8 +33,8 @@ export { AlertCircleIcon, ChevronDownIcon, CircleMinusIcon, LoaderIcon, XCircleI
 
 export { Image } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.js";
 export { File } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file.js";
-export { useAgentUIThemeSnapshot } from "./plugin-api/useAgentUIThemeSnapshot.js";
-export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.js";
+export { useThemeSnapshot } from "./plugin-api/useThemeSnapshot.js";
+export { useLocaleSnapshot } from "./plugin-api/useLocaleSnapshot.js";
 
 /** Internal pure helpers receive already-resolved copy from the question Plugin. */
 export { ConversationOptionList as QuestionOptionList, ConversationQuestionFlow as QuestionFlow } from "./internal/conversation-question-flow.js";

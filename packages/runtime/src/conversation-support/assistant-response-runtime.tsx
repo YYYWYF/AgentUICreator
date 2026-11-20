@@ -5,13 +5,17 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
+  useLayoutEffect,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { createSnapshotStore } from "../observation/snapshot-store.js";
+import { useStoreValue } from "../observation/use-store-value.js";
 import { getAssistantResponseText } from "./assistant-response.js";
 import type { ConversationTurnGroup } from "./conversation-turn.js";
 
-export interface AssistantResponseRuntime {
+export interface AssistantResponseSnapshot {
   group: ConversationTurnGroup;
   text: string;
   isRunning: boolean;
@@ -19,6 +23,11 @@ export interface AssistantResponseRuntime {
   canSwitchBranch: boolean;
   branchNumber: number;
   branchCount: number;
+}
+
+export interface AssistantResponseRuntime {
+  getSnapshot(): AssistantResponseSnapshot;
+  subscribe(listener: () => void): () => void;
   reload(): void;
   switchToPreviousBranch(): void;
   switchToNextBranch(): void;
@@ -30,13 +39,16 @@ const AssistantResponseContext = createContext<AssistantResponseRuntime | null>(
   null,
 );
 
-export function useAssistantResponseRuntime(): AssistantResponseRuntime {
+export function useAssistantResponseRuntime(): AssistantResponseRuntime;
+export function useAssistantResponseRuntime<T>(selector: (snapshot: AssistantResponseSnapshot) => T): T;
+export function useAssistantResponseRuntime<T>(selector: ((snapshot: AssistantResponseSnapshot) => T) | undefined): AssistantResponseRuntime | T;
+export function useAssistantResponseRuntime<T>(selector?: (snapshot: AssistantResponseSnapshot) => T): AssistantResponseRuntime | T {
   const response = useContext(AssistantResponseContext);
-  if (response === null)
-    throw new Error(
-      "Assistant response actions require a Response Footer context",
-    );
-  return response;
+  const read = () => {
+    if (response === null) throw new Error("ASSISTANT_RESPONSE_CONTEXT_REQUIRED");
+    return selector === undefined ? response : selector(response.getSnapshot());
+  };
+  return useStoreValue(response?.subscribe ?? (() => () => {}), read, selector !== undefined);
 }
 
 export function AssistantResponseRuntimeProvider({
@@ -77,7 +89,7 @@ export function AssistantResponseRuntimeProvider({
     !thread.isRunning &&
     !thread.isDisabled &&
     thread.capabilities.switchToBranch;
-  const value: AssistantResponseRuntime = {
+  const snapshot = useMemo<AssistantResponseSnapshot>(() => ({
     group,
     text: getAssistantResponseText(thread.messages, group),
     isRunning: thread.isRunning,
@@ -85,23 +97,29 @@ export function AssistantResponseRuntimeProvider({
     canSwitchBranch,
     branchNumber: head.branchNumber,
     branchCount: head.branchCount,
-    reload() {
-      if (canReload)
-        aui.thread.message({ id: group.headAssistantMessageId }).reload();
-    },
-    switchToPreviousBranch() {
-      if (canSwitchBranch && head.branchNumber > 1)
-        aui.thread
-          .message({ id: group.headAssistantMessageId })
-          .switchToBranch({ position: "previous" });
-    },
-    switchToNextBranch() {
-      if (canSwitchBranch && head.branchNumber < head.branchCount)
-        aui.thread
-          .message({ id: group.headAssistantMessageId })
-          .switchToBranch({ position: "next" });
-    },
-  };
+  }), [group, thread.messages, thread.isRunning, canReload, canSwitchBranch, head.branchNumber, head.branchCount]);
+  const value = useMemo(() => {
+    const store = createSnapshotStore(snapshot);
+    return {
+      ...store,
+      reload() {
+        if (store.getSnapshot().canReload) aui.thread.message({ id: group.headAssistantMessageId }).reload();
+      },
+      switchToPreviousBranch() {
+        const current = store.getSnapshot();
+        if (current.canSwitchBranch && current.branchNumber > 1) {
+          aui.thread.message({ id: group.headAssistantMessageId }).switchToBranch({ position: "previous" });
+        }
+      },
+      switchToNextBranch() {
+        const current = store.getSnapshot();
+        if (current.canSwitchBranch && current.branchNumber < current.branchCount) {
+          aui.thread.message({ id: group.headAssistantMessageId }).switchToBranch({ position: "next" });
+        }
+      },
+    };
+  }, [aui, group.headAssistantMessageId]);
+  useLayoutEffect(() => { value.publish(snapshot); }, [value, snapshot]);
   return (
     <AssistantResponseContext.Provider value={value}>
       {children}

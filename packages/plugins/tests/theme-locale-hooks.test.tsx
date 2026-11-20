@@ -4,14 +4,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
 import {
   AGENT_UI_DEFAULT_THEME, AgentUILocaleProvider, createDefaultAgentUIPresentation,
-  useAgentUILocale, useAgentUILocaleCode, usePluginService,
-  type AgentUITheme, type AgentUILocaleCode,
-} from "@za38.03/agent-ui-plugins";
-import { useAgentUITheme, AgentUIProjectProvider, createAgentUIProject, createPluginCapabilityCatalog } from "@za38.03/agent-ui-runtime/ui";
+  useLocale, useLocaleCode, usePluginService,
+  type AgentUITheme, type AgentUILocaleCode} from "@za38.03/agent-ui-plugins";
+import { useTheme, AgentUIProjectProvider, createAgentUIProject, createPluginCapabilityCatalog } from "@za38.03/agent-ui-runtime/ui";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
 import { AgentUILocaleBridge } from "@za38.03/agent-ui-runtime/ui/agent-ui/i18n/AgentUILocaleBridge";
-import { useAgentUIThemeSnapshot, useAgentUILocaleSnapshot } from "@za38.03/agent-ui-plugins/plugin-support";
+import { useThemeSnapshot, useLocaleSnapshot } from "@za38.03/agent-ui-plugins/plugin-support";
 import { PluginServiceRuntimeProvider } from "../src/plugin-api/PluginServiceContext";
 import { ThemeSwitchPlugin as NpmTheme } from "../dist/theme-switch/index.js";
 import { LocaleSwitchPlugin as NpmLocale } from "../dist/locale-switch/index.js";
@@ -54,8 +53,8 @@ it("reads through hooks, switches through injected services, and releases old su
   function Consumer() {
     themeService = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
     localeService = usePluginService<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE);
-    const value = useAgentUITheme(); const code = useAgentUILocaleCode();
-    const messages = useAgentUILocale("accessibility");
+    const value = useTheme(); const code = useLocaleCode();
+    const messages = useLocale("accessibility");
     return <span>{value}/{code}/{messages.language}</span>;
   }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
@@ -97,7 +96,7 @@ it("reads through hooks, switches through injected services, and releases old su
 
 it("supports explicitly supplied presentation services without a Runtime Provider", async () => {
   const theme = themeStore("dark"), locale = localeStore("zh-CN");
-  function Consumer() { return <span>{useAgentUIThemeSnapshot(theme)}/{useAgentUILocaleSnapshot(locale)}</span>; }
+  function Consumer() { return <span>{useThemeSnapshot(theme)}/{useLocaleSnapshot(locale)}</span>; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   await act(async () => root!.render(<AgentUILocaleProvider locale="en-US"><Consumer /></AgentUILocaleProvider>));
   expect(host.textContent).toBe("dark/zh-CN");

@@ -55,11 +55,11 @@ export function getProjectMessages(locale: AgentUILocaleCode) { return messages[
 新建 `plugins/ticket-actions/index.tsx`，先显示一行文字，便于确认注册和布局生效：
 
 ```tsx
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 import { getProjectMessages } from '../../application/i18n/messages';
 
 export function TicketActions() {
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  const labels = getProjectMessages(useLocaleCode()).ticketActions;
   return <p data-ui-plugin="ticket-actions"
     style={{ margin: 0, padding: 12, background: 'var(--background)', color: 'var(--foreground)' }}>
     {labels.ready}
@@ -206,11 +206,7 @@ export default ticketActionsPlugin;
 将 `plugins/ticket-actions/index.tsx` 更新为：
 
 ```tsx
-import {
-  useAgentUILocaleCode,
-  usePluginService,
-  usePluginServiceSnapshot,
-} from '@za38.03/agent-ui-plugins';
+import { useLocaleCode, usePluginService } from '@za38.03/agent-ui-plugins';
 import { getProjectMessages } from '../../application/i18n/messages';
 import {
   TICKET_SELECTION_SERVICE,
@@ -221,15 +217,15 @@ import {
 const EMPTY_SELECTION: TicketSelectionSnapshot = { selectedId: null };
 
 export function TicketActions() {
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  const labels = getProjectMessages(useLocaleCode()).ticketActions;
   const selection = usePluginService<TicketSelectionService>(TICKET_SELECTION_SERVICE);
-  const snapshot = usePluginServiceSnapshot(selection, EMPTY_SELECTION);
+  const selectedId = usePluginService(selection, snapshot => snapshot.selectedId, EMPTY_SELECTION);
 
   return (
     <section data-ui-plugin="ticket-actions">
       <p>{labels.ready}</p>
-      <output>{snapshot.selectedId}</output>
-      <button type="button" disabled={!selection || snapshot.selectedId === null}
+      <output>{selectedId}</output>
+      <button type="button" disabled={!selection || selectedId === null}
         onClick={() => selection?.clear()}>
         {labels.clear}
       </button>
@@ -238,7 +234,7 @@ export function TicketActions() {
 }
 ```
 
-组件可读取自己 `provides` 的服务，不要再把同一服务加入自己的 `inject`。`usePluginServiceSnapshot` 管理订阅与取消订阅；fallback 快照放在组件外，保持引用稳定。
+组件可读取自己 `provides` 的服务，不要再把同一服务加入自己的 `inject`。`usePluginService` 管理订阅与取消订阅；fallback 快照放在组件外，保持引用稳定。
 
 <span id="在另一个插件中调用"></span>
 
@@ -259,7 +255,7 @@ export function TicketActions() {
 新建 `plugins/ticket-opener/index.tsx`。Hook 在组件顶层取得服务，事件处理函数调用公开方法：
 
 ```tsx
-import { useAgentUILocaleCode, usePluginService } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode, usePluginService } from '@za38.03/agent-ui-plugins';
 import { getProjectMessages } from '../../application/i18n/messages';
 import {
   TICKET_SELECTION_SERVICE,
@@ -267,7 +263,7 @@ import {
 } from '../../services/ticket-selection';
 
 export function TicketOpener() {
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  const labels = getProjectMessages(useLocaleCode()).ticketActions;
   const selection = usePluginService<TicketSelectionService>(TICKET_SELECTION_SERVICE);
 
   return (

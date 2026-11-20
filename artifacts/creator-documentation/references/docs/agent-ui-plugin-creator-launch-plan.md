@@ -42,7 +42,7 @@ Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录
 - Provider 在 definition 声明 `provides`，在同步 `setup({ services })` 中注册能力并返回清理函数。
 - 核心运行依赖声明 `inject`；有完整 fallback 的增强依赖声明 `optionalInject`。
 - `provides`、`inject`、`optionalInject` 两两互斥。组件可读取自身提供的服务；setup.get 只读取声明的依赖。
-- Consumer 使用 `usePluginService`；持续观察状态时使用 `usePluginServiceSnapshot` 和稳定的 getSnapshot/subscribe 合同。
+- Consumer 使用 `usePluginService`；持续观察状态时使用 `usePluginService` 和稳定的 getSnapshot/subscribe 合同。
 - Provider 停用、替换或移除时清理 Service；硬依赖 Consumer 随服务可用性失效和重新激活，不能持有已卸载 Provider。
 - 同名服务重复提供确定性失败，依赖顺序不取决于 AppUIModel 对象顺序。
 - 已有 Service 的纯消费不要求创建新契约。新增或修改公共契约先解析 Owner、Consumers、依赖方式及路径，再修改项目代码和受影响的导入、注册与调用。

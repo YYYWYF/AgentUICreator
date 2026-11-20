@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { PackageUpdateOverview, PackageUpgradePlan, PackageUpgradeStage, UpdateInspection } from "@za38.03/agent-ui-creator/project/updates";
 import { ArrowRight, CircleCheck, Package, RefreshCw, ShieldCheck } from "lucide-react";
-import { useAgentUILocale, formatLocaleMessage } from "./i18n/locale.js";
+import { useCreatorLocale, formatLocaleMessage } from "./i18n/locale.js";
 import { creatorDisplayText } from "./product-presentation.js";
 import { Button } from "./components/button.js";
 import { UpdateReleaseNotes } from "./UpdateReleaseNotes.js";
@@ -17,7 +17,7 @@ export function PackageUpdatesOverview({ overview, sourcePlugins = [], pluginNam
   completed?: PackageUpgradePlan["packages"]; toolsOnly?: boolean;
   onPlan?: () => void; onCancel?: () => void; onExecute?: () => void; onRecover?: () => void;
 }) {
-  const locale = useAgentUILocale();
+  const locale = useCreatorLocale();
   const messages = locale.pluginUpdates;
   const planRegion = useRef<HTMLElement>(null);
   useEffect(() => { if (plan) { planRegion.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" }); planRegion.current?.focus({ preventScroll: true }); } }, [plan?.id]);

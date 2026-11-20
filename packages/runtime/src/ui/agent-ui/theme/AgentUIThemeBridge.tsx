@@ -2,7 +2,7 @@ import { useLayoutEffect, type ReactNode } from "react";
 import { AgentUIRoot, type AgentUITheme } from "../../../presentation.js";
 import { usePluginService } from "../../runtime/plugins/index.js";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../../services/agent-ui-theme.js";
-import { useAgentUITheme } from "./useAgentUITheme.js";
+import { useTheme } from "./useTheme.js";
 
 /** Share the existing theme service with Host-controlled presentation, without replacing the conversation. */
 export function AgentUIThemeBridge({ theme, onThemeChange, children }: {
@@ -11,7 +11,7 @@ export function AgentUIThemeBridge({ theme, onThemeChange, children }: {
   children: ReactNode;
 }) {
   const service = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
-  const currentTheme = useAgentUITheme();
+  const currentTheme = useTheme();
   useLayoutEffect(() => {
     if (!service) return;
     // Host prop updates are synchronization, not requests from the theme picker.

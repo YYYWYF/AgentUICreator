@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { useAuiState, type TaskState } from '@assistant-ui/react';
 import { ChevronDownIcon } from 'lucide-react';
@@ -95,7 +95,7 @@ export const summaryLabel = (summary: TaskSummary, messages = DEFAULT_AGENT_UI_M
 };
 
 export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const summary = useTaskSummary();
   const elapsedMs = useTaskElapsed(
     summary.startedAt === undefined ? undefined : { startedAt: summary.startedAt },
@@ -114,7 +114,7 @@ export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
 };
 
 const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
-  const messages = useAgentUILocale('tasks');
+  const messages = useLocale('tasks');
   const state = taskStateOf(task.status, task.isError);
   const meta = taskMeta(task.args);
   const elapsedMs = useTaskElapsed(
@@ -160,7 +160,7 @@ const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
 };
 
 export const TaskTray: FC<{ className?: string }> = ({ className }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const tasks = useAuiState((s) => s.thread.tasks);
   const summary = useMemo(() => summarize(tasks), [tasks]);
   const elapsedMs = useTaskElapsed(

@@ -1,6 +1,6 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import {
-  ConversationToolFallback,
+  ConversationToolResult,
   RetrievalChunks,
   type ConversationToolCallProps,
   type RetrievalChunksProps,
@@ -22,7 +22,7 @@ export function CanonicalRetrievalChunks({
   'aria-describedby': ariaDescription,
   onClick,
   renderRetrieval,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: RetrievalChunksPluginProps) {
   const rootProps = {

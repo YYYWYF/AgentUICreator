@@ -21,9 +21,11 @@ title: "Creator 更新"
 
 ## 如何更新 Creator
 
-在安装 Creator 的工程中，按以下步骤更新：
+按最初安装 Creator 的方式更新。作为工程开发依赖安装时：
 
 1. 结束当前任务，停止 Creator 和页面开发服务。
 2. 打开 `package.json`，在 `devDependencies` 中将 `@za38.03/agent-ui-creator` 的版本号改为需要安装的已发布版本。
 3. 使用工程现有的包管理器安装依赖并更新锁文件。
 4. 按工程原有的启动方式，重新启动 Creator 和页面开发服务。
+
+全局安装或由其他工具工程提供 Creator 时，在原安装位置更新。

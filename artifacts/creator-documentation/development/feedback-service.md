@@ -2,6 +2,13 @@
 
 默认点赞／点踩只保留当前会话界面的选择。需要保存到业务系统时，通过 `feedback` 配置。配置不会自动在历史加载时恢复服务端的评价选择。
 
+<figure className="plugin-preview">
+
+![助手回复下方的点赞和点踩按钮](/images/plugins/feedback-actions.png)
+
+<figcaption>评价入口位于回复操作栏；图中悬停点赞按钮时显示“有帮助”。服务配置负责保存用户点击后的评价。</figcaption>
+</figure>
+
 ## 1. 修改入口
 
 新建 `src/agent-ui/services/feedback.ts`：

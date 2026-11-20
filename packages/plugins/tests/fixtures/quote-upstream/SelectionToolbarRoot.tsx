@@ -10,8 +10,7 @@ import {
   useContext,
   useEffect,
   useRef,
-  useState,
-} from "react";
+  useState} from "react";
 import { createPortal } from "react-dom";
 import { getSelectionMessageId } from "../../utils/getSelectionMessageId";
 import { useThreadRootElementRef } from "../thread/ThreadRootElementContext";

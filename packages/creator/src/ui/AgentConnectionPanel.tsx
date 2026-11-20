@@ -1,4 +1,4 @@
-import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
+import { localizeCreatorPresentation, useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import { useEffect, useRef, useState } from "react";
 import { CONNECTION_API, type AgentConnectionMode, type AgentConnectionState } from "../agent-connection/types.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
@@ -56,7 +56,7 @@ function isConnectionState(value: unknown): value is AgentConnectionState {
     (!("connectionMode" in value) || value.connectionMode === "direct" || value.connectionMode === "proxy");
 }
 export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: string; visible: boolean }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const localeMessagesRef = useRef(localeMessages);
   localeMessagesRef.current = localeMessages;
   const [state, setState] = useState<AgentConnectionState>();

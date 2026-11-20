@@ -1,10 +1,10 @@
 # 统一 Plugins 包、内置源码目录与按需源码托管
 
-官方 50 个 Plugin 使用唯一无前缀 ID，由一个 `@za38.03/agent-ui-plugins` 包交付运行实现、catalog 和匹配源码快照。准确清单与应用合同来自 `packages/plugins/src/catalog/plugin-delivery.json`，不维护第二份官方身份列表。
+官方 49 个 Plugin 使用唯一无前缀 ID，由一个 `@za38.03/agent-ui-plugins` 包交付运行实现、catalog 和匹配源码快照。准确清单与应用合同来自 `packages/plugins/src/catalog/plugin-delivery.json`，不维护第二份官方身份列表。
 
 六个公开包 Core、Renderer、Runtime、Plugins、Web Component、Creator 独立版本。Creator Agent 位于 `packages/creator/src/agent`，Operator 位于同包 `operator`；用户只安装一个 Creator 开发工具包。Node 目录与源码操作由 Creator `/source-registry`、`/project/*` 提供，生产前端保持独立。见 [TypeScript 发行](../../packages/creator/docs/typescript-distribution.md)。
 
-全部官方插件已支持默认 npm 实现、项目薄应用层、显式确认后的源码接管及独立实现同步。50 个插件的公开展示 props 已按 [统一约定](plugin-public-props.md)核对。
+全部官方插件已支持默认 npm 实现、项目薄应用层、显式确认后的源码接管及独立实现同步。49 个插件的公开展示 props 已按 [统一约定](plugin-public-props.md)核对。
 
 [统一更新中心](unified-update-center.md)支持只读兼容发现、累计/逐版本变更，以及沿用工程 npm/pnpm/Yarn/Bun 和 workspace 工作流的确认安装。源码合并与 BASE 采用单独确认。Creator 不以工程拓扑或兼容建议拒绝操作，不运行安装前/后的产物或工程验证，不自动回滚；用户自行检查结果。
 
@@ -40,16 +40,17 @@ Runtime 不依赖 Plugins npm 包，不选择或创建官方插件实现。`Runt
 
 此调整用于新生成工程。既有工程的应用层、本地实现和源码 BASE 不自动删除或迁移，npm 升级不授权清理旧文件。工具内的契约入口引用同一 Runtime 实现，避免编译规则分叉。包的浏览器入口不导入 Creator、Node 工具、源码快照或 catalog 读取器。
 
-新工程也不生成 `services/agent-ui-theme.ts` 和 `services/agent-ui-locale.ts` 转导出文件。会话状态使用项目 `services/hooks/useConversations.ts`，刷新、独立详情读取及 canonical Runtime 操作使用独立的 `services/hooks/useConversationActions.ts`，只读订阅不依赖会话操作上下文。认证继续使用项目 `services/hooks/useAuthSession.ts`。主题读取使用 Runtime `/ui` 的 `useAgentUITheme`；文案和语言值使用 Plugins 的 `useAgentUILocale`、`useAgentUILocaleCode`。主题、语言切换插件直接通过 `usePluginService` 取得已声明的现有服务，传给展示组件，不再额外包装操作 Hook。服务标识与类型从 Runtime 的公开 `ui/services/agent-ui-theme`、`ui/services/agent-ui-locale` 子路径导入。展示组件保留 service props 和公开的值/回调定制能力，纯订阅适配由 opt-in plugin-support 共享，不创建私有 Context。提供方的注册、恢复与清理由原生命周期管理。主题、语言和文案覆盖通过 `Agent` props 配置。已有工程的同名文件保留，不自动删除或改写。
+新工程也不生成 `services/agent-ui-theme.ts` 和 `services/agent-ui-locale.ts` 转导出文件。会话状态、刷新、独立详情读取及 canonical Runtime 操作统一使用项目 `services/hooks/useConversations.ts`；读取状态不要求已有的会话操作作用域，执行导航和管理动作仍复用 canonical Runtime。认证继续使用项目 `services/hooks/useAuthSession.ts`。主题读取使用 Runtime `/ui` 的 `useTheme`；文案和语言值使用 Plugins 的 `useLocale`、`useLocaleCode`。主题、语言切换插件直接通过 `usePluginService` 取得已声明的现有服务，传给展示组件，不再额外包装操作 Hook。服务标识与类型从 Runtime 的公开 `ui/services/agent-ui-theme`、`ui/services/agent-ui-locale` 子路径导入。展示组件保留 service props 和公开的值/回调定制能力，纯订阅适配由 opt-in plugin-support 共享，不创建私有 Context。提供方的注册、恢复与清理由原生命周期管理。主题、语言和文案覆盖通过 `Agent` props 配置。已有工程的同名文件保留，不自动删除或改写。
 
 输入触发器的通用服务标识、类型和 `createConversationCommandRegistry()` 由 Plugins 的 `/composer-triggers` 公开入口提供，新模板不再生成 `services/composer-triggers.ts`。注册表实例仍在项目插件的 setup 中按服务作用域创建；具体命令、执行回调和提及搜索请求由项目应用层配置。已有项目的同名文件与定制内容保留，不随 npm 升级自动迁移或删除。
 
-@ 与 / 的项目来源直接定义候选项和 JSON 业务数据，不提供触发器级 `requestAdapter`。触发器保留正文引用，通过 Plugins 根入口或 `/composer-support` 的 `useComposer().setData` 记录原始选中项快照；命令快照排除 `execute`。选中项数据由 Composer 的可选 `requestAdapter({ request, pluginData, selections })` 统一组装到 forwardedProps，正文引用不因结构化参数而自动移除；未配置 Composer 适配器时沿用原有正文引用请求，不自动添加 @、/ 的外带字段。第三方插件复用同一个端口，不引用 Composer 实现。端口按 Thread、插件实例与命名子作用域隔离；引用绑定、原始选择与默认发送开关属于数据生命周期。Composer 返回最终请求后不再合并 forwardedProps。Composer 能力层拥有选择数据、原生 runConfig 提交快照、私有消息元数据绑定、引用正文转换和最终请求适配；它复用 assistant-ui 的原生消息、队列和编辑生命周期。Runtime 只定义可选的 `ConversationInputController` 接口，按实际 Thread 绑定、清理并调用应用选择的处理器；共享输入端口与会话 DOM 边界 Context 仅提供通用身份，不解释端口数据，不内置任何官方输入插件规则。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../website/docs/development/composer-sources.md)。
+@ 与 / 的项目来源直接定义候选项和 JSON 业务数据，不提供触发器级 `requestAdapter`。触发器保留正文引用，通过 Plugins 根入口或 `/composer-support` 的 `useComposer().setData` 记录原始选中项快照；命令快照排除 `execute`。选中项数据由 Composer 的可选 `requestAdapter({ request, pluginData, sources })` 统一组装到 forwardedProps，正文引用不因结构化参数而自动移除；未配置 Composer 适配器时沿用原有正文引用请求，不自动添加 @、/ 的外带字段。第三方插件复用同一个端口，不引用 Composer 实现。所有插件只通过 setData 提交一份 JSON，Composer 仅汇总为 pluginData；不再保存独立原始选择集合，不提供插件级请求适配器、默认外带字段或自动转发开关。引用和建议问题也通过同一个端口提交自身数据，业务映射仅在 Composer 最终适配器中完成。端口按 Thread、插件实例与命名子作用域隔离；正文引用和原生引用绑定只管理数据生命周期。默认 Markdown 引用由 Composer 能力层组装，最终适配器可修改正文及所有请求字段。最终适配器按 pluginData 的实际所有者键决定是否添加业务字段；未提交对应数据时不补空数组或 null，明确提交的空值保留原值。没有相关数据时保留已有请求与 Host 字段。Composer 返回最终请求后不再合并 forwardedProps。Composer 能力层拥有选择数据、原生 runConfig 提交快照、私有消息元数据绑定、引用正文转换和最终请求适配；它复用 assistant-ui 的原生消息、队列和编辑生命周期。Runtime 只定义可选的 `ConversationInputController` 接口，按实际 Thread 绑定、清理并调用应用选择的处理器；共享输入端口与会话 DOM 边界 Context 仅提供通用身份，不解释端口数据，不内置任何官方输入插件规则。内部数据先剥离，再执行最终适配器。队列、编辑重发、重试、工具续传及中断恢复使用对应轮次的快照；适配器每次实际请求均可决定最终参数。接入见 [提及搜索与快捷命令](../../website/docs/development/composer-sources.md)。
 
 `createDefaultAgentUIPresentation()` 显式选择 Plugins 的 `createComposerInputController`，每个 Agent 创建一份控制器，内部按 Thread 隔离。直接使用底层 `ConversationRuntimeProvider` 时，可通过 `inputControllerFactory={createComposerInputController}` 接入；省略时 Runtime 不创建 Composer 数据能力，也不拼接引用正文。`useComposer`、Composer 数据类型和引用展示／清理 API 由 Plugins 提供，不再从 Runtime `/plugin-api` 导出。已有应用或已接管源码若直接使用这些旧 Runtime 导入，需要显式迁移到 Plugins 公共入口；npm 升级不自动改写项目文件或 BASE。
 
+Composer 相关能力对外只提供 `useComposer`：`useComposer(name?)` 返回即时读取与操作句柄，不自动订阅草稿数据；`useComposer(selector, name?)` 按需订阅正文、附件、引用、结构化数据、运行和等待状态。选中值按 `Object.is` 比较，方法和 Thread/owner 生命周期保持原有归属。高级等待标识 `interruptKey` 位于 `getState()`；等待状态变化也通知同一订阅。最终 `requestAdapter` 只由 Composer 组件属性配置，注册和发送保护 Hook 保持内部实现。`getState()` 与 `subscribe()` 使用同一份快照；句柄和方法在同一 Thread 与调用方作用域内保持稳定。发送入口统一执行既有等待回复保护，附件继续委托原生适配器。所有实现位于 Plugins，Runtime 不识别这些输入规则。
 
-`skills` 在 setup 中提供 `conversation.skills` Service，保存选择、取消并跟随现有 canonical Thread 的切换、发送和重置清理。`skills` 在 `triggers` 提供选择器，`skills-selection` 在 `beforeInput` 展示与移除选择，并声明对该 Service 的硬依赖。隐藏或卸载 UI 组件不销毁 Service；停用整个提供方时清理能力，依赖消费者随之失效。选择通过 `composer.setData({id,label})` 收集，来源的插件 ID、实例 ID 和可选用途名由 Composer 自动记录；不使用具名共享 key 或业务清理配置。普通 setData 只收集数据，不自动添加业务外带字段。新生成项目的 `plugins/composer/request-adapter.ts` 根据 `sources` 识别 skills 数据，默认生成 `forwardedProps.ctx.skill` 并保留 Host 其他字段；该文件属于项目应用层，用户可修改或删除映射，npm 升级和源码同步不覆盖它，最终返回后不补回默认字段。技能类型、解析及公开消息元数据转换属于 `skills`；默认 Presentation 显式接入通用消息数据适配接口，保持 `metadata.custom.skill`、请求 `metadata.skill` 与 LangChain `additional_kwargs.metadata.skill` 的持久化约定。Composer 冻结数据和来源，处理排队、编辑、重试与恢复，不解释技能对象。两个插件按需添加，不默认加入初始化预设。既有工程需要显式迁移调用、服务声明与请求映射，npm 升级不改写 AppUIModel、应用层、已接管源码或 BASE。
+`skills` 在 setup 中提供 `conversation.skills` Service，保存选择、取消并跟随现有 canonical Thread 的切换、发送和重置清理。`skills` 在 `triggers` 提供选择器，`skills-selection` 在 `beforeInput` 展示与移除选择，并声明对该 Service 的硬依赖。隐藏或卸载 UI 组件不销毁 Service；停用整个提供方时清理能力，依赖消费者随之失效。选择通过 `composer.setData({id,label})` 收集，来源的插件 ID、实例 ID 和可选用途名由 Composer 自动记录；不使用具名共享 key 或业务清理配置。普通 setData 只收集数据，不自动添加业务外带字段。新生成项目的 `plugins/composer/request-adapter.ts` 根据 `sources` 识别 skills 数据，默认生成 `forwardedProps.ctx.skill` 并保留 Host 其他字段；该文件属于项目应用层，用户可修改或删除映射，npm 升级和源码同步不覆盖它，最终返回后不补回默认字段。技能类型、解析及公开消息元数据转换属于 `skills`；默认 Presentation 显式接入通用消息数据适配接口，保持 `metadata.custom.skill`、请求 `metadata.skill` 与 LangChain `additional_kwargs.metadata.skill` 的持久化约定。Composer 冻结数据和来源，处理编辑、重试与恢复，不解释技能对象。两个插件按需添加，不默认加入初始化预设。既有工程需要显式迁移调用、服务声明与请求映射，npm 升级不改写 AppUIModel、应用层、已接管源码或 BASE。
 
 服务相关 Hook 统一放在 `services/hooks/`，其下不再按会话、认证拆分子目录，作为项目拥有的 React 访问层。服务契约和实现不反向导入 Hook；插件内部交互 Hook 仍属于对应插件。新模板不创建根级 `hooks/` 目录，已有工程的旧路径与定制文件不自动搬迁或删除。
 
@@ -109,7 +110,7 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 - Headless 消息插件留在 `applicationPlugins`，保留 `toolkit` / `dataMessageUIs` 的 kind/name 和本地 renderer，`Component` 返回 null。不能生成只有 Component 的空定义。
 - `chart-message` 保留 `chart` 注册及 CSS/类型声明闭包；来源、检索与搜索保留实际数据投影、展示数量/DOM props 和统一 `searchTools` locale，不暴露 key 重置与重复数据覆盖。
 - `job-progress-message` 从已有 Runtime 读取 state/abortRun，以 props 桥接；不复制状态 Context。
-- `tool-fallback` 与 `tool-result` 保留审批、中断、错误、重试和焦点恢复。`transient-assistant-messages` 只托管展示，临时消息 store、订阅和锚点仍共享 npm 实例，不写历史或 Agent 请求。
+- `tool-result` 保留审批、中断、错误、重试和焦点恢复。`transient-assistant-messages` 只托管展示，临时消息 store、订阅和锚点仍共享 npm 实例，不写历史或 Agent 请求。
 - Host 绑定应用来自安装 catalog 中通过完整性检查的模板。provider `bindSetup` 使用已有 Host service context 并保留 cleanup；共享 auth 声明仅在缺失时初始化，不纳入实现 BASE。业务连接、鉴权配置与 identity 内容归应用层。
 - 可选 Lexical 保持在 `/lexical` 后，保留原生 input/composition props，不强制所有项目安装编辑器。
 
@@ -118,6 +119,8 @@ AppUIModel 仅负责布局、实例身份、启停和语义组合，不负责 Re
 ## 6. 首次源码接管
 
 Creator 先用 AppUIModel 和应用层公开 props/组合。确需修改内部实现时，`takeover_plugin_source` 通过 Operator 的 `plan_plugin_source_takeover` 读取工程实际 Plugins 包，展示指定插件的维护责任与切换范围，并通过真实 human-input 中断取得同意。内部计划绑定实际版本、catalog 摘要、源码/运行文件、受影响实例和工程状态；模型不能自行传入 approval 作为授权。
+
+用户也可在 Creator 执行确定性命令 `/takeover` 或 `/takeover <pluginId>`，选择已有 npm 应用层的插件，不启动模型。Host 保存具体安装版本的计划，展示文件、依赖、实例和引用切换范围；确认只提交绑定工程、插件和有效期的一次性计划标识。执行复用原有源码提取事务、Creator 写入保护和 Operator 工程锁；已接管、自定义和旧版源码不作为新的接管目标。计划变化时重新确认，不自动采用新版本。
 
 拒绝或未答复时零实现写入。答案绑定计划 hash，恢复后包或工程变化使决定失效。内部 apply 再次检查计划，在临时工程生成注册后事务提交，不要求 build 脚本，也不自动运行 typecheck/build/test；用户自行检查工程。缺失依赖文件、快照或运行摘要时报告具体错误。共享 API 的数字版本差异仅提供参考，不拒绝规划或执行；实际缺失 API 和源码检查失败分别报告。
 
@@ -173,7 +176,7 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 
 `response-footer` 是唯一回复底部插件，使用 `assistantResponseFooter`，每轮完整回复仅在最后一条 assistant 消息下渲染一次；复制、导出、重新生成和分支保留整轮 scope。官方目录不提供重复 `assistant-ui-*` 或 `message-footer` 身份；已有项目源码与基线不因此被清理。
 
-`tool-result` 默认用于 `conversation-surface.toolFallback`，支持文本、图片、音频、视频和文档，并保留基础工具详情和审批。专用工具 renderer 优先；该语义位置只选一个 fallback。`file` 来源须应用 resolver，不猜测提供方标识为 URL。
+`tool-result` 是唯一公开的工具卡片插件，默认用于 `conversation-surface.toolFallback`，统一展示参数、状态、错误、审批、中断与文本、图片、音频、视频和文档结果。内部按场景拆为普通模块，不增加 AppUIModel 子插槽或独立子插件。`tool-fallback` 不再作为独立插件、npm 子路径或第二套公开卡片组件交付；上游同名文件及既有 DOM/作用域标识保持原样。已有使用旧插件 ID 或公开组件的项目需要显式迁移导入与应用配置，安装升级不删除或改写其应用层、本地实现和 BASE。专用工具 renderer 优先；该语义位置只选一个 fallback。`file` 来源须应用 resolver，不猜测提供方标识为 URL。
 
 `ask-user-question` 是按需 Human Tool 插件，工具名 `ask_user_question`。单选、多选、文本及多步参数和答案校验由 presentation contract 唯一持有。应用模板保留 human 注册、Schema 与 renderer；Runtime 拥有权限、addResult 和续答。共享 `humanQuestion` locale 提供中英文，Mock 引用正式资源，不再交付问答 demo 资源。
 
@@ -199,3 +202,9 @@ Creator 更新页通过 `OwnedPluginUpdateService` 使用 `/project/dev` 的 `pl
 Windows 使用 native path 读写，manifest/归属与归档比较使用规范化逻辑路径，文件 URL 使用 `fileURLToPath` / `pathToFileURL`，进程调用使用跨平台 helper。检查 CRLF、大小写、路径穿越、文件占用和恢复，真实 Windows 结果单独报告。
 
 已有项目保留原结构、实现与 BASE。公开 API 以实际安装包声明和目标工程验证为准；源码历史使用已配置的准确 BASE 和归档来源。可选 JSON Generative UI 见 [公开集成](generative-ui-integration.md)，依赖安装支持范围见 [统一更新中心](unified-update-center.md)。
+
+## Hook 读取与订阅
+
+领域 Hook 采用统一调用约定：无 selector 获取当前作用域的 `getSnapshot()`、`subscribe()` 和操作句柄；传 selector 按选中值更新组件。线程和服务身份的绑定、注册与清理继续由现有生命周期管理，不创建第二份业务状态。`useComposer`、`useConversations`、`useAuthSession`、`useSkillSelection`、回复与临时消息入口遵循此约定。Runtime 使用 `useAgentRuntime`，Host 与多 Agent 分别使用 `useAgent`、`useAgents`；领域与作用域保持独立。
+
+通用 `usePluginService(name)` 获取已声明的服务，`usePluginService(service, selector, fallback?)` 订阅其选中值。服务实例作为参数时不创建服务或 Context；缺失服务使用显式 fallback。旧项目的应用层、Hook 和源码 BASE 仍只通过显式迁移更新。

@@ -7,8 +7,8 @@ import {
   Button,
   ConversationThreadListNew,
   getAgentUIThemeColorScheme,
-  useAgentUILocale,
-  useAgentUISidebarNavigation,
+  useLocale,
+  useSidebarNavigation,
   useConversationNavigation,
 } from '../../../../public.js';
 import { PolicyThreadList, type PolicyThreadListProps } from './PolicyThreadList.js';
@@ -49,7 +49,7 @@ export function CanonicalConversationThreadList({
   runStatus,
   ...rootProps
 }: ConversationThreadListPluginProps) {
-  const labels = useAgentUILocale('threadList');
+  const labels = useLocale('threadList');
   const conversationNavigation = useConversationNavigation();
   const defaultList = (
     <PolicyThreadList
@@ -142,8 +142,8 @@ export function CanonicalConversationThreadListRailAction({
   tooltipProps,
   tooltipContentProps,
 }: ConversationThreadListRailActionProps) {
-  const labels = useAgentUILocale('threadList');
-  const navigate = useAgentUISidebarNavigation();
+  const labels = useLocale('threadList');
+  const navigate = useSidebarNavigation();
   if (!enabled) {
     return null;
   }

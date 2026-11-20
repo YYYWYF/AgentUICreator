@@ -2,9 +2,9 @@ import { useMemo, useRef, useLayoutEffect } from "react";
 import type { AssistantRuntime } from "@assistant-ui/react";
 import type { ConversationRuntimeBridge } from "../ConversationRuntimeBridgeContext.js";
 import type { createConversationRemoteThreadListAdapter } from "../threads/conversation-remote-thread-list-adapter.js";
-import { useAgentUIThreadNavigation } from "./AgentUIProvider.js";
+import { useThreadNavigationBinding } from "./AgentUIProvider.js";
 import { AgentUiRuntimeBusyError } from "../errors.js";
-import { withConversationSendOptions } from "../compatibility/conversation-request-routing.js";
+import { restoreConversationSendOptions, withConversationSendOptions } from "../compatibility/conversation-request-routing.js";
 import { snapshotAgentUIContext } from "@za38.03/agent-ui-core";
 import type { AgentUIThreadNavigation, AgentUISendOptions } from "./threads.js";
 
@@ -67,7 +67,6 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
       composer.setRunConfig(runConfig);
       try {
         const previousMessages = new Set(target.getState().messages.map(message => message.id));
-        const queued = composer.getState().queue.length;
         // The public native send action returns void. Observe its acceptance,
         // including asynchronous attachment preparation, before completing submission.
         await abortable(new Promise<void>((resolve, reject) => {
@@ -78,7 +77,7 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
           const update = () => {
             if (!submitted || settled) return;
             const state = composer.getState();
-            if (target.getState().messages.some(message => message.role === "user" && !previousMessages.has(message.id)) || state.queue.length > queued) {
+            if (target.getState().messages.some(message => message.role === "user" && !previousMessages.has(message.id))) {
               cleanup(); resolve();
             } else if (!state.submission && !state.inTransit?.length) {
               queueMicrotask(() => {
@@ -86,7 +85,7 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
                 const latest = composer.getState();
                 const failedAttachment = latest.attachments.some(attachment => attachment.status.type === "incomplete");
                 const restoredDraft = latest.text === draft.text && (Boolean(latest.text) || latest.attachments.length > 0);
-                if (!latest.submission && !latest.inTransit?.length && (failedAttachment || restoredDraft) && !target.getState().messages.some(message => message.role === "user" && !previousMessages.has(message.id)) && latest.queue.length <= queued) {
+                if (!latest.submission && !latest.inTransit?.length && (failedAttachment || restoredDraft) && !target.getState().messages.some(message => message.role === "user" && !previousMessages.has(message.id))) {
                   cleanup(); reject(new Error("AGENT_UI_DRAFT_NOT_SUBMITTED"));
                 }
               });
@@ -100,7 +99,9 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
         }), signals);
       } finally {
         // The route belongs to this submission, not to the next draft.
-        if (composer.getState().runConfig === runConfig) composer.setRunConfig(originalConfig);
+        const current = composer.getState().runConfig;
+        const restored = restoreConversationSendOptions(current, runConfig, originalConfig);
+        if (restored !== current) composer.setRunConfig(restored);
       }
     };
     return {
@@ -126,7 +127,7 @@ export function HostThreadNavigation<TState>({ runtime, sessions, persistence }:
       },
     };
   }, [runtime, sessions, persistence]);
-  useAgentUIThreadNavigation(navigation);
+  useThreadNavigationBinding(navigation);
   return null;
 }
 

@@ -5,6 +5,7 @@ import { applyProductLocalization, prepareProductAdapters } from "../scripts/syn
 it.each([
   ["web-search", "web-search"],
   ["reasoning", "reasoning.aui"],
+  ["conversation-suggestions", "follow-up-suggestions.aui"],
 ])("regenerates the reduced %s presentation API without changing upstream source", async (plugin, name) => {
   const localPath = `components/assistant-ui/elements/${name}.tsx`;
   const directory = new URL(`../src/plugins/${plugin}/`, import.meta.url);
@@ -21,12 +22,16 @@ it("regenerates all repeated presentation seams and preserves protocol results",
   const second = await prepareProductAdapters();
   expect(second).toEqual(first);
   const bridge = first.files.find(file => file.localPath.endsWith("/tool-fallback.aui.tsx")).source;
-  expect(bridge).toContain("plugins/tool-fallback/adapters/presentation/tool-fallback.js");
-  const fallback = await readFile(new URL("../src/plugins/tool-fallback/adapters/presentation/tool-fallback.tsx", import.meta.url), "utf8");
-  expect(fallback).toContain("const APPROVED_RESULT = 'Approved by user'");
-  expect(fallback).toContain("const DENIED_RESULT = 'User denied tool execution'");
-  expect(fallback).toContain('respondToApproval({ approved, ...typedNote() })');
-  expect(fallback).not.toMatch(/\n\s+(Allow|Deny|Confirm|Dismiss)\n/);
+  expect(bridge).toContain("plugins/tool-result/adapters/presentation/tool-call-card.js");
+  const approvalRoot = new URL("../src/plugins/tool-result/adapters/presentation/approval/", import.meta.url);
+  const model = await readFile(new URL("approval-model.ts", approvalRoot), "utf8");
+  const interaction = await readFile(new URL("use-approval-interaction.ts", approvalRoot), "utf8");
+  expect(model).toContain("const APPROVED_RESULT = 'Approved by user'");
+  expect(model).toContain("const DENIED_RESULT = 'User denied tool execution'");
+  expect(interaction).toContain('respondToApproval({ approved, ...typedNote() })');
+  for (const filename of ["approval.tsx", "approval-actions.tsx", "approval-options.tsx", "approval-questions.tsx", "approval-receipt.tsx"]) {
+    expect(await readFile(new URL(filename, approvalRoot), "utf8")).not.toMatch(/\n\s+(Allow|Deny|Confirm|Dismiss)\n/);
+  }
   const tasks = first.files.find(file => file.localPath.endsWith("/agent-status.aui.tsx")).source;
   expect(tasks.match(/summaryLabel\(summary, localeMessages.tasks\)/g)).toHaveLength(2);
   const attachment = first.files.find(file => file.localPath.endsWith("/attachment.aui.tsx")).source;
@@ -88,7 +93,7 @@ it("adapts Thread List identity before applying presentation-only localization",
   expect(adapted).toContain("lastGroup?.id === id");
   expect(adapted).toContain("result.push({ id, label, indices: [index] });");
   expect(adapted).toContain("key={group.id}");
-  expect(adapted).not.toContain("useAgentUILocale");
+  expect(adapted).not.toContain("useLocale");
   const localized = applyProductLocalization(adapted, path);
   for (const anchor of ["id: string; label: string", "lastGroup?.id === id", "result.push({ id, label, indices: [index] });", "key={group.id}"]) expect(localized).toContain(anchor);
   expect(localized).toContain("Today: messages.today");

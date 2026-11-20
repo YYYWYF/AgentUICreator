@@ -4,8 +4,7 @@ import { memo, type ComponentProps, type FC } from "react";
 import type { QuoteMessagePartComponent } from "@assistant-ui/react";
 import {
   ComposerPrimitive,
-  SelectionToolbarPrimitive,
-} from "@assistant-ui/react";
+  SelectionToolbarPrimitive} from "@assistant-ui/react";
 import { QuoteIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 

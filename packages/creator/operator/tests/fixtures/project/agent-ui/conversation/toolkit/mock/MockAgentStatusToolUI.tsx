@@ -6,7 +6,7 @@ import type {
 import { projectAgentStatus } from "../../agents/agent-status-projection";
 import { AgentElementFrame } from "../../elements/AgentElementFrame";
 import { AgentStatus } from "@za38.03/agent-ui-plugins";
-import { ConversationToolFallback } from "@za38.03/agent-ui-plugins";
+import { ConversationToolResult } from "@za38.03/agent-ui-plugins";
 
 function shouldUseFallback(
   props: ConversationToolCallProps,
@@ -18,7 +18,7 @@ function shouldUseFallback(
 export const MockAgentStatusToolUI: ConversationToolCallComponent = (props) => {
   const view = projectAgentStatus(props.args, props.status);
   if (shouldUseFallback(props) || view === null) {
-    return <ConversationToolFallback {...props} />;
+    return <ConversationToolResult {...props} />;
   }
   return (
     <AgentElementFrame kind="status">

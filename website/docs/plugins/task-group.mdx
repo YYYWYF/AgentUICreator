@@ -37,7 +37,7 @@ title: "SubAgent 任务与结果（task-group）"
 
 ## 接入嵌套任务消息 {#显示条件与数据来源}
 
-先创建父工具调用，再通过 `parentToolCallId` 关联 SubAgent。子消息使用同一个 `subagentRunId`。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
+先创建父工具调用，再通过 `parentToolCallId` 关联 SubAgent。子消息使用同一个 `subagentRunId`。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"delegate-1","toolCallName":"delegate_specialist"}

@@ -2,11 +2,8 @@ import { StrictMode, useEffect } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 import type { AgentRuntime, AgentRuntimeSnapshot } from "@za38.03/agent-ui-core";
-import {
-  AgentUIRuntimeBinding, AgentUIConnectionState,
-  useAgentUI, useAgentUIState, useAgentUIEvent, useAgentUIUser, type AgentUIHost,
-} from "../src/host/AgentUIProvider.js";
-import { AgentUIProvider, AgentUIAgentProvider, useAgentUIAgents, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
+import { AgentUIRuntimeBinding, AgentUIConnectionState, useAgent, useAgentEvent, useHostUser, type AgentUIHost } from "../src/host/AgentUIProvider.js";
+import { AgentUIProvider, AgentUIAgentProvider, useAgents, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
 
 function source(id: string) {
   let snapshot: AgentRuntimeSnapshot = { conversation: { id }, messages: [], state: {}, run: { status: "idle" }, executions: [], interrupts: [] };
@@ -22,9 +19,36 @@ function source(id: string) {
 }
 
 describe("package-owned Host provider", () => {
+  it("keeps imperative Host and Agent-group readers passive while selectors update independently", async () => {
+    const active = source("A");
+    const renders = { host: 0, status: 0, agents: 0, count: 0 };
+    let host!: AgentUIHost;
+    let agents!: AgentUIAgents;
+    function HostHandle() { host = useAgent(); renders.host++; return null; }
+    function Status() { useAgent(snapshot => snapshot.runtime?.run.status); renders.status++; return null; }
+    function AgentsHandle() { agents = useAgents(); renders.agents++; return null; }
+    function Count() { useAgents(snapshot => snapshot.agents.length); renders.count++; return null; }
+    let tree!: ReactTestRenderer;
+    await act(async () => {
+      tree = create(<AgentUIProvider><AgentsHandle /><Count />
+        <AgentUIAgentProvider agentId="a"><HostHandle /><Status /><AgentUIRuntimeBinding runtime={active.runtime} /></AgentUIAgentProvider>
+      </AgentUIProvider>);
+    });
+    const before = { ...renders };
+    try {
+      await act(async () => active.update({ status: "idle", id: "unrelated" }));
+      expect(renders).toEqual(before);
+      await act(async () => active.update({ status: "running", id: "run" }));
+      expect(renders).toEqual({ ...before, status: before.status + 1 });
+      expect(host.getSnapshot().runtime?.run.status).toBe("running");
+      expect(agents.getSnapshot().agents[0]?.connection.runtime?.run.status).toBe("running");
+    } finally { await act(async () => tree.unmount()); }
+    expect(active.listeners.size).toBe(0);
+  });
+
   it("preserves independent registrations across StrictMode replay", async () => {
     let agents!: AgentUIAgents;
-    function Probe() { agents = useAgentUIAgents(); return null; }
+    function Probe() { agents = useAgents(); return null; }
     let tree!: ReactTestRenderer;
     await act(async () => {
       tree = create(<StrictMode><AgentUIProvider><Probe />
@@ -41,9 +65,9 @@ describe("package-owned Host provider", () => {
     let host!: AgentUIHost;
     const ended = vi.fn();
     function Probe() {
-      host = useAgentUI();
-      useAgentUIEvent("run-end", ended);
-      const status = useAgentUIState(s => s.runtime?.run.status);
+      host = useAgent();
+      useAgentEvent("run-end", ended);
+      const status = useAgent(s => s.runtime?.run.status);
       return <span>{status}</span>;
     }
     let tree!: ReactTestRenderer;
@@ -72,8 +96,8 @@ describe("package-owned Host provider", () => {
     const a = source("A"); const b = source("B");
     const mounts = vi.fn(); const unmounts = vi.fn();
     let first!: AgentUIHost; let second!: AgentUIHost; let user: unknown;
-    function First() { first = useAgentUI(); user = useAgentUIUser(); useEffect(() => { mounts(); return unmounts; }, []); return null; }
-    function Second() { second = useAgentUI(); return null; }
+    function First() { first = useAgent(); user = useHostUser(); useEffect(() => { mounts(); return unmounts; }, []); return null; }
+    function Second() { second = useAgent(); return null; }
     let tree!: ReactTestRenderer;
     const view = (ready: boolean) => <>
       <AgentUIProvider user={{ userName: ready ? "Updated" : "Initial", token: "secret" } as never}>
@@ -102,7 +126,7 @@ describe("package-owned Host provider", () => {
     const a = source("A"); const b = source("B");
     vi.mocked(a.runtime.sendMessage).mockImplementation(() => new Promise(() => {}));
     let host!: AgentUIHost; let tree!: ReactTestRenderer;
-    function Probe() { host = useAgentUI(); return null; }
+    function Probe() { host = useAgent(); return null; }
     const view = (runtime: AgentRuntime) => <StrictMode><AgentUIProvider><Probe /><AgentUIRuntimeBinding runtime={runtime} /></AgentUIProvider></StrictMode>;
     await act(async () => { tree = create(view(a.runtime)); });
     const pending = host.sendMessage("A");

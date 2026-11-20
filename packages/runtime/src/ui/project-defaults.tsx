@@ -30,7 +30,7 @@ export function createAgentUIProject({ hot, ...options }: CreateAgentUIProjectOp
   }
   return {
     appFrontendTools: [], appEventSchemas: {}, baseConversationToolkit: emptyToolkit,
-    Integrations: PassThrough, conversationServices: {}, conversationMessageQueueEnabled: false,
+    Integrations: PassThrough, conversationServices: {},
     defaultLocale: "zh-CN", locales: { "en-US": {}, "zh-CN": {} },
     shell: {},
     getConversationStarterSuggestions: () => [],

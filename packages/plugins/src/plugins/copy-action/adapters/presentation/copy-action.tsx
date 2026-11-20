@@ -4,7 +4,7 @@ import {
   CheckIcon,
   CopyIcon,
   TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
 export type CanonicalResponseCopyActionProps = Omit<
@@ -17,8 +17,10 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
   disabled: disabledProp,
   ...buttonProps
 }) => {
-  const localeMessages = useAgentUILocale();
-  const response = useAssistantResponseRuntime();
+  const localeMessages = useLocale();
+  const text = useAssistantResponseRuntime(snapshot => snapshot.text);
+  const isRunning = useAssistantResponseRuntime(snapshot => snapshot.isRunning);
+  const headId = useAssistantResponseRuntime(snapshot => snapshot.group.headAssistantMessageId);
   const [copied, setCopied] = useState(false);
   const [failed, setFailed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -31,8 +33,8 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
       generation.current++;
       clearTimeout(timer.current);
     };
-  }, [response.group.headAssistantMessageId, response.text]);
-  const disabled = response.isRunning || !response.text;
+  }, [headId, text]);
+  const disabled = isRunning || !text;
   return (
     <>
       <TooltipIconButton
@@ -49,7 +51,7 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
           setFailed(false);
           const current = generation.current;
           try {
-            await navigator.clipboard.writeText(response.text);
+            await navigator.clipboard.writeText(text);
             if (current !== generation.current) {
               return;
             }

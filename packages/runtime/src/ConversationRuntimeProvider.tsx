@@ -1,5 +1,5 @@
 import { createAttachmentAdapter, createDictationAdapter, createFeedbackAdapter } from "./service-adapters.js";
-import { useAgentUILocale } from "./locale.js";
+import { useLocale } from "./locale.js";
 import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
@@ -11,7 +11,7 @@ import { useFrontendToolSource, useFrontendToolkit } from "./tools/use-frontend-
 import { installCancelledToolContinuationGuard } from "./compatibility/cancelled-tool-continuation.js";
 import { installConversationOutgoingMessages } from "./compatibility/conversation-outgoing-messages.js";
 import type { ConversationInputController, ConversationInputControllerFactory } from './plugin-api/input-controller.js';
-import { useAgentUIPresentation } from './presentation.js';
+import { usePresentation } from './presentation.js';
 import {
   AuiConfig,
   AssistantRuntimeProvider,
@@ -64,7 +64,7 @@ import { createConversationFrontendToolPort } from "./tools/types.js";
 import { createAssistantUiFrontendToolkit } from "./tools/assistant-ui-frontend-tool-adapter.js";
 import type { ConversationRunContextGetter, ConversationStarterSuggestion } from "./conversation-types.js";
 import type { AgentUIContext } from "@za38.03/agent-ui-core";
-import { useAgentUIThreadRegistrar } from "./host/AgentUIProvider.js";
+import { useThreadRegistrar } from "./host/AgentUIProvider.js";
 import { ConversationRequestRouting } from "./compatibility/conversation-request-routing.js";
 import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
 import type { AgentUIBeforeRequest } from "./before-request.js";
@@ -110,8 +110,6 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Speech-to-text belongs to the application-provided upstream adapter. */
   dictationAdapter?: DictationAdapter | undefined;
-  /** Ephemeral upstream follow-up queue; disabled by default for direct callers. */
-  enableMessageQueue?: boolean | undefined;
   feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
@@ -136,7 +134,7 @@ const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId, get
     },
   });
 
-type ThreadOptions = Pick<ConversationRuntimeProviderProps, "onError" | "getRunContext" | "enableMessageQueue"> & {
+type ThreadOptions = Pick<ConversationRuntimeProviderProps, "onError" | "getRunContext"> & {
   frontendTools: AgentFrontendToolSource | undefined;
   resolvedAttachments: AttachmentAdapter | undefined;
   resolvedDictation: DictationAdapter | undefined;
@@ -173,13 +171,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
   attachmentAdapter,
   dictationAdapter,
   feedbackAdapter,
-  enableMessageQueue = false,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
 }: Readonly<ConversationRuntimeProviderProps<TState>>) {
-  const serviceMessages = useAgentUILocale("serviceAdapters");
-  const registerHostThread = useAgentUIThreadRegistrar();
+  const serviceMessages = useLocale("serviceAdapters");
+  const registerHostThread = useThreadRegistrar();
   const requestRef = useRef(request);
   useLayoutEffect(() => { requestRef.current = request; }, [request]);
   const ctxRef = useRef(ctx);
@@ -202,7 +199,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const resolvedAttachments = useMemo(() => attachmentAdapter ?? (attachments === false ? undefined : createAttachmentAdapter(attachments ?? {}, serviceMessages, attachmentTransfers.current)), [attachmentAdapter, attachmentKey, attachmentDataSource, serviceMessages]);
   const resolvedDictation = useMemo(() => dictationAdapter ?? (dictation === false ? undefined : createDictationAdapter(dictation ?? {}, serviceMessages, onError)), [dictationAdapter, dictationKey, dictationDataSource, serviceMessages, onError]);
   const resolvedFeedback = useMemo(() => feedbackAdapter ?? (feedbackConfig === false ? undefined : createFeedbackAdapter(feedbackConfig ?? {}, serviceMessages)), [feedbackAdapter, feedbackKey, feedbackDataSource, serviceMessages]);
-  const presentation = useAgentUIPresentation();
+  const presentation = usePresentation();
   const selectedInputFactory = inputControllerFactory ?? presentation.createInputController;
   const inputController = useMemo(() => selectedInputFactory?.(), [selectedInputFactory]);
   const [defaultTransientMessages] = useState(createConversationTransientMessageService);
@@ -220,8 +217,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
   // upstream runtimeHook: a new hook identity retires every thread instance.
   const threadOptions = useMemo<ThreadOptions>(() => ({
     frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation,
-    resolvedFeedback, enableMessageQueue,
-  }), [frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation, resolvedFeedback, enableMessageQueue]);
+    resolvedFeedback,
+  }), [frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation, resolvedFeedback]);
   const [optionsStore] = useState(() => createThreadOptionsStore(threadOptions));
   useLayoutEffect(() => optionsStore.update(threadOptions), [optionsStore, threadOptions]);
   const config = useMemo(() => {
@@ -250,7 +247,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   const outerRuntime = useRef<AssistantRuntime | null>(null);
   const runtimeHook = useCallback(function useConversationThreadRuntime() {
     const { frontendTools, onError, getRunContext, resolvedAttachments, resolvedDictation,
-      resolvedFeedback, enableMessageQueue } = useSyncExternalStore(optionsStore.subscribe, optionsStore.getSnapshot, optionsStore.getSnapshot);
+      resolvedFeedback } = useSyncExternalStore(optionsStore.subscribe, optionsStore.getSnapshot, optionsStore.getSnapshot);
     const aui = useAui();
     const item = aui.threadListItem().getState();
     // Keep the upstream runtime mounted while the first request binds a backend ID.
@@ -381,7 +378,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       }
     }, [getRunContext]);
     const runtime = useAgUiRuntime({
-      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: enableMessageQueue,
+      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
       resumeTranscript: "appended",
       ...(readRunContext === undefined ? {} : { getRunContext: readRunContext }),
       adapters: {

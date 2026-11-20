@@ -14,14 +14,14 @@ title: "插件 API"
 | --- | --- | --- |
 | 发送消息、停止、新建会话、提交审批 | [插件操作](#会话操作与实例信息)：`usePluginActions()`、`setup.actions` | 已启用插件的组件或 `setup` |
 | 获取当前插件实例 | `usePluginInstance()`、`setup.instance` | 读取实例 ID、插件 ID、启用状态 |
-| 读取消息、共享状态、运行与审批状态 | [会话状态](#读取会话状态)：`useAgentMessages()`、`useAgentState()`、`useAgentRun()` 等 | 已有 `AgentRuntimeProvider` 下的组件 |
-| 复用或提供业务服务 | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`usePluginServiceSnapshot()`、`setup.services` | 在插件定义中声明提供或消费的服务 |
+| 读取消息、共享状态、运行与审批状态 | [会话状态](#读取会话状态)：`useAgentRuntime(snapshot => snapshot.messages)`、`useAgentRuntime(snapshot => snapshot.state)`、`useAgentRuntime(snapshot => snapshot.run)` 等 | 已有 `AgentRuntimeProvider` 下的组件 |
+| 复用或提供业务服务 | [服务接口](#服务共享与状态订阅)：`usePluginService()`、`setup.services` | 在插件定义中声明提供或消费的服务 |
 | 打开工作台侧栏、切换或关闭内容 | [工作台侧栏服务](/plugins/workbench-panel#服务方法与状态)：`open(id)`、`activate(id)`、`close(id)`、`collapse()` | 工作台中启用 `workbench-panel`；调用方声明 `agent-ui.workbench-panel` 依赖 |
 | 接收 Agent 返回的业务事件 | [事件接口](#订阅业务事件)：`usePluginEvents()`、`setup.events.subscribe()` | 项目注册事件 Schema，插件声明消费权限 |
 | 组合子插件或替换消息展示 | [子插槽](#组件与子插槽)：`renderSlot()`、`renderScopedSlot()` | 在 manifest 中声明对应子插件的显示位置和接受的能力 |
 | 自定义消息卡片和工具结果 | [展示注册](#消息与工具结果展示)：`dataMessageUIs`、`toolkit` | 注册到现有会话，保留数据名称和工具名称 |
-| 复用输入框、附件与语音按钮 | [会话组件](#复用会话组件与输入能力)：公开组件、`useConversationComposer()` | 当前 Conversation 的上下文中 |
-| 跟随主题与语言 | [样式与文案](#主题与多语言)：项目主题变量、`useAgentUILocale()` | 使用项目统一主题和 locale |
+| 复用输入框、附件与语音按钮 | [会话组件](#复用会话组件与输入能力)：公开组件、`useComposer()` | 当前 Conversation 的上下文中 |
+| 跟随主题与语言 | [样式与文案](#主题与多语言)：项目主题变量、`useLocale()` | 使用项目统一主题和 locale |
 | 让 Agent 调用页面方法或交互组件 | [前端工具](#前端工具与宿主页面联动)：`toolkit` | 注册 `frontend + execute` 或 `human + render` |
 
 这些能力复用应用已有的 Runtime 和 AG-UI 连接。生成工程已经提供所需上下文；把组件移到普通业务页面时，要检查该位置是否仍在对应 Provider 内。服务依赖声明不会自动创建服务，附件等业务服务也需要沿用项目配置。
@@ -68,7 +68,7 @@ title: "插件 API"
 | `services.provide(name, value)` | 注册服务，返回取消注册函数 |
 | `events.subscribe(name, listener)` | 订阅业务事件，返回取消订阅函数 |
 
-`setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` / `usePluginServiceSnapshot` 接口。
+`setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` 接口。
 
 </details>
 
@@ -193,13 +193,13 @@ export default ticketChartPlugin;
 工具结果使用 `UIPluginDefinition.toolkit`，可通过公开的 `createConversationToolkit()` 创建。例如，复用标准工具卡片展示一个业务工具：
 
 ```tsx
-import { createConversationToolkit, ConversationToolFallback } from '@za38.03/agent-ui-plugins';
+import { createConversationToolkit, ConversationToolResult } from '@za38.03/agent-ui-plugins';
 
 export const ticketToolkit = createConversationToolkit({
   lookup_ticket: {
     type: 'backend',
     display: 'standalone',
-    render: props => <ConversationToolFallback {...props} />,
+    render: props => <ConversationToolResult {...props} />,
   },
 });
 ```
@@ -229,7 +229,7 @@ export function ComposerActions() {
 }
 ```
 
-此组件放入已有 Composer 的组合入口；这些按钮依赖当前会话与输入区上下文，不能任意放到独立业务页面。需要自己实现输入外观时，可使用 `useConversationComposer()`：
+此组件放入已有 Composer 的组合入口；这些按钮依赖当前会话与输入区上下文，不能任意放到独立业务页面。需要自己实现输入外观时，可使用 `useComposer()`：
 
 | 状态 / 方法 | 用途 |
 | --- | --- |
@@ -246,7 +246,7 @@ export function ComposerActions() {
 <details class="dev-guide-details" id="主题与多语言">
 <summary>跟随项目主题，读取或新增双语文案</summary>
 
-组件优先使用工程已有的 UI 库和公开样式属性，主题颜色沿用项目的 CSS 变量。官方文案通过 `@za38.03/agent-ui-plugins` 的 `useAgentUILocale()` 读取，项目通过 `Agent` 的 `locales` 属性覆盖需要修改的键。
+组件优先使用工程已有的 UI 库和公开样式属性，主题颜色沿用项目的 CSS 变量。官方文案通过 `@za38.03/agent-ui-plugins` 的 `useLocale()` 读取，项目通过 `Agent` 的 `locales` 属性覆盖需要修改的键。
 
 官方命名空间和键由当前安装版本定义，`Agent.locales` 只能覆盖已有键。新增业务文案集中放到项目已有的共享消息模块；没有时可创建 `application/i18n/messages.ts`。按领域命名并保持双语字段一致，不在每个插件里创建国际化 Hook、语言条件或另一套语言状态：
 
@@ -276,11 +276,11 @@ export function getProjectMessages(locale: AgentUILocaleCode) {
 组件读取统一语言上下文，再消费领域文案；纯展示函数通过参数接收文案：
 
 ```tsx
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 import { getProjectMessages } from '../../application/i18n/messages';
 
 export function TicketActionLabel() {
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  const labels = getProjectMessages(useLocaleCode()).ticketActions;
   return <span>{labels.send}</span>;
 }
 ```
@@ -309,15 +309,15 @@ React 组件从 `@za38.03/agent-ui-plugins` 取得：
 
 ```tsx
 import { useState } from 'react';
-import { usePluginActions, usePluginInstance, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-import { useAgentRun } from '@za38.03/agent-ui-runtime';
+import { usePluginActions, usePluginInstance, useLocaleCode } from '@za38.03/agent-ui-plugins';
+import { useAgentRuntime } from '@za38.03/agent-ui-runtime';
 import { getProjectMessages } from '../../application/i18n/messages';
 
 export function TicketActions() {
   const actions = usePluginActions();
   const instance = usePluginInstance();
-  const run = useAgentRun();
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketActions;
+  const run = useAgentRuntime(snapshot => snapshot.run);
+  const labels = getProjectMessages(useLocaleCode()).ticketActions;
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -346,7 +346,7 @@ export function TicketActions() {
 
 使用前完成以下接入：
 
-- **文案**：按[主题与多语言](#主题与多语言)创建 `application/i18n/messages.ts`，加入 `ticketActions`；已有文件时合并该领域。`useAgentUILocaleCode()` 读取应用已有语言。
+- **文案**：按[主题与多语言](#主题与多语言)创建 `application/i18n/messages.ts`，加入 `ticketActions`；已有文件时合并该领域。`useLocaleCode()` 读取应用已有语言。
 - **异步操作**：处理失败，并在运行或等待审批时控制按钮可用性。
 - **审批回复**：`resumeInterrupts()` 接收 `AgentInterruptResponse[]`。沿用项目已有的审批数据与表单校验，不用普通消息替代审批回复。
 
@@ -355,27 +355,39 @@ export function TicketActions() {
 <details class="dev-guide-details" id="读取会话状态">
 <summary>会话、消息、运行状态与审批 Hook</summary>
 
-以下 Hook 从 `@za38.03/agent-ui-runtime` 导入，订阅已有 Runtime 的变化：
+从 `@za38.03/agent-ui-plugins` 导入 `useConversation`，可以按需订阅当前会话，也可以在点击等事件中即时读取：
+
+```tsx
+const messages = useConversation(s => s.thread.messages);
+const isRunning = useConversation(s => s.thread.isRunning);
+const conversation = useConversation();
+// 在事件回调中调用，读取当时的最新快照。
+const onInspect = () => inspect(conversation.getSnapshot());
+```
+
+传入 selector 时按 `Object.is` 比较选中值；选中值不变时，不会因其他数据更新而重新渲染。无参数时不自动订阅数据；手动订阅使用 `conversation.subscribe(listener)`，并在 effect 清理时取消。selector 可读 `thread.messages`、`thread.state`、`thread.isRunning` 以及公开的 `threads`、`message`、`threadListItem` 字段；后两者需要各自已有的消息或列表项作用域。选择具体字段或稳定引用，避免每次创建新对象、数组。完整示例见[读取当前会话](/plugins/conversation-surface#hook)。
+
+`useAgentRuntime` 从 `@za38.03/agent-ui-runtime` 导入。无参数返回已有 Runtime 的即时读取与操作句柄；传 selector 时订阅选中值：
 
 | Hook | 读取内容 |
 | --- | --- |
-| `useAgentConversation()` | 当前会话信息 |
-| `useAgentMessages()` | 当前会话消息 |
-| `useAgentState<TState>()` | Agent 共享业务状态，类型沿用项目的 `AppAgentState` |
-| `useAgentRun()` | 运行状态，如 `idle`、`running`、`awaiting-input`、`error` |
-| `useAgentExecutions()` | 当前用户轮次的执行链，包含续跑阶段，不是持久化历史 |
-| `useAgentInterrupts()` | 当前待处理的审批或补充输入 |
-| `useAgentRuntimeSnapshot<TState>()` | 完整 Runtime 快照，确实需要多个字段时使用 |
+| `useAgentRuntime(snapshot => snapshot.conversation)` | 当前会话信息 |
+| `useAgentRuntime(snapshot => snapshot.messages)` | 当前会话消息 |
+| `useAgentRuntime<TState, TState>(snapshot => snapshot.state)` | Agent 共享业务状态，类型沿用项目的 `AppAgentState` |
+| `useAgentRuntime(snapshot => snapshot.run)` | 运行状态，如 `idle`、`running`、`awaiting-input`、`error` |
+| `useAgentRuntime(snapshot => snapshot.executions)` | 当前用户轮次的执行链，包含续跑阶段，不是持久化历史 |
+| `useAgentRuntime(snapshot => snapshot.interrupts)` | 当前待处理的审批或补充输入 |
+| `useAgentRuntime(snapshot => snapshot)` | 完整 Runtime 快照，确实需要多个字段时使用 |
 
 例如，读取 Agent 已经写入共享状态的选中文件：
 
 ```tsx
-import { useAgentState } from '@za38.03/agent-ui-runtime';
+import { useAgentRuntime } from '@za38.03/agent-ui-runtime';
 interface AppAgentState { selectedFile?: string }
 
 export function SelectedFile() {
-  const state = useAgentState<AppAgentState>();
-  return state.selectedFile ? <output>{state.selectedFile}</output> : null;
+  const selectedFile = useAgentRuntime<string | undefined, AppAgentState>(snapshot => snapshot.state.selectedFile);
+  return selectedFile ? <output>{selectedFile}</output> : null;
 }
 ```
 
@@ -385,6 +397,17 @@ export function SelectedFile() {
 
 <span id="服务共享与状态订阅"></span>
 
+领域状态 Hook 使用同一种调用方式：无 selector 获取即时读取与操作句柄，传 selector 才订阅所需值。例如在组件顶层调用：
+
+```tsx
+const composer = useComposer();
+const text = useComposer(state => state.text);
+const runtime = useAgentRuntime();
+const status = useAgentRuntime(snapshot => snapshot.run.status);
+```
+
+事件回调中通过 `getSnapshot()` 读取最新值并调用操作；selector 按 `Object.is` 比较返回值。多个 selector 可以分别放在各自的子组件里，隔离界面更新。服务和 Thread 身份变更仍会重新绑定句柄，保存的旧句柄保持其原作用域。各 Hook 的导入入口见下文。
+
 <details class="dev-guide-details" id="内置领域-hook">
 <summary>使用项目已有的会话、认证、主题与语言服务</summary>
 
@@ -392,10 +415,10 @@ export function SelectedFile() {
 
 | 领域 | 读取 | 操作 |
 | --- | --- | --- |
-| 会话 | `useConversations()` 返回 `snapshot`、`serviceAvailable` | `useConversationActions()` 提供刷新、选择、删除、重命名、归档、恢复归档和独立详情读取 |
-| 认证 | `useAuthSession()` 返回 `snapshot`、`serviceAvailable` | 同一 Hook 的 `session` 提供登录、退出 |
-| 主题 | `useAgentUITheme()` 返回当前主题 | `usePluginService(AGENT_UI_THEME_SERVICE)` 获取服务并调用 `setTheme()` |
-| 语言 | `useAgentUILocaleCode()` 读取语言；`useAgentUILocale(namespace)` 读取文案 | `usePluginService(AGENT_UI_LOCALE_SERVICE)` 获取服务并调用 `setLocale()` |
+| 会话 | `useConversations(selector)` 按需订阅列表、详情或加载状态 | `useConversations()` 返回 `getSnapshot`、`subscribe`、`serviceAvailable` 和管理操作，不自动订阅数据 |
+| 认证 | `useAuthSession(selector)` 按需订阅用户、忙碌或错误状态 | `useAuthSession()` 返回即时读取句柄、登录和退出方法，不自动订阅数据 |
+| 主题 | `useTheme()` 返回当前主题 | `usePluginService(AGENT_UI_THEME_SERVICE)` 获取服务并调用 `setTheme()` |
+| 语言 | `useLocaleCode()` 读取语言；`useLocale(namespace)` 读取文案 | `usePluginService(AGENT_UI_LOCALE_SERVICE)` 获取服务并调用 `setLocale()` |
 
 会话与认证 Hook 统一放在项目 `services/hooks/`，通过相对路径导入：
 
@@ -403,7 +426,6 @@ export function SelectedFile() {
 services/
   hooks/
     useConversations.ts
-    useConversationActions.ts
     useAuthSession.ts
 ```
 
@@ -422,14 +444,14 @@ services/
 
 ```tsx
 import { useConversations } from '../../services/hooks/useConversations';
-import { useConversationActions } from '../../services/hooks/useConversationActions';
 
 // 在组件内调用
-const { snapshot, serviceAvailable } = useConversations();
-const { refresh } = useConversationActions();
+const { serviceAvailable } = useConversations();
+const listStatus = useConversations(state => state.listStatus);
+const { refresh } = useConversations();
 ```
 
-`useConversations()` 只需要已有的 Plugin 服务上下文，不读取 assistant-ui 操作上下文。会话操作 Hook 通过现有会话运行环境完成切换和数据保存，不会创建另一个会话。主题、语言服务缺失时，`usePluginService()` 返回 `undefined`，切换组件自行降级。
+读取历史服务状态只需要已有的 Plugin 服务上下文；执行会话导航和管理动作复用已有 Conversation Runtime。无 selector 时不自动订阅数据，`getSnapshot()` 即时读取，传 selector 时按 `Object.is` 比较选中值。主题、语言服务缺失时，`usePluginService()` 返回 `undefined`，切换组件自行降级。
 
 这些项目 Hook 仅在文件缺失时初始化，已有定制文件会保留。自行调整文件位置时，同时更新组件中的相对导入路径。
 
@@ -446,8 +468,9 @@ const { refresh } = useConversationActions();
 | `inject: ['tickets.selection']` | 必需依赖；服务缺失时实例无法启用 |
 | `optionalInject: ['tickets.selection']` | 可选依赖；缺失时组件自行降级 |
 | `services.get<T>(name)` | `setup` 中读取已声明的 `inject` / `optionalInject` 服务 |
-| `usePluginService<T>(name)` | 组件中读取已声明的服务；也可读取本实例 `provides` 的服务 |
-| `usePluginServiceSnapshot(service, fallback)` | 订阅实现 `getSnapshot()` / `subscribe()` 的服务；缺失时返回 fallback |
+| `usePluginService<T>(name)` | 获取已声明服务的句柄，不自动订阅服务数据；服务替换或移除时更新绑定 |
+| `usePluginService(name, selector, fallback)` | 直接按名称订阅服务的选中值，缺失时对 fallback 求值 |
+| `usePluginService(service, selector, fallback)` | 按需订阅已有服务；缺失时对 fallback 求值；`usePluginService(service)` 只返回句柄 |
 
 例如，在生成目录的 `services/ticket-selection.ts` 中实现一个页面内的工单选择服务：
 
@@ -484,15 +507,15 @@ export function createTicketSelectionService(): TicketSelectionService {
 在消费插件的定义中加入 `optionalInject: ['tickets.selection']`，组件即可订阅：
 
 ```tsx
-import { usePluginService, usePluginServiceSnapshot } from '@za38.03/agent-ui-plugins';
+import { usePluginService } from '@za38.03/agent-ui-plugins';
 import type { TicketSelectionService, TicketSelectionSnapshot } from '../../services/ticket-selection';
 
 const EMPTY_SELECTION: TicketSelectionSnapshot = { selectedId: null };
 
 export function SelectedTicket() {
   const service = usePluginService<TicketSelectionService>('tickets.selection');
-  const snapshot = usePluginServiceSnapshot(service, EMPTY_SELECTION);
-  return snapshot.selectedId ? <output>{snapshot.selectedId}</output> : null;
+  const selectedId = usePluginService(service, snapshot => snapshot.selectedId, EMPTY_SELECTION);
+  return selectedId ? <output>{selectedId}</output> : null;
 }
 ```
 
@@ -606,10 +629,10 @@ export function setupTicketEvents({ events, services }: UIPluginSetupContext) {
 
 插件外的业务页面在同一个 `AgentUIProvider` 下使用：
 
-- `useAgentUI()`：执行 Host 会话方法，操作时要求 `status === 'ready'`。
-- `useAgentUIState()`：读取状态。
-- `useAgentUIEvent()`：订阅会话事件。
-- `useAgentUIAppEvent()`：订阅业务事件。
+- `useAgent()`：执行 Host 会话方法，操作时要求 `status === 'ready'`。
+- `useAgent()`：读取状态。
+- `useAgentEvent()`：订阅会话事件。
+- `useAgentAppEvent()`：订阅业务事件。
 
 完整方法与 Hooks 见 [Host API](./react-host-api#会话方法)。
 
@@ -620,12 +643,12 @@ export function setupTicketEvents({ events, services }: UIPluginSetupContext) {
 | 现在要实现的操作 | 使用位置与数据来源 | 具体示例 |
 | --- | --- | --- |
 | 卡片把问题和业务 ID 放进草稿 | 已有插件中的 `useComposer()`；正文与 JSON 分开写入 | [订单卡片填入](../plugins/composer#example-3) |
-| 操作区随输入更新，发送或停止 | 当前 Conversation 中的 `useConversationComposer()`；保留等待审批检查 | [草稿状态与操作](../plugins/composer#example-4) |
+| 操作区随输入更新，发送或停止 | 当前 Conversation 中的 `useComposer()`；保留等待审批检查 | [草稿状态与操作](../plugins/composer#example-4) |
 | 保存或导出整次回答 | 回复页脚内读取当前版本的完整文字与消息 ID | [保存回答](../plugins/response-footer#收藏或保存整次回答) |
 | 获取当前消息、运行或业务状态 | 已有 Runtime 的响应式 Hook | [状态读取](#读取会话状态) |
 | 两个插件共享业务选择 | 在定义中声明同一服务；用快照 Hook 订阅更新 | [共享工单选择](#服务共享与状态订阅) |
 | 在消息卡片打开侧栏，并同步选中状态 | 同一 Agent 的现有面板服务 | [打开与订阅侧栏](../plugins/workbench-panel#hook) |
-| 自定义工具交互或回答问卷 | 当前 renderer 提供参数、结果和提交回调 | [工具调用数据](../plugins/tool-fallback#当前工具调用的数据与操作)、[交互工具](./frontend-tools#2-在组件中提交结果) |
+| 自定义工具交互或回答问卷 | 当前 renderer 提供参数、结果和提交回调 | [工具调用数据](../plugins/tool-result#当前工具调用的数据与操作)、[交互工具](./frontend-tools#2-在组件中提交结果) |
 | 从普通业务页面控制指定助手 | 共享 Provider 下的 Host / 助手集合 | [Host 方法](./react-host-api#会话方法)、[多个助手](./multiple-agents#从业务页面控制指定助手) |
 
 ### 为项目包装组件保留准确参数 {#组件定义与类型的区别}
@@ -649,6 +672,6 @@ export function LimitedComposer({ limit, ...props }:
 
 ### 在现有实现中使用支持入口 {#已接管实现使用的支持入口}
 
-已经接管的实现可能从 `/composer-support` 或 `/plugin-support` 导入底层组合部件。这些部件使用当前安装版本的原生参数；完整卡片还可能在内部转换状态，不能把其通用 props 无条件展开给每个部件。更改结果展示时可先用[保留审批的结果组合](../plugins/tool-fallback#自定义工具内容顺序)，编辑引用标签可用[Lexical 展示替换](../plugins/lexical-composer-input#conversationcomposerdirectivechipprops)。
+已经接管的实现可能从 `/composer-support` 或 `/plugin-support` 导入底层组合部件。这些部件使用当前安装版本的原生参数；完整卡片还可能在内部转换状态，不能把其通用 props 无条件展开给每个部件。更改结果展示时可先用[保留审批的结果组合](../plugins/tool-result#自定义工具内容顺序)，编辑引用标签可用[Lexical 展示替换](../plugins/lexical-composer-input#conversationcomposerdirectivechipprops)。
 
 普通业务插件的服务和操作使用前面的具体示例，保持原有 Provider 与 Thread。只有需要改变实现代码时，才按[源码接管流程](./source-takeover)处理。

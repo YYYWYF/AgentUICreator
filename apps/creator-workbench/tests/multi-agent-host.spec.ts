@@ -8,13 +8,13 @@ test("a generated Host controls Agent visibility and routes workflows within the
     await writeFile(path.join(root, "src/main.tsx"), `
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AgentUIProvider, useAgentUIAgents, useAgentUIAgentsState } from '@za38.03/agent-ui-runtime';
+import { AgentUIProvider, useAgents } from '@za38.03/agent-ui-runtime';
 import { AgentUIApplication } from '@za38.03/agent-ui-runtime/ui';
 import { agentUIProject } from './agent-ui/application/project-config';
 import './host.css';
 function Page() {
-  const agents = useAgentUIAgents();
-  const snapshot = useAgentUIAgentsState(s => s);
+  const agents = useAgents();
+  const snapshot = useAgents(s => s);
   const [visible, setVisible] = useState('a');
   window.agentFixture = agents;
   return <><header><button onClick={() => setVisible('a')}>Switch A</button><button onClick={() => setVisible('b')}>Switch B</button>

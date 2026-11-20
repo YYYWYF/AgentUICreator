@@ -1,10 +1,11 @@
 import {ConversationAdapter as DefaultAdapter} from "@za38.03/agent-ui-runtime/ui";
 import type {ConversationSurfacePresentationProps} from "@za38.03/agent-ui-runtime/presentation";
-import {ConversationSurface as OwnedSurface,ConversationWelcome} from "../../../../public.js";
-import {useAgentUILocale} from "../../../../public.js";
+import {ConversationSurface as OwnedSurface} from "./surface.js";
+import {ConversationWelcome} from "./welcome.js";
+import {useLocale} from "../../../../public.js";
 import {isAgentUITheme,AGENT_UI_DEFAULT_THEME} from "../../../../public.js";
 const Surface=(props:ConversationSurfacePresentationProps)=><OwnedSurface {...props} theme={isAgentUITheme(props.theme)?props.theme:AGENT_UI_DEFAULT_THEME}/>;
-function DefaultWelcome(){const messages=useAgentUILocale("conversation");return <ConversationWelcome title={messages.welcome} description={messages.welcomeDescription||undefined}/>;}
+function DefaultWelcome(){const messages=useLocale("conversation");return <ConversationWelcome title={messages.welcome} description={messages.welcomeDescription||undefined}/>;}
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 export interface ConversationSurfaceAdapterProps {
   Surface?: ComponentType<ConversationSurfacePresentationProps>;

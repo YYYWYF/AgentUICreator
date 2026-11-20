@@ -1,4 +1,4 @@
-import { formatLocaleMessage, localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
+import { formatLocaleMessage, localizeCreatorPresentation, useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
 import type {
   CreatorProjectIssue,
   CreatorProjectMode,
@@ -74,7 +74,7 @@ export function CreatorProjectSetup({
   infoState, draft, canInitialize, debug, onModeChange, onSourceRootChange,
   onInitialize, onRetryInfo,
 }: CreatorProjectSetupProps) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const validation = draft.validation;
   const dependencyPlan = validation.status === "valid" ? validation.result.dependencyPlan : undefined;
   const preparingDependencies = dependencyPlan !== undefined &&

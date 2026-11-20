@@ -2,7 +2,7 @@
 
 Mock 服务为 Agent 前端提供预设的 AG-UI 事件流。业务后端还没就绪时，可以先体验流式回复、思考、工具调用和等待用户操作；修改界面后，也可以反复播放相同内容，对照检查效果。
 
-它随 Creator 提供，无需单独安装，也无需模型密钥。先完成[Creator 与助理界面的接入](/start/index.md)，再从 Creator 右上角齿轮打开「示例与回放」，启动服务并选择场景。
+它随 Creator 提供，无需单独安装，也无需模型密钥。先完成[Creator 与助理界面的接入](/start/index.md)，在「连接 Agent」中选择「使用示例 Agent」，再到「示例与回放」选择场景。
 
 ![Creator 设置菜单中的示例与回放入口](/images/start/10-creator-mock-menu.png)
 

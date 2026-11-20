@@ -19,6 +19,13 @@ title: "@ 提及搜索（mention-trigger）"
 
 默认格式保留稳定 ID 和展示名，例如选择小李后写入 `:user[小李]{name=u-1}`。配置了 [Lexical 输入](./lexical-composer-input#与-composer-联动)时显示为可整体选择、删除的标签；标签样式不改变实际发送的引用文本。
 
+<figure className="plugin-preview">
+
+![Lexical 输入框中的提及标签和命令标签](/images/plugins/lexical-composer-input.png)
+
+<figcaption>图中选中的是“产品说明文档”：@ 提及和 / 指令都显示为紫色标签，前后仍可输入普通文字。标签对应正文中的引用标记。</figcaption>
+</figure>
+
 项目如何提供 HTTP 搜索、处理错误与缓存见[接入提及数据源](/development/composer-sources)。未提供可用来源时，不会自动出现业务候选。
 
 ## 交给 Composer 的数据
@@ -29,30 +36,46 @@ title: "@ 提及搜索（mention-trigger）"
 
 以下候选中的 `data` 由项目定义，必须可序列化为 JSON：
 
-```json
+```json ag-ui
 { "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
 ```
 
 选择该候选后，正文包含 `:user[小李]{name=u-1}`，`data` 不编码进标记。假设触发器实例 ID 为 `employee-mention`，最终 Composer 适配器可读取：
 
-```json
+```json ag-ui
 {
   "pluginData": {
     "employee-mention": [
-      { "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
-    ]
-  },
-  "selections": {
-    "employee-mention": [
-      { "id": "u-1", "type": "user", "label": "小李", "data": { "employeeId": "E1001" } }
+      {
+        "id": "u-1",
+        "type": "user",
+        "label": "小李",
+        "data": {
+          "employeeId": "E1001"
+        }
+      }
     ]
   }
 }
 ```
 
-两处都是**原始候选数组**，包括实际提供的可选字段。连续选中多个引用会保留多项；删除某个引用后，那一项不再进入本次请求。未选中、仅输入 `@` 查询文字不会生成选择数据。
+`pluginData[实例ID]` 是**候选数组**，包括实际提供的可选字段。连续选中多个引用会保留多项；删除某个引用后，那一项不再进入本次请求。未选中、仅输入 `@` 查询文字不会生成选择数据。
 
 **默认发送正文引用，不自动新增 `forwardedProps` 中的选中项字段。** 后端若需要员工 ID 或完整对象，在已有 [Composer `requestAdapter`](./composer#请求适配) 中读取上述实例键并组装。触发器本身没有单独的 `requestAdapter`。
+
+例如选中小李后输入“请查看他的待办”，默认请求中的用户消息为（仅列相关字段）：
+
+```json ag-ui
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "content": ":user[小李]{name=u-1} 请查看他的待办"
+    }
+  ]
+}
+```
 
 嵌在其他业务插件中的提及入口使用该实例的 `:mention` 子键；以实际组合的实例 ID 为准。手动填入相同标记能恢复文字或标签展示，不能凭标记还原没有保存的原始 `data`。
 
@@ -60,7 +83,7 @@ title: "@ 提及搜索（mention-trigger）"
 
 `onSelect(item, { text, range })` 返回**替换当前查询的片段**。例如返回 `item.label` 就插入纯名称，插件仍保留其对应原始选择；返回 `null` 移除当前查询，不记录选择。不要把前后整段草稿再次拼回返回值，插件已经负责保留它们。
 
-修改正文格式不会自动把原始数据发给后端，仍由最终 Composer 适配器决定。已接受提交后清理本次待发送选择；排队和续答使用原次快照，不读取下一条草稿的新选择。更完整的提交规则见 [Composer](./composer#提交后的快照重发与会话切换)。
+修改正文格式不会自动把原始数据发给后端，仍由最终 Composer 适配器决定。已接受提交后清理本次待发送选择；重试和续答使用原次快照，不读取下一条草稿的新选择。更完整的提交规则见 [Composer](./composer#提交后的快照重发与会话切换)。
 
 ## 设置搜索防抖 {#设置搜索防抖}
 

@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
 import type { CreatorProjectMode, CreatorWorkspaceSetupInfo } from "../../workspace/types.js";
 import { Blocks, Check, LayoutDashboard, PanelRight } from "lucide-react";
 import { Button } from "../components/button.js";
@@ -17,7 +17,7 @@ function getModeDescriptions(localeMessages: CreatorLocaleMessages = DEFAULT_CRE
 }; }
 
 export function CreatorModeCard({ mode, selected, disabled, onSelect }: CreatorModeCardProps) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const Icon = mode.id === "assistant" ? PanelRight : mode.id === "embedded" ? Blocks : LayoutDashboard;
   return (
     <Button variant="outline"

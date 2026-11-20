@@ -7,6 +7,8 @@
 
 展示 Agent 取回的知识库、长期记忆等上下文，自动按查询分组，并以可展开的摘要显示片段总数。
 
+服务端需要返回的事件和字段说明见[服务端返回的 AG-UI 数据流](#显示条件与数据来源)。
+
 ## 按来源显示检索摘要
 
 收到有效上下文消息后，插件显示来源名称和片段总数。知识库与长期记忆使用统一文案，其他来源显示消息提供的来源值。
@@ -30,19 +32,29 @@
 
 这里的片段是检索正文，不是文件地址。插件不会单凭一段正文自动提供业务文档预览或下载。
 
-## 接入上下文消息 \{#显示条件与数据来源}
+## 服务端返回的 AG-UI 数据流 \{#显示条件与数据来源}
 
-发送 `CUSTOM`，名称必须是 `CONTEXT_CONTENT`，`value` 为检索上下文。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+在当前 AG-UI 运行中发送以下事件。`name` 必须是 `CONTEXT_CONTENT`，`value` 直接携带检索结果对象：
 
 ```jsonl
 {"type":"CUSTOM","name":"CONTEXT_CONTENT","value":{"source":"rag","content":[{"query":"退款期限是多少？","context":["退款申请需在 30 天内提交。"]}]}}
 ```
 
-- **数据结构**：`source` 是字符串；`content` 是数组，每组包含字符串 `query` 和字符串数组 `context`。
-- **来源名称**：`rag`、`long_term_memory` 使用内置名称，其他来源显示原字符串。
-- **无效数据**：不渲染。
+以上结果显示一组查询、1 条上下文。这里展示的是 F12 EventStream **Data** 列中的事件 JSON；实际 HTTP 传输的 SSE 包装及通用运行事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-Mock 的 `CONTEXT_STARTED`、`CONTEXT_FINISHED` 不提供本插件的卡片内容，不能替代 `CONTEXT_CONTENT`。
+### `CONTEXT_CONTENT` 字段
+
+| 字段                        | 类型                  | 必需 | 含义                                                      |
+| ------------------------- | ------------------- | -- | ------------------------------------------------------- |
+| `type`                    | `"CUSTOM"`          | 是  | AG-UI 自定义事件类型                                           |
+| `name`                    | `"CONTEXT_CONTENT"` | 是  | 本插件匹配的业务事件名，区分大小写                                       |
+| `value`                   | 对象                  | 是  | 完整检索结果，不是序列化后的 JSON 字符串                                 |
+| `value.source`            | `string`            | 是  | `rag` 显示知识库名称，`long_term_memory` 显示长期记忆名称；其他值直接作为来源名称显示 |
+| `value.content`           | 数组                  | 是  | 按查询词组织的结果组                                              |
+| `value.content[].query`   | `string`            | 是  | 这一组使用的检索词                                               |
+| `value.content[].context` | `string[]`          | 是  | 本组片段正文；每个字符串算一条上下文，可以为空数组                               |
+
+每条 `CONTEXT_CONTENT` 都应提供完整的 `value`，不要只发送片段增量。字段缺失、类型错误或 `context` 中含有非字符串项时，整条检索卡片不渲染。`context: []` 是有效的空结果，该查询组会显示空结果提示。
 
 
 `renderContent(data, defaultContent)` 提供来源 `source`、按查询词组织的 `content` 片段和默认内容。可以保留默认片段，再组合项目的知识库明细或业务操作；数据传给独立插件的方法见[插件联动与取数](/development/plugin-interaction.md)。

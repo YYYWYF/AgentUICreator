@@ -54,6 +54,19 @@ it("extracts every official Plugin against the public contract without a copied 
   }
 }, 120_000);
 
+it("rewrites nested presentation imports using logical paths on Windows and POSIX", async () => {
+  const delivery = deliveries.find(plugin => plugin.id === "tool-result");
+  const nativeTarget = path.win32.join("adapters", "approval", "approval-actions.tsx");
+  const logicalTarget = nativeTarget.split(path.win32.sep).join("/");
+  const nested = await portableSource(delivery, logicalTarget, 'import { Button } from "../../../../../plugin-support.js";\n');
+  expect(nested).toContain("@za38.03/agent-ui-plugins/plugin-support");
+  expect(nested).not.toContain("../../../../../plugin-support");
+  const root = await portableSource(delivery, "adapters/tool-call-card.tsx", 'import type { ConversationToolCallProps } from "../../../../public.js";\n');
+  expect(root).toContain("@za38.03/agent-ui-plugins");
+  const unrelated = await portableSource(delivery, logicalTarget, 'import { local } from "../../../../public.js";\n');
+  expect(unrelated).toContain("../../../../public.js");
+});
+
 it("ships exact canonical plugin and shared source bytes with its own package version", async () => {
   const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   const catalog = JSON.parse(await readFile(path.join(root, "dist/catalog.json"), "utf8"));
@@ -62,7 +75,10 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   expect(catalog.plugins.some(plugin => plugin.id === "reasoning")).toBe(true);
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
-  expect(ids).toHaveLength(50);
+  expect(ids).toHaveLength(49);
+  expect(ids).not.toContain('tool-fallback');
+  expect(ids.filter(id => id === 'tool-result')).toHaveLength(1);
+  expect(pkg.exports).not.toHaveProperty('./tool-fallback');
   expect(ids).toContain('skills');
   expect(ids).toContain('skills-selection');
   expect(ids).not.toContain("conversation-history");

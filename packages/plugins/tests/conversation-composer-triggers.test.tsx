@@ -103,10 +103,10 @@ it('lets project selection replace rich-editor insertion instead of being bypass
 });
 it('gives Composer the original selection and full control over external fields and text', async () => {
   const item = { id: 'employee-custom', type: 'user', label: 'Custom person', data: { department: 'product' } };
-  const requestAdapter = vi.fn<ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
+  const requestAdapter = vi.fn<ComposerRequestAdapter>(({ request, pluginData }) => ({
     ...request,
     messages: request.messages.map(message => message.role === 'user' ? { ...message, content: 'Custom question' } : message),
-    forwardedProps: { business: pluginData, raw: selections },
+    forwardedProps: { business: pluginData },
   }));
   const f = await mount({ search: async () => [item] }, [], false, { requestAdapter });
   await f.type('before @Custom after', 14); await f.choose('Custom person');
@@ -115,7 +115,7 @@ it('gives Composer the original selection and full control over external fields 
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(requestAdapter.mock.calls[0]![0].request.messages[0]!.content).toBe('before :user[Custom person]{name=employee-custom} after');
   expect(f.requests[0]!.messages[0]!.content).toBe('Custom question');
-  expect(f.requests[0]!.forwardedProps).toEqual({ business: { 'standalone:mention': [item] }, raw: { 'standalone:mention': [item] } });
+  expect(f.requests[0]!.forwardedProps).toEqual({ business: { 'standalone:mention': [item] } });
   expect(JSON.stringify(f.requests[0])).not.toContain('agent-ui-selection-');
   expect(JSON.stringify(f.requests[0])).not.toContain('agentUIComposerData');
   expect(f.host.textContent).toContain('@Custom person');
@@ -175,7 +175,7 @@ it('collects @ and / data independently and assembles it once in Composer on key
   expect(f.requests[0]!.messages[0]!.content).toBe(':user[Person]{name=one} :command[Summary]{name=summarize} Question');
   expect(f.requests[0]!.context).toEqual([{ description: 'project', value: 'custom-context' }]);
   expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { employees: [item], action: [command] } });
-  expect(requestAdapter.mock.calls[0]![0].selections).toEqual({ 'composer-main:mention': [item], 'composer-main:command': [command] });
+  expect(requestAdapter.mock.calls[0]![0].pluginData).toEqual({ 'composer-main:mention': [item], 'composer-main:command': [command] });
   expect(f.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="one"]')?.textContent).toBe('@Person');
   expect(f.host.querySelector('[data-slot="directive-text-chip"][data-directive-id="summarize"]')?.textContent).toBe('/Summary');
   const savedContent = f.requests[0]!.messages[0]!.content;
@@ -210,7 +210,7 @@ it('retains repeated structured selections in rich input and lets Composer send 
   await f.type(`${f.runtime.thread.composer.getState().text}before @Person`); await f.choose('Person');
   await act(async () => f.runtime.thread.composer.send());
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
-  expect(requestAdapter.mock.calls[0]![0].selections['standalone:mention']).toEqual([item, item]);
+  expect(requestAdapter.mock.calls[0]![0].pluginData['standalone:mention']).toEqual([item, item]);
   expect(String(f.requests[0]!.messages[0]!.content).trim()).toBe(':user[Person]{name=one} before :user[Person]{name=one}');
   expect(JSON.parse(f.requests[0]!.context[0]!.value)).toEqual([item, item]);
 });
@@ -239,7 +239,7 @@ it.each(['mention', 'slash'] as const)('rejects non-JSON %s selection data local
 it('exposes raw selections to Composer while preserving the original reference in the request', async () => {
   const item = { id: 'one', type: 'user', label: 'Person', data: { role: 'owner' } };
   const f = await mount({ search: async () => [item] }, [], false, {
-    requestAdapter: ({ request, selections }) => ({ ...request, forwardedProps: { raw: selections } }),
+    requestAdapter: ({ request, pluginData }) => ({ ...request, forwardedProps: { raw: pluginData } }),
   });
   await f.type('@Person'); await f.choose('Person');
   expect(f.runtime.thread.composer.getState().text.trim()).toBe(':user[Person]{name=one}');
@@ -251,7 +251,7 @@ it('exposes raw selections to Composer while preserving the original reference i
 it('supports custom text and JSON data together, and removes a disabled Plugin contribution', async () => {
   const f = await mount({ search: async () => [{ id: 'one', type: 'user', label: 'Person' }] }, [], false, {
     mentionSelect: item => JSON.stringify({ employees: [item.id] }),
-    requestAdapter: ({ request, selections }) => ({ ...request, forwardedProps: { raw: selections } }),
+    requestAdapter: ({ request, pluginData }) => ({ ...request, forwardedProps: { raw: pluginData } }),
   });
   await f.type('@Person'); await f.choose('Person');
   await act(async () => f.runtime.thread.composer.send());

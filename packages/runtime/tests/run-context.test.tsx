@@ -5,8 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ConversationRuntimeProvider, createEphemeralConversationThreadBinding,
   useConversationRuntimeBridge, type ConversationRuntimeBridge,
-  type ConversationRuntimeProviderProps, type ConversationRunContextGetter,
-} from "../src/public.js";
+  type ConversationRuntimeProviderProps, type ConversationRunContextGetter} from "../src/public.js";
 
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 100; i++) {

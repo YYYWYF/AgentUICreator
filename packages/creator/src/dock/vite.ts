@@ -1,6 +1,7 @@
 import type { Plugin } from "vite";
 import { readFile } from "node:fs/promises";
 import { creatorDockIntegration, type CreatorDockIntegrationOptions } from "./integration.js";
+import { creatorWatchOptions } from "../nodeWatch.js";
 
 const CLIENT_PATH = "/__agent-ui/creator-dock/client.js";
 
@@ -11,7 +12,8 @@ export function createCreatorDockVitePlugin(options: CreatorDockIntegrationOptio
     name: "agent-ui-creator-dock", apply: "serve",
     config(config) {
       integration = creatorDockIntegration({ ...options, projectRoot: options.projectRoot ?? config.root ?? process.cwd() });
-      return { server: { proxy: integration.proxies } };
+      const watch = creatorWatchOptions(config.server?.watch);
+      return { server: { proxy: integration.proxies, ...(watch === undefined ? {} : { watch }) } };
     },
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {

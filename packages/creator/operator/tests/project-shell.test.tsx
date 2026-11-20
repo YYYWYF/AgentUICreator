@@ -3,7 +3,7 @@ import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { usePluginActions, type UIPluginDefinition } from "@za38.03/agent-ui-plugins";
-import { useAgentRun } from "@za38.03/agent-ui-runtime";
+import { useAgentRuntime } from "@za38.03/agent-ui-runtime";
 import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog } from "@za38.03/agent-ui-runtime/ui";
 import { AssistantShell } from "../../../plugins/resources/registry/items/foundation/shell-assistant/files/application/shell/AssistantShell";
 import { EmbeddedShell } from "../../../plugins/resources/registry/items/foundation/shell-embedded/files/application/shell/EmbeddedShell";
@@ -18,7 +18,7 @@ it("keeps the project shell, draft, Plugin service and active run alive while th
     Component: () => null,
   };
   function View() {
-    const actions = usePluginActions(), run = useAgentRun();
+    const actions = usePluginActions(), run = useAgentRuntime(snapshot => snapshot.run);
     useEffect(() => { mounted(); return unmounted; }, []);
     return <><input defaultValue="draft" /><output>{run.status}</output><button onClick={() => { void actions.sendMessage("Hello"); }}>send</button></>;
   }

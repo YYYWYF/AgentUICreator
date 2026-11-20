@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../../locale.js';
+import { useLocale } from '../../../../../../locale.js';
 
 import '@assistant-ui/react-markdown/styles/dot.css';
 
@@ -64,7 +64,7 @@ const MarkdownTextImpl: FC<MarkdownTextProps> = ({ components, componentsByLangu
 export const MarkdownText = memo(MarkdownTextImpl);
 
 const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const onCopy = () => {
     if (!code || isCopied) return;

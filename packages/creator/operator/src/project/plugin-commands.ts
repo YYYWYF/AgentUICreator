@@ -1,3 +1,4 @@
+import { resolve as resolveModule } from "import-meta-resolve";
 import { installedPackagePluginIds } from "./plugin-application";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -48,7 +49,7 @@ export async function setAgentUIPluginEnabled(root: string, instanceId: string, 
     rawPlugin.enabled = enabled;
     const after = changed ? JSON.stringify(raw, null, 2) + "\n" : state.source;
     const transaction = await commit({ path: state.relative, before: state.source, after,
-      verificationRuntime: import.meta.resolve("@za38.03/agent-ui-creator/project/commands") });
+      verificationRuntime: resolveModule("@za38.03/agent-ui-creator/project/commands", import.meta.url) });
     if (transaction.verification.status !== "passed") throw new Error("PLUGIN_STATIC_VALIDATION_FAILED");
     return { current: instanceId, changed, changedPaths: changed ? [state.relative] : [], validation: transaction.verification.status, ...transaction };
   } finally { await release(); }

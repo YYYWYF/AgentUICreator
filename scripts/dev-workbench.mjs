@@ -1,4 +1,4 @@
-import { createRequire } from "node:module";
+import path from "node:path";
 import { spawnPnpm } from "./pnpm-process.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
@@ -10,17 +10,12 @@ const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 ensureWorkspaceDependencies();
 prepareWorkbench();
 await ensureExampleHost("platform");
-// Reuse Creator's existing development TypeScript loader.
-const require = createRequire(
-  new URL("../packages/creator/package.json", import.meta.url),
+const { compileDevelopmentEntry } = await import("../packages/creator/dist/development-source.js");
+const entry = await compileDevelopmentEntry(
+  path.join(workspaceRoot, "apps/creator-workbench/dev.ts"),
+  path.join(workspaceRoot, "apps/creator-workbench/node_modules/.cache/agent-ui-development"),
 );
-const { tsImport } = await import(
-  pathToFileURL(require.resolve("tsx/esm/api")).href
-);
-const { startDevelopment } = await tsImport(
-  "../apps/creator-workbench/dev.ts",
-  import.meta.url,
-);
+const { startDevelopment } = await import(pathToFileURL(entry).href);
 await startDevelopment({
   workspaceRoot,
   args: process.argv.slice(2),

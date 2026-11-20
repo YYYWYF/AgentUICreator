@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../locale.js';
+import { useLocale } from '../../../../../locale.js';
 
 import * as React from 'react';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
@@ -8,7 +8,7 @@ import { XIcon } from 'lucide-react';
 
 import { Button } from './button';
 import { cn } from '../../../../vendor-generated/assistant-ui/lib/utils.js';
-import { useAgentUIPortalContainer } from '../../../../style-boundary/AgentUIRoot';
+import { usePortalContainer } from '../../../../style-boundary/AgentUIRoot';
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-agent-ui-owned='' data-slot='sheet' {...props} />;
@@ -23,7 +23,7 @@ function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
 }
 
 function SheetPortal({ container, ...props }: SheetPrimitive.Portal.Props) {
-  const portalContainer = useAgentUIPortalContainer();
+  const portalContainer = usePortalContainer();
   if (portalContainer === null) return null;
   const nestedContainer =
     container instanceof HTMLElement && portalContainer?.closest('[data-agent-ui-root]')?.contains(container)
@@ -67,7 +67,7 @@ function SheetContent({
   container?: HTMLElement | null;
   contained?: boolean;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <SheetPortal {...(container ? { container } : {})}>
       <SheetOverlay {...(contained ? { style: { position: 'absolute' } } : {})} />

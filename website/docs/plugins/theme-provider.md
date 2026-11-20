@@ -26,13 +26,13 @@ title: "主题服务（theme-provider）"
 同一 Agent 内的按钮和主题选择框共享服务；切换后，所有订阅该主题的组件同步更新。组件声明 `agent-ui.theme` 依赖。
 
 ```tsx
-import { usePluginService, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
 
 export function DarkThemeButton() {
   const service = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
-  const labels = useAgentUILocale('theme');
+  const labels = useLocale('theme');
   return <button type="button" disabled={!service}
     onClick={() => service?.setTheme('dark')}>{labels.dark}</button>;
 }
@@ -57,18 +57,18 @@ export function ThemedCard({ children }: { children: ReactNode }) {
 
 ## 图表配色适配 {#hook}
 
-自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useAgentUITheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
+自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useTheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
 
 ```tsx
 import type { ReactNode } from 'react';
-import { useAgentUITheme } from '@za38.03/agent-ui-runtime/ui';
+import { useTheme } from '@za38.03/agent-ui-runtime/ui';
 import { getAgentUIThemeColorScheme, type AgentUIColorScheme }
   from '@za38.03/agent-ui-plugins';
 
 export function ThemeAwareChart({ renderChart }: {
   renderChart: (scheme: AgentUIColorScheme) => ReactNode;
 }) {
-  const theme = useAgentUITheme();
+  const theme = useTheme();
   return <>{renderChart(getAgentUIThemeColorScheme(theme))}</>;
 }
 ```

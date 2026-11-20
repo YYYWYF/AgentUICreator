@@ -54,7 +54,7 @@ The sources schema belongs to search_sources Tool Result.
 
 assistant-ui SourceMessagePart is a frontend/runtime presentation contract.
 
-这个 schema 只属于 `search_sources`，不是全局 AgentUICreator 协议。projector 要求 sources 数组、非空且唯一的 id；URL 只允许有效的 `http://` / `https://`，拒绝 javascript、data 和非法 URL；document 要求非空 title、mediaType，filename 可选。可选字符串存在时必须非空。未知字段不会传给 facade，任一条目无效会整体回退到 ConversationToolFallback。空数组是有效结果，展示零个 Sources。运行中、失败或无有效结果时保留官方 Tool fallback。
+这个 schema 只属于 `search_sources`，不是全局 AgentUICreator 协议。projector 要求 sources 数组、非空且唯一的 id；URL 只允许有效的 `http://` / `https://`，拒绝 javascript、data 和非法 URL；document 要求非空 title、mediaType，filename 可选。可选字符串存在时必须非空。未知字段不会传给 facade，任一条目无效会整体回退到 ConversationToolResult。空数组是有效结果，展示零个 Sources。运行中、失败或无有效结果时保留官方 Tool fallback。
 
 没有 CUSTOM sources 标准化、自定义 SOURCE_* event、全局 Tool Result 转 Source、Runtime inference 或 ConversationService 改造。Tool UI 只展示来源，不把结果写入 message source parts，不实现正文位置绑定、脚注、搜索逻辑或新的持久化协议。
 

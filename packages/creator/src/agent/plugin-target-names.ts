@@ -16,7 +16,6 @@ const featureNames: Record<string, readonly string[]> = {
   "agent-identity": ["助手名字", "助手名称", "助理名称", "assistant name"],
   "reasoning": ["思考过程", "推理过程", "reasoning"],
   "tool-result": ["工具结果", "审批按钮", "工具审批", "tool approval"],
-  "tool-fallback": ["工具结果", "审批按钮", "工具审批", "tool approval"],
 };
 
 export function pluginTargetNames(plugin: { pluginId: string; name?: string; targetNames?: readonly string[] }) {

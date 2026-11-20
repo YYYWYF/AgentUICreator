@@ -2,10 +2,9 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AgentUIProvider, AgentUIConversationBinding, useAgentUI, useAgentUIAppEvent,
+  AgentUIProvider, AgentUIConversationBinding, useAgent, useAgentAppEvent,
   ConversationRuntimeProvider, createAgentUIFrontendTools, createEphemeralConversationThreadBinding,
-  type AgentUIHost,
-} from "../src/public.js";
+  type AgentUIHost} from "../src/public.js";
 import { HttpAgent } from "@ag-ui/client";
 
 async function until(predicate: () => boolean) {
@@ -32,7 +31,7 @@ describe("public Host interactions through the canonical Agent runtime", () => {
         signal.throwIfAborted(); opened(input.ticketId, toolCallId); return { opened: input.ticketId };
       },
     }]);
-    function Page() { host = useAgentUI(); useAgentUIAppEvent("app.ticket.selected", events); return null; }
+    function Page() { host = useAgent(); useAgentAppEvent("app.ticket.selected", events); return null; }
     function Native() { nativeClient = useAui(); native = nativeClient.threads.__internal_getAssistantRuntime!(); return <AgentUIConversationBinding />; }
     await act(async () => { tree = create(<AgentUIProvider><Page />
       <ConversationRuntimeProvider endpoint="https://example.test/agent" ctx={{ tenant: "host" }} threadBinding={createEphemeralConversationThreadBinding()} frontendTools={tools}

@@ -34,54 +34,83 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 
 例如项目提供下列建议项：
 
-```json
+```json ag-ui
 { "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }
 ```
 
 假设插件实例 ID 为 `suggestions`，选择后，最终 Composer 适配器可读取：
 
-```json
+```json ag-ui
 {
   "pluginData": {
-    "suggestions": [{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }]
-  },
-  "selections": {
-    "suggestions": [{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }]
+    "suggestions": [
+      {
+        "title": "订单进度",
+        "prompt": "查询这笔订单的进度",
+        "data": {
+          "orderId": "O-1"
+        }
+      }
+    ]
   }
 }
 ```
 
-这里 `pluginData.suggestions` 与 `selections.suggestions` 都是**数组**。原始条目保留实际存在的 `prompt/title/label/data`；运行时建议以它真正提供的字段为准，不额外补造业务数据。
+`pluginData.suggestions` 是**数组**。原始条目保留实际存在的 `prompt/title/label/data`；运行时建议以它真正提供的字段为准，不额外补造业务数据。
 
 **默认只发送 `prompt`，不自动增加结构化外带字段。** `sendOnSelect={false}` 时先保留数据供之后提交；删除草稿中对应问题文本后不再携带该条选择。清空原草稿的选择会清理本建议入口先前的数据，不清理别的插件。
 
+例如在空草稿中选择上面的建议，默认请求中的用户消息为（仅列相关字段）：
+
+```json ag-ui
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "content": "查询这笔订单的进度"
+    }
+  ]
+}
+```
+
 ## 为建议附加业务参数 \{#自定义建议问题的数据}
 
-已有建议入口可以同步转换每条选择，例如取出订单 ID。下例继续使用项目传入的建议和文案：
+项目在 `items` 的 `data` 中提供订单 ID 等业务字段，建议插件将所选条目交给 Composer。在项目已有的 `plugins/composer/request-adapter.ts` 中决定最终发送位置：
 
 ```tsx
-import type { ComponentProps } from 'react';
-import { ConversationSuggestionsPlugin as Implementation } from '@za38.03/agent-ui-plugins/conversation-suggestions';
+import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
-export const ConversationSuggestionsPlugin = (props: ComponentProps<typeof Implementation>) => {
-  return <Implementation {...props}
-    requestAdapter={item => ({ selectedQuestion: item.prompt, business: item.data ?? null })} />;
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>) : {};
+}
+
+export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) => {
+  if (!Object.hasOwn(pluginData, 'suggestions')) return request;
+  return {
+    ...request,
+    forwardedProps: {
+      ...record(request.forwardedProps),
+      suggestions: pluginData['suggestions'],
+    },
+  };
 };
 ```
 
-回调返回 JSON，`pluginData.suggestions` 变为返回值组成的数组，`selections.suggestions` 仍保留原始条目。即使回调返回一个对象或字符串，外层仍然是数组。默认请求中的对应字段为：
+将它接到项目已有 Composer 的 `requestAdapter` 属性，见 [Composer 最终适配器](/plugins/composer.md#请求适配)。本次没有提交建议数据时，不新增 `suggestions` 字段；明确提交的空数组或 `null` 则保留原值。上例发送完整建议项，相关字段为：
 
-```json
+```json ag-ui
 {
   "forwardedProps": {
-    "suggestions": [{ "selectedQuestion": "查询这笔订单的进度", "business": { "orderId": "O-1" } }]
+    "suggestions": [{ "title": "订单进度", "prompt": "查询这笔订单的进度", "data": { "orderId": "O-1" } }]
   }
 }
 ```
 
-需要不同最终字段位置时，在 [Composer `requestAdapter`](/plugins/composer.md#请求适配) 中继续转换。上例只改业务数据，正文仍使用 `prompt`。实例键以实际实例 ID 为准；嵌入其他插件时使用其 `:suggestions` 子键。
+需要只发送订单 ID、改变字段名或最终位置时，在同一个 Composer 回调中提取并映射 `pluginData`。建议插件没有局部请求适配器，正文仍使用 `prompt`。实例键以实际实例 ID 为准；嵌入其他插件时使用其 `:suggestions` 子键。
 
-局部回调抛错或返回非 JSON 时取消本次选择动作并保留草稿，使用 `starterSuggestions.requestFailed` 提示。正常提交、排队与续答保留本次选择快照，后续点击不会改写已提交数据。
+条目包含非 JSON 数据时取消本次选择并保留草稿，使用 `starterSuggestions.requestFailed` 提示。正常提交与续答保留本次数据快照，后续点击不会改写已提交数据。
 
 ## 固定的双语开场建议 \{#固定的双语开场建议}
 
@@ -89,14 +118,14 @@ title 是卡片上的名称，label 是附加说明，prompt 是实际填入或�
 
 ```tsx
 import type { ComponentProps } from 'react';
-import { ConversationCanonicalSuggestions, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { ConversationCanonicalSuggestions, useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 const messages = {
   'zh-CN': { title: '总结材料', description: '提取重点与后续行动', prompt: '请总结我提供的材料，列出重点与后续行动。' },
   'en-US': { title: 'Summarize material', description: 'Find key points and next steps', prompt: 'Summarize the material I provide, including key points and next steps.' },
 };
 export function Example(props: ComponentProps<typeof ConversationCanonicalSuggestions>) {
-  const labels = messages[useAgentUILocaleCode()];
+  const labels = messages[useLocaleCode()];
   return <ConversationCanonicalSuggestions {...props} sendOnSelect={false}
     items={[{ title: labels.title, label: labels.description, prompt: labels.prompt }]} />;
 }
@@ -127,14 +156,14 @@ export function RuntimeSuggestions(props:
 
 会话运行时提供回复后的建议时，默认建议行沿用同一套选择采集，数据形状和本页相同。它展示已有建议，不负责向后端生成建议。
 
-需要逐项转换时，在已有 Thread 组件组合中替换 `FollowupSuggestions`，保留其他组件与 Composer 配置：
+在已有 Thread 组件组合中显式使用默认建议行，保留其他组件与 Composer 配置；它提交的数据同样由 Composer 最终适配器处理：
 
 ```tsx
 import type { ComponentProps } from 'react';
 import { ConversationThread, ConversationFollowupSuggestions } from '@za38.03/agent-ui-plugins';
 
 function Followups() {
-  return <ConversationFollowupSuggestions requestAdapter={item => ({ followup: item.prompt })} />;
+  return <ConversationFollowupSuggestions />;
 }
 
 export function ProjectThread(props: ComponentProps<typeof ConversationThread>) {
@@ -171,7 +200,6 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 | 属性                  | 类型                                                                                                | 省略时 / 用途                                                 |
 | ------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `items?`            | [`readonly ConversationSuggestionItem[]`](#conversationsuggestionitem)                            | 省略时读取当前会话建议；空数组表示不显示列表项                                  |
-| `requestAdapter?`   | `(item: ConversationSuggestionRequestItem) => ComposerData`                                       | 同步定义选中建议的 JSON，正文仍沿用 prompt；最终请求由 Composer 组装            |
 | `sendOnSelect?`     | `boolean`                                                                                         | 默认 `true`；`false` 时将建议写入输入框                              |
 | `clearComposer?`    | `boolean`                                                                                         | 选择建议后是否清空原有草稿；省略时使用现有建议组件的默认设置                           |
 | `buttonProps?`      | `Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' \| 'clearComposer' \| 'children'>` | 建议按钮的属性；是否发送、是否清空草稿分别由 `sendOnSelect`、`clearComposer` 控制 |

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../../locale.js';
+import { useLocale } from '../../../../../../locale.js';
 
 import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from 'react';
 import {
@@ -131,7 +131,7 @@ type ItemsProps = {
 };
 
 const Items: FC<ItemsProps> = ({ iconMap, fallbackIcon, backLabel, emptyLabel, loadingLabel, isLoading }) => {
-  const messages = useAgentUILocale('triggers');
+  const messages = useLocale('triggers');
   return (
     <ComposerPrimitive.TriggerPopoverItems aria-label={messages.items}>
       {(items) => (
@@ -208,7 +208,7 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   children,
   ...props
 }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   backLabel ??= localeMessages.common.back;
   emptyCategoriesLabel ??= localeMessages.triggers.noItems;
   emptyItemsLabel ??= localeMessages.triggers.noResults;

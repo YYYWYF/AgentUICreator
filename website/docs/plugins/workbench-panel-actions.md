@@ -27,14 +27,14 @@ title: "侧栏打开按钮（workbench-panel-actions）"
 
 ```tsx
 import { WorkbenchPanelActionsPlugin } from '@za38.03/agent-ui-plugins/workbench-panel-actions';
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 const messages = {
   'zh-CN': { report: '报告', sources: '来源' },
   'en-US': { report: 'Report', sources: 'Sources' },
 };
 export function Example() {
-  const labels = messages[useAgentUILocaleCode()];
+  const labels = messages[useLocaleCode()];
   return <WorkbenchPanelActionsPlugin items={[
     { id: 'report', label: labels.report }, { id: 'sources', label: labels.sources },
   ]} />;

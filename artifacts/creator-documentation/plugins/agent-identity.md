@@ -79,18 +79,18 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 
 ### 读取当前助手标识 \{#hook}
 
-从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useAgentUIAgentIdentity()`，可取得当前 Host 的 `{ agentId: string }`；没有身份上下文时返回 `undefined`。它不返回界面上的名称、Logo 或说明；这些展示内容通过本页的组件属性设置。
+从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useAgentIdentity()`，可取得当前 Host 的 `{ agentId: string }`；没有身份上下文时返回 `undefined`。它不返回界面上的名称、Logo 或说明；这些展示内容通过本页的组件属性设置。
 
 例如，同一个业务组件分别放在两个助手里，需要把点击关联到各自的助手时：
 
 ```tsx
-import { useAgentUIAgentIdentity } from '@za38.03/agent-ui-runtime/plugin-api';
+import { useAgentIdentity } from '@za38.03/agent-ui-runtime/plugin-api';
 
 export function OpenAgentDetails({ label, onOpen }: {
   label: string;
   onOpen: (agentId: string) => void;
 }) {
-  const identity = useAgentUIAgentIdentity();
+  const identity = useAgentIdentity();
   return <button type="button" disabled={!identity}
     onClick={() => { if (identity) onOpen(identity.agentId); }}>{label}</button>;
 }

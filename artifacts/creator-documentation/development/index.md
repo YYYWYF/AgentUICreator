@@ -33,7 +33,6 @@
 | 设置地址、主题、语言或打开已有会话          | [Agent 配置示例](/development/agent-options.md)、[完整属性表](/development/react-host-api.md)                   |
 | 让业务按钮打开助理、发送消息、停止运行或新建会话   | [用业务页面控制 Agent](/development/react-host-control.md)、[会话方法](/development/react-host-api.md#会话方法)       |
 | 指定助手发送、打开历史或控制后台 Thread    | [多助手与后台 Thread](/development/multiple-agents.md#从业务页面控制指定助手)                                          |
-| 在回复期间排队发送后续问题              | [消息排队](/development/message-queue.md)                                                                 |
 | 接收 Agent 返回的事件、读取运行状态      | [状态与事件](/development/react-host-api.md#状态与事件)、[业务事件](/development/react-host-api.md#订阅-agent-业务事件)    |
 | 手动修改已有插件的样式、文案、结构或业务逻辑     | [完整插件修改教程](/development/component-customization.md)                                                   |
 | 选择主题、修改品牌色或组件样式            | [主题与样式](/development/theme-and-styling.md)                                                            |

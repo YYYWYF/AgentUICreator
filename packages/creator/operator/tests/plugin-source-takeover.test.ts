@@ -56,7 +56,7 @@ async function fixture(id = "composer", ownPackage = false) {
   await mkdir(path.join(root,"src/ui/services"));
   await mkdir(path.join(root,"src/ui/agent-ui/i18n"),{recursive:true});
   await writeFile(path.join(root,"src/ui/services/agent-ui-locale.ts"),'export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";\n');
-  await writeFile(path.join(root,"src/ui/agent-ui/i18n/useAgentUILocale.ts"),'export { useAgentUILocale } from "@za38.03/agent-ui-plugins";\n');
+  await writeFile(path.join(root,"src/ui/agent-ui/i18n/useLocale.ts"),'export { useLocale } from "@za38.03/agent-ui-plugins";\n');
   await writeFile(path.join(root,"src/ui/runtime/composition.ts"),'export const createPluginCapabilityCatalog = (entries: unknown[]) => entries;\n');
   await writeFile(path.join(root,"src/ui/app-ui/app-ui.json"),JSON.stringify({root:{type:"slot",plugins:[{id:"input-primary",pluginId:id,enabled:true,slots:{beforeInput:[]}}, {id:"input-secondary",pluginId:id,enabled:false}]}}));
   return root;
@@ -224,7 +224,10 @@ it("takes over tool-result with its recognizer and preserves the thin applicatio
   expect(facts.inventoryIssues).toEqual([]);
   expect(facts.assets.filter(asset => asset.pluginId === "tool-result")).toHaveLength(1);
   expect(facts.assets.find(asset => asset.pluginId === "tool-result")?.ownership).toBe("project_source");
-  expect(await readFile(path.join(paths.pluginsRoot, "tool-result/source/adapters/content.ts"), "utf8")).toContain("isToolResultPart");
+  expect(await readFile(path.join(paths.pluginsRoot, "tool-result/source/adapters/result/content.ts"), "utf8")).toContain("isToolResultPart");
+  expect(await readFile(path.join(paths.pluginsRoot, "tool-result/source/adapters/approval/approval-actions.tsx"), "utf8")).toContain("ApprovalDecisionActions");
+  expect(await readFile(path.join(paths.pluginsRoot, "tool-result/source/adapters/approval/approval-receipt.tsx"), "utf8")).toContain("ToolFallbackApprovalReceipt");
+  expect(await readFile(path.join(paths.pluginsRoot, "tool-result/source/adapters/result/result-file.tsx"), "utf8")).toContain("ResultFile");
   const ownership = await readPluginSourceOwnership(paths.metadataRoot);
   expect(JSON.stringify(ownership)).toContain("tool-result");
 });

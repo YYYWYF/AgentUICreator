@@ -1,5 +1,5 @@
 import { MessagePrimitive, ThreadPrimitive, useAui, type AssistantRuntime } from "@assistant-ui/react";
-import { ConversationToolFallback } from "@za38.03/agent-ui-plugins";
+import { ConversationToolResult } from "@za38.03/agent-ui-plugins";
 import type { ConversationAgentRuntimeBridge } from "../src/compatibility/conversation-runtime-bridge.js";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it } from "vitest";
@@ -35,7 +35,7 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
     };
     function AssistantMessage() {
       return <MessagePrimitive.Root>
-        <MessagePrimitive.Parts components={{ tools: { Fallback: ConversationToolFallback } }} />
+        <MessagePrimitive.Parts components={{ tools: { Fallback: ConversationToolResult } }} />
       </MessagePrimitive.Root>;
     }
     function Capture() {
@@ -47,7 +47,7 @@ describe("ON_INTERRUPT command approvals through the installed AG-UI runtime", (
       renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/command" ctx={{ tenant: "command" }} threadBinding={binding}
         {...(surface === "registered" ? { toolkit: { confirm_take_leave_policy: {
           type: "human" as const, display: "standalone" as const,
-          interaction: { type: "interrupt" as const }, render: ConversationToolFallback,
+          interaction: { type: "interrupt" as const }, render: ConversationToolResult,
         } } } : {})}
         unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId,
           fetch: async (_url, init) => {

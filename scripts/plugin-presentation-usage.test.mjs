@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { buildPresentationUsage, presentationReferences } from './plugin-presentation-usage.mjs';
 
 test('extracts literal localized reads with aliases and lexical scope, not comments or unrelated objects', () => {
-  const source = `import {useAgentUILocale as messages} from './locale.js';
+  const source = `import {useLocale as messages} from './locale.js';
   function A(){const text=messages();return text.common.save;}
   function B(){const text=messages('tasks');return text['cancel'];}
   function C(text){return text.common.wrong;}
@@ -21,9 +21,9 @@ test('indexes independent plugins and shared readers with native disk paths and 
   try {
     for (const dir of ['src/plugins/alpha', 'src/plugins/beta', 'src/shared']) await mkdir(path.join(root, ...dir.split('/')), {recursive:true});
     const files = {
-      'src/plugins/alpha/view.tsx': `import {useAgentUILocale} from '../../locale.js'; import '../../shared/view.js'; import '../../shared/theme.css'; const m=useAgentUILocale(); m.common.save;`,
-      'src/plugins/beta/view.tsx': `import {useAgentUILocale} from '../../locale.js'; const m=useAgentUILocale('tasks'); m.cancel;`,
-      'src/shared/view.tsx': `import {useAgentUILocale} from '../locale.js'; const m=useAgentUILocale(); m.common.save;`,
+      'src/plugins/alpha/view.tsx': `import {useLocale} from '../../locale.js'; import '../../shared/view.js'; import '../../shared/theme.css'; const m=useLocale(); m.common.save;`,
+      'src/plugins/beta/view.tsx': `import {useLocale} from '../../locale.js'; const m=useLocale('tasks'); m.cancel;`,
+      'src/shared/view.tsx': `import {useLocale} from '../locale.js'; const m=useLocale(); m.common.save;`,
       'src/shared/theme.css': 'button {color: red}', 'src/public.tsx': '',
     };
     for (const [file, text] of Object.entries(files)) await writeFile(path.join(root, ...file.split('/')), text);

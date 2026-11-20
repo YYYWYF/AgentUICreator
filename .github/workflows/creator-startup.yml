@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: ['22.0.0', '24.22.1']
+        node: ['20.0.0', '22.0.0', '24.22.1']
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
@@ -27,3 +27,13 @@ jobs:
       # No product install/build, generated Host is prepared.
       # The command under test must bootstrap everything through pnpm dev.
       - run: pnpm verify:dev-startup --install-browser
+      - name: Creator runtime compatibility
+        run: >-
+          pnpm --filter @za38.03/agent-ui-creator exec vitest run
+          tests/node20-compatibility.test.ts
+          tests/creator-model-config.test.ts
+          tests/creator-agent-runtime.test.ts
+          tests/creator-model-reasoning.test.ts
+          tests/creator-agent-client-interrupt.test.ts
+          tests/creator-node-process.test.ts
+          tests/standalone-server.test.ts

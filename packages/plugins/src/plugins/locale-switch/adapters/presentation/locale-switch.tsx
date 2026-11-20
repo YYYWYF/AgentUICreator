@@ -1,6 +1,6 @@
 import { useId, type ComponentProps, type ReactNode } from 'react';
-import { useAgentUILocaleSnapshot } from '../../../../plugin-support.js';
-import { NativeSelect, NativeSelectOption, useAgentUILocale, type AgentUILocaleCode } from '../../../../public.js';
+import { useLocaleSnapshot } from '../../../../plugin-support.js';
+import { NativeSelect, NativeSelectOption, useLocale, type AgentUILocaleCode } from '../../../../public.js';
 // The application supplies its existing locale service; no private context is created.
 interface AgentUILocaleService {
   getSnapshot(): { locale: AgentUILocaleCode };
@@ -32,8 +32,8 @@ export function CanonicalLocaleSwitchPlugin({
   ...rootProps
 }: LocaleSwitchPluginProps) {
   const controlId = useId();
-  const messages = useAgentUILocale('accessibility');
-  const observedLocale = useAgentUILocaleSnapshot(controlledLocale === undefined ? service : undefined);
+  const messages = useLocale('accessibility');
+  const observedLocale = useLocaleSnapshot(controlledLocale === undefined ? service : undefined);
   const locale = controlledLocale ?? observedLocale;
   const changeLocale = onLocaleChange ?? (service ? (next: AgentUILocaleCode) => service.setLocale(next) : undefined);
   if (!changeLocale) {

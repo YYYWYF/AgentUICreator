@@ -6,7 +6,9 @@ import { useConversations } from '../../services/hooks/useConversations';
 
 export function ConversationSurfacePlugin(props: ComponentProps<typeof Implementation>) {
   const rendererSlots = useConversationRendererSlots();
-  const { snapshot } = useConversations();
+  const mode = useConversations(state => state.mode);
+  const detailStatus = useConversations(state => state.detailStatus);
+  const snapshot = { mode, detailStatus };
   return (
     <Implementation
       Adapter={ConversationAdapter}

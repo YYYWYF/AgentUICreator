@@ -6,8 +6,7 @@ import {
   type ComponentPropsWithoutRef,
   type ComponentRef,
   forwardRef,
-  useCallback,
-} from "react";
+  useCallback} from "react";
 import { useAui } from "@assistant-ui/store";
 import { useSelectionToolbarInfo } from "./SelectionToolbarRoot";
 

@@ -1,12 +1,12 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import { AgentUISidebarFrame, useAgentUISidebarNavigation, type AgentUISidebarItem } from "../src/internal/sidebar-frame";
+import { AgentUISidebarFrame, useSidebarNavigation, type AgentUISidebarItem } from "../src/internal/sidebar-frame";
 import { AgentUIRoot } from "../src/internal/style-boundary/AgentUIRoot";
 
 const hosts: HTMLDivElement[] = [];
 afterEach(() => { hosts.forEach(host => host.remove()); hosts.length = 0; vi.restoreAllMocks(); });
-function Navigate() { const navigate = useAgentUISidebarNavigation(); return <button onClick={navigate}>Navigate</button>; }
+function Navigate() { const navigate = useSidebarNavigation(); return <button onClick={navigate}>Navigate</button>; }
 const items = [
   { id: "history", icon: "messages-square" as const, label: "History", content: <button>History content</button> },
   { id: "files", icon: "folder" as const, label: "Files", content: <Navigate /> },

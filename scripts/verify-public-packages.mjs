@@ -9,7 +9,7 @@ import ts from "typescript-ui-audit";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { publicModules, publicPackageName } from "./build-public-packages.mjs";
 import { publicTypeEntries } from "./public-package-types.mjs";
-import { checkPackageBuild } from "./package-build-integrity.mjs";
+import { checkPackageBuild, listPackageFiles } from "./package-build-integrity.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 // This verifier packs with lifecycle scripts disabled below; enforce the same gate explicitly.
 for (const id of publicModules) await checkPackageBuild(id, root);
@@ -65,7 +65,7 @@ try {
   assert.equal(published.name, manifest.name);
   // Resolve from unpacked tarballs: workspace paths must not hide missing types
   // or legacy CRA/webpack (moduleResolution: node) entry metadata.
-  const packedFiles = await readdir(packageRoot, { recursive: true });
+  const packedFiles = await listPackageFiles(packageRoot);
   for (const [entry, target] of Object.entries(published.exports)) {
     if (typeof target?.types !== "string") continue;
     const entries = publicTypeEntries(entry, target.types, packedFiles);
@@ -184,7 +184,7 @@ assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assista
  run([path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/cli.js"), "--help"]);
  await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\n');
  await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: !process.argv.includes("--strict-types"), noEmit: true, esModuleInterop: true, resolveJsonModule: true, types: ["node", "react", "vite/client"], lib: ["DOM", "ES2022"] }, include: ["consumer.tsx", "app.tsx", "src"] }));
- run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
+ run([path.join(consumer, "node_modules/typescript/lib/tsc.js"), "--noEmit"]);
  // TypeScript 5.9 models existing CRA hosts independently of the workspace's
  // newer compiler and modern resolution settings. Upstream Vite/assistant-ui
  // declarations use exports-only subpaths, so the legacy Host keeps its existing
@@ -197,7 +197,7 @@ assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assista
   const hostPackage = JSON.parse(await readFile(hostPackagePath, "utf8"));
   const takeoverCatalog = JSON.parse(await readFile(path.join(consumer,"node_modules/@za38.03/agent-ui-plugins/dist/catalog.json"),"utf8"));
   Object.assign(hostPackage.dependencies,takeoverCatalog.plugins.find(plugin=>plugin.id==="composer").takeover.requiredDependencies);
-  hostPackage.scripts = { typecheck: "node node_modules/typescript/bin/tsc --noEmit", build: "node validate-takeover.mjs" };
+  hostPackage.scripts = { typecheck: "node node_modules/typescript/lib/tsc.js --noEmit", build: "node validate-takeover.mjs" };
   await writeFile(hostPackagePath, JSON.stringify(hostPackage));
   await writeFile(path.join(consumer, "validate-takeover.mjs"), `
 import { build } from "vite";
@@ -258,7 +258,7 @@ console.log("Packaged takeover: exact installed source, Host typecheck/build, st
  const config = JSON.parse(await readFile(configFile, "utf8"));
  config.include = ["app.tsx", "src"];
  await writeFile(configFile, JSON.stringify(config));
- run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
+ run([path.join(consumer, "node_modules/typescript/lib/tsc.js"), "--noEmit"]);
  await writeFile(path.join(consumer, "bundle.mjs"), `
 import assert from "node:assert/strict";
 import { build } from "vite";

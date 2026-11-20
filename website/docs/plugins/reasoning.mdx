@@ -53,7 +53,7 @@ Agent 开始输出思考内容时，思考区域自动展开，标题显示进�
 
 `reasoning` 使用会话中的思考数据，通常放在会话界面的 `reasoningGroup` 位置。现有插件入口负责取得当前思考分组和正文，业务代码无需另行创建一份思考状态。
 
-Agent 服务通过 reasoning 事件传递内容。下面是一段思考的事件示例，省略了外层运行开始、结束和 SSE 包装；完整包装见[共用格式](./ag-ui-data#共用的-sse-格式)：
+Agent 服务通过 reasoning 事件传递内容。以下按顺序列出思考事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)：
 
 ```jsonl
 {"type":"REASONING_START","messageId":"reasoning-1"}

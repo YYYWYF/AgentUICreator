@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node ./node_modules/typescript/lib/tsc.js --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:style-isolation": "playwright test -c playwright.web-component.config.ts",
     "predev": "node ../../scripts/prepare-workbench.mjs",
     "test:e2e:agent-connection": "node ../../scripts/prepare-workbench.mjs && playwright test -c playwright.agent-connection.config.ts",
-    "typecheck:preview-tests": "tsc -p tsconfig.preview-tests.json --noEmit",
+    "typecheck:preview-tests": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.preview-tests.json --noEmit",
     "test:e2e:theme-commands": "node ../../scripts/prepare-workbench.mjs && playwright test -c playwright.theme-commands.config.ts"
   },
   "dependencies": {

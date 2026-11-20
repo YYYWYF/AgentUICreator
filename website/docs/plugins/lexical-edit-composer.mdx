@@ -15,6 +15,13 @@ title: "消息与标签编辑（lexical-edit-composer）"
 
 ## 修改已有消息并重新提交
 
+<figure className="plugin-preview">
+
+![用户消息旁的铅笔编辑入口](/images/plugins/lexical-edit-composer-entry.png)
+
+<figcaption>在已有用户消息旁找到铅笔图标，点击“编辑”进入页首所示的消息编辑区。</figcaption>
+</figure>
+
 消息进入编辑状态后，原文字与支持的引用标签显示在编辑区。保存后通过现有消息编辑流程重新提交；取消则保留原消息。中文输入法保护、引用的整体选择与删除由现有输入实现处理。
 
 没有自定义 `input` 时使用 Lexical。消息含当前编辑器不支持的指令时，保留普通输入回退，让已有消息仍能继续修改，不强行丢弃未知文字。
@@ -23,7 +30,7 @@ title: "消息与标签编辑（lexical-edit-composer）"
 
 编辑使用该消息的选择快照；仍在正文中的引用继续关联原始业务选择，移除引用后不再携带对应数据。重发请求还会经过同一个最终 [Composer `requestAdapter`](./composer#请求适配)。
 
-插件不因为打开编辑区而新增一份 `pluginData[lexical-edit-composer]` 或 `selections`。有历史元数据时沿用消息的原始选择；只存了引用标记的历史不能恢复标记之外的业务 `data`，见 [Composer 的历史与快照](./composer#提交后的快照重发与会话切换)。
+插件不因为打开编辑区而新增一份 `pluginData[lexical-edit-composer]`。有历史元数据时沿用消息的原始选择；只存了引用标记的历史不能恢复标记之外的业务 `data`，见 [Composer 的历史与快照](./composer#提交后的快照重发与会话切换)。
 
 编辑区不应拿底部新消息的业务选择来补充旧消息。业务卡片的 `useComposer()` 操作要放在它实际要影响的输入作用域中；不要用底部输入控制器代替已有消息编辑的保存与取消。
 

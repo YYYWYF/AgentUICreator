@@ -47,7 +47,7 @@ describe("product Composer pending interrupt policy", () => {
     } });
     let native!: AssistantRuntime;
     let bridge!: ConversationRuntimeBridge;
-    let composer!: ReturnType<typeof useComposer>;
+    let composer!: import("@za38.03/agent-ui-plugins").ComposerController;
     let slotEnterCount = 0;
     let slotClickCount = 0;
     function Capture() {

@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import { useEffect, useRef } from "react";
 import type { UpdateInspection } from "@za38.03/agent-ui-creator/project/updates";
 import type { AgentConnectionState } from "../agent-connection/types.js";

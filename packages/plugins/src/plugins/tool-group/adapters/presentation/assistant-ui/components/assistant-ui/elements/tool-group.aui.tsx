@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { memo, useCallback, useRef, useState, type FC, type PropsWithChildren } from 'react';
 import { ChevronDownIcon, LoaderIcon } from 'lucide-react';
@@ -90,7 +90,7 @@ function ToolGroupTrigger({
   count: number;
   active?: boolean;
 }) {
-  const messages = useAgentUILocale('toolPresentation');
+  const messages = useLocale('toolPresentation');
   const label = formatPresentationMessage(count === 1 ? messages.call : messages.calls, { count });
 
   return (

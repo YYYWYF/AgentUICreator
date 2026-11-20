@@ -69,7 +69,7 @@ for (const delivery of plugins) {
     for (const file of delivery.presentation) { const target = path.join(generated, "plugins", id, "adapters", file); await mkdir(path.dirname(target), {recursive:true}); await writeFile(target, await portableSource(delivery, `adapters/${file}`, await readFile(path.join(root,"src/plugins",delivery.presentationOwner,"adapters/presentation",file),"utf8"))); }
   }
   const implementationPath = path.join(generated, "plugins", id, "index.tsx");
-  await writeFile(implementationPath, (await readFile(implementationPath, "utf8")).replace(/(["'])\.\.\/\.\.\/agent-ui\/i18n\/useAgentUILocale\1/u, '$1@za38.03/agent-ui-plugins$1'));
+  await writeFile(implementationPath, (await readFile(implementationPath, "utf8")).replace(/(["'])\.\.\/\.\.\/agent-ui\/i18n\/useLocale\1/u, '$1@za38.03/agent-ui-plugins$1'));
   const definitionPath = path.join(generated, "plugins", id, "definition.ts");
   if (delivery.definitionSource) await cp(path.join(root, "src/plugins", id, delivery.definitionSource), definitionPath);
   const compatibleSource = packageDefinitionSource(await readFile(definitionPath, "utf8"));
@@ -82,8 +82,11 @@ await writeFile(path.join(generated, "tsconfig.json"), JSON.stringify({ compiler
   paths: Object.fromEntries(plugins.map(({ id }) => [
     `@za38.03/agent-ui-plugins/${id}`, [`./plugins/${id}/definition.ts`],
   ])),
-}, include: ["**/*.ts", "**/*.tsx"] }));
-const result = spawnPnpmSync(["exec", "tsc", "-p", path.join(generated, "tsconfig.json")], { cwd: root, stdio: "inherit" });
+// Compile the actual npm entries and their imported dependencies. Presentation
+// seeds also serve source takeover; their canonical relative imports are
+// resolved by buildPluginTakeoverSources and verified with that complete closure.
+}, files: plugins.map(({id}) => `plugins/${id}/definition.ts`), include: ["**/*.d.ts"] }));
+const result = spawnPnpmSync(["exec", "node", "./node_modules/typescript/lib/tsc.js", "-p", path.join(generated, "tsconfig.json")], { cwd: root, stdio: "inherit" });
 if (result.error) throw result.error;
 if (result.status !== 0) throw new Error("Official plugin type compilation failed");
 for (const { id, symbol, component } of plugins) {

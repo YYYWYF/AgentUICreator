@@ -5,7 +5,7 @@ export * from "./PluginServiceRuntime.js";
 export * from "./PluginInstanceRenderer.js";
 export * from "./PluginRenderScope.js";
 export * from "./PluginErrorBoundary.js";
-export * from "./usePluginServiceSnapshot.js";
+export * from "./usePluginService.js";
 export * from "./UIPluginRuntime.js";
 export * from "../application/ApplicationLifecycleContext.js";
 export * from "../application/ApplicationLifecycleRuntime.js";

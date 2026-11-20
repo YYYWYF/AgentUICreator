@@ -13,13 +13,7 @@
 
 在已有回复操作栏中使用，组件读取当前回答的内容与可用状态。
 
-```tsx
-import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
-
-export function ResponseAction() {
-  return <ConversationCanonicalResponseCopyAction />;
-}
-```
+回答文字由 `TEXT_MESSAGE_CONTENT.delta` 追加，复制使用当前版本的完整回答文本。事件格式见[文字回复](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ## 按钮尺寸与提示位置 \{#尺寸与提示位置}
 
@@ -93,4 +87,4 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 默认提示文案只读取 `locales.common.copy`，失败提示读取 `locales.copyAction.failed`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 
-自定义“复制到业务表单”等操作时，在已有回复页脚中调用 `useConversationResponseRuntime()`，使用 `text` 取得当前版本的整次回答；它会包含工具续跑后的多段助理文字。业务动作可沿用[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)的按钮示例，将 `save` 接到自己的表单方法。只改复制按钮外观时，使用前面的组件属性即可。
+自定义“复制到业务表单”等操作时，在已有回复页脚中调用 `useResponse()`，使用 `text` 取得当前版本的整次回答；它会包含工具续跑后的多段助理文字。业务动作可沿用[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)的按钮示例，将 `save` 接到自己的表单方法。只改复制按钮外观时，使用前面的组件属性即可。

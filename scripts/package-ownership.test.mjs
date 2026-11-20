@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, access, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { listPackageFiles } from "./package-build-integrity.mjs";
 import { publicModules } from "./build-public-packages.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const manifest = async name => JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
@@ -39,7 +40,7 @@ test("Runtime has no production dependency or implementation import from Plugins
     assert(!runtime[field]?.["@za38.03/agent-ui-plugins"], field);
   }
   const directory = path.join(root, "packages/runtime/src");
-  for (const name of await readdir(directory, { recursive: true })) {
+  for (const name of await listPackageFiles(directory)) {
     if (!/\.[jt]sx?$/u.test(name)) continue;
     const source = await readFile(path.join(directory, name), "utf8");
     assert(!/["']@za38\.03\/agent-ui-plugins(?:\/|["'])/u.test(source), name);

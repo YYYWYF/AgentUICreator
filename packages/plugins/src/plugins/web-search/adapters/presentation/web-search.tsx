@@ -1,6 +1,6 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import {
-  ConversationToolFallback,
+  ConversationToolResult,
   WebSearch,
   type ConversationToolCallProps,
   type UIPluginElementProps,
@@ -22,7 +22,7 @@ export function CanonicalWebSearch({
   'aria-describedby': ariaDescription,
   onClick,
   renderSearch,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: WebSearchPluginProps) {
   const rootProps = {

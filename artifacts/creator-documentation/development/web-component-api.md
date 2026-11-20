@@ -35,7 +35,7 @@ if (element) element.config = config;
 - `appUIModel`：设置布局与插件组合。
 - `agents`：配置多个助手。
 
-需要用函数转换服务请求或响应时，在 React 生产工程中编写函数，通过包装入口的 `agentProps` 传给 `Agent` 后重新构建；不能直接把函数添加到 Web Component 的 config。具体文件与示例见[业务服务接入](/development/service-integration.md#vue--html-服务适配位置)。
+上传、评价等服务适配写在 React 工程中，通过 `agentProps` 传入后重新构建，见[业务服务接入](/development/service-integration.md#vue--html-服务适配位置)。发送前准备请求可直接设置 `config.beforeRequest`，见下文。
 
 ### Attributes 与优先级
 
@@ -69,8 +69,8 @@ if (element) element.config = config;
 
 `config.agents` 按助手分别配置：
 
-- 必填：`agentId`、`endpoint`。
-- 可选：`hidden`、`threadId`、`request`、`appUIModel`。
+- 必填：唯一的 `agentId`。
+- 可选：`endpoint`、`hidden`、`threadId`、`request`、`beforeRequest`、`appUIModel`。使用默认浏览器请求时提供 `endpoint`；自定义请求可由 React 工程决定地址。
 
 各助手使用自己的地址和会话 ID，顶层 `endpoint/threadId` 不替代它们；`locale/theme` 由顶层统一设置。示例见[多 Agent](/development/multiple-agents.md#web-component-与-creator)。
 

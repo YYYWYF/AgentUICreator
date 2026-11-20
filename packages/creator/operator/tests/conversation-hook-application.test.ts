@@ -77,8 +77,8 @@ it.each([undefined, "platform", "assistant", "embedded"] as const)("initializes 
   const { root, context } = await fixture();
   const result = await ensurePluginApplication(root, "conversation-thread-list", { ...context, mode });
   const hook = path.join(context.paths.sourceRoot, "services/hooks/useConversations.ts");
-  expect(result.createdPaths).toContain("src/custom-ui/services/hooks/useConversationActions.ts");
-  expect(await readFile(path.join(context.paths.sourceRoot, "services/hooks/useConversationActions.ts"), "utf8")).toContain("useRuntimeConversationActions");
+  expect(result.createdPaths).not.toContain("src/custom-ui/services/hooks/useConversationActions.ts");
+  expect(await readFile(hook, "utf8")).toContain("useRuntimeConversationActions");
   expect(result.createdPaths).toContain("src/custom-ui/services/hooks/useConversations.ts");
   const source = await readFile(hook, "utf8");
   expect(source).toContain("from '../conversations'");
@@ -86,7 +86,7 @@ it.each([undefined, "platform", "assistant", "embedded"] as const)("initializes 
   const application = await readFile(path.join(context.paths.pluginsRoot, "conversation-thread-list/index.tsx"), "utf8");
   expect(application).toContain("from '../../services/hooks/useConversations'");
   expect(application).not.toContain("usePluginService");
-  expect(application).toContain("from '../../services/hooks/useConversationActions'");
+  expect(application).not.toContain("services/hooks/useConversationActions");
   const custom = source + "\n// project customization\n";
   await writeFile(hook, custom);
   await ensurePluginApplication(root, "conversation-surface", context);

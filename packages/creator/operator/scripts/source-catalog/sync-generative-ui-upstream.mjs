@@ -11,7 +11,7 @@ const defaultRoot = fileURLToPath(new URL("../../../../../", import.meta.url));
 const packageName = "@assistant-ui/generative-ui";
 const componentPath = "packages/ui/src/components/react/assistant-ui/elements/generative-ui.tsx";
 const cssPath = "packages/ui/src/lib/generative-ui-vocabulary-css.ts";
-const tscPath = path.join(path.dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "bin", "tsc");
+const tscPath = path.join(path.dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "lib", "tsc.js");
 
 async function previousContent(filename) {
   return readFile(filename).catch(error => {

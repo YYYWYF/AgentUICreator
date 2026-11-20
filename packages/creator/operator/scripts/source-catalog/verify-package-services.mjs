@@ -1,3 +1,4 @@
+import { resolve as resolveModule } from "import-meta-resolve";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -24,12 +25,12 @@ export async function validateOfficialPackageServices(registry, catalog = offici
             if (args.path === "@za38.03/agent-ui-plugins/contracts") return { path: args.path, namespace: "contract-metadata" };
             if (args.path === "@za38.03/agent-ui-plugins") return {path:args.importer,namespace:"public-metadata"};
             if (args.namespace === "file") {
-              if (!args.path.startsWith(".") && !path.isAbsolute(args.path)) return { path: import.meta.resolve(args.path), external: true };
+              if (!args.path.startsWith(".") && !path.isAbsolute(args.path)) return { path: resolveModule(args.path, import.meta.url), external: true };
               return;
             }
             // Follow actual package service constants, while keeping CSS out of Node.
-            if (args.path.startsWith("@za38.03/agent-ui-plugins/")) return { path: fileURLToPath(import.meta.resolve(args.path)) };
-            if (!args.path.startsWith(".")) return { path: import.meta.resolve(args.path), external: true };
+            if (args.path.startsWith("@za38.03/agent-ui-plugins/")) return { path: fileURLToPath(resolveModule(args.path, import.meta.url)) };
+            if (!args.path.startsWith(".")) return { path: resolveModule(args.path, import.meta.url), external: true };
             const base = args.namespace === "reference" ? path.posix.dirname(args.importer) : "";
             const target = path.posix.normalize(path.posix.join(base, args.path));
             if (target.startsWith("plugins/")) {

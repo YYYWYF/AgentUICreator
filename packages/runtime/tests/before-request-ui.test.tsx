@@ -5,7 +5,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog } from "../src/ui/index.js";
 import { AgentUIProjectProvider } from "../src/ui/project-context.js";
 import { AgentUICompatibilityRoot } from "../src/ui/application/AgentUICompatibilityRoot.js";
-import { useAgentUI, useAgentUIState, type AgentUIBeforeRequest } from "../src/public.js";
+import { useAgent, type AgentUIBeforeRequest } from "../src/public.js";
 import type { UIPluginDefinition } from "../src/contracts/index.js";
 import type { RunAgentInput } from "@ag-ui/client";
 
@@ -29,9 +29,9 @@ it.each(["React", "Web Component", "multiple embedded Agents"])("forwards %s bef
     return new Response(frames.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   }));
   function View() {
-    const host = useAgentUI();
-    const id = useAgentUIState(state => state.runtime?.conversation.id ?? "");
-    const running = useAgentUIState(state => state.runtime?.run.status === "running");
+    const host = useAgent();
+    const id = useAgent(state => state.runtime?.conversation.id ?? "");
+    const running = useAgent(state => state.runtime?.run.status === "running");
     return <><button disabled={running} onClick={() => { void host.sendMessage("hello"); }}>send</button><output>{id}</output></>;
   }
   const definition: UIPluginDefinition = { manifest: { id: "view", name: "View", description: "Test", version: "1.0.0" }, Component: View };

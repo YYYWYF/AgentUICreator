@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { type PropsWithChildren, useState, type FC, isValidElement } from 'react';
 import { XIcon, PlusIcon, FileText, Loader2Icon, AlertCircleIcon } from 'lucide-react';
@@ -22,7 +22,7 @@ type AttachmentPreviewProps = {
 };
 
 const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const [imageState, setImageState] = useState<{ src: string; status: 'loaded' | 'error' }>();
   const isLoaded = imageState?.src === src && imageState.status === 'loaded';
   if (imageState?.src === src && imageState.status === 'error') {
@@ -52,7 +52,7 @@ type AttachmentPreviewDialogProps = PropsWithChildren<{
 }>;
 
 const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({ children, src, name }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   if (!src) return children;
 
   return (
@@ -94,7 +94,7 @@ const AttachmentThumb: FC<{ src: string | undefined }> = ({ src }) => {
 };
 
 const AttachmentUI: FC = () => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const aui = useAui();
   const isComposer = aui.attachment.source !== 'message';
   const src = useAttachmentSrc();
@@ -198,7 +198,7 @@ const AttachmentUI: FC = () => {
 };
 
 const AttachmentRemove: FC<{ name: string }> = ({ name }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <AttachmentPrimitive.Remove
       render={
@@ -231,7 +231,7 @@ export const ComposerAttachments: FC = () => {
 };
 
 export const ComposerAddAttachment: FC = () => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <ComposerPrimitive.AddAttachment
       render={

@@ -1,11 +1,11 @@
 import type { PackageUpdateOverview } from "@za38.03/agent-ui-creator/project/updates";
 import { useId, useState } from "react";
-import { formatLocaleMessage, useAgentUILocale } from "./i18n/locale.js";
+import { formatLocaleMessage, useCreatorLocale } from "./i18n/locale.js";
 import { Button } from "./components/button.js";
 
 /** Information only: never installs tools or changes Creator request admission. */
 export function CreatorUpdateNotice({ overview }: { overview: PackageUpdateOverview }) {
-  const messages = useAgentUILocale().pluginUpdates;
+  const messages = useCreatorLocale().pluginUpdates;
   const [open, setOpen] = useState(false);
   const tooltipId = useId();
   const creator = overview.packages.find(pkg => pkg.scope === "tools" && pkg.name === "@za38.03/agent-ui-creator");

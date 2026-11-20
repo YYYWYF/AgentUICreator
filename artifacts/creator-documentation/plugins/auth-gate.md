@@ -57,7 +57,8 @@ export function SignOutAction({ label, onError }: {
   label: string;
   onError: (error: unknown) => void;
 }) {
-  const { snapshot, session } = useAuthSession();
+  const { session } = useAuthSession();
+  const snapshot = useAuthSession(state => state);
   return <button type="button"
     disabled={!session || snapshot.busy || snapshot.status !== 'authenticated'}
     onClick={async () => {
@@ -108,9 +109,10 @@ export function SignOutAction({ label, onError }: {
 `state` 省略时使用检查中的空快照，不会自动请求业务登录接口。创建及复用服务的方法见[认证服务](#服务)。
 
 
-项目生成的 `useAuthSession()` 从 `services/hooks/useAuthSession` 导入，返回：
+项目生成的 `useAuthSession` 从 `services/hooks/useAuthSession` 导入。无 selector 返回即时读取与登录／退出句柄，不自动订阅数据；`useAuthSession(selector)` 按需订阅下表的快照字段。`getSnapshot()` 在调用时读取完整快照：
 
-- `snapshot`：当前认证快照。
+- `getSnapshot()` / `subscribe(listener)`：即时读取或显式订阅认证状态。
+- `useAuthSession(selector)`：按需订阅 `status`、`user`、`busy` 或 `error`。
 - `session`：可选的 `signIn` / `signOut` 操作对象。
 - `serviceAvailable`：服务可用性。
 

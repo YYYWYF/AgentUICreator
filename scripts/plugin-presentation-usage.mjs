@@ -24,7 +24,7 @@ export function presentationReferences(file, text) {
       if (/(?:locale|plugin-support|composer-support)\.js$/u.test(node.moduleSpecifier.text) || node.moduleSpecifier.text.startsWith('@za38.03/agent-ui-')) {
         const named = node.importClause?.namedBindings;
         if (named && ts.isNamedImports(named)) for (const item of named.elements)
-          if ((item.propertyName ?? item.name).text === 'useAgentUILocale') hooks.add(item.name.text);
+          if ((item.propertyName ?? item.name).text === 'useLocale') hooks.add(item.name.text);
       }
     }
     if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) imports.push(node.moduleSpecifier.text);
@@ -90,5 +90,5 @@ export async function buildPresentationUsage(packageRoot) {
       ...(file.startsWith('src/plugins/') ? { pluginId: file.split('/')[2] } : {}), dependencies: [...new Set(dependencies)].sort(), references };
   });
   return { schemaVersion: 1, coverage: 'partial-static-references',
-    interpretation: 'Literal locale reads bound to useAgentUILocale and relative module dependencies in canonical package sources. Aliasing, dynamic access, external modules and runtime reachability are not fully analyzed. Absence is not proof of no other consumers. Paths are package snapshot references, not project read_file paths or takeover authority.', files };
+    interpretation: 'Literal locale reads bound to useLocale and relative module dependencies in canonical package sources. Aliasing, dynamic access, external modules and runtime reachability are not fully analyzed. Absence is not proof of no other consumers. Paths are package snapshot references, not project read_file paths or takeover authority.', files };
 }

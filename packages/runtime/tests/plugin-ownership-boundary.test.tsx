@@ -6,13 +6,11 @@ import { useAuiState } from "@assistant-ui/react";
 import {
   AgentApplication,
   createAgentUIProject,
-  createPluginCapabilityCatalog,
-} from "../src/ui/index.js";
+  createPluginCapabilityCatalog} from "../src/ui/index.js";
 import {
   AGENT_UI_THREAD_BINDING_SERVICE,
-  type ConversationThreadBindingFactory,
-} from "../src/plugin-api/index.js";
-import { useAgentUILocale } from "../src/locale.js";
+  type ConversationThreadBindingFactory} from "../src/plugin-api/index.js";
+import { useLocale } from "../src/locale.js";
 import type { UIPluginDefinition } from "../src/contracts/index.js";
 import { AGENT_UI_LOCALE_SERVICE } from "../src/ui/services/agent-ui-locale.js";
 
@@ -148,7 +146,7 @@ it("honors the selected locale service and preserves its custom namespaces", asy
     Component: () => null,
   };
   function View() {
-    return <output>{useAgentUILocale("customDomain").label}/{useAgentUILocale("applicationDomain").label}</output>;
+    return <output>{useLocale("customDomain").label}/{useLocale("applicationDomain").label}</output>;
   }
   const view: UIPluginDefinition = {
     manifest: {

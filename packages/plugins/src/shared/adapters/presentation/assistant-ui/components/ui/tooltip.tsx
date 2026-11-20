@@ -3,7 +3,7 @@
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
 
 import { cn } from '../../../../vendor-generated/assistant-ui/lib/utils.js';
-import { useAgentUIPortalContainer } from '../../../../style-boundary/AgentUIRoot';
+import { usePortalContainer } from '../../../../style-boundary/AgentUIRoot';
 
 function TooltipProvider({ delay = 0, ...props }: TooltipPrimitive.Provider.Props) {
   return <TooltipPrimitive.Provider data-agent-ui-owned='' data-slot='tooltip-provider' delay={delay} {...props} />;
@@ -27,7 +27,7 @@ function TooltipContent({
   ...props
 }: TooltipPrimitive.Popup.Props &
   Pick<TooltipPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'>) {
-  const portalContainer = useAgentUIPortalContainer();
+  const portalContainer = usePortalContainer();
   if (portalContainer === null) return null;
   return (
     <TooltipPrimitive.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>

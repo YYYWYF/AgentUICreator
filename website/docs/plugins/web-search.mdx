@@ -38,7 +38,7 @@ title: "网页搜索结果（web-search）"
 
 ## 接入网页搜索结果 {#显示条件与数据来源}
 
-当前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](./ag-ui-data#共用的-sse-格式)。
+当前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"web_search"}
@@ -104,7 +104,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 | --- | --- | --- |
 | `visibleResults?` | `number` | 默认展示全部结果 |
 | `renderSearch?` | `(props: WebSearchProps, tool: ConversationToolCallProps) => ReactNode` | 自定义整个搜索组件 |
-| `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolFallback` |
+| `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolResult` |
 
 原始工具数据仍先经过校验，再应用自定义展示属性。
 
@@ -112,7 +112,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 `renderSearch(view, tool)` 提供查询、搜索状态、结果集合及原工具调用。业务收藏使用结果对象中的 URL 和标题，关联本次搜索使用 `tool.toolCallId`；页面显示的结果条数不等于工具只返回了这些结果。
 
-公共字段、状态判断和操作回调见[工具调用参数](./tool-fallback#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](./tool-result#当前工具调用的数据与操作)。
 
 ### 使用搜索结果做打开或收藏操作 {#websearchresult}
 

@@ -1,13 +1,13 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CreatorWorkbench, useAgentUILocale } from "@za38.03/agent-ui-creator/ui";
+import { CreatorWorkbench, useCreatorLocale } from "@za38.03/agent-ui-creator/ui";
 import { connectCreatorHostPreview } from "@za38.03/agent-ui-creator/host-preview";
 
 declare const __CREATOR_HOST_WORKSPACE_ID__: string;
 declare const __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: boolean;
 
 function HostPreview({ threadId, workspaceId }: { threadId: string; workspaceId: string }) {
-  const messages = useAgentUILocale("creatorWorkbench");
+  const messages = useCreatorLocale("creatorWorkbench");
   const frame = useRef<HTMLIFrameElement>(null);
   const [loadRevision, setLoadRevision] = useState(0);
   const url = new URL(import.meta.env.VITE_CREATOR_HOST_PREVIEW_URL || "http://127.0.0.1:5180/", location.href);

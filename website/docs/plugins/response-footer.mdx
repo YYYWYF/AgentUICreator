@@ -19,6 +19,8 @@ title: "回复操作栏（response-footer）"
 
 </figure>
 
+操作栏读取当前回答的消息和完成状态。回复通过 `TEXT_MESSAGE_*` 更新，生成结束时发送 `RUN_FINISHED`；默认运行期间隐藏操作栏。复制、重试、评价和导出分别使用已组合的操作插件，事件格式见[文字回复](./ag-ui-data#共用的-sse-格式)。
+
 ## 回复完成后始终显示 {#回复完成后始终显示}
 
 <span id="example-1"></span>
@@ -77,7 +79,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 ## 收藏或保存整次回答 {#收藏或保存整次回答}
 
-在 `plugins/response-footer/index.tsx` 的已有 `actions` 中加入自己的按钮。通过 `useConversationResponseRuntime()` 读取整次回答；工具续跑产生的多段助理文字会合并到 `text`，不用自己取最后一条消息。
+在 `plugins/response-footer/index.tsx` 的已有 `actions` 中加入自己的按钮。通过 `useResponse()` 读取整次回答；工具续跑产生的多段助理文字会合并到 `text`，不用自己取最后一条消息。
 
 | 传给业务保存接口的内容 | 读取位置 |
 | --- | --- |
@@ -89,7 +91,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 ```tsx
 import { useState } from 'react';
-import { useConversationResponseRuntime } from '@za38.03/agent-ui-plugins';
+import { useResponse } from '@za38.03/agent-ui-plugins';
 
 interface ResponseRecord {
   requestMessageId: string | null;
@@ -102,22 +104,25 @@ export function SaveResponse({ save, label, onError }: {
   label: string;
   onError: (error: unknown) => void;
 }) {
-  const response = useConversationResponseRuntime();
+  const response = useResponse();
+  const isRunning = useResponse(snapshot => snapshot.isRunning);
+  const hasText = useResponse(snapshot => snapshot.text.trim().length > 0);
   const [pending, setPending] = useState(false);
   async function submit() {
-    if (pending || response.isRunning) return;
+    const snapshot = response.getSnapshot();
+    if (pending || snapshot.isRunning) return;
     setPending(true);
     try {
       await save({
-        requestMessageId: response.group.requestMessageId,
-        assistantMessageIds: [...response.group.assistantMessageIds],
-        text: response.text,
+        requestMessageId: snapshot.group.requestMessageId,
+        assistantMessageIds: [...snapshot.group.assistantMessageIds],
+        text: snapshot.text,
       });
     } catch (error) { onError(error); }
     finally { setPending(false); }
   }
   return <button type="button"
-    disabled={pending || response.isRunning || !response.text.trim()}
+    disabled={pending || isRunning || !hasText}
     onClick={() => { void submit(); }}>{label}</button>;
 }
 ```
@@ -154,7 +159,7 @@ export function SaveResponse({ save, label, onError }: {
 
 <span id="hook"></span>
 
-`useConversationResponseRuntime(): ConversationResponseRuntime` 从 Plugins 根入口导入。需要 Runtime 对应入口时，`useAssistantResponseRuntime(): AssistantResponseRuntime` 从 `@za38.03/agent-ui-runtime/plugin-api` 导入。两者读取同一个回复上下文，以下收藏示例展示如何使用：
+`useResponse(): ConversationResponseRuntime` 从 Plugins 根入口导入。需要 Runtime 对应入口时，`useAssistantResponseRuntime(): AssistantResponseRuntime` 从 `@za38.03/agent-ui-runtime/plugin-api` 导入。两者读取同一个回复上下文。无参数返回 `getSnapshot()`、`subscribe()` 和回复操作方法，不自动订阅数据；传入 selector（如 `snapshot => snapshot.canReload`）订阅所需字段。下表的数据字段由 selector 或 `getSnapshot()` 读取：
 
 | 成员 | 类型或签名 | 用途 |
 | --- | --- | --- |

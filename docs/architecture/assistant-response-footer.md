@@ -48,7 +48,7 @@ Message action facade APIs retain message semantics. Separate Response APIs are:
 - `ConversationCanonicalResponseCopyAction`
 - `ConversationCanonicalResponseReloadAction`
 - `ConversationCanonicalResponseExportMarkdownAction`
-- `useConversationResponseRuntime`
+- `useResponse`
 
 Footer ownership and action targets belong to the same Conversation Turn. The visual ActionBar
 shell reuses upstream ActionBarPrimitive.Root with `autohide="not-last"`:

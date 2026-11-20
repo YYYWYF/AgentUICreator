@@ -1,4 +1,4 @@
-import { useAgentUILocale } from '../../../../plugin-support.js';
+import { useLocale } from '../../../../plugin-support.js';
 import {
   ConversationQuestionFlow,
   useConversationCanAnswerToolCall,
@@ -11,7 +11,7 @@ import { HumanQuestionFlow } from './question-flow.js';
 export interface AskUserQuestionProps extends ConversationToolCallProps, UIPluginElementProps {}
 
 export function CanonicalAskUserQuestion(props: AskUserQuestionProps) {
-  const labels = useAgentUILocale('humanQuestion');
+  const labels = useLocale('humanQuestion');
   const wrap = (content: import('react').ReactNode) => (
     <div
       className={props.className}

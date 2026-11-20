@@ -131,7 +131,7 @@
                 "toolFallback": [
                   {
                     "id": "tool-fallback-main",
-                    "pluginId": "tool-fallback",
+                    "pluginId": "tool-result",
                     "enabled": true
                   }
                 ],

@@ -2,6 +2,8 @@
 
 展示工具提出的选择题或文字题，支持用户提交、只读回执和独立问卷。
 
+插件注册前端 `human` 工具 `ask_user_question`，用户回答后通过 `addResult()` 提交工具结果并请求续答，不要求后端使用 interrupt。具体事件和续答要求见[Agent 服务接入](#agent-服务接入)。
+
 <span id="常见需求"></span>
 <span id="代码示例"></span>
 <span id="添加到项目"></span>
@@ -53,13 +55,20 @@
 
 当前题号和未提交答案保存在组件内存中，刷新或卸载后不保证恢复；已有答案回显与未提交草稿恢复是两个不同需求。
 
+<figure className="plugin-preview">
+
+![问答提交后显示已选答案和后续回复](/images/guide/mock-question-complete.png)
+
+<figcaption>本地 Mock 示例：提交后，选项变为“✓ 数据总览”的只读回执，Agent 在下方继续回复；这里不再显示提交按钮。</figcaption>
+</figure>
+
 ## 外观与交互定制 \{#外观与交互定制}
 
 先编辑项目内 `plugins/ask-user-question/index.tsx` 的项目组件入口，组合公开的 `AskUserQuestionPlugin`，保留工具调用数据和提交答案的方法。需要完全替换问卷 UI 时，可以在本地定义中替换 `ask_user_question.render`，复用公开的参数与答案校验。
 
 插件 ID 是 `ask-user-question`，工具名是 `ask_user_question`，两者用途不同。同一个工具名只能注册一次，自定义展示时直接修改该插件的工具注册。
 
-[人机交互与操作确认](/plugins/human-interaction.md) · [前端工具接入](/development/frontend-tools.md) · [返回插件总览](/plugins/index.md)
+[前端工具接入](/development/frontend-tools.md) · [返回插件总览](/plugins/index.md)
 
 ## 完整问答卡片的外观 \{#完整问答卡片的外观}
 
@@ -142,7 +151,7 @@ export function SingleQuestion({ options, save }: {
 import { useState } from 'react';
 import {
   ConversationQuestionFlow,
-  useAgentUILocale,
+  useLocale,
   type ConversationQuestionStep,
 } from '@za38.03/agent-ui-plugins';
 
@@ -157,7 +166,7 @@ interface BusinessQuestionnaireProps {
 export function BusinessQuestionnaire({
   steps, choice, readOnly = false, onSubmit,
 }: BusinessQuestionnaireProps) {
-  const messages = useAgentUILocale('humanQuestion');
+  const messages = useLocale('humanQuestion');
   const [receipt, setReceipt] = useState<Answers>();
 
   return <ConversationQuestionFlow
@@ -206,27 +215,30 @@ export function BusinessQuestionnaire({
 
 完整问答组件直接接收现有 renderer 的 `args`、`result`、`status`、`toolCallId` 和 `addResult`。`args` 描述题目，`result` 用于历史回执；只有当前调用允许回答、仍在等待操作且尚未提交时才开放 `addResult()`。实际判断见[提交状态与历史展示](#提交状态与历史展示)和[前端工具提交示例](/development/frontend-tools.md#2-在组件中提交结果)。
 
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-result.md#当前工具调用的数据与操作)。
 
 ### 显示条件与数据来源 \{#显示条件与数据来源}
 
-**数据来源：**&#x53EA;在工具 `ask_user_question` 发起提问时显示，参数和答案见[Agent 服务接入](#agent-服务接入)。一次提问的事件如下，随后以 `RUN_FINISHED` 的成功 outcome 结束本轮，等待用户提交工具结果并通过后续请求续答；此时服务端不预先发送 `TOOL_CALL_RESULT`：
+**数据来源：**&#x53EA;在工具 `ask_user_question` 发起提问时显示，参数和答案见[Agent 服务接入](#agent-服务接入)。一次提问需要的事件如下，以 `RUN_FINISHED` 的成功 outcome 结束本轮，等待用户提交工具结果并通过后续请求续答；此时服务端不预先发送 `TOOL_CALL_RESULT`：
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"ask_user_question"}
 {"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"steps\":[{\"id\":\"layout\",\"question\":\"你希望采用哪种首页布局？\",\"selectionMode\":\"single\",\"minSelections\":1,\"maxSelections\":1,\"options\":[{\"id\":\"dashboard\",\"label\":\"数据总览\"},{\"id\":\"sidebar\",\"label\":\"侧边导航\"}]}]}"}
 {"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"success"}}
 ```
+
+`RUN_FINISHED` 使用当前请求的 `threadId`、`runId`；这条结束事件用于交还控制，等待用户回答。
 
 事件逐条包装成 SSE，见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。问题卡片使用 human 工具结果提交，与 `outcome.type: "interrupt"` 的后端审批是两条接入路径。
 
 ### Agent 服务接入 \{#agent-服务接入}
 
-工具名是 `ask_user_question`，通过 AG-UI 的 `TOOL_CALL_START`、`TOOL_CALL_ARGS`、`TOOL_CALL_END` 传递调用与参数。它没有单独的问卷事件类型。前端注册的是 `human` 工具，等待用户回答后提交工具结果。
+工具名是 `ask_user_question`，通过 AG-UI 的 `TOOL_CALL_START`、`TOOL_CALL_ARGS`、`TOOL_CALL_END` 传递调用与参数。前端注册的是 `human` 工具，等待用户回答后提交工具结果。
 
 例如，工具参数为：
 
-```json
+```json ag-ui
 {
   "steps": [{
     "id": "layout",
@@ -244,7 +256,7 @@ export function BusinessQuestionnaire({
 
 选择「数据总览」后，前端提交：
 
-```json
+```json ag-ui
 { "answers": { "layout": ["dashboard"] } }
 ```
 

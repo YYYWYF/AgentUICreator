@@ -4,16 +4,14 @@ import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui
 import {
   act,
   create,
-  type ReactTestRenderer,
-} from "react-test-renderer";
+  type ReactTestRenderer} from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
   type ConversationLoadedThread,
-  type ConversationThreadBinding,
-} from "../src/index.js";
+  type ConversationThreadBinding} from "../src/index.js";
 
 function threadMessage(id: string): Extract<ThreadMessage, { role: "user" }> {
   return {

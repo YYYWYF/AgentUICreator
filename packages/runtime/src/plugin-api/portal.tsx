@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 const Context = createContext<HTMLElement | null | undefined>(undefined);
-export const useAgentUIPortalContainer = () => useContext(Context);
+export const usePortalContainer = () => useContext(Context);
 export function AgentUIPortalContainerProvider({
   container,
   children,

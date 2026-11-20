@@ -4,10 +4,9 @@ import type { RunAgentInput } from "@ag-ui/client";
 import { describe, expect, it, vi } from "vitest";
 import {
   AgentUIProvider, AgentUIConversationBinding, ConversationRuntimeProvider,
-  createEphemeralConversationThreadBinding, createAgentUIFrontendTools, useAgentUI,
+  createEphemeralConversationThreadBinding, createAgentUIFrontendTools, useAgent,
   type AgentUIBeforeRequest, type AgentUIHost, type AgentUIRequestInput,
-  type ConversationRuntimeProviderProps,
-} from "../src/public.js";
+  type ConversationRuntimeProviderProps} from "../src/public.js";
 
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 200; i++) {
@@ -32,7 +31,7 @@ async function fixture(props: Props, options: { initialId?: string; reply?: Repl
   const errors = vi.fn();
   const binding = createEphemeralConversationThreadBinding(options.initialId);
   const tools = createAgentUIFrontendTools([{ name: "probe", description: "probe", inputSchema: { type: "object", properties: {} }, execute: async () => ({ ok: true }) }]);
-  function Capture() { host = useAgentUI(); native = useAui().threads.__internal_getAssistantRuntime!(); return <AgentUIConversationBinding />; }
+  function Capture() { host = useAgent(); native = useAui().threads.__internal_getAssistantRuntime!(); return <AgentUIConversationBinding />; }
   let failFetch = options.failFetch;
   const fetch: NonNullable<ConversationRuntimeProviderProps["fetch"]> = async (_url, init) => {
     const input = JSON.parse(String(init.body)) as RunAgentInput;

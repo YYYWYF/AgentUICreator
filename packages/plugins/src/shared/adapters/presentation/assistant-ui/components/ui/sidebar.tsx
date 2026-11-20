@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../locale.js';
+import { useLocale } from '../../../../../locale.js';
 
 import * as React from 'react';
 import { mergeProps } from '@base-ui/react/merge-props';
@@ -125,7 +125,7 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   if (collapsible === 'none') {
@@ -219,7 +219,7 @@ function Sidebar({
 }
 
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -245,7 +245,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const { toggleSidebar } = useSidebar();
 
   return (

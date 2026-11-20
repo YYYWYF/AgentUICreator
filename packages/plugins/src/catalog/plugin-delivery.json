@@ -382,37 +382,6 @@
     "componentSource": "adapters/component.tsx"
   },
   {
-    "id": "tool-fallback",
-    "component": "ConversationToolFallbackPlugin",
-    "symbol": "conversationToolFallbackPlugin",
-    "support": "pluginSupport",
-    "presentation": [
-      "tool-fallback.tsx"
-    ],
-    "implementationExports": [
-      "ConversationToolFallback",
-      "ConversationToolFallbackProps",
-      "ToolFallbackPresentationProps"
-    ],
-    "preserveLegacySource": true,
-    "supportEntry": "plugin-support",
-    "presentationOwner": "tool-fallback",
-    "implementationModule": "tool-fallback",
-    "applicationAlias": "Implementation",
-    "services": {
-      "provides": [],
-      "inject": [],
-      "optionalInject": []
-    },
-    "publicPresentationTypes": true,
-    "scopeKind": "conversation.tool-fallback",
-    "componentSource": "adapters/component.tsx",
-    "upstreamBridge": {
-      "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
-      "reviewedAdaptedSha256": "e376fb611a6069efe14ddc4a7465b464dd4066f16a09fb1d1a1095cb74692400"
-    }
-  },
-  {
     "id": "transient-assistant-messages",
     "component": "TransientAssistantMessagesPlugin",
     "symbol": "transientAssistantMessagesPlugin",
@@ -698,7 +667,24 @@
     "support": "pluginSupport",
     "presentation": [
       "conversation-thread-list.tsx",
-      "PolicyThreadList.tsx"
+      "PolicyThreadList.tsx",
+      "list/thread-list.tsx",
+      "list/thread-search.tsx",
+      "list/thread-groups.tsx",
+      "list/use-thread-groups.ts",
+      "list/thread-new.tsx",
+      "list/thread-loading.tsx",
+      "list/primitives/thread-item.tsx",
+      "list/primitives/thread-item-rename.tsx",
+      "list/primitives/thread-item-menu.tsx",
+      "list/index.ts",
+      "list/policy-context.tsx",
+      "list/policy-groups.tsx",
+      "list/archived-threads.tsx",
+      "list/policy-thread-list.tsx",
+      "list/thread-item.tsx",
+      "list/thread-item-menu.tsx",
+      "list/thread-item-rename.tsx"
     ],
     "implementationExports": [
       "CanonicalConversationThreadList",
@@ -721,7 +707,11 @@
         "agent-ui.locale"
       ]
     },
-    "publicPresentationTypes": true,
+    "publicPresentationTypes": [
+      "conversation-thread-list.tsx",
+      "PolicyThreadList.tsx",
+      "list/policy-thread-list.tsx"
+    ],
     "componentSource": "adapters/component.tsx",
     "definitionSource": "adapters/package-definition.ts",
     "projectFiles": [
@@ -776,12 +766,13 @@
       [
         "services/hooks/useConversations.ts",
         "src/shared/project/services/hooks/useConversations.ts"
-      ],
-      [
-        "services/hooks/useConversationActions.ts",
-        "src/shared/project/services/hooks/useConversationActions.ts"
       ]
-    ]
+    ],
+    "upstreamBridge": {
+      "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
+      "reviewedAdaptedSha256": "57988819dac748d70a91592e1df386ce4c84b642903703f60f6ffc8507531cf7",
+      "module": "list/index"
+    }
   },
   {
     "id": "conversation-new",
@@ -1184,7 +1175,22 @@
     "symbol": "conversationSurfacePlugin",
     "support": "pluginSupport",
     "presentation": [
-      "conversation-surface.tsx"
+      "conversation-surface.tsx",
+      "thread/thread-context.tsx",
+      "thread/thread-view-state.ts",
+      "thread/thread-empty-state.tsx",
+      "thread/thread.tsx",
+      "thread/thread-layout.tsx",
+      "thread/assistant-message.tsx",
+      "thread/assistant-message-groups.tsx",
+      "thread/message-error.tsx",
+      "thread/response-footer-host.tsx",
+      "thread/message-actions.tsx",
+      "thread/user-message.tsx",
+      "thread/message-edit-composer.tsx",
+      "thread/index.ts",
+      "surface.tsx",
+      "welcome.tsx"
     ],
     "implementationExports": [
       "CanonicalConversationSurfacePlugin",
@@ -1205,7 +1211,11 @@
         "agent-ui.locale"
       ]
     },
-    "publicPresentationTypes": true,
+    "publicPresentationTypes": [
+      "conversation-surface.tsx",
+      "surface.tsx",
+      "welcome.tsx"
+    ],
     "componentSource": "adapters/component.tsx",
     "definitionSource": "adapters/package-definition.ts",
     "hostApplication": true,
@@ -1693,15 +1703,31 @@
     "support": "pluginSupport",
     "presentation": [
       "tool-result.tsx",
-      "content.ts"
+      "tool-call-card.tsx",
+      "tool-card.tsx",
+      "tool-content.tsx",
+      "approval/approval-actions.tsx",
+      "approval/approval-model.ts",
+      "approval/approval-options.tsx",
+      "approval/approval-questions.tsx",
+      "approval/approval-receipt.tsx",
+      "approval/approval.tsx",
+      "approval/use-approval-interaction.ts",
+      "result/content.ts",
+      "result/result-content.tsx",
+      "result/result-file.tsx",
+      "result/result-media.tsx",
+      "result/use-result-source.ts"
     ],
     "implementationExports": [
       "ConversationToolResult",
-      "ConversationToolResultContent",
       "ConversationToolResultProps",
+      "ToolCardPresentationProps",
       "ToolResultContentProps",
       "ToolResultPart",
-      "ToolResultSource"
+      "ToolResultSource",
+      "ToolApprovalClassNames",
+      "ToolApprovalStyles"
     ],
     "supportEntry": "plugin-support",
     "presentationOwner": "tool-result",
@@ -1714,7 +1740,12 @@
     },
     "publicPresentationTypes": true,
     "scopeKind": "conversation.tool-fallback",
-    "componentSource": "adapters/component.tsx"
+    "componentSource": "adapters/component.tsx",
+    "upstreamBridge": {
+      "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "reviewedAdaptedSha256": "45f0284b6bb92aac47585e28493925fd79a5a86774f97c2321e85e1e888f026b",
+      "module": "tool-call-card"
+    }
   },
   {
     "id": "skills",

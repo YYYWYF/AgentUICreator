@@ -11,7 +11,7 @@ import { createCreatorCommandHandler } from "../src/commands/command-api.js";
 import type { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
 import type { CreatorCommandResult } from "../src/commands/types.js";
 
-it("adds slash without a model and leaves prepared files with a notice when the default Slot is occupied", async () => {
+it("adds slash without a model and rejects the retired alternate tool card", async () => {
   const repository = fileURLToPath(new URL("../../../", import.meta.url));
   const root = await mkdtemp(path.join(tmpdir(), "creator enable 集成-"));
   const servers: ReturnType<typeof createServer>[] = [];
@@ -85,33 +85,15 @@ it("adds slash without a model and leaves prepared files with a notice when the 
     expect(ready.body).toMatchObject({ changed: true });
     expect(await readFile(modelPath, "utf8")).toBe(addedModel);
 
-    // tool-result already occupies the single toolFallback Slot. Preparation still completes.
+    // The retired alternate is no longer an installable public plugin.
     const registryPath = path.join(root, "src/ui/plugins/registry.generated.ts");
     const beforeRegistry = await readFile(registryPath, "utf8");
-    const pendingFallback = await execute({ pluginId: "tool-fallback" });
-    expect(pendingFallback.body.status).toBe("confirmation-required");
-    const fallback = await execute({ pluginId: "tool-fallback", preparationId: pendingFallback.body.preparation!.id });
-    expect(fallback.status).toBe(200);
-    expect(fallback.body).toMatchObject({ status: "placement-required", value: "tool-fallback", changed: true,
-      receipt: { verification: { status: "changed-unverified", checks: [{ id: "default-placement", status: "unavailable" }] } } });
-    expect(fallback.body.receipt.files.every(file => file.status === "created")).toBe(true);
-    expect(fallback.body.receipt.verification?.checks[0]?.evidence).toContain("slot-cardinality-full");
-    expect(fallback.body.placementGuide).toMatchObject({ modelPath: "src/ui/app-ui.json", pluginId: "tool-fallback",
-      target: { parentPluginId: "conversation-surface", slot: "toolFallback", cardinality: "one" } });
-    expect(fallback.body.placementGuide?.example).toContain('"pluginId": "tool-fallback"');
-    const fallbackEntry = path.join(root, "src/ui/plugins/tool-fallback/index.tsx");
-    expect(await readFile(fallbackEntry, "utf8")).toContain("ToolFallback");
+    const retired = await execute({ pluginId: "tool-fallback" });
+    expect(retired.status).toBeGreaterThanOrEqual(400);
+    await expect(readFile(path.join(root, "src/ui/plugins/tool-fallback/index.tsx"))).rejects.toMatchObject({ code: "ENOENT" });
     expect(await readFile(modelPath, "utf8")).toBe(addedModel);
     expect(await readFile(registryPath, "utf8")).toBe(beforeRegistry);
-    const retry = await execute({ pluginId: "tool-fallback" });
-    expect(retry.status).toBe(200);
-    expect(retry.body).toMatchObject({ status: "placement-required", changed: false,
-      receipt: { files: [], verification: { status: "no-project-change" } } });
-    expect(retry.body.placementGuide).toEqual(fallback.body.placementGuide);
 
-    guardBusy = true;
-    expect((await execute({ pluginId: "tool-fallback" })).body.code).toBe("CREATOR_COMMAND_BUSY");
-    guardBusy = false;
     expect(runtimeRequests.length).toBeGreaterThan(0);
     expect(runtimeRequests.every(url => url === "/creator-command-mutation")).toBe(true);
   } finally {

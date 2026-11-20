@@ -44,9 +44,9 @@ export {
   type ConversationThinkingIndicatorRenderScope,
 } from "@za38.03/agent-ui-runtime/plugin-api";import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
 export type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "./locale.js";
+import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from "./locale.js";
 import { createConversationTransientMessageService as createInternalTransientMessageService } from "./conversation-transient-message-service.js";
-import { ConversationTransientMessageProvider as InternalTransientMessageProvider, ConversationTransientMessages as InternalTransientMessages, useConversationTransientMessages as useInternalTransientMessages } from "./internal/conversation-transient-messages.js";
+import { ConversationTransientMessageProvider as InternalTransientMessageProvider, ConversationTransientMessages as InternalTransientMessages, useTransientMessages as useInternalTransientMessages } from "./internal/conversation-transient-messages.js";
 export interface TransientMessage {
   readonly id: string;
   readonly conversationId: string;
@@ -71,8 +71,15 @@ export type { ConversationTransientMessagesProps } from "./plugins/transient-ass
 export function ConversationTransientMessages(props: import("./plugins/transient-assistant-messages/adapters/presentation/transient-assistant-messages.js").ConversationTransientMessagesProps): ReactElement {
   return <InternalTransientMessages {...props} />;
 }
-export function useConversationTransientMessages(): Pick<ConversationTransientMessageService, "addMessage"> {
-  return useInternalTransientMessages();
+export interface ConversationTransientMessagesController {
+  getSnapshot(): readonly TransientMessage[];
+  subscribe(listener: () => void): () => void;
+  addMessage: ConversationTransientMessageService['addMessage'];
+}
+export function useTransientMessages(): ConversationTransientMessagesController;
+export function useTransientMessages<T>(selector: (messages: readonly TransientMessage[]) => T): T;
+export function useTransientMessages<T>(selector?: (messages: readonly TransientMessage[]) => T): ConversationTransientMessagesController | T {
+  return useInternalTransientMessages(selector);
 }
 export function ConversationTransientMessageProvider(props: { service: ConversationTransientMessageService; conversationId: string; children: ReactNode }): ReactElement {
   return <InternalTransientMessageProvider {...props} />;
@@ -130,17 +137,17 @@ export interface ConversationQuestionFlowProps {
   onComplete?: ((answers: Record<string, string[]>) => void | Promise<void>) | undefined;
 }
 export function ConversationOptionList(props: ConversationOptionListProps): ReactElement {
-  const messages = useAgentUILocale("humanQuestion");
+  const messages = useLocale("humanQuestion");
   return <InternalConversationOptionList {...props} confirmLabel={messages.submit} />;
 }
 export function ConversationQuestionFlow(props: ConversationQuestionFlowProps): ReactElement | null {
-  const messages = useAgentUILocale("humanQuestion");
+  const messages = useLocale("humanQuestion");
   return <InternalConversationQuestionFlow {...props} labels={messages} />;
 }
 export function useConversationCanAnswerToolCall(): boolean {
   return useInternalConversationCanAnswerToolCall();
 }
-import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
+import { AgentUIRoot as InternalAgentUIRoot, usePortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
 import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
 import { DialogContent as InternalAgentUIDialogContent } from "./internal/adapters-generated/assistant-ui/components/ui/dialog.js";
 import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/adapters-generated/assistant-ui/components/ui/tooltip.js";
@@ -164,7 +171,6 @@ export interface ConversationThreadListItemProps {
 import {
   CanonicalUserEditComposer as InternalCanonicalUserEditComposer,
   CanonicalComposer as InternalConversationCanonicalComposer,
-  ComposerQueue as InternalConversationComposerQueue,
   ComposableThread as InternalConversationThread,
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
@@ -236,7 +242,7 @@ import type {
 export function AgentUIRoot({ theme, children }: { theme: AgentUITheme; children: ReactNode }): ReactElement {
   return <InternalAgentUIRoot theme={theme}>{children}</InternalAgentUIRoot>;
 }
-export function useAgentUIPortalContainer(): HTMLElement | null {
+export function usePortalContainer(): HTMLElement | null {
   return useInternalAgentUIPortalContainer() ?? null;
 }
 export const AgentUITooltip: ComponentType<TooltipPrimitive.Root.Props> = InternalAgentUITooltip;
@@ -261,7 +267,7 @@ export const AgentUIDialog: Readonly<{
 /** Styled centered Popup with its own themed Portal and Backdrop; requires package styles.css.
  * Render directly inside AgentUIDialog.Root, without an additional Portal. */
 export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useMemo, useSyncExternalStore } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -287,6 +293,7 @@ export const defineDataMessageUI: <TData>(definition: DataMessageUIDefinition<TD
 export const DataMessageUIRegistration: ComponentType<{ definition: DataMessageUIDefinition<never> }> = InternalDataMessageUIRegistration;
 
 export interface ConversationState {
+  readonly thread: ConversationThreadSnapshot;
   readonly message: {
     readonly isCopied: boolean;
     readonly [key: string]: unknown;
@@ -298,16 +305,10 @@ export interface ConversationState {
     readonly threadItems: readonly Record<string, unknown>[];
   };
   readonly threadListItem: {
-    readonly status?: "new" | "regular" | "archived";
+    readonly status?: "new" | "regular" | "archived" | "deleted";
     readonly isRunning?: boolean;
-    readonly custom?: Record<string, unknown>;
+    readonly custom?: Record<string, unknown> | undefined;
   };
-}
-
-export function useConversationState<T>(
-  selector: (state: ConversationState) => T,
-): T {
-  return useInternalConversationState(selector as never) as T;
 }
 
 export function ConversationIf({
@@ -359,11 +360,6 @@ export function ConversationThreadBase({
   );
 }
 
-export function ConversationComposerQueue() {
-  const messages = useAgentUILocale("composer");
-  return <InternalConversationComposerQueue queued={messages.queued} removeQueued={messages.removeQueued} />;
-}
-
 export { ConversationCanonicalComposer, type ConversationCanonicalComposerProps } from "./plugins/composer/adapters/presentation/composer.js";
 
 /** Canonical textarea fallback for optional Composer input Slots. */
@@ -381,7 +377,6 @@ export interface ConversationSuggestionRequestItem {
   label?: string | undefined;
   data?: import('./composer-support.js').ComposerData | undefined;
 }
-export type ConversationSuggestionRequestAdapter = (item: ConversationSuggestionRequestItem) => import('./composer-support.js').ComposerData;
 
 export interface ConversationSuggestionProps
   extends Omit<ComponentProps<"button">, "children"> {
@@ -390,7 +385,6 @@ export interface ConversationSuggestionProps
   prompt: string;
   send?: boolean | undefined;
   clearComposer?: boolean | undefined;
-  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
   requestItem?: ConversationSuggestionRequestItem | undefined;
   children?: ReactNode;
 }
@@ -418,17 +412,16 @@ export type ConversationSuggestionTriggerProps = ComponentProps<"button"> & {
   render?: ReactElement | undefined;
   send?: boolean | undefined;
   clearComposer?: boolean | undefined;
-  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
 };
 
 export function ConversationSuggestionTrigger(
   props: Readonly<ConversationSuggestionTriggerProps>,
 ) {
-  const { requestAdapter, onClick, ...nativeProps } = props;
+  const { onClick, ...nativeProps } = props;
   const suggestion = useInternalConversationState(state => state.suggestion);
   const item = { prompt: suggestion.prompt, title: suggestion.title, label: suggestion.label };
-  const request = useSuggestionRequest(item, requestAdapter, props.send ?? false, props.clearComposer, onClick);
-  const messages = useAgentUILocale('starterSuggestions');
+  const request = useSuggestionRequest(item, props.send ?? false, props.clearComposer, onClick);
+  const messages = useLocale('starterSuggestions');
   return <><SuggestionPrimitive.Trigger {...nativeProps} onClick={request.onClick} />
     {request.failed && <span role='alert'>{messages.requestFailed}</span>}</>;
 }
@@ -456,14 +449,13 @@ export function ConversationSuggestion({
   prompt,
   send,
   children,
-  requestAdapter,
   requestItem,
   clearComposer,
   onClick,
   ...props
 }: Readonly<ConversationSuggestionProps>) {
-  const request = useSuggestionRequest(requestItem ?? { prompt }, requestAdapter, send ?? false, clearComposer, onClick);
-  const messages = useAgentUILocale('starterSuggestions');
+  const request = useSuggestionRequest(requestItem ?? { prompt }, send ?? false, clearComposer, onClick);
+  const messages = useLocale('starterSuggestions');
   return (<>
     <ThreadPrimitive.Suggestion
       prompt={prompt}
@@ -511,7 +503,6 @@ export function ConversationToolCall(
   return <InternalToolCall {...(props as ComponentProps<typeof InternalToolCall>)} />;
 }
 
-export { ConversationToolFallback, type ConversationToolFallbackProps, type ToolFallbackPresentationProps } from "./plugins/tool-fallback/adapters/presentation/tool-fallback.js";
 
 /** Product source presentation contract; not an AG-UI wire event. */
 export type ConversationSourcePart =
@@ -534,7 +525,7 @@ export interface ConversationFileProps {
 
 /** Official File presentation and download behavior behind the public facade. */
 export function ConversationFile(props: Readonly<ConversationFileProps>) {
-  const messages = useAgentUILocale("files");
+  const messages = useLocale("files");
   // Compose public upstream parts for URL file cards. Media and encoded payloads
   // retain the upstream high-level presentation and its parsing/size behavior.
   if ((props.sourceType === "url" || /^(https?:\/\/|blob:)/i.test(props.data)) && !/^(audio|video)\//i.test(props.mimeType) && !/^data:/i.test(props.data)) {
@@ -601,7 +592,7 @@ export function ConversationActionExportMarkdown({
 }
 
 export function ConversationCanonicalCopyAction() {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <ConversationActionCopy>
       <ConversationTooltipIconButton tooltip={localeMessages.common.copy}>
@@ -623,7 +614,7 @@ export function ConversationCanonicalCopyAction() {
 }
 
 export function ConversationCanonicalReloadAction() {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <ConversationActionReload>
       <ConversationTooltipIconButton tooltip={localeMessages.common.refresh}>
@@ -634,7 +625,7 @@ export function ConversationCanonicalReloadAction() {
 }
 
 export function ConversationCanonicalExportMarkdownAction() {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <ConversationActionExportMarkdown>
       <ConversationTooltipIconButton tooltip={localeMessages.conversation.exportMarkdown} type="button">
@@ -659,7 +650,7 @@ export function ConversationBranchPicker({
   previousLabel,
   ...rest
 }: Readonly<ConversationBranchPickerProps>) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   nextLabel ??= localeMessages.common.next;
   previousLabel ??= localeMessages.common.previous;
   return (
@@ -736,7 +727,7 @@ export const ConversationThreadListNew = forwardRef<
   HTMLButtonElement,
   Readonly<React.ComponentPropsWithoutRef<"button"> & { labelClassName?: string }>
 >(function ConversationThreadListNew(props, ref) {
-  const messages = useAgentUILocale("threadList");
+  const messages = useLocale("threadList");
   const label = props.children ?? messages.newThread;
   return <InternalConversationThreadListNew {...props} ref={ref}>{typeof label === "string" || typeof label === "number" ? <>
     <PlusIcon data-slot="aui_thread-list-new-icon" className="size-4 shrink-0" />
@@ -756,7 +747,7 @@ export function ConversationThreadListSearch(
     onValueChange: (value: string) => void;
   }>,
 ) {
-  const messages = useAgentUILocale("threadList");
+  const messages = useLocale("threadList");
   return <InternalConversationThreadListSearch {...props} clearLabel={messages.clearSearch} placeholder={props.placeholder ?? messages.search} aria-label={props["aria-label"] ?? messages.search} />;
 }
 
@@ -962,28 +953,61 @@ export interface ConversationThreadController {
   subscribe(listener: () => void): () => void;
 }
 
-export function useConversationThread(): ConversationThreadController {
-  const runtime = useAui();
-  return useMemo(
-    () => ({
-      getSnapshot: () => {
-        const state = runtime.thread.getState();
-        return {
-          messages: state.messages as unknown as readonly ConversationMessage[],
-          ...(state.state === undefined ? {} : { state: state.state }),
-          isRunning: state.isRunning,
-        };
-      },
-      subscribe: runtime.subscribe,
-    }),
-    [runtime],
-  );
+function subscribeToNoConversationUpdates(): () => void {
+  return () => {};
 }
 
-export function useConversationMessageParts(): readonly unknown[] {
+/** Without a selector, returns an imperative handle without subscribing to data. */
+export function useConversation(): ConversationThreadController;
+/** Subscribes to the selected value, compared with Object.is. Select stable fields. */
+export function useConversation<T>(selector: (state: ConversationState) => T): T;
+export function useConversation<T>(
+  selector: ((state: ConversationState) => T) | undefined,
+): ConversationThreadController | T;
+export function useConversation<T>(
+  selector?: (state: ConversationState) => T,
+): ConversationThreadController | T {
   const runtime = useAui();
-  return runtime.thread.getState().messages.flatMap(
-    (message) => message.content as readonly unknown[],
+  const { controller, state } = useMemo(() => {
+    let snapshot: ConversationThreadSnapshot | undefined;
+    const getSnapshot = (): ConversationThreadSnapshot => {
+      const current = runtime.thread.getState();
+      if (snapshot === undefined || snapshot.messages !== current.messages ||
+        !Object.is(snapshot.state, current.state) || snapshot.isRunning !== current.isRunning) {
+        snapshot = {
+          messages: current.messages as unknown as readonly ConversationMessage[],
+          ...(current.state === undefined ? {} : { state: current.state }),
+          isRunning: current.isRunning,
+        };
+      }
+      return snapshot;
+    };
+    const state: ConversationState = {
+      get thread() {
+        return getSnapshot();
+      },
+      get message() {
+        return runtime.message.getState();
+      },
+      get threads() {
+        return runtime.threads.getState();
+      },
+      get threadListItem() {
+        return runtime.threadListItem.getState();
+      },
+    };
+    return { controller: { getSnapshot, subscribe: runtime.subscribe }, state };
+  }, [runtime]);
+  const read = () => {
+    if (selector === undefined) return controller;
+    const selected = selector(state);
+    if (selected === state) throw new Error("CONVERSATION_SELECTOR_MUST_SELECT_FIELD");
+    return selected;
+  };
+  return useSyncExternalStore(
+    selector === undefined ? subscribeToNoConversationUpdates : controller.subscribe,
+    read,
+    read,
   );
 }
 
@@ -1127,7 +1151,7 @@ export interface ConversationTurnGroup {
   tailAssistantIndex: number;
 }
 export type ConversationAssistantResponseGroup = ConversationTurnGroup;
-export interface ConversationResponseRuntime {
+export interface ConversationResponseSnapshot {
   group: ConversationTurnGroup;
   text: string;
   isRunning: boolean;
@@ -1135,11 +1159,19 @@ export interface ConversationResponseRuntime {
   canSwitchBranch: boolean;
   branchNumber: number;
   branchCount: number;
+}
+export interface ConversationResponseRuntime {
+  getSnapshot(): ConversationResponseSnapshot;
+  subscribe(listener: () => void): () => void;
   reload(): void;
   switchToPreviousBranch(): void;
   switchToNextBranch(): void;
 }
-export const useConversationResponseRuntime: () => ConversationResponseRuntime = useAssistantResponseRuntime;
+export function useResponse(): ConversationResponseRuntime;
+export function useResponse<T>(selector: (snapshot: ConversationResponseSnapshot) => T): T;
+export function useResponse<T>(selector?: (snapshot: ConversationResponseSnapshot) => T): ConversationResponseRuntime | T {
+  return useAssistantResponseRuntime(selector);
+}
 
 import {
   InternalConversationQuoteLifecycleProvider,
@@ -1152,11 +1184,11 @@ export function ConversationQuoteBlock(props: { text: string; messageId: string 
   return <InternalConversationQuoteBlock {...props} />;
 }
 export function ConversationComposerQuotePreview(): ReactElement {
-  const messages = useAgentUILocale("conversationQuote");
+  const messages = useLocale("conversationQuote");
   return <InternalConversationComposerQuotePreview dismissLabel={messages.dismiss} />;
 }
 export function ConversationQuoteSelectionToolbar(): ReactElement | null {
-  const messages = useAgentUILocale("conversationQuote");
+  const messages = useLocale("conversationQuote");
   return <InternalConversationQuoteSelectionToolbar quoteLabel={messages.quote} />;
 }
 /** Composition seam for the canonical runtime's thread-bound quote cleanup. */
@@ -1218,11 +1250,11 @@ export interface ConversationTriggerSelectionContext {
 export type ConversationTriggerSelect<T> = (item: T, context: ConversationTriggerSelectionContext) => string | null;
 import { InternalConversationMentionTrigger, InternalConversationCommandTrigger } from "./internal/conversation-composer-triggers.js";
 export function ConversationComposerMentionTrigger(props: ConversationMentionTriggerProps): ReactElement | null {
-  const messages = useAgentUILocale("conversationTriggers");
+  const messages = useLocale("conversationTriggers");
   return <InternalConversationMentionTrigger {...props} labels={messages} />;
 }
 export function ConversationComposerCommandTrigger(props: ConversationCommandTriggerProps): ReactElement | null {
-  const messages = useAgentUILocale("conversationTriggers");
+  const messages = useLocale("conversationTriggers");
   return <InternalConversationCommandTrigger {...props} labels={messages} />;
 }
 
@@ -1235,7 +1267,7 @@ export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "child
   searching: boolean;
 }
 export function WebSearch(props: WebSearchProps): ReactElement {
-  const messages = useAgentUILocale("searchTools");
+  const messages = useLocale("searchTools");
   return <InternalWebSearch {...props} labels={{ searching: messages.searching, complete: messages.sources }} />;
 }
 export interface RetrievalChunk { id: string; source: string; locator: string; score: number; text: string }
@@ -1246,7 +1278,7 @@ export interface RetrievalChunksProps extends Omit<React.ComponentProps<"div">, 
   searching: boolean;
 }
 export function RetrievalChunks(props: RetrievalChunksProps): ReactElement {
-  const messages = useAgentUILocale("searchTools");
+  const messages = useLocale("searchTools");
   return <InternalRetrievalChunks {...props} labels={{ retrieving: messages.retrieving, complete: messages.passages, relevance: messages.relevance, score: messages.score }} />;
 }
 
@@ -1262,7 +1294,7 @@ export function NativeSelectOption(props: React.ComponentProps<"option">) {
 
 /** The existing response Footer owns menu placement and localized menu content. */
 export function ConversationActionMoreMenu(props: { children: ReactNode }): ReactElement {
-  const messages = useAgentUILocale("conversation");
+  const messages = useLocale("conversation");
   return <InternalConversationActionMoreMenu {...props} label={messages.moreActions} />;
 }
 
@@ -1273,14 +1305,14 @@ export function ConversationActionMoreMenuItem(props: ConversationActionMoreMenu
   return <InternalConversationActionMoreMenuItem {...props} />;
 }
 
-export { AgentUILocaleProvider, useAgentUILocale, useAgentUILocaleCode, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
+export { AgentUILocaleProvider, useLocale, useLocaleCode, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
 export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides } from "./locale.js";
 
-import { AgentUISidebarFrame as InternalSidebarFrame, useAgentUISidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";
+import { AgentUISidebarFrame as InternalSidebarFrame, useSidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";
 export type AgentUISidebarIcon = "messages-square" | "folder" | "folder-open" | "files" | "search" | "settings" | "database" | "chart-no-axes-combined" | "list" | "bot" | "book-open" | "star" | "circle-help";
 export interface AgentUISidebarItem { id: string; icon: AgentUISidebarIcon; label: string; content: ReactNode; railAction?: ReactNode; }
 export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; header?: ReactNode; footer?: ReactNode; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
-export function useAgentUISidebarNavigation(): () => void { return internalSidebarNavigation(); }
+export function useSidebarNavigation(): () => void { return internalSidebarNavigation(); }
 
 // Product facade reuses the same Sidebar context and upstream-derived primitives.
 import { SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters-generated/assistant-ui/components/ui/sidebar.js";
@@ -1320,7 +1352,7 @@ export { CanonicalConversationNew } from "./plugins/conversation-new/adapters/pr
 export type { ConversationNewPluginProps } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
 
 export { CanonicalConversationQuote } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
-export type { ConversationQuotePluginProps, ConversationQuoteRequestAdapter, ConversationQuoteData } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
+export type { ConversationQuotePluginProps, ConversationQuoteData } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
 
 export { PolicyThreadList as ConversationPolicyThreadList } from "./plugins/conversation-thread-list/adapters/presentation/PolicyThreadList.js";
 
@@ -1378,18 +1410,18 @@ export * from "./contracts.js";
 export * from "./plugin-api/PluginInstanceContext.js";
 export * from "./plugin-api/PluginRenderScope.js";
 export * from "./plugin-api/PluginServiceContext.js";
-export * from "./plugin-api/usePluginServiceSnapshot.js";
+export * from "./plugin-api/usePluginService.js";
 export * from "./plugin-api/ApplicationLifecycleContext.js";
 
 export { CanonicalAskUserQuestion, type AskUserQuestionProps } from "./plugins/ask-user-question/adapters/presentation/ask-user-question.js";
 export { askUserQuestionParameters, parseHumanQuestionRequest, parseHumanQuestionResult, type HumanQuestionOption, type HumanQuestionStep, type HumanQuestionRequest, type HumanQuestionResult } from "./plugins/ask-user-question/adapters/presentation/contract.js";
 
-export { ConversationToolResult, ConversationToolResultContent, type ConversationToolResultProps, type ToolResultContentProps, type ToolResultPart, type ToolResultSource } from "./plugins/tool-result/adapters/presentation/tool-result.js";
+export { ConversationToolResult, type ConversationToolResultProps, type ToolCardPresentationProps, type ToolApprovalClassNames, type ToolApprovalStyles, type ToolResultContentProps, type ToolResultPart, type ToolResultSource } from "./plugins/tool-result/adapters/presentation/tool-result.js";
 import { useConversationToolRenderer } from "./internal/tool-renderer-context.js";
-import { ConversationToolFallback as DefaultToolFallback } from "./plugins/tool-fallback/adapters/presentation/tool-fallback.js";
+import { ConversationToolResult as DefaultToolResult } from "./plugins/tool-result/adapters/presentation/tool-result.js";
 /** Default frontend-tool UI follows the thread's semantic renderer selection. */
 export function ConversationDefaultTool(props: ConversationToolCallProps & { resultOnly?: boolean }) {
-  const Renderer = useConversationToolRenderer() ?? DefaultToolFallback;
+  const Renderer = useConversationToolRenderer() ?? DefaultToolResult;
   return <Renderer {...props} />;
 }
 
@@ -1405,7 +1437,7 @@ export { readConversationSkillData } from './plugins/skills/adapters/presentatio
 export type { ConversationSkillData } from './plugins/skills/adapters/presentation/skill-data.js';
 export { CONVERSATION_SKILLS_SERVICE, createConversationSkillsService } from './plugins/skills/adapters/presentation/service.js';
 export type { ConversationSkillsService, ConversationSkillComposerBinding, ConversationSkillsLifecycle } from './plugins/skills/adapters/presentation/service.js';
-export { useConversationSkillsState } from './plugins/skills/adapters/presentation/use-skills.js';
+export { useSkillSelection, type ConversationSkillsSnapshot, type ConversationSkillsController } from './plugins/skills/adapters/presentation/use-skills.js';
 export { ConversationSkillSelection } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export type { ConversationSkillSelectionProps } from "./plugins/skills-selection/adapters/presentation/selection.js";
 export { ConversationSkillsSelection } from "./plugins/skills-selection/adapters/presentation/binding.js";
@@ -1424,6 +1456,6 @@ export { createComposerInputController } from "./composer-support.js";
 
 
 import { ThreadFollowupSuggestions as InternalFollowupSuggestions } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
-export function ConversationFollowupSuggestions(props: { requestAdapter?: ConversationSuggestionRequestAdapter | undefined } = {}): ReactElement {
-  return <InternalFollowupSuggestions {...props} />;
+export function ConversationFollowupSuggestions(): ReactElement {
+  return <InternalFollowupSuggestions />;
 }

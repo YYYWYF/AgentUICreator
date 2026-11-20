@@ -13,13 +13,7 @@
 
 在已有回复操作栏中使用，组件读取当前回答的内容与可用状态。
 
-```tsx
-import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
-
-export function ResponseAction() {
-  return <ConversationCanonicalResponseReloadAction />;
-}
-```
+点击重试会通过当前会话重新发起 Agent 请求，保留原 `threadId`。服务端按本次请求的 `runId` 和新消息 ID 返回[AG-UI 响应流](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ## 按钮尺寸与提示位置 \{#尺寸与提示位置}
 
@@ -105,4 +99,4 @@ export function CheckedReload({ canRetry }: { canRetry: () => boolean }) {
 默认提示文案只读取 `locales.common.refresh`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 
-在已有回复页脚中调用 `useConversationResponseRuntime()`，通过 `canReload` 控制业务“重新生成”入口，点击时调用 `reload(): void`。它沿用当前回答的分支和运行生命周期；不是刷新整个页面，也不新建 Thread。状态与操作说明见[回复操作栏](/plugins/response-footer.md#hook)。
+在已有回复页脚中调用 `useResponse()`，通过 `canReload` 控制业务“重新生成”入口，点击时调用 `reload(): void`。它沿用当前回答的分支和运行生命周期；不是刷新整个页面，也不新建 Thread。状态与操作说明见[回复操作栏](/plugins/response-footer.md#hook)。

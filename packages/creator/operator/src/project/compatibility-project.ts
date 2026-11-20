@@ -69,7 +69,7 @@ export async function planCompatibilityProject(input: { projectRoot: string; sou
   }
   const manager = await detectResourcePackageManager(input.projectRoot);
   const manifest = { name: "agent-ui-frontend", private: true, type: "module", scripts: {
-    dev: "vite --host 127.0.0.1", typecheck: "tsc --noEmit", test: "tsc --noEmit", build: "node scripts/build.mjs",
+    dev: "vite --host 127.0.0.1", typecheck: "node scripts/typecheck.mjs --noEmit", test: "node scripts/typecheck.mjs --noEmit", build: "node scripts/build.mjs",
   }, dependencies, devDependencies };
   const context = { registryHash: digest(await optionalText(path.join(input.projectRoot, ".npmrc")) ?? ""), hostPackage: await optionalText(path.join(input.projectRoot, "package.json")), hostLock: await optionalText(path.join(input.projectRoot, manager === "npm" ? "package-lock.json" : "pnpm-lock.yaml")) };
   const plan = { producerRoot: input.sourceRoot, sourceRoot: SOURCE_ROOT, mode: input.mode, manager, dependencies, devDependencies, advisories };
@@ -96,7 +96,8 @@ export async function initializeCompatibilityProject(input: { projectRoot: strin
     const producer = await safeCompatibilityPath(path.resolve(input.projectRoot), plan.producerRoot);
     await mkdir(path.join(producer, "src"), { recursive: true });
     await mkdir(path.join(producer, "scripts"));
-    const manifest = { name: "agent-ui-frontend", private: true, type: "module", scripts: { dev: "vite --host 127.0.0.1", typecheck: "tsc --noEmit", test: "tsc --noEmit", build: "node scripts/build.mjs" }, dependencies: plan.dependencies, devDependencies: plan.devDependencies };
+    await writeFile(path.join(producer, "scripts/typecheck.mjs"), 'import {createRequire} from "node:module";import path from "node:path";import {pathToFileURL} from "node:url";const require=createRequire(import.meta.url);await import(pathToFileURL(path.join(path.dirname(require.resolve("typescript/package.json")),"lib/tsc.js")).href);\n', { flag: "wx" });
+    const manifest = { name: "agent-ui-frontend", private: true, type: "module", scripts: { dev: "vite --host 127.0.0.1", typecheck: "node scripts/typecheck.mjs --noEmit", test: "node scripts/typecheck.mjs --noEmit", build: "node scripts/build.mjs" }, dependencies: plan.dependencies, devDependencies: plan.devDependencies };
     await writeFile(path.join(producer, "package.json"), JSON.stringify(manifest, null, 2), { flag: "wx" });
     // Reuse registry credentials without persisting them into the producer.
     const npmrc = await optionalText(path.join(input.projectRoot, ".npmrc"));
@@ -105,8 +106,8 @@ export async function initializeCompatibilityProject(input: { projectRoot: strin
     await writeFile(path.join(producer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: false, noEmit: true, resolveJsonModule: true, esModuleInterop: true, types: ["node"] }, include: ["src"] }, null, 2));
     await writeFile(path.join(producer, "index.html"), '<html><head><meta charset="utf-8"><style>body{margin:0}#root{height:100dvh}</style></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>');
     await writeFile(path.join(producer, "src/main.tsx"), 'import {createRoot} from "react-dom/client";\nimport {Agent} from "./agent-ui";\ncreateRoot(document.getElementById("root")!).render(<Agent />);\n');
-    await writeFile(path.join(producer, "vite.config.ts"), 'import {defineConfig} from "vite";import react from "@vitejs/plugin-react";import tailwindcss from "@tailwindcss/vite";export default defineConfig({plugins:[react(),tailwindcss()]});\n');
-    await writeFile(path.join(producer, "scripts/build.mjs"), 'import {spawnSync} from "node:child_process";import {createRequire} from "node:module";import path from "node:path";const require=createRequire(import.meta.url);for(const [pkg,bin,args] of [["typescript","bin/tsc",["--noEmit"]],["vite","bin/vite.js",["build","--config","src/agent-ui/integrations/web-component-bridge/vite.config.ts"]]]){const script=path.join(path.dirname(require.resolve(pkg+"/package.json")),bin);const result=spawnSync(process.execPath,[script,...args],{stdio:"inherit"});if(result.error)throw result.error;if(result.status!==0)process.exit(result.status??1);}\n');
+    await writeFile(path.join(producer, "vite.config.ts"), 'import {defineConfig} from "vite";import react from "@vitejs/plugin-react";import tailwindcss from "@tailwindcss/vite";export default defineConfig({plugins:[react(),tailwindcss()],...(process.platform === "darwin" && process.versions.node.startsWith("20.") && Number(process.versions.node.split(".")[1]) < 12?{server:{watch:{usePolling:true}}}:{})});\n');
+    await writeFile(path.join(producer, "scripts/build.mjs"), 'import {spawnSync} from "node:child_process";import {createRequire} from "node:module";import path from "node:path";const require=createRequire(import.meta.url);for(const [pkg,bin,args] of [["typescript","lib/tsc.js",["--noEmit"]],["vite","bin/vite.js",["build","--config","src/agent-ui/integrations/web-component-bridge/vite.config.ts"]]]){const script=path.join(path.dirname(require.resolve(pkg+"/package.json")),bin);const result=spawnSync(process.execPath,[script,...args],{stdio:"inherit"});if(result.error)throw result.error;if(result.status!==0)process.exit(result.status??1);}\n');
     await initializeAgentUIProject({ projectRoot: producer, mode: plan.mode, sourceRoot: SOURCE_ROOT }, createAgentUIInitializationHost());
     await installOptionalAgentUIResource(producer, "integration/web-component-bridge");
     // Commit reciprocal development-only links after successful initialization.

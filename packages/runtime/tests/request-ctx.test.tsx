@@ -3,12 +3,11 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import type { RunAgentInput } from "@ag-ui/client";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AgentUIProvider, AgentUIConversationBinding, useAgentUI,
+  AgentUIProvider, AgentUIConversationBinding, useAgent,
   ConversationRuntimeProvider, createEphemeralConversationThreadBinding,
   useConversationRuntimeBridge, createAgentUIFrontendTools,
   type AgentUIHost, type AgentUIContext, type AgentUISendOptions,
-  type ConversationRuntimeProviderProps, type ConversationRuntimeBridge,
-} from "../src/public.js";
+  type ConversationRuntimeProviderProps, type ConversationRuntimeBridge} from "../src/public.js";
 
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 150; i++) {
@@ -24,7 +23,7 @@ async function fixture(ctx?: AgentUIContext, reply?: Reply) {
   const errors = vi.fn();
   let host!: AgentUIHost, native!: AssistantRuntime, bridge!: ConversationRuntimeBridge;
   function Capture() {
-    host = useAgentUI();
+    host = useAgent();
     native = useAui().threads.__internal_getAssistantRuntime!();
     bridge = useConversationRuntimeBridge();
     return <AgentUIConversationBinding />;

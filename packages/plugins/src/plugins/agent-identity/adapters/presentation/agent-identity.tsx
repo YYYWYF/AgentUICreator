@@ -1,6 +1,6 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import { BotIcon as Bot } from '../../../../plugin-support.js';
-import { useAgentUILocale, useAgentUILocaleCode } from '../../../../public.js';
+import { useLocale, useLocaleCode } from '../../../../public.js';
 export interface AgentIdentityPluginProps extends Omit<ComponentProps<'div'>, 'children' | 'title'> {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderScopedSlot?: (name: string, scope: { kind: string; value: unknown }, fallback?: ReactNode) => ReactNode;
@@ -22,8 +22,8 @@ export function CanonicalAgentIdentityPlugin({
   styles,
   ...rootProps
 }: AgentIdentityPluginProps) {
-  const messages = useAgentUILocale('agentIdentity');
-  const locale = useAgentUILocaleCode();
+  const messages = useLocale('agentIdentity');
+  const locale = useLocaleCode();
   const name = typeof configuredName === 'string' ? configuredName : configuredName?.[locale] || messages.name;
   return (
     <div

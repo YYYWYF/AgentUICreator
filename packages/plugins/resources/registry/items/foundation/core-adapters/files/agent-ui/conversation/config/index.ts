@@ -1,1 +1,1 @@
-export { getConversationStarterSuggestions, conversationStarterSuggestions, conversationMessageQueueEnabled } from "./conversation-runtime-config";
+export { getConversationStarterSuggestions, conversationStarterSuggestions } from "./conversation-runtime-config";

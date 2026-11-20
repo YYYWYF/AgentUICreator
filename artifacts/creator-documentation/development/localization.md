@@ -15,6 +15,13 @@
 
 语言配置影响界面文字；Agent 消息、用户输入和后端返回内容保留其原始语言。
 
+<figure className="plugin-preview">
+
+![英文欢迎语、输入提示和列表操作，历史标题仍为中文](/images/agent-ui/appearance-english.jpg)
+
+<figcaption>英文界面参考：欢迎语、输入提示和列表操作已切换，右侧已有历史标题仍为中文，可据此区分界面文案与业务内容。</figcaption>
+</figure>
+
 ## 修改已有文案
 
 通过 `Agent` 的 `locales` 属性覆盖需要修改的文案：
@@ -65,10 +72,10 @@
 组件通过工程已有的统一 Hook 读取：
 
 ```tsx
-import { useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { useLocale } from '@za38.03/agent-ui-plugins';
 
 export function ComposerHint() {
-  const labels = useAgentUILocale('composer');
+  const labels = useLocale('composer');
   return <p>{labels.placeholder}</p>;
 }
 ```
@@ -77,7 +84,7 @@ export function ComposerHint() {
 
 ## 新增业务文案
 
-官方文案沿用现有域；`Agent.locales` 不注册任意新命名空间或键。新增业务文案集中在项目共享消息模块，按领域组织完整双语表，通过统一的 `useAgentUILocaleCode()` 值选择文案。组件不写语言条件，不创建每插件国际化 Hook 或独立语言状态，纯展示函数接收文案参数。
+官方文案沿用现有域；`Agent.locales` 不注册任意新命名空间或键。新增业务文案集中在项目共享消息模块，按领域组织完整双语表，通过统一的 `useLocaleCode()` 值选择文案。组件不写语言条件，不创建每插件国际化 Hook 或独立语言状态，纯展示函数接收文案参数。
 
 创建共享文案文件并在组件中读取文案的完整示例，见[新增业务文案](/development/component-customization.md#新增业务文案)；Hook 和领域文案示例见[插件 API](/development/plugin-api.md#主题与多语言)。
 

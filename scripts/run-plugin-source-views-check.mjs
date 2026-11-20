@@ -19,8 +19,8 @@ function run(args) {
 let status;
 if (operation === "typecheck") {
   if (process.env[typescriptAuthoringReadyEnv] !== "1") await prepareTypeScriptAuthoring();
-  status = run(["exec", "tsc", "--noEmit", "-p", path.join(workingDirectory, "tsconfig.json")]);
-  if (status === 0) status = run(["exec", "tsc", "-p", path.join(workingDirectory, "tsconfig.tests.json")]);
+  status = run(["exec", "node", "./node_modules/typescript/lib/tsc.js", "--noEmit", "-p", path.join(workingDirectory, "tsconfig.json")]);
+  if (status === 0) status = run(["exec", "node", "./node_modules/typescript/lib/tsc.js", "-p", path.join(workingDirectory, "tsconfig.tests.json")]);
 } else if (operation === "test") {
   status = await withPluginResourceViews(async () => run(["exec", "vitest", "run", ...(operator ? ["--root", workingDirectory, "--config", path.join(workingDirectory, "vitest.config.ts")] : []), ...extraArgs]));
 } else {

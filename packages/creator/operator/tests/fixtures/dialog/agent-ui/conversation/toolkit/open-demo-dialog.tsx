@@ -1,6 +1,6 @@
 import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import type { ConversationToolkit } from "@za38.03/agent-ui-runtime/plugin-api";
-import { useAgentUILocale } from "../../i18n/useAgentUILocale";
+import { useLocale } from "../../i18n/useLocale";
 function titleOf(value: unknown): string {
   if (value === null || typeof value !== "object") return "";
   const title = (value as Record<string, unknown>).title;
@@ -8,7 +8,7 @@ function titleOf(value: unknown): string {
 }
 /** A replayable projection. Mounting this component never invokes a capability. */
 export function OpenDemoDialogToolUI({ args, result, status, isError }: ConversationToolCallProps) {
-  const locale = useAgentUILocale("frontendTools");
+  const locale = useLocale("frontendTools");
   const label = isError || status.type === "incomplete" ? locale.failed
     : status.type === "running" || status.type === "requires-action" ? locale.opening : locale.opened;
   return <div data-frontend-tool="open_demo_dialog">{label} {titleOf(result) || titleOf(args)}</div>;

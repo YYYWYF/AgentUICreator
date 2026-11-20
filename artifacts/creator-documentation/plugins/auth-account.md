@@ -58,8 +58,9 @@ export function Example(props: ComponentProps<typeof CanonicalAuthAccountPlugin>
 import { useAuthSession } from '../../services/hooks/useAuthSession';
 
 export function CurrentAccount() {
-  const { snapshot, serviceAvailable } = useAuthSession();
-  return serviceAvailable && snapshot.user ? <output>{snapshot.user.userName}</output> : null;
+  const { serviceAvailable } = useAuthSession();
+  const user = useAuthSession(state => state.user);
+  return serviceAvailable && user ? <output>{user.userName}</output> : null;
 }
 ```
 
@@ -93,7 +94,7 @@ export function CurrentAccount() {
 业务系统字段不同时，按前面的[身份映射示例](#example-1)转换。`hostUser={null}` 明确表示没有业务用户，并关闭插件自己的退出菜单；省略 `hostUser` 才会读取认证服务快照，退出仍调用现有 `session.signOut()`。
 
 
-业务卡片需要当前用户 ID 或姓名时，从项目 `services/hooks/useAuthSession` 导入 `useAuthSession()`。它响应式返回 `{ snapshot, session, serviceAvailable }`；`snapshot.user` 在未登录时为 `null`，已登录时包含 `userId`、`userName` 和可选 `avatar`。
+业务卡片需要当前用户 ID 或姓名时，从项目 `services/hooks/useAuthSession` 导入 `useAuthSession`。`useAuthSession(state => state.user)` 按需订阅用户；无参数返回 `getSnapshot()`、`subscribe()`、`session` 和 `serviceAvailable`，不自动订阅数据。快照的 `user` 在未登录时为 `null`，已登录时包含 `userId`、`userName` 和可选 `avatar`。
 
 对应功能示例读取同一份用户资料。它不会发起登录请求，账号变化后会自动更新；业务接口的鉴权仍沿用项目请求配置。服务方法见[认证服务](/plugins/auth-gate.md#服务)。
 

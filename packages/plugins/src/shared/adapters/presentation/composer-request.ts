@@ -24,9 +24,6 @@ function useRequest<T>(kind: 'mention' | 'command') {
       .filter(([, value]) => value !== undefined))) as ComposerData;
     composer.setData(raw, {
       reference: { token: insertion, text: insertion, fallbackText: insertion },
-      selection: raw,
-      // Structured selections enter the wire request only through Composer.
-      includeInRequest: false,
     });
     return insertion;
   };

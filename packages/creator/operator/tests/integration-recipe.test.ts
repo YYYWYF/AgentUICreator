@@ -72,11 +72,11 @@ test('reports native module load failures and permits a later retry', async () =
 });
 test("guide is read-only, exposes facts and requires an explicit target", async () => {
   const root = await fixture();
-  const before = await readdir(root, { recursive: true });
+  const before = await relativeEntries(root);
   expect(await planIntegrationRecipe(root)).toMatchObject({ status: "target-required", host: { framework: "vue", frameworkVersion: "^3.5.0", toolchain: "vite", entryFile: "src/main.ts", candidates: ["src/App.vue"] } });
   const result = await handleUIOperatorRequest({ operation: "plan_agent_ui_integration", input: { targetFile: "src/App.vue", moduleSpecifier: "/agent-ui.js" } }, root);
   expect(result.ok).toBe(true);
-  expect(await readdir(root, { recursive: true })).toEqual(before);
+  expect(await relativeEntries(root)).toEqual(before);
 });
 test("guide, apply, repeated apply and manual verification consume identical edits", async () => {
   const root = await fixture(); const planned = await recipe(root);
@@ -133,12 +133,12 @@ test("Vue CLI gets a Vue 2 lifecycle wrapper without React or setup syntax", asy
 test("clean Vue uses Host distribution without installing producer dependencies", async () => {
   const root = await fixture();
   await rm(path.join(root, "public"), { recursive: true });
-  const initial = await readdir(root, { recursive: true });
+  const initial = await relativeEntries(root);
   const plan = await planIntegrationRecipe(root, { targetFile: "src/App.vue" });
   if (plan.status !== "planned") throw new Error(plan.status);
   expect(plan.integrationRecipe.integration.moduleSpecifier).toBe("/agent-ui.js");
   expect(plan.integrationRecipe.edits[0]!.after).toContain('new URL("/agent-ui.js", window.location.href)');
-  expect(await readdir(root, { recursive: true })).toEqual(initial);
+  expect(await relativeEntries(root)).toEqual(initial);
   const manifest = await readFile(path.join(root, "package.json"), "utf8");
   const result = await applyIntegrationRecipe(root, plan.integrationRecipe);
   expect(result).toMatchObject({ status: "passed", changedPaths: ["public/agent-ui.js", "src/components/AgentUIBridge.vue", "src/App.vue"] });
@@ -165,9 +165,19 @@ async function cleanManualFixture() {
   await rm(path.join(root, "public"), { recursive: true });
   return root;
 }
+async function relativeEntries(root: string, prefix = ""): Promise<string[]> {
+  const files: string[] = [];
+  for (const entry of await readdir(path.join(root, ...prefix.split("/")), { withFileTypes: true })) {
+    const relative = path.posix.join(prefix, entry.name);
+    files.push(relative);
+    if (entry.isDirectory()) files.push(...await relativeEntries(root, relative));
+  }
+  return files.sort();
+}
+
 async function snapshot(root: string) {
   const result: Record<string, string> = {};
-  for (const file of (await readdir(root, { recursive: true })).sort()) {
+  for (const file of (await relativeEntries(root)).sort()) {
     const absolute = path.join(root, file);
     if ((await stat(absolute)).isFile()) result[file] = (await readFile(absolute)).toString("base64");
   }

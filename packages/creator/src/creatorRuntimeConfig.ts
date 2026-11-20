@@ -1,4 +1,4 @@
-import { parseEnv } from "node:util";
+import { parse as parseEnv } from "dotenv";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 

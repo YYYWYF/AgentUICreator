@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { MessagesSquare, Folder, FolderOpen, Files, Search, Settings, Database, ChartNoAxesCombined, List, Bot, BookOpen, Star, CircleHelp } from "lucide-react";
-import { useAgentUILocale } from "../locale.js";
+import { useLocale } from "../locale.js";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from "./adapters-generated/assistant-ui/components/ui/sidebar.js";
 import { Sheet, SheetContent, SheetTitle } from "./adapters-generated/assistant-ui/components/ui/sheet.js";
 import { AgentUIPortalContainerProvider } from "./style-boundary/AgentUIRoot.js";
@@ -19,7 +19,7 @@ export interface AgentUISidebarItem {
 }
 const NavigationContext = createContext<() => void>(() => {});
 /** Plugins explicitly report navigation; no DOM selectors or conversation policy here. */
-export function useAgentUISidebarNavigation() { return useContext(NavigationContext); }
+export function useSidebarNavigation() { return useContext(NavigationContext); }
 
 export function AgentUISidebarFrame({ items, defaultActive, header, footer, children }: {
   items: readonly AgentUISidebarItem[];
@@ -28,7 +28,7 @@ export function AgentUISidebarFrame({ items, defaultActive, header, footer, chil
   footer?: ReactNode;
   children: ReactNode;
 }) {
-  const messages = useAgentUILocale("accessibility");
+  const messages = useLocale("accessibility");
   const [activeItemId, setActiveItemId] = useState<string | null>(() => defaultActive);
   const [narrow, setNarrow] = useState(true);
   const [portal, setPortal] = useState<HTMLDivElement | null>(null);

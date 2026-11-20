@@ -38,9 +38,9 @@ export function CreatorLocaleProvider({ children, locale, onLocaleChange }: { ch
   const value = useMemo(() => ({ locale: current, messages: resolveCreatorLocaleMessages(current), setLocale: (next: CreatorLocaleCode) => { setSelected(next); onLocaleChange?.(next); } }), [current, onLocaleChange]);
   return createElement(LocaleContext.Provider, { value }, children);
 }
-export function useAgentUILocale(): CreatorLocaleMessages;
-export function useAgentUILocale<N extends keyof CreatorLocaleMessages>(namespace: N): CreatorLocaleMessages[N];
-export function useAgentUILocale(namespace?: keyof CreatorLocaleMessages) {
+export function useCreatorLocale(): CreatorLocaleMessages;
+export function useCreatorLocale<N extends keyof CreatorLocaleMessages>(namespace: N): CreatorLocaleMessages[N];
+export function useCreatorLocale(namespace?: keyof CreatorLocaleMessages) {
   const { messages } = useContext(LocaleContext);
   return namespace === undefined ? messages : messages[namespace];
 }

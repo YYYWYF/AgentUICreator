@@ -1,10 +1,10 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useLocale } from "@za38.03/agent-ui-plugins";
 import { AgentMount } from "./AgentMount";
 
 
 
 export function App() {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const tasks = [
   { title: localeMessages.examples.organizeCustomerFeedback, project: localeMessages.examples.productExperience, date: localeMessages.examples.today, status: localeMessages.examples.inProgress },
   { title: localeMessages.examples.updateTheQuarterlyRoadmap, project: localeMessages.examples.planning, date: localeMessages.examples.tomorrow, status: localeMessages.examples.pending },

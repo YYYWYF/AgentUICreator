@@ -5,11 +5,7 @@ export type {
 } from "./service-config.js";
 import type { AttachmentConfig, DictationConfig, FeedbackConfig, ServiceRequestConfig } from "./service-config.js";
 import type { ConversationFeedbackAdapter } from "./feedback.js";
-export {
-  AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet,
-  AgentUIHostUserProvider, useAgentUIUser, useAgentUI, useOptionalAgentUI,
-  useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, useAgentUISurfaceTarget, AgentUIHostError,
-} from "./host/AgentUIProvider.js";
+export { AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet, AgentUIHostUserProvider, useHostUser, useAgent, useOptionalAgent, useAgentEvent, useAgentAppEvent, useSurfaceTarget, AgentUIHostError } from "./host/AgentUIProvider.js";
 export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus, AgentUIAppEventListener } from "./host/AgentUIProvider.js";
 export * from "./host/AgentUIAgentsProvider.js";
 export type { AgentUIThread, AgentUISendOptions } from "./host/threads.js";
@@ -98,8 +94,6 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Official assistant-ui adapter; the application owns speech-to-text. */
   dictationAdapter?: DictationAdapter | undefined;
-  /** Ephemeral upstream follow-up queue; disabled by default for direct callers. */
-  enableMessageQueue?: boolean | undefined;
   feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;

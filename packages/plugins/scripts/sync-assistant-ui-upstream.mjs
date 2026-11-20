@@ -69,9 +69,9 @@ export function adaptQuoteSelectionSource(source, localPath) {
       'import { getSelectionMessageId } from "./quote-selection-message-id.js";');
     replace('import { useThreadRootElementRef } from "../thread/ThreadRootElementContext";\n',
       'import { useThreadRootElementRef } from "./quote-thread-root.js";\n\n' +
-      'import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";\n\n' + COMPOSE_EVENT_HANDLERS + '\n');
+      'import { usePortalContainer } from "./style-boundary/AgentUIRoot.js";\n\n' + COMPOSE_EVENT_HANDLERS + '\n');
     replace('  const [info, setInfo] = useState<SelectionInfo | null>(null);',
-      '  const portalContainer = useAgentUIPortalContainer();\n  const [info, setInfo] = useState<SelectionInfo | null>(null);');
+      '  const portalContainer = usePortalContainer();\n  const [info, setInfo] = useState<SelectionInfo | null>(null);');
     replace('  if (!info) return null;', '  if (!info || !portalContainer) return null;');
     replace('    document.addEventListener("scroll", handleScroll, true);', `    document.addEventListener("scroll", handleScroll, true);
     // Shadow DOM scroll events do not cross their root boundary.

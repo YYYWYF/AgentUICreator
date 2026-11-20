@@ -1,6 +1,6 @@
 import { type ComponentProps, type ReactNode, useState } from 'react';
 
-import { Button, Input, useAgentUILocale } from '../../../../public.js';
+import { Button, Input, useLocale } from '../../../../public.js';
 import type { AuthSessionSnapshot } from './auth-contract.js';
 export interface AuthGatePluginProps extends Omit<ComponentProps<'div'>, 'children' | 'title'> {
   title?: ReactNode;
@@ -25,7 +25,7 @@ export function CanonicalAuthGatePlugin({
   submitButtonProps,
   ...rootProps
 }: AuthGatePluginProps) {
-  const messages = useAgentUILocale('auth');
+  const messages = useLocale('auth');
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   if (state.status === 'checking') {

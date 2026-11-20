@@ -19,15 +19,7 @@ import {
   readAgentUITheme,
 } from "../../../plugins/resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/theme-service";
 import { themeProviderPlugin } from "../../../plugins/resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
-import {
-  createPluginRegistry,
-  PluginServiceConsumerContext,
-  PluginServiceRuntime,
-  PluginServiceRuntimeContext,
-  SlotRegistry,
-  usePluginService,
-  usePluginServiceSnapshot,
-} from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
+import { createPluginRegistry, PluginServiceConsumerContext, PluginServiceRuntime, PluginServiceRuntimeContext, SlotRegistry, usePluginService } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
@@ -707,7 +699,7 @@ describe("PluginServiceRuntime", () => {
     function Counter({
       currentService,
     }: { currentService: UIPluginObservableService<TestSnapshot> | undefined }) {
-      const current = usePluginServiceSnapshot(currentService, { value: -1 });
+      const current = usePluginService(currentService, snapshot => snapshot, { value: -1 });
       return <span>{current.value}</span>;
     }
 
@@ -764,7 +756,7 @@ describe("PluginServiceRuntime", () => {
     }: {
       service: CounterService | undefined;
     }) {
-      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+      const snapshot = usePluginService(pluginService, snapshot => snapshot, EMPTY_SNAPSHOT);
 
       return <span>{snapshot.value}</span>;
     }
@@ -816,7 +808,7 @@ describe("PluginServiceRuntime", () => {
     }: {
       service: CounterService | undefined;
     }) {
-      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+      const snapshot = usePluginService(pluginService, snapshot => snapshot, EMPTY_SNAPSHOT);
 
       return <span>{snapshot.value}</span>;
     }
@@ -868,7 +860,7 @@ describe("PluginServiceRuntime", () => {
     }: {
       service: CounterService | undefined;
     }) {
-      const snapshot = usePluginServiceSnapshot(pluginService, EMPTY_SNAPSHOT);
+      const snapshot = usePluginService(pluginService, snapshot => snapshot, EMPTY_SNAPSHOT);
 
       return <span>{snapshot.value}</span>;
     }

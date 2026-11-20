@@ -79,7 +79,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 默认评价文案只读取 `locales.conversationFeedback.helpful` / `notHelpful`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 
-评价结果的保存接入项目已有[反馈服务](/development/feedback-service.md)。自定义反馈入口需要关联整次回答时，在回复页脚作用域调用 `useConversationResponseRuntime()`，读取 `group` 和 `text`，见[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)。不要用最后一条助理消息代替工具续跑后的完整回答。
+评价结果的保存接入项目已有[反馈服务](/development/feedback-service.md)。自定义反馈入口需要关联整次回答时，在回复页脚作用域调用 `useResponse()`，读取 `group` 和 `text`，见[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)。不要用最后一条助理消息代替工具续跑后的完整回答。
 
 
 显示评价按钮后，结果会自动保存到我的后端吗？

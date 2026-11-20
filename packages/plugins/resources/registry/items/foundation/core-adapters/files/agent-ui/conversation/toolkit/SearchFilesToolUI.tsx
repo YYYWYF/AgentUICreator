@@ -1,4 +1,4 @@
-import { useAgentUILocale, resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
+import { useLocale, resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
 import { useState } from "react";
 import type {
   ConversationToolCallComponent,
@@ -7,7 +7,7 @@ import type {
 
 import {
   ConversationToolCall,
-  ConversationToolFallback,
+  ConversationToolResult,
 } from "@za38.03/agent-ui-plugins";
 
 type SearchFilesArgs = Record<string, unknown>;
@@ -57,10 +57,10 @@ function shouldUseFallback(
 }
 
 export const SearchFilesToolUI: ConversationToolCallComponent = (props) => {
-  const messages = useAgentUILocale("search");
+  const messages = useLocale("search");
   const [open, setOpen] = useState(false);
 
-  if (shouldUseFallback(props)) return <ConversationToolFallback {...props} />;
+  if (shouldUseFallback(props)) return <ConversationToolResult {...props} />;
 
   return (
     <ConversationToolCall

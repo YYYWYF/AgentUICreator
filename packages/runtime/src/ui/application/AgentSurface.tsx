@@ -1,6 +1,6 @@
-import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
-import { useOptionalAgentUI, type AgentUIHost } from "../../host/AgentUIProvider.js";
-import { type AgentUIShellProps, useAgentUIProject } from "../project-context.js";
+import { useAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
+import { useOptionalAgent, type AgentUIHost } from "../../host/AgentUIProvider.js";
+import { type AgentUIShellProps, useProject } from "../project-context.js";
 import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext, type ReactNode, useState } from "react";
 import { AgentUILocaleProvider } from "../../locale.js";
 import { type AgentUITheme } from "../../presentation.js";
@@ -33,16 +33,16 @@ const AgentEnvironmentContext = createContext<{ actions: import("../runtime/plug
 /** Nonvisual project binding. Services and history stay connected while the panel is closed. */
 export function AgentEnvironment(props: AgentEnvironmentProps) {
   const inherited = useContext(AgentEnvironmentContext);
-  const host = useOptionalAgentUI();
+  const host = useOptionalAgent();
   return inherited && inherited.host === host ? <>{props.children}</> : <AgentEnvironmentOwner {...props} />;
 }
 function AgentEnvironmentOwner({ composition, frontendToolRuntime, locale, presentationLocale, children }: AgentEnvironmentProps) {
-  const application = useAgentUIAgentIdentity();
-  const { locales: AGENT_UI_LOCALES, appEventSchemas, development, serviceOverrides } = useAgentUIProject();
+  const application = useAgentIdentity();
+  const { locales: AGENT_UI_LOCALES, appEventSchemas, development, serviceOverrides } = useProject();
   const appEventRegistry = useMemo(() => new AppEventRegistry(appEventSchemas), [appEventSchemas]);
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
   useApplicationSessionConnection(agentRuntime);
-  const host = useOptionalAgentUI();
+  const host = useOptionalAgent();
   const inheritedServices = useOptionalPluginServiceRuntime();
   useLayoutEffect(() => inheritedServices?.applicationEvents.connect(agentRuntime), [inheritedServices, agentRuntime]);
   useEffect(() => {
@@ -94,8 +94,8 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   observability?: AgentObservability | undefined;
 }) {
-  const application = useAgentUIAgentIdentity();
-  const { locales: AGENT_UI_LOCALES, Shell = InlineSurface, shell: agentUIShellConfig, development } = useAgentUIProject();
+  const application = useAgentIdentity();
+  const { locales: AGENT_UI_LOCALES, Shell = InlineSurface, shell: agentUIShellConfig, development } = useProject();
   const environment = useContext(AgentEnvironmentContext);
   const actions = environment!.actions;
   const [surface, setSurface] = useState<HTMLElement | null>(null);

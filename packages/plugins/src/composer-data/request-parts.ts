@@ -22,13 +22,8 @@ export interface ConversationRequestPlan {
   sourceText: string;
   text: string;
   pluginData: Record<string, ComposerData>;
-  selections: Record<string, ComposerData[]>;
   sources: Record<string, ComposerDataSource>;
-  forwardedProps: Record<string, ComposerData>;
   adapter: ComposerRequestAdapter | undefined;
-  defaultForwardedProps: Record<string, ComposerData>;
-  textPrefix: string;
-  quotePrefix: string;
 }
 function record(value: unknown): Record<string, unknown> | undefined {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
@@ -48,7 +43,7 @@ function publicMessage(message: Message): Message {
 function entries(message: ThreadMessage, metadataAdapter?: ComposerMessageDataAdapter): DataMap {
   const values = record(message.metadata.custom[metadataKey]) ?? record(message.metadata.custom[draftMetadataKey]) ??
     Object.fromEntries(Object.entries(metadataAdapter?.fromMetadata(message.metadata.custom) ?? {}).map(([key, data]) =>
-      [key, { owner: key, source: { pluginId: key }, data, enabled: true, selection: data }]));
+      [key, { owner: key, source: { pluginId: key }, data, enabled: true }]));
   const text = textOf(message);
   const offsets = new Map<string, number>();
   return Object.fromEntries(Object.entries(values).flatMap(([key, candidate]) => {
@@ -56,10 +51,7 @@ function entries(message: ThreadMessage, metadataAdapter?: ComposerMessageDataAd
     if (!entry || typeof entry.owner !== 'string' || !Object.hasOwn(entry, 'data')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
     if ((entry.source !== undefined && (!record(entry.source) ||
       Object.values(record(entry.source)!).some(value => typeof value !== 'string'))) ||
-      (entry.enabled !== undefined && typeof entry.enabled !== 'boolean') ||
-      (entry.includeInRequest !== undefined && typeof entry.includeInRequest !== 'boolean') ||
-      (entry.defaultTextPrefix !== undefined && typeof entry.defaultTextPrefix !== 'string') ||
-      (entry.defaultForwardedProps !== undefined && !record(entry.defaultForwardedProps))) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
+      (entry.enabled !== undefined && typeof entry.enabled !== 'boolean')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
     const reference = entry.reference === undefined ? undefined : record(entry.reference);
     if (entry.reference !== undefined && (!reference || typeof reference.token !== 'string' || !reference.token ||
       typeof reference.text !== 'string' || typeof reference.fallbackText !== 'string')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
@@ -75,7 +67,12 @@ function entries(message: ThreadMessage, metadataAdapter?: ComposerMessageDataAd
       if (!actual || actual.text !== expected.text || actual.messageId !== expected.messageId) return [];
     }
     // Validate restored history as strictly as a fresh setData call.
-    return [[key, json(entry) as unknown as ComposerDataEntry]];
+    return [[key, json({ owner: entry.owner, data: entry.data,
+      ...(entry.source === undefined ? {} : { source: entry.source }),
+      ...(entry.enabled === undefined ? {} : { enabled: entry.enabled }),
+      ...(entry.reference === undefined ? {} : { reference: entry.reference }),
+      ...(entry.quote === undefined ? {} : { quote: entry.quote }),
+    }) as unknown as ComposerDataEntry]];
   }));
 }
 
@@ -180,13 +177,13 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     if (text !== original) composer.setText(text);
   }
   setData(threadId: string, owner: string, data: ComposerData, options: ComposerDataOptions = {}, source: ComposerDataSource = {}): () => void {
-    const entry = json({ ...options, owner, source, data }) as unknown as ComposerDataEntry;
-    if (entry.includeInRequest !== undefined && typeof entry.includeInRequest !== 'boolean') throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
+    const entry = json({ owner, source, data,
+      ...(options.reference === undefined ? {} : { reference: options.reference }),
+      ...(options.quote === undefined ? {} : { quote: options.quote }),
+    }) as unknown as ComposerDataEntry;
     if (entry.reference !== undefined && (!record(entry.reference) || !entry.reference.token || typeof entry.reference.token !== 'string' ||
       typeof entry.reference.text !== 'string' || typeof entry.reference.fallbackText !== 'string')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
     if (entry.quote !== undefined && (!record(entry.quote) || typeof entry.quote.text !== 'string' || typeof entry.quote.messageId !== 'string')) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
-    if (entry.defaultTextPrefix !== undefined && typeof entry.defaultTextPrefix !== 'string') throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
-    if (entry.defaultForwardedProps !== undefined && !record(entry.defaultForwardedProps)) throw new Error('AGENT_UI_INVALID_COMPOSER_DATA');
     const state = this.state(threadId);
     const key = crypto.randomUUID();
     const previous = Object.fromEntries(Object.entries(state.snapshot).filter(([, part]) =>
@@ -254,7 +251,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
             if (!part.reference || edit.text.includes(part.reference.token)) snapshot[key] = part;
           }
         }
-        // Upstream may enrich a retry/queue at dispatch. Never overwrite submitted metadata here.
+        // Upstream may enrich a retry at dispatch. Never overwrite submitted metadata here.
         return Object.keys(state.snapshot).length || editing
           ? { unstable_composerMetadata: { [draftMetadataKey]: snapshot,
             ...this.projectMetadata(snapshot), ...(editing ? { [editKey]: true } : {}) } } : {};
@@ -274,8 +271,7 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
         pending = false;
         if (disposed) return;
         const composer = runtime.thread.composer.getState();
-        const texts = [composer.text, composer.submission?.text ?? '', ...(composer.inTransit ?? []).map(item => item.text),
-          ...composer.queue.map(item => item.prompt)];
+        const texts = [composer.text, composer.submission?.text ?? '', ...(composer.inTransit ?? []).map(item => item.text)];
         const submitted = new Set(runtime.thread.getState().messages.flatMap(message => {
           try { return Object.keys(entries(message, this.messageData)); } catch { return []; }
         }));
@@ -348,9 +344,6 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
       return { part, position };
     }).sort((left, right) => left.position - right.position).map(value => value.part);
     let changed = false;
-    const defaults: Record<string, ComposerData> = {};
-    const prefixes = new Set<string>();
-    let quotePrefix = '';
     for (const part of parts) {
       const active = part.enabled ?? ((!part.reference && !part.quote) || this.owners.has(part.owner));
       if (part.reference) {
@@ -361,28 +354,13 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
       if (active) {
         const key = part.owner;
         groups.set(key, [...(groups.get(key) ?? []), part]);
-        if (part.defaultTextPrefix) prefixes.add(part.defaultTextPrefix);
-        if (part.quote) quotePrefix = part.quote.text.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
-        for (const [key, value] of Object.entries(part.defaultForwardedProps ?? {})) {
-          const previous = record(defaults[key]), next = record(value);
-          if (!this.adapters.size && Object.hasOwn(defaults, key) && (!previous || !next || Object.keys(next).some(field => Object.hasOwn(previous, field))))
-            throw new Error('AGENT_UI_COMPOSER_DATA_CONFLICT');
-          Object.defineProperty(defaults, key, { value: previous && next ? { ...previous, ...next } : value, enumerable: true, configurable: true });
-        }
       }
     }
     const pluginData: Record<string, ComposerData> = Object.fromEntries([...groups].map(([owner, values]) =>
       [owner, values.some(value => value.reference) ? values.map(value => value.data) : values.at(-1)!.data]));
-    const selections = Object.fromEntries([...groups].map(([owner, values]) =>
-      [owner, values.flatMap(value => value.selection === undefined ? [] : [value.selection])]));
     const sources = Object.fromEntries([...groups].map(([owner, values]) => [owner, values.at(-1)!.source ?? {}]));
-    const forwardedProps = Object.fromEntries([...groups].flatMap(([owner, values]) => {
-      const sent = values.filter(value => value.includeInRequest === true);
-      return sent.length ? [[owner, sent.some(value => value.reference) ? sent.map(value => value.data) : sent.at(-1)!.data]] : [];
-    }));
-    return { messageMetadata, metadataKeys: [...this.messageData?.metadataKeys ?? []], userId: user.id, sourceText: textOf(user), text: changed ? text.trim() : text, pluginData, selections, sources,
-      forwardedProps, adapter: this.adapters.values().next().value,
-      defaultForwardedProps: defaults, textPrefix: [...prefixes].join(''), quotePrefix };
+    return { messageMetadata, metadataKeys: [...this.messageData?.metadataKeys ?? []], userId: user.id, sourceText: textOf(user),
+      text: changed ? text.trim() : text, pluginData, sources, adapter: this.adapters.values().next().value };
   }
   apply(input: RunAgentInput, plan: ConversationRequestPlan): RunAgentInput {
     const props = record(input.forwardedProps) ?? {};
@@ -392,10 +370,6 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
     // Native configuration is internal; business fields use the public ctx envelope.
     const forwardedProps = nativeConfig ? { ...otherProps,
       ...(Object.keys(custom).length ? { ctx: { ...custom, ...record(otherProps.ctx) } } : {}) } : props;
-    const defaults = Object.fromEntries(Object.entries(plan.defaultForwardedProps).map(([key, value]) => {
-      const previous = record(forwardedProps[key]), next = record(value);
-      return [key, previous && next ? { ...previous, ...next } : value];
-    }));
     const request = { ...input,
       messages: input.messages.map(originalMessage => {
         let message = publicMessage(originalMessage);
@@ -404,12 +378,11 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
           for (const key of plan.metadataKeys) delete metadata[key];
           message = { ...message, metadata: { ...metadata, ...plan.messageMetadata } };
         }
-        if (message.role !== 'user' || message.id !== plan.userId || (plan.text === plan.sourceText && !plan.quotePrefix && !plan.textPrefix)) return message;
+        if (message.role !== 'user' || message.id !== plan.userId || plan.text === plan.sourceText) return message;
         const wireText = typeof message.content === 'string' ? message.content
           : message.content.filter(part => part.type === 'text').map(part => part.text).join('');
-        const original = plan.quotePrefix && wireText.startsWith(plan.quotePrefix) ? wireText.slice(plan.quotePrefix.length) : wireText;
-        const changed = plan.textPrefix + (original.endsWith(plan.sourceText)
-          ? original.slice(0, original.length - plan.sourceText.length) + plan.text : plan.text);
+        const changed = wireText.endsWith(plan.sourceText)
+          ? wireText.slice(0, wireText.length - plan.sourceText.length) + plan.text : plan.text;
         if (typeof message.content === 'string') return { ...message, content: changed };
         let replaced = false;
         return { ...message, content: message.content.map(part => {
@@ -418,17 +391,11 @@ export class ConversationRequestPartsRuntime implements ComposerDataPort {
           replaced = true; return { ...part, text: changed };
         }) };
       }),
-      forwardedProps: Object.fromEntries([
-        ...Object.entries(structuredClone(plan.forwardedProps)), ...Object.entries(forwardedProps), ...Object.entries(defaults),
-      ]),
+      forwardedProps,
     };
-    if (!plan.adapter) {
-      if (Object.keys(plan.forwardedProps).some(key => Object.hasOwn(forwardedProps, key)))
-        throw new Error('AGENT_UI_COMPOSER_DATA_CONFLICT');
-      return request;
-    }
+    if (!plan.adapter) return request;
     const result: unknown = plan.adapter({ request: structuredClone(request),
-      pluginData: structuredClone(plan.pluginData), selections: structuredClone(plan.selections), sources: structuredClone(plan.sources) });
+      pluginData: structuredClone(plan.pluginData), sources: structuredClone(plan.sources) });
     // Validate without replacing the user's JSON with Schema defaults or stripping extension fields.
     json(result);
     RunAgentInputSchema.parse(result);

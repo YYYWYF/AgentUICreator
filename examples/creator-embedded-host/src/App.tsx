@@ -1,16 +1,16 @@
 import { useRef, useState } from "react";
 import { AlignCenter, Bold, Grid2X2, MousePointer2, Presentation, Type } from "lucide-react";
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useLocale } from "@za38.03/agent-ui-plugins";
 import { AgentMount } from "./AgentMount";
-import { AgentUIProvider, useAgentUI, useAgentUIState } from "@za38.03/agent-ui-runtime";
+import { AgentUIProvider, useAgent } from "@za38.03/agent-ui-runtime";
 
 export function App() { return <AgentUIProvider><EmbeddedWorkspace /></AgentUIProvider>; }
 
 function EmbeddedWorkspace() {
-  const { examples: copy } = useAgentUILocale();
-  const agent = useAgentUI();
-  const ready = useAgentUIState(s => s.status === "ready");
-  const busy = useAgentUIState(s => s.runtime?.run.status === "running" || s.runtime?.run.status === "awaiting-input");
+  const { examples: copy } = useLocale();
+  const agent = useAgent();
+  const ready = useAgent(s => s.status === "ready");
+  const busy = useAgent(s => s.runtime?.run.status === "running" || s.runtime?.run.status === "awaiting-input");
   const [assistantOpen, setAssistantOpen] = useState(true);
   const [sendFailed, setSendFailed] = useState(false);
   async function analyzePage() {

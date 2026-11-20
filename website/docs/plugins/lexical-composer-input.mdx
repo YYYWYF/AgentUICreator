@@ -21,7 +21,7 @@ title: "输入标签展示（lexical-composer-input）"
 
 ## 与 Composer 联动
 
-此插件读写**同一份草稿文本**，不另建 `pluginData` 或 `selections` 条目。原始业务选择由 @ 或 / 触发器保存，其数据格式、默认发送位置分别见[提及数据](./mention-trigger#交给-composer-的数据)与[命令数据](./slash-command-trigger#交给-composer-的数据)。
+此插件读写**同一份草稿文本**，不另建 `pluginData` 条目。原始业务选择由 @ 或 / 触发器保存，其数据格式、默认发送位置分别见[提及数据](./mention-trigger#交给-composer-的数据)与[命令数据](./slash-command-trigger#交给-composer-的数据)。
 
 删除标签会同步移除正文引用，提交时不再携带那条选择。反过来，只调用 `useComposer().setText()` 填入一个引用标记，可以恢复文字或标签显示，但不会凭空还原原始候选的 `data`；历史编辑要恢复完整业务选择，需要保留对应前端消息元数据，见 [Composer 快照规则](./composer#提交后的快照重发与会话切换)。
 

@@ -1,7 +1,7 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import {
   AgentStatus,
-  ConversationToolFallback,
+  ConversationToolResult,
   type ConversationToolCallProps,
   type UIPluginElementProps,
 } from '../../../../public.js';
@@ -19,7 +19,7 @@ export function CanonicalAgentStatusMessage({
   'aria-describedby': ariaDescription,
   onClick,
   renderStatus,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: AgentStatusMessageProps) {
   const rootProps = {

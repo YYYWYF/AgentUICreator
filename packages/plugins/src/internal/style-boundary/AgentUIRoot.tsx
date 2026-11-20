@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { getAgentUIThemeColorScheme, type AgentUITheme } from "../../theme/theme-contract.js";
 
 import {AgentUIPortalContainerProvider} from "@za38.03/agent-ui-runtime/plugin-api";
-export {AgentUIPortalContainerProvider,useAgentUIPortalContainer} from "@za38.03/agent-ui-runtime/plugin-api";
+export {AgentUIPortalContainerProvider,usePortalContainer} from "@za38.03/agent-ui-runtime/plugin-api";
 
 const hostPresentationProperties = ["font-family", "font-size", "font-weight", "font-style", "line-height", "color-scheme"] as const;
 

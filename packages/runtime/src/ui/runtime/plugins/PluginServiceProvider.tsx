@@ -21,7 +21,7 @@ import {
 } from "../events/index.js";
 import type { AppFrontendToolRuntime } from "../tools/index.js";
 import { ApplicationLifecycleProvider } from "../application/ApplicationLifecycleContext.js";
-import { useAgentUIAgentIdentity } from "../../../host/AgentUIAgentsProvider.js";
+import { useAgentIdentity } from "../../../host/AgentUIAgentsProvider.js";
 
 export interface PluginServiceProviderProps<TState = unknown> {
   model: AppUIRuntimeModel;
@@ -49,7 +49,7 @@ export function PluginServiceProvider<TState = unknown>({
       applicationEventRegistry ?? new AppEventRegistry({}),
     ),
   );
-  const application = useAgentUIAgentIdentity();
+  const application = useAgentIdentity();
   const [runtime] = useState(() => new PluginServiceRuntime(eventRuntime, application));
   const diagnostics = useOptionalPluginDiagnosticContext();
   // Hosts may compose an equivalent override map on each render. Reconcile only

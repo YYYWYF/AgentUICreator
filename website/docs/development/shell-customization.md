@@ -45,13 +45,20 @@ import { AssistantShell } from './shell/AssistantShell';
 
 ## 3. 悬浮外壳最小示例
 
+<figure className="plugin-preview">
+
+![业务页面右侧展开的悬浮助手面板](/images/agent-ui/layout-assistant.jpg)
+
+<figcaption>悬浮形态参考：助手叠在业务页面上，右下方入口控制面板展开和收起。下面的最小示例说明相同的容器关系。</figcaption>
+</figure>
+
 下面展示已选择悬浮形态工程的最小结构。现有模板还有机器人动画等项目行为；只调整样式时保留已有逻辑，不必整体替换为此示例。
 
 `application/shell/AssistantShell.tsx`：
 
 ```tsx
 import { useId, useState, type CSSProperties } from 'react';
-import { useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { useLocale } from '@za38.03/agent-ui-plugins';
 import type { AgentUIShellProps } from '@za38.03/agent-ui-runtime/ui';
 import './assistant-shell.css';
 
@@ -62,7 +69,7 @@ export function AssistantShell({
 }: AgentUIShellProps) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const labels = useAgentUILocale('runtime');
+  const labels = useLocale('runtime');
   const width = Number.isFinite(assistantPanelWidth) && assistantPanelWidth > 0
     ? assistantPanelWidth : 416;
 
@@ -129,6 +136,13 @@ CSS 导入保留在外壳组件中，并沿用工程已配置的样式编译和�
 
 ## 4. 嵌入式容器与后台运行
 
+<figure className="plugin-preview">
+
+![业务编辑器右侧容器中的嵌入式助手](/images/agent-ui/layout-embedded.jpg)
+
+<figcaption>嵌入式形态参考：助手占用业务布局分配的右侧区域，尺寸跟随容器；业务页面提供自己的打开和关闭按钮。</figcaption>
+</figure>
+
 嵌入式外壳通常只需接收业务容器给定的空间：
 
 ```tsx
@@ -150,7 +164,7 @@ export function EmbeddedShell({ children, surfaceRef }: AgentUIShellProps) {
 
 运行工程已有的 typecheck 和 build，确认生产构建包含组件与 CSS，且不需要 Creator。页面中再检查：
 
-- 发送慢速请求，收起后展开，消息继续生成，Thread 与 Plugin 服务没有重新初始化；待发送队列也保留。
+- 发送慢速请求，收起后展开，消息继续生成，Thread 与 Plugin 服务没有重新初始化。
 - 打开／关闭按钮的键盘焦点、名称和 `aria-expanded` 正确，隐藏面板内的按钮不可聚焦。
 - 宽屏、窄容器、窗口缩放及浅色／深色／紫色主题下，面板不溢出，发送和关闭入口可达。
 - 嵌入式按业务容器尺寸布局；开发观察开启时，内容容器的宽高随实际尺寸变化，隐藏的悬浮面板不被当成可见容器。

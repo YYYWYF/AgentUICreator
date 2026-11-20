@@ -1,5 +1,5 @@
 import { ConversationSkillSelection, type ConversationSkillSelectionProps } from './selection.js';
-import { useConversationSkillsState } from '../../../../public.js';
+import { useSkillSelection } from '../../../../public.js';
 
 export type ConversationSkillsSelectionPluginProps = Omit<
   ConversationSkillSelectionProps,
@@ -7,14 +7,16 @@ export type ConversationSkillsSelectionPluginProps = Omit<
 >;
 
 export function ConversationSkillsSelection(props: ConversationSkillsSelectionPluginProps) {
-  const { service, selected, threadId, disabled } = useConversationSkillsState();
+  const skills = useSkillSelection();
+  const selected = useSkillSelection(snapshot => snapshot.selected);
+  const disabled = useSkillSelection(snapshot => snapshot.disabled);
   return (
     <ConversationSkillSelection
       {...props}
       data-ui-plugin='skills-selection'
       selectedSkill={selected}
       disabled={disabled || !!props.disabled}
-      onRemove={() => service?.clear(threadId)}
+      onRemove={() => skills.clear()}
     />
   );
 }

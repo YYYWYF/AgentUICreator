@@ -10,8 +10,7 @@ import {
   AgentUiRuntimeBusyError,
   UnsupportedAgentInputError,
   UnsupportedInterruptResponseMetadataError,
-  createConversationAgentRuntimeBridge,
-} from "../src/compatibility/conversation-runtime-bridge.js";
+  createConversationAgentRuntimeBridge} from "../src/compatibility/conversation-runtime-bridge.js";
 import type { ConversationApplicationEventSource } from "../src/events/conversation-application-event-source.js";
 import { createEphemeralConversationThreadBinding } from "../src/threads/ephemeral-thread-binding.js";
 

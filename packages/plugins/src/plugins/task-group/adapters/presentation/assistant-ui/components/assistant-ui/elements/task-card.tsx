@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../../locale.js';
+import { useLocale } from '../../../../../../locale.js';
 
 import { Children, type ComponentProps, type ReactNode, useState } from 'react';
 import { Ban, CheckIcon, ChevronRightIcon, Loader2Icon, XIcon } from 'lucide-react';
@@ -61,7 +61,7 @@ export function TaskCard({
   onOpenChange?: ((open: boolean) => void) | undefined;
   children?: ReactNode | undefined;
 }) {
-  const messages = useAgentUILocale('tasks');
+  const messages = useLocale('tasks');
   const hasTranscript = Children.toArray(children).length > 0;
   const inert = open !== undefined && onOpenChange === undefined;
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);

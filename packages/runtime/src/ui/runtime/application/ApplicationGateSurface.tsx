@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "../../../locale.js";
+import { useLocale } from "../../../locale.js";
 import type { ReactNode } from "react";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";
@@ -27,7 +27,7 @@ function ApplicationStartupFailure({
   instanceId?: string | undefined;
   message: string;
 }) {
-  const messages = useAgentUILocale("runtime");
+  const messages = useLocale("runtime");
   return (
     <div className="app-ui-application-gate-failure" role="alert">
       <strong>{messages.startupFailed}</strong>
@@ -46,7 +46,7 @@ export function ApplicationGateSurface<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: ApplicationGateSurfaceProps<TState>) {
-  const messages = useAgentUILocale("runtime");
+  const messages = useLocale("runtime");
   const lifecycle = useApplicationLifecycle();
   const serviceRuntime = usePluginServiceRuntime();
 

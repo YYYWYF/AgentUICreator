@@ -13,9 +13,8 @@ async function refreshButton(root: string) {
   const file = path.join(root, "src/agent-ui/plugins/conversation-thread-list/index.tsx"), source = await readFile(file, "utf8");
   const header = /headerActions=\{\s*props\.renderSlot\s*\?\s*props\.renderSlot\(['"]headerActions['"],\s*props\.headerActions\s*\?\?\s*null\)\s*:\s*props\.headerActions\s*\}/;
   expect(source).toMatch(header);
-  await writeFile(file, 'import {useConversationState} from "@za38.03/agent-ui-plugins";\n' + source
-    .replace('const { refresh } = useConversationActions();', 'const { refresh } = useConversationActions(); const count=useConversationState(s=>s.threads.threadIds.length);')
-    .replace(header, 'headerActions={<><span data-testid="fixture-thread-count">{count}</span><button type="button" onClick={()=>void refresh()}>Fixture refresh</button>{props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}</>}'));
+  await writeFile(file, 'import {useConversation} from "@za38.03/agent-ui-plugins";\nfunction FixtureThreadCount(){const count=useConversation(s=>s.threads.threadIds.length);return <span data-testid="fixture-thread-count">{count}</span>;}\n' + source
+    .replace(header, 'headerActions={<><FixtureThreadCount/><button type="button" onClick={()=>void refresh()}>Fixture refresh</button>{props.renderSlot ? props.renderSlot("headerActions", props.headerActions ?? null) : props.headerActions}</>}'));
 }
 
 test("two tabs refresh shared metadata without reviving a deleted cached row or losing their own drafts", async ({ page, context }) => {

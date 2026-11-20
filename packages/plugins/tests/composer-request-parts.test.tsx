@@ -26,8 +26,8 @@ async function fixture(callback: Callback | undefined, options: { pluginId?: str
   const errors = vi.fn();
   const runs: { input: RunAgentInput; emit(event: Record<string, unknown>): void; finish(): void }[] = [];
   let native!: AssistantRuntime, bridge!: ConversationRuntimeBridge;
-  let composer!: ReturnType<typeof useComposer>;
-  let second!: ReturnType<typeof useComposer>;
+  let composer!: import("@za38.03/agent-ui-plugins").ComposerController;
+  let second!: import("@za38.03/agent-ui-plugins").ComposerController;
   let rendered!: {
     text: string; attachmentNames: readonly string[]; skillId: string | undefined;
     quoteText: string | undefined; isRunning: boolean; canSend: boolean; canCancel: boolean;
@@ -46,6 +46,7 @@ async function fixture(callback: Callback | undefined, options: { pluginId?: str
     native = useAui().threads.__internal_getAssistantRuntime!(); bridge = useConversationRuntimeBridge();
     composer = useComposer('test');
     second = useComposer('other');
+    useComposer(snapshot => snapshot, 'test');
     rendered = { text: composer.text, attachmentNames: composer.attachments.map(attachment => attachment.name),
       skillId: readConversationSkillData(composer.data['standalone:test'])?.id, quoteText: composer.quote?.text, isRunning: composer.isRunning,
       canSend: composer.canSend, canCancel: composer.canCancel };
@@ -76,7 +77,7 @@ async function fixture(callback: Callback | undefined, options: { pluginId?: str
     },
   });
   await act(async () => { tree = create(<ConversationRuntimeProvider inputControllerFactory={controllerFactory} endpoint='http://example.test/agent' threadBinding={binding}
-    enableMessageQueue attachmentAdapter={options.attachmentAdapter} frontendTools={options.tools} ctx={{ tenant: 'host' }} onError={errors} unstable_agentFactory={factory}>
+    attachmentAdapter={options.attachmentAdapter} frontendTools={options.tools} ctx={{ tenant: 'host' }} onError={errors} unstable_agentFactory={factory}>
     <PluginInstanceProvider instance={{id:'standalone',pluginId:options.pluginId ?? 'test-plugin',enabled:true}}
       actions={{sendMessage:async()=>{},resumeInterrupts:async()=>{},startNewConversation:async()=>{},abortRun(){}}}
       events={{subscribe:()=>()=>{}}}><Capture /></PluginInstanceProvider>
@@ -88,7 +89,7 @@ async function fixture(callback: Callback | undefined, options: { pluginId?: str
     update(next: Callback) { callback = next; },
     async select(data: ComposerData, fallbackText = ':user[Person]{name=business}') {
       const token = `:user[Person]{name=agent-ui-selection-${crypto.randomUUID()}}`;
-      await act(async () => { composer.setData(data, { reference: { token, fallbackText, text: '' }, selection: data }); });
+      await act(async () => { composer.setData(data, { reference: { token, fallbackText, text: '' } }); });
       return token;
     },
     setData(data: ComposerData, options?: ComposerDataOptions) { composer.setData(data, options); },
@@ -100,12 +101,32 @@ async function fixture(callback: Callback | undefined, options: { pluginId?: str
     async close() { await act(async () => tree!.unmount()); tree = undefined; },
   };
 }
-const external: Callback = ({ request, pluginData }) => ({ ...request, forwardedProps: { ctx: { selected: pluginData['standalone:test'] ?? [] } } });
+const external: Callback = ({ request, pluginData }) => {
+  if (!Object.hasOwn(pluginData, 'standalone:test')) return request;
+  return { ...request, forwardedProps: { ctx: { selected: pluginData['standalone:test'] } } };
+};
 
 const forwardData: Callback = ({ request, pluginData }) => ({ ...request, forwardedProps: {
   ...(typeof request.forwardedProps === 'object' && request.forwardedProps !== null
     ? request.forwardedProps as Record<string, unknown> : {}), ...pluginData,
 } });
+
+it.each([
+  { name: 'empty array', data: [] },
+  { name: 'null', data: null },
+  { name: 'false', data: false },
+  { name: 'zero', data: 0 },
+  { name: 'empty string', data: '' },
+])('distinguishes a submitted $name from no submitted data', async ({ data }) => {
+  const f = await fixture(external);
+  await f.send('No submission'); await f.settle(1);
+  expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+  await act(async () => f.setData(data));
+  await f.send('Explicit submission'); await f.settle(2);
+  expect(f.runs[1]!.input.forwardedProps).toEqual({ ctx: { selected: data } });
+  await f.send('No new submission'); await f.settle(3);
+  expect(f.runs[2]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+});
 
 it('isolates collected values by their automatic owner and clears only the calling owner', async () => {
   const callback = vi.fn<Callback>(({ request }) => request);
@@ -160,10 +181,17 @@ it('reactively exposes one stable controller for text, skill, quote, attachments
   expect(f.rendered).toMatchObject({ text: '', canCancel: true, skillId: undefined });
   expect(f.runs[0]!.input.forwardedProps).toMatchObject({ ctx: { tenant: 'host' },
     'standalone:other': { orderId: 'A1' } });
+  await act(async () => { controller.setText('Next draft'); controller.send(); });
+  expect(controller.canSend).toBe(false);
+  expect(controller.text).toBe('Next draft');
+  expect(f.runs).toHaveLength(1);
+  expect(controller.getState().queue).toEqual([]);
   await act(async () => controller.cancel());
   await until(() => !f.rendered.isRunning);
   expect(f.composer).toBe(controller);
   expect(f.rendered.canCancel).toBe(false);
+  expect(controller.text).toBe('Next draft');
+  expect(controller.canSend).toBe(true);
   unsubscribe();
 });
 
@@ -182,7 +210,7 @@ it('propagates attachment failures without changing text or the selected skill',
   expect(f.runs).toHaveLength(0);
 });
 
-it('gives the final adapter defaults, Plugin data and raw selections; never merges afterwards', async () => {
+it('gives the final adapter Host fields and one Plugin payload; never merges afterwards', async () => {
   const callback = vi.fn<Callback>(external);
   const f = await fixture(callback);
   const item = { id: 'one', nested: { value: 'original' } };
@@ -191,7 +219,10 @@ it('gives the final adapter defaults, Plugin data and raw selections; never merg
   await f.send(`${token} Question`); await f.settle(1);
   const received = callback.mock.calls[0]![0];
   expect(received.pluginData).toEqual({ 'standalone:test': [{ id: 'one', nested: { value: 'original' } }] });
-  expect(received.selections).toEqual(received.pluginData);
+  expect(Object.keys(received).sort()).toEqual(['pluginData', 'request', 'sources']);
+  const user = f.native.thread.getState().messages.find(message => message.role === 'user')!;
+  const entries = user.metadata.custom.agentUIComposerData;
+  expect(JSON.stringify(entries).match(/original/gu)).toHaveLength(1);
   expect(received.request.forwardedProps).toHaveProperty('ctx', { tenant: 'host' });
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { selected: [{ id: 'one', nested: { value: 'original' } }] } });
   expect(f.runs[0]!.input.messages[0]!.content).toBe('Question');
@@ -238,11 +269,11 @@ it('keeps default reference text while making the raw selection available to a c
   const callback = vi.fn<Callback>(({ request }) => request);
   const f = await fixture(callback);
   const token = ':user[Person]{name=employee}';
-  await act(async () => f.setData({ id: 'employee' }, { reference: { token, text: token, fallbackText: token }, selection: { id: 'employee' }, includeInRequest: false }));
+  await act(async () => f.setData({ id: 'employee' }, { reference: { token, text: token, fallbackText: token } }));
   await f.send(`${token} Question`); await f.settle(1);
   expect(f.runs[0]!.input.messages[0]!.content).toBe(`${token} Question`);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
-  expect(callback.mock.calls[0]![0].selections['standalone:test']).toEqual([{ id: 'employee' }]);
+  expect(callback.mock.calls[0]![0].pluginData['standalone:test']).toEqual([{ id: 'employee' }]);
 });
 
 it('recomputes edit/reload and excludes removed references', async () => {
@@ -307,7 +338,7 @@ it('restores original data for an interrupt resume without reading the next draf
   expect(restored.native.thread.composer.getState().text).toBe('Unsent next draft');
 });
 
-it('snapshots queued data through tool continuation while another Thread runs', async () => {
+it('preserves submitted data through tool continuation while another Thread runs', async () => {
   let resolveTool!: (result: { content: string }) => void;
   let executing = false;
   const tools: AgentFrontendToolSource = {
@@ -325,7 +356,8 @@ it('snapshots queued data through tool continuation while another Thread runs', 
     f.runs[0]!.finish();
   });
   await until(() => executing);
-  const queued = await f.select({ id: 'queued' }); await f.send(`${queued} Queued`);
+  const next = await f.select({ id: 'next' });
+  await act(async () => f.native.thread.composer.setText(`${next} Next`));
   await act(async () => f.native.threads.switchToThread('B'));
   await until(() => !f.native.thread.getState().isLoading);
   const other = await f.select({ id: 'other' }); await f.send(`${other} Other`);
@@ -334,22 +366,27 @@ it('snapshots queued data through tool continuation while another Thread runs', 
   await act(async () => resolveTool({ content: 'confirmed' })); await until(() => f.runs.length === 3);
   expect(f.runs[2]!.input.messages).toMatchObject([{ role: 'tool', content: 'confirmed' }]);
   expect(f.runs[2]!.input.forwardedProps).toEqual({ ctx: { selected: [{ id: 'first' }] } });
-  await act(async () => f.runs[2]!.finish()); await until(() => f.runs.length === 4);
-  expect(f.runs[3]!.input.forwardedProps).toEqual({ ctx: { selected: [{ id: 'queued' }] } });
-  await act(async () => { f.runs[1]!.finish(); f.runs[3]!.finish(); });
+  await act(async () => { f.runs[1]!.finish(); f.runs[2]!.finish(); });
+  expect(f.runs).toHaveLength(3);
+  await act(async () => f.native.threads.switchToThread('A'));
+  await until(() => !f.native.thread.getState().isLoading && !f.native.thread.getState().isRunning);
+  expect(f.native.thread.composer.getState().text).toBe(`${next} Next`);
+  await act(async () => f.native.thread.composer.send()); await until(() => f.runs.length === 4);
+  expect(f.runs[3]!.input.forwardedProps).toEqual({ ctx: { selected: [{ id: 'next' }] } });
+  await act(async () => f.runs[3]!.finish());
 });
 
-it('snapshots unbound third-party data for multiple queued drafts and clears it afterwards', async () => {
+it('snapshots unbound third-party data for successive submissions and clears it afterwards', async () => {
   const f = await fixture(forwardData, { hold: true });
   await act(async () => f.setData({ draft: 'first' }));
   await f.send('First'); await until(() => f.runs.length === 1);
   await act(async () => f.setData({ draft: 'second' }));
-  await f.send('Second');
-  await act(async () => f.setData({ draft: 'third' }));
-  await f.send('Third');
-  await act(async () => f.runs[0]!.finish()); await until(() => f.runs.length === 2);
+  await act(async () => f.runs[0]!.finish()); await f.settle(1);
+  await f.send('Second'); await until(() => f.runs.length === 2);
   expect(f.runs[1]!.input.forwardedProps).toHaveProperty('standalone:test', { draft: 'second' });
-  await act(async () => f.runs[1]!.finish()); await until(() => f.runs.length === 3);
+  await act(async () => f.setData({ draft: 'third' }));
+  await act(async () => f.runs[1]!.finish()); await f.settle(2);
+  await f.send('Third'); await until(() => f.runs.length === 3);
   expect(f.runs[2]!.input.forwardedProps).toHaveProperty('standalone:test', { draft: 'third' });
   await act(async () => f.runs[2]!.finish()); await f.settle(3);
   await f.send('Clean'); await until(() => f.runs.length === 4);
@@ -473,23 +510,21 @@ it('lets per-send configuration scopes restore themselves when Plugin data is pr
 });
 
 
-it('assembles default fields without changing native business configuration and lets the final adapter remove them', async () => {
-  const f = await fixture(({ request }) => request);
+it('collects Plugin data without forwarding it until the final adapter maps it', async () => {
+  const f = await fixture(undefined);
   await act(async () => {
     f.composer.setRunConfig({ custom: { keep: 'host', skillId: 'original' } });
-    f.setData({ operation: 'research' }, { includeInRequest: false,
-      defaultForwardedProps: { ctx: { skillId: 'research' } }, selection: { id: 'research' } });
+    f.setData({ operation: 'research' });
   });
-  expect(f.native.thread.composer.getState().runConfig.custom?.skillId).toBe('original');
-  await f.send('Default skill'); await f.settle(1);
-  expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { keep: 'host', skillId: 'research', tenant: 'host' } });
+  await f.send('Collect only'); await f.settle(1);
+  expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { keep: 'host', skillId: 'original', tenant: 'host' } });
   const { __agentUIComposerData: snapshot, ...business } = f.native.thread.composer.getState().runConfig.custom ?? {};
   expect(business).toEqual({ keep: 'host', skillId: 'original' });
   expect(snapshot).toBeDefined();
-  f.update(({ request }) => ({ ...request, forwardedProps: {} }));
-  await act(async () => f.setData({ operation: 'research' }, { includeInRequest: false, defaultForwardedProps: { ctx: { skillId: 'research' } } }));
-  await f.send('Override'); await f.settle(2);
-  expect(f.runs[1]!.input.forwardedProps).toEqual({});
+  f.update(({ request, pluginData }) => ({ ...request, forwardedProps: { business: pluginData } }));
+  await act(async () => f.setData({ operation: 'report' }));
+  await f.send('Map in Composer'); await f.settle(2);
+  expect(f.runs[1]!.input.forwardedProps).toEqual({ business: { 'standalone:test': { operation: 'report' } } });
 });
 
 it('composes quote defaults with other data and excludes dismissed quotes on edit', async () => {
@@ -499,7 +534,7 @@ it('composes quote defaults with other data and excludes dismissed quotes on edi
   const token = await f.select({ id: 'person' });
   await act(async () => {
     f.composer.setQuote(quote);
-    f.secondData(quote, { quote, selection: quote, includeInRequest: false, defaultTextPrefix: '> Passage\n> Second line\n\n' });
+    f.secondData(quote, { quote });
   });
   await f.send(`${token} Question`); await f.settle(1);
   expect(f.runs[0]!.input.messages[0]!.content).toBe('> Passage\n> Second line\n\nQuestion');
@@ -527,34 +562,32 @@ it('releases only the setData snapshot that created the disposer', async () => {
   expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' }, 'standalone:test': { next: true }, 'standalone:other': 'independent' });
 });
 
-it('lets the final adapter resolve overlapping Plugin defaults using their separate data', async () => {
+it('lets the final adapter combine independent Plugin payloads', async () => {
   const callback = vi.fn<Callback>(({ request, pluginData }) => ({ ...request, forwardedProps: { selected: pluginData } }));
   const f = await fixture(callback);
   await act(async () => {
-    f.setData({ one: true }, { includeInRequest: false, defaultForwardedProps: { ctx: { same: 'one' } } });
-    f.secondData({ two: true }, { includeInRequest: false, defaultForwardedProps: { ctx: { same: 'two' } } });
+    f.setData({ one: true });
+    f.secondData({ two: true });
   });
   await f.send('Resolve'); await f.settle(1);
   expect(f.runs[0]!.input.forwardedProps).toEqual({ selected: { 'standalone:test': { one: true }, 'standalone:other': { two: true } } });
 });
 
-it('freezes selected and empty skills independently for queued requests and later draft changes', async () => {
+it('keeps selected and empty skills independent across submissions and later draft changes', async () => {
   const f = await fixture(defaultRequestAdapter, { hold: true, pluginId: 'skills' });
   const research = { id: 'research', label: 'Research' };
   const report = { id: 'report', label: 'Report' };
-  await f.send('Running'); await until(() => f.runs.length === 1);
-  await f.send('Queued without a skill');
+  await f.send('Without a skill'); await until(() => f.runs.length === 1);
   await act(async () => { f.composer.setData(research); });
-  await f.send('Queued research');
+  expect(f.runs[0]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
+  expect(f.runs[0]!.input.messages[0]!.metadata).not.toHaveProperty('skill');
+  await act(async () => f.runs[0]!.finish()); await f.settle(1);
+  await f.send('Research'); await until(() => f.runs.length === 2);
   await act(async () => { f.composer.setData(report); f.composer.setText('Next draft'); });
-  await act(async () => f.runs[0]!.finish()); await until(() => f.runs.length === 2);
-  expect(f.runs[1]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host' } });
-  expect(f.runs[1]!.input.messages[0]!.metadata).not.toHaveProperty('skill');
-  await act(async () => f.runs[1]!.finish()); await until(() => f.runs.length === 3);
-  expect(f.runs[2]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host', skill: research } });
-  expect(f.runs[2]!.input.messages[0]!.metadata).toMatchObject({ skill: research });
+  expect(f.runs[1]!.input.forwardedProps).toEqual({ ctx: { tenant: 'host', skill: research } });
+  expect(f.runs[1]!.input.messages[0]!.metadata).toMatchObject({ skill: research });
   expect(readConversationSkillData(f.composer.getState().data['standalone:test'])).toEqual(report);
-  await act(async () => f.runs[2]!.finish());
+  await act(async () => f.runs[1]!.finish());
 });
 
 it('keeps the message skill for retry/edit and restores it from public history metadata', async () => {

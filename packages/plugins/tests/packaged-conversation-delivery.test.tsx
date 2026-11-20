@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
+import { useLocale } from "@za38.03/agent-ui-plugins";
 // @vitest-environment jsdom
 import * as React from "react";
 import * as JSXRuntime from "react/jsx-runtime";
@@ -52,28 +52,38 @@ async function assistantListApplication(mode: "assistant" | "platform" = "assist
     'const {transformSync}=require(process.argv[1]);const source=require("node:fs").readFileSync(0,"utf8");process.stdout.write(transformSync(source,{loader:"tsx",format:"cjs",jsx:"automatic"}).code);',
     compiler,
   ], { input: source, encoding: "utf8" });
-  const service = { refresh: vi.fn(async () => {}) };
+  const service = {
+    refresh: vi.fn(async () => {}),
+    getSnapshot: () => ({ activeConversationId: "history" }),
+    subscribe: () => () => {},
+  };
   const modules: Record<string, unknown> = {
     "react": React,
     "react/jsx-runtime": JSXRuntime,
     "@za38.03/agent-ui-plugins": { ...Plugins,
-      usePluginService: () => service,
-      usePluginServiceSnapshot: () => ({ activeConversationId: useAuiState(state => state.threads.mainThreadId) }),
+      usePluginService: (target: string | { getSnapshot(): unknown }, selector?: (snapshot: unknown) => unknown) => {
+        const activeConversationId = useAuiState(state => state.threads.mainThreadId);
+        if (typeof target === "string") return { ...service, getSnapshot: () => ({ activeConversationId }) };
+        return selector === undefined ? target : selector(target.getSnapshot());
+      },
     },
     "lucide-react": Icons,
-    "@za38.03/agent-ui-runtime": { useAgentRun: () => ({ status: "idle" }) },
+    "@za38.03/agent-ui-runtime": { useAgentRuntime: () => ({ status: "idle" }) },
     "@za38.03/agent-ui-plugins/conversation-thread-list": { ConversationThreadListPlugin },
     "@za38.03/agent-ui-plugins/plugin-support": PluginSupport,
     "../../runtime/plugins": {
-      usePluginService: () => service,
-      usePluginServiceSnapshot: () => ({ activeConversationId: useAuiState(state => state.threads.mainThreadId) }),
+      usePluginService: (target: string | { getSnapshot(): unknown }, selector?: (snapshot: unknown) => unknown) => {
+        const activeConversationId = useAuiState(state => state.threads.mainThreadId);
+        if (typeof target === "string") return { ...service, getSnapshot: () => ({ activeConversationId }) };
+        return selector === undefined ? target : selector(target.getSnapshot());
+      },
     },
     "../../services/conversations": { AGENT_UI_CONVERSATION_SERVICE: "agent-ui.conversations", EMPTY_CONVERSATION_SNAPSHOT: {} },
-    "@za38.03/agent-ui-runtime/ui": { useAgentUITheme: () => "light" },
-    "../../runtime/context": { useAgentRun: () => ({ status: "idle" }) },
+    "@za38.03/agent-ui-runtime/ui": { useTheme: () => "light" },
+    "../../runtime/context": { useAgentRuntime: () => ({ status: "idle" }) },
     "./assistant.css": {},
   };
-  for (const hook of ["useConversations", "useConversationActions"]) {
+  for (const hook of ["useConversations"]) {
     const hookPath = `../src/shared/project/services/hooks/${hook}.ts`;
     const hookSource = await readFile(new URL(hookPath, import.meta.url), "utf8");
     const hookCode = execFileSync(process.execPath, ["-e",
@@ -214,8 +224,8 @@ it.each(modes)("$name new and rail retain canonical new-thread behavior and resp
   await el.render(<Rail enabled icon={<span>Rail new</span>} buttonProps={{"aria-label":"rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
 });
 it.each(modes)("$name quote exposes renderers/props and follows locale with Host overrides",async({Quote})=>{
-  function Preview() { const messages=useAgentUILocale("conversationQuote"); return <span>{messages.dismiss}</span>; }
-  function Toolbar() { const messages=useAgentUILocale("conversationQuote"); return <span>{messages.quote}</span>; }
+  function Preview() { const messages=useLocale("conversationQuote"); return <span>{messages.dismiss}</span>; }
+  function Toolbar() { const messages=useLocale("conversationQuote"); return <span>{messages.quote}</span>; }
   const preview=vi.fn(()=><Preview/>), toolbar=vi.fn(()=><Toolbar/>);
   const el=await mount(<Quote renderPreview={preview} renderToolbar={toolbar}/>,"zh-CN");expect(el.host.textContent).toContain("取消引用");expect(el.host.textContent).toContain("引用");
   await el.render(<Quote renderPreview={preview} renderToolbar={toolbar}/>,"en-US",{conversationQuote:{dismiss:"Host dismiss",quote:"Host quote"}});expect(el.host.textContent).toBe("Host dismissHost quote");

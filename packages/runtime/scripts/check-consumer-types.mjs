@@ -29,7 +29,7 @@ const reactVersion = process.env.AGENT_UI_CONSUMER_REACT_VERSION ?? "19.1.1";
 const reactTypes = reactVersion.startsWith("18.") ? "18.3.31" : "19.3.0";
 const reactDomTypes = reactVersion.startsWith("18.") ? "18.3.7" : "19.3.0";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const tscPath = path.join(packageRoot, "node_modules", "typescript", "bin", "tsc");
+const tscPath = path.join(packageRoot, "node_modules", "typescript", "lib", "tsc.js");
 const consumerRoot = await realpath(await mkdtemp(path.join(os.tmpdir(), "runtime-consumer-")));
 
 async function run(command, args, cwd = consumerRoot) {
@@ -132,7 +132,7 @@ module.exports = { hooks: { readPackage(pkg) {
   AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError,
   createEphemeralConversationThreadBinding, type ConversationRuntimeProviderProps,
   type ConversationRunContextGetter,
-  AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent,
+  AgentUIProvider, useAgent, useAgentEvent, useAgentAppEvent,
   createAgentUIFrontendTools, combineAgentFrontendToolSources,
   type AgentUIUser, type AgentUIHost,
 } from "@za38.03/agent-ui-runtime";
@@ -147,7 +147,7 @@ void [createAgentUIProject, resolveAgentUIProjectResources, ConversationAdapter,
 const plugin: UIPluginDefinition={manifest:parseUIPluginManifest({id:"custom",name:"Custom",description:"Custom plugin",version:"1.0.0"}),Component:()=>null};
 const factory:ConversationThreadBindingFactory=()=>createEphemeralConversationThreadBinding();void [plugin,factory];
 const optionalUser: AgentUIUser = {};
-const hostHook: () => AgentUIHost = useAgentUI;
+const hostHook: () => AgentUIHost = useAgent;
 interface OrderContext { id: string; status: string }
 const orderContext: OrderContext = { id: "O-1042", status: "pending" };
 const ctx: import("@za38.03/agent-ui-runtime").AgentUIContext = { order: orderContext, nested: { values: [null, true, 1] } };
@@ -162,7 +162,7 @@ const fetchOnly: import("@za38.03/agent-ui-runtime/ui").AgentProps = { fetch: as
 const runtimeFetchOnly: Omit<ConversationRuntimeProviderProps, "children"> = { threadBinding: createEphemeralConversationThreadBinding(), fetch: fetchOnly.fetch };
 const pluginCtx: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions["sendMessage"] = async (_input, options) => { void options?.ctx; };
 void [sendCtx, agentCtx, fetchOnly, runtimeFetchOnly, pluginCtx];
-void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, useAgentUIAppEvent, optionalUser];
+void [AgentUIProvider, hostHook, useAgent, useAgentEvent, useAgentAppEvent, optionalUser];
 const hostTools = createAgentUIFrontendTools([{
   name: "open_record", description: "Open record", inputSchema: { type: "object" },
   execute(input, context) { context.signal.throwIfAborted(); return { input, call: context.toolCallId }; },

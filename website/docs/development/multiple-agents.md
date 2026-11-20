@@ -129,17 +129,14 @@ const createServices = () => ({
 
 多助手页面的业务按钮放在外层 `AgentUIProvider` 内，与各个 `AgentUIApplication` 并列。
 
-- `useAgentUIAgents()`：按 `agentId` 取得目标助手。
-- `useAgentUIAgentsState()`：订阅集合状态。
-- 单助手的 `useAgentUI()`：读取最近一层 Host，不会自动选择当前可见助手。
+- `useAgents()`：按 `agentId` 取得目标助手。
+- `useAgents()`：订阅集合状态。
+- 单助手的 `useAgent()`：读取最近一层 Host，不会自动选择当前可见助手。
 
 下面的组件可放入上方 `Assistants` 的 Provider 中。`labels` 由项目统一文案模块按当前语言提供，`onError` 接到业务页面已有的错误提示。
 
 ```tsx
-import {
-  useAgentUIAgents,
-  useAgentUIAgentsState,
-} from '@za38.03/agent-ui-runtime';
+import { useAgents } from '@za38.03/agent-ui-runtime';
 
 export function AssistantControls({ agentId, prompt, labels, onError }: {
   agentId: string;
@@ -147,8 +144,8 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
   labels: { send: string; newConversation: string };
   onError: (error: unknown) => void;
 }) {
-  const agents = useAgentUIAgents();
-  const ready = useAgentUIAgentsState(snapshot =>
+  const agents = useAgents();
+  const ready = useAgents(snapshot =>
     snapshot.agents.find(agent => agent.agentId === agentId)
       ?.connection.status === 'ready');
   async function send() {
@@ -166,7 +163,7 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 }
 ```
 
-`agents.agent(agentId).sendMessage(prompt, { endpoint: '/api/workflows/refund' })` 可为这一次发送指定工作流 URL，不创建 Thread。重试、前端工具续传和审批恢复沿用原请求入口。运行中的程序化发送仍可能报忙，应处理 Promise 失败；开启[消息排队](./message-queue)不会把它自动变成排队调用。
+`agents.agent(agentId).sendMessage(prompt, { endpoint: '/api/workflows/refund' })` 可为这一次发送指定工作流 URL，不创建 Thread。重试、前端工具续传和审批恢复沿用原请求入口。运行中的程序化发送会报忙，应处理 Promise 失败。
 
 发送输入框中已有的草稿、附件与引用时，使用 `agents.agent(agentId).sendComposer()`；也可传 `{ endpoint }`。它使用当前 Thread 的原生 Composer，工作流发送在运行中会拒绝，不把草稿取出后另建消息链。调用前同样检查就绪状态，并处理失败。
 
@@ -177,10 +174,10 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 
 | 接口 | 用法 |
 | --- | --- |
-| `useAgentUIAgents()` | 返回助手集合；必须在外层 `AgentUIProvider` 内。 |
-| `useOptionalAgentUIAgents()` | 无集合 Provider 时返回 null，适用于可选接入。 |
-| `useAgentUIAgentsState(selector)` | 订阅集合快照；selector 返回已有字段或稳定值，不在其中每次创建新数组／对象。 |
-| `useAgentUIAgentIdentity()` | 在指定助手内部读取 `{ agentId }`；助手外部返回 undefined，不用于选择助手。 |
+| `useAgents()` | 返回助手集合；必须在外层 `AgentUIProvider` 内。 |
+| `useOptionalAgents()` | 无集合 Provider 时返回 null，适用于可选接入。 |
+| `useAgents(selector)` | 订阅集合快照；selector 返回已有字段或稳定值，不在其中每次创建新数组／对象。 |
+| `useAgentIdentity()` | 在指定助手内部读取 `{ agentId }`；助手外部返回 undefined，不用于选择助手。 |
 | `agents.agent(agentId)` | 取得这个已挂载助手的 `AgentUIHost`，不导航、不发送、不创建会话。 |
 | `agents.createThread(agentId)` | 显式新建并切换该助手的会话，返回 `Promise<{ agentId, threadId }>`。 |
 | `agents.openThread({ agentId, threadId })` | 打开这个助手的既有会话，返回 `Promise<void>`；历史读取需接好该助手的历史服务。 |
@@ -213,10 +210,10 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 例如做后台任务列表时，下面的 Hook 读取指定助手的所有已挂载 Thread。返回的是快照中的已有数组，界面可以按 `thread.run.status` 显示本地化状态，并使用 `thread.conversation.id` 作为 Thread 标识。
 
 ```tsx
-import { useAgentUIAgentsState } from '@za38.03/agent-ui-runtime';
+import { useAgents } from '@za38.03/agent-ui-runtime';
 
 export function useMountedThreads(agentId: string) {
-  return useAgentUIAgentsState(snapshot =>
+  return useAgents(snapshot =>
     snapshot.agents.find(agent => agent.agentId === agentId)?.threads);
 }
 ```

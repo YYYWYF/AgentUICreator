@@ -13,7 +13,7 @@ AG-UI TOOL_CALL_RESULT.content: string | ContentPart[]
   → 共享 Image / File / Media Player 展示
 ```
 
-工作台、悬浮助手和嵌入式助手默认启用 `tool-result`。`toolFallback` 位置只保留一个插件；使用基础 `tool-fallback` 的工程可以显式替换。专用工具 renderer 继续优先，前端工具、工具时间线和子任务复用相同的结果展示选择，不创建第二个 Runtime。
+工作台、悬浮助手和嵌入式助手默认启用 `tool-result`，也是唯一公开的工具调用卡片插件。`toolFallback` 仍是通用工具卡片的语义位置；旧工程使用的 `tool-fallback` 入口需要显式迁移。专用工具 renderer 继续优先，前端工具、工具时间线和子任务复用相同的结果展示选择，不创建第二个 Runtime。
 
 普通字符串、业务 JSON 或不符合内容数组结构的结果仍显示原始结果。后端工具结果展示不授予前端执行权限，也不把后端工具加入 `RunAgentInput.tools`。
 
@@ -23,7 +23,7 @@ AG-UI TOOL_CALL_RESULT.content: string | ContentPart[]
 
 图片复用共享预览；音视频由用户点击播放，不自动播放，暂不提供下载入口；文档提供文件卡片和下载入口，不内嵌执行其内容。`metadata.filename` 是可选展示约定。业务鉴权、浏览器可访问性和实际媒体类型支持由项目服务验证。
 
-公开应用入口使用 `ConversationToolResultPlugin`，支持 `renderPart`、`resolveFile`、直接整体样式与展开状态，以及独立 args/error/approval 等组件参数。专用 renderer 可复用 `ConversationToolResultContent`。保留原有工具、错误、审批、中断和焦点处理，固定文案沿用统一 locale。完整格式见 [工具结果](../../../plugins/tool-result.md)。
+公开应用入口使用 `ConversationToolResultPlugin`，支持 `renderPart`、`resolveFile`、直接整体样式与展开状态，以及独立 args/error/approval 等组件参数。专用 renderer 可使用 `ConversationToolResult` 的 `resultOnly` 模式只展示结果。内部按审批、问卷、回执和媒体结果场景拆分，不另行公开第二套卡片。保留原有工具、错误、审批、中断和焦点处理，固定文案沿用统一 locale。完整格式见 [工具结果](../../../plugins/tool-result.md)。
 
 ## Canonical owner 与源码接管
 

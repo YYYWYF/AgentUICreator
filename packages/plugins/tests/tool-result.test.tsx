@@ -5,9 +5,11 @@ import { AssistantRuntimeProvider, useLocalRuntime, useAssistantToolUI } from "@
 import { HttpAgent } from "@ag-ui/client";
 import { useAgUiRuntime, type AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AgentUILocaleProvider, ConversationThread, ConversationToolResult, ConversationToolResultContent, ConversationToolTimeline, ConversationDefaultTool, ConversationTaskGroup } from "../src/public.js";
+import { AgentUILocaleProvider, ConversationThread, ConversationToolResult, ConversationToolTimeline, ConversationDefaultTool, ConversationTaskGroup } from "../src/public.js";
+import * as publicApi from "../src/public.js";
 import { projectToolTimeline } from "../src/internal/tool-timeline-projection.js";
-import { hasToolResultParts } from "../src/plugins/tool-result/adapters/presentation/content.js";
+import { hasToolResultParts } from "../src/plugins/tool-result/adapters/presentation/result/content.js";
+import { ToolResultContent as ConversationToolResultContent } from "../src/plugins/tool-result/adapters/presentation/result/result-content.js";
 import definition, { ConversationToolResultPlugin as PackagePlugin } from "../dist/tool-result/index.js";
 import { ConversationToolResultPlugin as PortablePlugin } from "../dist/sources/takeover/tool-result/index";
 
@@ -26,6 +28,9 @@ const parts = [
   { type: "video", source: { type: "url", value: "https://example.test/video.webm", mimeType: "video/webm" } },
   { type: "document", source: { type: "data", value: "JVBERi0xLjQK", mimeType: "application/pdf" }, metadata: { filename: "报告.pdf" } },
 ];
+it("exposes one public tool-card component and keeps scenario components internal", () => {
+  expect(Object.keys(publicApi).filter(name => /^ConversationTool(?:Result|Fallback)/u.test(name))).toEqual(['ConversationToolResult']);
+});
 describe("tool result content", () => {
   it("renders mixed parts in order using the existing image, media players and file download", async () => {
     const { el } = await mount(<ConversationToolResultContent result={parts} />);

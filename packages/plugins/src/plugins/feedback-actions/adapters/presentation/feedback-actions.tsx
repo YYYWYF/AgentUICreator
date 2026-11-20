@@ -1,7 +1,7 @@
 'use client';
 import { type ComponentProps, type FC, type ReactNode } from 'react';
 import {
-  useAgentUILocale,
+  useLocale,
   ActionBarPrimitive,
   AuiIf,
   ThumbsDownIcon,
@@ -18,7 +18,7 @@ export const CanonicalResponseFeedbackActions: FC<{
 }> = ({ likeButtonProps, dislikeButtonProps }) => {
   const { icon: likeIcon, ...likeProps } = likeButtonProps ?? {};
   const { icon: dislikeIcon, ...dislikeProps } = dislikeButtonProps ?? {};
-  const { helpful, notHelpful } = useAgentUILocale('conversationFeedback');
+  const { helpful, notHelpful } = useLocale('conversationFeedback');
   return (
     <AuiIf condition={(s) => s.thread.capabilities.feedback}>
       <ActionBarPrimitive.FeedbackPositive asChild>

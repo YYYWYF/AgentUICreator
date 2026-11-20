@@ -28,7 +28,7 @@ vi.mock("@za38.03/agent-ui-runtime", async importOriginal => {
       },
     });
   };
-  function UserProbe() { control.users.push(actual.useAgentUIUser()); return null; }
+  function UserProbe() { control.users.push(actual.useHostUser()); return null; }
   return { ...actual, ConversationRuntimeProvider: (props: import("@za38.03/agent-ui-runtime").ConversationRuntimeProviderProps) => {
     control.endpoints.push(props.endpoint);
     return <actual.ConversationRuntimeProvider {...props} unstable_agentFactory={factory}><UserProbe />{props.children}</actual.ConversationRuntimeProvider>;
@@ -36,7 +36,7 @@ vi.mock("@za38.03/agent-ui-runtime", async importOriginal => {
 });
 
 import { Agent } from "../../plugins/resources/registry/items/foundation/core/files";
-import { AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "@za38.03/agent-ui-runtime";
+import { AgentUIProvider, useAgent, useAgentEvent } from "@za38.03/agent-ui-runtime";
 import { agentCompositionStore } from "../../plugins/resources/registry/items/foundation/core/files/application/composition-store";
 
 async function until(predicate: () => boolean) {
@@ -54,10 +54,10 @@ it("shares one real conversation with Host controls before opening, survives pan
   let host!: AgentUIHost;
   const mounts = vi.fn(); const cleanup = vi.fn(); const ended = vi.fn();
   function Page() {
-    host = useAgentUI();
-    const ready = useAgentUIState(s => s.status === "ready");
+    host = useAgent();
+    const ready = useAgent(s => s.status === "ready");
     const [open, setOpen] = useState(false);
-    useAgentUIEvent("run-end", ended);
+    useAgentEvent("run-end", ended);
     useEffect(() => { mounts(); return cleanup; }, []);
     return <><button disabled={!ready} onClick={() => setOpen(value => !value)}>toggle</button><aside hidden={!open}><Agent endpoint="/business-agent" locale="en-US" /></aside></>;
   }
@@ -110,7 +110,7 @@ it("runs standalone without a business Provider and updates Agent profile props 
 it("inherits the npm Provider profile, lets Agent override it and ends the session when Agent is removed", async () => {
   const mount = document.createElement("div"); document.body.append(mount); const root = createRoot(mount);
   let host!: AgentUIHost;
-  function Controls() { host = useAgentUI(); return null; }
+  function Controls() { host = useAgent(); return null; }
   const view = (agent: boolean, override: boolean) => <AgentUIProvider user={{ userName: "Business user" }}>
     <Controls />{agent && <Agent endpoint="/business-agent" {...(override ? { user: null } : {})} />}
   </AgentUIProvider>;

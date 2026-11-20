@@ -1,5 +1,5 @@
 import { AgentUISidebarFrame } from "../../../presentation.js";
-import { useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "../../../locale.js";
+import { useLocaleCode, useLocale as usePresentationLocale } from "../../../locale.js";
 import {
   useCallback,
   useEffect,
@@ -13,7 +13,7 @@ import {
   LayoutRenderer,
   type SlotNode,
 } from "@za38.03/agent-ui-renderer";
-import { useAgentUILocale } from "../../../locale.js";
+import { useLocale } from "../../../locale.js";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model.js";
 import { resolveRuntimePluginSlotId } from "../../framework/contracts/app-ui-composition.js";
@@ -165,7 +165,7 @@ function SlotContent<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: SlotContentProps<TState>) {
-  const localeMessages = useAgentUIPresentationLocale("runtime");
+  const localeMessages = usePresentationLocale("runtime");
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
   const getSnapshot = useCallback(
@@ -399,7 +399,7 @@ function UIPluginRuntimeContent<TState = unknown>({
   className,
 }: UIPluginRuntimeProps<TState>) {
   const diagnostics = useOptionalPluginDiagnosticContext();
-  const localeMessages = useAgentUIPresentationLocale("runtime");
+  const localeMessages = usePresentationLocale("runtime");
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
   const application = useApplicationLifecycle();
@@ -506,8 +506,8 @@ function UIPluginRuntimeContent<TState = unknown>({
     );
   }, [diagnostics, model, pluginFailures]);
 
-  const drawerLabels = useAgentUILocale("layout");
-  const presentationLocale = useAgentUILocaleCode();
+  const drawerLabels = useLocale("layout");
+  const presentationLocale = useLocaleCode();
   const applicationSurface = application.phase === "ready" ? (
     <LayoutRenderer
       className={className}

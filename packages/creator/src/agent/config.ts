@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { ChatOpenAI, type ChatOpenAIFields } from "@langchain/openai";
 import { readCreatorHostEnvironment } from "../creatorRuntimeConfig.js";
 import { CreatorChatCompletions } from "./chat-completions.js";
+import { combineAbortSignals, installAbortSignalAny, preserveStreamAbortReason } from "./abort-signals.js";
+installAbortSignalAny();
 const version = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).version as string;
 
 export function hostEnvironment(root?: string): Record<string, string | undefined> {
@@ -40,8 +42,8 @@ export function createModel(environment: Record<string, string | undefined>, thr
       // Caller/SDK cancellation still wins when it happens first.
       const sourceSignal = init?.signal ?? (request instanceof Request ? request.signal : undefined);
       const deadline = AbortSignal.timeout(timeout);
-      const signal = sourceSignal ? AbortSignal.any([sourceSignal, deadline]) : deadline;
-      return fetch(request, { ...init, headers, signal });
+      const signal = sourceSignal ? combineAbortSignals([sourceSignal, deadline]) : deadline;
+      return fetch(request, { ...init, headers, signal }).then(response => preserveStreamAbortReason(response, signal));
     }, defaultHeaders: {
       ...(e.CREATOR_MODEL_OPENCODE_SESSION_HEADER === "1" ? { "x-opencode-session": threadId } : {}),
     } },

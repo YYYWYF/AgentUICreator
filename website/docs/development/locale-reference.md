@@ -14,7 +14,7 @@ title: "文案字段参考"
 
 <!-- locale-reference:start -->
 
-以下 38 个命名空间、469 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
+以下 38 个命名空间、467 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
 
 默认值以字符串字面量展示，`""` 表示空字符串，`\n` 表示换行；引号不属于文案。这里只列出 npm 的默认值，项目和 Host 的已有覆盖可能使实际显示不同。字段是否显示取决于启用的插件、组件和当前状态。
 
@@ -92,12 +92,9 @@ title: "文案字段参考"
 | `composer.stopDictation` | <code>"停止听写"</code> | <code>"Stop dictation"</code> |
 | `composer.stopVoice` | <code>"停止语音输入"</code> | <code>"Stop voice input"</code> |
 | `composer.send` | <code>"发送消息"</code> | <code>"Send message"</code> |
-| `composer.queueSend` | <code>"加入发送队列"</code> | <code>"Queue message"</code> |
 | `composer.agentSendFailed` | <code>"未能发送给该助手，已保留你的草稿。"</code> | <code>"Could not send to this assistant. Your draft has been kept."</code> |
 | `composer.stop` | <code>"停止生成"</code> | <code>"Stop generating"</code> |
 | `composer.cancelSend` | <code>"取消发送"</code> | <code>"Cancel sending"</code> |
-| `composer.queued` | <code>"待发送"</code> | <code>"Pending"</code> |
-| `composer.removeQueued` | <code>"移除待发送消息"</code> | <code>"Remove queued message"</code> |
 | `conversationTriggers.suggestions` | <code>"输入建议"</code> | <code>"Input suggestions"</code> |
 | `conversationTriggers.back` | <code>"返回"</code> | <code>"Back"</code> |
 | `conversationTriggers.empty` | <code>"没有匹配项"</code> | <code>"No matching items"</code> |
@@ -128,6 +125,7 @@ title: "文案字段参考"
 | `attachments.previewFailed` | <code>"无法加载图片预览。"</code> | <code>"The image preview could not be loaded."</code> |
 | `attachments.imagePreview` | <code>"图片附件预览"</code> | <code>"Image Attachment Preview"</code> |
 | `attachments.uploadFailed` | <code>"上传失败"</code> | <code>"Upload failed"</code> |
+| `attachments.unavailable` | <code>"附件功能不可用。"</code> | <code>"Attachments are unavailable."</code> |
 | `attachments.remove` | <code>"移除文件"</code> | <code>"Remove file"</code> |
 | `attachments.imageType` | <code>"图片"</code> | <code>"Image"</code> |
 | `attachments.documentType` | <code>"文档"</code> | <code>"Document"</code> |
@@ -148,19 +146,19 @@ title: "文案字段参考"
 | `serviceAdapters.fileTooLarge` | <code>"文件超过配置的大小限制。"</code> | <code>"The file exceeds the configured size limit."</code> |
 | `serviceAdapters.dictationFailed` | <code>"语音识别失败。"</code> | <code>"Speech recognition failed."</code> |
 | `serviceAdapters.recordingUnavailable` | <code>"当前浏览器不支持录音。"</code> | <code>"Audio recording is unavailable in this browser."</code> |
-| `skills.title` | <code>"技能与工作流"</code> | <code>"Skills and workflows"</code> |
+| `skills.title` | <code>"技能选择"</code> | <code>"Skill selection"</code> |
 | `skills.more` | <code>"更多"</code> | <code>"More"</code> |
-| `skills.search` | <code>"搜索技能或工作流"</code> | <code>"Search skills or workflows"</code> |
+| `skills.search` | <code>"搜索技能或操作"</code> | <code>"Search skills or actions"</code> |
 | `skills.skills` | <code>"技能"</code> | <code>"Skills"</code> |
-| `skills.workflows` | <code>"工作流"</code> | <code>"Workflows"</code> |
-| `skills.start` | <code>"启动"</code> | <code>"Start"</code> |
-| `skills.starting` | <code>"启动中"</code> | <code>"Starting"</code> |
+| `skills.workflows` | <code>"操作"</code> | <code>"Actions"</code> |
+| `skills.start` | <code>"执行"</code> | <code>"Run"</code> |
+| `skills.starting` | <code>"执行中"</code> | <code>"Running"</code> |
 | `skills.remove` | <code>"移除技能"</code> | <code>"Remove skill"</code> |
-| `skills.empty` | <code>"没有匹配的技能或工作流"</code> | <code>"No matching skills or workflows"</code> |
-| `skills.unavailable` | <code>"暂无可用技能或工作流"</code> | <code>"No skills or workflows available"</code> |
-| `skills.hint` | <code>"选择技能后输入需求，工作流点击启动"</code> | <code>"Choose a skill, then write your request. Workflows start when you click Start."</code> |
+| `skills.empty` | <code>"没有匹配的技能或操作"</code> | <code>"No matching skills or actions"</code> |
+| `skills.unavailable` | <code>"暂无可用技能或操作"</code> | <code>"No skills or actions available"</code> |
+| `skills.hint` | <code>"为当前输入选择技能。"</code> | <code>"Choose a skill for the current input."</code> |
 | `skills.selectionFailed` | <code>"无法选择此技能，请重试。"</code> | <code>"Unable to select this skill. Please try again."</code> |
-| `skills.startFailed` | <code>"工作流启动失败，请重试。"</code> | <code>"Unable to start the workflow. Please try again."</code> |
+| `skills.startFailed` | <code>"操作执行失败，请重试。"</code> | <code>"Unable to run this action. Please try again."</code> |
 
 ### 工具、任务与人工确认
 

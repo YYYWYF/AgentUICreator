@@ -5,10 +5,11 @@ import type { CreatorCommandActivity } from "../commands/types.js";
 import { buildCompatibilityProjectRequest, executeCreatorCommand } from "./workspaceClient.js";
 import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { confirmPluginEnablement } from "./commands/confirmPluginEnablement.js";
+import { confirmPluginSourceTakeover } from "./commands/confirmPluginSourceTakeover.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { CreatorPluginPlacementNotice, parsePluginPlacementGuide } from "./commands/CreatorPluginPlacementNotice.js";
 import { useRef as useLocaleMessagesRef } from "react";
-import { localizeCreatorPresentation, CreatorLocaleProvider, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { localizeCreatorPresentation, CreatorLocaleProvider, type CreatorLocaleCode, useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { creatorRunOutcomeText } from "./run-outcome.js";
 import { creatorRuntimeErrorMessage } from "./creatorRuntimeError.js";
 import { AgentConnectionPanel, CONNECTION_CHANGED, readAgentConnection } from "./AgentConnectionPanel.js";
@@ -91,7 +92,7 @@ function CreatorSettings({ busy, ready, onCheckUpdates, onAgent, onMock }: {
   busy: boolean; ready: boolean; onCheckUpdates: () => void;
   onAgent: () => void; onMock: () => void;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const [open, setOpen] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -151,7 +152,7 @@ const CreatorWorkbenchPreview = memo(function CreatorWorkbenchPreview({
   threadId,
   workspaceId,
 }: CreatorWorkbenchPreviewProps) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   return (
     <section className="creator-workbench-preview" aria-label={localeMessages.creatorWorkbench.agentFrontendPreview}>
       {typeof children === "function" ? children({ threadId, workspaceId }) : children}
@@ -591,7 +592,7 @@ function CreatorMarkdown({ content }: { content: string }) {
 }
 
 function CreatorRunDiagnostics({ diagnosticLog }: { diagnosticLog: NonNullable<CreatorRunReceipt["diagnosticLog"]> }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   return (
     <div className="creator-receipt-section">
       <h2>{localeMessages.creatorWorkbench.diagnosticLog}</h2>
@@ -611,7 +612,7 @@ function CreatorRunDiagnostics({ diagnosticLog }: { diagnosticLog: NonNullable<C
 }
 
 function CreatorValidationSections({ validations, showHeading = true }: { validations: CreatorValidationReceipt[]; showHeading?: boolean }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   if (validations.length === 0) return null;
   return (
     <div className="creator-receipt-section">
@@ -642,7 +643,7 @@ function CreatorValidationSections({ validations, showHeading = true }: { valida
 }
 
 function CreatorPluginDeliveryReports({ receipt }: { receipt: CreatorRunReceipt }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   return <>{receipt.pluginDeliveries?.map(report => (
     <div className="creator-receipt-section creator-delivery-report" key={report.pluginId}>
       <h2>{localeMessages.creatorWorkbench.pluginDelivery}{report.pluginId}</h2>
@@ -657,7 +658,7 @@ function CreatorPluginDeliveryReports({ receipt }: { receipt: CreatorRunReceipt 
 }
 
 function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -792,7 +793,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
 }
 
 function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const presentation = classifyCreatorReceiptPresentation(receipt);
   if (presentation === "mutation") {
     return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} onReapply={onReapply} undoBusy={undoBusy} reapplyBusy={reapplyBusy} />;
@@ -832,7 +833,7 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
 }
 
 function CreatorToolGroupCard({ activities }: { activities: CreatorToolActivity[] }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const pending = activities.filter(activity => activity.status === "preparing" || activity.status === "running");
   const failed = activities.filter(activity => activity.status === "failed").length;
   return <details className="creator-tool-group" aria-label={localeMessages.creatorWorkbench.toolExecutionDetails}>
@@ -855,7 +856,7 @@ function CreatorToolActivityCard({
 }: {
   activity: CreatorToolActivity;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   return (
     <article
       aria-label={formatLocaleMessage(localeMessages.creatorWorkbench.toolCall2, activity.name)}
@@ -937,7 +938,7 @@ function CreatorStageDebugDetails({
 }: {
   activity: CreatorStageActivity;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const metadata = activity.metadata ?? {};
   const isUnderstanding = activity.name === "creator.resolve";
   const isGrounding = activity.name === "creator.grounding";
@@ -1088,7 +1089,7 @@ function CreatorStageActivityCard({
   activity: CreatorStageActivity;
   debug: boolean;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   if (!shouldPresentStage(activity, debug)) {
     return null;
   }
@@ -1133,7 +1134,7 @@ function setupError(error: unknown): CreatorSetupError {
 }
 
 function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workbench" }: CreatorWorkbenchProps) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const localeMessagesRef = useLocaleMessagesRef(localeMessages);
   localeMessagesRef.current = localeMessages;
   const creatorDebug = resolveCreatorDebugMode({
@@ -1417,12 +1418,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     const parsed = parseCreatorCommand(request);
     if (parsed.kind !== "command") return;
     if (commandInFlight.current || isRunning || runInFlightRef.current || workspaceBusy || undoRunId || reapplyRunId || hasPendingCreatorQuestion(itemsRef.current) || workspaceState?.status !== "ready") return;
-    if (parsed.id === "" || (["enable", "disable"].includes(parsed.id) && parsed.args.length === 0)) { setInput(parsed.id === "" ? "/" : `/${parsed.id} `); commandState.show(); return; }
+    if (parsed.id === "" || (["enable", "disable", "takeover"].includes(parsed.id) && parsed.args.length === 0)) { setInput(parsed.id === "" ? "/" : `/${parsed.id} `); commandState.show(); return; }
     const activity: CreatorCommandActivity = { kind: "command", id: crypto.randomUUID(), commandId: parsed.id, status: "running", ...(parsed.args[0] ? { value: parsed.args[0] } : {}) };
     const fail = (error: string) => updateItems(current => current.map(item => item.kind === "command" && item.id === activity.id ? { ...item, status: "failed", error } : item));
-    if (!["sync", "enable", "disable"].includes(parsed.id)) { updateItems(current => [...current, activity]); fail(formatLocaleMessage(localeMessages.commands.unknownCommand, parsed.id)); return; }
+    if (!["sync", "enable", "disable", "takeover"].includes(parsed.id)) { updateItems(current => [...current, activity]); fail(formatLocaleMessage(localeMessages.commands.unknownCommand, parsed.id)); return; }
     let selectedOption: import("../commands/types.js").CreatorCommandOption | undefined;
-    if (["enable", "disable"].includes(parsed.id)) {
+    if (["enable", "disable", "takeover"].includes(parsed.id)) {
       const option = commandState.catalog.commands.find(command => command.id === parsed.id)?.options.find(option => option.id === parsed.args.join(" "));
       if (!option) { commandState.show(); return; }
       if (option.disabled) return;
@@ -1435,11 +1436,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     const id = workspaceState.workspace.id;
     let preparationStarted = false;
     try {
-      const commandRequest: import("../commands/types.js").CreatorCommandExecuteRequest = parsed.id === "enable" && selectedOption?.action === "add" ? { id: "enable", args: { pluginId: selectedOption.pluginId! } } : parsed.id === "enable" || parsed.id === "disable" ? { id: parsed.id, args: { instanceId: parsed.args[0]! } } : { id: "sync", args: {} };
+      const commandRequest: import("../commands/types.js").CreatorCommandExecuteRequest = parsed.id === "takeover" ? { id: "takeover", args: { pluginId: parsed.args[0]! } } : parsed.id === "enable" && selectedOption?.action === "add" ? { id: "enable", args: { pluginId: selectedOption.pluginId! } } : parsed.id === "enable" || parsed.id === "disable" ? { id: parsed.id, args: { instanceId: parsed.args[0]! } } : { id: "sync", args: {} };
       let result = await executeCreatorCommand(id, commandRequest, localeMessages);
       if (session !== sessionRef.current) return;
-      const continued = await confirmPluginEnablement(commandRequest, result, localeMessages.commands,
-        pluginId => commandState.optionLabel("enable", pluginId),
+      const confirmCommand = commandRequest.id === "takeover" ? confirmPluginSourceTakeover : confirmPluginEnablement;
+      const continued = await confirmCommand(commandRequest, result, localeMessages.commands,
+        pluginId => commandState.optionLabel(parsed.id, pluginId),
         message => window.confirm(message),
         request => {
           if (session !== sessionRef.current) throw new Error("CREATOR_WORKSPACE_CHANGED");
@@ -1453,7 +1455,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
       result = continued;
       if (session !== sessionRef.current) return;
-      if (result.status === "confirmation-required") throw new Error("PLUGIN_ENABLEMENT_PREPARATION_STALE");
+      if (result.status === "confirmation-required") throw new Error(parsed.id === "takeover" ? "PLUGIN_SOURCE_PLAN_STALE" : "PLUGIN_ENABLEMENT_PREPARATION_STALE");
       const commandStatus: CreatorCommandActivity["status"] = result.status ?? "completed";
       updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: commandStatus, receipt: result.receipt, ...(result.placementGuide ? { placementGuide: result.placementGuide } : {}) } : item));
       setInput("");
@@ -1469,7 +1471,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     } catch (error) {
       if (session === sessionRef.current) {
         const code = error instanceof Error && "code" in error ? error.code : undefined;
-        fail(code === "CREATOR_COMMAND_BUSY" ? localeMessages.commands.busy : code === "PLUGIN_ENABLEMENT_PREPARATION_STALE" ? localeMessages.commands.preparationStale : preparationStarted ? localeMessages.commands.preparationFailed : parsed.id === "sync" ? localeMessages.commands.syncFailed : parsed.id === "enable" || parsed.id === "disable" ? localeMessages.commands.toggleFailed : localeMessages.commands.failed);
+        fail(code === "CREATOR_COMMAND_BUSY" || code === "OPERATOR_BUSY" ? localeMessages.commands.busy : parsed.id === "takeover" ? code === "PLUGIN_SOURCE_PLAN_STALE" ? localeMessages.commands.takeoverStale : formatLocaleMessage(localeMessages.commands.takeoverFailed, typeof code === "string" ? code : "CREATOR_COMMAND_FAILED") : code === "PLUGIN_ENABLEMENT_PREPARATION_STALE" ? localeMessages.commands.preparationStale : preparationStarted ? localeMessages.commands.preparationFailed : parsed.id === "sync" ? localeMessages.commands.syncFailed : parsed.id === "enable" || parsed.id === "disable" ? localeMessages.commands.toggleFailed : localeMessages.commands.failed);
       }
     } finally {
       commandInFlight.current = false; setCommandBusy(false);
@@ -2371,7 +2373,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 presentConversationItems(items, creatorDebug).map((item) =>
                   item.kind === "command" ? (
                     <article className="creator-panel-message creator-command-activity" key={item.id} role="status">
-                      {item.status === "placement-required" ? <CreatorPluginPlacementNotice pluginId={item.value ?? ""} pluginName={commandState.optionLabel("enable", item.value ?? "")} guide={item.placementGuide} /> : <p>{item.status === "cancelled" ? localeMessages.commands.preparationCancelled : item.status === "agent-required" ? formatLocaleMessage(localeMessages.commands.addPluginRequested, commandState.optionLabel("enable", item.value ?? "")) : item.status === "integration-required" ? localeMessages.commands.integrationRequired : item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "enable" || item.commandId === "disable" ? formatLocaleMessage(item.status === "running" ? localeMessages.commands.toggling : item.commandId === "enable" ? localeMessages.commands.reenabled : localeMessages.commands.disabledPlugin, item.value ?? "") : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>}
+                      {item.status === "placement-required" ? <CreatorPluginPlacementNotice pluginId={item.value ?? ""} pluginName={commandState.optionLabel("enable", item.value ?? "")} guide={item.placementGuide} /> : <p>{item.status === "cancelled" ? item.commandId === "takeover" ? localeMessages.commands.takeoverCancelled : localeMessages.commands.preparationCancelled : item.status === "agent-required" ? formatLocaleMessage(localeMessages.commands.addPluginRequested, commandState.optionLabel("enable", item.value ?? "")) : item.status === "integration-required" ? localeMessages.commands.integrationRequired : item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "takeover" ? formatLocaleMessage(item.status === "running" ? localeMessages.commands.takingOver : localeMessages.commands.takeoverCompleted, commandState.optionLabel("takeover", item.value ?? "")) : item.commandId === "enable" || item.commandId === "disable" ? formatLocaleMessage(item.status === "running" ? localeMessages.commands.toggling : item.commandId === "enable" ? localeMessages.commands.reenabled : localeMessages.commands.disabledPlugin, item.value ?? "") : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>}
                       {item.receipt ? <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                         onUndo={!commandBusy && !isRunning && !questionPending ? runId => { void undoCreatorRun(runId); } : undefined}
                         onReapply={!commandBusy && !isRunning && !questionPending ? runId => { void reapplyCreatorRun(runId); } : undefined}
@@ -2486,7 +2488,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   );
 }
 
-export { CreatorLocaleProvider, useAgentUILocale } from "./i18n/locale.js";
+export { CreatorLocaleProvider, useCreatorLocale } from "./i18n/locale.js";
 export type { CreatorLocaleCode } from "./i18n/locale.js";
 export function CreatorWorkbench(props: CreatorWorkbenchProps) {
   return <CreatorLocaleProvider locale={props.locale} onLocaleChange={props.onLocaleChange}><CreatorWorkbenchContent {...props} /></CreatorLocaleProvider>;

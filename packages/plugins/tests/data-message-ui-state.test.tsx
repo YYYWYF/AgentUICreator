@@ -8,10 +8,9 @@ import {
   ThreadPrimitive,
   useLocalRuntime,
   type ChatModelAdapter,
-  type ThreadMessageLike,
-} from "@assistant-ui/react";
+  type ThreadMessageLike} from "@assistant-ui/react";
 import { DataMessageUIRegistration, defineDataMessageUI } from "../src/internal/data-message-ui";
-import { AgentUILocaleProvider, useAgentUILocaleCode } from "../src/locale";
+import { AgentUILocaleProvider, useLocaleCode } from "../src/locale";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let renderer: ReactTestRenderer | undefined;
@@ -24,7 +23,7 @@ const messages: ThreadMessageLike[] = [{
 }];
 
 function Report() {
-  const locale = useAgentUILocaleCode();
+  const locale = useLocaleCode();
   const [count, setCount] = useState(0);
   return <button onClick={() => setCount(value => value + 1)}>{locale}:{count}</button>;
 }

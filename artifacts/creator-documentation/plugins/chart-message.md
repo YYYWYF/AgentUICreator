@@ -25,7 +25,7 @@
 
 ## 接入图表消息 \{#显示条件与数据来源}
 
-启用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+启用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"CUSTOM","name":"chart","value":{"title":"季度销售额","items":[{"label":"第一季度","value":120},{"label":"第二季度","value":180}]}}
@@ -49,10 +49,10 @@
 ```tsx
 import type { ComponentProps } from 'react';
 import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>) {
-  const locale = useAgentUILocaleCode();
+  const locale = useLocaleCode();
   return <Implementation {...props}
     formatValue={value => new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)} />;
 }
@@ -103,7 +103,7 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 
 `renderChart(data)` 取得已经校验的数据；例如以下对象会显示两个数值项：
 
-```json
+```json ag-ui
 { "title": "待办数量", "items": [{ "label": "处理中", "value": 12 }, { "label": "已完成", "value": 30 }] }
 ```
 

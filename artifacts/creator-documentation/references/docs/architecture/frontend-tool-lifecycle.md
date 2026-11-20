@@ -38,7 +38,7 @@ source, but never supplies its schema or execution permission. Human/frontend
 entries colliding with an existing source fail rather than replacing its executor.
 Disabled frontend entries become backend render-only entries. No separate frontend
 UI registry is exposed. A missing specialized UI uses the locale-aware generic
-`ConversationToolFallback` from the React facade.
+`ConversationToolResult` from the React facade.
 
 assistant-ui owns detection, invocation identity, single-fire execution, status,
 result injection, cancellation and continuation. We do not implement a second

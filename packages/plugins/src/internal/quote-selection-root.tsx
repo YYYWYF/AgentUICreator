@@ -16,7 +16,7 @@ import { createPortal } from "react-dom";
 import { getSelectionMessageId } from "./quote-selection-message-id.js";
 import { useThreadRootElementRef } from "./quote-thread-root.js";
 
-import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";
+import { usePortalContainer } from "./style-boundary/AgentUIRoot.js";
 
 function composeEventHandlers<E extends { defaultPrevented: boolean }>(first: ((event: E) => void) | undefined, second: (event: E) => void) {
   return (event: E) => { first?.(event); if (!event.defaultPrevented) second(event); };
@@ -63,7 +63,7 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
   SelectionToolbarPrimitiveRoot.Element,
   SelectionToolbarPrimitiveRoot.Props
 >(({ onMouseDown, style, onSelectionDiagnostic, ...props }, forwardedRef) => {
-  const portalContainer = useAgentUIPortalContainer();
+  const portalContainer = usePortalContainer();
   const [info, setInfo] = useState<SelectionInfo | null>(null);
   const threadRootRef = useThreadRootElementRef();
   const warnedAboutMissingThreadRootRef = useRef(false);

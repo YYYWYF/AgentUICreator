@@ -7,9 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AgentUIProvider, AgentUIConversationBinding, ConversationRuntimeProvider,
   InvalidAgentInputError, UnsupportedAgentInputError,
-  createAgentUIFrontendTools, createEphemeralConversationThreadBinding, useAgentUI,
-  type AgentUIHost, type AgentUISendOptions, type AttachmentConfig,
-} from "../src/public.js";
+  createAgentUIFrontendTools, createEphemeralConversationThreadBinding, useAgent,
+  type AgentUIHost, type AgentUISendOptions, type AttachmentConfig} from "../src/public.js";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -38,7 +37,7 @@ async function fixture(reply?: Reply, attachments?: AttachmentConfig) {
       { headers: { "Content-Type": "text/event-stream" } });
   });
   function Capture() {
-    host = useAgentUI();
+    host = useAgent();
     native = useAui().threads.__internal_getAssistantRuntime!();
     return <AgentUIConversationBinding />;
   }

@@ -30,7 +30,6 @@ const groups: Record<string, string[]> = {
     "reasoning",
     "tool-group",
     "tool-timeline",
-    "tool-fallback",
     "tool-result",
     "task-group",
     "agent-status-message",

@@ -19,7 +19,6 @@ async function until(predicate: () => boolean) {
 }
 describe.each([{name:"npm",Feature:NpmQuote},{name:"portable",Feature:SourceQuote}])("$name quote lifecycle", ({Feature}) => {
 async function mount(disabled = false, history: readonly ConversationMessage[] = [], custom: {
-  quoteAdapter?: import('../src/public').ConversationQuoteRequestAdapter;
   composerAdapter?: import('../src/public').ComposerRequestAdapter;
 } = {}) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
@@ -71,7 +70,7 @@ async function mount(disabled = false, history: readonly ConversationMessage[] =
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const render = () => root!.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
-    <AgentUIRoot theme="light"><Capture /><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer requestAdapter={custom.composerAdapter} autoFocus={false} beforeInput={installed ? <Feature requestAdapter={custom.quoteAdapter} /> : null} submitAction={<ComposerPrimitive.Send aria-label="Send" />} />} /></AgentUIRoot>
+    <AgentUIRoot theme="light"><Capture /><ConversationThread autoFocus={false} composer={<ConversationCanonicalComposer requestAdapter={custom.composerAdapter} autoFocus={false} beforeInput={installed ? <Feature /> : null} submitAction={<ComposerPrimitive.Send aria-label="Send" />} />} /></AgentUIRoot>
   </ConversationRuntimeProvider>);
   await act(async () => { render(); });
   await act(async () => until(() => !runtime.thread.getState().isLoading && host.textContent!.includes("Actions simplify")));
@@ -172,31 +171,30 @@ it("retains structured loaded quote history locally without resending it after r
     .toEqual(historicalUser.content);
 });
 
-it('adapts a native quote synchronously, preserves raw selection and suppresses the default Markdown prefix', async () => {
-  const adapter = vi.fn<import('../src/public').ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
-    ...request, forwardedProps: { ctx: pluginData['standalone:quote'], raw: selections['standalone:quote'] },
+it('lets Composer map the single quote payload and replace the default Markdown text', async () => {
+  const adapter = vi.fn<import('../src/public').ComposerRequestAdapter>(({ request, pluginData }) => ({
+    ...request,
+    messages: request.messages.map(message => message.role === 'user' ? { ...message, content: 'Question' } : message),
+    forwardedProps: { quote: pluginData['standalone:quote'] },
   }));
-  const f = await mount(false, [], { quoteAdapter: quote => ({ source: quote.messageId, passage: quote.text }), composerAdapter: adapter });
+  const f = await mount(false, [], { composerAdapter: adapter });
   await act(async () => {
     f.runtime.thread.composer.setQuote({ text: 'Passage', messageId: 'assistant' });
     f.runtime.thread.composer.setText('Question'); f.runtime.thread.composer.send();
   });
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
+  expect(adapter.mock.calls[0]![0].request.messages[0]!.content).toBe('> Passage\n\nQuestion');
   expect(f.requests[0]!.messages[0]!.content).toBe('Question');
-  expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { source: 'assistant', passage: 'Passage' }, raw: [{ text: 'Passage', messageId: 'assistant' }] });
+  expect(f.requests[0]!.forwardedProps).toEqual({ quote: { text: 'Passage', messageId: 'assistant' } });
   expect(JSON.stringify(f.requests[0])).not.toContain('agentUIComposerData');
 });
-it('does not send dismissed quote data and keeps the draft when its adapter fails', async () => {
-  const f = await mount(false, [], { quoteAdapter: quote => {
-    if (quote.text === 'Bad') throw new Error('Project failure');
-    return { passage: quote.text };
-  } });
-  await act(async () => f.runtime.thread.composer.setQuote({ text: 'Good', messageId: 'assistant' }));
-  await act(async () => f.runtime.thread.composer.setQuote({ text: 'Bad', messageId: 'assistant' }));
-  expect(f.runtime.thread.composer.getState().quote?.text).toBe('Good');
-  expect(f.host.querySelector('[role="alert"]')?.textContent).toContain('Unable to use');
+it('removes dismissed quote data before the final Composer adapter runs', async () => {
+  const adapter = vi.fn<import('../src/public').ComposerRequestAdapter>(({ request }) => request);
+  const f = await mount(false, [], { composerAdapter: adapter });
+  await act(async () => f.runtime.thread.composer.setQuote({ text: 'Passage', messageId: 'assistant' }));
   await act(async () => { f.runtime.thread.composer.setQuote(undefined); f.runtime.thread.composer.setText('Clean'); f.runtime.thread.composer.send(); });
   await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
+  expect(adapter.mock.calls[0]![0].pluginData).toEqual({});
   expect(f.requests[0]!.messages[0]!.content).toBe('Clean');
   expect(f.requests[0]!.forwardedProps).toEqual({});
 });

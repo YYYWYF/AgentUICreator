@@ -206,7 +206,7 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 同目录 `definition.ts` 中已有的 `dataMessageUIs: [chartMessageUI]` 和 `Component: () => null` 继续保留，AppUIModel 中原来的消息插件实例也继续启用。消息 renderer 不需要新增布局位置；把它改成普通布局组件会丢失消息展示入口。
 
-工具结果在对应 `plugins/<id>/index.tsx` 的现有 toolkit renderer 中修改。保留工具名、参数、运行状态、结果、`interaction` 配置和审批回调，先使用组件公开的样式、展开属性和组合接口，见[工具调用详情](/plugins/tool-fallback.md)。展示组件不执行后端工具，也不在历史回放时重执行业务操作。
+工具结果在对应 `plugins/<id>/index.tsx` 的现有 toolkit renderer 中修改。保留工具名、参数、运行状态、结果、`interaction` 配置和审批回调，先使用组件公开的样式、展开属性和组合接口，见[工具调用详情](/plugins/tool-result.md)。展示组件不执行后端工具，也不在历史回放时重执行业务操作。
 
 修改后分别触发有数据、空数据、失败、流式更新和历史回放，确认展示更新且原交互保留。这些修改属于项目应用层，无需先接管官方实现。
 
@@ -264,7 +264,7 @@ const messages: Record<AgentUILocaleCode, typeof zhCN> = { 'zh-CN': zhCN, 'en-US
 export function getProjectMessages(locale: AgentUILocaleCode) { return messages[locale]; }
 ```
 
-新增领域不直接塞入官方 `Agent.locales`。后面组件用 `useAgentUILocaleCode()` 读取统一语言，再消费这个业务领域，不创建另一份语言状态。
+新增领域不直接塞入官方 `Agent.locales`。后面组件用 `useLocaleCode()` 读取统一语言，再消费这个业务领域，不创建另一份语言状态。
 
 </details>
 
@@ -304,21 +304,23 @@ export async function loadDraftTemplate(input: {
 
 ```tsx
 import { useLayoutEffect, useRef, useState } from 'react';
-import { useConversationComposer, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-import { useAgentConversation, useAgentRun } from '@za38.03/agent-ui-runtime';
+import { useComposer, useLocaleCode } from '@za38.03/agent-ui-plugins';
+import { useAgentRuntime } from '@za38.03/agent-ui-runtime';
 import { getProjectMessages } from '../../application/i18n/messages';
 import { loadDraftTemplate } from '../../services/draft-template';
 
 export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number } = {}) {
-  const composer = useConversationComposer();
-  const conversation = useAgentConversation();
-  const run = useAgentRun();
-  const locale = useAgentUILocaleCode();
+  const composer = useComposer();
+  const draftText = useComposer(state => state.text);
+  const draftDisabled = useComposer(state => state.disabled);
+  const conversation = useAgentRuntime(snapshot => snapshot.conversation);
+  const run = useAgentRuntime(snapshot => snapshot.run);
+  const locale = useLocaleCode();
   const labels = getProjectMessages(locale).composerCustomization;
   const active = useRef<AbortController | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<'load' | 'limit' | null>(null);
-  const blocked = composer.disabled || run.status === 'running' || run.status === 'awaiting-input';
+  const blocked = draftDisabled || run.status === 'running' || run.status === 'awaiting-input';
 
   // 编辑草稿、改变运行状态或语言后，旧请求不能再覆盖输入框。
   useLayoutEffect(() => {
@@ -327,10 +329,10 @@ export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number }
     setPending(false);
     setError(null);
     return () => { active.current?.abort(); active.current = null; };
-  }, [composer.text, blocked, conversation.id, locale, maxLength]);
+  }, [draftText, blocked, conversation.id, locale, maxLength]);
 
   async function load() {
-    if (active.current || blocked || composer.text.length > 0) return;
+    if (active.current || blocked || draftText.length > 0) return;
     const controller = new AbortController();
     active.current = controller;
     setPending(true);
@@ -354,7 +356,7 @@ export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number }
   }
 
   return <div className="project-composer-tools" aria-busy={pending}>
-    <button type="button" disabled={pending || blocked || composer.text.length > 0}
+    <button type="button" disabled={pending || blocked || draftText.length > 0}
       onClick={() => { void load(); }}>
       {pending ? labels.loading : labels.load}
     </button>
@@ -381,16 +383,16 @@ export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number }
 
 ```tsx
 import { ConversationComposerPlugin as Composer } from '@za38.03/agent-ui-plugins/composer';
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
-import { useAgentConversation } from '@za38.03/agent-ui-runtime';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
+import { useAgentRuntime } from '@za38.03/agent-ui-runtime';
 import type { ComponentProps } from 'react';
 import { getProjectMessages } from '../../application/i18n/messages';
 import { DraftTemplateAction } from './DraftTemplateAction';
 import './composer.css';
 
 export function ConversationComposerPlugin(props: ComponentProps<typeof Composer>) {
-  const conversation = useAgentConversation();
-  const labels = getProjectMessages(useAgentUILocaleCode()).composerCustomization;
+  const conversation = useAgentRuntime(snapshot => snapshot.conversation);
+  const labels = getProjectMessages(useLocaleCode()).composerCustomization;
   return <div className="project-composer">
     <DraftTemplateAction key={conversation.id} />
     <Composer {...props}
@@ -505,7 +507,7 @@ setup 同步返回清理函数，不写成 async。每个 Agent 内同名服务�
 
 **输入区字数限制读取**
 
-在业务按钮示例的 `plugins/composer/index.tsx` 的已有 Plugins 根入口导入中补上 `usePluginService`、`usePluginServiceSnapshot`，并新增：
+在业务按钮示例的 `plugins/composer/index.tsx` 的已有 Plugins 根入口导入中补上 `usePluginService`、`usePluginService`，并新增：
 
 ```ts
 import { COMPOSER_POLICY, DEFAULT_POLICY, type ComposerPolicyService } from '../../services/composer-policy';
@@ -515,7 +517,7 @@ import { COMPOSER_POLICY, DEFAULT_POLICY, type ComposerPolicyService } from '../
 
 ```ts
 const service = usePluginService<ComposerPolicyService>(COMPOSER_POLICY);
-const policy = usePluginServiceSnapshot(service, DEFAULT_POLICY);
+const policy = usePluginService(service, snapshot => snapshot, DEFAULT_POLICY);
 ```
 
 ```tsx
@@ -552,7 +554,7 @@ export default conversationSubmitActionPlugin;
 
 ```tsx
 import { ConversationSubmitActionPlugin as SubmitAction } from '@za38.03/agent-ui-plugins/submit-action';
-import { useAgentUILocaleCode, usePluginService, usePluginServiceSnapshot } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode, usePluginService } from '@za38.03/agent-ui-plugins';
 import type { ComponentProps } from 'react';
 import { COMPOSER_POLICY, DEFAULT_POLICY, type ComposerPolicyService } from '../../services/composer-policy';
 import { getProjectMessages } from '../../application/i18n/messages';
@@ -560,8 +562,8 @@ import '../composer/composer.css';
 
 export function ConversationSubmitActionPlugin(props: ComponentProps<typeof SubmitAction>) {
   const service = usePluginService<ComposerPolicyService>(COMPOSER_POLICY);
-  const policy = usePluginServiceSnapshot(service, DEFAULT_POLICY);
-  const labels = getProjectMessages(useAgentUILocaleCode()).composerCustomization;
+  const policy = usePluginService(service, snapshot => snapshot, DEFAULT_POLICY);
+  const labels = getProjectMessages(useLocaleCode()).composerCustomization;
   return <div className="project-composer-tools">
     <select aria-label={labels.limit.replace('{count}', String(policy.maxLength))}
       value={policy.maxLength} disabled={!service}
@@ -648,7 +650,7 @@ plugins/composer/
 
 **后续升级**
 
-npm 升级保留项目应用层和本地实现，不自动把 source 升成新版。实现同步以 BASE／LOCAL／TARGET 合并，仅包含受管理的实现子树，验证后明确采用才推进 BASE；项目应用层、Shell 和业务服务不进入这个合并范围。公共 API 发生变化时，单独检查并调整项目中的组件调用，见[更新与源码维护](/development/source-takeover.md)。
+升级依赖后，本地实现和定制仍会保留。需要新版官方改动时，另外执行源码同步，处理冲突并检查效果后确认完成；组件调用方式若有变化，再单独调整，见[更新与源码维护](/development/source-takeover.md)。
 
 </details>
 

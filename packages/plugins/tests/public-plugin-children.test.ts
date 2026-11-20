@@ -15,7 +15,6 @@ import type { ConversationResponseFooterPlugin as Plugin10 } from "../dist/respo
 import type { ConversationSuggestionsPlugin as Plugin11 } from "../dist/conversation-suggestions/index.js";
 import type { ConversationThinkingIndicatorPlugin as Plugin12 } from "../dist/thinking-indicator/index.js";
 import type { ConversationToolTimelinePlugin as Plugin13 } from "../dist/tool-timeline/index.js";
-import type { ConversationToolFallbackPlugin as Plugin14 } from "../dist/tool-fallback/index.js";
 import type { TransientAssistantMessagesPlugin as Plugin15 } from "../dist/transient-assistant-messages/index.js";
 import type { AgentStatusMessagePlugin as Plugin16 } from "../dist/agent-status-message/index.js";
 import type { AgentPlanMessagePlugin as Plugin17 } from "../dist/agent-plan-message/index.js";
@@ -67,7 +66,6 @@ type PublicProps = {
   "conversation-suggestions": ComponentProps<typeof Plugin11>;
   "thinking-indicator": ComponentProps<typeof Plugin12>;
   "tool-timeline": ComponentProps<typeof Plugin13>;
-  "tool-fallback": ComponentProps<typeof Plugin14>;
   "transient-assistant-messages": ComponentProps<typeof Plugin15>;
   "agent-status-message": ComponentProps<typeof Plugin16>;
   "agent-plan-message": ComponentProps<typeof Plugin17>;
@@ -138,13 +136,13 @@ type NestedProps = {
   "auth-gate.submitButtonProps": NonNullable<PublicProps["auth-gate"]["submitButtonProps"]>;
   "locale-switch.selectProps": NonNullable<PublicProps["locale-switch"]["selectProps"]>;
   "theme-switch.selectProps": NonNullable<PublicProps["theme-switch"]["selectProps"]>;
-  "tool-fallback.buttonProps": NonNullable<PublicProps["tool-fallback"]["buttonProps"]>;
-  "tool-fallback.contentProps": NonNullable<PublicProps["tool-fallback"]["contentProps"]>;
+  "tool-result.buttonProps": NonNullable<PublicProps["tool-result"]["buttonProps"]>;
+  "tool-result.contentProps": NonNullable<PublicProps["tool-result"]["contentProps"]>;
 };
 type UnexpectedNestedChildren = { [K in keyof NestedProps]: "children" extends keyof NestedProps[K] ? K : never }[keyof NestedProps];
 
 it("audits every catalog Plugin and excludes generic children from application options", () => {
   expectTypeOf<UnexpectedChildren>().toEqualTypeOf<never>();
   expectTypeOf<UnexpectedNestedChildren>().toEqualTypeOf<never>();
-  expect(deliveries.map(item => item.id).sort()).toEqual(["add-attachment-action", "agent-identity", "agent-plan-message", "agent-status-message", "ask-user-question", "auth-account", "auth-gate", "chart-message", "composer", "context-retrieval-message", "conversation-command-source", "conversation-data-source", "conversation-new", "conversation-quote", "conversation-service", "conversation-suggestions", "conversation-surface", "conversation-thread-list", "copy-action", "dictation-action", "export-markdown-action", "feedback-actions", "generated-file-message", "job-progress-message", "lexical-composer-input", "lexical-edit-composer", "locale-provider", "locale-switch", "mention-trigger", "reasoning", "reload-action", "response-footer", "retrieval-chunks", "skills", "skills-selection", "slash-command-trigger", "source-citations-message", "submit-action", "task-group", "theme-provider", "theme-switch", "thinking-indicator", "tool-fallback", "tool-group", "tool-result", "tool-timeline", "transient-assistant-messages", "web-search", "workbench-panel", "workbench-panel-actions"]);
+  expect(deliveries.map(item => item.id).sort()).toEqual(["add-attachment-action", "agent-identity", "agent-plan-message", "agent-status-message", "ask-user-question", "auth-account", "auth-gate", "chart-message", "composer", "context-retrieval-message", "conversation-command-source", "conversation-data-source", "conversation-new", "conversation-quote", "conversation-service", "conversation-suggestions", "conversation-surface", "conversation-thread-list", "copy-action", "dictation-action", "export-markdown-action", "feedback-actions", "generated-file-message", "job-progress-message", "lexical-composer-input", "lexical-edit-composer", "locale-provider", "locale-switch", "mention-trigger", "reasoning", "reload-action", "response-footer", "retrieval-chunks", "skills", "skills-selection", "slash-command-trigger", "source-citations-message", "submit-action", "task-group", "theme-provider", "theme-switch", "thinking-indicator", "tool-group", "tool-result", "tool-timeline", "transient-assistant-messages", "web-search", "workbench-panel", "workbench-panel-actions"]);
 });

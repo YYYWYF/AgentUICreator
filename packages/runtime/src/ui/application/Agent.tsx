@@ -1,5 +1,5 @@
 import { ConversationRuntimeProvider } from "../../ConversationRuntimeProvider.js";
-import { AgentUIProjectProvider, useAgentUIProject, type AgentUIProjectOptions } from "../project-context.js";
+import { AgentUIProjectProvider, useProject, type AgentUIProjectOptions } from "../project-context.js";
 import { mergeAgentUILocaleOverrides, resolveAgentUILocaleMessages, type AgentUILocaleOverrides } from "../../locale.js";
 import { type AgentUITheme } from "../../presentation.js";
 import type { AppEventSchemas } from "../runtime/events/AppEventRegistry.js";
@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 import {
   combineAgentFrontendToolSources,
   AgentUIProvider as RuntimeAgentUIProvider, AgentUIConversationBinding, AgentUIConnectionState,
-  AgentUIOutlet, AgentUIHostUserProvider, useAgentUIUser, useAgentUISurfaceTarget, useOptionalAgentUI,
+  AgentUIOutlet, AgentUIHostUserProvider, useHostUser, useSurfaceTarget, useOptionalAgent,
 } from "@za38.03/agent-ui-runtime";
 
 import type { AppAgentState } from "../agent-contract/agent-state.js";
@@ -21,7 +21,7 @@ import { publishAgentUIObservation, type AgentObservability } from "./observabil
 import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding.js";
 import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary.js";
 import { AgentSurface, AgentEnvironment } from "./AgentSurface.js";
-import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
+import { useAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
 import { type AgentUser } from "./host-user.js";
 
 
@@ -31,7 +31,6 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
   locales?: Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>> | undefined;
   /** Initial language for uncontrolled internal switching. */
   defaultLocale?: AgentUILocaleCode | undefined;
-  enableMessageQueue?: boolean | undefined;
   assistantPanelWidth?: number | undefined;
   /** Project-owned history implementation; its enabled Plugin remains the service owner. */
   services?: Readonly<Record<string,unknown>> | undefined;
@@ -65,8 +64,8 @@ export interface AgentProps extends Pick<ConversationRuntimeProviderProps,
 }
 
 function AgentSession({ frontendTools, getRunContext, transientMessages, theme, onThemeChange, locale, onLocaleChange, endpoint, request, fetch, ctx, beforeRequest, observability, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
-  const application = useAgentUIAgentIdentity();
-  const { presentation, defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useAgentUIProject();
+  const application = useAgentIdentity();
+  const { presentation, defaultLocale, locales, appFrontendTools, appUIModelSource, revisionDescriptorSource, pluginCapabilityCatalog, capabilityCatalogRevision, baseConversationToolkit, compositionStore: agentCompositionStore, getConversationStarterSuggestions, development } = useProject();
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? defaultLocale);
   const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
     setPresentationLocale(nextLocale);
@@ -134,7 +133,7 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
   composition: NonNullable<ReturnType<AgentUIProjectOptions["compositionStore"]["getSnapshot"]>>;
   toolkit: import("../../plugin-api/index.js").ConversationToolkit;
 }) {
-  const { conversationMessageQueueEnabled, conversationServices, Integrations: GeneratedConversationIntegrations, development } = useAgentUIProject();
+  const { conversationServices, Integrations: GeneratedConversationIntegrations, development } = useProject();
   const preview = usePreviewAgentEnvironment(development);
   const epoch = useApplicationSessionEpoch();
   const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
@@ -147,7 +146,6 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
       ctx={ctx}
       beforeRequest={beforeRequest}
       requestEndpointOverride={preview?.runtimeEndpoint}
-      enableMessageQueue={conversationMessageQueueEnabled}
       {...conversationServices}
       onError={onError}
       frontendTools={frontendTools}
@@ -168,8 +166,8 @@ function AuthenticatedConversation({ frontendTools, getRunContext, transientMess
 
 /** Project composition belongs to Agent; the optional shared Host provider comes from npm. */
 function AgentContent({ user, ...props }: AgentProps) {
-  const inheritedUser = useAgentUIUser();
-  const project = useAgentUIProject();
+  const inheritedUser = useHostUser();
+  const project = useProject();
   const { development } = project;
   const preview = usePreviewAgentEnvironment(development);
   const previewProject = project;
@@ -185,13 +183,13 @@ function AgentContent({ user, ...props }: AgentProps) {
 
 /** Preserve conversation context while mounting the visible surface in the Host's chosen region. */
 function AgentSurfacePortal({ children }: { children: ReactNode }) {
-  const target = useAgentUISurfaceTarget();
+  const target = useSurfaceTarget();
   return target ? createPortal(children, target) : null;
 }
 
 /** Standalone by default; business code can opt into the package-owned shared Host provider. */
 function Agent(props: AgentProps = {}) {
-  const host = useOptionalAgentUI();
+  const host = useOptionalAgent();
   if (host) return <AgentContent {...props} />;
   return <RuntimeAgentUIProvider><AgentContent {...props} /></RuntimeAgentUIProvider>;
 }
@@ -219,11 +217,10 @@ export function AgentApplication({ project, ...props }: AgentProps & { project: 
       appEventSchemas: props.appEventSchemas ?? project.appEventSchemas,
       defaultLocale: props.locale ?? props.defaultLocale ?? project.defaultLocale,
       shell: props.assistantPanelWidth === undefined ? project.shell : { assistantPanelWidth: props.assistantPanelWidth },
-      conversationMessageQueueEnabled: props.enableMessageQueue ?? project.conversationMessageQueueEnabled,
       baseConversationToolkit: props.toolkit ?? project.baseConversationToolkit,
     };
   }, [project, locales, serviceOverrides, Integrations, props.appEventSchemas, props.assistantPanelWidth,
-    props.enableMessageQueue, props.locale, props.defaultLocale, props.services, props.toolkit,
+    props.locale, props.defaultLocale, props.services, props.toolkit,
     props.attachments, props.dictation, props.feedback,
     props.attachmentAdapter, props.dictationAdapter, props.feedbackAdapter]);
   return <AgentUIProjectProvider value={resolved}><Agent {...props} /></AgentUIProjectProvider>;

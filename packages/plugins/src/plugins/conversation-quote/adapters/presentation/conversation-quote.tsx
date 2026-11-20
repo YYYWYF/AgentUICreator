@@ -2,39 +2,35 @@ import { useContext, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   ConversationComposerDataContext,
   useComposer,
-  type ComposerData,
 } from '@za38.03/agent-ui-plugins/composer-support';
 import { PluginInstanceContext } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
   ConversationComposerQuotePreview,
   ConversationQuoteSelectionToolbar,
   useConversationQuoteLifecycle,
-  useAgentUILocale,
+  useLocale,
 } from '../../../../public.js';
 export interface ConversationQuoteData {
   readonly text: string;
   readonly messageId: string;
 }
-export type ConversationQuoteRequestAdapter = (quote: ConversationQuoteData) => ComposerData;
 export interface ConversationQuotePluginProps {
   renderSlot?: (name: string, fallback?: ReactNode) => ReactNode;
   renderPreview?: () => ReactNode;
   renderToolbar?: () => ReactNode;
-  requestAdapter?: ConversationQuoteRequestAdapter | undefined;
 }
 export function CanonicalConversationQuote({
   renderPreview,
   renderToolbar,
-  requestAdapter,
 }: ConversationQuotePluginProps) {
   useConversationQuoteLifecycle();
   const context = useContext(ConversationComposerDataContext);
   const instance = useContext(PluginInstanceContext);
   const composer = useComposer(instance?.instance.pluginId === 'conversation-quote' ? undefined : 'quote');
   const [failed, setFailed] = useState(false);
-  const labels = useAgentUILocale('conversationQuote');
+  const labels = useLocale('conversationQuote');
   useLayoutEffect(() => {
-    if (!context && !requestAdapter) return;
+    if (!context) return;
     setFailed(false);
     let previous: ConversationQuoteData | undefined;
     let release: (() => void) | undefined;
@@ -54,23 +50,7 @@ export function CanonicalConversationQuote({
       } else {
         try {
           const raw = { text: quote.text, messageId: quote.messageId };
-          const data = requestAdapter ? requestAdapter({ ...raw }) : raw;
-          release = composer.setData(data, {
-            quote: raw,
-            selection: raw,
-            includeInRequest: requestAdapter !== undefined,
-            ...(!requestAdapter
-              ? {
-                  defaultTextPrefix:
-                    raw.text.trim() && raw.messageId.trim()
-                      ? raw.text
-                          .split('\n')
-                          .map((line) => `> ${line}`)
-                          .join('\n') + '\n\n'
-                      : '',
-                }
-              : {}),
-          });
+          release = composer.setData(raw, { quote: raw });
           previous = quote;
           setFailed(false);
         } catch {
@@ -86,7 +66,7 @@ export function CanonicalConversationQuote({
       stop();
       release?.();
     };
-  }, [composer, context?.runtime, requestAdapter]);
+  }, [composer, context?.runtime]);
   return (
     <>
       {

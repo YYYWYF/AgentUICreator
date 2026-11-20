@@ -1,10 +1,10 @@
 {
   "components/assistant-ui/elements/quote.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {\n",
-        "after": "}: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -14,7 +14,7 @@
       },
       {
         "before": "}: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {\n",
-        "after": "}: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -25,7 +25,7 @@
     ]
   },
   "components/assistant-ui/elements/image.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  alt = \"Image content\",\n",
@@ -34,12 +34,12 @@
       },
       {
         "before": "}: ImagePreviewProps) {\n",
-        "after": "}: ImagePreviewProps) {\n  const localeMessages = useAgentUILocale();\n  alt ??= localeMessages.images.content;\n",
+        "after": "}: ImagePreviewProps) {\n  const localeMessages = useLocale();\n  alt ??= localeMessages.images.content;\n",
         "expectedCount": 1
       },
       {
         "before": "}: ImageSourceProps) {\n",
-        "after": "}: ImageSourceProps) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: ImageSourceProps) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -49,7 +49,7 @@
       },
       {
         "before": "function ImageZoom({ src, alt = \"Image preview\", children }: ImageZoomProps) {\n",
-        "after": "function ImageZoom({ src, alt, children }: ImageZoomProps) {\n  const localeMessages = useAgentUILocale();\n  alt ??= localeMessages.images.preview;\n",
+        "after": "function ImageZoom({ src, alt, children }: ImageZoomProps) {\n  const localeMessages = useLocale();\n  alt ??= localeMessages.images.preview;\n",
         "expectedCount": 1
       },
       {
@@ -69,7 +69,7 @@
       },
       {
         "before": "function ImageGenerating({ className }: { className?: string }) {\n",
-        "after": "function ImageGenerating({ className }: { className?: string }) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "function ImageGenerating({ className }: { className?: string }) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -79,7 +79,7 @@
       },
       {
         "before": "  reason?: string;\n}) {\n",
-        "after": "  reason?: string;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "  reason?: string;\n}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -89,7 +89,7 @@
       },
       {
         "before": "  onRegenerate: () => void | Promise<void>;\n}) {\n",
-        "after": "  onRegenerate: () => void | Promise<void>;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "  onRegenerate: () => void | Promise<void>;\n}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -99,7 +99,7 @@
       },
       {
         "before": "function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {\n",
-        "after": "function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -114,7 +114,7 @@
       },
       {
         "before": "const ImageImpl: ImageMessagePartComponent = (props) => {\n",
-        "after": "const ImageImpl: ImageMessagePartComponent = (props) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const ImageImpl: ImageMessagePartComponent = (props) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -130,11 +130,11 @@
     ]
   },
   "components/assistant-ui/elements/agent-status.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n",
-        "after": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -174,7 +174,7 @@
       },
       {
         "before": "export const AgentStatus: FC<{ className?: string }> = ({ className }) => {",
-        "after": "export const AgentStatus: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useAgentUILocale();",
+        "after": "export const AgentStatus: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useLocale();",
         "expectedCount": 1
       },
       {
@@ -184,7 +184,7 @@
       },
       {
         "before": "const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {",
-        "after": "const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {\n  const messages = useAgentUILocale(\"tasks\");",
+        "after": "const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {\n  const messages = useLocale(\"tasks\");",
         "expectedCount": 1
       },
       {
@@ -195,11 +195,11 @@
     ]
   },
   "components/assistant-ui/elements/attachment.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {\n",
-        "after": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -209,7 +209,7 @@
       },
       {
         "before": "const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({\n  children,\n  src,\n  name,\n}) => {\n",
-        "after": "const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({\n  children,\n  src,\n  name,\n}) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({\n  children,\n  src,\n  name,\n}) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -219,7 +219,7 @@
       },
       {
         "before": "const AttachmentUI: FC = () => {\n",
-        "after": "const AttachmentUI: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const AttachmentUI: FC = () => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -229,7 +229,7 @@
       },
       {
         "before": "const AttachmentRemove: FC<{ name: string }> = ({ name }) => {\n",
-        "after": "const AttachmentRemove: FC<{ name: string }> = ({ name }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const AttachmentRemove: FC<{ name: string }> = ({ name }) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -239,7 +239,7 @@
       },
       {
         "before": "export const ComposerAddAttachment: FC = () => {\n",
-        "after": "export const ComposerAddAttachment: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "export const ComposerAddAttachment: FC = () => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -265,11 +265,11 @@
     ]
   },
   "components/assistant-ui/elements/web-search.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}) {\n",
-        "after": "}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -285,11 +285,11 @@
     ]
   },
   "components/assistant-ui/elements/task-card.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}> = ({ group, className }) => {\n",
-        "after": "}> = ({ group, className }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}> = ({ group, className }) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -320,11 +320,11 @@
     ]
   },
   "components/assistant-ui/elements/markdown-text.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {\n",
-        "after": "const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -335,7 +335,7 @@
     ]
   },
   "components/assistant-ui/elements/composer-trigger-popover.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  backLabel = \"Back\",\n  emptyCategoriesLabel = \"No items available\",\n",
@@ -344,7 +344,7 @@
       },
       {
         "before": "  ...props\n}) => {\n",
-        "after": "  ...props\n}) => {\n  const localeMessages = useAgentUILocale();\n  backLabel ??= localeMessages.common.back;\n  emptyCategoriesLabel ??= localeMessages.triggers.noItems;\n  emptyItemsLabel ??= localeMessages.triggers.noResults;\n  loadingLabel ??= localeMessages.triggers.loading;\n",
+        "after": "  ...props\n}) => {\n  const localeMessages = useLocale();\n  backLabel ??= localeMessages.common.back;\n  emptyCategoriesLabel ??= localeMessages.triggers.noItems;\n  emptyItemsLabel ??= localeMessages.triggers.noResults;\n  loadingLabel ??= localeMessages.triggers.loading;\n",
         "expectedCount": 1
       },
       {
@@ -354,7 +354,7 @@
       },
       {
         "before": "  isLoading,\n}) => {\n",
-        "after": "  isLoading,\n}) => {\n  const messages = useAgentUILocale(\"triggers\");\n",
+        "after": "  isLoading,\n}) => {\n  const messages = useLocale(\"triggers\");\n",
         "expectedCount": 1
       },
       {
@@ -365,11 +365,11 @@
     ]
   },
   "components/ui/sidebar.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  collapsible?: \"offcanvas\" | \"icon\" | \"none\";\n}) {\n",
-        "after": "  collapsible?: \"offcanvas\" | \"icon\" | \"none\";\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "  collapsible?: \"offcanvas\" | \"icon\" | \"none\";\n}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -379,7 +379,7 @@
       },
       {
         "before": "}: React.ComponentProps<typeof Button>) {\n",
-        "after": "}: React.ComponentProps<typeof Button>) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: React.ComponentProps<typeof Button>) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -389,7 +389,7 @@
       },
       {
         "before": "function SidebarRail({ className, ...props }: React.ComponentProps<\"button\">) {\n",
-        "after": "function SidebarRail({ className, ...props }: React.ComponentProps<\"button\">) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "function SidebarRail({ className, ...props }: React.ComponentProps<\"button\">) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -405,11 +405,11 @@
     ]
   },
   "components/ui/dialog.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}: DialogPrimitive.Popup.Props & {\n  showCloseButton?: boolean;\n}) {\n",
-        "after": "}: DialogPrimitive.Popup.Props & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: DialogPrimitive.Popup.Props & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -419,7 +419,7 @@
       },
       {
         "before": "}: React.ComponentProps<\"div\"> & {\n  showCloseButton?: boolean;\n}) {\n",
-        "after": "}: React.ComponentProps<\"div\"> & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}: React.ComponentProps<\"div\"> & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -430,11 +430,11 @@
     ]
   },
   "components/ui/sheet.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}) {\n",
-        "after": "}) {\n  const localeMessages = useAgentUILocale();\n",
+        "after": "}) {\n  const localeMessages = useLocale();\n",
         "expectedCount": 1
       },
       {
@@ -445,11 +445,11 @@
     ]
   },
   "components/assistant-ui/elements/reasoning.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  const durationText = duration ? ` (${duration}s)` : \"\";",
-        "after": "  const messages = useAgentUILocale(\"conversation\");\n  const durationText = duration ? formatPresentationMessage(messages.reasoningDuration, { seconds: duration }) : \"\";",
+        "after": "  const messages = useLocale(\"conversation\");\n  const durationText = duration ? formatPresentationMessage(messages.reasoningDuration, { seconds: duration }) : \"\";",
         "expectedCount": 1
       },
       {
@@ -460,21 +460,21 @@
     ]
   },
   "components/assistant-ui/elements/tool-group.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  const label = `${count} tool ${count === 1 ? \"call\" : \"calls\"}`;",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const label = formatPresentationMessage(count === 1 ? messages.call : messages.calls, { count });",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  const label = formatPresentationMessage(count === 1 ? messages.call : messages.calls, { count });",
         "expectedCount": 1
       }
     ]
   },
   "components/assistant-ui/elements/tool-fallback.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  const statusType = status?.type ?? \"complete\";",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const statusType = status?.type ?? \"complete\";",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  const statusType = status?.type ?? \"complete\";",
         "expectedCount": 1
       },
       {
@@ -499,7 +499,7 @@
       },
       {
         "before": "  if (result === undefined) return null;",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  if (result === undefined) return null;",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  if (result === undefined) return null;",
         "expectedCount": 1
       },
       {
@@ -509,7 +509,7 @@
       },
       {
         "before": "  if (status?.type !== \"incomplete\") return null;",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  if (status?.type !== \"incomplete\") return null;",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  if (status?.type !== \"incomplete\") return null;",
         "expectedCount": 1
       },
       {
@@ -564,12 +564,12 @@
       },
       {
         "before": "  const receipt = approvalReceipt(approval);",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const receipt = approvalReceipt(approval, messages);",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  const receipt = approvalReceipt(approval, messages);",
         "expectedCount": 1
       },
       {
         "before": "  const [submitted, setSubmitted] = useState(false);",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const [submitted, setSubmitted] = useState(false);",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  const [submitted, setSubmitted] = useState(false);",
         "expectedCount": 1
       },
       {
@@ -634,7 +634,7 @@
       },
       {
         "before": "  const [selected, setSelected] = useState<",
-        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const [selected, setSelected] = useState<",
+        "after": "  const messages = useLocale(\"toolPresentation\");\n  const [selected, setSelected] = useState<",
         "expectedCount": 1
       },
       {
@@ -660,11 +660,11 @@
     ]
   },
   "components/assistant-ui/elements/thread-list.aui.tsx": {
-    "importText": "import { useAgentUILocale } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "export const useThreadListGroups = (searchQuery = \"\") => {",
-        "after": "export const useThreadListGroups = (searchQuery = \"\") => {\n  const messages = useAgentUILocale(\"threadList\");",
+        "after": "export const useThreadListGroups = (searchQuery = \"\") => {\n  const messages = useLocale(\"threadList\");",
         "expectedCount": 1
       },
       {
@@ -685,11 +685,11 @@
     ]
   },
   "components/assistant-ui/elements/task-card.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  const hasTranscript = Children.toArray(children).length > 0;",
-        "after": "  const messages = useAgentUILocale(\"tasks\");\n  const hasTranscript = Children.toArray(children).length > 0;",
+        "after": "  const messages = useLocale(\"tasks\");\n  const hasTranscript = Children.toArray(children).length > 0;",
         "expectedCount": 1
       },
       {
@@ -700,16 +700,16 @@
     ]
   },
   "components/assistant-ui/elements/media-player.tsx": {
-    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}: AudioPlayerProps) {",
-        "after": "}: AudioPlayerProps) {\n  const messages = useAgentUILocale(\"media\");",
+        "after": "}: AudioPlayerProps) {\n  const messages = useLocale(\"media\");",
         "expectedCount": 1
       },
       {
         "before": "}: VideoPlayerProps) {",
-        "after": "}: VideoPlayerProps) {\n  const messages = useAgentUILocale(\"media\");",
+        "after": "}: VideoPlayerProps) {\n  const messages = useLocale(\"media\");",
         "expectedCount": 1
       },
       {
@@ -750,11 +750,11 @@
     ]
   },
   "components/assistant-ui/elements/file.tsx": {
-    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}: React.ComponentProps<\"span\">) {\n  return (\n    <span\n      data-slot=\"file-name\"",
-        "after": "}: React.ComponentProps<\"span\">) {\n  const messages = useAgentUILocale(\"files\");\n  return (\n    <span\n      data-slot=\"file-name\"",
+        "after": "}: React.ComponentProps<\"span\">) {\n  const messages = useLocale(\"files\");\n  return (\n    <span\n      data-slot=\"file-name\"",
         "expectedCount": 1
       },
       {
@@ -764,7 +764,7 @@
       },
       {
         "before": "}: FileDownloadProps) {",
-        "after": "}: FileDownloadProps) {\n  const messages = useAgentUILocale(\"files\");",
+        "after": "}: FileDownloadProps) {\n  const messages = useLocale(\"files\");",
         "expectedCount": 1
       },
       {
@@ -780,11 +780,11 @@
     ]
   },
   "components/assistant-ui/elements/tool-call.tsx": {
-    "importText": "import { useAgentUILocale } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}: ToolCallProps) {\n",
-        "after": "}: ToolCallProps) {\n  const messages = useAgentUILocale(\"toolPresentation\");\n",
+        "after": "}: ToolCallProps) {\n  const messages = useLocale(\"toolPresentation\");\n",
         "expectedCount": 1
       },
       {
@@ -800,7 +800,7 @@
     ]
   },
   "components/assistant-ui/elements/option-list.tsx": {
-    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useLocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  confirmLabel = \"Confirm\",",
@@ -809,7 +809,7 @@
       },
       {
         "before": "}: OptionListProps) {",
-        "after": "}: OptionListProps) {\n  const messages = useAgentUILocale(\"questionOptions\");",
+        "after": "}: OptionListProps) {\n  const messages = useLocale(\"questionOptions\");",
         "expectedCount": 1
       },
       {

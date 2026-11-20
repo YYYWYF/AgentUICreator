@@ -29,7 +29,7 @@
 
 ## 接入运行与消息数据 \{#显示条件与数据来源}
 
-思考提示读取当前助理消息的运行状态和内容，没有单独的后端提示事件。下面以普通文字回答为例；实际 HTTP 响应使用[共用 SSE 格式](/plugins/ag-ui-data.md#共用的-sse-格式)，`threadId` 和 `runId` 使用当前请求的值：
+思考提示读取当前助理消息的运行状态和内容。下面以普通文字回答为例；实际 HTTP 响应使用[共用 SSE 格式](/plugins/ag-ui-data.md#共用的-sse-格式)，`threadId` 和 `runId` 使用当前请求的值：
 
 ```jsonl
 {"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}
@@ -41,7 +41,7 @@
 
 服务端开始助理消息、尚未发送首段正文时，会话中已有运行中的消息，插件可以显示等待提示；第一条非空 `TEXT_MESSAGE_CONTENT` 到达后，提示让位给正文。消息结束后也不再显示。要观察等待过程，服务端需及时发送并刷新前面的事件，随后再持续发送正文，而不是等结果全部生成后一次返回。
 
-`REASONING_*`、工具调用和待处理操作还会影响提示是否让位，分别沿用[思考数据](/plugins/reasoning.md#显示条件与数据来源)、[工具事件](/plugins/ag-ui-data.md#通用工具事件)和[审批／中断协议](/plugins/tool-fallback.md#显示条件与数据来源)。这些条件由运行时处理；服务端不需要发送 `reasoningVisible`、`timelineVisible` 等前端展示参数，也不需要增加自定义的“显示思考提示”事件。
+`REASONING_*`、工具调用和待处理操作还会影响提示是否让位，分别沿用[思考数据](/plugins/reasoning.md#显示条件与数据来源)、[工具事件](/plugins/ag-ui-data.md#通用工具事件)和[审批／中断协议](/plugins/tool-result.md#显示条件与数据来源)。这些条件由运行时处理。
 
 ## 使用更紧凑的提示 \{#紧凑的思考提示}
 

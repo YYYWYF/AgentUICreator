@@ -5,6 +5,7 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
 import { ConversationThreadListPlugin } from "../dist/conversation-thread-list/index.js";
+import { ConversationThreadListPlugin as SourceThreadList } from "../dist/sources/takeover/conversation-thread-list/index";
 import { createConversationDataSource } from "../resources/registry/items/foundation/core-application/files/services/conversations/data-source";
 import { createConversationService } from "../resources/registry/items/foundation/core-application/files/services/conversations/service";
 import { createConversationServiceThreadBinding } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
@@ -18,7 +19,7 @@ async function until(predicate: () => boolean) {
   expect(predicate()).toBe(true);
 }
 
-async function fixture(locale: "en-US" | "zh-CN" = "en-US") {
+async function fixture(locale: "en-US" | "zh-CN" = "en-US", List = ConversationThreadListPlugin) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
   const records = [
@@ -29,10 +30,15 @@ async function fixture(locale: "en-US" | "zh-CN" = "en-US") {
   let fail = false;
   const fetch = vi.fn<typeof globalThis.fetch>(async (input, init) => {
     const url = String(input);
-    if (init?.method === "GET" && url === "/history/conversations") return Response.json(records);
+    if (init?.method === "GET" && url === "/history/conversations") return Response.json({
+      returnCode: "SUC0000", body: {conversations: records.map(({id, ...item}) => ({thread_id: id, ...item}))},
+    });
     if (init?.method === "GET") {
       const id = url.split("/").at(-1)!;
-      return Response.json({ id, title: records.find(item => item.id === id)?.title ?? id, history: { format: "langchain", messages: [] } });
+      return Response.json({returnCode: "SUC0000", body: {
+        thread_id: id, title: records.find(item => item.id === id)?.title ?? id,
+        max_message_checkpoint: {channel_values: {messages: []}},
+      }});
     }
     if (fail) return new Response(null, { status: 403 });
     const id = url.split("/")[3];
@@ -51,7 +57,7 @@ async function fixture(locale: "en-US" | "zh-CN" = "en-US") {
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const errors: Error[] = [];
   await act(async () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} onError={error => errors.push(error)}>
-    <AgentUIRoot theme="light"><AgentUILocaleProvider locale={locale}><Capture /><ConversationThreadListPlugin /></AgentUILocaleProvider></AgentUIRoot>
+    <AgentUIRoot theme="light"><AgentUILocaleProvider locale={locale}><Capture /><List /></AgentUILocaleProvider></AgentUIRoot>
   </ConversationRuntimeProvider>));
   await until(() => !!runtime && !runtime.thread.getState().isLoading && host.textContent!.includes("Other"));
   return { host, service, fetch, errors, records, get runtime() { return runtime; }, setFail(value: boolean) { fail = value; } };
@@ -91,4 +97,29 @@ it("rolls back assistant-ui optimistic state when the configured backend rejects
   expect(f.runtime.threads.getItemById("other").getState().status).toBe("regular");
   await act(async () => { await expect(f.runtime.threads.getItemById("saved").unarchive()).rejects.toThrow("403"); });
   expect(f.runtime.threads.getItemById("saved").getState().status).toBe("archived");
+});
+
+it("keeps extracted list menus and inline rename on the existing runtime and restores row focus", async () => {
+  const f = await fixture("en-US", SourceThreadList);
+  const row = [...f.host.querySelectorAll<HTMLElement>('[data-slot="aui_thread-list-item"]')]
+    .find(item => item.textContent?.includes("Other"))!;
+  const more = row.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-action-more"]')!;
+  await act(async () => {
+    more.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    more.click();
+  });
+  await until(() => !!document.querySelector('[data-slot="agent-ui-thread-action-rename"]'));
+  await act(async () => document.querySelector<HTMLElement>('[data-slot="agent-ui-thread-action-rename"]')!.click());
+  await until(() => !!row.querySelector('[data-slot="agent-ui-thread-rename-input"]'));
+  const input = row.querySelector<HTMLInputElement>('[data-slot="agent-ui-thread-rename-input"]')!;
+  const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+  await act(async () => {
+    setValue.call(input, "Updated in source");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  await act(async () => { input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); });
+  await until(() => row.textContent!.includes("Updated in source"));
+  expect(f.records.find(item => item.id === "other")?.title).toBe("Updated in source");
+  expect(row.querySelector('[data-slot="agent-ui-thread-rename-input"]')).toBeNull();
+  expect(document.activeElement).toBe(row.querySelector('[data-slot="aui_thread-list-item-trigger"]'));
 });

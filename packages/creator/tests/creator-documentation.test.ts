@@ -58,7 +58,7 @@ it("returns topic counts first and searchable metadata/section links without art
   expect(index).toMatchObject({ status: "available", referenceOnly: true, totalDocuments: 13 });
   expect(JSON.stringify(index)).not.toContain("INTRO_SENTINEL");
   // This identifier appears only in a code example, not the title or summary.
-  const found = await readCreatorDocumentation({ query: "usePluginServiceSnapshot" }, root);
+  const found = await readCreatorDocumentation({ query: "usePluginService" }, root);
   if (!("entries" in found)) throw new Error(JSON.stringify(found));
   expect(found.entries?.[0]?.documentId).toBe("public:development/plugin-api");
   expect(found.entries?.[0]?.matchingSections[0]).toMatchObject({ sectionId: "s3" });
@@ -140,7 +140,7 @@ it("exposes the real tool in read-only requests without granting mutation author
     readOnly: true, userMessage: "查询插件接口", threadId: "docs", groups: new Set(), authorizedPlugins: new Set(), diagnostics: new Map(), verificationMode: "static_only" };
   const tools = await createTools(context), tool = tools.find(tool => tool.name === "read_creator_documentation");
   expect(visibleTool(tool.name, context)).toBe(true);
-  const output = JSON.parse(await tool.invoke({ query: "usePluginServiceSnapshot" }));
+  const output = JSON.parse(await tool.invoke({ query: "usePluginService" }));
   expect(output).toMatchObject({ ok: true, result: { status: "available", referenceOnly: true } });
   expect(context.activity.before.size).toBe(0); expect(context.activity.observations.get("development/plugin-api.md")).toBeUndefined(); expect(context.readRanges).toBeUndefined();
   expect(context.authorizedPlugins.size).toBe(0);
@@ -165,7 +165,7 @@ it("reads an ancestor introduction and child links rather than paging through th
   expect(result).toMatchObject({ nextOffset: null, childSections: [{ sectionId: "s3" }, { sectionId: "s1005" }] });
   if (!("content" in result)) throw new Error("missing section");
   expect(result.content).toContain("INTRO_SENTINEL");
-  expect(result.content).not.toContain("usePluginServiceSnapshot");
+  expect(result.content).not.toContain("usePluginService");
 });
 it("gives an unknown custom Plugin the public API table of contents instead of unrelated document matches", async () => {
   const { root } = await fixture();
@@ -213,7 +213,7 @@ it("searches dotted API fragments and anchors editing navigation to the selected
   expect(result.entries[0].nextRead.input).toMatchObject({ documentId: document.id, sectionId: 's2' });
   expect(await readCreatorDocumentation(result.entries[0].nextRead.input, root)).toHaveProperty('content', expect.stringContaining('inputProps'));
   const { editingDocumentation } = await import('../src/agent/documentation.js');
-  const editing = await editingDocumentation('composer', 'usePluginServiceSnapshot', root);
+  const editing = await editingDocumentation('composer', 'usePluginService', root);
   expect(editing).toHaveProperty('entries.0.documentId', document.id);
   expect(editing).toHaveProperty('entries.0.nextRead.input.sectionId', 's2');
   expect(editing.entries?.some(entry => entry.documentId === 'public:development/plugin-api')).toBe(true);

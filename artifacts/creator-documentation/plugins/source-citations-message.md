@@ -25,7 +25,7 @@
 
 ## 接入来源结果 \{#显示条件与数据来源}
 
-当前默认注册工具名为 `search_sources`，从工具结果的 `sources` 数组显示来源。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+当前默认注册工具名为 `search_sources`，从工具结果的 `sources` 数组显示来源。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"search_sources"}
@@ -43,7 +43,7 @@
 
 文档来源描述引用资料，不自动提供下载地址。
 
-仅工具已完成、非错误且整个结果有效时展示来源，否则回退工具详情。这里没有 `SOURCE_*` 事件；`sources` 是工具业务结构，也不是附件的 `document.source`。
+仅工具已完成、非错误且整个结果有效时展示来源，否则回退工具详情。`sources` 是工具业务结构，与附件的 `document.source` 含义不同。
 
 
 `renderSource(source, index, tool)` 读取一条来源，`renderSources(sources, tool)` 读取整组 URL／文档来源，同时保留原工具调用。可组合项目的文档预览、收藏或引用按钮；独立插件需要同步当前来源时，使用[共享 Service](/development/plugin-interaction.md#插件之间共享选择或结果)。
@@ -92,12 +92,12 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 
 
-| 属性               | 类型                                                                                                                         | 省略时 / 用途                                       |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `sourceProps?`   | [`(source: ConversationSourcePart, index: number) => ConversationSourcePart`](#conversationsourcepart)                     | 转换每个来源对象；需保持 URL／文档来源的联合类型约束                   |
-| `renderSource?`  | [`(source: ConversationSourcePart, index: number, tool: ConversationToolCallProps) => ReactNode`](#conversationsourcepart) | 自定义单个来源，默认 `ConversationSource`                |
-| `renderSources?` | [`(sources: readonly ConversationSourcePart[], tool: ConversationToolCallProps) => ReactNode`](#conversationsourcepart)    | 自定义整个列表，优先于 `renderSource`                     |
-| `Fallback?`      | `ComponentType<ConversationToolCallProps>`                                                                                 | 默认 `ConversationToolFallback`；未完成、出错或来源数据无效时使用 |
+| 属性               | 类型                                                                                                                         | 省略时 / 用途                                     |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `sourceProps?`   | [`(source: ConversationSourcePart, index: number) => ConversationSourcePart`](#conversationsourcepart)                     | 转换每个来源对象；需保持 URL／文档来源的联合类型约束                 |
+| `renderSource?`  | [`(source: ConversationSourcePart, index: number, tool: ConversationToolCallProps) => ReactNode`](#conversationsourcepart) | 自定义单个来源，默认 `ConversationSource`              |
+| `renderSources?` | [`(sources: readonly ConversationSourcePart[], tool: ConversationToolCallProps) => ReactNode`](#conversationsourcepart)    | 自定义整个列表，优先于 `renderSource`                   |
+| `Fallback?`      | `ComponentType<ConversationToolCallProps>`                                                                                 | 默认 `ConversationToolResult`；未完成、出错或来源数据无效时使用 |
 
 `sourceProps` 是转换函数，不是任意 HTML 属性对象。
 
@@ -105,7 +105,7 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 `renderSource(source, index, tool)` / `renderSources(sources, tool)` 同时提供来源对象和原工具调用。业务预览根据 `source.sourceType` 选择网页或文档处理，关联当前回答中的调用使用 `tool.toolCallId`。
 
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-result.md#当前工具调用的数据与操作)。
 
 ### 按来源决定预览方式 \{#conversationsourcepart}
 

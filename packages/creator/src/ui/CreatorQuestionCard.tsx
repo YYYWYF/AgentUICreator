@@ -1,5 +1,5 @@
 import { creatorDisplayText } from "./product-presentation.js";
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useState } from "react";
 import type { CreatorQuestionActivity } from "../agent/creatorInterruptTypes.js";
 import { Button } from "./components/button.js";
@@ -10,7 +10,7 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
   onAnswer: (answers: Record<string, string[]>) => void;
   onAbandon: () => void;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const [answers, setAnswers] = useState<Record<string, string[]>>(activity.answers ?? {});
   const ready = activity.steps.every(step => {
     const selected = answers[step.id] ?? [];

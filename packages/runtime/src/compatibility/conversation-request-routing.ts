@@ -18,6 +18,20 @@ export function withConversationSendOptions<T extends RunConfig>(config: T, opti
   } };
 }
 
+/** Restore only this send's routing fields, retaining concurrent draft changes. */
+export function restoreConversationSendOptions<T extends RunConfig>(current: T, submitted: T, original: T): T {
+  if (current === submitted) return original;
+  const custom = { ...current.custom };
+  let changed = false;
+  for (const key of [endpointKey, ctxKey]) {
+    if (submitted.custom?.[key] === original.custom?.[key] || current.custom?.[key] !== submitted.custom?.[key]) continue;
+    if (original.custom && Object.hasOwn(original.custom, key)) custom[key] = original.custom[key];
+    else delete custom[key];
+    changed = true;
+  }
+  return changed ? { ...current, custom } : current;
+}
+
 /** One routing adapter per native Thread; messages/state remain upstream-owned. */
 export class ConversationRequestRouting extends Middleware {
   private readonly endpoints = new Map<string, string>();

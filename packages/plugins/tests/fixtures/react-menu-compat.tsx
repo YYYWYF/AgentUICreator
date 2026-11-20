@@ -2,14 +2,12 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 import {
-  AgentUIRoot, AgentUILocaleProvider, Button, Input, ConversationThreadListNew,
-} from "@za38.03/agent-ui-plugins";
+  AgentUIRoot, AgentUILocaleProvider, Button, Input, ConversationThreadListNew} from "@za38.03/agent-ui-plugins";
 import { ConversationThreadListPlugin } from "@za38.03/agent-ui-plugins/conversation-thread-list";
 import { ConversationThreadListPlugin as SourceThreadList } from "../../dist/sources/takeover/conversation-thread-list/index";
 import {
   ConversationRuntimeProvider, createEphemeralConversationThreadBinding,
-  type ConversationThreadBinding,
-} from "@za38.03/agent-ui-runtime";
+  type ConversationThreadBinding} from "@za38.03/agent-ui-runtime";
 import "@za38.03/agent-ui-plugins/styles.css";
 
 const query = new URLSearchParams(location.search);

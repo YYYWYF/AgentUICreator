@@ -154,7 +154,7 @@ try {
     const registered = new Set([...registry.matchAll(/import\(\s*['"]\.\/([^/'"]+)\/definition['"]\s*\)/gu)].map(match => match[1]));
     const disabled = variant === "disabled" || variant === "legacy-disabled";
     for (const id of disabledIds) assert.equal(registered.has(id), !disabled, `${variant}: ${id} definition import`);
-    const typecheck = spawnSync(process.execPath, [path.join(pluginRoot, "node_modules/typescript/bin/tsc"), "--noEmit"], {
+    const typecheck = spawnSync(process.execPath, [path.join(pluginRoot, "node_modules/typescript/lib/tsc.js"), "--noEmit"], {
       cwd: root, stdio: "inherit", shell: false,
     });
     if (typecheck.error) throw typecheck.error;

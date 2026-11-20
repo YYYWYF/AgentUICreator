@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 export type CreatorStageName =
   | "creator.grounding"
   | "creator.resolve"

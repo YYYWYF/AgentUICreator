@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
+import { useAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
 /** Host-owned preview inputs. Production always uses the product configuration. */
 export interface PreviewAgentEnvironment {
   agentId?: string | undefined;
@@ -16,7 +16,7 @@ export function getPreviewAgentEnvironment(development = false, agentId?: string
   return environment?.agentId === agentId ? environment : undefined;
 }
 export function usePreviewAgentEnvironment(development = false) {
-  const agentId = useAgentUIAgentIdentity()?.agentId;
+  const agentId = useAgentIdentity()?.agentId;
   return useSyncExternalStore(listener => {
     if (!development) return () => undefined;
     window.addEventListener(changed, listener);

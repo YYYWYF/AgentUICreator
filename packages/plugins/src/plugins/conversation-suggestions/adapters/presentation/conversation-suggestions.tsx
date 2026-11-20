@@ -1,5 +1,4 @@
 'use client';
-import type { ConversationSuggestionRequestAdapter } from '@za38.03/agent-ui-plugins';
 import type { ComposerData } from '@za38.03/agent-ui-plugins/composer-support';
 import { Fragment, type ComponentProps, type CSSProperties, type ReactNode } from 'react';
 import { ConversationParts, SuggestionActions } from '../../../../plugin-support.js';
@@ -13,7 +12,6 @@ export interface ConversationSuggestionItem {
 export interface ConversationCanonicalSuggestionsProps extends Omit<ComponentProps<'div'>, 'children'> {
   items?: readonly ConversationSuggestionItem[];
   sendOnSelect?: boolean;
-  requestAdapter?: ConversationSuggestionRequestAdapter | undefined;
   clearComposer?: boolean;
   buttonProps?: Omit<ComponentProps<typeof SuggestionActions.Trigger>, 'send' | 'clearComposer' | 'children'>;
   classNames?: Partial<Record<'title' | 'description', string>>;
@@ -23,7 +21,6 @@ export interface ConversationCanonicalSuggestionsProps extends Omit<ComponentPro
 export function ConversationCanonicalSuggestions({
   items,
   sendOnSelect = true,
-  requestAdapter,
   clearComposer,
   buttonProps,
   classNames,
@@ -53,7 +50,6 @@ export function ConversationCanonicalSuggestions({
               key={`${index}:${item.prompt}`}
               prompt={item.prompt}
               requestItem={item}
-              requestAdapter={requestAdapter}
               {...behavior}
               data-agent-ui-owned=''
               className='conversation-suggestion'
@@ -73,7 +69,6 @@ export function ConversationCanonicalSuggestions({
                 data-agent-ui-owned=''
                 className='conversation-suggestion'
                 {...behavior}
-                requestAdapter={requestAdapter}
                 {...buttonProps}
               >
                 <SuggestionActions.Title {...titleProps} />

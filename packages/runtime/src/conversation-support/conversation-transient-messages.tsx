@@ -4,9 +4,10 @@ import {
   createContext,
   useContext,
   useLayoutEffect,
-  useSyncExternalStore,
+  useMemo,
   type ReactNode,
 } from "react";
+import { useStoreValue } from "../observation/use-store-value.js";
 import { useAui } from "@assistant-ui/react";
 import {
   type ConversationTransientMessageService,
@@ -18,7 +19,6 @@ const Context = createContext<{
   conversationId: string;
 } | null>(null);
 const EMPTY: readonly TransientMessage[] = Object.freeze([]);
-const subscribeEmpty = () => () => {};
 
 /** Product composition only; the canonical runtime remains the sole owner of real messages. */
 export function ConversationTransientMessageProvider({
@@ -42,23 +42,38 @@ export function ConversationTransientMessageProvider({
       })),
     [aui, service, conversationId],
   );
+  const context = useMemo(() => ({ service, conversationId }), [service, conversationId]);
   return (
-    <Context.Provider value={{ service, conversationId }}>
+    <Context.Provider value={context}>
       {children}
     </Context.Provider>
   );
 }
 
-export function useConversationTransientMessages(): Pick<
-  ConversationTransientMessageService,
-  "addMessage"
-> {
+export interface ConversationTransientMessagesController {
+  getSnapshot(): readonly TransientMessage[];
+  subscribe(listener: () => void): () => void;
+  addMessage: ConversationTransientMessageService['addMessage'];
+}
+export function useTransientMessages(): ConversationTransientMessagesController;
+export function useTransientMessages<T>(selector: (messages: readonly TransientMessage[]) => T): T;
+export function useTransientMessages<T>(selector: ((snapshot: readonly TransientMessage[]) => T) | undefined): ConversationTransientMessagesController | T;
+export function useTransientMessages<T>(selector?: (messages: readonly TransientMessage[]) => T): ConversationTransientMessagesController | T {
   const context = useContext(Context);
-  if (!context)
-    throw new Error(
-      "useConversationTransientMessages requires ConversationRuntimeProvider",
-    );
-  return context.service;
+  const controller = useMemo<ConversationTransientMessagesController>(() => ({
+    getSnapshot: () => context?.service.getSnapshot(context.conversationId) ?? EMPTY,
+    subscribe: listener => context?.service.subscribe(listener) ?? (() => {}),
+    addMessage: input => {
+      if (!context) throw new Error('CONVERSATION_TRANSIENT_CONTEXT_REQUIRED');
+      return context.service.addMessage(input);
+    },
+  }), [context]);
+  const read = () => {
+    if (selector !== undefined) return selector(controller.getSnapshot());
+    if (!context) throw new Error('CONVERSATION_TRANSIENT_CONTEXT_REQUIRED');
+    return controller;
+  };
+  return useStoreValue(controller.subscribe, read, selector !== undefined);
 }
 
 export const useOptionalTransientMessageContext = () => useContext(Context);
@@ -67,15 +82,6 @@ export function useOptionalTransientMessageService():
   | ConversationTransientMessageService
   | undefined {
   return useContext(Context)?.service;
-}
-
-export function useTransientMessages(): readonly TransientMessage[] {
-  const context = useContext(Context);
-  return useSyncExternalStore(
-    context?.service.subscribe ?? subscribeEmpty,
-    () => context?.service.getSnapshot(context.conversationId) ?? EMPTY,
-    () => EMPTY,
-  );
 }
 
 export interface ConversationTransientMessagesRenderScope {

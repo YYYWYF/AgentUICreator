@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useAgentUILocale, formatLocaleMessage } from "./i18n/locale.js";
+import { useCreatorLocale, formatLocaleMessage } from "./i18n/locale.js";
 
 export interface UpdateReleaseEntry { version: string; content: ReactNode; pluginId?: string; pluginName?: string }
 
@@ -7,7 +7,7 @@ export interface UpdateReleaseEntry { version: string; content: ReactNode; plugi
 export function UpdateReleaseNotes({ entries, targetVersion, versions = [], historyOnly = false, emptyMessage }: {
   entries: UpdateReleaseEntry[]; targetVersion: string; versions?: string[]; historyOnly?: boolean; emptyMessage?: string | undefined;
 }) {
-  const messages = useAgentUILocale().pluginUpdates;
+  const messages = useCreatorLocale().pluginUpdates;
   const ordered = [...new Set([targetVersion, ...versions, ...entries.map(entry => entry.version)])]
     .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   const release = (version: string, latest = false) => {

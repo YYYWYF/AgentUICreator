@@ -25,7 +25,7 @@
 
 ## 接入文件生成结果 \{#显示条件与数据来源}
 
-当前默认注册工具名为 `generate_file`，成功结果使用本工具的 `{ filename, mimeType, url }` 业务结构。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+当前默认注册工具名为 `generate_file`，成功结果使用本工具的 `{ filename, mimeType, url }` 业务结构。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"generate_file"}
@@ -79,16 +79,16 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 
 
 
-| 属性            | 类型                                                                                               | 省略时 / 用途                                       |
-| ------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| `renderFile?` | `(props: ComponentProps<typeof ConversationFile>, tool: ConversationToolCallProps) => ReactNode` | 自定义文件展示                                        |
-| `Fallback?`   | `ComponentType<ConversationToolCallProps>`                                                       | 默认 `ConversationToolFallback`；工具未完成、出错或结果无效时使用 |
+| 属性            | 类型                                                                                               | 省略时 / 用途                                     |
+| ------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| `renderFile?` | `(props: ComponentProps<typeof ConversationFile>, tool: ConversationToolCallProps) => ReactNode` | 自定义文件展示                                      |
+| `Fallback?`   | `ComponentType<ConversationToolCallProps>`                                                       | 默认 `ConversationToolResult`；工具未完成、出错或结果无效时使用 |
 
 ### 当前工具调用的数据与操作
 
 `renderFile(file, tool)` 的第二个参数是当前工具调用，可用 `tool.toolCallId` 将文件关联到业务记录。文件名和地址读取已解析的 `file`；原始参数、结果和操作回调继续由现有 renderer 传入。
 
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-result.md#当前工具调用的数据与操作)。
 
 
 

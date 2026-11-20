@@ -16,6 +16,13 @@ title: "附件上传服务"
 
 上传配置直接传给业务页面中的 `<Agent attachments={...} />`，如下例所示。
 
+<figure className="plugin-preview">
+
+![草稿中的文件附件、移除入口和正文](/images/plugins/add-attachment-action.jpg)
+
+<figcaption>选择文件后，附件项出现在输入区，右上角可移除，正文仍可编辑。此图只展示发送前的草稿状态。</figcaption>
+</figure>
+
 业务系统已经有文件 URL 时，无需再次上传，见[发送已有附件 URL](./react-host-api#发送已有附件-url)。需要改变附件交互流程时，见本页最后的[进阶定制](#进阶定制)。
 
 ## 方式一：配置 URL 上传 {#配置-url-上传}
@@ -219,7 +226,7 @@ export function notifyAttachmentRemoval(adapter: ProjectAttachmentAdapter,
 
 PDF 对应的用户消息内容项应类似：
 
-```json
+```json ag-ui
 {
   "type": "document",
   "source": {

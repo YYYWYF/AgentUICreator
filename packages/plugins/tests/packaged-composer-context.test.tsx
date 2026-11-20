@@ -25,7 +25,7 @@ it('shares waiting state, snapshot subscriptions and protected submission with n
   const { ConversationComposerPlugin: NpmComposer } = await import('../dist/composer/index.js');
   const { ConversationComposerPlugin: SourceComposer } = await import('../dist/sources/takeover/composer/index');
   for (const Composer of [NpmComposer, SourceComposer]) {
-    let composer!: ReturnType<typeof useComposer>;
+    let composer!: import("@za38.03/agent-ui-plugins").ComposerController;
     let runs = 0;
     function Capture() { composer = useComposer(); return <output>{String(composer.awaitingReply)}</output>; }
     function Host({ awaitingReply }: { awaitingReply: boolean }) {
@@ -142,7 +142,7 @@ it('npm and source-owned Composers use the shared data port and forward the fina
   for (const Composer of [NpmComposer, SourceComposer]) {
     const requests: import('@ag-ui/client').RunAgentInput[] = [];
     let native!: import('@assistant-ui/react').AssistantRuntime;
-    let composer!: ReturnType<typeof useComposer>;
+    let composer!: import("@za38.03/agent-ui-plugins").ComposerController;
     function Capture() { native = useAui().threads.__internal_getAssistantRuntime!(); composer = useComposer('test'); return null; }
     const container = document.createElement('div'); document.body.append(container);
     const root = createRoot(container);

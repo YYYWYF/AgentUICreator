@@ -45,7 +45,7 @@ export const zhCN = {
     contextQuery: "检索词",
     contextEmpty: "没有检索到上下文",
   },
-  composer: { ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].composer, send: "发送", stop: "停止生成", queueSend: "加入待发送", queued: "待发送", removeQueued: "移除待发送消息" },
+  composer: { ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].composer, send: "发送", stop: "停止生成" },
   conversationFeedback: { helpful: "有帮助", notHelpful: "没有帮助" },
   conversationQuote: {
     quote: "引用",

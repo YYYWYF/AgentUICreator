@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 
 import { cn } from '../../../../vendor-generated/assistant-ui/lib/utils.js';
-import { useAgentUIPortalContainer } from '../../../../style-boundary/AgentUIRoot';
+import { usePortalContainer } from '../../../../style-boundary/AgentUIRoot';
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-agent-ui-owned='' data-slot='popover' {...props} />;
@@ -22,7 +22,7 @@ const PopoverContent = React.forwardRef<
   { className, align = 'center', alignOffset = 0, side = 'bottom', sideOffset = 4, ...props },
   ref,
 ) {
-  const portalContainer = useAgentUIPortalContainer();
+  const portalContainer = usePortalContainer();
   if (portalContainer === null) return null;
   return (
     <PopoverPrimitive.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>

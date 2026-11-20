@@ -1,5 +1,5 @@
 import { useRef as useLocaleMessagesRef } from "react";
-import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { localizeCreatorPresentation, useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { FlaskConical, Copy, Check, Download, LoaderCircle } from "lucide-react";
 import { Badge } from "./components/badge.js";
@@ -117,7 +117,7 @@ async function mockRequest(route = "", body?: unknown, signal?: AbortSignal, loc
 }
 
 export function MockServicePanel({ projectId, projectPath }: { projectId?: string; projectPath?: string } = {}) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const localeMessagesRef = useLocaleMessagesRef(localeMessages);
   localeMessagesRef.current = localeMessages;
   const [state, setState] = useState<CreatorMockState | null>(null);
@@ -420,7 +420,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
 
 /** Fetch implementation data only after the developer explicitly opens diagnostics. */
 function MockResourceDiagnostics({ projectId, resourceId }: { projectId: string; resourceId: string }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const [details, setDetails] = useState<string | null>(null);
   const loading = useRef(false);
   const controller = useRef<AbortController | null>(null);

@@ -2,7 +2,7 @@ import { PackageUpdatesOverview, packageUpdateCount } from "./PackageUpdatesOver
 import { CreatorUpdateNotice } from "./CreatorUpdateNotice.js";
 import { UpdateReleaseNotes } from "./UpdateReleaseNotes.js";
 import { creatorDisplayText } from "./product-presentation.js";
-import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { localizeCreatorPresentation, useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowUpCircle, CircleCheck, RefreshCw, GitMerge, ShieldCheck } from "lucide-react";
@@ -69,7 +69,7 @@ async function updateRequest<T>(workspaceId: string, route: string, body: Record
   return result;
 }
 export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkRequest, notificationTarget, creatorNotificationTarget, pageOpen: controlledPageOpen, onPageChange, onModelMerge }: { workspaceId: string; busy: boolean; modelReady: boolean; checkRequest: number; notificationTarget?: HTMLElement | null; creatorNotificationTarget?: HTMLElement | null; pageOpen?: boolean; onPageChange: (open: boolean) => void; onModelMerge: (prompt: string) => void }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const [packagePlan, setPackagePlan] = useState<PackageUpgradePlan | null>(null);
   const [inspection, setInspection] = useState<UpdateInspection | null>(null);
   const [localPageOpen, setLocalPageOpen] = useState(false);

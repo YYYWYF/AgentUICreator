@@ -15,12 +15,12 @@ AG-UI / Mock transport -> Agent Runtime -> Runtime Context Hooks -> UI Plugin ->
 
 ## Current project contract
 
-- `useAgentMessages()` returns normalized Agent messages, including user, assistant, reasoning, activity, and tool-related messages represented by Runtime Core.
-- `useAgentState<TState>()` returns shared Agent state and must be narrowed safely before property access.
-- `useAgentRun().status` is `idle`, `running`, `awaiting-input`, or `error`; a run error carries the user-visible failure detail.
-- `useAgentExecutions()` exposes each Tool, Reasoning, Step, and Subagent lifecycle directly. Never replace local execution status with a generic Run loading flag.
-- `useAgentInterrupts()` returns only current pending interrupts.
-- `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntimeActions()` exposes only Agent Runtime commands. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel composition.
+- `useAgentRuntime(snapshot => snapshot.messages)` returns normalized Agent messages, including user, assistant, reasoning, activity, and tool-related messages represented by Runtime Core.
+- `useAgentRuntime<TState, TState>(snapshot => snapshot.state)` returns shared Agent state and must be narrowed safely before property access.
+- `useAgentRuntime(snapshot => snapshot.run).status` is `idle`, `running`, `awaiting-input`, or `error`; a run error carries the user-visible failure detail.
+- `useAgentRuntime(snapshot => snapshot.executions)` exposes each Tool, Reasoning, Step, and Subagent lifecycle directly. Never replace local execution status with a generic Run loading flag.
+- `useAgentRuntime(snapshot => snapshot.interrupts)` returns only current pending interrupts.
+- `usePluginActions()` exposes instance-scoped Agent commands; `useAgentRuntime()` returns an imperative Runtime handle with commands, `getSnapshot()` and `subscribe()`. Pass a selector to subscribe to the fields needed for rendering. Runtime-only UI state belongs in a named service or runtime store, not in AppUIModel composition.
 - `usePluginEvents()` is the inbound, live-only Application Event channel. Subscribe only to names declared in the Plugin manifest and registered through the application's `Agent.appEventSchemas`.
 - `usePluginService()` remains the component API for named Plugin capabilities.
 - Explicit application/Host `toolkit` frontend entries or project frontend-tool sources own the operations advertised to the Agent; providing a Plugin Service alone never exposes a tool.
@@ -126,11 +126,11 @@ source or from the presence of related CSS selectors.
 
 Vendor-owned code must remain locale-agnostic and unmodified; all product
 localization is owned by AgentUICreator composition, adapters, plugins, and Host
-UI. Reuse existing official domain copy through `useAgentUILocale(namespace)`;
+UI. Reuse existing official domain copy through `useLocale(namespace)`;
 `Agent.locales` overrides only existing keys, not arbitrary new namespaces. For
 new business copy, reuse or create a project-owned shared messages module with
 domain namespaces and complete `en-US` / `zh-CN` parity. Select messages there
-with the unified `useAgentUILocaleCode()` value and pass messages to presentation
+with the unified `useLocaleCode()` value and pass messages to presentation
 helpers; do not create per-Plugin i18n hooks, language branches or another locale
 state. See the packaged Plugin API's localization example. Preserve protocol IDs, enums, schema and persisted fields;
 locale is a view concern. Prefer public props/composition, then owned adapters.

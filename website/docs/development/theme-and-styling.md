@@ -18,6 +18,13 @@ title: "主题与样式"
 
 不传 `theme` 时使用内置紫色主题，启用[主题切换控件](/plugins/theme-switch)后可在界面中切换。业务页面传入 `theme` 后，由页面控制当前值；允许控件切换时，同时传入 `onThemeChange` 更新页面状态，见[主题属性与回调](./agent-options#主题切换)。
 
+<figure className="plugin-preview">
+
+![深色主题中的消息、输入区和会话列表](/images/agent-ui/appearance-dark.jpg)
+
+<figcaption>theme="dark" 的界面参考：聊天区、列表、输入区和按钮共同适配深色。</figcaption>
+</figure>
+
 ## 样式入口
 
 在生成目录的 `styles.css` 中追加项目样式，保留原有 npm 样式导入及源码扫描声明。默认样式由 npm 提供，项目只保存自己的覆盖。

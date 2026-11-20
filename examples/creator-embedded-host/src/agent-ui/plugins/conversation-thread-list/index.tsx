@@ -4,22 +4,21 @@ import {
   AgentUIPopoverTrigger,
   CanonicalConversationThreadList,
   CanonicalConversationThreadListRailAction as RailImplementation,
-  useAgentUILocale,
+  useLocale,
 } from '@za38.03/agent-ui-plugins';
-import { useAgentRun } from '@za38.03/agent-ui-runtime';
-import { useAgentUITheme } from '@za38.03/agent-ui-runtime/ui';
+import { useAgentRuntime } from '@za38.03/agent-ui-runtime';
+import { useTheme } from '@za38.03/agent-ui-runtime/ui';
 import { Clock } from 'lucide-react';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
-import { useConversationActions } from '../../services/hooks/useConversationActions';
 import { useConversations } from '../../services/hooks/useConversations';
 import './assistant.css';
 
 export function ConversationThreadListPlugin(props: ComponentProps<typeof CanonicalConversationThreadList>) {
-  const { snapshot, serviceAvailable } = useConversations();
-  const { refresh } = useConversationActions();
-  const theme = useAgentUITheme();
-  const run = useAgentRun();
-  const messages = useAgentUILocale('threadList');
+  const { serviceAvailable, refresh } = useConversations();
+  const snapshot = useConversations(state => state);
+  const theme = useTheme();
+  const runStatus = useAgentRuntime(snapshot => snapshot.run.status);
+  const messages = useLocale('threadList');
   const [open, setOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const actions = useRef<{ close: () => void; unmount: () => void } | null>(null);
@@ -76,7 +75,7 @@ export function ConversationThreadListPlugin(props: ComponentProps<typeof Canoni
             serviceAvailable={serviceAvailable}
             onRefresh={refresh}
             theme={theme}
-            runStatus={run.status}
+            runStatus={runStatus}
           />
         </AgentUIPopoverContent>
       </AgentUIPopover>

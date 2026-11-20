@@ -146,20 +146,12 @@
         "link": "/plugins/tool-group.html"
       },
       {
-        "label": "工具调用详情",
-        "link": "/plugins/tool-fallback.html"
-      },
-      {
-        "label": "工具结果（多模态）",
+        "label": "工具调用卡片",
         "link": "/plugins/tool-result.html"
       },
       {
         "label": "询问用户",
         "link": "/plugins/ask-user-question.html"
-      },
-      {
-        "label": "人机交互与操作确认",
-        "link": "/plugins/human-interaction.html"
       },
       {
         "label": "思考状态提示（高级）",

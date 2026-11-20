@@ -2,7 +2,7 @@
 import * as NModule2 from "../dist/auth-gate/index.js";
 import * as NModule9 from "../dist/locale-provider/index.js";
 import * as NModule14 from "../dist/theme-provider/index.js";
-import {act,type ReactNode} from "react";
+import {act,type ComponentProps,type ReactNode} from "react";
 import {createRoot,type Root} from "react-dom/client";
 import {afterEach,expect,expectTypeOf,it,vi} from "vitest";
 import {AgentUIRoot,AgentUILocaleProvider,ConversationThread,type AgentUILocaleCode} from "@za38.03/agent-ui-plugins";
@@ -91,6 +91,36 @@ it.each(modes)("$name surface preserves every semantic Slot and Host scoped rend
  const renderSlot=vi.fn((name:string)=><span>{name}</span>);const scoped=vi.fn((_name:string,_scope:unknown,fallback:ReactNode)=>fallback);const scopes=["transientMessages","userEditComposer","reasoningGroup","thinkingIndicator","toolTimeline","toolGroup","toolFallback","taskGroup","assistantResponseFooter"];
  const Adapter=(props:import("../src/public").ConversationSurfaceAdapterProps)=> <>{props?.welcome}{props?.suggestions}{props?.composer}{scopes.map(name=><section key={name}>{props?.renderScopedSlot?.(name,{kind:"kept",value:{id:"42"}},<span>{name}</span>)}</section>)}</>;
  const el=await mount(<Surface Adapter={Adapter} renderSlot={renderSlot} renderScopedSlot={scoped} aria-label={"app surface"} style={{padding:23}} snapshot={{mode:"history",detailStatus:"ready"}}/>);expect(renderSlot.mock.calls.map(call=>call[0])).toEqual(["emptyWelcome","emptySuggestions","headerActions","composer"]);expect(scoped.mock.calls.map(call=>call[0])).toEqual(scopes);expect(el.querySelector<HTMLElement>('[aria-label="app surface"]')?.style.padding).toBe("23px");expect(el.querySelector('[data-conversation-mode="history"]')).not.toBeNull();
+});
+it.each(modes)("$name surface renders messages and opens the extracted message editor on the existing runtime", async ({Surface}) => {
+  const Adapter: NonNullable<ComponentProps<typeof N6>["Adapter"]> = ({Surface: View, composer}) =>
+    View ? <View theme="light" composer={composer} /> : null;
+  function Chat() {
+    const runtime = useLocalRuntime({async *run() { yield {content: [{type: "text" as const, text: "Reply"}]}; }}, {
+      initialMessages: [
+        {role: "user", content: [{type: "text", text: "Original question"}]},
+        {role: "assistant", content: [{type: "text", text: "Original answer"}]},
+      ],
+    });
+    return <AssistantRuntimeProvider runtime={runtime}>
+      <Surface Adapter={Adapter} composer={<div data-testid="project-composer">Project composer</div>} />
+    </AssistantRuntimeProvider>;
+  }
+  const el = await mount(<Chat />);
+  expect(el.textContent).toContain("Original question");
+  expect(el.textContent).toContain("Original answer");
+  expect(el.querySelector('[data-testid="project-composer"]')).not.toBeNull();
+  await act(async () => { el.querySelector('[data-slot="aui_user-message-root"]')!.dispatchEvent(new MouseEvent("mouseenter")); });
+  const edit = el.querySelector<HTMLButtonElement>('[data-slot="aui_user-message-root"] button.aui-user-action-edit')!;
+  expect(edit).not.toBeNull();
+  await act(async () => edit.click());
+  const editor = el.querySelector('[data-slot="agent-ui-edit-composer"]')!;
+  expect(editor).not.toBeNull();
+  expect(editor.querySelector("textarea")?.value).toBe("Original question");
+  const cancel = [...editor.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "Cancel")!;
+  await act(async () => cancel.click());
+  expect(el.querySelector('[data-slot="agent-ui-edit-composer"]')).toBeNull();
+  expect(el.textContent).toContain("Original question");
 });
 it.each(modes)("$name task group exposes renderer composition and forwards the same scope object",async({Tasks})=>{
  const group={id:"shared group"};const renderGroup=vi.fn((props:{group:unknown;className?:string})=><span>{props.className}</span>);const el=await mount(<Tasks group={group} className="app tasks" renderGroup={renderGroup}/>);expect(renderGroup.mock.calls[0]?.[0].group).toBe(group);expect(el.textContent).toBe("app tasks");

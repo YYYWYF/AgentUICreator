@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../../locale.js';
+import { useLocale } from '../../../../../../locale.js';
 
 import type { ComponentProps } from 'react';
 import { SearchIcon } from 'lucide-react';
@@ -44,7 +44,7 @@ export function WebSearch({
   searching: boolean;
   labels?: { searching: string; complete: string };
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <div
       data-agent-ui-owned=''

@@ -9,7 +9,7 @@
 <figcaption>选择一个技能后，当前技能预览插件显示标签。</figcaption>
 </figure>
 
-`skills` 在插件 `setup` 中提供 `conversation.skills` Service，保存当前技能选择。`skills` 插件提供选择栏；独立的 [`skills-selection`](/plugins/skills-selection.md) 插件显示当前技能标签，发送后由用户消息显示只读标签。两个 UI 插件通过该 Service 共享状态；Composer 只收集待发送的数据和来源。
+`skills` 提供技能选择栏，[`skills-selection`](/plugins/skills-selection.md) 显示当前选择并允许移除。发送后，用户消息中保留只读技能标签。
 
 需要完整技能输入 UI 时，在 Composer 的 `triggers` 中组合 `skills`，在 `beforeInput` 中组合 `skills-selection`，具体模型见[当前技能预览](/plugins/skills-selection.md#启用与使用)。两个插件均按需添加，初始化预设不会默认启用。
 
@@ -24,29 +24,27 @@
 <figcaption>标签由 skills-selection 提供，点击移除只取消技能，保留正文、引用和附件。</figcaption>
 </figure>
 
-同一 Thread 一次只选择一个技能。接受发送后清空草稿选择；切换会话时清除原会话的待发送选择。已提交、排队或历史消息中的技能快照不会随之后的选择变化。
+同一 Thread 一次只选择一个技能。接受发送后清空草稿选择；切换会话时清除原会话的待发送选择。已提交或历史消息中的技能快照不会随之后的选择变化。
 
 选择器和预览组件可以独立隐藏或卸载，状态由 Service 保留。停用整个 `skills` 插件时，Service 会清理选择与待发送数据，依赖它的 `skills-selection` 随之停用。
 
-## 显示条件与数据来源 \{#显示条件与数据来源}
-
-技能来自项目的 `items` 或调用 Service 的 `select()`，不依赖后端消息事件。只读历史标签来自每条用户消息保存的技能元数据。
+技能来自项目的 `items` 或调用 Service 的 `select()`。只读历史标签来自每条用户消息保存的技能元数据。
 
 ## 从业务卡片选择技能 \{#从业务卡片选择技能}
 
 在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
 
 ```tsx
-import { useComposer, useConversationSkillsState, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
+import { useComposer, useSkillSelection, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
 
 export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
   const composer = useComposer();
-  const { service, threadId } = useConversationSkillsState();
-  return <button type="button" onClick={() => service?.select(threadId, skill, composer)}>{skill.label}</button>;
+  const skills = useSkillSelection();
+  return <button type="button" onClick={() => skills.select(skill, composer)}>{skill.label}</button>;
 }
 ```
 
-Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收集发送数据；无需传 `key`、发送开关或会话清理配置。取消选择调用 `service.clear(threadId)`，两个 UI 都从 `useConversationSkillsState().selected` 订阅选择。若卡片属于另一个独立插件，需在 definition 声明 `inject: ['conversation.skills']`，并在项目请求适配器中识别该插件的数据来源。
+Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收集发送数据；无需传 `key`、发送开关或会话清理配置。无参数句柄不自动订阅。取消选择调用 `skills.clear()`，两个 UI 都从 `useSkillSelection(snapshot => snapshot.selected)` 订阅选择。若卡片属于另一个独立插件，需在 definition 声明 `inject: ['conversation.skills']`，并在项目请求适配器中识别该插件的数据来源。
 
 ## 交给 Composer 的数据
 
@@ -54,7 +52,7 @@ Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收
 
 默认生成的 `plugins/composer/request-adapter.ts` 通过 `sources[owner].pluginId` 识别 `skills` 的来源，再从 `pluginData[owner]` 读取技能快照，并将其放入 `forwardedProps.ctx.skill`，与 Host 已有 `ctx` 合并。例如：
 
-```json
+```json ag-ui
 {
   "forwardedProps": {
     "ctx": {
@@ -94,7 +92,7 @@ export function ProjectComposer(props: ComponentProps<typeof ConversationCanonic
 }
 ```
 
-适配器返回的请求是最终结果；不会再次补回默认字段。技能栏没有单独的请求适配器。调整发送格式不会改变本地消息保存的技能快照和标签展示。
+Composer 使用这里返回的字段，不会补回默认的 `skill`。若配置了 [`beforeRequest`](/development/connect-agent.md#发送前准备请求)，它仍可继续修改请求。技能标签展示不受这里的字段命名影响。
 
 ## 发送后的消息与历史
 
@@ -102,7 +100,7 @@ export function ProjectComposer(props: ComponentProps<typeof ConversationCanonic
 
 历史由业务后端保存并返回，前端不代替后端持久化。使用 LangChain 历史格式时，返回 `additional_kwargs.metadata.skill`：
 
-```json
+```json ag-ui
 {
   "type": "human",
   "id": "message-1",
@@ -135,7 +133,9 @@ export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
 
 ### 自定义标签
 
-在 `skills-selection` 的项目薄应用层定制当前技能预览，或通过 AppUIModel 停用该插件以隐藏预览。隐藏、停用或移除预览不会清除当前选择，也不改变发送数据；Composer 没有内置技能预览或专用 `skillPreview` 属性。用户消息默认显示只读标签。业务卡片需要额外展示时，可用 `useConversationSkillsState().selected` 读取 Service 中的选择，再传给公开展示组件 `ConversationSkillSelection`。`selectedSkill` 接受 `{ id, label }`；提供 `onRemove` 才显示移除按钮，`disabled` 控制该按钮。
+在 `skills-selection` 的项目入口定制预览，或停用该插件来隐藏它；隐藏预览不清除当前选择。
+
+业务卡片可用 `useSkillSelection(snapshot => snapshot.selected)` 读取选择，再传给 `ConversationSkillSelection`。`selectedSkill` 接收 `{ id, label }`，提供 `onRemove` 才显示移除按钮，`disabled` 控制是否可移除。
 
 <span id="启用与使用"></span>
 <span id="需求示例"></span>
@@ -163,14 +163,15 @@ export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
 <span id="hook"></span>
 <span id="服务"></span>
 
-| Service 与领域 API                                               | 作用                                                          |
-| ------------------------------------------------------------- | ----------------------------------------------------------- |
-| `CONVERSATION_SKILLS_SERVICE`                                 | 服务标识 `conversation.skills`，由 `skills` 提供                    |
-| `useConversationSkillsState()`                                | 返回 `service`、当前 Thread 的 `selected`、`threadId` 和 `disabled` |
-| `service.select(threadId, skill, composer)`                   | 保存技能并通过调用方的 Composer 收集数据                                   |
-| `service.clear(threadId)`                                     | 取消选择，同时释放待发送数据                                              |
-| `service.getSnapshot(threadId)`、`service.subscribe(listener)` | 读取与订阅稳定快照                                                   |
-| `ConversationSkillData`                                       | 只读 `id: string` 和 `label: string`                           |
-| `readConversationSkillData(value)`                            | 将未知 JSON 收窄为技能数据；不是 Hook                                    |
+| Service 与领域 API                                               | 作用                                                                                                       |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `CONVERSATION_SKILLS_SERVICE`                                 | 服务标识 `conversation.skills`，由 `skills` 提供                                                                 |
+| `useSkillSelection()`                                         | 返回 `getSnapshot`、`subscribe`、`select(skill, composer)`、`clear()`、`threadId` 和 `serviceAvailable`，不自动订阅数据 |
+| `useSkillSelection(selector)`                                 | 按需订阅 `selected`、`disabled` 或 `threadId`，按 `Object.is` 比较结果                                               |
+| `service.select(threadId, skill, composer)`                   | 保存技能并通过调用方的 Composer 收集数据                                                                                |
+| `service.clear(threadId)`                                     | 取消选择，同时释放待发送数据                                                                                           |
+| `service.getSnapshot(threadId)`、`service.subscribe(listener)` | 读取与订阅稳定快照                                                                                                |
+| `ConversationSkillData`                                       | 只读 `id: string` 和 `label: string`                                                                        |
+| `readConversationSkillData(value)`                            | 将未知 JSON 收窄为技能数据；不是 Hook                                                                                 |
 
-Service 随插件 setup 创建和销毁，并观察现有 canonical Thread 的切换、发送和重置。Composer 冻结每次提交的数据与来源，处理排队、编辑、重试和恢复；Runtime 不认识技能字段。
+Service 随插件 setup 创建和销毁，并观察现有 canonical Thread 的切换、发送和重置。Composer 冻结每次提交的数据与来源，处理编辑、重试和恢复；Runtime 不认识技能字段。

@@ -5,8 +5,8 @@ import {
   AgentUITooltipContent,
   AgentUITooltipTrigger,
   ConversationThreadListNew,
-  useAgentUILocale,
-  useAgentUISidebarNavigation,
+  useLocale,
+  useSidebarNavigation,
 } from '../../../../public.js';
 export interface ConversationNewPluginProps extends Omit<ComponentProps<'div'>, 'children' | 'onClick'> {
   showLabel?: boolean;
@@ -29,8 +29,8 @@ export function CanonicalConversationNew({
   disabled,
   ...rootProps
 }: ConversationNewPluginProps) {
-  const onNavigate = useAgentUISidebarNavigation();
-  const messages = useAgentUILocale('threadList');
+  const onNavigate = useSidebarNavigation();
+  const messages = useLocale('threadList');
   return (
     <div
       {...rootProps}

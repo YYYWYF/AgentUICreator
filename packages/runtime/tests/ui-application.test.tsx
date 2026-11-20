@@ -4,9 +4,9 @@ import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { AGENT_UI_PRESENTATION_LOCALES } from "@za38.03/agent-ui-plugins";
 import { AgentApplication, createPluginCapabilityCatalog, createRuntimeCompositionStore, type AgentUIProjectOptions } from "../src/ui/index.js";
-import { AgentUIProvider, useAgentUI, type AgentUIHost } from "../src/public.js";
+import { AgentUIProvider, useAgent, type AgentUIHost } from "../src/public.js";
 import { usePluginActions } from "../src/plugin-api/index.js";
-import { useAgentRuntimeActions } from "../src/agent-context/agent-runtime-hooks.js";
+import { useAgentRuntime } from "../src/agent-context/agent-runtime-hooks.js";
 import type { UIPluginActions, UIPluginDefinition } from "../src/contracts/index.js";
 
 it("stages a replacement project composition store through the existing application mount", async () => {
@@ -21,7 +21,7 @@ it("stages a replacement project composition store through the existing applicat
     capabilityCatalogRevision: "a".repeat(64), compositionStore: store,
     appFrontendTools: [], appEventSchemas: {}, baseConversationToolkit: {},
     Integrations: ({ children }) => <>{children}</>, conversationServices: {},
-    getConversationStarterSuggestions: () => [], conversationMessageQueueEnabled: false,
+    getConversationStarterSuggestions: () => [],
     defaultLocale: "en-US", locales: AGENT_UI_PRESENTATION_LOCALES,
     shell: {},
   };
@@ -41,22 +41,22 @@ it("passes Agent ctx and plugin/setup/hook send options through the complete app
   const mount = document.createElement("div"); document.body.append(mount);
   const root = createRoot(mount);
   let host!: AgentUIHost, setupActions!: UIPluginActions, componentActions!: UIPluginActions;
-  let hookActions!: ReturnType<typeof useAgentRuntimeActions>;
+  let hookActions!: import("@za38.03/agent-ui-runtime").AgentRuntimeController;
   const requests: Record<string, any>[] = [];
   const errors = vi.fn();
   const definition: UIPluginDefinition = {
     manifest: { id: "sender", name: "Sender", description: "Test sender", version: "1.0.0" },
     setup: ({ actions }) => { setupActions = actions; },
-    Component: () => { componentActions = usePluginActions(); hookActions = useAgentRuntimeActions(); return null; },
+    Component: () => { componentActions = usePluginActions(); hookActions = useAgentRuntime(); return null; },
   };
-  function Host() { host = useAgentUI(); return null; }
+  function Host() { host = useAgent(); return null; }
   const project: AgentUIProjectOptions = {
     appUIModelSource: JSON.stringify({ root: { type: "slot", plugins: [{ id: "sender", pluginId: "sender", enabled: true }] } }),
     pluginCapabilityCatalog: createPluginCapabilityCatalog([{ manifest: definition.manifest, provides: [], inject: [], optionalInject: [], loadDefinition: async () => definition }]),
     capabilityCatalogRevision: "b".repeat(64), compositionStore: createRuntimeCompositionStore(),
     appFrontendTools: [], appEventSchemas: {}, baseConversationToolkit: {},
     Integrations: ({ children }) => <>{children}</>, conversationServices: {},
-    getConversationStarterSuggestions: () => [], conversationMessageQueueEnabled: false,
+    getConversationStarterSuggestions: () => [],
     defaultLocale: "en-US", locales: AGENT_UI_PRESENTATION_LOCALES, shell: {},
   };
   const fetch = vi.fn(async (_url: string, init: RequestInit) => {

@@ -10,9 +10,11 @@ import type { CreatorCommandExecuteRequest } from "./types.js";
 import { pluginCategory } from "./plugin-categories.js";
 import { creatorCommandRegistry } from "./registry.js";
 import { pluginPlacementIssue } from "./plugin-placement-issue.js";
+import { getAgentUIPluginSourceTargets, planAgentUIPluginSourceTakeover, applyAgentUIPluginSourceTakeover, type PluginSourceTakeoverPlan } from "@za38.03/agent-ui-creator/project/commands";
 
 export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager | undefined, root: string | undefined, legacy: CreatorProcessManager | undefined) {
   const preparations = new Map<string, { root: string; workspaceId: string; target: string; expires: number; preparation: PluginEnablementPreparation }>();
+  const takeovers = new Map<string, { root: string; workspaceId: string; expires: number; plan: PluginSourceTakeoverPlan }>();
   const legacyWorkspaceId = root ? createHash("sha256").update(realpathSync(root)).digest("hex") : undefined;
   return async (request: IncomingMessage, response: ServerResponse) => {
     response.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -30,8 +32,8 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
         for await (const chunk of request) { const buffer = Buffer.from(chunk); size += buffer.length; if (size > 4096) throw new Error("CREATOR_COMMAND_REQUEST_INVALID"); chunks.push(buffer); }
         const payload = JSON.parse(Buffer.concat(chunks).toString());
         if (!payload || typeof payload !== "object" || typeof payload.id !== "string" || !creatorCommandRegistry.has(payload.id)) throw new Error("UNKNOWN_COMMAND");
-        const keys = payload.id === "enable" && Object.hasOwn(payload.args ?? {}, "pluginId") ? ["pluginId"] : ["enable", "disable"].includes(payload.id) ? ["instanceId"] : [];
-        if (payload.id === "enable" && Object.hasOwn(payload.args ?? {}, "preparationId")) keys.push("preparationId");
+        const keys = payload.id === "takeover" || payload.id === "enable" && Object.hasOwn(payload.args ?? {}, "pluginId") ? ["pluginId"] : ["enable", "disable"].includes(payload.id) ? ["instanceId"] : [];
+        if (["enable", "takeover"].includes(payload.id) && Object.hasOwn(payload.args ?? {}, "preparationId")) keys.push("preparationId");
         if (Object.keys(payload).sort().join(",") !== "args,id" || !payload.args || typeof payload.args !== "object" || Array.isArray(payload.args) ||
           Object.keys(payload.args).sort().join(",") !== [...keys].sort().join(",") || keys.some(key => typeof payload.args[key] !== "string" || !payload.args[key].trim())) throw new Error("CREATOR_COMMAND_REQUEST_INVALID");
         input = payload as CreatorCommandExecuteRequest;
@@ -60,9 +62,11 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
           const host = await inspectIntegrationHost(projectRoot);
           const plugins = host.framework === "react" ? await getAgentUIPluginInstances(projectRoot) : [];
           const available = host.framework === "react" ? await getAgentUIAvailablePluginIds(projectRoot) : [];
+          const sourceTargets = host.framework === "react" ? await getAgentUIPluginSourceTargets(projectRoot) : [];
           const present = new Set(plugins.map(plugin => plugin.pluginId));
           return { commands: [
             { ...creatorCommandRegistry.get("sync")!, options: [] },
+            { ...creatorCommandRegistry.get("takeover")!, options: sourceTargets.map(pluginId => ({ id: pluginId, pluginId, category: pluginCategory(pluginId) })) },
             ...(["enable", "disable"] as const).map(id => ({ ...creatorCommandRegistry.get(id)!, options: [
               ...plugins.filter(plugin => plugin.enabled !== (id === "enable"))
                 .map(plugin => ({ id: plugin.id, pluginId: plugin.pluginId, category: pluginCategory(plugin.pluginId),
@@ -74,6 +78,32 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
           ] };
         }
         if (workspaces?.hasActiveCreatorRequests()) throw new Error("CREATOR_COMMAND_BUSY");
+        if (input?.id === "takeover") {
+          if ((await inspectIntegrationHost(projectRoot)).framework !== "react") throw new Error("PLUGIN_REACT_PRODUCER_REQUIRED");
+          const { pluginId, preparationId } = input.args;
+          if (preparationId) {
+            const saved = takeovers.get(preparationId);
+            takeovers.delete(preparationId);
+            if (!saved || saved.root !== projectRoot || saved.workspaceId !== workspaceId || saved.plan.pluginId !== pluginId || saved.expires < Date.now()) throw new Error("PLUGIN_SOURCE_PLAN_STALE");
+            return withMutationGuard(async () => {
+              const result = await applyAgentUIPluginSourceTakeover(projectRoot, { pluginId, planHash: saved.plan.planHash });
+              return { value: pluginId, changed: true, receipt: {
+                files: result.changedPaths.map(path => ({ path, status: saved.plan.files.some(file => path.endsWith(`/${file}`)) ? "created" : "modified", diff: "", truncated: false })),
+                validations: [],
+                verification: { status: "changed-unverified", projectRevision: 1, auditAttempts: 0, checks: [], runtimeStatus: "not-run" },
+              } };
+            });
+          }
+          if (!(await getAgentUIPluginSourceTargets(projectRoot)).includes(pluginId)) throw new Error("PLUGIN_SOURCE_UNAVAILABLE");
+          const plan = await planAgentUIPluginSourceTakeover(projectRoot, { pluginId });
+          const id = randomUUID();
+          for (const [key, value] of takeovers) if (value.expires < Date.now()) takeovers.delete(key);
+          if (takeovers.size >= 64) takeovers.delete(takeovers.keys().next().value!);
+          takeovers.set(id, { root: projectRoot, workspaceId, expires: Date.now() + 10 * 60_000, plan });
+          return { status: "confirmation-required", takeover: { id, plan }, changed: false,
+            receipt: { files: [], validations: [], verification: { status: "no-project-change", projectRevision: 0, auditAttempts: 0, checks: [], runtimeStatus: "not-run" } },
+          };
+        }
         if (input?.id === "enable") {
           if ("pluginId" in input.args && (await inspectIntegrationHost(projectRoot)).framework !== "react") throw new Error("PLUGIN_REACT_PRODUCER_REQUIRED");
           const instances = await getAgentUIPluginInstances(projectRoot);

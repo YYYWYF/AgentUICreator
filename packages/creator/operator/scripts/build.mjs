@@ -50,7 +50,7 @@ await writeFile(`${packageRoot}dist/runtime/build.json`, JSON.stringify({ buildI
 
 // Publish declarations instead of exposing implementation .ts files to consumers.
 await rm(path.join(packageRoot, "dist/types"), { recursive: true, force: true });
-const declarations = spawnPnpmSync(["exec", "tsc", "-p", path.join(packageRoot, "tsconfig.declarations.json")], { cwd: fileURLToPath(new URL("../../", import.meta.url)), stdio: "inherit" });
+const declarations = spawnPnpmSync(["exec", "node", "./node_modules/typescript/lib/tsc.js", "-p", path.join(packageRoot, "tsconfig.declarations.json")], { cwd: fileURLToPath(new URL("../../", import.meta.url)), stdio: "inherit" });
 if (declarations.error) throw declarations.error;
 if (declarations.status !== 0) throw new Error("Operator declaration build failed");
 for (const entry of await readdir(path.join(packageRoot, "src"), { withFileTypes: true })) {

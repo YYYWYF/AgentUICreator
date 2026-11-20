@@ -19,6 +19,8 @@ await copyFile(
 );
 await chmod(new URL("../dist/cli.js", import.meta.url), 0o755);
 
+await copyFile(new URL("../src/mock-agent/builtins/context-retrieval-sample.json", import.meta.url), new URL("../dist/mock-agent/builtins/context-retrieval-sample.json", import.meta.url));
+
 // Retain deferred demos only in the workspace, never in the npm payload.
 for (const name of ["a2ui-form-controls", "a2ui-interactive-order"]) {
   for (const extension of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {

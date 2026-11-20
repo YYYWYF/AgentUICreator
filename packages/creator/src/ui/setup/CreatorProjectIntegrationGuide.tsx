@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
+import { useCreatorLocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
 import { useState } from "react";
 import { Check, ChevronDown, Code2, Copy } from "lucide-react";
 import { Button } from "../components/button.js";
@@ -58,7 +58,7 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode, hostFramework
   onBuild?: (() => Promise<unknown>) | undefined;
   buildDisabled?: boolean;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useCreatorLocale();
   const [framework, setFramework] = useState<"react" | "bridge">(hostFramework === "vue" ? "bridge" : "react");
   const [expanded, setExpanded] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");

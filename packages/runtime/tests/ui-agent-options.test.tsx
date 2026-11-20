@@ -3,7 +3,7 @@ import { act, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { createDefaultAgentUIPresentation, useAgentUILocale, useComposer, usePluginActions, usePluginEvents, usePluginService, type UIPluginDefinition } from '@za38.03/agent-ui-plugins';
+import { createDefaultAgentUIPresentation, useLocale, useComposer, usePluginActions, usePluginEvents, usePluginService, type UIPluginDefinition } from '@za38.03/agent-ui-plugins';
 import { AgentApplication, createAgentUIProject, createPluginCapabilityCatalog, ConversationWelcomeFallback, type AgentProps } from '../src/ui/index.js';
 import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource } from '@za38.03/agent-ui-plugins/conversation-service';
 
@@ -23,7 +23,7 @@ function fixture(providerEnabled = true) {
     Component:()=>null,
   };
   function View() {
-    const labels = useAgentUILocale('composer');
+    const labels = useLocale('composer');
     const composer = useComposer();
     const history = usePluginService<ConversationDataSource>(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
     const events = usePluginEvents(), actions = usePluginActions();

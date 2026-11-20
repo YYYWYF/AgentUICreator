@@ -21,3 +21,5 @@ export interface PluginEnablementPreparation {
 }
 export function preparePluginEnablement(root: string, pluginId: string): Promise<PluginEnablementPreparation>;
 export function completePluginEnablement(root: string, expected: PluginEnablementPreparation): Promise<{ changed: boolean; createdPaths: string[] }>;
+export { getAgentUIPluginSourceTargets, planAgentUIPluginSourceTakeover, applyAgentUIPluginSourceTakeover } from "./project/plugin-source-commands.js";
+export type { PluginSourceTakeoverPlan } from "./project/plugin-source-commands.js";

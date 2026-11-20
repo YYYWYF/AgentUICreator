@@ -36,7 +36,7 @@ async function loadHooks() {
     "../conversations": Conversations,
   };
   const exports: Record<string, unknown> = {};
-  for (const hook of ["useConversations", "useConversationActions"]) {
+  for (const hook of ["useConversations"]) {
     const hookPath = `../src/shared/project/services/hooks/${hook}.ts`;
     const source = await readFile(new URL(hookPath, import.meta.url), "utf8");
     const code = execFileSync(process.execPath, ["-e",
@@ -50,7 +50,10 @@ async function loadHooks() {
     }, output, output.exports);
     Object.assign(exports, output.exports);
   }
-  return exports as { useConversations(): ConversationState; useConversationActions(): ConversationActionView };
+  return exports as {
+    useConversations(): ConversationActionView;
+    useConversations<T>(selector: (snapshot: Conversations.ConversationSnapshot) => T): T;
+  };
 }
 
 it("observes the shared service, follows replacement/removal and releases subscriptions without disposing it", async () => {
@@ -81,7 +84,7 @@ it("observes the shared service, follows replacement/removal and releases subscr
   };
   const views: ConversationState[] = [];
   function Consumer({ index }: { index: number }) {
-    views[index] = useConversations();
+    views[index] = { snapshot: useConversations(snapshot => snapshot), serviceAvailable: useConversations().serviceAvailable };
     return <span>{views[index]!.snapshot.conversations[0]?.title}</span>;
   }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
@@ -113,7 +116,7 @@ it("observes the shared service, follows replacement/removal and releases subscr
 });
 
 it("provides commands without subscribing to history snapshots and follows service availability", async () => {
-  const { useConversationActions } = await loadHooks();
+  const { useConversations } = await loadHooks();
   const first = { refresh: vi.fn(async () => {}), getSnapshot: vi.fn(), subscribe: vi.fn() };
   const second = { refresh: vi.fn(async () => {}), getSnapshot: vi.fn(), subscribe: vi.fn() };
   let service: typeof first | undefined;
@@ -125,7 +128,7 @@ it("provides commands without subscribing to history snapshots and follows servi
     getRevision: () => revision,
   };
   let actions!: ConversationActionView;
-  function Consumer() { actions = useConversationActions(); return null; }
+  function Consumer() { actions = useConversations(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   await act(async () => root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={createConversationServiceThreadBinding(undefined, "A")}><PluginServiceRuntimeProvider runtime={runtime}><Consumer /></PluginServiceRuntimeProvider></ConversationRuntimeProvider>));
   expect(actions.refresh()).toBeUndefined();
@@ -159,7 +162,7 @@ async function until(predicate: () => boolean) {
 }
 
 async function conversationFixture() {
-  const { useConversations, useConversationActions } = await loadHooks();
+  const { useConversations } = await loadHooks();
   let records: Conversations.ConversationSummary[] = ["A", "B", "C"].map(id => ({ id, title: id, status: "regular" }));
   const source: Conversations.ConversationDataSource = {
     list: vi.fn(async () => records.map(item => ({ ...item }))),
@@ -175,7 +178,7 @@ async function conversationFixture() {
   const detach = binding.attachConversationService(service);
   const runtime = { get: <T,>() => service as T, subscribe: () => () => {}, getRevision: () => 0 };
   let view!: ConversationView;
-  function Consumer() { view = { ...useConversations(), ...useConversationActions() }; return null; }
+  function Consumer() { view = { ...useConversations(), snapshot: useConversations(snapshot => snapshot) }; return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   await act(async () => root!.render(
     <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}>

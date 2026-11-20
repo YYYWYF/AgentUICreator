@@ -45,7 +45,7 @@ export const enUS = {
     contextQuery: "Query",
     contextEmpty: "No context returned",
   },
-  composer: { ...AGENT_UI_PRESENTATION_LOCALES["en-US"].composer, send: "Send message", stop: "Stop generating", queueSend: "Queue message", queued: "Pending", removeQueued: "Remove queued message" },
+  composer: { ...AGENT_UI_PRESENTATION_LOCALES["en-US"].composer, send: "Send message", stop: "Stop generating" },
   conversationFeedback: { helpful: "Helpful", notHelpful: "Not helpful" },
   conversationQuote: {
     quote: "Quote",

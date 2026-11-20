@@ -5,7 +5,7 @@ import { ComposerPrimitive, useAui, type AssistantClient } from "@assistant-ui/r
 import { afterEach, expect, it, vi } from "vitest";
 import { createDefaultAgentUIPresentation, ConversationComposerSend, usePluginService, type UIPluginDefinition } from "@za38.03/agent-ui-plugins";
 import { AgentApplication, AgentUIApplication, AgentUICompatibilityRoot, AgentUIProjectProvider, createAgentUIProject, createPluginCapabilityCatalog } from "../src/ui/index.js";
-import { AgentUIProvider, useAgentUIAgents, useAgentUIAgentIdentity, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
+import { AgentUIProvider, useAgents, useAgentIdentity, type AgentUIAgents } from "../src/host/AgentUIAgentsProvider.js";
 import { getPreviewAgentEnvironment } from "../src/ui/application/preview-environment.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -31,7 +31,7 @@ it.each(["controlled", "always", "web-component", "workflow", "single", "preview
     ].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   }));
   function View() {
-    const id = useAgentUIAgentIdentity()?.agentId ?? "a";
+    const id = useAgentIdentity()?.agentId ?? "a";
     const client = useAui(); clients.set(id, client);
     const service = usePluginService<string>("test.identity");
     useEffect(() => { mounted(id); }, [id]);
@@ -46,7 +46,7 @@ it.each(["controlled", "always", "web-component", "workflow", "single", "preview
   const project = createAgentUIProject({ development: mode === "preview-workflow", presentation: createDefaultAgentUIPresentation(),
     appUIModelSource: JSON.stringify({ applicationPlugins: [{ pluginId: "identity", enabled: true }], root: { type: "slot", plugins: [{ pluginId: "view" }] } }),
     pluginCapabilityCatalog: createPluginCapabilityCatalog([provider, view].map(definition => ({ ...definition, provides: definition.provides ?? [], inject: definition.inject ?? [], optionalInject: [], loadDefinition: async () => definition }))), capabilityCatalogRevision: "a".repeat(64) });
-  function Controls() { agents = useAgentUIAgents(); return null; }
+  function Controls() { agents = useAgents(); return null; }
   function Scene() {
     const [visible, select] = useState("a"); setVisible = select;
     if (single) return <div data-agent-ui-agent="a"><AgentApplication project={project} endpoint="/api/a" /></div>;

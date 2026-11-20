@@ -6,8 +6,7 @@ import {
   CONVERSATION_COMMAND_SOURCE,
   CONVERSATION_MENTION_SOURCE,
   createConversationCommandRegistry,
-  type ConversationSlashCommand,
-} from "@za38.03/agent-ui-plugins/composer-triggers";
+  type ConversationSlashCommand} from "@za38.03/agent-ui-plugins/composer-triggers";
 
 const command = (id: string): ConversationSlashCommand => ({ id, label: id, mode: "directive" });
 

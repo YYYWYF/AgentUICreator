@@ -3,7 +3,7 @@ import { type ComponentProps, type FC, type ReactNode } from 'react';
 import {
   RefreshCwIcon,
   TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
 export type CanonicalResponseReloadActionProps = Omit<
@@ -16,17 +16,18 @@ export const CanonicalResponseReloadAction: FC<CanonicalResponseReloadActionProp
   disabled: disabledProp,
   ...buttonProps
 }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const response = useAssistantResponseRuntime();
+  const canReload = useAssistantResponseRuntime(snapshot => snapshot.canReload);
   return (
     <TooltipIconButton
       {...buttonProps}
       tooltip={localeMessages.common.refresh}
       type='button'
-      disabled={!response.canReload || disabledProp}
+      disabled={!canReload || disabledProp}
       onClick={(event) => {
         onClick?.(event);
-        if (!event.defaultPrevented && response.canReload && !disabledProp) {
+        if (!event.defaultPrevented && canReload && !disabledProp) {
           response.reload();
         }
       }}

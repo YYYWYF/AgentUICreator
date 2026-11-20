@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it } from "vitest";
@@ -12,7 +12,6 @@ import { installDemoPlugin } from "../src/project/install-demo-plugin";
 import { installOfficialAgentUIResource } from "../src/project/install-official-agent-ui-resource";
 import { inspectOfficialAgentUIResourceCatalog } from "../src/project/official-resource-inspection";
 import { resourcePaths } from "../src/project/optional-resource-paths";
-import { ensurePluginApplication } from "../src/project/plugin-application";
 import { verifyUIProject } from "../src/verify-ui";
 import { repositoryRoot } from "./support/generated-project";
 
@@ -75,16 +74,22 @@ it.each(["platform", "assistant", "embedded"] as const)(
 
 it("still rejects a different contribution in a singleton Slot without changing the model", async () => {
   const { root, paths, readModel } = await fixture("assistant");
-  await ensurePluginApplication(root, "tool-fallback");
+  const custom = path.join(paths.sourceRoot, "plugins", "custom-tool-card");
+  await mkdir(custom, { recursive: true });
+  await writeFile(path.join(custom, "manifest.json"), JSON.stringify({
+    id: "custom-tool-card", name: "Custom tool card", description: "Project tool card",
+    version: "0.0.1", capabilities: ["conversation-tool-fallback-renderer"], requiresRenderScope: true,
+  }));
+  await writeFile(path.join(custom, "definition.ts"), "import manifest from './manifest.json';\nexport default { manifest, Component: () => null };\n");
   const model = await readModel();
   const tool = collectAppUIPluginLocations(model).find(({ plugin }) => plugin.pluginId === "tool-result")!.plugin;
-  tool.pluginId = "tool-fallback";
+  tool.pluginId = "custom-tool-card";
   await writeFile(paths.appUIModelPath, JSON.stringify(model, null, 2) + "\n");
   await writeGeneratedPluginRegistry(root);
   expect((await verifyUIProject(root)).status).toBe("passed");
   const before = await readFile(paths.appUIModelPath);
   await expect(installDemoPlugin(root, "tool-result")).rejects.toMatchObject({
-    code: "RESOURCE_CONFLICT", technicalDetails: { code: "PLUGIN_SLOT_OCCUPIED", slot: "toolFallback", occupantPluginId: "tool-fallback" },
+    code: "RESOURCE_CONFLICT", technicalDetails: { code: "PLUGIN_SLOT_OCCUPIED", slot: "toolFallback", occupantPluginId: "custom-tool-card" },
   });
   expect(await readFile(paths.appUIModelPath)).toEqual(before);
 }, 120_000);

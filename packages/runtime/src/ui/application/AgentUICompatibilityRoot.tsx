@@ -1,12 +1,12 @@
-import { useAgentUIProject } from "../project-context.js";
+import { useProject } from "../project-context.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAgentUI } from "@za38.03/agent-ui-runtime";
+import { useAgent } from "@za38.03/agent-ui-runtime";
 import type { ResolvedAgentUICompatibilityConfig, AgentUIEmit } from "./compatibility-config.js";
 import { createRuntimeCompositionStore } from "../runtime/composition/index.js";
 import type { AppAgentState } from "../agent-contract/agent-state.js";
 import { AgentApplication, type AgentProps } from "./Agent.js";
 import { AgentUIApplication } from "./AgentUIApplication.js";
-import { AgentUIProvider, useAgentUIAgents, useAgentUIAgentIdentity, type AgentUIAgents } from "../../host/AgentUIAgentsProvider.js";
+import { AgentUIProvider, useAgents, useAgentIdentity, type AgentUIAgents } from "../../host/AgentUIAgentsProvider.js";
 
 type Props = {
   config: ResolvedAgentUICompatibilityConfig;
@@ -28,8 +28,8 @@ function MultiBridge(props: Props) {
   </AgentUIProvider>;
 }
 function MultiBridgeContent({ config, emit, agentProps, onAgents }: Props) {
-  const project = useAgentUIProject();
-  const agents = useAgentUIAgents();
+  const project = useProject();
+  const agents = useAgents();
   useEffect(() => { onAgents?.(agents); return () => onAgents?.(null); }, [agents, onAgents]);
   return <>{config.agents!.map(instance => <AgentUIApplication key={instance.agentId}
     {...agentProps} agentId={instance.agentId}
@@ -44,7 +44,7 @@ function MultiBridgeContent({ config, emit, agentProps, onAgents }: Props) {
 }
 
 function BridgeSession({ config, emit, agentProps }: Props) {
-  const base = useAgentUIProject();
+  const base = useProject();
   const [compositionStore] = useState(() => createRuntimeCompositionStore<AppAgentState>());
   const project = useMemo(() => ({ ...base, compositionStore,
     appUIModelSource: config.appUIModel === undefined ? base.appUIModelSource : JSON.stringify(config.appUIModel),
@@ -63,8 +63,8 @@ function BridgeSession({ config, emit, agentProps }: Props) {
 }
 
 function BridgeEvents({ emit }: Pick<Props, "emit">) {
-  const host = useAgentUI();
-  const instance = useAgentUIAgentIdentity();
+  const host = useAgent();
+  const instance = useAgentIdentity();
   const ready = useRef(false);
   const lastThread = useRef<string | undefined>(undefined);
   useEffect(() => {

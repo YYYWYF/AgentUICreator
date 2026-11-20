@@ -1,13 +1,14 @@
+import { ToolCallCard as InternalCard } from "../src/plugins/tool-result/adapters/presentation/tool-call-card.js";
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useLocalRuntime, type AssistantRuntime } from "@assistant-ui/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { AgentUILocaleProvider, ConversationThread, ConversationToolFallback, ConversationTransientMessageProvider, createConversationTransientMessageService } from "@za38.03/agent-ui-plugins";
-import { ConversationToolFallbackPlugin } from "../dist/tool-fallback/index.js";
+import { AgentUILocaleProvider, ConversationThread, ConversationToolResult, ConversationTransientMessageProvider, createConversationTransientMessageService } from "@za38.03/agent-ui-plugins";
+import { ConversationToolResultPlugin } from "../dist/tool-result/index.js";
 import { TransientAssistantMessagesPlugin } from "../dist/transient-assistant-messages/index.js";
 import { ConversationTransientMessages as SourceTransientMessages } from "../dist/sources/takeover/transient-assistant-messages/adapters/transient-assistant-messages";
-import { ConversationToolFallback as PortableFallback } from "../dist/sources/takeover/tool-fallback/adapters/tool-fallback";
+import { ToolCallCard as PortableFallback } from "../dist/sources/takeover/tool-result/adapters/tool-call-card";
 const frameworkProps = { renderSlot: () => null, renderScopedSlot: () => null };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;
@@ -17,7 +18,7 @@ async function mount(node: ReactNode) { const container=document.createElement("
 it("packaged fallback forwards application props, controlled disclosure and compound parts in the native tool context", async () => {
   const changed=vi.fn();
   function Host(){ const runtime=useLocalRuntime({async *run(){}},{initialMessages:[{id:"a",role:"assistant",content:[{type:"tool-call",toolCallId:"call",toolName:"unknown_tool",args:{q:"original"},result:{answer:42}}]}]});
-    return <AssistantRuntimeProvider runtime={runtime}><ThreadPrimitive.Root><ThreadPrimitive.Messages components={{UserMessage:()=>null,AssistantMessage:()=> <MessagePrimitive.Root><MessagePrimitive.Parts components={{tools:{Fallback:tool=><ConversationToolFallbackPlugin {...frameworkProps} tool={tool} expanded={true} onExpandedChange={changed} aria-label={"application-tool"} style={{padding:17}} buttonProps={{"aria-label":"application-trigger"}} argsProps={{"aria-label":"application-args"}} resultProps={{"aria-label":"application-result"}} renderDetails={details=><>{details}<span data-custom-child="">application child</span></>}/>}}}/></MessagePrimitive.Root>}}/></ThreadPrimitive.Root></AssistantRuntimeProvider>; }
+    return <AssistantRuntimeProvider runtime={runtime}><ThreadPrimitive.Root><ThreadPrimitive.Messages components={{UserMessage:()=>null,AssistantMessage:()=> <MessagePrimitive.Root><MessagePrimitive.Parts components={{tools:{Fallback:tool=><ConversationToolResultPlugin {...frameworkProps} tool={tool} expanded={true} onExpandedChange={changed} aria-label={"application-tool"} style={{padding:17}} buttonProps={{"aria-label":"application-trigger"}} argsProps={{"aria-label":"application-args"}} resultProps={{"aria-label":"application-result"}} renderDetails={details=><>{details}<span data-custom-child="">application child</span></>}/>}}}/></MessagePrimitive.Root>}}/></ThreadPrimitive.Root></AssistantRuntimeProvider>; }
   const container=await mount(<Host/>);
   expect(container.querySelector<HTMLElement>('[aria-label="application-tool"]')?.style.padding).toBe("17px");
   expect(container.querySelector('[aria-label="application-args"]')?.textContent).toContain("original");
@@ -26,12 +27,12 @@ it("packaged fallback forwards application props, controlled disclosure and comp
   await act(async()=>container.querySelector<HTMLButtonElement>('[aria-label="application-trigger"]')!.click());
   expect(changed).toHaveBeenCalledWith(false);
   expect(container.querySelector('[aria-label="application-trigger"]')?.getAttribute("aria-expanded")).toBe("true");
-  expect(ConversationToolFallback.Root).toBeDefined(); expect(ConversationToolFallback.Approval).toBeDefined();
-  function CustomHost(){const runtime=useLocalRuntime({async *run(){}});return <AssistantRuntimeProvider runtime={runtime}><ConversationToolFallbackPlugin {...frameworkProps} tool={{toolCallId:"custom",toolName:"custom",args:{},status:{type:"complete"}}} expanded={true} buttonProps={{"aria-label":"custom trigger"}} renderDetails={()=> <div data-custom-content="">custom content</div>}/></AssistantRuntimeProvider>;}
+
+  function CustomHost(){const runtime=useLocalRuntime({async *run(){}});return <AssistantRuntimeProvider runtime={runtime}><ConversationToolResultPlugin {...frameworkProps} tool={{toolCallId:"custom",toolName:"custom",args:{},status:{type:"complete"}}} expanded={true} buttonProps={{"aria-label":"custom trigger"}} renderDetails={()=> <div data-custom-content="">custom content</div>}/></AssistantRuntimeProvider>;}
   await act(async()=>root!.render(<CustomHost/>));expect(container.querySelector('[aria-label="custom trigger"]')).not.toBeNull();expect(container.querySelector("[data-custom-content]")?.textContent).toBe("custom content");
 });
 
-it.each([{name:"public",Fallback:ConversationToolFallback},{name:"portable",Fallback:PortableFallback}])("$name fallback approval composition retains native callbacks, retry and localized queued state", async ({Fallback}) => {
+it.each([{name:"internal",Fallback:InternalCard},{name:"portable",Fallback:PortableFallback}])("$name fallback approval composition retains native callbacks, retry and localized queued state", async ({Fallback}) => {
   const respond=vi.fn().mockRejectedValueOnce(new Error("backend refusal")).mockResolvedValueOnce(undefined);
   function Host(){const runtime=useLocalRuntime({async *run(){}});return <AssistantRuntimeProvider runtime={runtime}><AgentUILocaleProvider locale="zh-CN"><Fallback.Root open><Fallback.Trigger toolName="tool" responseDeliveryStatus="queued"/><Fallback.Approval approval={{id:"request"}} status={{type:"requires-action",reason:"tool-calls"}} respondToApproval={respond}/></Fallback.Root></AgentUILocaleProvider></AssistantRuntimeProvider>;}
   const container=await mount(<Host/>);expect(container.textContent).toContain("回复已排队，尚未发送");

@@ -4,16 +4,12 @@ import {
   type ConversationComposerDropzoneProps,
   type ConversationComposerInputProps,
   type ConversationComposerRootProps,
-  AuiIf,
   ComposerAttachments,
   ComposerHostConfigContext,
   ComposerInputHostContext,
   ComposerPrimitive,
-  QueueItemPrimitive,
-  TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
   useAuiEvent,
-  XIcon,
   useComposer,
   type ComposerRequestAdapter,
 } from '../../../../composer-support.js';
@@ -24,16 +20,18 @@ import { ComposerTextareaInput } from './textarea.js';
 import { useComposerRequestAdapter } from '../../../../internal/composer-request-adapter.js';
 
 function ComposerAttachmentError() {
-  const messages = useAgentUILocale();
+  const messages = useLocale();
   const [error, setError] = useState<string | null>(null);
   useAuiEvent('composer.attachmentAddError', (event) => {
     if (event.messageId !== undefined) {
       return;
     }
     setError(
-      event.reason === 'not-accepted'
-        ? messages.serviceAdapters.fileTypeRejected
-        : event.message || messages.attachments.uploadFailed,
+      event.reason === 'no-adapter'
+        ? messages.attachments.unavailable
+        : event.reason === 'not-accepted'
+          ? messages.serviceAdapters.fileTypeRejected
+          : event.message || messages.attachments.uploadFailed,
     );
   });
   useAuiEvent('composer.attachmentAdd', () => setError(null));
@@ -51,48 +49,6 @@ function ComposerAttachmentError() {
   );
 }
 
-export interface ComposerQueueLabels {
-  queued: string;
-  removeQueued: string;
-}
-
-export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued }) => (
-  <AuiIf condition={(s) => s.thread.capabilities.queue && s.composer.queue.length > 0}>
-    <div
-      data-agent-ui-owned=''
-      data-slot='aui_composer-queue'
-      className='border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2'
-    >
-      <span data-agent-ui-owned='' className='text-muted-foreground text-xs'>
-        {queued}
-      </span>
-      <ComposerPrimitive.Queue>
-        {() => (
-          <div
-            data-agent-ui-owned=''
-            data-slot='aui_composer-queue-item'
-            className='flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm'
-          >
-            <div data-agent-ui-owned='' className='min-w-0 flex-1 break-words'>
-              <QueueItemPrimitive.Text />
-            </div>
-            <QueueItemPrimitive.Remove asChild>
-              <TooltipIconButton
-                tooltip={removeQueued}
-                aria-label={removeQueued}
-                type='button'
-                className='size-6 shrink-0'
-              >
-                <XIcon className='size-3.5' />
-              </TooltipIconButton>
-            </QueueItemPrimitive.Remove>
-          </div>
-        )}
-      </ComposerPrimitive.Queue>
-    </div>
-  </AuiIf>
-);
-
 export interface CanonicalComposerProps extends Omit<ConversationComposerRootProps, 'children'> {
   /** Final request assembly. Returned forwardedProps replaces all defaults. */
   requestAdapter?: ComposerRequestAdapter | undefined;
@@ -107,7 +63,6 @@ export interface CanonicalComposerProps extends Omit<ConversationComposerRootPro
   autoFocus?: boolean | undefined;
   placeholder: string;
   inputAriaLabel: string;
-  queueLabels: ComposerQueueLabels;
   triggers?: ReactNode;
   beforeInput?: ReactNode;
   input?: ReactNode;
@@ -126,7 +81,6 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   autoFocus,
   placeholder,
   inputAriaLabel,
-  queueLabels,
   triggers,
   beforeInput,
   input,
@@ -171,7 +125,6 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
             <div data-agent-ui-owned='' data-slot='aui_composer-before-input' className='empty:hidden'>
               {beforeInput}
             </div>
-            <ComposerQueue {...queueLabels} />
             <ComposerInputHostContext.Provider
               value={{ variant: 'primary', placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}
             >
@@ -226,13 +179,13 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
 
 export type ConversationCanonicalComposerProps = Omit<
   CanonicalComposerProps,
-  'placeholder' | 'inputAriaLabel' | 'queueLabels'
+  'placeholder' | 'inputAriaLabel'
 >;
 
 export function ConversationCanonicalComposer(props: ConversationCanonicalComposerProps) {
-  const labels = useAgentUILocale('composer');
+  const labels = useLocale('composer');
   return (
-    <CanonicalComposer {...props} placeholder={labels.placeholder} inputAriaLabel={labels.input} queueLabels={labels} />
+    <CanonicalComposer {...props} placeholder={labels.placeholder} inputAriaLabel={labels.input} />
   );
 }
 export { ComposerTextareaInput as ConversationComposerTextareaInput } from './textarea.js';

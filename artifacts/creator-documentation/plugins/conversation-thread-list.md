@@ -16,6 +16,24 @@
 重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend.md#重命名归档与取消归档)。
 
 
+## 修改位置 \{#修改位置}
+
+默认 npm 实现先修改项目的 `plugins/conversation-thread-list/index.tsx`，保留已有服务桥接。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
+
+| 修改场景                  | 文件                             |
+| --------------------- | ------------------------------ |
+| 列表外层、加载错误与重试入口        | `conversation-thread-list.tsx` |
+| 搜索、普通列表与归档区的组合开关      | `list/policy-thread-list.tsx`  |
+| 搜索输入框与清空按钮            | `list/thread-search.tsx`       |
+| 默认日期分组和标题过滤规则         | `list/use-thread-groups.ts`    |
+| 分组标题、空列表和加载骨架         | `list/policy-groups.tsx`       |
+| 已归档会话区域               | `list/archived-threads.tsx`    |
+| 列表项标题、运行状态与重命名切换      | `list/thread-item.tsx`         |
+| 更多菜单、重命名、归档、取消归档和删除操作 | `list/thread-item-menu.tsx`    |
+| 行内重命名输入框、提交与焦点恢复      | `list/thread-item-rename.tsx`  |
+
+`list/primitives/` 保留基础组件的兼容展示；当前默认列表的业务操作使用上表中的 `list/thread-item*.tsx`。修改外观时保留原有回调、操作权限与请求失败处理。
+
 ## 搜索、归档和菜单操作 \{#搜索归档和菜单操作}
 
 
@@ -59,9 +77,9 @@ import { createContext, useContext, useState, type ComponentProps } from 'react'
 import {
   CanonicalConversationThreadList, ConversationThreadListRoot,
   ConversationThreadListSearch, ConversationThreadListItem,
-  ConversationThreadListItemByIndex, useConversationState,
-  useConversationThreadListGroups, useAgentUISidebarNavigation,
-  useAgentUILocale, useAgentUILocaleCode,
+  ConversationThreadListItemByIndex, useConversation,
+  useConversationThreadListGroups, useSidebarNavigation,
+  useLocale, useLocaleCode,
   type ConversationThreadListItemProps,
 } from '@za38.03/agent-ui-plugins';
 
@@ -78,8 +96,8 @@ const ItemOptions = createContext<ConversationThreadListItemProps>({});
 
 function ProjectThreadItem() {
   const options = useContext(ItemOptions);
-  const navigate = useAgentUISidebarNavigation();
-  const disabled = useConversationState(s => s.threadListItem.custom?.agentUiDisabled === true);
+  const navigate = useSidebarNavigation();
+  const disabled = useConversation(s => s.threadListItem.custom?.agentUiDisabled === true);
   return <div aria-disabled={disabled || undefined} inert={disabled || undefined}>
     <ConversationThreadListItem {...options} onNavigate={options.onNavigate ?? navigate} />
   </div>;
@@ -107,11 +125,11 @@ export function ProjectGroupedHistory({
   const query = showSearch ? (searchProps?.value ?? search) : '';
   // 复用标题过滤和跨零点刷新；不使用该 Hook 返回的默认日期 groups。
   const { threadIds, filteredIndices } = useConversationThreadListGroups(query);
-  const items = useConversationState(s => s.threads.threadItems);
-  const archivedIds = useConversationState(s => s.threads.archivedThreadIds);
-  const loading = useConversationState(s => s.threads.isLoading);
-  const labels = useAgentUILocale('threadList');
-  const locale = useAgentUILocaleCode();
+  const items = useConversation(s => s.threads.threadItems);
+  const archivedIds = useConversation(s => s.threads.archivedThreadIds);
+  const loading = useConversation(s => s.threads.isLoading);
+  const labels = useLocale('threadList');
+  const locale = useLocaleCode();
   const headings = historyMessages[locale];
   const byId = new Map(items.map(item => [item.id, item]));
   const now = new Date();
@@ -187,12 +205,12 @@ export function CategoryHistory(props: Props) {
 import {
   ConversationThreadListRoot, ConversationThreadListItem,
   ConversationThreadListItemByIndex, useConversationThreadListGroups,
-  useConversationState, useAgentUISidebarNavigation, useAgentUILocale,
+  useConversation, useSidebarNavigation, useLocale,
 } from '@za38.03/agent-ui-plugins';
 
 function ProjectThreadItem() {
-  const onNavigate = useAgentUISidebarNavigation();
-  const disabled = useConversationState(s =>
+  const onNavigate = useSidebarNavigation();
+  const disabled = useConversation(s =>
     s.threadListItem.custom?.agentUiDisabled === true);
   return <div className="project-thread-row"
     aria-disabled={disabled || undefined} inert={disabled || undefined}>
@@ -202,8 +220,8 @@ function ProjectThreadItem() {
 
 export function ProjectThreadGroups({ query }: { query: string }) {
   const { threadIds, filteredIndices, groups } = useConversationThreadListGroups(query);
-  const loading = useConversationState(s => s.threads.isLoading);
-  const labels = useAgentUILocale('threadList');
+  const loading = useConversation(s => s.threads.isLoading);
+  const labels = useLocale('threadList');
   const renderItem = (index: number) => (
     <ConversationThreadListItemByIndex key={threadIds[index]} index={index}
       components={{ ThreadListItem: ProjectThreadItem }} />
@@ -226,7 +244,7 @@ export function ProjectThreadGroups({ query }: { query: string }) {
 归档区单独使用 `archivedThreadIds`，在列表组件内取得数据并渲染：
 
 ```tsx
-const archivedIds = useConversationState(s => s.threads.archivedThreadIds);
+const archivedIds = useConversation(s => s.threads.archivedThreadIds);
 const archivedRows = archivedIds.map((id, index) => (
   <ConversationThreadListItemByIndex key={id} index={index} archived
     components={{ ThreadListItem: ProjectThreadItem }} />
@@ -308,9 +326,9 @@ export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConver
 
 - **分组与搜索**：`useConversationThreadListGroups(searchQuery = "")` 返回 `ConversationThreadListGroups`，包含 `threadIds`、`filteredIndices` 和 `groups`。
 - **每组内容**：包含 `id`、本地化 `label` 和 `indices`。
-- **导航完成通知**：`useAgentUISidebarNavigation()` 返回 `() => void`，供现有侧栏在导航后处理收起。
+- **导航完成通知**：`useSidebarNavigation()` 返回 `() => void`，供现有侧栏在导航后处理收起。
 
-项目的 `useConversations()` / `useConversationActions()` 见[会话服务](/plugins/conversation-service.md#hook)。
+项目的 `useConversations()` / `useConversations()` 见[会话服务](/plugins/conversation-service.md#hook)。
 
 
 默认历史列表按什么分组？

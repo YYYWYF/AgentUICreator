@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { useCallback, useState, type ComponentProps } from 'react';
 import { CheckIcon, Loader2Icon } from 'lucide-react';
@@ -77,7 +77,7 @@ export function OptionList({
   className,
   ...props
 }: OptionListProps) {
-  const messages = useAgentUILocale('questionOptions');
+  const messages = useLocale('questionOptions');
   const multiple = selectionMode === 'multiple';
   const [selected, setSelected] = useState<readonly string[]>(() =>
     (defaultValue ?? []).filter((id) => options.some((o) => o.id === id)),

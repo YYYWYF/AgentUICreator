@@ -37,11 +37,6 @@
       },
       {
         "type": "custom-link",
-        "label": "消息排队",
-        "link": "/development/message-queue"
-      },
-      {
-        "type": "custom-link",
         "label": "Agent 配置示例",
         "link": "/development/agent-options"
       }

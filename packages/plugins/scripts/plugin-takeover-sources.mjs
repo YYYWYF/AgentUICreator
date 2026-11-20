@@ -22,7 +22,7 @@ const boundaries = new Map([
  ["src/internal/quote-thread-root.tsx", packageName + "/plugin-support"],
  ...["assistant-response-runtime", "assistant-response", "conversation-command-decisions", "conversation-transient-messages", "task-disclosure-context", "tool-renderer-context", "conversation-turn", "data-message-ui"].map(name => ["src/internal/" + name + (name === "assistant-response" ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
  ["src/conversation-transient-message-service.ts", runtimePackage + "/plugin-api"],
- ...["ApplicationLifecycleContext", "PluginInstanceContext", "PluginRenderScope", "PluginServiceContext", "usePluginServiceSnapshot", "custom-event-name"].map(name=>["src/plugin-api/" + name + (["usePluginServiceSnapshot","custom-event-name"].includes(name) ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
+ ...["ApplicationLifecycleContext", "PluginInstanceContext", "PluginRenderScope", "PluginServiceContext", "usePluginService", "custom-event-name"].map(name=>["src/plugin-api/" + name + (["usePluginService","custom-event-name"].includes(name) ? ".ts" : ".tsx"), runtimePackage + "/plugin-api"]),
 ]);
 // Export identity, rather than a naming heuristic, decides the canonical owner.
 const runtimeNames = new Set();
@@ -59,6 +59,7 @@ const presentationModules = new Set([
 const selectiveModules = new Set([
   "src/public.tsx", "src/plugin-support.ts", "src/composer-support.ts",
   "src/internal/composable-thread.tsx", "src/internal/conversation-quote.tsx",
+  "src/plugins/conversation-surface/adapters/presentation/thread/index.ts",
   "src/lexical.tsx", "src/locale.tsx",
 ]);
 

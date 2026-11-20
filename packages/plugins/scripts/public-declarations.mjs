@@ -1,4 +1,10 @@
 /** Declaration names are logical paths, even when a caller uses Windows paths. */
+export function publicPresentationFiles(delivery) {
+  return Array.isArray(delivery.publicPresentationTypes)
+    ? delivery.publicPresentationTypes
+    : delivery.publicPresentationTypes ? delivery.presentation : [];
+}
+
 export const sourceRuntimeDeclarations = new Set([
   "composer-skill", "quote-lifecycle", "quote-thread-root", "quote-selection-adapter", "quote-selection-root", "quote-selection-action",
   "task-disclosure-context", "tool-renderer-context", "conversation-turn", "thread-delete-recovery",

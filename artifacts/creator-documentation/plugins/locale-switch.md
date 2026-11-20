@@ -12,6 +12,11 @@
 
 ![语言选择界面](/images/plugins/locale-switch.png)
 
+
+![切换英文后的欢迎内容、输入提示和会话列表](/images/agent-ui/appearance-english.jpg)
+
+切换英文后，欢迎语、输入提示和“New Thread”等界面文字同步变化；历史标题和业务用户资料仍保留原内容。
+
 ## 紧凑的语言选择框 \{#紧凑的语言选择框}
 
 

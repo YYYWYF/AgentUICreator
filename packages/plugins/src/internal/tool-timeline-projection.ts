@@ -1,4 +1,4 @@
-import { hasToolResultParts } from "../plugins/tool-result/adapters/presentation/content.js";
+import { hasToolResultParts } from "../plugins/tool-result/adapters/presentation/result/content.js";
 
 /** Presentation projection only. Identity and lifecycle come from assistant-ui parts. */
 export interface TimelinePart {

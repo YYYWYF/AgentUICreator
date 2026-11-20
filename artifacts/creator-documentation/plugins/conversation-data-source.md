@@ -14,6 +14,8 @@
 <figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
 </figure>
 
+项目实现 `list/get/delete/rename/archive/unarchive`，其中 `list()` 返回 `ConversationSummary[]`，`get()` 返回包含 `history` 的 `ConversationDetail`。业务接口响应由项目映射，完整结构见[历史会话后端接入](/development/history-backend.md)。
+
 ## 转换业务列表的时间和分类 \{#转换业务列表的时间和分类}
 
 <span id="example-1"></span>

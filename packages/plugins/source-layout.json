@@ -896,30 +896,6 @@
       "pluginId": "submit-action"
     },
     {
-      "view": "resources/registry/items/plugin/tool-fallback/files/plugins/tool-fallback/definition.ts",
-      "source": "src/plugins/tool-fallback/adapters/project/definition.ts",
-      "kind": "project",
-      "pluginId": "tool-fallback"
-    },
-    {
-      "view": "resources/registry/items/plugin/tool-fallback/files/plugins/tool-fallback/index.tsx",
-      "source": "src/plugins/tool-fallback/adapters/project/index.tsx",
-      "kind": "project",
-      "pluginId": "tool-fallback"
-    },
-    {
-      "view": "resources/registry/items/plugin/tool-fallback/files/plugins/tool-fallback/manifest.json",
-      "source": "src/plugins/tool-fallback/plugin.json",
-      "kind": "project",
-      "pluginId": "tool-fallback"
-    },
-    {
-      "view": "resources/registry/items/plugin/tool-fallback/changelog.json",
-      "source": "src/plugins/tool-fallback/CHANGELOG.json",
-      "kind": "changelog",
-      "pluginId": "tool-fallback"
-    },
-    {
       "view": "resources/registry/items/plugin/tool-group/files/plugins/tool-group/definition.ts",
       "source": "src/plugins/tool-group/adapters/project/definition.ts",
       "kind": "project",
@@ -1308,15 +1284,15 @@
     },
     {
       "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
-      "source": "src/plugins/tool-fallback/upstream/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "source": "src/plugins/tool-result/upstream/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
       "kind": "upstream",
-      "pluginId": "tool-fallback"
+      "pluginId": "tool-result"
     },
     {
       "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
-      "source": "src/plugins/tool-fallback/upstream/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "source": "src/plugins/tool-result/upstream/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
       "kind": "upstream",
-      "pluginId": "tool-fallback"
+      "pluginId": "tool-result"
     },
     {
       "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
@@ -1619,15 +1595,15 @@
     },
     {
       "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
-      "source": "src/plugins/tool-fallback/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "source": "src/plugins/tool-result/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
       "kind": "presentation",
-      "pluginId": "tool-fallback"
+      "pluginId": "tool-result"
     },
     {
       "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
-      "source": "src/plugins/tool-fallback/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "source": "src/plugins/tool-result/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
       "kind": "presentation",
-      "pluginId": "tool-fallback"
+      "pluginId": "tool-result"
     },
     {
       "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
@@ -1916,6 +1892,81 @@
       "view": "src/internal/adapters-generated/assistant-ui/suggestion-request.ts",
       "source": "src/shared/adapters/presentation/suggestion-request.ts",
       "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file/appearance.tsx",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/appearance.tsx",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file/download.tsx",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/download.tsx",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file/player.tsx",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/player.tsx",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/data.ts",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/data.ts",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/download.ts",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/download.ts",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/copy.ts",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/copy.ts",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/root.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/root.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/preview.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/preview.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/source.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/source.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/zoom.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/zoom.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/status.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/status.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image/actions.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image/actions.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file/source.ts",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/source.ts",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file/size.ts",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/size.ts",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
     }
   ]
 }

@@ -1,11 +1,5 @@
 export type { AgentUITheme } from '@za38.03/agent-ui-plugins';
-export {
-  AgentUIHostError,
-  useAgentUI,
-  useAgentUIEvent,
-  useAgentUIState,
-  useAgentUIUser,
-} from '@za38.03/agent-ui-runtime';
+export { AgentUIHostError, useAgent, useAgentEvent, useHostUser } from '@za38.03/agent-ui-runtime';
 export type {
   AgentUIConnectionStatus,
   AgentUIEventMap,

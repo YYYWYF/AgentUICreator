@@ -53,7 +53,7 @@ export function Example(props: ComponentProps<typeof ConversationTransientMessag
 
 ```tsx
 import { useState } from 'react';
-import { useConversationTransientMessages } from '@za38.03/agent-ui-plugins';
+import { useTransientMessages } from '@za38.03/agent-ui-plugins';
 
 export function SaveWithNotice({ save, label, successText, onError }: {
   save: () => Promise<void>;
@@ -61,7 +61,7 @@ export function SaveWithNotice({ save, label, successText, onError }: {
   successText: string;
   onError: (error: unknown) => void;
 }) {
-  const { addMessage } = useConversationTransientMessages();
+  const { addMessage } = useTransientMessages();
   const [pending, setPending] = useState(false);
   return <button type="button" disabled={pending} onClick={async () => {
     if (pending) return;
@@ -109,15 +109,15 @@ export function SaveWithNotice({ save, label, successText, onError }: {
 自定义 renderer 只需要画出收到的内容；位置锚点由现有服务维护。提示不参与 Agent 请求，刷新后需要恢复时另接业务历史。
 
 
-其他插件可通过 `useConversationTransientMessages().addMessage()` 在当前对话位置显示业务提示或错误，调用方法见 [Hook](#hook)。通知不发送给 Agent、不写入后端历史；与其他插件联动时复用当前通知上下文，见[通用入口](/development/plugin-interaction.md#按需求找入口)。
+其他插件可通过 `useTransientMessages().addMessage()` 在当前对话位置显示业务提示或错误，调用方法见 [Hook](#hook)。通知不发送给 Agent、不写入后端历史；与其他插件联动时复用当前通知上下文，见[通用入口](/development/plugin-interaction.md#按需求找入口)。
 
 
 
-业务操作完成后，需要在当前聊天里增加一条本地提示时，从 Plugins 根入口调用 `useConversationTransientMessages()`，取得 `{ addMessage }`，用法见示例。
+业务操作完成后，需要在当前聊天里增加一条本地提示时，从 Plugins 根入口调用 `useTransientMessages()`，取得 `{ addMessage }`，用法见示例。
 
 `addMessage({ role, type?, text }): string` 返回新提示的消息 ID。`role` 为 `user | assistant | system`；`type` 默认为 `normal`，错误提示用 `error`；`text` 从项目统一文案层取得。这些提示不会提交给 Agent 或写入后端历史。
 
-手动接入已有消息存储时，从 Runtime `/plugin-api` 导入 `useTransientMessages()` 订阅当前会话的 `readonly TransientMessage[]`；缺少上下文时返回空数组。同一入口的 `useOptionalTransientMessageContext()` 返回 `{ service, conversationId } | null`，用于确实需要检测上下文是否存在的适配组件。
+手动接入已有消息存储时，从 Runtime `/plugin-api` 导入 `useTransientMessages(messages => messages)` 订阅当前会话的 `readonly TransientMessage[]`；缺少上下文时返回空数组。同一入口的 `useOptionalTransientMessageContext()` 返回 `{ service, conversationId } | null`，用于确实需要检测上下文是否存在的适配组件。
 
 ### 服务方法 \{#服务}
 

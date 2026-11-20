@@ -2,10 +2,10 @@
 
 import {
   AgentUILocaleProvider as RuntimeLocaleProvider,
-  useAgentUILocale as useRuntimeLocale,
-  useAgentUILocaleCode,
+  useLocale as useRuntimeLocale,
+  useLocaleCode,
 } from "@za38.03/agent-ui-runtime/locale";
-export { useAgentUILocaleCode };
+export { useLocaleCode };
 
 import { useMemo, type ReactNode } from "react";
 import { enUS } from "./locales/en-US.js";
@@ -104,13 +104,13 @@ export function AgentUILocaleProvider({
     </RuntimeLocaleProvider>
   );
 }
-export function useAgentUILocale(): AgentUILocaleMessages;
-export function useAgentUILocale<N extends keyof AgentUILocaleMessages>(
+export function useLocale(): AgentUILocaleMessages;
+export function useLocale<N extends keyof AgentUILocaleMessages>(
   namespace: N,
 ): AgentUILocaleMessages[N];
-export function useAgentUILocale(namespace?: keyof AgentUILocaleMessages) {
+export function useLocale(namespace?: keyof AgentUILocaleMessages) {
   const inherited = useRuntimeLocale();
-  const locale = useAgentUILocaleCode();
+  const locale = useLocaleCode();
   const messages = useMemo(
     () =>
       resolveAgentUILocaleMessages(locale, inherited as AgentUILocaleOverrides),

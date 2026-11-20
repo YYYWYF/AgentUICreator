@@ -29,8 +29,8 @@
   "sideEffects": true,
   "scripts": {
     "prepare:shell": "node scripts/prepare-shell.mjs",
-    "build": "node ../../scripts/package-build-integrity.mjs begin web-component && node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component && node ../../scripts/package-build-integrity.mjs record web-component",
-    "typecheck": "node scripts/prepare-shell.mjs && tsc --noEmit",
+    "build": "node ../../scripts/package-build-integrity.mjs begin web-component && node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && node ./node_modules/typescript/lib/tsc.js --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && node ./node_modules/typescript/lib/tsc.js -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component && node ../../scripts/package-build-integrity.mjs record web-component",
+    "typecheck": "node scripts/prepare-shell.mjs && node ./node_modules/typescript/lib/tsc.js --noEmit",
     "test": "vitest run",
     "test:distribution": "node tests/distribution.test.mjs",
     "test:installation": "node tests/installation.test.mjs",
@@ -435,6 +435,88 @@
                 "@za38.03/agent-ui-renderer": "0.0.11"
               },
               "historyFrom": "0.0.10",
+              "changes": []
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-20-node20",
+          "publishedAt": "2026-11-20T07:28:34.033Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 <21.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.11",
+              "requires": {},
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.11",
+              "requires": {},
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "changes": [
+                {
+                  "id": "node20-compatibility",
+                  "version": "0.0.11",
+                  "summary": "发布目录元数据时内联规范 JSON，兼容 Node.js 20.0.0 的 ESM 加载。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-web-component": "0.0.11",
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "changes": [
+                {
+                  "id": "node20-compatibility",
+                  "version": "0.0.11",
+                  "summary": "兼容 Node.js 20.0.0：采用兼容的配置和模块解析、取消信号与流超时处理、源码加载及 TypeScript CLI 入口，固定支持 Node 20 的 OpenAI 适配版本。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "node20-macos-watch",
+                  "version": "0.0.11",
+                  "summary": "早期 Node 20 的 macOS 开发服务默认使用轮询监听，保持界面热更新，并保留 Host 显式指定的监听选项。独立前端默认配置不依赖 Creator。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11",
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
               "changes": []
             }
           ]

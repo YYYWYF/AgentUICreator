@@ -63,12 +63,12 @@ export function getProjectMessages(locale: AgentUILocaleCode) { return messages[
 新建同目录的 `index.tsx`，组件读取对应语言的工单摘要标题：
 
 ```tsx
-import { defineDataMessageUI, useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { defineDataMessageUI, useLocaleCode } from '@za38.03/agent-ui-plugins';
 import { getProjectMessages } from '../../application/i18n/messages';
 import { TICKET_SUMMARY_EVENT, type TicketSummaryData } from './data';
 
 export function TicketSummaryMessage({ data }: { data: TicketSummaryData }) {
-  const labels = getProjectMessages(useAgentUILocaleCode()).ticketSummary;
+  const labels = getProjectMessages(useLocaleCode()).ticketSummary;
 
   return <section aria-label={labels.heading}>
     <h3>{labels.heading}</h3>

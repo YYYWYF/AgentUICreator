@@ -10,7 +10,9 @@ not establish real-backend acceptance. Images enlarge in place when clicked.
 
 Public documentation has two working paths: Creator guides explain how to request
 and verify changes; developer guides explain where to edit, how to integrate, and
-which public props, methods and events to use. Plugin references describe the delivered Plugin, including the behavior it already
+which public props, methods and events to use. Keep explanations concise and focused
+on user actions and visible behavior; omit internal mechanisms and use a short
+example when it makes an integration clearer. Plugin references describe the delivered Plugin, including the behavior it already
 implements, its defaults and its lifecycle. Organize the outline around actual
 capabilities: automatic transitions, user interaction, data-driven updates and
 fallback behavior. A reader must understand what works after enabling the Plugin
@@ -29,8 +31,10 @@ must explain the standard events driving it rather than inventing a Plugin-speci
 backend event. Frontend props and screenshots do not replace this protocol contract.
 Link to shared SSE framing and approval details while keeping the Plugin's actual
 input format local and visible in its outline.
-Plugins that feed Composer explain their own raw selection, `pluginData` and
-`selections` shape, default request placement, local adapter effects and cleanup
+Describe local configuration, state and services beside the behavior they drive.
+Do not add an AG-UI section just to state that a Plugin has no corresponding event.
+Plugins that feed Composer explain their raw selection, `pluginData` shape,
+default request placement and cleanup
 rules on their own page. Composer links to those contracts and documents the
 complete final request plus shared draft hooks and operations. Native-only
 contributors, such as attachments and dictation, explain their message/draft

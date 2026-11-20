@@ -23,7 +23,7 @@
 
 ## 接入状态工具 \{#显示条件与数据来源}
 
-当前默认注册名仍为 `mock_agent_status`；服务端要使用此准确工具名，或在项目应用层显式调整具名工具注册。文案来自工具参数。以下事件按顺序发送；完整 SSE 包装和运行开始、结束事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+当前默认注册名仍为 `mock_agent_status`；服务端要使用此准确工具名，或在项目应用层显式调整具名工具注册。文案来自工具参数。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ```jsonl
 {"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"mock_agent_status"}
@@ -32,7 +32,7 @@
 {"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"{\"applied\":true}"}
 ```
 
-`label` 必须是非空字符串，`elapsed` 可省略，提供时也须为非空字符串。`elapsed` 只展示服务端文案，不自动计时。工作中、等待中、完成状态由当前工具调用生命周期推导；`applied` 只是示例结果，不驱动状态。错误、未完成或参数无效时回退工具详情。AG-UI 没有名为 `AGENT_STATUS` 的标准事件。
+`label` 必须是非空字符串，`elapsed` 可省略，提供时也须为非空字符串。`elapsed` 只展示服务端文案，不自动计时。工作中、等待中、完成状态由当前工具调用生命周期推导；`applied` 只是示例结果，不驱动状态。错误、未完成或参数无效时回退工具详情。
 
 
 `renderStatus(view, tool)` 提供这张状态卡片的 `state`、`label` 和可用的耗时文字，并保留原工具调用。可以组合业务状态卡片或操作按钮。读取整个会话的运行和共享业务状态，另见[通用取数入口](/development/plugin-interaction.md#按需求找入口)。
@@ -77,16 +77,16 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 
 
 
-| 属性              | 类型                                                                                    | 省略时 / 用途                                     |
-| --------------- | ------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `renderStatus?` | `(props: ConversationAgentStatusProps, tool: ConversationToolCallProps) => ReactNode` | 自定义状态内容                                      |
-| `Fallback?`     | `ComponentType<ConversationToolCallProps>`                                            | 默认 `ConversationToolFallback`；错误、未完成或数据无效时使用 |
+| 属性              | 类型                                                                                    | 省略时 / 用途                                   |
+| --------------- | ------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `renderStatus?` | `(props: ConversationAgentStatusProps, tool: ConversationToolCallProps) => ReactNode` | 自定义状态内容                                    |
+| `Fallback?`     | `ComponentType<ConversationToolCallProps>`                                            | 默认 `ConversationToolResult`；错误、未完成或数据无效时使用 |
 
 ### 当前工具调用的数据与操作
 
 `renderStatus(view, tool)` 中，`view` 是解析后的状态文案与耗时，`tool` 是原工具调用。用 `tool.toolCallId` 关联业务任务；状态卡片的显示文字由 `view` 提供，原始 `args` / `result` 仍需按业务结构收窄。
 
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
+公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-result.md#当前工具调用的数据与操作)。
 
 
 

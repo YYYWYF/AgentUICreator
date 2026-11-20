@@ -1,5 +1,5 @@
 import { useState, type ComponentProps, type ReactNode } from 'react';
-import { formatPresentationMessage, useAgentUILocale } from '../../../../plugin-support.js';
+import { formatPresentationMessage, useLocale } from '../../../../plugin-support.js';
 import type { DataMessageUIRenderProps } from '../../../../public.js';
 import { projectContextRetrievalData, type ContextRetrievalData } from './projection.js';
 
@@ -36,7 +36,7 @@ export function CanonicalContextRetrievalMessage({
 }: ContextRetrievalMessageProps) {
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
   const isExpanded = expanded ?? internalExpanded;
-  const labels = useAgentUILocale('searchTools');
+  const labels = useLocale('searchTools');
   const result: ContextRetrievalData | null = projectContextRetrievalData(data);
   if (result === null) {
     return null;

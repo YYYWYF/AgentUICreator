@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import type { ConversationSkillData } from '../../../../public.js';
-import { useAgentUILocale } from '../../../../locale.js';
+import { useLocale } from '../../../../locale.js';
 
 export interface ConversationSkillSelectionProps extends Omit<ComponentProps<'div'>, 'children'> {
   selectedSkill?: ConversationSkillData | null;
@@ -15,7 +15,7 @@ export function ConversationSkillSelection({
   disabled,
   ...props
 }: ConversationSkillSelectionProps) {
-  const labels = useAgentUILocale('skills');
+  const labels = useLocale('skills');
   if (!selectedSkill) return null;
   return (
     <div

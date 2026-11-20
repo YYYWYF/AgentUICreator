@@ -11,6 +11,9 @@ export function AccountView({
   ...props
 }: ComponentProps<typeof Implementation> & Partial<UIPluginComponentProps>) {
   const hostUser = useHostUser();
-  const { session, snapshot } = useAuthSession();
+  const { session } = useAuthSession();
+  const user = useAuthSession(state => state.user);
+  const busy = useAuthSession(state => state.busy);
+  const snapshot = { user, busy };
   return <Implementation hostUser={hostUser} session={session} snapshot={snapshot} {...props} />;
 }

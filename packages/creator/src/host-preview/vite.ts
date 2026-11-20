@@ -4,6 +4,7 @@ import path from "node:path";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 import { createRequire } from "node:module";
 import type { Plugin } from "vite";
+import { creatorWatchOptions } from "../nodeWatch.js";
 
 /** Logical paths relative to the generated source root, including Windows input. */
 export function requiresCreatorHostReload(relativeFile: string): boolean {
@@ -30,7 +31,8 @@ export function createCreatorHostPreviewPlugin(options: { creatorOrigin?: string
       const creatorOrigin = options.creatorOrigin ?? process.env.VITE_CREATOR_DOCK_URL ?? "http://127.0.0.1:5174";
       const workspaceId = options.workspaceId ?? createHash("sha256").update(realpathSync(config.root ?? process.cwd())).digest("hex");
       const proxy = { target: new URL(creatorOrigin).origin, changeOrigin: true, headers: { [CREATOR_WORKSPACE_ID_HEADER]: workspaceId } };
-      return { server: { proxy: {
+      const watch = creatorWatchOptions(config.server?.watch);
+      return { server: { ...(watch === undefined ? {} : { watch }), proxy: {
         "/__agent-ui/agent-proxy": proxy,
         "/__agent-ui/backend": proxy,
         "/__agent-ui/mock-data": proxy,

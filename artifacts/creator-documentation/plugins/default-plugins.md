@@ -1,12 +1,12 @@
 # 插件默认启用情况
 
-以下状态按当前工作台（`platform`）、悬浮助手（`assistant`）和嵌入式助手（`embedded`）模板列出，三种模板的启用清单相同。目前 46 个官方插件中，23 个默认启用，23 个默认未启用。已有项目可能经过调整，以项目实际配置为准。
+目前有 49 个官方插件。悬浮助手和嵌入式助手模板默认启用 23 个；工作台模板另启用多内容侧栏，共 24 个。已有项目以实际配置为准。
 
 **默认启用**表示新建项目已组合该插件；有对应数据或发生相关操作时才显示。附件上传、历史会话等功能还需业务服务支持。**默认未启用**的插件可以按需让 Creator 添加，或在项目应用层接入。
 
 Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插件数据接入](/plugins/ag-ui-data.md)及对应插件页的“显示条件与数据来源”。
 
-**审批默认可用**：`tool-result` 已包含操作确认区，支持[旧版 CUSTOM 和新版 interrupt 审批](/plugins/tool-fallback.md#显示条件与数据来源)，不需要额外开启审批插件。`tool-fallback` 是同一位置的基础展示替代，两者选择一个即可。
+**审批默认可用**：`tool-result` 已包含操作确认区，支持[旧版 CUSTOM 和新版 interrupt 审批](/plugins/tool-result.md#显示条件与数据来源)，不需要额外开启审批插件。`tool-result` 是这个位置唯一公开的官方工具卡片插件。
 
 ## 对话与会话管理
 
@@ -20,7 +20,7 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 
 ## 工作台侧栏
 
-工作台（platform）默认启用侧栏容器，不内置内容和打开按钮。悬浮助手与嵌入式助手暂不支持。内容开发、跨插件打开和新增标签见[多内容侧栏](/plugins/workbench-panel.md)。
+工作台模板默认启用侧栏容器，不内置内容和打开按钮；其他模板未默认添加。配置方法见[多内容侧栏](/plugins/workbench-panel.md)。
 
 | 插件                                                               | 用途                       | 默认状态    |
 | ---------------------------------------------------------------- | ------------------------ | ------- |
@@ -29,17 +29,19 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 
 ## 消息输入与编辑
 
-| 插件                                                             | 用途                       | 默认状态  |
-| -------------------------------------------------------------- | ------------------------ | ----- |
-| [`composer`](/plugins/composer.md)                             | 编辑待发送的消息，并容纳附件、引用和发送按钮。  | 默认启用  |
-| [`submit-action`](/plugins/submit-action.md)                   | 发送问题，或在 Agent 回复期间请求停止。  | 默认启用  |
-| [`add-attachment-action`](/plugins/add-attachment-action.md)   | 选择文件、加入当前消息，发送前可移除。      | 默认启用  |
-| [`dictation-action`](/plugins/dictation-action.md)             | 开始或停止听写，把识别文字放入草稿。       | 默认未启用 |
-| [`conversation-quote`](/plugins/conversation-quote.md)         | 选中已有回复的一段文字，引用后继续提问。     | 默认启用  |
-| [`mention-trigger`](/plugins/mention-trigger.md)               | 输入 @ 搜索并选择要引用的人或资料。      | 默认未启用 |
-| [`slash-command-trigger`](/plugins/slash-command-trigger.md)   | 输入 / 选择快捷操作，或把指令加入草稿。    | 默认未启用 |
-| [`lexical-composer-input`](/plugins/lexical-composer-input.md) | 把已选中的 @ 对象和 / 指令显示成完整标签。 | 默认未启用 |
-| [`lexical-edit-composer`](/plugins/lexical-edit-composer.md)   | 编辑已发送的用户消息，并保留其中的引用标签。   | 默认未启用 |
+| 插件                                                             | 用途                       | 默认状态      |
+| -------------------------------------------------------------- | ------------------------ | --------- |
+| [`composer`](/plugins/composer.md)                             | 编辑待发送的消息，并容纳附件、引用和发送按钮。  | 默认启用      |
+| [`submit-action`](/plugins/submit-action.md)                   | 发送问题，或在 Agent 回复期间请求停止。  | 默认启用      |
+| [`add-attachment-action`](/plugins/add-attachment-action.md)   | 选择文件、加入当前消息，发送前可移除。      | 默认启用      |
+| [`dictation-action`](/plugins/dictation-action.md)             | 开始或停止听写，把识别文字放入草稿。       | 默认未启用     |
+| [`conversation-quote`](/plugins/conversation-quote.md)         | 选中已有回复的一段文字，引用后继续提问。     | 默认启用      |
+| [`mention-trigger`](/plugins/mention-trigger.md)               | 输入 @ 搜索并选择要引用的人或资料。      | 默认未启用     |
+| [`slash-command-trigger`](/plugins/slash-command-trigger.md)   | 输入 / 选择快捷操作，或把指令加入草稿。    | 默认未启用     |
+| [`lexical-composer-input`](/plugins/lexical-composer-input.md) | 把已选中的 @ 对象和 / 指令显示成完整标签。 | 默认未启用     |
+| [`lexical-edit-composer`](/plugins/lexical-edit-composer.md)   | 编辑已发送的用户消息，并保留其中的引用标签。   | 默认未启用     |
+| [`skills`](/plugins/skills.md)                                 | 选择本次提问使用的技能。             | 默认未启用，开发中 |
+| [`skills-selection`](/plugins/skills-selection.md)             | 显示当前已选技能，并允许移除。          | 默认未启用，开发中 |
 
 ## 回复操作
 
@@ -59,7 +61,6 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 | [`reasoning`](/plugins/reasoning.md)                       | 展开或折叠 Agent 返回的思考文字。                    | 默认启用  |
 | [`tool-group`](/plugins/tool-group.md)                     | 把多个工具调用归为一组，展开查看各项调用。                   | 默认启用  |
 | [`tool-timeline`](/plugins/tool-timeline.md)               | 汇总一条回复中的工具执行状态，展开查看过程。                  | 默认未启用 |
-| [`tool-fallback`](/plugins/tool-fallback.md)               | 展开单次工具调用的参数和结果，必要时允许或拒绝执行。              | 默认未启用 |
 | [`tool-result`](/plugins/tool-result.md)                   | 按内容顺序显示工具返回的文本、图片、音频、视频和文档，保留工具详情和审批操作。 | 默认启用  |
 | [`ask-user-question`](/plugins/ask-user-question.md)       | 在对话中展示问题与选项，收集用户回答后继续执行。                | 默认未启用 |
 | [`task-group`](/plugins/task-group.md)                     | 展开 SubAgent 任务，查看各自的执行状态、过程和结果。         | 默认启用  |

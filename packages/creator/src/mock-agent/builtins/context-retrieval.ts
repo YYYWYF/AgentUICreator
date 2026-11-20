@@ -1,4 +1,5 @@
-import contextRetrievalSample from "./context-retrieval-sample.json" with { type: "json" };
+import { readFileSync } from "node:fs";
+const contextRetrievalSample: unknown = JSON.parse(readFileSync(new URL("./context-retrieval-sample.json", import.meta.url), "utf8"));
 import { defineScenario } from "../scenario.js";
 
 export const contextRetrievalScenario = defineScenario({

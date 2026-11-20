@@ -2,7 +2,7 @@ import { Fragment, type ComponentType, type ReactNode } from 'react';
 import { cn } from '../../../../plugin-support.js';
 import {
   ConversationSource,
-  ConversationToolFallback,
+  ConversationToolResult,
   type ConversationSourcePart,
   type ConversationToolCallProps,
   type UIPluginElementProps,
@@ -26,7 +26,7 @@ export function CanonicalSourceCitationsMessage({
   sourceProps,
   renderSource,
   renderSources,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: SourceCitationsMessageProps) {
   const rootProps = {

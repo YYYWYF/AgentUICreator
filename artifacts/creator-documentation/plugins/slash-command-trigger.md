@@ -11,6 +11,11 @@
 
 `directive` 模式选中后默认插入命令引用，例如 `:command[总结]{name=summarize}`，用户继续编辑后再发送。它本身不启动 Agent 请求。
 
+
+![选中总结对话指令后的 Lexical 草稿](/images/plugins/lexical-composer-input.png)
+
+启用 Lexical 输入时，“/总结对话”显示为草稿内的标签；菜单已关闭，用户可以继续补充问题，再点击发送。
+
 `action` 模式默认调用条目的 `execute()`，例如新建会话或打开项目面板；不把这个动作作为指令留在草稿，也不自动写入业务选择数据。默认命令源中的新建会话即属于动作模式。
 
 命令可来自公开 `source`，也可由业务插件通过[会话命令源](/plugins/conversation-command-source.md#随业务插件启停注册命令)注册。服务变化后菜单跟随更新，菜单查询与键盘选择由插件处理。
@@ -21,30 +26,46 @@
 
 例如项目提供这个指令：
 
-```json
+```json ag-ui
 { "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
 ```
 
 选中后正文包含 `:command[总结]{name=summarize}`。假设触发器实例 ID 为 `task-command`，Composer 最终适配器读取到：
 
-```json
+```json ag-ui
 {
   "pluginData": {
     "task-command": [
-      { "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
-    ]
-  },
-  "selections": {
-    "task-command": [
-      { "id": "summarize", "label": "总结", "mode": "directive", "data": { "taskType": "summary" } }
+      {
+        "id": "summarize",
+        "label": "总结",
+        "mode": "directive",
+        "data": {
+          "taskType": "summary"
+        }
+      }
     ]
   }
 }
 ```
 
-原始选择快照保留 `id/label/mode` 及实际提供的 `description/disabled/data`，不保存 `execute` 函数。两处均为数组；多个仍在正文中的引用可同时保留，删除引用就排除其数据。
+原始选择快照保留 `id/label/mode` 及实际提供的 `description/disabled/data`，不保存 `execute` 函数。`pluginData[实例ID]` 是数组；多个仍在正文中的引用可同时保留，删除引用就排除其数据。
 
 **默认只发送正文引用，不自动附加结构化外带字段。** 命令业务数据由已有 [Composer `requestAdapter`](/plugins/composer.md#请求适配) 读取并决定发送格式；`slash-command-trigger` 没有局部 `requestAdapter`。命令源服务也不会另外提供一份数据。
+
+例如选中“总结”指令后输入“请总结本次会话”，点击发送后的用户消息为（仅列相关字段）：
+
+```json ag-ui
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "content": ":command[总结]{name=summarize} 请总结本次会话"
+    }
+  ]
+}
+```
 
 普通触发器使用其插件实例键；嵌入其他业务插件时使用该实例的 `:command` 子键。动作默认没有上述条目，不能假设每次选择菜单都会产生 `pluginData`。
 
@@ -64,9 +85,14 @@ export function PlainCommand(props: ComponentProps<typeof CanonicalConversationS
 
 非空返回文字会绑定原始选择供 Composer 读取；`null` 移除查询，不记录数据。设置回调后，即使条目原来是 `action`，也不会再自动执行 `execute()`。回调抛错时恢复原查询和选择，不把失败操作当作一次新选择。
 
+
+![业务命令选中后填入普通文字的草稿](/images/guide/examples/20261106/slash-draft.jpg)
+
+业务定制示例：选择查询工单命令后，输入框填入“查询我的待处理工单”，没有指令标签，仍等待用户发送。
+
 ## 发送、编辑与再次选择
 
-插入不等于发送。正常发送使用当前有效引用快照；排队、重试和工具续答保留原次提交的数据。编辑消息时移除命令引用，便不再携带该引用的数据。单独恢复正文标记只能恢复显示，原始业务 `data` 需随前端历史元数据保留，见 [Composer 的提交与历史规则](/plugins/composer.md#提交后的快照重发与会话切换)。
+插入不等于发送。正常发送使用当前有效引用快照；重试和工具续答保留原次提交的数据。编辑消息时移除命令引用，便不再携带该引用的数据。单独恢复正文标记只能恢复显示，原始业务 `data` 需随前端历史元数据保留，见 [Composer 的提交与历史规则](/plugins/composer.md#提交后的快照重发与会话切换)。
 
 ## API
 

@@ -114,27 +114,17 @@ CRACO / CRA 会单独创建开发服务器配置，因此需要同时接入 `web
 
 打开工程开发地址，确认出现 **Creator Agent** 按钮并能连接。工程选择见[开始使用](/start/index.md#选择工程)。
 
+<figure className="plugin-preview">
+
+![工程开发页面顶部的 Creator Agent 按钮](/images/start/03-creator-entry.png)
+
+<figcaption>接入后的入口参考：不同构建工具使用相同的 Creator Agent 按钮，点击后展开开发面板。</figcaption>
+</figure>
+
 确认端口一致、工程匹配、开发转发可达。生产配置不加载工具插件，**生产 HTML 无 Dock**。不同封装、旧版本和 HTML 来源要单独验证。
 
-### 已验证的启动组合
+### 兼容性说明
 
-2026-11-02，在 macOS、Node.js 24.22.1 下，将当前仓库构建的 Creator 链接到两个独立的 React 18.3.1 宿主工程，完成以下验证：
+已在 macOS 下检查 Rsbuild 2、Webpack 5、CRACO 7 / CRA 5 的开发接入与生产构建。不同构建工具仍需满足自身的 Node.js 要求；这不代表 Windows 实机或完整业务流程已验收。
 
-| 宿主          | 版本                                                                        | 启动结果 |
-| ----------- | ------------------------------------------------------------------------- | ---- |
-| Rsbuild     | 2.3.0                                                                     | 通过   |
-| CRACO / CRA | CRACO 7.1.0、react-scripts 5.0.1、Webpack 5.112.2、webpack-dev-server 4.15.2 | 通过   |
-
-两种宿主均可显示 Creator 入口、打开初始化界面、收起后重新打开，并在刷新宿主后恢复面板；工程识别正确，浏览器无运行错误。分别以宿主工程为目标启动的 Creator Agent 子进程健康检查通过，宿主生产构建通过，输出 HTML 不含 Dock。
-
-代理检查确认请求到达未初始化工程的校验接口并返回预期的 409 JSON。此次验证未执行完整 Agent UI 初始化、真实模型对话、真实后端转发或 Windows 验收。
-
-### 配置加载兼容性
-
-2026-11-06，在 macOS、Node.js `22.0.0` 下，提取本文、Creator README 和进阶文档中的配置示例，使用仓库构建的 Creator Dock 入口完成以下检查：
-
-- Webpack `5.112.2` / webpack-cli `6.0.1` 加载异步配置，开发构建通过；移除 Creator 后，生产配置加载与生产构建通过。
-- CRACO `7.1.0` 的异步配置加载通过，开发代理保留已有设置和工程身份；移除 Creator 后，生产配置加载通过。
-- Vite `6.4.5` 加载现有 CommonJS 工程中的 TypeScript 配置，开发与生产分支通过；进阶文档的可选接入在移除 Creator 后仍可加载开发配置。
-
-Rsbuild `2.2.14` 自身要求 Node.js `^20.19.0 || >=22.12.0`，其开发与生产配置加载在 Node.js `22.23.2` 下验证。以上是配置和模块加载检查，未进行完整宿主启动、浏览器或 Windows 实机验收。
+配置完成后，用自己的启动命令确认 Creator 面板可用，再构建生产页面，检查其中没有 Creator 入口。

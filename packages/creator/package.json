@@ -4,7 +4,7 @@
   "description": "TypeScript Creator Agent, Operator tools and development workbench in one npm package",
   "type": "module",
   "engines": {
-    "node": "^22.0.0 || ^24.22.1"
+    "node": "^20.0.0 || ^22.0.0 || ^24.22.1"
   },
   "bin": {
     "agent-ui-creator": "./dist/cli.js"
@@ -117,8 +117,8 @@
     "docs/images/*.jpg"
   ],
   "scripts": {
-    "build": "node ../../scripts/package-build-integrity.mjs begin creator && node ../../scripts/sync-package-release-metadata.mjs creator && node operator/scripts/build.mjs && node ../../scripts/clean-package-dist.mjs creator && node scripts/copy-operator-assets.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator && node ../../scripts/package-build-integrity.mjs record creator",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.browser.json",
+    "build": "node ../../scripts/package-build-integrity.mjs begin creator && node ../../scripts/sync-package-release-metadata.mjs creator && node operator/scripts/build.mjs && node ../../scripts/clean-package-dist.mjs creator && node scripts/copy-operator-assets.mjs && node ./node_modules/typescript/lib/tsc.js -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator && node ../../scripts/package-build-integrity.mjs record creator",
+    "typecheck": "node ./node_modules/typescript/lib/tsc.js --noEmit && node ./node_modules/typescript/lib/tsc.js --noEmit -p tsconfig.browser.json",
     "test": "vitest run && node ../../scripts/run-plugin-source-views-check.mjs operator-test",
     "prepack": "node ../../scripts/package-build-integrity.mjs check creator && node ../../scripts/sync-package-release-metadata.mjs creator && node scripts/copy-assets.mjs",
     "test:operator": "node ../../scripts/run-plugin-source-views-check.mjs operator-test",
@@ -146,13 +146,15 @@
     "semver": "7.8.5",
     "langchain": "1.5.19",
     "@langchain/core": "1.3.0",
-    "@langchain/openai": "1.7.0",
+    "@langchain/openai": "1.5.8",
     "@langchain/langgraph": "1.5.2",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "picomatch": "4.0.7",
     "@za38.03/agent-ui-runtime": "workspace:*",
-    "prettier": "3.6.2"
+    "prettier": "3.6.2",
+    "dotenv": "16.6.1",
+    "import-meta-resolve": "4.2.0"
   },
   "peerDependencies": {
     "react": ">=18 <20",
@@ -553,6 +555,88 @@
                 "@za38.03/agent-ui-renderer": "0.0.11"
               },
               "historyFrom": "0.0.10",
+              "changes": []
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-20-node20",
+          "publishedAt": "2026-11-20T07:28:34.033Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 <21.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.11",
+              "requires": {},
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.11",
+              "requires": {},
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "changes": [
+                {
+                  "id": "node20-compatibility",
+                  "version": "0.0.11",
+                  "summary": "发布目录元数据时内联规范 JSON，兼容 Node.js 20.0.0 的 ESM 加载。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-web-component": "0.0.11",
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11"
+              },
+              "changes": [
+                {
+                  "id": "node20-compatibility",
+                  "version": "0.0.11",
+                  "summary": "兼容 Node.js 20.0.0：采用兼容的配置和模块解析、取消信号与流超时处理、源码加载及 TypeScript CLI 入口，固定支持 Node 20 的 OpenAI 适配版本。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "node20-macos-watch",
+                  "version": "0.0.11",
+                  "summary": "早期 Node 20 的 macOS 开发服务默认使用轮询监听，保持界面热更新，并保留 Host 显式指定的监听选项。独立前端默认配置不依赖 Creator。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.11",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.11",
+                "@za38.03/agent-ui-runtime": "0.0.11",
+                "@za38.03/agent-ui-core": "0.0.11",
+                "@za38.03/agent-ui-renderer": "0.0.11"
+              },
               "changes": []
             }
           ]

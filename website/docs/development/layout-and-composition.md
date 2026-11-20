@@ -96,6 +96,13 @@ src/agent-ui/app-ui.json
 
 这个片段在输入区前部放附件和语音按钮，在发送位置放发送按钮。交换 `leadingActions` 中两个完整对象的顺序，就能调整按钮先后。语音能否使用还取决于[浏览器支持或项目的语音服务](/plugins/dictation-action)。
 
+<figure className="plugin-preview">
+
+![输入区左下角的附件入口与右下角的语音和发送入口](/images/plugins/composer.png)
+
+<figcaption>用输入区辨认子插槽的位置：图中附件“+”在左侧，语音和发送入口在右侧；它们的位置由现有 Composer 组合决定。</figcaption>
+</figure>
+
 **启用、停用与区分实例。**
 
 <span id="启停与实例"></span>
@@ -121,6 +128,20 @@ src/agent-ui/app-ui.json
 
 <span id="布局与尺寸"></span>
 
+<figure className="plugin-preview">
+
+![桌面宽度下聊天区与右侧会话列表并排](/images/guide/examples/20261106/layout-desktop.jpg)
+
+<figcaption>布局定制示例：宽屏中，会话列表固定在聊天区右侧。</figcaption>
+</figure>
+
+<figure className="plugin-preview">
+
+![窄屏下打开的会话列表抽屉和右上角关闭按钮](/images/guide/examples/20261106/layout-narrow-open.jpg)
+
+<figcaption>同一示例的窄屏状态：列表改为覆盖式抽屉，右上角可关闭。断点和抽屉行为需按项目布局一起配置。</figcaption>
+</figure>
+
 | 容器 | 适合做什么 |
 | --- | --- |
 | `row` / `column` | 将 `children` 中的区域横向 / 纵向排列。 |
@@ -135,7 +156,9 @@ src/agent-ui/app-ui.json
 假设一个 `row` 的两个子区域依次是会话列表和对话区，可以设置：
 
 ```json
-"sizes": ["280px", "minmax(0, 1fr)"]
+{
+  "sizes": ["280px", "minmax(0, 1fr)"]
+}
 ```
 
 列表宽 280px，对话区使用剩余空间。`sizes` 与 `children` 按顺序一一对应，`column` 中则控制高度；`gap` 调整区域间距。

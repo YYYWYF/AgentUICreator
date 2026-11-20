@@ -8,6 +8,7 @@ export const sharedStyleSources = [
   // ComposableThread renders message images directly, without a Plugin entry
   // importing utility CSS. Include the shared image states and zoom UI here.
   "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.tsx",
+  "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image",
   // ConversationToolCall is also used directly by project toolkit renderers,
   // without a Plugin entry importing CSS. Its shared label/transition helpers
   // must be scanned together with the component in both base CSS build paths.

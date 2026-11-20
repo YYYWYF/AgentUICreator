@@ -33,7 +33,6 @@ export interface AgentUIProjectOptions {
   conversationServices: Pick<ConversationRuntimeProviderProps, "attachments" | "dictation" | "feedback" | "attachmentAdapter" | "dictationAdapter" | "feedbackAdapter">;
   /** Organizes suggestion items; all default copy comes from the resolved locale. */
   getConversationStarterSuggestions(locale: AgentUILocaleCode, messages: AgentUILocaleMessages["starterSuggestions"]): readonly ConversationStarterSuggestion[];
-  conversationMessageQueueEnabled: boolean;
   defaultLocale: AgentUILocaleCode;
   locales: Record<AgentUILocaleCode, AgentUILocaleOverrides>;
   Shell?: ComponentType<AgentUIShellProps> | undefined;
@@ -52,8 +51,8 @@ export function AgentUIProjectProvider({ value, children }: PropsWithChildren<{ 
 }
 
 /** Presentation helpers can also be used without the full application assembly. */
-export function useOptionalAgentUIProject(): ProjectContext | null { return useContext(Context); }
-export function useAgentUIProject(): ProjectContext {
+export function useOptionalProject(): ProjectContext | null { return useContext(Context); }
+export function useProject(): ProjectContext {
   const project = useContext(Context);
   if (project) return project;
   throw new Error("AGENT_UI_PROJECT_PROVIDER_REQUIRED");

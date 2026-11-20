@@ -11,8 +11,7 @@ import { checkAssistantUiAgUiCompatibility } from "../../../scripts/check-assist
 import {
   checkAssistantUiLangGraphInstalledCompatibility,
   checkAssistantUiLangGraphPackageCompatibility,
-  checkAssistantUiLangGraphSourceCompatibility,
-} from "../../../scripts/check-assistant-ui-langgraph-compat.mjs";
+  checkAssistantUiLangGraphSourceCompatibility} from "../../../scripts/check-assistant-ui-langgraph-compat.mjs";
 import { checkAgUiLockfile } from "../../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
@@ -22,8 +21,7 @@ import {
   ensureSourceCache,
   main as updateAssistantUi,
   remoteMainRevision,
-  generativeUiReleaseRevision,
-} from "../../../scripts/update-assistant-ui.mjs";
+  generativeUiReleaseRevision} from "../../../scripts/update-assistant-ui.mjs";
 
 const execFileAsync = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

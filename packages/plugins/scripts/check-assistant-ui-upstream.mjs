@@ -270,7 +270,7 @@ export async function collectAssistantUiUpstreamErrors(
       const relative = safeRelativePath(entry.localPath, "Vendor localPath");
       installed = await readFile(path.join(vendorRoot, relative), "utf8");
     } catch (error) { errors.push(`Vendor source unavailable: ${entry.localPath}: ${error.message}`); continue; }
-    if (/useAgentUIPortalContainer|style-boundary|quote-selection-adapter|adapters\/assistant-ui/u.test(installed)) errors.push(`Vendor product import forbidden: ${entry.localPath}`);
+    if (/usePortalContainer|style-boundary|quote-selection-adapter|adapters\/assistant-ui/u.test(installed)) errors.push(`Vendor product import forbidden: ${entry.localPath}`);
     if (existsSync(path.join(upstreamRepo, ".git"))) {
       try {
         const source = execFileSync("git", ["-C", upstreamRepo, "show", `${provenance.revision}:${entry.upstreamPath}`], { encoding: "utf8" });

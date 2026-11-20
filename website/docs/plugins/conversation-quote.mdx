@@ -17,15 +17,21 @@ title: "消息引用（conversation-quote）"
 
 选择消息内容后使用引用入口，预览中保留这段内容。正文与引用分别编辑，关闭预览取消本次引用，不会删除原消息。默认发送时，将引用转换为 Markdown 引用段落，加在用户输入之前。
 
-例如引用“合同下周到期”，再输入“请提醒我续签”，发送的用户正文为：
+例如引用“合同下周到期”，再输入“请提醒我续签”，默认发送请求中的用户消息为：
 
-```text
-> 合同下周到期
-
-请提醒我续签
+```json ag-ui
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "content": "> 合同下周到期\n\n请提醒我续签"
+    }
+  ]
+}
 ```
 
-不需要自己给 Composer 拼接这段前缀。只希望后端接收消息 ID 和原文时，使用下方局部适配器替换默认引用前缀。
+`content` 中，`>` 开头的是引用原文，`\n\n` 后是用户输入。Composer 默认自动拼接，无需业务代码处理。需要额外传递消息标识等结构化引用字段时，使用下方的 Composer 最终适配器示例。
 
 ## 交给 Composer 的数据
 
@@ -37,42 +43,53 @@ title: "消息引用（conversation-quote）"
 
 <span id="自定义引用数据"></span>
 
-原始引用只有消息标识和所选正文。假设引用插件实例 ID 为 `quote`，未配置局部适配器时，Composer 最终适配器收到：
+引用插件只提交消息标识和所选正文。假设引用插件实例 ID 为 `quote`，Composer 最终适配器收到：
 
-```json
+```json ag-ui
 {
-  "pluginData": { "quote": { "messageId": "message-1", "text": "合同下周到期" } },
-  "selections": { "quote": [{ "messageId": "message-1", "text": "合同下周到期" }] }
+  "pluginData": { "quote": { "messageId": "message-1", "text": "合同下周到期" } }
 }
 ```
 
-`pluginData.quote` 是**对象**，`selections.quote` 是原始选择数组。默认行为是前面的 Markdown 正文，不会再自动增加 `forwardedProps.quote`。
+`pluginData.quote` 是**对象**。Composer 默认将引用写成前面的 Markdown 正文；引用数据不会自动增加到 `forwardedProps`。
 
-在已有应用入口转换为后端所需字段：
+在项目已有的 `plugins/composer/request-adapter.ts` 中统一转换为后端所需字段。下面保留默认正文和已有外带字段，将引用放入 `forwardedProps.quote`：
 
 ```tsx
-import type { ComponentProps } from 'react';
-import { ConversationQuotePlugin as Implementation } from '@za38.03/agent-ui-plugins/conversation-quote';
+import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
-export function ConversationQuotePlugin(props: ComponentProps<typeof Implementation>) {
-  return <Implementation {...props}
-    requestAdapter={quote => ({ sourceMessageId: quote.messageId, passage: quote.text })} />;
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>) : {};
+}
+
+export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) => {
+  const quote = record(pluginData['quote']);
+  if (typeof quote.messageId !== 'string' || typeof quote.text !== 'string') return request;
+  return {
+    ...request,
+    forwardedProps: {
+      ...record(request.forwardedProps),
+      quote: { sourceMessageId: quote.messageId, passage: quote.text },
+    },
+  };
+};
+```
+
+将它接到项目已有的 Composer 组件的 `requestAdapter` 属性；完整接线见 [Composer 最终适配器](./composer#请求适配)。相关请求字段为：
+
+```json ag-ui
+{
+  "messages": [{ "id": "user-1", "role": "user", "content": "> 合同下周到期\n\n请提醒我续签" }],
+  "forwardedProps": { "quote": { "sourceMessageId": "message-1", "passage": "合同下周到期" } }
 }
 ```
 
-局部适配器在选择变化时同步执行，返回 JSON。此时 `pluginData.quote` 改为 `{ sourceMessageId, passage }`，原始 `selections.quote` 保持不变；默认请求改为：
-
-```json
-{ "forwardedProps": { "quote": { "sourceMessageId": "message-1", "passage": "合同下周到期" } } }
-```
-
-配置局部适配器后不再自动拼接 Markdown 引用前缀。Composer 的[最终适配器](./composer#请求适配)可以继续移动这些字段、写入 AG-UI `context` 或重新组织正文；它返回的是完整最终请求。
-
-实例键以实际 AppUIModel 实例为准，嵌入其他插件时使用该实例的 `:quote` 子键。局部回调抛错或返回非法 JSON 时保留原引用并提示错误，不用失败结果替换草稿。
+实例键以实际 AppUIModel 实例为准，嵌入其他插件时使用该实例的 `:quote` 子键。引用插件没有局部请求适配器；需要改字段、放入 AG-UI `context` 或调整默认引用正文时，都修改 Composer 的最终适配器。重组正文时保留消息中的附件片段。
 
 ## 取消、发送与恢复引用
 
-关闭预览后，这份引用不再参与本次请求。普通发送被接受后释放本次待发送数据；排队、重试和续答沿用原次快照。后续修改引用不会改写已提交请求。
+关闭预览后，这份引用不再参与本次请求。普通发送被接受后释放本次待发送数据；重试和续答沿用原次快照。后续修改引用不会改写已提交请求。
 
 插件订阅原生 `composer.quote`，因此业务卡片使用 `setQuote()` 也会更新同一个预览与数据，不需要再手动调用 `setData()`。已有消息的编辑与历史恢复还需要保留前端元数据，见 [Composer 生命周期](./composer#提交后的快照重发与会话切换)。
 
@@ -125,7 +142,6 @@ export function Example(props: ComponentProps<typeof CanonicalConversationQuote>
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
-| `requestAdapter?` | `(quote: ConversationQuoteData) => ComposerData` | 同步定义引用 JSON；省略时保留 Markdown 引用正文 |
 | `renderPreview?` | `() => ReactNode` | 自定义引用预览 |
 | `renderToolbar?` | `() => ReactNode` | 自定义选择工具栏 |
 

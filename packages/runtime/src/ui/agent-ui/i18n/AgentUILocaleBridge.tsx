@@ -1,19 +1,19 @@
 import { useEffect, useLayoutEffect, useMemo, type ReactNode } from "react";
 import { AgentUILocaleProvider, mergeAgentUILocaleOverrides } from "../../../locale.js";
-import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins/index.js";
+import { usePluginService } from "../../runtime/plugins/index.js";
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../../services/agent-ui-locale.js";
-import { useAgentUIProject } from "../../project-context.js";
+import { useProject } from "../../project-context.js";
 
 import type { AgentUILocaleCode } from "./locale-types.js";
 
 
 /** Keeps the generated locale service authoritative while feeding product-owned React composition. */
 export function AgentUILocaleBridge({ locale, onLocaleChange, children }: { locale?: AgentUILocaleCode | undefined; onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined; children: ReactNode }) {
-  const project = useAgentUIProject();
+  const project = useProject();
   const defaultSnapshot = project.localeSnapshot;
   const AGENT_UI_LOCALES = project.locales;
   const service = usePluginService<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE);
-  const snapshot = usePluginServiceSnapshot(service, defaultSnapshot);
+  const snapshot = usePluginService(service, snapshot => snapshot, defaultSnapshot);
   const messages = useMemo(() => mergeAgentUILocaleOverrides(
     service?.getMessages?.(), AGENT_UI_LOCALES[locale ?? snapshot.locale],
   ), [service, snapshot, locale, AGENT_UI_LOCALES]);

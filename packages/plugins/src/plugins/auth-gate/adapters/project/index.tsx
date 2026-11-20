@@ -9,6 +9,7 @@ export function LoginScreen({
   renderScopedSlot: _renderScopedSlot,
   ...props
 }: ComponentProps<typeof Implementation> & Partial<UIPluginComponentProps>) {
-  const { session, snapshot: state } = useAuthSession();
+  const { session } = useAuthSession();
+  const state = useAuthSession(snapshot => snapshot);
   return <Implementation session={session} state={state} {...props} />;
 }

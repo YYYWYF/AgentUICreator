@@ -22,13 +22,13 @@
 
 ```tsx
 import { useState } from 'react';
-import { usePluginService, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService }
   from '@za38.03/agent-ui-plugins/conversation-service';
 
 export function RefreshHistory({ onError }: { onError: (error: unknown) => void }) {
   const service = usePluginService<ConversationService>(AGENT_UI_CONVERSATION_SERVICE);
-  const labels = useAgentUILocale('threadList');
+  const labels = useLocale('threadList');
   const [pending, setPending] = useState(false);
   return <button type="button" disabled={!service || pending} onClick={async () => {
     if (!service || pending) return;
@@ -70,8 +70,9 @@ export function ReadHistory({ id, label, onLoaded, onError }: {
 import { useConversations } from '../../services/hooks/useConversations';
 
 export function ConversationCount() {
-  const { snapshot, serviceAvailable } = useConversations();
-  return serviceAvailable ? <output>{snapshot.conversations.length}</output> : null;
+  const { serviceAvailable } = useConversations();
+  const count = useConversations(state => state.conversations.length);
+  return serviceAvailable ? <output>{count}</output> : null;
 }
 ```
 
@@ -102,13 +103,13 @@ export function ConversationCount() {
 
 <span id="hook"></span>
 
-| 入口                                                                      | 返回与使用位置                                                                                                 |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 项目 `services/hooks/useConversations` 的 `useConversations()`             | 返回 `{ snapshot, serviceAvailable }`；只依赖服务上下文。                                                           |
-| 项目 `services/hooks/useConversationActions` 的 `useConversationActions()` | 提供 `refresh`、`selectConversation`、`loadConversation`、删除、重命名、归档、恢复归档及 `serviceAvailable`；依赖已有会话 Runtime。 |
-| npm 根入口的 `useConversationActions(): ConversationActions`                | 只提供选择、删除、重命名、归档和恢复归档；没有 `refresh` / `loadConversation`。                                                 |
+| 入口                                                          | 返回与使用位置                                                                                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 项目 `services/hooks/useConversations` 的 `useConversations()` | 返回 `getSnapshot`、`subscribe`、`serviceAvailable`、`refresh`、`loadConversation` 和管理操作；不自动订阅数据。 |
+| 同一入口的 `useConversations(selector)`                          | 按需订阅 `ConversationSnapshot` 的列表、详情或加载字段；结果按 `Object.is` 比较。                                 |
+| npm 根入口的 `useConversationActions(): ConversationActions`    | canonical Runtime 的底层管理操作；项目代码统一使用自己的 `useConversations()`。                                 |
 
-项目 Hook 与 npm 同名 Hook 的签名不同，按实际导入入口使用。
+无 selector 的 `getSnapshot()` 在调用时读取最新值。`subscribe(listener)` 供手动集成使用，需要在 effect 清理中取消。历史列表、缓存继续由会话服务拥有，当前聊天消息由 `useConversation` 读取。
 
 ### 服务方法 \{#服务}
 

@@ -1,84 +1,30 @@
-import { useMemo, useSyncExternalStore } from "react";
-
-import type {
-  AgentConversation,
-  AgentExecution,
-  AgentInterrupt,
-  AgentInterruptResponse,
-  AgentMessage,
-  AgentRunState,
-  AgentRuntimeSnapshot,
-  AgentUserInput,
-  AgentSendOptions,
-} from "@za38.03/agent-ui-core";
-
+import { useMemo } from "react";
+import type { AgentRuntime, AgentRuntimeSnapshot } from "@za38.03/agent-ui-core";
 import { useRequiredAgentRuntime } from "./AgentRuntimeContext.js";
+import { useStoreValue } from "../observation/use-store-value.js";
 
-export function useAgentRuntimeMode(): string {
-  return useRequiredAgentRuntime().mode;
-}
-
-function useAgentRuntimeSlice<TState, TValue>(
-  select: (snapshot: AgentRuntimeSnapshot<TState>) => TValue,
-): TValue {
-  const runtime = useRequiredAgentRuntime<TState>();
-  return useSyncExternalStore(
-    runtime.subscribe,
-    () => select(runtime.getSnapshot()),
-    () => select(runtime.getSnapshot()),
-  );
-}
-
-export function useAgentRuntimeSnapshot<TState = unknown>(): AgentRuntimeSnapshot<TState> {
-  const runtime = useRequiredAgentRuntime<TState>();
-  return useSyncExternalStore(
-    runtime.subscribe,
-    runtime.getSnapshot,
-    runtime.getSnapshot,
-  );
-}
-
-export function useAgentConversation(): AgentConversation {
-  return useAgentRuntimeSlice((snapshot) => snapshot.conversation);
-}
-
-export function useAgentMessages(): AgentMessage[] {
-  return useAgentRuntimeSlice((snapshot) => snapshot.messages);
-}
-
-export function useAgentState<TState = unknown>(): TState {
-  return useAgentRuntimeSlice<TState, TState>((snapshot) => snapshot.state);
-}
-
-export function useAgentRun(): AgentRunState {
-  return useAgentRuntimeSlice((snapshot) => snapshot.run);
-}
-
-export function useAgentExecutions(): AgentExecution[] {
-  return useAgentRuntimeSlice((snapshot) => snapshot.executions);
-}
-
-export function useAgentInterrupts(): AgentInterrupt[] {
-  return useAgentRuntimeSlice((snapshot) => snapshot.interrupts);
-}
-
-export interface AgentRuntimeActions {
-  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
-  resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
-  startNewConversation(): Promise<void>;
+export type AgentRuntimeController<TState = unknown> = Omit<AgentRuntime<TState>, "dispose" | "abort"> & {
   abortRun(): void;
+};
+
+export function useAgentRuntime<TState = unknown>(): AgentRuntimeController<TState>;
+export function useAgentRuntime<TValue, TState = unknown>(selector: (snapshot: AgentRuntimeSnapshot<TState>) => TValue): TValue;
+export function useAgentRuntime<TValue, TState = unknown>(selector: ((snapshot: AgentRuntimeSnapshot<TState>) => TValue) | undefined): AgentRuntimeController<TState> | TValue;
+export function useAgentRuntime<TValue, TState = unknown>(
+  selector?: (snapshot: AgentRuntimeSnapshot<TState>) => TValue,
+): AgentRuntimeController<TState> | TValue {
+  const runtime = useRequiredAgentRuntime<TState>();
+  const controller = useMemo<AgentRuntimeController<TState>>(() => ({
+    mode: runtime.mode,
+    getSnapshot: () => runtime.getSnapshot(),
+    subscribe: listener => runtime.subscribe(listener),
+    subscribeApplicationEvents: listener => runtime.subscribeApplicationEvents(listener),
+    sendMessage: (input, options) => options === undefined ? runtime.sendMessage(input) : runtime.sendMessage(input, options),
+    resumeInterrupts: responses => runtime.resumeInterrupts(responses),
+    startNewConversation: () => runtime.startNewConversation(),
+    abortRun: () => runtime.abort(),
+  }), [runtime]);
+  return useStoreValue(runtime.subscribe, () => selector === undefined ? controller : selector(runtime.getSnapshot()), selector !== undefined);
 }
 
-export function useAgentRuntimeActions(): AgentRuntimeActions {
-  const runtime = useRequiredAgentRuntime();
-  return useMemo(
-    () => ({
-      sendMessage: (input, options) => options === undefined ? runtime.sendMessage(input) : runtime.sendMessage(input, options),
-      resumeInterrupts: (responses: AgentInterruptResponse[]) =>
-        runtime.resumeInterrupts(responses),
-      startNewConversation: () => runtime.startNewConversation(),
-      abortRun: () => runtime.abort(),
-    }),
-    [runtime],
-  );
-}
+export type AgentRuntimeActions = Pick<AgentRuntimeController, 'sendMessage' | 'resumeInterrupts' | 'startNewConversation' | 'abortRun'>;

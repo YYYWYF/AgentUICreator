@@ -1,7 +1,7 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import {
   ConversationFile,
-  ConversationToolFallback,
+  ConversationToolResult,
   type ConversationToolCallProps,
   type UIPluginElementProps,
 } from '../../../../public.js';
@@ -19,7 +19,7 @@ export function CanonicalGeneratedFileMessage({
   'aria-describedby': ariaDescription,
   onClick,
   renderFile,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: GeneratedFileMessageProps) {
   const rootProps = {

@@ -8,26 +8,28 @@ title: "发送与停止（submit-action）"
 
 ![发送与停止界面](/images/plugins/submit-action.png)
 
-<figcaption>当前输入区的发送入口；运行与排队状态由同一会话自动决定。</figcaption>
+<figcaption>当前输入区的发送入口；运行状态由同一会话自动决定。</figcaption>
 </figure>
 
-围绕当前 Composer 显示发送与停止入口。按钮已有运行状态、排队能力和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
+围绕当前 Composer 显示发送与停止入口。按钮已有运行状态和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
 
 ## 发送、运行与停止
 
-草稿可提交时，发送当前正文、附件、引用和业务选择。生成中根据当前能力显示停止入口；允许消息排队时还可把下一条问题加入队列，按钮提示随之变为加入队列。队列通过业务页面的 `<Agent enableMessageQueue />` 开启，默认关闭。
+草稿可提交时，发送当前正文、附件、引用和业务选择。生成中显示停止入口，当前运行结束后可发送下一条消息。
 
-停止会取消当前运行，不等于删除待发送项。队列保留但不会在停止后立即自动发下一项；用户可继续调整队列。工具续传、审批与补充信息继续使用原有运行流程，见[消息排队](/development/message-queue)。
+停止会取消当前运行。工具续传、审批与补充信息继续使用原有运行流程。
 
 等待审批或补充输入时，普通发送会被已有保护拦下并提示先处理当前操作，保留草稿。传入 `disabled={false}` 不会解除会话本身的不可用条件。
 
 ## 与 Composer 联动
 
-本插件提交当前共享草稿，**不另行提供 `pluginData` 或 `selections` 条目**。最终请求由已有 [Composer `requestAdapter`](./composer#请求适配) 组装；按钮没有自己的请求适配器。
+发送通过当前 Composer 发起 AG-UI 请求，服务端按本次请求返回[响应流](./ag-ui-data#共用的-sse-格式)。停止使用当前运行的取消能力。
 
-发送固定本次数据快照，附件准备和排队过程中，后续草稿修改不会覆盖它。重试、工具续答和中断恢复继续使用原次数据，最终 Composer 适配器可能再次执行，不应在适配器中附带业务写入操作。
+本插件提交当前共享草稿，**不另行提供 `pluginData` 条目**。最终请求由已有 [Composer `requestAdapter`](./composer#请求适配) 组装；按钮没有自己的请求适配器。
 
-需要业务卡片自己触发发送或停止时，使用 `useConversationComposer().send()`／`cancel()`；前者包含等待回复保护，读取 `canSend/canCancel/disabled` 决定界面状态。完整组合见 [Composer 的发送控制](./composer#实时显示草稿字数定制发送与停止操作)。
+发送固定本次数据快照，附件准备过程中，后续草稿修改不会覆盖它。重试、工具续答和中断恢复继续使用原次数据，最终 Composer 适配器可能再次执行，不应在适配器中附带业务写入操作。
+
+需要业务卡片自己触发发送或停止时，使用 `useComposer().send()`／`cancel()`；前者包含等待回复保护，读取 `canSend/canCancel/disabled` 决定界面状态。完整组合见 [Composer 的发送控制](./composer#实时显示草稿字数定制发送与停止操作)。
 
 ## 本次发送使用工作流地址 {#本次发送使用工作流地址}
 
@@ -45,7 +47,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 设置 `endpoint` 的工作流按钮为本次发送及续答选择地址，复用当前 Thread，不自动新建会话。地址是 Host 的发送路由参数，不作为按钮自己的业务数据写入 `pluginData`，也不是自动追加到 `forwardedProps` 的 URL 字段。
 
-该分支运行期间禁用，不走普通消息排队；`onSendError` 用于这一地址分支的异步发送失败。没有设置 `endpoint` 时，继续使用当前会话的普通发送与排队流程。多个工作流按钮的组合见[同一助手使用多个地址](/development/multiple-agents)。
+该分支运行期间禁用；`onSendError` 用于这一地址分支的异步发送失败。没有设置 `endpoint` 时，继续使用当前会话的普通发送流程。多个工作流按钮的组合见[同一助手使用多个地址](/development/multiple-agents)。
 
 ## 发送与停止使用不同样式 {#发送与停止使用不同样式}
 
@@ -81,7 +83,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 | `sendButtonProps?` | `ComponentProps<typeof ConversationComposerSend>` | 原生按钮样式、事件和 icon 属性 |
 | `cancelButtonProps?` | `ComponentProps<typeof ConversationComposerCancel>` | 原生按钮样式、事件和 icon 属性 |
 
-运行中支持排队时，发送按钮读取 `composer.queueSend`。发送和取消是否可用仍由现有 Composer 决定。
+发送和取消是否可用由现有 Composer 决定。
 
 ### 子按钮属性
 
@@ -103,7 +105,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
-发送、排队、停止和取消文案统一在 `locales.composer` 修改：`send`、`queueSend`、`stop`、`cancelSend`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
+发送、停止和取消文案统一在 `locales.composer` 修改：`send`、`stop`、`cancelSend`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 <span id="代码示例"></span>
 

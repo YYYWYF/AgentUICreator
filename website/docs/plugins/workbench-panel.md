@@ -62,6 +62,13 @@ title: 多内容侧栏
 
 ## 插件间打开内容 {#让其他插件打开指定内容}
 
+<figure className="plugin-preview">
+
+![生成报告和来源两个侧栏打开按钮](/images/plugins/features/workbench-panel-actions.png)
+
+<figcaption>内容可以有各自的打开入口，例如“生成报告”和“来源”；点击后由同一个侧栏服务打开对应内容。</figcaption>
+</figure>
+
 调用方的 `definition.ts` 在原有 `inject` 中追加侧栏服务：
 
 ```ts
@@ -124,13 +131,10 @@ export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
 
 ## 侧栏状态联动 {#hook}
 
-业务工具栏需要高亮当前内容时，声明 `agent-ui.workbench-panel` 依赖，用 `usePluginService()` 取得同一 Agent 的服务，再用 `usePluginServiceSnapshot()` 订阅：
+业务工具栏需要高亮当前内容时，声明 `agent-ui.workbench-panel` 依赖，用 `usePluginService()` 取得同一 Agent 的服务，再用 `usePluginService()` 订阅：
 
 ```tsx
-import {
-  WORKBENCH_PANEL_SERVICE, usePluginService, usePluginServiceSnapshot,
-  type WorkbenchPanelService, type WorkbenchPanelSnapshot,
-} from '@za38.03/agent-ui-plugins';
+import { WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService, type WorkbenchPanelSnapshot } from '@za38.03/agent-ui-plugins';
 
 const fallback: WorkbenchPanelSnapshot = {
   open: false, activeItemId: '', visibleItemIds: [],
@@ -138,9 +142,9 @@ const fallback: WorkbenchPanelSnapshot = {
 
 export function ReportTab({ label }: { label: string }) {
   const panel = usePluginService<WorkbenchPanelService>(WORKBENCH_PANEL_SERVICE);
-  const snapshot = usePluginServiceSnapshot(panel, fallback);
+  const selected = usePluginService(panel, snapshot => snapshot.open && snapshot.activeItemId === 'report', fallback);
   return <button type="button" disabled={!panel}
-    aria-pressed={snapshot.open && snapshot.activeItemId === 'report'}
+    aria-pressed={selected}
     onClick={() => panel?.open('report')}>{label}</button>;
 }
 ```

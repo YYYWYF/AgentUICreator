@@ -1,8 +1,8 @@
-import { useContext, useLayoutEffect, useMemo, useSyncExternalStore } from 'react';
+import { useContext, useLayoutEffect, useMemo } from 'react';
 import { useAui, useAuiState } from '@assistant-ui/react';
 import type { RunAgentInput } from '@ag-ui/client';
 import type { AgentUIContextValue } from '@za38.03/agent-ui-core';
-import { ConversationInputContext, ConversationComposerGuardContext, PluginInstanceContext, type ConversationComposerRunConfig } from '@za38.03/agent-ui-runtime/plugin-api';
+import { ConversationInputContext, ConversationComposerGuardContext, PluginInstanceContext, type ConversationComposerRunConfig, usePluginService } from '@za38.03/agent-ui-runtime/plugin-api';
 import { useConversationComposerSendGuard } from '../internal/conversation-composer-guard.js';
 import { emptyData } from './message-data.js';
 
@@ -18,13 +18,6 @@ export interface ComposerDataOptions {
   reference?: { readonly token: string; readonly text: string; readonly fallbackText: string };
   /** Bind to the native quote, so dismissing/editing the quote excludes its data. */
   quote?: { readonly text: string; readonly messageId: string };
-  /** Optional default assembly only; the final requestAdapter may replace everything. */
-  defaultForwardedProps?: Readonly<Record<string, ComposerData>>;
-  defaultTextPrefix?: string;
-  /** Original selection, separately available to the final adapter. Must be JSON. */
-  selection?: ComposerData;
-  /** Opt in to forwarding data under its owner key; otherwise only collect it. */
-  includeInRequest?: boolean;
 }
 export interface ComposerDataEntry extends ComposerDataOptions {
   readonly owner: string;
@@ -35,10 +28,10 @@ export interface ComposerDataEntry extends ComposerDataOptions {
 }
 export interface ComposerRequestAdapterInput {
   readonly request: RunAgentInput;
-  /** Keys are Plugin instance IDs or named sub-scopes. */
+  /** Submitted values keyed by Plugin instance or named sub-scope.
+   * Missing data has no key; explicitly submitted null or empty arrays remain values. */
   readonly pluginData: Readonly<Record<string, ComposerData>>;
   readonly sources: Readonly<Record<string, ComposerDataSource>>;
-  readonly selections: Readonly<Record<string, readonly ComposerData[]>>;
 }
 /** Synchronous. Its returned request is final; forwardedProps is never merged afterwards. */
 export type ComposerRequestAdapter = (input: ComposerRequestAdapterInput) => RunAgentInput;
@@ -72,17 +65,15 @@ function isComposerDataPort(value: unknown): value is ComposerDataPort {
     'registerAdapter' in value && typeof value.registerAdapter === 'function';
 }
 
-/** Reactive state and actions for the canonical Thread composer; never creates a Runtime.
+/** Thread-scoped controller for the canonical Composer; selectors opt into data updates.
  * A name isolates components composed inside the same Plugin, or outside a Plugin provider.
  */
-export function useComposer(name?: string) {
+function useComposerController(name?: string) {
   const scope = useContext(ConversationComposerDataContext);
   const instance = useContext(PluginInstanceContext);
   const aui = useAui();
   const guardSend = useConversationComposerSendGuard();
   const guardState = useContext(ConversationComposerGuardContext);
-  const awaitingReply = guardState.awaitingReply;
-  const interruptKey = awaitingReply ? guardState.interruptKey : '';
   const owner = `${instance?.instance.id ?? 'standalone'}${name ? `:${name}` : ''}`;
   const source = useMemo<ComposerDataSource>(() => ({
     ...(instance ? { pluginId: instance.instance.pluginId, instanceId: instance.instance.id } : {}),
@@ -95,18 +86,8 @@ export function useComposer(name?: string) {
   const nativeThread = useMemo(() => scope ? assistant?.threads.getById(nativeThreadId) : assistant?.thread,
     [assistant, nativeThreadId, scope?.runtime]);
   const nativeComposer = nativeThread?.composer;
-  useAuiState(state => nativeComposer ? null : state.composer);
   const fallback = useMemo(() => aui.thread.composer(), [aui, nativeThreadId]);
   const native = nativeComposer ?? fallback;
-  const attachmentsEnabled = useAuiState(state => state.thread.capabilities.attachments);
-  const isRunning = useAuiState(state => state.thread.isRunning);
-  const isDisabled = useAuiState(state => state.thread.isDisabled);
-  const queueEnabled = useAuiState(state => state.thread.capabilities.queue);
-  const environment = useMemo(() => ({ guardSend, awaitingReply, interruptKey, attachmentsEnabled,
-    isRunning, isDisabled, queueEnabled, listeners: new Set<() => void>() }),
-    [native, nativeThread, runtime, threadId, owner]);
-  Object.assign(environment, { guardSend, awaitingReply, interruptKey, attachmentsEnabled, isRunning, isDisabled, queueEnabled });
-  useLayoutEffect(() => { environment.listeners.forEach(listener => listener()); }, [environment, awaitingReply, interruptKey]);
   useLayoutEffect(() => runtime?.register(owner), [runtime, owner]);
   const composer = useMemo(() => {
     let previous: ReturnType<typeof native.getState> | undefined;
@@ -120,24 +101,28 @@ export function useComposer(name?: string) {
     }) | undefined;
     const getState = () => {
       const current = native.getState();
-      const thread = nativeThread?.getState();
+      const thread = nativeThread?.getState() ?? aui.thread.getState();
+      const guard = guardState.getSnapshot();
+      const awaitingReply = guard.awaitingReply;
+      const interruptKey = awaitingReply ? guard.interruptKey : "";
       const data = runtime && threadId ? runtime.getData(threadId) : emptyData;
-      const attachmentsEnabled = thread?.capabilities.attachments ?? environment.attachmentsEnabled;
-      const isRunning = thread?.isRunning ?? environment.isRunning;
-      const disabled = (thread?.isDisabled ?? environment.isDisabled) || current.dictation?.inputDisabled === true;
-      const canSend = current.canSend && (!isRunning || (thread?.capabilities.queue ?? environment.queueEnabled));
+      const attachmentsEnabled = thread.capabilities.attachments;
+      const isRunning = thread.isRunning;
+      const disabled = thread.isDisabled || current.dictation?.inputDisabled === true;
+      const canSend = current.canSend && !isRunning;
       if (!snapshot || previous !== current || snapshot.data !== data ||
           snapshot.attachmentsEnabled !== attachmentsEnabled || snapshot.isRunning !== isRunning ||
           snapshot.disabled !== disabled || snapshot.canSend !== canSend ||
-          snapshot.awaitingReply !== environment.awaitingReply || snapshot.interruptKey !== environment.interruptKey) {
+          snapshot.awaitingReply !== awaitingReply || snapshot.interruptKey !== interruptKey) {
         previous = current;
         snapshot = { ...current, data, attachmentsEnabled, isRunning, disabled, canSend,
-          awaitingReply: environment.awaitingReply, interruptKey: environment.interruptKey };
+          awaitingReply, interruptKey };
       }
       return snapshot;
     };
     return {
       getState,
+      getSnapshot: getState,
       get text() { return getState().text; },
       get attachments() { return getState().attachments; },
       get quote() { return getState().quote; },
@@ -150,11 +135,12 @@ export function useComposer(name?: string) {
       get canCancel() { return getState().canCancel; },
       get awaitingReply() { return getState().awaitingReply; },
       subscribe: (listener: () => void) => {
-        environment.listeners.add(listener);
+        const stopGuard = guardState.subscribe(listener);
+        const stopFallback = nativeComposer ? undefined : aui.subscribe(listener);
         const stopNative = nativeComposer?.subscribe(listener);
         const stopThread = nativeThread?.subscribe(listener);
         const stopData = runtime && threadId ? runtime.subscribe(threadId, listener) : undefined;
-        return () => { environment.listeners.delete(listener); stopNative?.(); stopThread?.(); stopData?.(); };
+        return () => { stopGuard(); stopFallback?.(); stopNative?.(); stopThread?.(); stopData?.(); };
       },
       setQuote: (quote: Parameters<typeof native.setQuote>[0]) => native.setQuote(quote),
       setText: (text: string) => native.setText(text),
@@ -167,7 +153,7 @@ export function useComposer(name?: string) {
         if (runtime && threadId) runtime.setRunConfig(threadId, config);
         else native.setRunConfig(config);
       },
-      send: () => { if (!environment.guardSend()) native.send(); },
+      send: () => { if (!guardSend() && !getState().isRunning) native.send(); },
       cancel: () => native.cancel(),
       addAttachment: (file: File) => native.addAttachment(file),
       removeAttachment: (id: string): Promise<void> => {
@@ -182,11 +168,17 @@ export function useComposer(name?: string) {
       },
       clearData: () => { if (runtime && threadId) runtime.clearData(threadId, owner); },
     };
-  }, [native, nativeComposer, nativeThread, nativeThreadId, assistant, fallback, runtime, threadId, owner, source, environment]);
-  useSyncExternalStore(composer.subscribe, composer.getState, composer.getState);
+  }, [native, nativeComposer, nativeThread, nativeThreadId, assistant, fallback, runtime, threadId, owner, source, guardState, guardSend, aui]);
   return composer;
 }
 
-export type ComposerController = ReturnType<typeof useComposer>;
+export type ComposerController = ReturnType<typeof useComposerController>;
+export function useComposer(name?: string): ComposerController;
+export function useComposer<T>(selector: (state: ComposerState) => T, name?: string): T;
+export function useComposer<T>(selector: ((state: ComposerState) => T) | undefined, name?: string): ComposerController | T;
+export function useComposer<T>(input?: string | ((state: ComposerState) => T), name?: string): ComposerController | T {
+  const composer = useComposerController(typeof input === 'string' ? input : name);
+  return usePluginService(composer, typeof input === 'function' ? input : undefined);
+}
 export type ComposerState = ReturnType<ComposerController['getState']>;
 export type ComposerAttachment = ComposerState['attachments'][number];

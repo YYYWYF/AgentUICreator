@@ -1,6 +1,6 @@
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
 import {
-  ConversationToolFallback,
+  ConversationToolResult,
   JobProgress,
   type ConversationToolCallProps,
   type UIPluginElementProps,
@@ -39,7 +39,7 @@ export function CanonicalJobProgressMessage({
   'aria-describedby': ariaDescription,
   onClick,
   renderProgress,
-  Fallback = ConversationToolFallback,
+  Fallback = ConversationToolResult,
   ...tool
 }: JobProgressMessageProps) {
   const rootProps = {

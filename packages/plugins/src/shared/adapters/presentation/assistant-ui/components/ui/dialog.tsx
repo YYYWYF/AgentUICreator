@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale } from '../../../../../locale.js';
+import { useLocale } from '../../../../../locale.js';
 
 import * as React from 'react';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
@@ -8,7 +8,7 @@ import { XIcon } from 'lucide-react';
 
 import { Button } from './button';
 import { cn } from '../../../../vendor-generated/assistant-ui/lib/utils.js';
-import { useAgentUIPortalContainer } from '../../../../style-boundary/AgentUIRoot';
+import { usePortalContainer } from '../../../../style-boundary/AgentUIRoot';
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-agent-ui-owned='' data-slot='dialog' {...props} />;
@@ -19,7 +19,7 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
 }
 
 function DialogPortal({ ...props }: Omit<DialogPrimitive.Portal.Props, 'container'>) {
-  const portalContainer = useAgentUIPortalContainer();
+  const portalContainer = usePortalContainer();
   if (portalContainer === null) return null;
   return (
     <DialogPrimitive.Portal
@@ -57,7 +57,7 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -102,7 +102,7 @@ function DialogFooter({
 }: React.ComponentProps<'div'> & {
   showCloseButton?: boolean;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   return (
     <div
       data-agent-ui-owned=''

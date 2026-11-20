@@ -13,13 +13,7 @@
 
 在已有回复操作栏中使用，组件读取当前回答的内容与可用状态。
 
-```tsx
-import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
-
-export function ResponseAction() {
-  return <ConversationCanonicalResponseExportMarkdownAction presentation="button" />;
-}
-```
+回答文字由 `TEXT_MESSAGE_CONTENT.delta` 追加，点击导出在前端生成 Markdown。事件格式见[文字回复](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
 ## 菜单中的 Markdown 导出 \{#菜单中的-markdown-导出}
 
@@ -106,4 +100,4 @@ export function DisabledExport() {
 默认导出文案只读取 `locales.conversation.exportMarkdown`，更多菜单标题读取 `moreActions`。`presentation?: "button" | "menu"` 选择结构，插件入口默认菜单模式。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 
-需要把回答交给业务导出服务时，在已有回复页脚中调用 `useConversationResponseRuntime()`，将 `text` 传给项目导出方法；它是当前版本整次回答的文字，不包含附件本体或图表数据。完整调用与错误处理见[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)。只需下载 Markdown 时使用前面的现有导出组件。
+需要把回答交给业务导出服务时，在已有回复页脚中调用 `useResponse()`，将 `text` 传给项目导出方法；它是当前版本整次回答的文字，不包含附件本体或图表数据。完整调用与错误处理见[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)。只需下载 Markdown 时使用前面的现有导出组件。

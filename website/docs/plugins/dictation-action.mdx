@@ -21,9 +21,23 @@ title: "语音输入（开发中）"
 
 ## 与 Composer 联动
 
-识别结果写入同一份草稿正文，`useConversationComposer()` 的 `text` 会随之更新。录音期间的输入禁用状态也参与控制器的 `disabled`，自定义输入和发送入口应读取同一状态，见 [Composer 的草稿订阅与控制](./composer#hook)。
+识别结果写入同一份草稿正文，`useComposer()` 的 `text` 会随之更新。录音期间的输入禁用状态也参与控制器的 `disabled`，自定义输入和发送入口应读取同一状态，见 [Composer 的草稿订阅与控制](./composer#hook)。
 
-该插件不产生额外 `pluginData` 或 `selections`，不会自动把录音作为音频附件发送。正常发送时，识别文字按照普通用户正文进入 `request.messages`；后端若需要原始音频，应另行使用支持音频的附件流程。
+该插件不产生额外 `pluginData`，不会自动把录音作为音频附件发送。正常发送时，识别文字按照普通用户正文进入 `request.messages`；后端若需要原始音频，应另行使用支持音频的附件流程。
+
+例如识别后的草稿为“请查询订单进度”，用户点击发送后，请求中的用户消息为（仅列相关字段）：
+
+```json ag-ui
+{
+  "messages": [
+    {
+      "id": "user-1",
+      "role": "user",
+      "content": "请查询订单进度"
+    }
+  ]
+}
+```
 
 “停止听写”与“停止 Agent 回答”是不同操作：前者停止录音，后者属于[发送／停止插件](./submit-action)。停止听写本身不会发送 Agent 请求。
 

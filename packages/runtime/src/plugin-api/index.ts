@@ -3,7 +3,6 @@ export * from "./PluginInstanceContext.js";
 export * from "./PluginRenderScope.js";
 export * from "./PluginServiceContext.js";
 export * from "./ApplicationLifecycleContext.js";
-export * from "./usePluginServiceSnapshot.js";
 export * from "./conversation.js";
 export * from "./data-message-ui.js";
 export * from "../conversation-support/conversation-command-decisions.js";
@@ -20,7 +19,7 @@ export * from "./composer.js";
 export * from './input-controller.js';
 export * from "./thread-binding.js";
 export * from "../conversation-support/task-disclosure-context.js";
-export { useOptionalAgentUIAgents, useAgentUIAgents, useAgentUIAgentsState, useAgentUIAgentIdentity } from "../host/AgentUIAgentsProvider.js";
+export { useOptionalAgents, useAgents, useAgentIdentity } from "../host/AgentUIAgentsProvider.js";
 export type { AgentUIAgents, AgentUIAgentsSnapshot, AgentUIAgentIdentity, AgentUIThreadRef } from "../host/AgentUIAgentsProvider.js";
 
-export { useOptionalAgentUI } from "../host/AgentUIProvider.js";
+export { useOptionalAgent } from "../host/AgentUIProvider.js";

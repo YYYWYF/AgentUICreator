@@ -38,7 +38,6 @@ description: 自己编写 Agent 前端时，查找工程入口、接入指南、
 | 设置地址、主题、语言或打开已有会话 | [Agent 配置示例](./agent-options)、[完整属性表](./react-host-api) |
 | 让业务按钮打开助理、发送消息、停止运行或新建会话 | [用业务页面控制 Agent](./react-host-control)、[会话方法](./react-host-api#会话方法) |
 | 指定助手发送、打开历史或控制后台 Thread | [多助手与后台 Thread](./multiple-agents#从业务页面控制指定助手) |
-| 在回复期间排队发送后续问题 | [消息排队](./message-queue) |
 | 接收 Agent 返回的事件、读取运行状态 | [状态与事件](./react-host-api#状态与事件)、[业务事件](./react-host-api#订阅-agent-业务事件) |
 | 手动修改已有插件的样式、文案、结构或业务逻辑 | [完整插件修改教程](./component-customization) |
 | 选择主题、修改品牌色或组件样式 | [主题与样式](./theme-and-styling) |

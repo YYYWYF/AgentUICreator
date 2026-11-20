@@ -1,9 +1,8 @@
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AgentUIProvider, AgentUIAgentProvider, useAgentUIAgents, type AgentUIAgents,
-} from "../src/host/AgentUIAgentsProvider.js";
-import { useAgentUIThreadNavigation } from "../src/host/AgentUIProvider.js";
+  AgentUIProvider, AgentUIAgentProvider, useAgents, type AgentUIAgents} from "../src/host/AgentUIAgentsProvider.js";
+import { useThreadNavigationBinding } from "../src/host/AgentUIProvider.js";
 import type { AgentUIThreadNavigation } from "../src/host/threads.js";
 
 function deferred<T>() {
@@ -23,9 +22,9 @@ function navigation(id: string) {
 
 async function fixture(a: AgentUIThreadNavigation, b = navigation("b")) {
   let agents!: AgentUIAgents;
-  function Probe() { agents = useAgentUIAgents(); return null; }
+  function Probe() { agents = useAgents(); return null; }
   function Navigation({ value }: { value: AgentUIThreadNavigation }) {
-    useAgentUIThreadNavigation(value);
+    useThreadNavigationBinding(value);
     return null;
   }
   const view = (revision: number) => <AgentUIProvider><Probe />

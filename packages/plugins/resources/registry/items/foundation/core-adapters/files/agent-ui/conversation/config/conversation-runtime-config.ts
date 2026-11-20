@@ -3,10 +3,6 @@ import { agentUILocaleConfig } from "../../i18n/locale-config";
 import type { AgentUILocaleCode } from "../../i18n/locale-types";
 import type { ConversationStarterSuggestion } from "@za38.03/agent-ui-runtime";
 
-/** Opt in only after reviewing the pinned upstream client-tool handoff race.
- * Browser-memory follow-up Queue; not durable across refresh. */
-export const conversationMessageQueueEnabled = false;
-
 /** Host-owned endpoint. Set this when integrating Agent UI with your application. */
 export const conversationDataEndpoint: string | undefined = undefined;
 

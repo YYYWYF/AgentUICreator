@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { FileTextIcon, PanelRightIcon, XIcon } from 'lucide-react';
-import { useAgentUILocale, usePluginServiceSnapshot } from '../../../../public.js';
+import { useLocale, usePluginService } from '../../../../public.js';
 import type { UIPluginComponentProps } from '@za38.03/agent-ui-plugins/contracts';
 import type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './service.js';
 
@@ -42,8 +42,8 @@ export function WorkbenchPanel({
   className,
   style,
 }: WorkbenchPanelProps) {
-  const messages = useAgentUILocale('workbenchPanel');
-  const snapshot = usePluginServiceSnapshot(service, CLOSED);
+  const messages = useLocale('workbenchPanel');
+  const snapshot = usePluginService(service, snapshot => snapshot, CLOSED);
   const open = controlledOpen ?? snapshot.open;
   const activeId = controlledActive ?? snapshot.activeItemId;
   const id = useId();

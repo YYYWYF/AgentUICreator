@@ -11,6 +11,8 @@
 
 ![新建会话界面](/images/plugins/conversation-new.png)
 
+首次发送使用新会话的 `threadId`，服务端以同一 ID 返回 `RUN_STARTED` 和运行结果，见[共用 SSE 格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
+
 ## 图标模式 \{#只显示新建图标}
 
 

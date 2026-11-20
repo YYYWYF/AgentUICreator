@@ -23,7 +23,6 @@ export interface ConversationInputController {
 }
 
 export interface ConversationInputRequestContext {
-  /** Stable input-session key; the outgoing input carries the protocol threadId. */
   readonly threadId: string;
   readonly runtime: unknown;
   /** Includes submissions not yet published in the native React projection. */

@@ -71,20 +71,20 @@ it("rejects ambiguous default placement without changing model or registry", asy
 
 it("provides a read-only example from the installed Slot contract and resolves flat and nested model paths", async () => {
   const f = await project("platform");
-  await completePluginEnablement(f.root, await preparePluginEnablement(f.root, "tool-fallback"));
+  await completePluginEnablement(f.root, await preparePluginEnablement(f.root, "tool-result"));
   const before = await readFile(f.paths.appUIModelPath, "utf8");
-  const guide = await getAgentUIPluginPlacementGuide(f.root, "tool-fallback");
-  expect(guide).toMatchObject({ modelPath: "界面 src/app-ui.json", pluginId: "tool-fallback",
+  const guide = await getAgentUIPluginPlacementGuide(f.root, "tool-result");
+  expect(guide).toMatchObject({ modelPath: "界面 src/app-ui.json", pluginId: "tool-result",
     target: { parentPluginId: "conversation-surface", slot: "toolFallback", cardinality: "one" } });
   const example: unknown = JSON.parse(guide.example);
   expect(example).toEqual({ pluginId: "conversation-surface", slots: { toolFallback: [
-    { id: "tool-fallback-main", pluginId: "tool-fallback", enabled: true },
+    { id: "tool-result-main", pluginId: "tool-result", enabled: true },
   ] } });
   expect(await readFile(f.paths.appUIModelPath, "utf8")).toBe(before);
   await mkdir(path.join(f.paths.sourceRoot, "app-ui"));
   const nested = path.join(f.paths.sourceRoot, "app-ui", "app-ui.json");
   await rename(f.paths.appUIModelPath, nested);
-  const legacy = await getAgentUIPluginPlacementGuide(f.root, "tool-fallback");
+  const legacy = await getAgentUIPluginPlacementGuide(f.root, "tool-result");
   expect(legacy.modelPath).toBe("界面 src/app-ui/app-ui.json");
   expect(legacy.example).toBe(guide.example);
   expect(await readFile(nested, "utf8")).toBe(before);

@@ -9,7 +9,7 @@ import { HttpAgent, type RunAgentInput } from '@ag-ui/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from '@za38.03/agent-ui-runtime';
 import { AgentUIRoot, AgentUILocaleProvider, ConversationCanonicalComposer, type ComposerRequestAdapter,
-  type ConversationSuggestionRequestAdapter, type ConversationSuggestionItem, ConversationThread, ConversationFollowupSuggestions } from '../src/public';
+  type ConversationSuggestionItem, ConversationThread, ConversationFollowupSuggestions } from '../src/public';
 import { ConversationSuggestionsPlugin as NpmSuggestions } from '../dist/conversation-suggestions/index.js';
 import { ConversationSuggestionsPlugin as SourceSuggestions } from '../dist/sources/takeover/conversation-suggestions/index';
 let root: Root | undefined;
@@ -21,9 +21,13 @@ async function until(predicate: () => boolean) {
   }
   throw new Error('Suggestion fixture did not settle');
 }
+const forwardSuggestions: ComposerRequestAdapter = ({ request, pluginData }) => {
+  const data = pluginData['standalone:suggestions'];
+  return data === undefined ? request : { ...request, forwardedProps: { selected: data } };
+};
 describe.each([{ name: 'npm', Suggestions: NpmSuggestions }, { name: 'portable', Suggestions: SourceSuggestions }])('$name suggestion data', ({ Suggestions }) => {
 async function fixture(options: { items?: readonly ConversationSuggestionItem[]; dynamic?: boolean; send?: boolean; hold?: boolean; hideOnSubmit?: boolean;
-  renderSuggestion?: (item: ConversationSuggestionItem, defaultView: ReactNode) => ReactNode; adapter?: ConversationSuggestionRequestAdapter; composerAdapter?: ComposerRequestAdapter; prevent?: boolean } = {}) {
+  renderSuggestion?: (item: ConversationSuggestionItem, defaultView: ReactNode) => ReactNode; composerAdapter?: ComposerRequestAdapter; prevent?: boolean } = {}) {
   const requests: RunAgentInput[] = [];
   const finish: (() => void)[] = [];
   let runtime!: AssistantRuntime;
@@ -41,13 +45,13 @@ async function fixture(options: { items?: readonly ConversationSuggestionItem[];
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement('div'); document.body.append(host); root = createRoot(host);
   await act(async () => root!.render(<ConversationRuntimeProvider inputControllerFactory={createComposerInputController} endpoint='http://example.test/agent' threadBinding={binding}
-    unstable_agentFactory={factory} enableMessageQueue ctx={{ host: true }}
+    unstable_agentFactory={factory} ctx={{ host: true }}
     {...(options.dynamic ? { suggestions: [{ title: 'Dynamic title', prompt: 'Dynamic question', label: 'Dynamic label' }] } : {})}>
     <AgentUIRoot theme="dark"><AgentUILocaleProvider locale='en-US'><Capture />
       <ConversationCanonicalComposer autoFocus={false} requestAdapter={options.composerAdapter} triggers={
         <AuiIf condition={state => !options.hideOnSubmit || state.thread.isEmpty === true}><Suggestions renderSlot={(_slot, fallback) => fallback} renderScopedSlot={() => null}
           {...(!options.dynamic ? { items: options.items ?? [{ title: 'Business', prompt: 'Business question', data: { id: 'Q1' } }] } : {})}
-          sendOnSelect={options.send ?? true} requestAdapter={options.adapter} {...(options.renderSuggestion ? { renderSuggestion: options.renderSuggestion } : {})}
+          sendOnSelect={options.send ?? true} {...(options.renderSuggestion ? { renderSuggestion: options.renderSuggestion } : {})}
           buttonProps={options.prevent ? { onClick: event => event.preventDefault() } : {}} /></AuiIf>
       } />
     </AgentUILocaleProvider></AgentUIRoot>
@@ -57,78 +61,81 @@ async function fixture(options: { items?: readonly ConversationSuggestionItem[];
     async click(text = 'Business') { const button = [...host.querySelectorAll('button')].find(node => node.textContent?.includes(text))!; expect(button).toBeTruthy(); await act(async () => button.click()); },
   };
 }
-it('submits adapted JSON and raw selection through the final Composer adapter', async () => {
-  const adapter = vi.fn<ComposerRequestAdapter>(({ request, pluginData, selections }) => ({
-    ...request, forwardedProps: { custom: pluginData['standalone:suggestions'], raw: selections['standalone:suggestions'] },
-  }));
-  const f = await fixture({ adapter: item => ({ selected: item.data ?? null }), composerAdapter: adapter });
+it('submits one item payload for the final Composer adapter to assemble', async () => {
+  const adapter = vi.fn<ComposerRequestAdapter>(forwardSuggestions);
+  const f = await fixture({ composerAdapter: adapter });
   await f.click(); await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   expect(f.requests[0]!.messages[0]!.content).toBe('Business question');
-  expect(f.requests[0]!.forwardedProps).toEqual({ custom: [{ selected: { id: 'Q1' } }], raw: [{ title: 'Business', prompt: 'Business question', data: { id: 'Q1' } }] });
+  expect(f.requests[0]!.forwardedProps).toEqual({ selected: [{ title: 'Business', prompt: 'Business question', data: { id: 'Q1' } }] });
   expect(adapter).toHaveBeenCalledOnce();
+  expect(Object.keys(adapter.mock.calls[0]![0]).sort()).toEqual(['pluginData', 'request', 'sources']);
   expect(JSON.stringify(f.requests[0])).not.toContain('agentUIComposerData');
 });
-it('keeps the submitted selection when the empty-state Plugin unmounts', async () => {
-  const f = await fixture({ hideOnSubmit: true, adapter: item => ({ question: item.prompt }) });
+it('keeps the submitted data when the empty-state Plugin unmounts', async () => {
+  const f = await fixture({ hideOnSubmit: true, composerAdapter: forwardSuggestions });
   await f.click(); await until(() => f.requests.length === 1);
-  expect(f.requests[0]!.forwardedProps).toHaveProperty('standalone:suggestions', [{ question: 'Business question' }]);
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('selected', [{ title: 'Business', prompt: 'Business question', data: { id: 'Q1' } }]);
 });
-it('preserves default wire text while exposing raw data to Composer', async () => {
+it('preserves default wire text while exposing data to Composer', async () => {
   const adapter = vi.fn<ComposerRequestAdapter>(({ request }) => request);
   const f = await fixture({ composerAdapter: adapter });
   await f.click(); await until(() => f.requests.length === 1);
   expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { host: true } });
-  expect(adapter.mock.calls[0]![0].selections['standalone:suggestions']).toHaveLength(1);
+  expect(adapter.mock.calls[0]![0].pluginData['standalone:suggestions']).toHaveLength(1);
 });
-it('handles runtime-provided suggestions with the same adapter', async () => {
+it('handles runtime-provided suggestions through the same Composer adapter', async () => {
   const renderer = vi.fn((_item: ConversationSuggestionItem, defaultView: ReactNode) => <section data-dynamic-suggestion>{defaultView}</section>);
-  const f = await fixture({ dynamic: true, adapter: item => ({ source: item.prompt }), renderSuggestion: renderer });
+  const f = await fixture({ dynamic: true, composerAdapter: forwardSuggestions, renderSuggestion: renderer });
   expect(renderer).toHaveBeenCalledWith(expect.objectContaining({prompt: 'Dynamic question'}), expect.anything());
   expect(f.host.querySelector('[data-dynamic-suggestion] button')).not.toBeNull();
   await f.click('Dynamic title'); await until(() => f.requests.length === 1);
-  expect(f.requests[0]!.forwardedProps).toHaveProperty('standalone:suggestions', [{ source: 'Dynamic question' }]);
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('selected', [{ title: 'Dynamic title', prompt: 'Dynamic question', label: 'Dynamic label' }]);
 });
 it('fills the draft and excludes data after the suggested text is deleted', async () => {
-  const f = await fixture({ send: false, adapter: item => ({ source: item.prompt }) });
+  const f = await fixture({ send: false, composerAdapter: forwardSuggestions });
   await f.click(); expect(f.requests).toHaveLength(0);
   expect(f.runtime.thread.composer.getState().text).toBe('Business question');
   await act(async () => { f.runtime.thread.composer.setText('Deleted'); f.runtime.thread.composer.send(); });
   await until(() => f.requests.length === 1);
   expect(f.requests[0]!.forwardedProps).toEqual({ ctx: { host: true } });
 });
-it('preserves prevented selections and fails locally for invalid adapter data', async () => {
-  const adapter = vi.fn<ConversationSuggestionRequestAdapter>(() => ({ value: Number.NaN }));
-  const f = await fixture({ adapter });
+it('keeps the draft when a selected item contains invalid JSON data', async () => {
+  const f = await fixture({ items: [{ title: 'Business', prompt: 'Business question', data: { value: Number.NaN } }] });
   await act(async () => f.runtime.thread.composer.setText('Keep draft'));
   await f.click(); expect(f.requests).toHaveLength(0);
   expect(f.runtime.thread.composer.getState().text).toBe('Keep draft');
   expect(f.host.querySelector('[role="alert"]')?.textContent).toContain('Unable to use');
 });
-it('does not capture a selection prevented by application button props', async () => {
-  const adapter = vi.fn<ConversationSuggestionRequestAdapter>(item => item.prompt);
-  const f = await fixture({ prevent: true, adapter });
+it('does not collect data when application button props prevent the click', async () => {
+  const adapter = vi.fn<ComposerRequestAdapter>(forwardSuggestions);
+  const f = await fixture({ prevent: true, composerAdapter: adapter });
   await f.click(); expect(adapter).not.toHaveBeenCalled(); expect(f.requests).toHaveLength(0);
+  await act(async () => { f.runtime.thread.composer.setText('Manual'); f.runtime.thread.composer.send(); });
+  await until(() => f.requests.length === 1);
+  expect(adapter.mock.calls[0]![0].pluginData).toEqual({});
 });
-it('keeps queued clicks independent and preserves the unsent draft', async () => {
-  const f = await fixture({ hold: true, items: [{ title: 'First', prompt: 'One' }, { title: 'Second', prompt: 'Two' }], adapter: item => item.prompt });
+it('blocks suggestions during a run and preserves the unsent draft', async () => {
+  const f = await fixture({ hold: true, items: [{ title: 'First', prompt: 'One' }, { title: 'Second', prompt: 'Two' }], composerAdapter: forwardSuggestions });
   await f.click('First'); await until(() => f.requests.length === 1);
   await act(async () => f.runtime.thread.composer.setText('Unsent draft'));
   await f.click('Second'); expect(f.requests).toHaveLength(1);
   expect(f.runtime.thread.composer.getState().text).toBe('Unsent draft');
-  await act(async () => f.finish[0]!()); await until(() => f.requests.length === 2);
-  expect(f.requests[0]!.forwardedProps).toHaveProperty('standalone:suggestions', ['One']);
-  expect(f.requests[1]!.forwardedProps).toHaveProperty('standalone:suggestions', ['Two']);
+  await act(async () => f.finish[0]!()); await until(() => !f.runtime.thread.getState().isRunning);
+  expect(f.requests).toHaveLength(1);
   expect(f.runtime.thread.composer.getState().text).toBe('Unsent draft');
+  await act(async () => f.runtime.thread.composer.send()); await until(() => f.requests.length === 2);
+  expect(f.requests[0]!.forwardedProps).toHaveProperty('selected', [{ title: 'First', prompt: 'One' }]);
+  expect(f.requests[1]!.forwardedProps).toEqual({ ctx: { host: true } });
   await act(async () => f.finish[1]!()); await until(() => !f.runtime.thread.getState().isRunning);
-  await act(async () => f.runtime.thread.composer.send()); await until(() => f.requests.length === 3);
-  expect(f.requests[2]!.forwardedProps).toEqual({ ctx: { host: true } });
+  await f.click('Second'); await until(() => f.requests.length === 3);
+  expect(f.requests[2]!.forwardedProps).toHaveProperty('selected', [{ title: 'Second', prompt: 'Two' }]);
   await act(async () => f.finish[2]!());
 });
+
 it('uses the same data port for native follow-up suggestions through Thread composition', async () => {
   const parts = new ConversationRequestPartsRuntime();
   let native!: AssistantRuntime;
-  const adapter = vi.fn<ConversationSuggestionRequestAdapter>(item => ({ followup: item.prompt }));
-  function Followups() { return <ConversationFollowupSuggestions requestAdapter={adapter} />; }
+  function Followups() { return <ConversationFollowupSuggestions />; }
   function Host() {
     native = useLocalRuntime({ async *run() { yield { content: [{ type: 'text', text: 'Seed answer' }] }; } }, {
       adapters: { suggestion: { generate: async () => [{ title: 'Follow up', label: 'Next', prompt: 'Next question' }] } },
@@ -146,8 +153,7 @@ it('uses the same data port for native follow-up suggestions through Thread comp
   expect(button).toBeTruthy();
   await act(async () => button.click());
   const user = [...native.thread.getState().messages].reverse().find(message => message.role === 'user')!;
-  expect(adapter).toHaveBeenCalledWith({ prompt: 'Next question', title: 'Follow up', label: 'Next' });
-  expect(parts.prepare(user).pluginData).toHaveProperty('standalone:suggestions', [{ followup: 'Next question' }]);
+  expect(parts.prepare(user).pluginData).toHaveProperty('standalone:suggestions', [{ prompt: 'Next question', title: 'Follow up', label: 'Next' }]);
 });
 
 });

@@ -45,7 +45,10 @@ async function loadHook() {
     react: React,
     "@za38.03/agent-ui-plugins": Plugins,
     "../auth/session": { AUTH_SESSION_SERVICE: "auth.session" },
-  }) as { useAuthSession(): AuthView };
+  }) as {
+    useAuthSession(): Omit<AuthView, "snapshot">;
+    useAuthSession<T>(selector: (snapshot: AuthGate.AuthSessionSnapshot) => T): T;
+  };
 }
 
 function observable(userName: string) {
@@ -90,7 +93,7 @@ it("shares auth state, forwards actions and errors, and cleans up subscriptions 
   const first = observable("first"), second = observable("second");
   const views: AuthView[] = [];
   function Consumer({ index }: { index: number }) {
-    const view = useAuthSession(); views[index] = view;
+    const view = { ...useAuthSession(), snapshot: useAuthSession(snapshot => snapshot) }; views[index] = view;
     return <span>{view.snapshot.user?.userName}</span>;
   }
   const host = await mount(<PluginServiceRuntimeProvider runtime={services.port}><Consumer index={0} /><Consumer index={1} /></PluginServiceRuntimeProvider>);

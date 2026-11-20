@@ -1,6 +1,6 @@
 import { sharedStyleSources } from "./shared-style-sources.mjs";
 import { deliveries } from "./plugin-source-recipes.mjs";
-import { isPublicPluginDeclaration, sourceRuntimeDeclarations } from "./public-declarations.mjs";
+import { isPublicPluginDeclaration, publicPresentationFiles, sourceRuntimeDeclarations } from "./public-declarations.mjs";
 import { cp, mkdir, readdir, rm, copyFile, readFile, writeFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const sourceRoot = path.join(packageRoot, "src");
 const distRoot = path.join(packageRoot, "dist");
 
-const publicPresentations = new Set(deliveries.filter(delivery => delivery.publicPresentationTypes).flatMap(delivery => delivery.presentation.map(name => `plugins/${delivery.presentationOwner}/adapters/presentation/${name.replace(/\.tsx?$/u, ".d.ts")}`)));
+const publicPresentations = new Set(deliveries.flatMap(delivery => publicPresentationFiles(delivery).map(name => `plugins/${delivery.presentationOwner}/adapters/presentation/${name.replace(/\.tsx?$/u, ".d.ts")}`)));
 
 async function removeInternalDeclarations(root, relativeRoot = "") {
   for (const entry of await readdir(root, { withFileTypes: true })) {
@@ -86,8 +86,8 @@ await rm(path.join(distRoot, "experimental"), { recursive: true, force: true });
 
 await writeFile(path.join(distRoot, "composer-support.d.ts"), `/// <reference types="node" />
 import type { Context, FC, ComponentProps } from "react";
-export { useAgentUILocale } from "./locale.js";
-export { ComposerPrimitive, QueueItemPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
+export { useLocale } from "./locale.js";
+export { ComposerPrimitive, AuiIf, useAuiState, useAuiEvent } from "@assistant-ui/react";
 export { XIcon } from "lucide-react";
 export type ConversationComposerInputProps = Omit<
   ComponentProps<typeof import("@assistant-ui/react").ComposerPrimitive.Input>,
@@ -109,9 +109,9 @@ await appendFile(path.join(distRoot, "composer-support.d.ts"), composerDataDecla
 // Opt-in source support declarations reference installed public dependencies only.
 await writeFile(path.join(distRoot, "plugin-support.d.ts"), `import type { ComponentProps, FC } from "react";
 import type { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
-export { useAgentUIThemeSnapshot } from "./plugin-api/useAgentUIThemeSnapshot.js";
-export { useAgentUILocaleSnapshot } from "./plugin-api/useAgentUILocaleSnapshot.js";
-export { useAgentUILocale } from "./locale.js";
+export { useThemeSnapshot } from "./plugin-api/useThemeSnapshot.js";
+export { useLocaleSnapshot } from "./plugin-api/useLocaleSnapshot.js";
+export { useLocale } from "./locale.js";
 export { AuiIf, ActionBarPrimitive } from "@assistant-ui/react";
 export { CheckIcon, CopyIcon, RefreshCwIcon, DownloadIcon, ThumbsUpIcon, ThumbsDownIcon } from "lucide-react";
 export const TooltipIconButton: FC<import("./public.js").ConversationTooltipIconButtonProps>;
@@ -119,6 +119,7 @@ export const ConversationActionMoreMenuItem: typeof import("./public.js").Conver
 export const QuestionOptionList: FC<import("./public.js").ConversationOptionListProps & { confirmLabel?: string }>;
 export const QuestionFlow: FC<import("./public.js").ConversationQuestionFlowProps & { labels: import("./public.js").ConversationQuestionFlowLabels }>;
 export function useAssistantResponseRuntime(): import("./public.js").ConversationResponseRuntime;
+export function useAssistantResponseRuntime<T>(selector: (snapshot: import("./public.js").ConversationResponseSnapshot) => T): T;
 export function useConversationCommandDecision(toolCallId: string): import("./public.js").ConversationCommandDecisionBinding | undefined;
 type DisclosureRoot = Omit<CollapsiblePrimitive.Root.Props, "onOpenChange"> & { onOpenChange?: (open: boolean) => void; variant?: "outline" | "ghost" | "muted" | null };
 export const ReasoningRoot: FC<Omit<DisclosureRoot, "onAnimationStart"> & { streaming?: boolean }>;
@@ -154,7 +155,7 @@ export const FallbackDisclosure: typeof import("@base-ui/react/collapsible").Col
 export const FallbackDisclosureContent: typeof import("@base-ui/react/collapsible").Collapsible.Panel;
 export const FallbackDisclosureTrigger: typeof import("@base-ui/react/collapsible").Collapsible.Trigger;
 export const Textarea: FC<ComponentProps<"textarea">>;
-export function useTransientMessages(): readonly import("./public.js").TransientMessage[];
+export { useTransientMessages } from "./public.js";
 export function resolveTransientMessageAnchor(message: import("./public.js").TransientMessage, messageIds: readonly string[]): string | null;
 export { AlertCircleIcon, ChevronDownIcon, CircleMinusIcon, LoaderIcon, XCircleIcon } from "lucide-react";
 `);

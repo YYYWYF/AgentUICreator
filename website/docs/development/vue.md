@@ -16,7 +16,7 @@ Vue 页面通过 Web Component 显示 Agent UI。Vue 工程负责放置组件、
 
 ## Creator 工程创建与定制
 
-当前自动创建流程支持**独立的 npm/pnpm Vue 工程**，沿用工程现有的包管理器及锁文件。共享 workspace、其他包管理器和 Nuxt 暂不支持此流程；已有独立 React 工程时，可按下方[定制产物接入](#定制-react-产物接入)自行构建和发布。
+Creator 沿用工程的包管理器，创建关联的 React Agent UI 工程，Vue 页面加载其构建产物。Nuxt 暂不支持自动接入；已有 React 工程时，可按[定制产物接入](#定制-react-产物接入)自行构建和发布。
 
 ### 1. Creator 启动与工程选择
 

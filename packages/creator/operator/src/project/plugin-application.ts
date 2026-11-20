@@ -88,19 +88,18 @@ export async function ensurePluginApplication(root: string, id: string, context?
   const hostBindings = official.application.hostBindings ?? [];
   const railAction = official.application.railAction;
   const conversationBinding = hostBindings.some(binding => binding === "conversation-list" || binding === "conversation-selection");
-  const conversationActionsBinding = hostBindings.includes("conversation-list");
   const conversationImport = conversationBinding ? 'import { useConversations } from "../../services/hooks/useConversations";\n' : "";
-  const hostImport = conversationImport + (conversationActionsBinding ? 'import { useConversationActions } from "../../services/hooks/useConversationActions";\n' : "") + (hostBindings.includes("theme") ? 'import { useAgentUITheme } from "@za38.03/agent-ui-runtime/ui";\n' : "") + (hostBindings.includes("run") ? 'import { useAgentRun } from "@za38.03/agent-ui-runtime";\n' : "");
-  const hostBody = (conversationBinding ? '  const { snapshot, serviceAvailable } = useConversations();\n' : "") + (conversationActionsBinding ? '  const { refresh } = useConversationActions();\n' : "") + (hostBindings.includes("theme") ? '  const theme = useAgentUITheme();\n' : "") + (hostBindings.includes("run") ? '  const run = useAgentRun();\n' : "");
-  const hostProps = (conversationBinding ? (hostBindings.includes("conversation-list") ? " snapshot={snapshot} serviceAvailable={serviceAvailable} onRefresh={refresh}" : " activeConversationId={snapshot.activeConversationId}") : "") + (hostBindings.includes("theme") ? " theme={theme}" : "") + (hostBindings.includes("run") ? " runStatus={run.status}" : "");
+  const hostImport = conversationImport + (hostBindings.includes("theme") ? 'import { useTheme } from "@za38.03/agent-ui-runtime/ui";\n' : "") + (hostBindings.includes("run") ? 'import { useAgentRuntime } from "@za38.03/agent-ui-runtime";\n' : "");
+  const hostBody = (conversationBinding ? '  const { serviceAvailable, refresh } = useConversations();\n  const snapshot = useConversations(state => state);\n' : "") + (hostBindings.includes("theme") ? '  const theme = useTheme();\n' : "") + (hostBindings.includes("run") ? '  const runStatus = useAgentRuntime(snapshot => snapshot.run.status);\n' : "");
+  const hostProps = (conversationBinding ? (hostBindings.includes("conversation-list") ? " snapshot={snapshot} serviceAvailable={serviceAvailable} onRefresh={refresh}" : " activeConversationId={snapshot.activeConversationId}") : "") + (hostBindings.includes("theme") ? " theme={theme}" : "") + (hostBindings.includes("run") ? " runStatus={runStatus}" : "");
   const railSource = railAction ? `\nexport const ${railAction} = (props: ComponentProps<typeof RailImplementation>) => {\n  const { serviceAvailable } = useConversations();\n  return <RailImplementation enabled={serviceAvailable} {...props} />;\n}\n` : "";
   const registrationSource = registration?.kind === "tool"
     ? `toolkit: { ${JSON.stringify(registration.name)}: { type: "backend", display: "standalone", render: ${component} } }, Component: () => null`
     : registration?.kind === "data"
       ? `dataMessageUIs: [defineDataMessageUI<unknown>({ name: ${JSON.stringify(registration.name)}, render: ${component} })], Component: () => null`
       : `Component: ${component}${railAction ? `, RailAction: ${railAction}` : ""}`;
-  const runtimeImport = runtimeContext ? 'import { useAgentState, useAgentRuntimeActions } from "@za38.03/agent-ui-runtime";\n' : "";
-  const runtimeBody = runtimeContext ? '  const state = useAgentState();\n  const { abortRun } = useAgentRuntimeActions();\n' : "";
+  const runtimeImport = runtimeContext ? 'import { useAgentRuntime } from "@za38.03/agent-ui-runtime";\n' : "";
+  const runtimeBody = runtimeContext ? '  const state = useAgentRuntime(snapshot => snapshot.state);\n  const { abortRun } = useAgentRuntime();\n' : "";
   const files = new Map([
     [applicationMarker, JSON.stringify({ schemaVersion: 1, pluginId: id }, null, 2) + "\n"],
     ["manifest.json", installedManifest],

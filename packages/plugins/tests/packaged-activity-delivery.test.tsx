@@ -12,7 +12,7 @@ import { AgentStatusMessagePlugin as SourceStatus } from "../dist/sources/takeov
 import { AgentPlanMessagePlugin as SourcePlan } from "../dist/sources/takeover/agent-plan-message/index";
 import { JobProgressMessagePlugin as SourceProgress } from "../dist/sources/takeover/job-progress-message/index";
 import { GeneratedFileMessagePlugin as SourceFile } from "../dist/sources/takeover/generated-file-message/index";
-import { AgentRuntimeProvider, useAgentState, useAgentRuntimeActions } from "../resources/registry/items/foundation/core-runtime/files/runtime/context";
+import { AgentRuntimeProvider, useAgentRuntime } from "../resources/registry/items/foundation/core-runtime/files/runtime/context";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
 (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root|undefined;
@@ -49,7 +49,7 @@ it.each(modes)("$name job consumes the existing Host state and abort action, pre
   const runtime={getSnapshot:()=>snapshot,subscribe:(fn:()=>void)=>{listeners.add(fn);return()=>listeners.delete(fn);},abort} as unknown as AgentRuntime;
   const args={target:"CI",stages:[{name:"build",weight:1}]};let status:ConversationToolCallProps["status"]={type:"running"};let result:unknown;const fallback=vi.fn(()=><aside>fallback</aside>);
   const render=vi.fn((props:JobProgressProps)=><button onClick={props.onCancel}>{props.title}:{props.stageProgress}:{props.outcome?.status}</button>);
-  function Application(){const state=useAgentState();const {abortRun}=useAgentRuntimeActions();return <Progress {...tool({args,status,result})} state={state} abortRun={abortRun} renderProgress={render} Fallback={fallback}/>;}
+  function Application(){const state=useAgentRuntime(snapshot => snapshot.state);const {abortRun}=useAgentRuntime();return <Progress {...tool({args,status,result})} state={state} abortRun={abortRun} renderProgress={render} Fallback={fallback}/>;}
   const element=()=> <AgentRuntimeProvider runtime={runtime}><Application/></AgentRuntimeProvider>;
   const el=await mount(element());expect(el.textContent).toContain("CI:0.25");await act(async()=>el.querySelector<HTMLButtonElement>("button")!.click());expect(abort).toHaveBeenCalledOnce();
   await act(async()=>{snapshot={state:{jobs:{call:{stageIndex:0,stageProgress:0.75,eta:"1s"}}}};listeners.forEach(fn=>fn());});expect(el.textContent).toContain("0.75");

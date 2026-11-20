@@ -21,11 +21,11 @@ title: "附件添加（add-attachment-action）"
 
 ## 与 Composer 联动
 
-附件进入原生 `composer.attachments`，**不另建 `pluginData[附件插件ID]` 或 `selections` 条目**。发送时由当前 AG-UI 适配器把它转换到用户消息的 `content` 数组，和正文一起进入最终 `request`。
+附件进入原生 `composer.attachments`，**不另建 `pluginData[附件插件ID]` 条目**。发送时由当前 AG-UI 适配器把它转换到用户消息的 `content` 数组，和正文一起进入最终 `request`。
 
 例如输入“请总结附件中的内容”，并通过上传服务得到 PDF 地址，用户消息可以是：
 
-```json
+```json ag-ui
 {
   "id": "user-1",
   "role": "user",
@@ -44,7 +44,7 @@ title: "附件添加（add-attachment-action）"
 
 本地内嵌数据使用 `source.type: 'data'`，`value` 为不带 `data:...;base64,` 前缀的 Base64，并带 `mimeType`，例如图片片段：
 
-```json
+```json ag-ui
 {
   "type": "image",
   "source": { "type": "data", "value": "aGVsbG8=", "mimeType": "image/png" },
@@ -56,7 +56,7 @@ title: "附件添加（add-attachment-action）"
 
 ## 其他插件添加或移除附件
 
-业务文件按钮使用 `useConversationComposer().addAttachment(file)`，传入浏览器 `File`，不要把 `File` 塞进 `setData()`。同一控制器的 `attachments` 提供 `{ id, name }`，`removeAttachment(id)` 按 ID 移除；这份展示列表不是完整的媒体请求格式或上传状态。完整示例见 [Composer 的控制器](./composer#响应式草稿控制器)。
+业务文件按钮使用 `useComposer().addAttachment(file)`，传入浏览器 `File`，不要把 `File` 塞进 `setData()`。用 `useComposer(state => state.attachments)` 订阅的附件列表提供 `{ id, name }`，`removeAttachment(id)` 按 ID 移除；这份展示列表不是完整的媒体请求格式或上传状态。完整示例见 [Composer 的控制器](./composer#响应式草稿控制器)。
 
 添加与移除返回 Promise，调用方处理失败。提交前移除的文件不进入本次消息；已接受提交的附件快照不受下一条草稿修改影响。
 

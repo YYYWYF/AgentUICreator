@@ -37,6 +37,11 @@ async function tree(root, accept = () => true) {
   return files;
 }
 
+/** Portable file enumeration, including Node 20.0 where recursive readdir is unavailable. */
+export async function listPackageFiles(directory) {
+  return Object.keys(await tree(directory));
+}
+
 async function sourceInputs(id, root) {
   const inputs = {};
   const visited = new Set();

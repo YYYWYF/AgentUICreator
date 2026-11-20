@@ -12,6 +12,16 @@
 
 ![主题选择界面](/images/plugins/theme-switch.png)
 
+
+![浅色主题下的聊天记录与会话列表](/images/agent-ui/history-conversation.jpg)
+
+浅色主题：消息区和右侧列表使用浅色背景。
+
+
+![深色主题下的同一段聊天记录与会话列表](/images/agent-ui/appearance-dark.jpg)
+
+深色主题：同一段对话的背景、文字、输入区和列表一起适配。
+
 ## 紧凑的主题选择框 \{#紧凑的主题选择框}
 
 
@@ -49,13 +59,13 @@ export function Example(props: ComponentProps<typeof CanonicalThemeSwitchPlugin>
 组件与服务位于同一 Agent，并声明 `agent-ui.theme` 依赖。
 
 ```tsx
-import { usePluginService, useAgentUILocale } from '@za38.03/agent-ui-plugins';
+import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
 
 export function SelectDarkTheme() {
   const service = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE);
-  const labels = useAgentUILocale('theme');
+  const labels = useLocale('theme');
   return <button type="button" disabled={!service}
     onClick={() => service?.setTheme('dark')}>{labels.dark}</button>;
 }
@@ -87,7 +97,7 @@ export function SelectDarkTheme() {
 `theme` 接受 `light`（浅色）、`dark`（深色）、`violet`（紫色，使用浅色配色模式）。传入 `theme` 后，业务页面在 `onThemeChange(nextTheme)` 中更新该值，用户选择才会反映到受控界面；[受控切换示例](#代码示例)展示了这条数据流。
 
 
-其他组件要读取当前主题，从 Runtime `/ui` 导入 `useAgentUITheme()`；需要主动切换主题时，调用同一主题服务的 `setTheme(theme)`。示例把现有 Agent 切为深色；项目默认主题、系统跟随和偏好保存见[主题服务](/plugins/theme-provider.md)。
+其他组件要读取当前主题，从 Runtime `/ui` 导入 `useTheme()`；需要主动切换主题时，调用同一主题服务的 `setTheme(theme)`。示例把现有 Agent 切为深色；项目默认主题、系统跟随和偏好保存见[主题服务](/plugins/theme-provider.md)。
 
 ### 服务方法 \{#服务}
 

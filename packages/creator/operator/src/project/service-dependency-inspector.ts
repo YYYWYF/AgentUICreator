@@ -16,9 +16,8 @@ import {
   isObjectLiteralExpression,
   isPropertyAssignment,
   isStringLiteralLikeNode,
-  isVariableStatement,
 } from "typescript/unstable/ast/is";
-import { API, SymbolFlags, ModifierFlags, type Project } from "typescript/unstable/sync";
+import { API, SymbolFlags, type Project } from "typescript/unstable/sync";
 
 import type {
   InspectedServicePlugin,
@@ -163,10 +162,6 @@ export function analyzePluginServiceDeclarations(
   const definitionPaths = assets.map((asset) =>
     path.join(projectRoot, asset.definitionPath),
   );
-  const officialServiceNames = new Set(officialAssets.flatMap(asset => {
-    const services = officialPackagePlugin(asset.pluginId)!.services;
-    return [...services.provides, ...services.inject, ...services.optionalInject];
-  }));
   const sharedServiceFiles: string[] = [];
   function collectSharedServiceFiles(directory: string): void {
     if (!existsSync(directory)) return;
@@ -176,7 +171,7 @@ export function analyzePluginServiceDeclarations(
       else if (entry.isFile() && /\.[cm]?tsx?$/u.test(entry.name)) sharedServiceFiles.push(file);
     }
   }
-  if (officialAssets.length) collectSharedServiceFiles(path.join(managedSourceRoot, "services"));
+  collectSharedServiceFiles(path.join(managedSourceRoot, "services"));
   const api = new API();
   const configFilePath = path.join(projectRoot, "tsconfig.json");
   const snapshot = api.updateSnapshot({
@@ -188,19 +183,20 @@ export function analyzePluginServiceDeclarations(
   const seamPaths = new Map<string, Set<string>>();
 
   try {
-    // npm definitions declare service names in reviewed metadata, so their local
-    // contracts need not be imported by a source-owned Plugin definition.
+    // Both thin applications and npm definitions may expose their canonical
+    // contracts through services/** re-exports rather than local declarations.
     for (const file of sharedServiceFiles) {
       const project = snapshot.getDefaultProjectForFile(file);
       const source = project?.program.getSourceFile(file);
       if (!project || !source) continue;
-      for (const statement of source.statements) {
-        if (!isVariableStatement(statement) || !(statement.modifierFlags & ModifierFlags.Export)) continue;
-        for (const declaration of statement.declarationList.declarations) {
-          if (!isIdentifier(declaration.name)) continue;
-          const type = project.checker.getTypeAtLocation(declaration.name);
-          if (type?.isStringLiteralType() && officialServiceNames.has(type.value)) recordServiceSeam(projectRoot, managedSourceRoot, project, declaration.name, type.value, seamPaths);
-        }
+      const module = project.checker.getSymbolAtLocation(source);
+      if (!module) continue;
+      for (const exported of project.checker.getExportsOfModule(module)) {
+        const type = project.checker.getTypeOfSymbol(exported);
+        if (!type?.isStringLiteralType()) continue;
+        const paths = seamPaths.get(type.value) ?? new Set<string>();
+        paths.add(projectPath(projectRoot, file));
+        seamPaths.set(type.value, paths);
       }
     }
     assets.forEach((asset, index) => {

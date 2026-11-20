@@ -1,189 +1,208 @@
-# 工具结果（tool-result）
+# 工具调用卡片（tool-result）
+
+展示一次工具调用的状态、参数、错误、审批和结果。结果支持普通文字、JSON，以及约定格式的图片、音频、视频和文档片段。
+
+`tool-result` 是唯一公开的官方工具卡片插件。用户模板把它放在 `conversation-surface` 的 `toolFallback` 插槽；插槽名表示通用工具回退位置，不是第二个插件。专用工具 renderer 优先。
 
 
-![多模态工具结果界面](/images/plugins/tool-result.png)
 
-同一次工具结果中的多种内容按类型展示，文字、媒体和文件各自使用对应的呈现方式。
 
-将工具返回的文字、图片、音频、视频和文档按类型展示，并保留当前工具原有的状态、详情与操作入口。
+## 修改位置 \{#修改位置}
 
-## 同一结果中展示多种内容
+以下路径相对于生成目录，默认为 `src/agent-ui/`。
 
-当结果符合内容片段数组格式时，插件按顺序展示各个片段：文字保留换行，图片使用图片展示，音视频使用播放器，文档使用文件展示。无需业务代码逐项判断媒体类型再拼接卡片。
+- 默认 npm 实现：修改 `plugins/tool-result/index.tsx`，保留已有作用域桥接，通过公开属性配置卡片。
+- 已接管源码：在该插件的 `source/adapters/` 中修改对应场景模块。首次接管需要明确同意，见[源码接管与更新](/development/source-takeover.md)。
 
-普通对象、字符串或不符合该格式的结果继续使用通用工具详情，不会被强行识别为多模态内容。
+| 想修改的部分              | 实现模块，位于 `source/adapters/`                      |
+| ------------------- | ----------------------------------------------- |
+| 整张卡片的组合与结果选择        | `tool-result.tsx`、`tool-call-card.tsx`          |
+| 标题、状态、耗时和展开面板       | `tool-card.tsx`                                 |
+| 参数、普通结果、错误          | `tool-content.tsx`                              |
+| 确认／拒绝按钮及外观          | `approval/approval-actions.tsx`                 |
+| 多审批选项、二次确认          | `approval/approval-options.tsx`                 |
+| 问卷与补充输入             | `approval/approval-questions.tsx`               |
+| 已确认、已拒绝、已取消回执       | `approval/approval-receipt.tsx`                 |
+| 局部提交、错误重试和焦点状态      | `approval/use-approval-interaction.ts`          |
+| 文本及结构化结果组合          | `result/result-content.tsx`、`result/content.ts` |
+| 图片、音频、视频展示          | `result/result-media.tsx`                       |
+| 文档和下载文件             | `result/result-file.tsx`                        |
+| 文件引用解析、取消和安全 URL 校验 | `result/use-result-source.ts`                   |
 
-## 保留工具详情和待处理操作
+这些是同一个插件的内部模块，不需要分别注册或在 AppUIModel 配置子插槽。源码同步仍只处理已接管实现；应用入口和业务配置保持项目所有。
 
-默认在结果之外保留原有工具详情，参数、错误、审批和中断操作沿用当前工具调用。多模态内容单独展示，避免在详情中再重复输出一份相同结果。
+## 调整确认与拒绝按钮样式 \{#审批按钮样式}
 
-仅改变结果片段样式时，不需要另外实现一套审批或工具续答流程。
+直接修改项目现有的 `plugins/tool-result/index.tsx`：
 
-## 解析媒体与文件引用
+```tsx
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import type { ComponentProps } from 'react';
 
-HTTP(S)、Blob 地址和有效的 Base64 数据可用于相应媒体展示。文件引用则由项目提供的解析方法转换为可访问地址，解析期间显示加载提示。
+export function ConversationToolResultPlugin(
+  props: ComponentProps<typeof Implementation>,
+) {
+  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+  return <Implementation {...input}
+    approvalStyles={{
+      ...input.approvalStyles,
+      actions: { ...input.approvalStyles?.actions, gap: 12 },
+      approveButton: {
+        ...input.approvalStyles?.approveButton,
+        backgroundColor: '#1677ff', color: '#fff', borderRadius: 10,
+      },
+      rejectButton: {
+        ...input.approvalStyles?.rejectButton,
+        color: '#b42318', borderRadius: 10,
+      },
+    }} />;
+}
+```
 
-引用变化或展示卸载时，插件会取消旧解析，并避免迟到结果覆盖当前内容。解析失败、地址或媒体类型不适合展示时显示不可用提示，保留可用的文件名和文件标识。
+`approvalClassNames` 使用相同键传入项目 CSS 类名：`actions` 控制操作行，`button` 控制通用操作按钮，`approveButton` / `rejectButton` 控制明确的确认 / 拒绝操作。专用样式覆盖通用按钮样式。
 
-## 接入多模态工具结果 \{#显示条件与数据来源}
+这些分区覆盖旧 `ON_INTERRUPT` 的 `approve` / `reject`、原生审批的允许 / 拒绝选项及普通二选一审批。二次确认按选项性质使用对应分区。返回、问卷提交、取消填写和自定义选项只使用通用 `button` 样式。
 
-结果通过当前工具的 `TOOL_CALL_RESULT` 返回。下面展示文字与图片片段的组合，省略外层运行事件：
+`approvalProps` 控制审批区外层，`buttonProps` 控制工具标题按钮。修改外观时继续传入原 `tool`，保留原有权限、提交、错误重试和焦点行为。
+
+## 工具详情与结果 \{#展开详情并限制内容高度}
+
+
+
+公开展示组件是 `ConversationToolResult`。例如，默认展开并限制详情高度：
+
+```tsx
+import {
+  ConversationToolResult, type ConversationToolResultProps,
+} from '@za38.03/agent-ui-plugins';
+
+export function ExpandedTool(props: ConversationToolResultProps) {
+  return <ConversationToolResult {...props}
+    defaultExpanded
+    contentProps={{
+      ...props.contentProps,
+      style: { ...props.contentProps?.style, maxHeight: 360, overflow: 'auto' },
+    }} />;
+}
+```
+
+`expanded` / `onExpandedChange` 用于受控展开；`renderDetails(defaultDetails)` 定制详情区域，可复用传入节点保留默认参数、错误、审批和结果。普通结果可通过 `renderResult(result)` 定制；已经识别的媒体片段使用 `renderPart`。
+
+## 操作确认与中断 \{#操作确认}
+
+
+
+![工具卡片展示待确认的操作，并提供允许和拒绝按钮](/images/plugins/tool-fallback-approval.jpg)
+
+后端需要先发送工具调用，再返回审批或中断数据。用户允许操作只表示提交了决定，实际执行结果仍由后端返回。
+
+旧 `ON_INTERRUPT` 的关键事件如下；每条按[共用 SSE 格式](/plugins/ag-ui-data.md#共用的-sse-格式)发送，示例省略消息、状态快照和运行外层事件：
 
 ```jsonl
-{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"render_report"}
-{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{}"}
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"remove_cache"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"path\":\".cache\"}"}
 {"type":"TOOL_CALL_END","toolCallId":"call-1"}
-{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"call-1","role":"tool","content":"[{\"type\":\"text\",\"text\":\"报告图已生成\"},{\"type\":\"image\",\"source\":{\"type\":\"url\",\"value\":\"https://example.com/report.png\",\"mimeType\":\"image/png\"}}]"}
+{"type":"CUSTOM","name":"ON_INTERRUPT","value":{"action_requests":[{"name":"remove_cache","args":{"path":".cache"},"description":"请确认是否清理缓存"}],"review_configs":[{"action_name":"remove_cache","allowed_decisions":["approve","reject"]}]}}
 ```
 
-片段与来源格式见末尾[结果数据参考](#toolresultpart)。`render_report` 是示例业务工具名；没有同名专用展示时才使用这个通用结果插件。
+旧命令审批通过工具名与参数匹配到当前调用。用户决定通过已有 command 通道续跑；不伪造工具结果。
 
-仅发送图片 URL 或插件 ID 不会创建多模态工具结果。
+原生 interrupt 同样按 AG-UI 事件顺序发送，每条按上述 SSE 格式传输；通过 `RUN_FINISHED.outcome` 中的 `toolCallId` 关联前面的工具调用。以下省略消息、状态快照和运行开始事件：
 
-本插件与 `tool-fallback` 使用同一语义位置；有同名专用 Tool UI 时，专用展示优先。
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"call-1","toolCallName":"remove_cache"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"call-1","delta":"{\"path\":\".cache\"}"}
+{"type":"TOOL_CALL_END","toolCallId":"call-1"}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"interrupt","interrupts":[{"id":"confirm-1","reason":"tool_call","toolCallId":"call-1","responseSchema":{"type":"object","properties":{"approved":{"type":"boolean"}},"required":["approved"]}}]}}
+```
 
-审批区默认可用，支持两种事件格式：
+用户回答通过同一 Thread 的 `resume[]` 提交；未处理中断不能用普通消息替代。现有原生 `approval` / `respondToApproval` 和 `interrupt` / `resume` 交互字段继续由 Runtime 提供。组件不解析另一条 SSE 流，也不创建独立 Runtime。
 
-- [旧版 CUSTOM `ON_INTERRUPT`](/plugins/tool-fallback.md#旧版格式custom-on_interrupt)。
-- [新版 `RUN_FINISHED` interrupt](/plugins/tool-fallback.md#新版格式run_finished-interrupt)。
+## 自定义命令审批 \{#hook}
 
-两者读取相同的 `action_requests`、`review_configs`，显示「允许」「拒绝」按钮。审批要求由事件表达，不放在媒体内容中。
-
-Mock 中的 `approval-legacy` 和 `approval-resume` 分别演示两种格式；新建项目无需另启用审批插件。若同一轮收到两种格式，只显示一组审批按钮，并通过新版 `resume[]` 提交。完整事件结构和回传字段见[审批数据接入](/plugins/tool-fallback.md#显示条件与数据来源)。
-
-## 展开工具详情查看参数 \{#在工具详情中展开结果}
-
-
-希望同时查看参数与结果时，在已有工具结果入口设置初始展开：
+已有 `ON_INTERRUPT` 卡片需要替换业务界面时，在当前工具 renderer 内使用公开的命令绑定：
 
 ```tsx
-import type { ComponentProps } from 'react';
-import { ConversationToolResultPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-result';
-import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import { useState } from 'react';
+import { useConversationCommandDecision }
+  from '@za38.03/agent-ui-runtime/plugin-api';
 
-export function ConversationToolResultPlugin(props: ComponentProps<typeof Implementation>) {
-  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
-  if (scope?.kind !== 'conversation.tool-fallback') return null;
-  return <Implementation {...scope.value} {...props}
-    defaultExpanded />;
+export function CommandDecisions({ toolCallId, labelFor, onError }: {
+  toolCallId: string;
+  labelFor: (decision: string) => string;
+  onError: (error: unknown) => void;
+}) {
+  const binding = useConversationCommandDecision(toolCallId);
+  const [pending, setPending] = useState(false);
+  if (!binding) return null;
+  return <div>{binding.request.allowedDecisions.map(decision => (
+    <button key={decision} type="button" disabled={pending} onClick={async () => {
+      if (pending) return;
+      setPending(true);
+      try { await binding.submit(decision); }
+      catch (error: unknown) { onError(error); }
+      finally { setPending(false); }
+    }}>{labelFor(decision)}</button>
+  ))}</div>;
 }
 ```
 
-这只改变详情的初始展开状态，结果类型识别和工具原有操作继续保留。
+`labelFor` 沿用项目统一语言层；提交值仍是后端原决策。该旧接口只接受决策字符串，不表示可以提交任意业务表单。完整卡片不需要重新实现这个绑定。
 
-## 为每个结果片段增加容器
+## 图片、音视频和文档结果 \{#接入多模态工具结果}
 
 
-`renderPart` 同时提供片段数据和默认展示。只增加布局时复用 `defaultContent`，继续使用已有媒体解析和播放器：
+结果通过 `TOOL_CALL_RESULT` 返回。`content` 是约定片段数组的 JSON 字符串：
 
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationToolResultPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-result';
-import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
-
-export function ConversationToolResultPlugin(props: ComponentProps<typeof Implementation>) {
-  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
-  if (scope?.kind !== 'conversation.tool-fallback') return null;
-  return <Implementation {...scope.value} {...props}
-    renderPart={(_part, _index, defaultContent) => <section className="project-result-part">{defaultContent}</section>} />;
-}
+```jsonl
+{"type":"TOOL_CALL_START","toolCallId":"media-1","toolCallName":"render_report"}
+{"type":"TOOL_CALL_ARGS","toolCallId":"media-1","delta":"{}"}
+{"type":"TOOL_CALL_END","toolCallId":"media-1"}
+{"type":"TOOL_CALL_RESULT","messageId":"result-1","toolCallId":"media-1","content":"[{\"type\":\"text\",\"text\":\"报告已生成\"},{\"type\":\"image\",\"source\":{\"type\":\"url\",\"value\":\"https://example.test/report.png\",\"mimeType\":\"image/png\"}}]"}
 ```
 
-`resultOnly` 用于已有外层工具或任务卡片负责状态和操作的场景。设为 `true` 会省略整个工具详情与审批界面，只保留结果；普通工具结果入口无需开启它。
+文本片段为 `{ type: 'text', text: string }`；媒体类型为 `image`、`audio`、`video`、`document`，通过 `source` 指定来源：
 
-## API
+| 来源     | 数据                                                  |
+| ------ | --------------------------------------------------- |
+| `url`  | `value` 为 HTTP(S) 或 Blob URL，`mimeType` 可选          |
+| `data` | `value` 为 Base64，必须提供 `mimeType`                    |
+| `file` | `value` 为业务文件引用，可带 `provider`，通过项目 `resolveFile` 解析 |
 
-以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
+文件引用不会被猜测成 URL。`resolveFile(source, { signal })` 返回地址或 Promise；更换来源、卸载时取消旧解析。媒体不自动播放，无效地址或 MIME 使用统一语言提示。普通 JSON 和不符合片段约定的结果继续使用通用结果展示。
 
+每项可带 `id` 和 `metadata`；`metadata.filename` 提供文件名。`renderPart(part, index, defaultContent)` 可定制单个已识别片段，保留现有 `defaultContent` 即保留原展示。
 
-
-项目应用层的 `plugins/tool-result/index.tsx` 引用公开的 `ConversationToolResultPlugin`，继续传入已有的 `tool` 数据并保留子插件渲染调用，通过 React 属性定制展示，无需接管官方源码。
-
-插件入口：`ConversationToolResultPlugin`；展示组件：`ConversationToolResult`；类型：`ConversationToolResultProps`。入口接收下表属性及下列 `ToolFallbackPresentationProps`，包括基础外观属性。
-
-| 属性             | 类型                                                                                                                                          | 省略时 / 用途                                         |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `tool?`        | `ConversationToolResultProps`                                                                                                               | 插件入口工具上下文，缺少时不渲染；独立展示组件直接接收工具上下文                 |
-| `resultOnly?`  | `boolean`                                                                                                                                   | 默认不启用；设为 `true` 直接展示结果内容，省略整个工具详情／审批界面，与是否已有结果无关 |
-| `resolveFile?` | [`(source: Extract<ToolResultSource, { type: 'file' }>, options: { signal: AbortSignal }) => string \| Promise<string>`](#toolresultsource) | 将文件引用解析为可呈现 URL，支持取消                             |
-| `renderPart?`  | [`(part: ToolResultPart, index: number, defaultContent: ReactNode) => ReactNode`](#toolresultpart)                                          | 自定义每个结果片段，可复用默认内容                                |
-
-结果读取与展示按以下规则处理：
-
-- **数据入口**：使用 `tool.result` 或展示组件的 `result`，不向插件入口另传一份结果。
-- **多模态片段数组**：外层分别显示工具详情和结果，内部覆盖 `renderResult` 避免重复；使用 `renderPart` 定制内容。
-- **其他结果**：使用默认工具结果回退，不调用 `renderPart`。
-
-`resultOnly` 会省略整个工具卡片，包括审批区；使用时保留业务所需的交互入口。
-
-独立内容组件 `ConversationToolResultContent` 接受 `ToolResultContentProps`：必需的 `result: unknown`，以及同上 `resolveFile?`、`renderPart?`。
-
-文件来源未提供 `resolveFile` 时显示不可用提示；工具结果整体还支持默认文本／结构化回退。
-
-### 工具卡片展示属性
-
-除上表的结果属性外，还接受以下展示属性。
-
-| 属性                  | 类型                                                                                                                                | 省略时 / 用途                                  |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `expanded?`         | `boolean`                                                                                                                         | 受控展开                                      |
-| `defaultExpanded?`  | `boolean`                                                                                                                         | 默认按是否等待操作决定；等待操作时初始展开                     |
-| `onExpandedChange?` | `(expanded: boolean) => void`                                                                                                     | 展开变化通知                                    |
-| `buttonProps?`      | `Omit<ComponentProps<typeof ConversationToolFallback.Trigger>, 'toolName' \| 'status' \| 'responseDeliveryStatus' \| 'children'>` | 标题按钮的样式、无障碍属性与事件；工具名和运行状态仍由当前调用提供         |
-| `contentProps?`     | `Omit<ComponentProps<typeof ConversationToolFallback.Content>, 'children'>`                                                       | 折叠内容容器，可设置 `style.maxHeight` / `overflow` |
-| `argsProps?`        | `Omit<ComponentProps<typeof ConversationToolFallback.Args>, 'argsText' \| 'children'>`                                            | 参数区容器样式；不会替换真实输入参数，改内容需自定义组合              |
-| `resultProps?`      | `Omit<ComponentProps<typeof ConversationToolFallback.Result>, 'result' \| 'children'>`                                            | 结果区容器样式；替换内容用 `renderResult(result)`      |
-| `renderResult?`     | `(result: unknown) => ReactNode`                                                                                                  | 替换默认结果内容                                  |
-| `errorProps?`       | `Omit<ComponentProps<typeof ConversationToolFallback.Error>, 'status' \| 'children'>`                                             | 错误区容器样式；错误状态仍由当前调用提供                      |
-| `approvalProps?`    | `Omit<ComponentPropsWithoutRef<'div'>, 'children'>`                                                                               | 审批区外观和无障碍属性                               |
-| `renderDetails?`    | `(defaultDetails: ReactNode) => ReactNode`                                                                                        | 定制详情区域；复用默认节点可保留审批、错误与结果                  |
-
-### 当前工具调用的数据与操作
-
-插件入口接收完整的 `tool` 对象；单独使用 `ConversationToolResult` 时直接展开当前工具 props。`result` 提供待展示内容，`toolCallId` 用于业务关联；保留原 `approval`、`respondToApproval`、`interrupt`、`resume` 等交互字段。设置 `resultOnly` 会连同审批区一起省略，不能据此判断工具是否已完成。
-
-公共字段、状态判断和操作回调见[工具调用参数](/plugins/tool-fallback.md#当前工具调用的数据与操作)。
-
-### 保留审批和中断操作
-
-改变结果外观时，继续将现有 `tool` 传给完整组件。它会使用原调用的 `approval` / `respondToApproval` 处理原生审批，使用 `interrupt` / `resume` 处理暂停后的恢复，使用 `responseDeliveryStatus` 保留传输状态。
-
-这些对象的结构由当前运行时提供，不由展示参数重新创建。通常只需转发原 props；更改结果内容时，使用 `renderPart` 或[工具详情的 `renderResult` 示例](/plugins/tool-fallback.md#自定义工具内容顺序)，保留完整卡片处理原有交互。
-
-### 文件名和提示文案
-
-文件名可通过内容块的 `metadata.filename` 提供。这是展示约定，不影响 AG-UI 的字段和消息结构。新文案使用 Agent UI 的统一 locale；文件无法解析时显示可本地化的状态提示。
-
-### 从结果片段决定渲染和文件解析 \{#toolresultpart}
-
-`renderPart(part, index, defaultContent)` 收到已识别的片段，`index` 对应原数组位置。文本片段用 `{ type: 'text', text: string }`；图片、音频、视频和文档用 `{ type: 'image' | 'audio' | 'video' | 'document', source }`。每项可带 `id` 和 `metadata`，例如 `metadata.filename` 可提供文件名。
-
-```json
-[
-  { "type": "text", "text": "报告已生成" },
-  { "type": "document", "source": { "type": "file", "value": "report-42", "mimeType": "application/pdf" }, "metadata": { "filename": "月报.pdf" } }
-]
-```
-
-
-媒体的 `source` 决定怎样取得内容：
-
-| `source.type` | `value` 与其他字段                                   | 项目需要做什么                                                      |
-| ------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| `url`         | `value: string` 是 URL；可选 `mimeType`             | 提供当前用户可访问的地址；原内容组件负责显示                                       |
-| `data`        | `value: string` 是 Base64；必需 `mimeType: string`  | 按实际媒体格式填写 MIME；不是文件 ID                                       |
-| `file`        | `value: string` 是文件 ID；可选 `provider`、`mimeType` | 实现 `resolveFile(source, { signal })`，异步返回可展示 URL，向业务请求透传取消信号 |
-
-上例的 `report-42` 必须经过 `resolveFile`，不能直接当作 `href`。自定义 `renderPart` 可以保留 `defaultContent` 再追加业务入口；返回自己的完整内容时，其样式和操作由项目负责。不是有效片段数组的结果继续使用默认回退，不会触发该回调。
+## API \{#api}
 
 
 
 
+唯一插件入口是 `ConversationToolResultPlugin`，npm 子路径为 `@za38.03/agent-ui-plugins/tool-result`；公开展示组件为根入口的 `ConversationToolResult`。插件入口接收 `tool?` 及展示属性，组件直接接收 `ConversationToolResultProps`。
 
+| 属性                                              | 用途                                                     |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `expanded`、`defaultExpanded`、`onExpandedChange` | 受控或默认展开                                                |
+| `className`、`style`、原生无障碍属性                     | 卡片外观与可访问性                                              |
+| `buttonProps`                                   | 工具标题按钮属性                                               |
+| `contentProps`                                  | 详情容器属性                                                 |
+| `argsProps`、`resultProps`、`errorProps`          | 参数、普通结果、错误区外观                                          |
+| `approvalProps`                                 | 审批区外层属性                                                |
+| `approvalClassNames`、`approvalStyles`           | `actions`、`button`、`approveButton`、`rejectButton` 分区样式 |
+| `renderDetails(defaultDetails)`                 | 详情区域组合                                                 |
+| `renderResult(result)`                          | 普通结果内容展示                                               |
+| `renderPart(part, index, defaultContent)`       | 已识别结果片段展示                                              |
+| `resolveFile(source, { signal })`               | 项目文件引用解析                                               |
+| `resultOnly`                                    | 只显示结果，会省略参数、错误和审批区                                     |
 
+公开类型包括 `ConversationToolResultProps`、`ToolCardPresentationProps`、`ToolApprovalClassNames`、`ToolApprovalStyles`、`ToolResultContentProps`、`ToolResultPart`、`ToolResultSource`。内部模块不作为第二套公开卡片或独立插件交付。
 
+## 旧版入口迁移 \{#旧版入口迁移}
 
+新模板仍使用 `tool-result`，无需调整插件 ID。旧项目若选择了 `tool-fallback` 或导入 `ConversationToolFallback`，需要显式修改应用导入及插件配置，统一到 `tool-result` / `ConversationToolResult`。原有内部复合组件调用需要结合项目实际定制调整，不能仅批量改名。
 
-为什么设置 resultOnly 后看不到确认按钮？
-
-这个属性直接绕过工具详情展示，包括审批界面。仍需用户确认的工具应保留默认模式，或在项目组合中显式提供确认入口。
+npm 安装和源码同步不会自动删除用户的旧应用、本地实现或推进 BASE。已接管源码按原所有权流程维护，迁移应用层与同步实现分别处理。

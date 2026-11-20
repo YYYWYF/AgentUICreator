@@ -3,7 +3,7 @@
 在你自己的开发页面里，用对话检查和修改 Agent UI。
 业务工程照常启动，需要 Creator 时再启动工具服务。Creator 图形界面只能通过宿主开发页面中的入口使用，不提供独立页面。
 
-以下适用于 React + Vite 项目。安装和使用 Creator 要求 Node.js 22（最低 `22.0.0`），也支持 Node.js 24（最低 `24.22.1`）；声明范围为 `^22.0.0 || ^24.22.1`。Creator Agent 和 Operator 工具均使用 TypeScript，随同一个 npm 包交付。工程结构见 [Creator TS 发行](docs/typescript-distribution.md)。
+以下适用于 React + Vite 项目。安装和使用 Creator 最低要求 Node.js `20.0.0`，也支持 Node.js 22 和 Node.js 24（最低 `24.22.1`）；声明范围为 `^20.0.0 || ^22.0.0 || ^24.22.1`。Creator Agent 和 Operator 工具均使用 TypeScript，随同一个 npm 包交付。工程结构见 [Creator TS 发行](docs/typescript-distribution.md)。
 
 ## 1. 安装
 
@@ -38,7 +38,7 @@ export default defineConfig(async ({ command }) => {
 });
 ```
 
-Creator 使用 ESM，通过异步 `import()` 在开发分支加载；这种加载写法兼容 Node.js `22.0.0`，实际 Node 版本还需满足所用构建工具的要求。生产构建无需加载或安装 Creator。如果业务开发服务已经运行，配置完成后重启一次。
+Creator 使用 ESM，通过异步 `import()` 在开发分支加载；这种加载写法兼容 Node.js `20.0.0`，实际 Node 版本还需满足所用构建工具的要求。生产构建无需加载或安装 Creator。如果业务开发服务已经运行，配置完成后重启一次。
 
 ## 3. 需要时启动
 
@@ -101,12 +101,12 @@ Creator 会将定制修改保存在关联的 React Agent UI 工程。修改后�
 ```tsx
 import { useState } from "react";
 import { Agent } from "./agent-ui";
-import { AgentUIProvider, useAgentUI, useAgentUIState } from "@za38.03/agent-ui-runtime";
+import { AgentUIProvider, useAgent } from "@za38.03/agent-ui-runtime";
 
 function AssistantRegion() {
-  const agent = useAgentUI();
-  const ready = useAgentUIState(s => s.status === "ready");
-  const busy = useAgentUIState(s => s.runtime?.run.status === "running" || s.runtime?.run.status === "awaiting-input");
+  const agent = useAgent();
+  const ready = useAgent(s => s.status === "ready");
+  const busy = useAgent(s => s.runtime?.run.status === "running" || s.runtime?.run.status === "awaiting-input");
   const [open, setOpen] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -134,9 +134,9 @@ Agent 的导入路径按你的源码目录调整，业务组件可放在任意�
 - `locale`、`endpoint`、附件/反馈适配器等项目配置传给 `<Agent />`。Provider 只接收 `children` 和可选的共享展示资料 `user`；Agent 自身的 `user` 可覆盖其继承值。一个 Provider 只挂载一个 Agent；独立使用 `<Agent />` 时会自动建立内部上下文。
 - `user` 及其 `userId`、`userName`、`avatar` 均可选。账户插件启用时，缺失资料显示默认值。用户资料只用于前端展示，不会自动提供给模型，也不替代宿主鉴权。
 - 需要隐藏面板但保留会话时，使用 `hidden` 或 CSS 并保持 `<Agent />` 挂载；宿主仍可读取状态和发送消息。卸载 Agent 或 Provider 会断开会话并停止当前执行。
-- `useAgentUI()` 提供 `sendMessage`、`abortRun`、`startNewConversation`、`resumeInterrupts`。未就绪调用返回 `AGENT_UI_NOT_READY`；消息并发与中断继续遵循已有 Runtime 规则，不额外排队。
-- `useAgentUIState(selector)` 订阅稳定字段，例如 `s.status`、`s.runtime?.run.status` 和 `s.runtime?.messages`。避免在 selector 中新建对象或数组。
-- `useAgentUIEvent(name, handler)` 订阅 `ready`、`status-change`、`thread-change`、`run-start`、`run-end`。事件只通知变化；读取当前状态使用状态 Hook。`run-end` 包含完成、取消、错误和等待用户输入，不等于成功完成。
+- `useAgent()` 提供 `sendMessage`、`abortRun`、`startNewConversation`、`resumeInterrupts`。未就绪调用返回 `AGENT_UI_NOT_READY`；消息并发与中断继续遵循已有 Runtime 规则，不额外排队。
+- `useAgent(selector)` 订阅稳定字段，例如 `s.status`、`s.runtime?.run.status` 和 `s.runtime?.messages`。避免在 selector 中新建对象或数组。
+- `useAgentEvent(name, handler)` 订阅 `ready`、`status-change`、`thread-change`、`run-start`、`run-end`。事件只通知变化；读取当前状态使用状态 Hook。`run-end` 包含完成、取消、错误和等待用户输入，不等于成功完成。
 - `sendMessage()` 返回现有 Runtime 的结算 Promise；成功结算不保证模型成功回复。检查 `runtime.run` 和 `runtime.interrupts`。会话更换或 Provider 卸载会以 `AGENT_UI_SESSION_ENDED` 拒绝旧会话尚未结束的宿主发送请求，不会把请求转发给新会话。
 - 退出登录、切换用户时，由宿主管理会话清理，例如卸载 Provider 或用用户 ID 作为 React `key`，并仅传入该用户的 `initialThreadId`。更新 `user` 资料本身不切换会话。
 

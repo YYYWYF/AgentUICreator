@@ -1,5 +1,5 @@
-import { useAgentUIAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
-import { useAgentUIProject } from "../project-context.js";
+import { useAgentIdentity } from "../../host/AgentUIAgentsProvider.js";
+import { useProject } from "../project-context.js";
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
 import { AgentUILocaleProvider } from "../../locale.js";
@@ -40,8 +40,8 @@ export function ApplicationSessionBoundary({ composition, frontendTools, locale:
   children: ReactNode;
   renderGate?: ((content: ReactNode, phase: string) => ReactNode) | undefined;
 }) {
-  const application = useAgentUIAgentIdentity();
-  const { locales: AGENT_UI_LOCALES, appEventSchemas, defaultLocale, development, serviceOverrides } = useAgentUIProject();
+  const application = useAgentIdentity();
+  const { locales: AGENT_UI_LOCALES, appEventSchemas, defaultLocale, development, serviceOverrides } = useProject();
   const locale = requestedLocale ?? defaultLocale;
   const current = useRef<AgentRuntime<AppAgentState> | null>(null);
   const connection = useMemo<Connection>(() => {

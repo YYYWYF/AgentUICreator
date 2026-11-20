@@ -4,7 +4,7 @@ import {
   ConversationActionMoreMenuItem,
   DownloadIcon,
   TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
   useAssistantResponseRuntime,
 } from '../../../../plugin-support.js';
 export type ResponseExportMarkdownActionProps =
@@ -17,12 +17,13 @@ export type ResponseExportMarkdownActionProps =
       icon?: ReactNode;
     });
 export const CanonicalResponseExportMarkdownAction: FC<ResponseExportMarkdownActionProps> = (props) => {
-  const localeMessages = useAgentUILocale();
-  const response = useAssistantResponseRuntime();
-  const disabled = response.isRunning || !response.text;
+  const localeMessages = useLocale();
+  const text = useAssistantResponseRuntime(snapshot => snapshot.text);
+  const isRunning = useAssistantResponseRuntime(snapshot => snapshot.isRunning);
+  const disabled = isRunning || !text;
   const exportMarkdown = () => {
     if (disabled) return;
-    const blob = new Blob([response.text], { type: 'text/markdown' });
+    const blob = new Blob([text], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     try {
       const anchor = document.createElement('a');

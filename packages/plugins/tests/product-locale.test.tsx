@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { AgentUILocaleProvider, useAgentUILocale, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
+import { AgentUILocaleProvider, useLocale, resolveAgentUILocaleMessages, mergeAgentUILocaleOverrides, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
 import { ConversationFile } from "../src/public";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let renderer: ReactTestRenderer | undefined;
 afterEach(() => { if (renderer) act(() => renderer!.unmount()); renderer = undefined; });
 function Probe() {
-  const composer = useAgentUILocale("composer");
-  const images = useAgentUILocale("images");
+  const composer = useLocale("composer");
+  const images = useLocale("images");
   return <button aria-label={images.closeZoom}>{composer.send}</button>;
 }
 describe("Product locale composition", () => {

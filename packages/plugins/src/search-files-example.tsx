@@ -1,4 +1,4 @@
-import { useAgentUILocale, resolveAgentUILocaleMessages } from "./public.js";
+import { useLocale, resolveAgentUILocaleMessages } from "./public.js";
 import { useState } from "react";
 import type {
   ConversationToolkit,
@@ -8,7 +8,7 @@ import type {
 
 import {
   ConversationToolCall,
-  ConversationToolFallback,
+  ConversationToolResult,
 } from "./public.js";
 
 type SearchFilesArgs = Record<string, unknown>;
@@ -58,10 +58,10 @@ function shouldUseFallback(
 }
 
 export const SearchFilesToolUI: ConversationToolCallComponent = (props) => {
-  const messages = useAgentUILocale("search");
+  const messages = useLocale("search");
   const [open, setOpen] = useState(false);
 
-  if (shouldUseFallback(props)) return <ConversationToolFallback {...props} />;
+  if (shouldUseFallback(props)) return <ConversationToolResult {...props} />;
 
   return (
     <ConversationToolCall

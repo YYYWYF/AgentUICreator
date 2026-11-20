@@ -1,9 +1,8 @@
 import {
-  ConversationToolFallback,
-  type ConversationToolCallComponent,
-} from "@za38.03/agent-ui-plugins";
+  ConversationToolResult,
+  type ConversationToolCallComponent} from "@za38.03/agent-ui-plugins";
 
 /** Uses the official assistant-ui approval presentation for the mock HITL tool. */
 export const MockApprovalToolUI: ConversationToolCallComponent = (props) => (
-  <ConversationToolFallback {...props} />
+  <ConversationToolResult {...props} />
 );

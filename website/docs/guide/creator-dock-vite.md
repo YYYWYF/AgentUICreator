@@ -43,6 +43,13 @@ Creator 面板自带样式。本步骤完成后，安装模板，再按 [Vite �
 
 打开工程开发地址，确认出现 **Creator Agent** 按钮并能连接。生产构建的页面应没有 Creator 面板。
 
+<figure className="plugin-preview">
+
+![工程开发页面顶部的 Creator Agent 按钮](/images/start/03-creator-entry.png)
+
+<figcaption>接入后的入口参考：点击页面顶部的 Creator Agent 按钮展开开发面板，再选择目标工程。</figcaption>
+</figure>
+
 ## 常用选项
 
 | 选项 | 用途 |

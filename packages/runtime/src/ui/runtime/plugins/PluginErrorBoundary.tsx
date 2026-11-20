@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "../../../locale.js";
+import { useLocale } from "../../../locale.js";
 import {
   Component,
   type ErrorInfo,
@@ -104,6 +104,6 @@ export class PluginRuntimeBoundary extends Component<
 export { PluginRuntimeBoundary as PluginErrorBoundary };
 
 function PluginFailureTitle({ pluginName }: { pluginName: string }) {
-  const messages = useAgentUILocale("runtime");
+  const messages = useLocale("runtime");
   return <strong>{messages.pluginRenderFailed.replace("{plugin}", () => pluginName)}</strong>;
 }

@@ -5,8 +5,7 @@ import {
   ComposerPrimitive,
   defaultDirectiveFormatter,
   type DirectiveFormatter,
-  type TriggerItem,
-} from "@assistant-ui/react";
+  type TriggerItem} from "@assistant-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 

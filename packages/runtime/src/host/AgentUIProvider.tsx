@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse } from "@za38.03/agent-ui-core";
+import { useStoreValue } from "../observation/use-store-value.js";
 import type { AgentApplicationEvent } from "@za38.03/agent-ui-core";
 import { HostThreads, type AgentUIThread, type AgentUIThreadNavigation, type AgentUISendOptions, type AgentUIThreadRuntime } from "./threads.js";
 
@@ -169,7 +170,7 @@ export function AgentUIHostUserProvider({ user, children }: { user?: AgentUIUser
   const profile = user == null ? user : { userId: user.userId, userName: user.userName, avatar: user.avatar };
   return <UserContext.Provider value={profile}>{children}</UserContext.Provider>;
 }
-export function useAgentUIUser() { return useContext(UserContext); }
+export function useHostUser() { return useContext(UserContext); }
 
 /** Package-owned host environment. Generated composition supplies its single runtime binding. */
 export function AgentUIProvider({ user, children }: { user?: AgentUIUser | null | undefined; children: ReactNode }) {
@@ -180,45 +181,46 @@ export function AgentUIProvider({ user, children }: { user?: AgentUIUser | null 
   </AgentUIHostUserProvider></HostContext.Provider>;
 }
 
-export function useOptionalAgentUI<TState = unknown>(): AgentUIHost<TState> | null {
+export function useOptionalAgent<TState = unknown>(): AgentUIHost<TState> | null {
   return useContext(HostContext) as AgentUIHost<TState> | null;
 }
-export function useAgentUI<TState = unknown>(): AgentUIHost<TState> {
-  const host = useOptionalAgentUI<TState>();
-  if (host === null) throw new AgentUIHostError("AGENT_UI_PROVIDER_MISSING");
-  return host;
+export function useAgent<TState = unknown>(): AgentUIHost<TState>;
+export function useAgent<T, TState = unknown>(selector: (snapshot: AgentUIHostSnapshot<TState>) => T): T;
+export function useAgent<T, TState = unknown>(selector: ((snapshot: AgentUIHostSnapshot<TState>) => T) | undefined): AgentUIHost<TState> | T;
+export function useAgent<T, TState = unknown>(selector?: (snapshot: AgentUIHostSnapshot<TState>) => T): AgentUIHost<TState> | T {
+  const host = useOptionalAgent<TState>();
+  const read = () => {
+    if (host === null) throw new AgentUIHostError("AGENT_UI_PROVIDER_MISSING");
+    return selector === undefined ? host : selector(host.getSnapshot());
+  };
+  return useStoreValue(host?.subscribe ?? (() => () => {}), read, selector !== undefined);
 }
-/** Select stable fields/references, rather than allocating an object in the selector. */
-export function useAgentUIState<T, TState = unknown>(selector: (snapshot: AgentUIHostSnapshot<TState>) => T): T {
-  const host = useAgentUI<TState>();
-  return useSyncExternalStore(host.subscribe, () => selector(host.getSnapshot()), () => selector(host.getSnapshot()));
-}
-export function useAgentUIEvent<K extends keyof AgentUIEventMap>(event: K, listener: (payload: AgentUIEventMap[K]) => void) {
-  const host = useAgentUI();
+export function useAgentEvent<K extends keyof AgentUIEventMap>(event: K, listener: (payload: AgentUIEventMap[K]) => void) {
+  const host = useAgent();
   const current = useRef(listener);
   useLayoutEffect(() => { current.current = listener; }, [listener]);
   useEffect(() => host.on(event, payload => current.current(payload)), [host, event]);
 }
 
 /** Subscribe outside the generated Agent, under its shared AgentUIProvider. */
-export function useAgentUIAppEvent<TPayload = unknown>(name: string, listener: AgentUIAppEventListener<TPayload>) {
-  const host = useAgentUI();
+export function useAgentAppEvent<TPayload = unknown>(name: string, listener: AgentUIAppEventListener<TPayload>) {
+  const host = useAgent();
   const current = useRef(listener);
   useLayoutEffect(() => { current.current = listener; }, [listener]);
   useEffect(() => host.onAppEvent<TPayload>(name, event => current.current(event)), [host, name]);
 }
 
 /** Generated-composition seam; never creates or owns another conversation runtime. */
-export function useAgentUIRuntimeConnection(runtime: AgentRuntime | undefined) {
+export function useHostRuntimeConnection(runtime: AgentRuntime | undefined) {
   const store = useContext(HostContext);
   useLayoutEffect(() => runtime === undefined ? undefined : store?.bind(runtime), [store, runtime]);
 }
 /** Capture the Host in a real React component before entering upstream resource hooks. */
-export function useAgentUIThreadRegistrar() {
+export function useThreadRegistrar() {
   const store = useContext(HostContext);
   return useCallback((runtime: AgentUIThreadRuntime) => store?.threads.register(runtime), [store]);
 }
-export function useAgentUIThreadNavigation(navigation: AgentUIThreadNavigation) {
+export function useThreadNavigationBinding(navigation: AgentUIThreadNavigation) {
   const store = useContext(HostContext);
   useLayoutEffect(() => {
     if (!store) return;
@@ -227,7 +229,7 @@ export function useAgentUIThreadNavigation(navigation: AgentUIThreadNavigation) 
   }, [store, navigation]);
 }
 export function AgentUIRuntimeBinding({ runtime }: { runtime: AgentRuntime }) {
-  useAgentUIRuntimeConnection(runtime);
+  useHostRuntimeConnection(runtime);
   const active = useRef(runtime);
   active.current = runtime;
   useLayoutEffect(() => () => active.current.abort(), []);
@@ -239,7 +241,7 @@ export function AgentUIConnectionState({ status }: { status: Exclude<AgentUIConn
   return null;
 }
 /** Generated React composition uses this target for its context-preserving portal. */
-export function useAgentUISurfaceTarget() { return useContext(SurfaceContext)?.target ?? null; }
+export function useSurfaceTarget() { return useContext(SurfaceContext)?.target ?? null; }
 export function AgentUIOutlet() {
   const surface = useContext(SurfaceContext);
   const owned = useRef<HTMLElement | null>(null);

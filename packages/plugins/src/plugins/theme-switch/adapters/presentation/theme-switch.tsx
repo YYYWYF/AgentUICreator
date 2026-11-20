@@ -1,12 +1,12 @@
 import { useId, type ComponentProps, type ReactNode } from 'react';
-import { useAgentUIThemeSnapshot } from '../../../../plugin-support.js';
+import { useThemeSnapshot } from '../../../../plugin-support.js';
 import {
   AGENT_UI_THEME_PRESETS,
   getAgentUIThemeColorScheme,
   isAgentUITheme,
   NativeSelect,
   NativeSelectOption,
-  useAgentUILocale,
+  useLocale,
   type AgentUITheme,
 } from '../../../../public.js';
 export interface ThemeSwitchPluginProps extends Omit<ComponentProps<'section'>, 'children'> {
@@ -33,8 +33,8 @@ export function CanonicalThemeSwitchPlugin({
   ...rootProps
 }: ThemeSwitchPluginProps) {
   const controlId = useId();
-  const locale = useAgentUILocale('theme');
-  const observedTheme = useAgentUIThemeSnapshot(controlledTheme === undefined ? service : undefined);
+  const locale = useLocale('theme');
+  const observedTheme = useThemeSnapshot(controlledTheme === undefined ? service : undefined);
   const theme = controlledTheme ?? observedTheme;
   const changeTheme = onThemeChange ?? (service ? (next: AgentUITheme) => service.setTheme(next) : undefined);
   if (!changeTheme) {

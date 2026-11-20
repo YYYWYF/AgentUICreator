@@ -130,32 +130,32 @@ for (const malformed of [false, true]) test(`human question validates input and 
   } finally { await f.close(); }
 });
 
-test("queued messages can be removed and cancellation keeps the remaining queue paused", async ({ page }) => {
+test("running input keeps the next draft until an explicit send after cancellation", async ({ page }) => {
   const errors = await watch(page);
   let cancelled = false;
-  const f = await createControlledAgentHost({ application: () => ({ props: "enableMessageQueue" }), run(input, response) {
-    response.once("close", () => { cancelled = true; });
+  const f = await createControlledAgentHost({ run(input, response, index) {
     startRun(response, input);
+    if (index > 1) { finishRun(response, input, "Explicit next response"); return; }
+    response.once("close", () => { cancelled = true; });
     writeEvent(response, { type: "TEXT_MESSAGE_START", messageId: `active-${input.runId}`, role: "assistant" });
     writeEvent(response, { type: "TEXT_MESSAGE_CONTENT", messageId: `active-${input.runId}`, delta: "Active response" });
   } });
   try {
     await page.goto(f.hostOrigin); await send(page, "Active message");
     await expect(page.getByRole("button", { name: "停止生成", exact: true })).toBeVisible();
-    for (const text of ["Remove queued B", "Keep queued C"]) {
-      await inputFor(page).fill(text); await page.getByRole("button", { name: "加入发送队列", exact: true }).click();
-    }
-    const queue = page.locator('[data-slot="aui_composer-queue-item"]');
-    await expect(queue).toHaveCount(2);
-    await queue.filter({ hasText: "Remove queued B" }).getByRole("button", { name: "移除待发送消息", exact: true }).click();
-    await expect(queue).toHaveCount(1); await expect(queue).toContainText("Keep queued C");
+    await expect(page.locator(".aui-composer-send")).toHaveCount(0);
+    await inputFor(page).fill("Next draft"); await inputFor(page).press("Enter");
+    await expect(inputFor(page)).toHaveValue("Next draft\n");
+    await expect(page.locator('[data-slot="aui_composer-queue"]')).toHaveCount(0);
+    expect(f.requests).toHaveLength(1);
     await page.getByRole("button", { name: "停止生成", exact: true }).click();
     await expect.poll(() => cancelled).toBe(true);
     await expect(page.getByRole("button", { name: "停止生成", exact: true })).toHaveCount(0);
-    await expect(page.locator(".aui-md")).toContainText("Active response");
-    await expect(queue).toHaveCount(1); await expect(queue).toContainText("Keep queued C");
+    await expect(inputFor(page)).toHaveValue("Next draft\n");
     expect(f.requests).toHaveLength(1);
-    await expect(inputFor(page)).toBeEditable();
+    await page.locator(".aui-composer-send").click();
+    await expect(page.locator(".aui-md").last()).toContainText("Explicit next response");
+    expect(f.requests).toHaveLength(2);
     expect(f.failures).toEqual([]); expect(errors).toEqual([]);
   } finally { await f.close(); }
 });

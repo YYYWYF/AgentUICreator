@@ -169,10 +169,6 @@
       "path": "items/plugin/submit-action/item.json"
     },
     {
-      "id": "plugin/tool-fallback",
-      "path": "items/plugin/tool-fallback/item.json"
-    },
-    {
       "id": "plugin/tool-group",
       "path": "items/plugin/tool-group/item.json"
     },

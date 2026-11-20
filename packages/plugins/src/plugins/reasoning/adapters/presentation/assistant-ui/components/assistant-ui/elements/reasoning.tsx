@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import { createContext, forwardRef, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useIsomorphicLayoutEffect } from '../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/useIsomorphicLayoutEffect.js';
@@ -160,7 +160,7 @@ function ReasoningTrigger({
   active?: boolean;
   duration?: number | undefined;
 }) {
-  const messages = useAgentUILocale('conversation');
+  const messages = useLocale('conversation');
   const durationText = duration ? formatPresentationMessage(messages.reasoningDuration, { seconds: duration }) : '';
 
   return (

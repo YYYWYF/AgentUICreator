@@ -51,7 +51,7 @@
 
 ![本地 Mock 列表显示保存目录提示，以及 eventstream 和 response 两份文件，eventstream 已选中](/images/guide/mock-replay/04-local-files.png)
 
-按[启动与连接](/mock/getting-started.md)启动服务并连接页面助理，发送一条消息触发回放。修改文件后，刷新并重新发送消息即可检查结果。
+在「连接 Agent」中选择「使用示例 Agent」，然后发送消息触发回放，见[启动与连接](/mock/getting-started.md)。修改文件后，刷新并重新发送即可检查结果。
 
 播放时长倍率对以上格式均生效，只调整事件间隔，不改变事件内容和顺序。
 

@@ -24,7 +24,7 @@
 
 新工程只生成布局中选用的插件入口，以及读取服务、传入数据和显示子插件所需的代码，添加插件时再生成对应入口。已经存在的项目入口会保留。
 
-服务相关 Hook 放在 `services/hooks/` 下：`useConversations.ts`、`useConversationActions.ts` 和按需生成的 `useAuthSession.ts`。插件通过相对路径调用这些 Hook；服务契约和实现不反向依赖 Hook。
+服务相关 Hook 放在 `services/hooks/` 下：`useConversations.ts` 和按需生成的 `useAuthSession.ts`。插件通过相对路径调用这些 Hook；服务契约和实现不反向依赖 Hook。
 
 主题、语言和文案覆盖通过 `Agent` 属性配置；只有编写服务消费代码时才需从 npm 导入公共服务标识和类型，入口见[插件 API](/development/plugin-api.md#内置领域-hook)。
 

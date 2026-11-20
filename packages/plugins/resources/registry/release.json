@@ -8,9 +8,6 @@
     "copy-action": {
       "version": "0.0.1"
     },
-    "tool-fallback": {
-      "version": "0.0.1"
-    },
     "agent-status-message": {
       "version": "0.0.1"
     },

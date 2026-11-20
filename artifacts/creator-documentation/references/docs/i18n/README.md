@@ -11,7 +11,7 @@ recording transcripts, sample payloads and backend diagnostic details remain dat
 
 - `@za38.03/agent-ui-plugins` owns presentation dictionaries in
   `packages/plugins/src/locales/{en-US,zh-CN}.ts`, their types and the public
-  `AgentUILocaleProvider`, `useAgentUILocale()` and `useAgentUILocaleCode()` APIs
+  `AgentUILocaleProvider`, `useLocale()` and `useLocaleCode()` APIs
   in `src/locale.tsx`. Standalone presentation defaults to `en-US`.
 - Generated projects use Runtime `/ui` and default to `zh-CN`. `locale-provider`
   remains the enabled service owner; Runtime's `AgentUILocaleBridge` connects it

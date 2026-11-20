@@ -6,7 +6,7 @@ title: "给 Agent 传递业务参数"
 
 发送消息时，可以给 Agent 附带当前订单、租户、业务场景等参数。
 
-@ 与 / 的业务数据直接定义在来源的候选项中，触发器保留正文引用并记录原始选中项；其他插件使用 `useComposer().setData` 提交数据。Composer 的 `requestAdapter` 统一决定最终 `forwardedProps`，见[插件发送参数](./composer-sources#插件提供数据composer-组装请求)。
+页面参数用 `ctx`，页面摘要用 `getRunContext`。要发送 @、/ 等选中对象，见[插件发送参数](./composer-sources#插件提供数据composer-组装请求)；需要异步准备参数或申请会话 ID，使用 [`beforeRequest`](./connect-agent#发送前准备请求)。
 
 ## 业务参数 ctx
 
@@ -19,10 +19,10 @@ title: "给 Agent 传递业务参数"
 />
 ```
 
-在业务组件中通过 [`useAgentUI()`](./react-host-control) 发送消息时，可以传入本次参数：
+在业务组件中通过 [`useAgent()`](./react-host-control) 发送消息时，可以传入本次参数：
 
 ```ts
-const host = useAgentUI();
+const host = useAgent();
 
 await host.sendMessage('分析这个订单', {
   ctx: { orderId: 'O-1042', scene: 'order-analysis' },
@@ -31,7 +31,7 @@ await host.sendMessage('分析这个订单', {
 
 该请求包含：
 
-```json
+```json ag-ui
 {
   "forwardedProps": {
     "ctx": {
@@ -47,7 +47,7 @@ await host.sendMessage('分析这个订单', {
 
 合并只处理第一层，同名嵌套对象会整体替换；`null` 会保留。本次参数在提交时取得独立快照，随该次消息的重试、工具续传和中断恢复保留，不成为下一条消息的默认参数。
 
-`ctx` 顶层必须是普通对象，内容只接受 JSON 值：字符串、有限数值、布尔值、null、数组和普通对象。先把日期等业务值转换为字符串；undefined、函数、BigInt、循环引用和类实例会触发 `InvalidAgentUIContextError`（`code: 'AGENT_UI_INVALID_CTX'`）。业务参数由后端校验，租户 ID 等客户端字段本身不构成授权。
+`ctx` 使用 JSON 对象，日期等值先转为字符串。函数、循环引用等无效值会报 `AGENT_UI_INVALID_CTX`。身份和权限仍由后端校验。
 
 ## 通过 context 传递参数
 
@@ -70,7 +70,7 @@ export function AssistantPage({ orderId, status }: { orderId: string; status: st
 
 发送消息时，请求体中的 `context` 如下：
 
-```json
+```json ag-ui
 {
   "context": [
     { "description": "selectedOrder", "value": "{\"orderId\":\"O-1042\",\"status\":\"shipped\"}" }
@@ -80,4 +80,4 @@ export function AssistantPage({ orderId, status }: { orderId: string; status: st
 
 `description` 用来标识数据，后端按业务约定处理对应的 `value`。`getRunContext` 可以从页面的 props、state 或 store 读取当前数据。
 
-此回调是同步读取入口，不能返回 Promise。需要请求业务接口时，先在项目服务中加载并保存结果，再在这里读取。读取抛错会通过 `onError` 报告，本次运行继续发送且不包含这次读取的条目；必须成功的鉴权或业务前置检查应在项目请求函数或操作入口中完成。
+`getRunContext` 同步读取已有数据，读取失败会报告 `onError`，请求继续。需要等待接口、准备失败时停止发送，使用 [`beforeRequest`](./connect-agent#发送前准备请求)。

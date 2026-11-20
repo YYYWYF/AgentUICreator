@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, formatPresentationMessage } from "../locale.js";
+import { useLocale, formatPresentationMessage } from "../locale.js";
 import {
   MessagePrimitive,
   ReadonlyThreadProvider,
@@ -28,7 +28,7 @@ import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { TaskDisclosureScopeContext, useTaskDisclosure } from "./task-disclosure-context.js";
 
 import { useConversationToolRenderer } from "./tool-renderer-context.js";
-import { hasToolResultParts } from "../plugins/tool-result/adapters/presentation/content.js";
+import { hasToolResultParts } from "../plugins/tool-result/adapters/presentation/result/content.js";
 
 type TranscriptComponents = {
   Text: TextMessagePartComponent;
@@ -81,7 +81,7 @@ function NestedMessage() {
 
 function TaskCardComposition({ part }: { part: TaskPart }) {
   const Renderer = useConversationToolRenderer();
-  const labels = useAgentUILocale("tasks");
+  const labels = useLocale("tasks");
   // Upstream can recreate equivalent nested snapshots on parent notifications.
   // Keep the readonly provider input stable to avoid a notification/render loop;
   // changed content, status and metadata still flow through immediately.
@@ -152,7 +152,7 @@ function TaskLanes({ group, className }: {
   group: MessagePrimitive.GroupedParts.GroupPart;
   className?: string;
 }) {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const [visible, setVisible] = useState(TASK_PAGE_SIZE);
   const { indices, counts } = group;
   // Grouping and run counts come from assistant-ui, never from a product store.

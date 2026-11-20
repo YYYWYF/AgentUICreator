@@ -69,6 +69,13 @@ export function SelectItemTool({ args, result, status, addResult }: Conversation
 
 历史记录会再次渲染组件，应根据 `result` 展示当时的结果，并仅在允许回答时提供提交入口。更多属性见[工具调用属性](/plugins/ask-user-question#当前工具调用的数据与操作)。内置[询问用户](/plugins/ask-user-question)也使用这种方式。
 
+<figure className="plugin-preview">
+
+![内置询问用户工具的题目和可选答案](/images/plugins/human-interaction-question.png)
+
+<figcaption>内置问答工具的界面参考：工具卡片等待用户选择并提交，再由原会话继续回答。BusinessSelector 的具体外观由项目实现。</figcaption>
+</figure>
+
 ## 宿主页面操作接入
 
 需要直接调用页面方法、填写现有表单或请求接口时，在同一个 `toolkit` 中配置 `type: 'frontend'` 和 `execute`。需要自定义展示时，直接加 `render`：

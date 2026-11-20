@@ -1,18 +1,13 @@
 import {
-  ConversationToolFallback,
+  ConversationToolResult,
   JobProgress,
   type ConversationToolCallComponent,
-  type ConversationToolCallProps,
-} from "@za38.03/agent-ui-plugins";
+  type ConversationToolCallProps} from "@za38.03/agent-ui-plugins";
 
 import {
   projectJobProgressState,
-  projectRunCiJobArgs,
-} from "../../state/job-progress-projection";
-import {
-  useAgentRuntimeActions,
-  useAgentState,
-} from "../../../../runtime/context";
+  projectRunCiJobArgs} from "../../state/job-progress-projection";
+import { useAgentRuntime } from "../../../../runtime/context";
 
 function shouldUseFallback(
   props: ConversationToolCallProps,
@@ -23,13 +18,13 @@ function shouldUseFallback(
 }
 
 export const MockRunCiJobToolUI: ConversationToolCallComponent = (props) => {
-  const state = useAgentState<unknown>();
-  const { abortRun } = useAgentRuntimeActions();
+  const state = useAgentRuntime<unknown, unknown>(snapshot => snapshot.state);
+  const { abortRun } = useAgentRuntime();
   const args = projectRunCiJobArgs(props.args);
   const progress = projectJobProgressState(state, props.toolCallId);
 
   if (shouldUseFallback(props) || args === null || progress === null) {
-    return <ConversationToolFallback {...props} />;
+    return <ConversationToolResult {...props} />;
   }
 
   return (

@@ -1,3 +1,4 @@
+import { resolve as resolveModule } from "import-meta-resolve";
 import { resolveCompatibilityConsumer, readCompatibilityBinding } from "./compatibility-binding";
 import { compatibilityArtifactReady } from "./compatibility-project";
 import { assertCreatorCommitAllowed } from "./creator-cancel-marker";
@@ -209,7 +210,7 @@ async function validateRecipe(root: string, input: IntegrationRecipe) {
 // Never resolve/install the producer Source Item in the consumer workspace.
 async function officialBridgeAsset() {
   try {
-    const file = fileURLToPath(import.meta.resolve("@za38.03/agent-ui-web-component/register"));
+    const file = fileURLToPath(resolveModule("@za38.03/agent-ui-web-component/register", import.meta.url));
     const info = await stat(file);
     return info.isFile() && info.size > 0 ? file : undefined;
   } catch (error) {

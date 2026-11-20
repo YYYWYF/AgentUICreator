@@ -1,3 +1,4 @@
+import { resolve as resolveModule } from "import-meta-resolve";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { readFile, stat } from "node:fs/promises";
@@ -27,7 +28,7 @@ const modulePath = fileURLToPath(import.meta.url);
 const isSourceMode = path.basename(path.dirname(path.dirname(modulePath))) === "src";
 export const DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT = isSourceMode && existsSync(workspaceResources)
   ? workspaceResources
-  : path.join(path.dirname(fileURLToPath(import.meta.resolve("@za38.03/agent-ui-plugins/catalog.json"))), "resources", "registry");
+  : path.join(path.dirname(fileURLToPath(resolveModule("@za38.03/agent-ui-plugins/catalog.json", import.meta.url))), "resources", "registry");
 
 let workspaceSourceLayout: Promise<Map<string, string>> | undefined;
 

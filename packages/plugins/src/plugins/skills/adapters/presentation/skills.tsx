@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import { Popover } from '@base-ui/react/popover';
 import {
-  useAgentUIPortalContainer,
-  useAgentUILocale,
+  usePortalContainer,
+  useLocale,
 } from '../../../../public.js';
 
 interface SkillEntry {
@@ -69,8 +69,8 @@ function SkillsContent({
   disabled = false,
   ...rootProps
 }: Omit<ConversationSkillsProps, 'scopeKey'>) {
-  const labels = useAgentUILocale('skills');
-  const portalContainer = useAgentUIPortalContainer();
+  const labels = useLocale('skills');
+  const portalContainer = usePortalContainer();
   const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
   // Stay inside the current conversation's stacking and clipping boundary,
   // including a floating or embedded shell. Never portal to the page body.

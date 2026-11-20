@@ -2,11 +2,11 @@ import { useEffect, useState, type KeyboardEvent } from "react";
 import { parseCreatorCommand } from "../../commands/parser.js";
 import { CREATOR_COMMANDS_API_PATH, type CreatorCommandCatalog } from "../../commands/types.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../../workspace/types.js";
-import { useAgentUILocale, formatLocaleMessage } from "../i18n/locale.js";
+import { useCreatorLocale, formatLocaleMessage } from "../i18n/locale.js";
 import type { CreatorCommandMenuItem } from "./creator-command-types.js";
 
 export function useCreatorCommandState(input: string, workspaceId: string | undefined) {
-  const messages = useAgentUILocale("commands");
+  const messages = useCreatorLocale("commands");
   const [catalog, setCatalog] = useState<CreatorCommandCatalog>({ commands: [] });
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
   const optionDomId = (index: number) => `creator-command-${menuKey.replace(":", "-")}-option-${index}`;
   const copy = messages as Record<string, string>;
   const optionLabel = (commandId: string, id: string, fallback?: string) => {
-    if (commandId === "enable" || commandId === "disable") {
+    if (["enable", "disable", "takeover"].includes(commandId)) {
       const pluginId = catalog.commands.flatMap(entry => entry.options).find(option => option.id === id)?.pluginId ?? id;
       return copy[`plugin_${pluginId}`] ?? fallback ?? messages.customPlugin;
     }
@@ -46,7 +46,7 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
   const query = parsed.kind === "command" ? parsed.args.join(" ").toLowerCase() : "";
   const filteredOptions = command?.options.filter(option => (!(["enable", "disable"].includes(command.id)) || !option.disabled) && [option.id, option.pluginId ?? "", copy[`category_${option.category}`] ?? "", optionLabel(command.id, option.pluginId ?? option.id, option.label), copy[`pluginDescription_${option.pluginId}`] ?? option.description ?? ""].some(value => value.toLowerCase().includes(query))) ?? [];
   const categoryOrder = ["conversation", "input", "response", "tools", "results", "appearance", "other"];
-  if (command?.id === "enable" || command?.id === "disable") filteredOptions.sort((a, b) => categoryOrder.indexOf(a.category ?? "other") - categoryOrder.indexOf(b.category ?? "other"));
+  if (command && ["enable", "disable", "takeover"].includes(command.id)) filteredOptions.sort((a, b) => categoryOrder.indexOf(a.category ?? "other") - categoryOrder.indexOf(b.category ?? "other"));
   const options = filteredOptions;
   const statusLabel = (status: string | undefined) => status === "installed" ? messages.alreadyInstalled : status === "disabled" ? messages.reenable : status === "conflict" ? messages.resourceConflict : status === "available" ? messages.available : undefined;
   const items: CreatorCommandMenuItem[] = !slash ? [] : command?.kind === "choice" ? options
@@ -59,6 +59,7 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
           ...(option.action === "add" ? {} : { detail: option.id }),
           badgeState: option.action === "add" ? "available" as const : option.status === "installed" ? "enabled" as const : "disabled" as const,
           badge: option.action === "add" ? messages.pluginNotAdded : option.status === "installed" ? messages.pluginEnabled : messages.pluginDisabled }
+          : command.id === "takeover" ? { pluginId: option.pluginId ?? option.id, description: copy[`pluginDescription_${option.pluginId}`] ?? option.description ?? messages.customPluginDescription }
           : statusLabel(option.status) ? { description: statusLabel(option.status)! } : {}),
         ...(option.disabled === undefined ? {} : { disabled: option.disabled }),
       };
@@ -87,6 +88,6 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
       event.preventDefault(); return { handled: true, ...pick(items[active]!.id) };
     }
   };
-  const notice = error ?? (loading ? messages.loading : command?.kind === "choice" && !filteredOptions.length ? command.id === "enable" || command.id === "disable" ? messages.noPluginMatches : messages.noMatches : !items.length ? (parsed.kind === "command" && parsed.id ? formatLocaleMessage(messages.unknownCommand, parsed.id) : messages.unavailable) : undefined);
+  const notice = error ?? (loading ? messages.loading : command?.kind === "choice" && !filteredOptions.length ? command.id === "takeover" ? messages.noTakeoverMatches : command.id === "enable" || command.id === "disable" ? messages.noPluginMatches : messages.noMatches : !items.length ? (parsed.kind === "command" && parsed.id ? formatLocaleMessage(messages.unknownCommand, parsed.id) : messages.unavailable) : undefined);
   return { parsed, catalog, open, items, active, menuKey, optionDomId, select: setSelected, keyDown, pick, refresh: load, show: () => setDismissed(undefined), notice, optionLabel, title: command ? copy[command.id] ?? command.id : messages.title };
 }

@@ -10,7 +10,7 @@ import {
   AgentUIPopoverContent,
   AgentUIPopoverTrigger,
   Button,
-  useAgentUILocale,
+  useLocale,
 } from '../../../../public.js';
 export interface AuthAccountUser {
   userId?: string | undefined;
@@ -38,7 +38,7 @@ export function CanonicalAuthAccountPlugin({
   signOutButtonProps,
   ...rootProps
 }: AuthAccountPluginProps) {
-  const messages = useAgentUILocale('auth');
+  const messages = useLocale('auth');
   const user = hostUser === undefined ? snapshot.user : hostUser;
   const busy = snapshot.busy;
   const [menu, setMenu] = useState(false);

@@ -4,7 +4,7 @@ title: "Agent API"
 
 # Agent API
 
-单助手页面中，`AgentUIProvider` 让业务组件与助理共享同一个会话。业务组件通过 `useAgentUI()` 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见[用业务页面控制 Agent](/development/react-host-control)。多助手页面使用[助手集合接口](./multiple-agents#助手集合接口)定位各自的 Host。
+单助手页面中，`AgentUIProvider` 让业务组件与助理共享同一个会话。业务组件通过 `useAgent()` 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见[用业务页面控制 Agent](/development/react-host-control)。多助手页面使用[助手集合接口](./multiple-agents#助手集合接口)定位各自的 Host。
 
 本页导航：[属性](#属性) · [方法](#方法) · [Hooks](#hooks) · [状态与事件](#状态与事件) · [错误处理](#错误处理)。
 
@@ -36,7 +36,6 @@ title: "Agent API"
 | `appEventSchemas` | `AppEventSchemas` | 按事件名称配置项目实际 Schema；注册、校验和订阅见[业务事件示例](./plugin-api#订阅业务事件)。显示自定义消息卡片无需设置。 |
 | `locales` | `Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>>` | 按语言和领域覆盖官方文案，保留未覆盖字段；见[覆盖示例](./localization)。 |
 | `assistantPanelWidth` | `number` | 悬浮助理宽度，受视口限制。 |
-| `enableMessageQueue` | `boolean` | 省略时继承项目默认值，新建项目默认 false；启用内存中的 Composer 后续消息队列，不改变程序化发送规则。见[消息排队](./message-queue)。 |
 | `attachments`、`dictation`、`feedback` | 对应 `ConversationRuntimeProviderProps` 字段 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。 |
 | `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段 | 自定义业务适配器，优先于对应通用配置。 |
 | `conversationDataSource` | `ConversationDataSource` | 实现 list/get/delete 及可选管理方法的历史数据源；保留对应插件启用，返回格式与接入见[历史服务](./history-backend)。 |
@@ -52,9 +51,9 @@ title: "Agent API"
 
 `ConversationRunContextGetter` 从 `@za38.03/agent-ui-runtime` 导入，也可通过 `ConversationRuntimeProviderProps['getRunContext']` 获取类型。直接使用 `ConversationRuntimeProvider` 时，传入同名属性。
 
-回调参数含 `messages`（当前 AG-UI 消息数组）和 `runConfig`（可为 `undefined` 的原生配置，含可选 `custom` 对象）。返回值为 `readonly { description: string; value: string }[]`：每项用 `description` 说明内容，`value` 提供字符串，复杂对象可序列化为 JSON；不需要附加上下文时返回空数组。完整接入见[按次读取页面数据](./agent-options#传入业务上下文)。
+回调接收本次消息 `messages` 和可选的 `runConfig`，同步返回 `{ description, value }` 数组；两项均为字符串，对象先用 `JSON.stringify()` 转换。
 
-`Message` 是 AG-UI 消息类型。回调在每次请求前读取当前页面的数据。它不管理业务状态，也不会订阅或推送状态变化。读取失败会通过 `onError` 报告，当前请求继续发送，不会因这个错误将整个运行标记为失败。配置方法和使用边界见[传入业务上下文](/development/agent-options#传入业务上下文)。
+每次请求前读取最新页面数据。读取失败会报告 `onError`，请求继续；需要异步准备或失败时阻止发送，使用 [`beforeRequest`](./connect-agent#发送前准备请求)。示例见[传入业务上下文](./agent-options#传入业务上下文)。
 
 欢迎语、示例问题与默认按钮文案统一使用 `locales`，项目默认值位于 `application/locales.ts`。结构与数量在项目组件和 `project-config.tsx` 中定制，见[Agent 参数与配置](/development/agent-options)。
 
@@ -71,14 +70,14 @@ title: "Agent API"
 
 ### 会话方法
 
-`const host = useAgentUI()` 返回 `AgentUIHost`。
+`const host = useAgent()` 返回 `AgentUIHost`。
 
 - **需要就绪**：`sendMessage()`、`abortRun()`、`startNewConversation()`、`resumeInterrupts()` 必须在 `host.getSnapshot().status === 'ready'` 时调用。
 - **不要求就绪**：读取状态和添加监听。
 
 | 方法 | 参数 | 返回 | 说明 |
 | --- | --- | --- | --- |
-| `sendMessage(input, options?)` | `string` 或 `AgentUserInput`；可选 `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }` | `Promise<void>` | 发送文本、附件 URL 或两者混合；可按次指定工作流 URL 和业务参数，运行中不自动排队。返回的 Promise 完成后，仍需检查运行状态以确认结果。媒体约定见下方发送示例。 |
+| `sendMessage(input, options?)` | `string` 或 `AgentUserInput`；可选 `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }` | `Promise<void>` | 发送文本、附件 URL 或两者混合；可按次指定工作流 URL 和业务参数，运行中报忙。返回的 Promise 完成后，仍需检查运行状态以确认结果。媒体约定见下方发送示例。 |
 | `abortRun()` | 无 | `void` | 请求停止当前运行，保留当前会话和面板。 |
 | `startNewConversation()` | 无 | `Promise<void>` | 创建并切换到新会话；后续发送需等待此调用完成。 |
 | `resumeInterrupts(responses)` | `AgentInterruptResponse[]` | `Promise<void>` | Agent 暂停等待审批或补充信息时，提交用户的处理结果并继续执行。 |
@@ -89,9 +88,9 @@ title: "Agent API"
 | `thread(threadId)` | `string` | `AgentUIThread` | 获取已挂载 Thread 的操作句柄，不导航也不自动加载历史。 |
 | `createThread()` | 无 | `Promise<string>` | 显式新建并切换会话，返回 threadId；已挂载旧 Thread 可以继续运行。 |
 | `openThread(threadId)` | `string` | `Promise<void>` | 打开指定已有会话；按项目历史配置读取，不重新发送旧问题。 |
-| `sendComposer(options?)` | `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }` | `Promise<void>` | 提交当前原生草稿、附件和引用；运行或草稿准备中会拒绝，不用于运行中排队。 |
+| `sendComposer(options?)` | `AgentUISendOptions`：`{ endpoint?: string; ctx?: AgentUIContext }` | `Promise<void>` | 提交当前原生草稿、附件和引用；运行或草稿准备中会拒绝。 |
 
-多助手页面从 `useAgentUIAgents().agent(agentId)` 获取指定 Host，集合 Hooks、Thread 句柄与后台操作示例见[多助手控制](./multiple-agents#从业务页面控制指定助手)。导航、草稿提交也应在目标助手就绪后调用，并处理异常；取得 Thread 句柄不等于该运行已成功结束。
+多助手页面从 `useAgents().agent(agentId)` 获取指定 Host，集合 Hooks、Thread 句柄与后台操作示例见[多助手控制](./multiple-agents#从业务页面控制指定助手)。导航、草稿提交也应在目标助手就绪后调用，并处理异常；取得 Thread 句柄不等于该运行已成功结束。
 
 #### 输入参数结构
 
@@ -112,7 +111,7 @@ title: "Agent API"
 
 #### 发送已有附件 URL
 
-业务系统已有文件地址时，可以通过同一 Host 的 `sendMessage()` 发送。以下函数接收 `useAgentUI()` 返回的 Host，在业务操作回调中调用并处理异常：
+业务系统已有文件地址时，可以通过同一 Host 的 `sendMessage()` 发送。以下函数接收 `useAgent()` 返回的 Host，在业务操作回调中调用并处理异常：
 
 ```ts
 import type { AgentUIHost } from '@za38.03/agent-ui-runtime';
@@ -153,12 +152,12 @@ Agent 服务需支持对应媒体并有权限读取文件 URL；AG-UI 请求头�
 
 | API | 参数 / 返回 | 使用说明 |
 | --- | --- | --- |
-| `useAgentUI<TState>()` | 返回 `AgentUIHost<TState>` | 在 Provider 子组件中使用，外层没有 Provider 时会报错。 |
-| `useOptionalAgentUI<TState>()` | 返回 `AgentUIHost<TState>` 或 `null` | 外层没有 Provider 时返回 null，适用于需要同时支持独立使用和页面联动的组件；从 `@za38.03/agent-ui-runtime` 导入。 |
-| `useAgentUIState(selector)` | `(snapshot) => T`，返回 `T` | 读取指定字段，并在其变化时更新组件。回调应返回字段值或已有对象，不要每次创建新对象。 |
-| `useAgentUIEvent(event, listener)` | 事件名和回调，返回 void | 指定事件发生时调用回调；组件移除时自动停止监听。 |
-| `useAgentUIUser()` | 返回展示资料、null 或 undefined | 读取 Provider 传入的用户名和头像等资料；登录认证需另外配置。 |
-| `useAgentUIAppEvent(name, listener)` | 业务事件名和回调，返回 void | 订阅已注册的业务事件，见[业务事件](#订阅-agent-业务事件)；组件移除时自动停止监听。 |
+| `useAgent<TState>()` | 返回 `AgentUIHost<TState>` | 在 Provider 子组件中使用，外层没有 Provider 时会报错。 |
+| `useOptionalAgent<TState>()` | 返回 `AgentUIHost<TState>` 或 `null` | 外层没有 Provider 时返回 null，适用于需要同时支持独立使用和页面联动的组件；从 `@za38.03/agent-ui-runtime` 导入。 |
+| `useAgent(selector)` | `(snapshot) => T`，返回 `T` | 读取指定字段，并在其变化时更新组件。回调应返回字段值或已有对象，不要每次创建新对象。 |
+| `useAgentEvent(event, listener)` | 事件名和回调，返回 void | 指定事件发生时调用回调；组件移除时自动停止监听。 |
+| `useHostUser()` | 返回展示资料、null 或 undefined | 读取 Provider 传入的用户名和头像等资料；登录认证需另外配置。 |
+| `useAgentAppEvent(name, listener)` | 业务事件名和回调，返回 void | 订阅已注册的业务事件，见[业务事件](#订阅-agent-业务事件)；组件移除时自动停止监听。 |
 
 ## 状态与事件
 
@@ -181,19 +180,19 @@ Agent 服务需支持对应媒体并有权限读取文件 URL；AG-UI 请求头�
 | `run-start` | `{ threadId, run }` | Agent 开始执行，运行状态变为 `running`。 |
 | `run-end` | `{ threadId, run }` | Agent 停止执行，可能已完成、暂停等待用户、被取消或出错。 |
 
-React 组件通常使用 `useAgentUIState()` 或 `useAgentUIEvent()`，由 Hook 自动管理监听。
+React 组件通常使用 `useAgent()` 或 `useAgentEvent()`，由 Hook 自动管理监听。
 
 ### 订阅 Agent 业务事件
 
-`useAgentUIAppEvent` 和 `AgentUIAppEventListener` 从 `@za38.03/agent-ui-runtime` 导入。在共享的 `AgentUIProvider` 下使用，订阅组件可以与 Agent 并列放置，不需要进入 Agent 内部的会话 Provider。
+`useAgentAppEvent` 和 `AgentUIAppEventListener` 从 `@za38.03/agent-ui-runtime` 导入。在共享的 `AgentUIProvider` 下使用，订阅组件可以与 Agent 并列放置，不需要进入 Agent 内部的会话 Provider。
 
 ```tsx
-import { useAgentUIAppEvent } from '@za38.03/agent-ui-runtime';
+import { useAgentAppEvent } from '@za38.03/agent-ui-runtime';
 
 export function TicketSelection({ onSelect }: {
   onSelect: (ticketId: string) => void;
 }) {
-  useAgentUIAppEvent('app.ticket.selected', event => {
+  useAgentAppEvent('app.ticket.selected', event => {
     const data = event.payload;
     if (data && typeof data === 'object' &&
         'ticketId' in data && typeof data.ticketId === 'string') {
@@ -206,9 +205,9 @@ export function TicketSelection({ onSelect }: {
 
 在业务页面的共享 Provider 中同时渲染 `<TicketSelection onSelect={...} />` 和 `<Agent />`。
 
-**`useAgentUIEvent` 订阅生命周期，`useAgentUIAppEvent` 订阅业务事件。** 业务事件返回 `{ name, payload, producer }`，保留主 Agent 或 SubAgent 的来源；它不是原始 AG-UI wire event。宿主按自己的业务约定校验 payload，泛型仅提供 TypeScript 类型，不会执行数据校验。
+`useAgentEvent` 监听就绪、开始、结束等状态变化；`useAgentAppEvent` 监听业务事件，返回 `{ name, payload, producer }`，页面按约定检查 `payload`。
 
-需要在普通回调中管理监听时，使用 `host.onAppEvent(name, listener)`；返回函数用于取消订阅。可在会话就绪前订阅；只接收当前就绪会话的实时事件，不重放历史。切换会话时自动连接新来源，组件移除时 Hook 自动取消监听。不要在宿主启动、停止或重新连接底层事件流。
+普通回调中可用 `host.onAppEvent(name, listener)`，返回函数用于取消监听。只接收当前会话的实时事件，不重放历史；Hook 会处理会话切换和卸载清理。
 
 ## 错误处理
 

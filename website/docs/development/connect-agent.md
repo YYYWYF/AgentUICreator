@@ -30,9 +30,9 @@ export function AssistantPage() {
 
 ## 请求体与响应流
 
-默认使用 `POST /api/agent`，请求正文是 AG-UI `RunAgentInput` JSON。以下是普通文字发送的示意值；ID 由当前运行提供，不要在业务代码中写死：
+配置 `endpoint="/api/agent"` 后，前端向该地址发送 POST 请求，正文为 AG-UI `RunAgentInput` JSON。下面是一条普通文字消息：
 
-```json
+```json ag-ui
 {
   "threadId": "thread-123",
   "runId": "run-456",
@@ -43,6 +43,8 @@ export function AssistantPage() {
   "forwardedProps": {}
 }
 ```
+
+`threadId`、`runId` 可由 [`beforeRequest`](#发送前准备请求) 返回业务 ID，省略时由 Runtime 补全。会话绑定后沿用同一 `threadId`，响应事件使用最终请求中的 ID。
 
 | 字段 | 服务端如何使用 |
 | --- | --- |
@@ -129,19 +131,18 @@ export function AssistantPage() {
 }
 ```
 
-请求会先经过项目输入适配和 `ctx` 组装，再等待 `beforeRequest`，最后交给默认或自定义 `fetch` 发送。回调接收 `AgentUIRequestInput` 草稿和取消信号，返回 `AgentUIRequestPatch`、`void` 或对应 Promise；这三个类型与 `AgentUIBeforeRequest` 都从 Runtime 导入。
+`beforeRequest` 在 Composer 组装和 `ctx` 合并后执行，完成后再发送。通过返回值提交修改；需要调用业务接口时，像示例一样传递 `signal`，以便停止时取消等待。
 
 ### 调用与身份规则
 
-- **每次请求都调用**：首次发送、后续消息、重试、前端工具续传和审批恢复均经过回调；历史查询、附件上传等独立服务不经过它。
-- **`threadId` 按会话保存**：新会话首次回调的 `input.threadId` 为 `undefined`。返回业务 ID 后，Runtime 将其绑定到当前 Thread，后续回调、请求、Host 状态和 Thread 句柄沿用它；未返回时才补全默认 ID。打开已有会话时，回调直接收到已有 ID。
-- **`runId` 按本次运行确定**：回调中的 `input.runId` 待补全，可返回业务接口分配的 `runId`；省略则使用本次运行的默认 ID。新一轮运行单独确定 ID，后端事件需与最终请求中的 ID 一致。
-- **已绑定的会话身份保持稳定**：回调返回另一个 `threadId` 会使本次请求失败；切换会话使用新建或打开会话方法。同一助手内不能为两个 Thread 绑定相同业务 ID。
-- **尚未发送时使用本地草稿标识**：首次请求完成身份准备后会发布正式 ID 的 `thread-change`。此前 `ready`、`createThread()` 和 `getThreads()` 中的 ID 用于当前页面内定位草稿；需要保存业务 ID 时，读取绑定后的状态或监听该事件。
+- 首次发送、后续消息、重试、工具续传和审批恢复都会调用；历史查询、附件上传不经过它。
+- 新会话首次调用时，`input.threadId` 尚未设置。返回业务 ID 后，该会话后续请求沿用它；打开历史时直接收到已有 ID，不能再改成另一个 ID。
+- `input.runId` 留待回调提供；省略时使用默认值。每次运行分别确定，后端按最终请求中的值返回事件。
+- 首次发送前的会话 ID 是本地草稿标识。需要保存业务 ID 时，在绑定后的 `thread-change` 中读取。
 
 ### 返回字段如何合并
 
-返回值中定义的顶层字段覆盖默认值；`undefined` 保留原值。`messages`、`tools`、`context` 等数组整体替换，`state` 整体替换；`forwardedProps` 按键合并，其中的 `ctx` 再按键合并一层，其他嵌套对象整体替换。
+返回的字段覆盖原值，`undefined` 保留原值。数组和 `state` 整体替换；`forwardedProps` 及其中的 `ctx` 按键合并，其他嵌套对象整体替换。
 
 例如，下面会保留已有 `forwardedProps`、`ctx` 的其他字段：
 
@@ -151,9 +152,9 @@ const beforeRequest: AgentUIBeforeRequest = () => ({
 });
 ```
 
-回调拿到的是请求副本；通过返回值提交修改。业务扩展参数放入 `forwardedProps`，不要添加 AG-UI 协议未声明的顶层字段。
+业务扩展参数放入 `forwardedProps`。
 
-回调抛错或 Promise 失败时，不发送 AG-UI 请求，错误通过 `onError` 和程序化发送的 Promise 报告；消息保留在当前 Thread 中供重试。成功绑定 ID 后即使网络发送失败，重试也复用该 ID。停止运行或卸载会中止 `signal`；业务接口应传递它，取消后迟到的结果不会绑定 ID 或触发发送。
+回调失败时不发送请求，错误交给 `onError`；程序化发送也会报错。消息保留供重试，已绑定的会话 ID 不变。停止或卸载后，回调的迟到结果不会继续触发发送。
 
 `AgentApplication`、`AgentUIApplication` 和直接使用的 `ConversationRuntimeProvider` 支持同名属性。更新回调后，后续请求使用新回调，已绑定身份保留。Creator 临时预览绕过业务 `beforeRequest`，关闭临时连接后恢复。
 

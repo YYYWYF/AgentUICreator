@@ -1,4 +1,5 @@
 import type { Plugin } from "vite";
+import { creatorWatchOptions } from "./nodeWatch.js";
 import { createCreatorHttpService, type CreatorHttpServiceOptions } from "./creatorHttpService.js";
 
 export { CREATOR_API_PATH, CREATOR_RUNTIME_DIAGNOSTICS_API_PATH, CREATOR_VISUAL_OBSERVATION_API_PATH } from "./shared.js";
@@ -15,8 +16,9 @@ export function createCreatorDevServerPlugin(options: CreatorDevServerPluginOpti
   return {
     name: "agent-ui-creator-dev-server",
     apply: "serve",
-    config() {
-      return { define: { __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: JSON.stringify(service.runtimeDiagnosticsEnabled) } };
+    config(config) {
+      const watch = creatorWatchOptions(config.server?.watch);
+      return { define: { __CREATOR_RUNTIME_DIAGNOSTICS_ENABLED__: JSON.stringify(service.runtimeDiagnosticsEnabled) }, ...(watch === undefined ? {} : { server: { watch } }) };
     },
     configureServer(server) {
       service.mount(server.middlewares);

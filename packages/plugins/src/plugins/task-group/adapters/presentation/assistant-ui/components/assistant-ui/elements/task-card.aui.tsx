@@ -1,6 +1,6 @@
 'use client';
 
-import { useAgentUILocale, formatPresentationMessage } from '../../../../../../locale.js';
+import { useLocale, formatPresentationMessage } from '../../../../../../locale.js';
 
 import {
   MessagePrimitive,
@@ -161,7 +161,7 @@ export const TaskGroup: FC<{
   group: MessagePrimitive.GroupedParts.GroupPart;
   className?: string;
 }> = ({ group, className }) => {
-  const localeMessages = useAgentUILocale();
+  const localeMessages = useLocale();
   const [visible, setVisible] = useState(TASK_PAGE_SIZE);
   const { indices, counts } = group;
   // A selector has to return a stable value, so the lane keys travel as one string and are split afterwards.

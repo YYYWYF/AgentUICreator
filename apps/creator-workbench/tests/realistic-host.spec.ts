@@ -23,7 +23,7 @@ for (const failBackground of [false, true]) test(`background conversation stays 
     application: origin => ({
       imports: 'import {createConversationDataSource} from "./agent-ui/services/conversations";',
       declarations: `const history=createConversationDataSource({endpoint:${JSON.stringify(`${origin}/history`)}});`,
-      props: 'conversationDataSource={history} initialThreadId="A" enableMessageQueue',
+      props: 'conversationDataSource={history} initialThreadId="A"',
     }),
     other(request, response) {
       response.setHeader("Content-Type", "application/json");
@@ -56,15 +56,15 @@ for (const failBackground of [false, true]) test(`background conversation stays 
     } else {
       writeEvent(streams.get("A")!.response, { type: "TEXT_MESSAGE_CONTENT", messageId: "A-live", delta: " A continued in background" });
     }
-    await composer(page).fill("Queued B"); await page.getByRole("button", { name: "加入发送队列", exact: true }).click();
-    await expect(page.locator('[data-slot="aui_composer-queue-item"]')).toContainText("Queued B");
+    await composer(page).fill("Unsent B");
+    await expect(page.locator(".aui-composer-send")).toHaveCount(0);
     await page.getByRole("button", { name: "停止生成", exact: true }).click();
     await expect.poll(() => streams.get("B")?.closed).toBe(true);
     expect(f.requests).toHaveLength(2);
     await list.getByRole("button", { name: /^工单 A(?:\s+运行中)?$/ }).click();
     await expect(surface).toContainText("A live content");
     await expect(surface).not.toContainText("B live content");
-    await expect(page.locator('[data-slot="aui_composer-queue-item"]')).toHaveCount(0);
+    await expect(composer(page)).toHaveValue("");
     if (failBackground) await expect(surface).toContainText("A background failure");
     else {
       await expect(surface).toContainText("A continued in background");
@@ -74,7 +74,7 @@ for (const failBackground of [false, true]) test(`background conversation stays 
       streams.get("A")!.response.end();
     }
     await list.getByRole("button", { name: "工单 B", exact: true }).click();
-    await expect(page.locator('[data-slot="aui_composer-queue-item"]')).toContainText("Queued B");
+    await expect(composer(page)).toHaveValue("Unsent B");
     expect(f.requests).toHaveLength(2);
     expect(f.failures).toEqual([]); expect(errors).toEqual([]);
   } finally { await f.close(); }

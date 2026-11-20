@@ -3,14 +3,14 @@ import { MoreHorizontalIcon } from "lucide-react";
 import type { ReactElement, ReactNode } from "react";
 import type { ConversationActionMoreMenuItemProps } from "../../public.js";
 import { TooltipIconButton } from "../adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
-import { useAgentUIPortalContainer } from "./AgentUIRoot.js";
+import { usePortalContainer } from "./AgentUIRoot.js";
 
 /** Compose inside the existing response Footer; the Plugin supplies locale copy. */
 export function ConversationActionMoreMenu({ label, children }: {
   label: string;
   children: ReactNode;
 }): ReactElement {
-  const container = useAgentUIPortalContainer();
+  const container = usePortalContainer();
   return <ActionBarMorePrimitive.Root>
     <ActionBarMorePrimitive.Trigger asChild>
       <TooltipIconButton tooltip={label} className="data-[state=open]:bg-accent"><MoreHorizontalIcon /></TooltipIconButton>

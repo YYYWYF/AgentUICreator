@@ -36,14 +36,14 @@ export const messages = {
 共享消息模块中维护双语字段，组件读取统一 locale。不要新增独立语言状态或每插件语言 Hook。
 
 ```tsx
-import { useAgentUILocaleCode } from '@za38.03/agent-ui-plugins';
+import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 const reportMessages = {
   'zh-CN': { title: '业务报告' },
   'en-US': { title: 'Business report' },
 };
 export function ReportTitle() {
-  const locale = useAgentUILocaleCode();
+  const locale = useLocaleCode();
   return <h2>{reportMessages[locale].title}</h2>;
 }
 ```
@@ -79,12 +79,12 @@ export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; lab
 
 从 `@za38.03/agent-ui-plugins` 导入语言 Hook，组件复用统一上下文：
 
-| Hook                                                    | 用途                          |
-| ------------------------------------------------------- | --------------------------- |
-| `useAgentUILocaleCode(): AgentUILocaleCode`             | 读取当前语言。                     |
-| `useAgentUILocale()`                                    | 返回全部文案。                     |
-| `useAgentUILocale(namespace)`                           | 返回指定领域的文案。                  |
-| `/plugin-support` 的 `useAgentUILocaleSnapshot(service)` | 订阅显式传入的服务；服务缺失时沿用当前 locale。 |
+| Hook                                             | 用途                          |
+| ------------------------------------------------ | --------------------------- |
+| `useLocaleCode(): AgentUILocaleCode`             | 读取当前语言。                     |
+| `useLocale()`                                    | 返回全部文案。                     |
+| `useLocale(namespace)`                           | 返回指定领域的文案。                  |
+| `/plugin-support` 的 `useLocaleSnapshot(service)` | 订阅显式传入的服务；服务缺失时沿用当前 locale。 |
 
 ### 服务方法 \{#服务}
 

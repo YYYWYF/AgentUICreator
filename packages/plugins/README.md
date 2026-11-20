@@ -7,7 +7,7 @@ source catalog and matching source assets in one npm package.
 
 Import `UIPluginDefinition`, `UIPluginComponentProps`, `parseUIPluginManifest`,
 `usePluginActions`, `usePluginEvents`, `usePluginInstance`, `usePluginService`,
-`usePluginServiceSnapshot`, `usePluginRenderScope` and `useApplicationLifecycle`
+`usePluginRenderScope` and `useApplicationLifecycle`
 from `@za38.03/agent-ui-plugins` through public re-exports. Canonical Plugin
 contracts and the manifest parser live in `@za38.03/agent-ui-runtime/contracts`;
 the shared Providers, Contexts and operation ports live in Runtime `/plugin-api`.

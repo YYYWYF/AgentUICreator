@@ -14,9 +14,9 @@ test.beforeAll(async () => {
   await writeFile(path.join(fixture, "style.css"), '@import "tailwindcss"; @import "@za38.03/agent-ui-plugins/styles.css"; html,body,#root { height:100%; margin:0; } .shell { height:500px; width:900px; }');
   await writeFile(path.join(fixture, "fixture.tsx"), `
     import { createRoot } from "react-dom/client";
-    import { AgentUIRoot, AgentUISidebarFrame, AgentUILocaleProvider, useAgentUISidebarNavigation } from "@za38.03/agent-ui-plugins";
+    import { AgentUIRoot, AgentUISidebarFrame, AgentUILocaleProvider, useSidebarNavigation } from "@za38.03/agent-ui-plugins";
     import "./style.css";
-    function Navigate() { const navigate = useAgentUISidebarNavigation(); return <button onClick={navigate}>Navigate files</button>; }
+    function Navigate() { const navigate = useSidebarNavigation(); return <button onClick={navigate}>Navigate files</button>; }
     const params = new URLSearchParams(location.search);
     createRoot(document.getElementById("root")).render(<AgentUILocaleProvider locale="en-US"><div className="shell" style={{width: Number(params.get("width") || 900)}}><AgentUIRoot theme={params.get("theme") || "light"}>
       <AgentUISidebarFrame defaultActive={params.get("active")} items={[

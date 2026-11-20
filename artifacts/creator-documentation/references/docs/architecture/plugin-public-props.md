@@ -2,7 +2,7 @@
 
 面向使用者的逐项属性、类型、默认行为与嵌套配置，分别列在[各插件文档](../../../plugins/index.md)的“属性”与“开发 API”中。本页保留设计约定与核对摘要。
 
-本表记录 50 个官方插件的公开属性约定。完整展示组件采用常见 React 组件库的用法；不把内部标签或封装层当作用户配置模型。此约定不引入 Ant Design 依赖，也不要求所有插件使用同一个 UI Library。
+本表记录 49 个官方插件的公开属性约定。完整展示组件采用常见 React 组件库的用法；不把内部标签或封装层当作用户配置模型。此约定不引入 Ant Design 依赖，也不要求所有插件使用同一个 UI Library。
 
 - 常用外观直接使用 `className`、`style`，内容和行为使用可理解的属性。
 - 折叠区域统一 `expanded`、`defaultExpanded`、`onExpandedChange`。底层公开组合部件保留其原生 `open` API。
@@ -29,10 +29,9 @@
 | `dictation-action` | className、style、disabled；独立按钮为 startButtonProps、stopButtonProps；开始／停止文案沿用 locale。 |
 | `submit-action` | className、style、disabled；独立按钮为 sendButtonProps、cancelButtonProps，发送按钮还支持 endpoint、onSendError；文案沿用 locale。 |
 | `response-footer` | 直接整体样式；保留真正独立的 actionBarProps、branchPickerProps 与 actions 内容。 |
-| `conversation-suggestions` | 直接 items、requestAdapter、sendOnSelect、clearComposer 和整体样式；文字样式用 classNames/styles，按钮用 buttonProps，静态与会话建议均支持 renderSuggestion(item, defaultView)。 |
+| `conversation-suggestions` | 直接 items、sendOnSelect、clearComposer 和整体样式；文字样式用 classNames/styles，按钮用 buttonProps，静态与会话建议均支持 renderSuggestion(item, defaultView)。 |
 | `thinking-indicator` | 直接 label、className、style；保留推导可见性策略。 |
 | `tool-timeline` | 直接展开状态、visibleSteps 与整体样式；摘要由会话投影，不接收无效 children。 |
-| `tool-fallback` | 直接展开状态与整体样式；renderDetails(defaultDetails) 定制详情，保留默认审批与中断交互；底层复合部件仍可独立组合。 |
 | `transient-assistant-messages` | 直接整体样式；正文通过 classNames/styles.text 定制；保留 renderMessage。 |
 | `agent-status-message` | 直接整体样式；label、elapsed、state 由工具投影，保留 fallback 和 renderStatus。 |
 | `agent-plan-message` | 直接整体样式；title、steps、activeIndex 由消息投影，保留 renderPlan。 |
@@ -44,7 +43,7 @@
 | `web-search` | 直接 visibleResults 与整体样式；查询、结果和加载状态来自工具，文案使用统一 locale，保留 renderer。 |
 | `conversation-thread-list` | 直接 showSearch、showArchived、searchProps、itemProps、components、整体样式；renderList(defaultList) 定制列表，保留 Host 会话服务。 |
 | `conversation-new` | 直接 showLabel、disabled、icon 与整体样式；点击仅使用 buttonProps.onClick，保留默认新建与导航。 |
-| `conversation-quote` | 通过 requestAdapter 定义引用 JSON；通过 renderPreview、renderToolbar 定制预览与工具栏；文案沿用统一 locale，无独立根样式属性。 |
+| `conversation-quote` | 通过 setData 提交引用数据，由 Composer 最终适配器组装请求；通过 renderPreview、renderToolbar 定制预览与工具栏；文案沿用统一 locale，无独立根样式属性。 |
 | `agent-identity` | 直接 name、logo、description、整体样式；图片保留 logoProps，排除重复 src，文字样式用 classNames/styles。 |
 | `auth-account` | 直接整体样式；独立组件为 buttonProps、menuProps、signOutButtonProps；退出文案使用 auth locale。 |
 | `auth-gate` | 直接 title、整体样式；独立组件为 formProps、accountInputProps、passwordInputProps、submitButtonProps；按钮文案使用 auth locale，表单管理输入值。 |
@@ -63,7 +62,7 @@
 | `context-retrieval-message` | 直接 title、expanded、defaultExpanded、onExpandedChange、整体样式；保留 renderContent。 |
 | `locale-switch` | 直接整体样式、disabled、options；标识统一用 selectProps.id；使用现有唯一语言服务。 |
 | `ask-user-question` | 接收工具调用数据与整体样式，文案通过 humanQuestion locale；保留问答协议与历史只读。 |
-| `tool-result` | 继承工具详情 API；整体样式作用于完整结果卡片；保留 renderPart、resolveFile、resultOnly。 |
+| `tool-result` | 唯一公开工具卡片插件，内部按标题、参数、错误、审批、问卷、回执和媒体结果拆分；保留展开、审批样式、renderDetails、renderPart、resolveFile 和 resultOnly，无内部插件子插槽。 |
 | `skills` | `items`、`quickItemCount`、`disabled` 及根样式；通过 Service 保存选择，调用通用 `setData({ id, label })` 收集发送数据，默认生成的 Composer 应用层将其映射到 ctx，不暴露 ctx 或局部请求适配器。 |
 | `skills-selection` | `disabled` 和根 `div` 属性；依赖 `conversation.skills` Service，读取选择并通过服务取消，不从 Composer 读取 UI 状态。 |
 | `workbench-panel` | `items`、service、受控展开／选中／可见标签、回调、宽度和根样式；renderMain 提供主区域后备内容，main 插槽优先；关闭时保持内容挂载。 |

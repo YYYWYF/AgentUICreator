@@ -32,9 +32,9 @@ response. Do not share one service between independently mounted Agent apps.
 UI plugins and Host components inside the provider may instead call:
 
 ```tsx
-import { useConversationTransientMessages } from "@za38.03/agent-ui-plugins";
+import { useTransientMessages } from "@za38.03/agent-ui-plugins";
 
-const { addMessage } = useConversationTransientMessages();
+const { addMessage } = useTransientMessages();
 addMessage({ role: "system", text: systemText });
 addMessage({ role: "user", text: userText });
 addMessage({ role: "assistant", text: assistantText });

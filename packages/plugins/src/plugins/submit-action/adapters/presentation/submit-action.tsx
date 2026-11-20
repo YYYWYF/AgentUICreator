@@ -8,9 +8,9 @@ import {
   ComposerActions,
   SquareIcon,
   TooltipIconButton,
-  useAgentUILocale,
+  useLocale,
   useAuiState,
-  useOptionalAgentUI,
+  useOptionalAgent,
 } from '../../../../plugin-support.js';
 import { useComposer } from '../../../../composer-support.js';
 export type ConversationComposerSendProps = Omit<ComponentProps<typeof TooltipIconButton>, 'tooltip' | 'children'> & {
@@ -29,12 +29,10 @@ export function ConversationComposerSend({ endpoint, onSendError, ...props }: Co
   );
 }
 function CurrentComposerSend({ icon, className, disabled, ...props }: ConversationComposerSendProps = {}) {
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
   const composer = useComposer();
-  const isRunning = useAuiState((s) => s.thread.isRunning);
-  const actionLabel = isRunning ? messages.queueSend : messages.send;
   return (
-    <AuiIf condition={(s) => !s.thread.isRunning || s.thread.capabilities.queue}>
+    <AuiIf condition={(s) => !s.thread.isRunning}>
       <ComposerActions.Send
         asChild
         {...(disabled === undefined ? {} : { disabled })}
@@ -46,12 +44,12 @@ function CurrentComposerSend({ icon, className, disabled, ...props }: Conversati
         }}
       >
         <TooltipIconButton
-          tooltip={actionLabel}
+          tooltip={messages.send}
           side='bottom'
           type='button'
           variant='default'
           size='icon'
-          aria-label={actionLabel}
+          aria-label={messages.send}
           {...props}
           className={cn('aui-composer-send size-7 rounded-full', className)}
         >
@@ -69,13 +67,13 @@ function WorkflowComposerSend({
   onClick,
   ...props
 }: ConversationComposerSendProps) {
-  const host = useOptionalAgentUI();
+  const host = useOptionalAgent();
   const empty = useAuiState((state) => state.composer.isEmpty);
   const running = useAuiState((state) => state.thread.isRunning);
   const canSend = useAuiState((state) => state.composer.canSend);
   const composer = useComposer();
   const unavailable = !host || running || !canSend;
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
   const [sending, setSending] = useState(false);
   const [failed, setFailed] = useState(false);
   const busy = useRef(false);
@@ -113,7 +111,7 @@ function WorkflowComposerSend({
   );
 }
 export function ConversationComposerCancel({ icon, className, ...props }: ConversationComposerCancelProps = {}) {
-  const messages = useAgentUILocale('composer');
+  const messages = useLocale('composer');
   const running = useAuiState((s) => s.thread.isRunning);
   return (
     <AuiIf condition={(s) => s.composer.canCancel}>
