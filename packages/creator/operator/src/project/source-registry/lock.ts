@@ -66,48 +66,20 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
     ) {
       throw new AgentUISourceError("AGENT_UI_SOURCE_LOCK_INVALID", `Invalid lock item ${itemId}.`);
     }
-    const files: Record<string, { sha256: string }> = {};
-    for (const [filePath, rawFile] of Object.entries(rawFiles)) {
+    const files: Record<string, Record<string, never>> = {};
+    for (const filePath of Object.keys(rawFiles)) {
       assertSafeProjectRelativePath(filePath, `source-lock item ${itemId} path`);
-      const digest =
-        typeof rawFile === "object" && rawFile !== null && !Array.isArray(rawFile)
-          ? (rawFile as Record<string, unknown>).sha256
-          : undefined;
-      if (typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest)) {
-        throw new AgentUISourceError(
-          "AGENT_UI_SOURCE_LOCK_INVALID",
-          `Invalid lock hash for ${itemId}:${filePath}.`,
-        );
-      }
-      files[filePath] = { sha256: digest };
+      // Historical hashes and release identities do not describe current files.
+      files[filePath] = {};
     }
-    const provenance: { pluginVersion?: string; sourceRelease?: string } = {};
-    for (const key of ["pluginVersion", "sourceRelease"] as const) {
-      const version = (rawItem as Record<string, unknown>)[key];
-      if (version !== undefined) {
-        if (!itemId.startsWith("plugin/") || typeof version !== "string" || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) throw new AgentUISourceError("AGENT_UI_SOURCE_LOCK_INVALID", `Invalid ${key} for ${itemId}.`);
-        provenance[key] = version;
-      }
-    }
-    if (!!provenance.pluginVersion !== !!provenance.sourceRelease) throw new AgentUISourceError("AGENT_UI_SOURCE_LOCK_INVALID", `Incomplete provenance for ${itemId}.`);
     const canonicalItemId = LEGACY_SOURCE_ITEM_IDS[itemId] ?? itemId;
-    const previous = items[canonicalItemId];
-    if (previous) {
-      const mergedFiles = { ...previous.files };
-      for (const [filePath, file] of Object.entries(files)) {
-        const existing = mergedFiles[filePath];
-        if (existing && existing.sha256 !== file.sha256) {
-          throw new AgentUISourceError(
-            "AGENT_UI_SOURCE_LOCK_INVALID",
-            `Conflicting legacy source hashes for ${canonicalItemId}:${filePath}.`,
-          );
-        }
-        mergedFiles[filePath] = file;
-      }
-      items[canonicalItemId] = { ...previous, ...provenance, files: mergedFiles };
-    } else {
-      items[canonicalItemId] = { files, ...provenance };
-    }
+    const raw = rawItem as Record<string, unknown>;
+    items[canonicalItemId] = {
+      ...items[canonicalItemId],
+      ...(typeof raw.pluginVersion === "string" ? { pluginVersion: raw.pluginVersion } : {}),
+      ...(typeof raw.sourceRelease === "string" ? { sourceRelease: raw.sourceRelease } : {}),
+      files: { ...items[canonicalItemId]?.files, ...files },
+    };
   }
   const examples: NonNullable<AgentUISourceLock["examples"]> = {};
   const rawExamples = (value as Record<string, unknown>).examples;
@@ -165,9 +137,10 @@ export function serializeAgentUISourceLock(lock: AgentUISourceLock): Buffer {
       .map(([itemId, item]) => [
         itemId,
         {
-          ...(item.pluginVersion ? { pluginVersion: item.pluginVersion, sourceRelease: item.sourceRelease } : {}),
+          ...(item.pluginVersion ? { pluginVersion: item.pluginVersion } : {}),
+          ...(item.sourceRelease ? { sourceRelease: item.sourceRelease } : {}),
           files: Object.fromEntries(
-            Object.entries(item.files).sort(([left], [right]) => left.localeCompare(right)),
+            Object.keys(item.files).sort().map(file => [file, {}]),
           ),
         },
       ]),

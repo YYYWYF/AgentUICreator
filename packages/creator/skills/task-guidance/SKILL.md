@@ -38,8 +38,8 @@ undoing a Creator change or restoring a previously recorded version.
   `inspect_creator_transaction`, and read a saved per-file diff with
   `inspect_creator_transaction_change` only when it helps identify the target.
 - Use `inspect_creator_baseline` to look for Host-recorded before-state or
-  source-lock hash evidence. A source-lock hash alone is not original file
-  content or proof that a template reset is available.
+  content evidence. Source-lock records imported paths and versions only; it
+  cannot establish a historical implementation or authorize a template reset.
 - Current files prove only the current state. Do not infer a prior state by
   scanning current source, guessing from `sourceRoot`, or treating a template
   as the user's historical baseline.

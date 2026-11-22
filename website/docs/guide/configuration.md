@@ -23,7 +23,7 @@ Creator 默认从启动时的工作目录读取 `.agent-ui/creator/.env.local`�
 
 `.agent-ui` 按内容决定是否提交，不要整体忽略：
 
-- **项目记录需要提交**：`project.json`、`source-lock.json`、`plugin-ownership.json` 及源码 BASE 等。
+- **项目记录需要提交**：`project.json`、`source-lock.json`、`plugin-ownership.json` 等；源码以项目当前文件为准。
 - **本地数据忽略**：`creator/`、`operator/`、`connection.local.json`、`visual-observations/`。
 - **共享 Mock 测试数据**：可以继续提交。
 

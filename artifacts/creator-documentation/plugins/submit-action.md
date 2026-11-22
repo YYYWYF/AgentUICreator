@@ -1,5 +1,7 @@
 # 发送与停止（submit-action）
 
+## 功能与效果
+
 
 ![发送与停止界面](/images/plugins/submit-action.png)
 
@@ -7,7 +9,7 @@
 
 围绕当前 Composer 显示发送与停止入口。按钮已有运行状态和等待用户操作保护；普通应用无需自己读取组件属性来重建这些判断。
 
-## 发送、运行与停止
+### 发送、运行与停止
 
 草稿可提交时，发送当前正文、附件、引用和业务选择。生成中显示停止入口，当前运行结束后可发送下一条消息。
 
@@ -15,7 +17,9 @@
 
 等待审批或补充输入时，普通发送会被已有保护拦下并提示先处理当前操作，保留草稿。传入 `disabled={false}` 不会解除会话本身的不可用条件。
 
-## 与 Composer 联动
+## 数据来源与显示条件
+
+### 与 Composer 联动
 
 发送通过当前 Composer 发起 AG-UI 请求，服务端按本次请求返回[响应流](/plugins/ag-ui-data.md#共用的-sse-格式)。停止使用当前运行的取消能力。
 
@@ -25,7 +29,12 @@
 
 需要业务卡片自己触发发送或停止时，使用 `useComposer().send()`／`cancel()`；前者包含等待回复保护，读取 `canSend/canCancel/disabled` 决定界面状态。完整组合见 [Composer 的发送控制](/plugins/composer.md#实时显示草稿字数定制发送与停止操作)。
 
-## 本次发送使用工作流地址 \{#本次发送使用工作流地址}
+## 常见定制
+
+
+
+
+### 本次发送使用工作流地址 \{#本次发送使用工作流地址}
 
 endpoint 选择同一助手当前 Thread 的请求 URL，续答沿用它；此操作不创建新会话。
 
@@ -43,7 +52,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 该分支运行期间禁用；`onSendError` 用于这一地址分支的异步发送失败。没有设置 `endpoint` 时，继续使用当前会话的普通发送流程。多个工作流按钮的组合见[同一助手使用多个地址](/development/multiple-agents.md)。
 
-## 发送与停止使用不同样式 \{#发送与停止使用不同样式}
+### 发送与停止使用不同样式 \{#发送与停止使用不同样式}
 
 
 外层配置负责组合，两种按钮分别接受自己的原生属性。
@@ -59,10 +68,12 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 }
 ```
 
+## 属性与 API
 
-## API
 
 
+
+### API
 
 插件入口：`ConversationSubmitActionPlugin`。没有独立的界面容器；子按钮参数优先于整体参数。
 
@@ -76,7 +87,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 发送和取消是否可用由现有 Composer 决定。
 
-### 子按钮属性
+#### 子按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 
@@ -97,8 +108,5 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
 发送、停止和取消文案统一在 `locales.composer` 修改：`send`、`stop`、`cancelSend`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
-
-
-
 
 

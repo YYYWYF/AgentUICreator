@@ -62,6 +62,44 @@ async function fixture(id = "composer", ownPackage = false) {
   return root;
 }
 const pass = async () => {};
+const keepCurrent = (plan: Awaited<ReturnType<typeof planPluginSourceSync>>) => Object.fromEntries(
+  plan.mergeFiles.filter(file => file.local !== null && file.local !== file.target)
+    .map(file => [file.path, Buffer.from(file.local!, "base64").toString("utf8")]),
+);
+it("uses actual external edits and versions even with obsolete corrupt baseline data", async () => {
+  const root = await fixture("composer");
+  await ensurePluginApplication(root, "composer");
+  const takeover = await planPluginSourceTakeover(root, { pluginId: "composer" });
+  await takeoverPluginSource(root, { pluginId: "composer", planHash: takeover.planHash }, pass);
+  const { paths } = await resourcePaths(root);
+  const ownership = await readPluginSourceOwnership(paths.metadataRoot);
+  const old = { ...ownership, plugins: { ...ownership.plugins, composer: { ...ownership.plugins.composer!,
+    applicationContractHash: "a".repeat(64), base: { "../../obsolete.ts": { sha256: "invalid", contentBase64: "invalid" } },
+  } } };
+  const ownershipPath = path.join(paths.metadataRoot, "plugin-ownership.json");
+  const oldSource = JSON.stringify(old);
+  await writeFile(ownershipPath, oldSource);
+  const directory = path.join(paths.pluginsRoot, "composer/source");
+  const manifest = JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")) as Record<string, unknown>;
+  manifest.version = "99.0.0";
+  await writeFile(path.join(directory, "manifest.json"), JSON.stringify(manifest));
+  const helper = path.join(directory, "added-by-another-agent.ts");
+  await writeFile(helper, "export const projectOnly = true;\r\n");
+  const sync = await planPluginSourceSync(root, { pluginId: "composer" });
+  expect(sync.mergeFiles).toContainEqual(expect.objectContaining({ path: "added-by-another-agent.ts", target: null }));
+  expect(sync.mergeFiles.every(file => !Object.hasOwn(file, "base"))).toBe(true);
+  expect(await readFile(ownershipPath, "utf8")).toBe(oldSource);
+  const service = new OwnedPluginUpdateService(pass);
+  expect((await service.inspect(root))[0]).toMatchObject({ currentVersion: "99.0.0", updateAvailable: false });
+  const plan = await service.plan(root, "composer", "installed");
+  await service.merge(root, plan.id);
+  // Users may intentionally retain current code; confirmation needs no change
+  // to prove that a historical conflict has been resolved.
+  await service.adopt(root, plan.id);
+  expect(await readFile(helper, "utf8")).toBe("export const projectOnly = true;\r\n");
+  expect(JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")) as unknown).toMatchObject({ version: "99.0.0" });
+  expect((await readPluginSourceOwnership(paths.metadataRoot)).plugins.composer).not.toHaveProperty("base");
+});
 it("preserves project data-source methods when taking over the capability Plugin", async () => {
   const root = await fixture("conversation-data-source");
   await writeFile(path.join(root, "src/ui/app-ui/app-ui.json"), JSON.stringify({
@@ -162,12 +200,12 @@ it("keeps independently taken-over copies of a shared button isolated during sou
   const original = await readFile(copy);
   await writeFile(composer, (await readFile(composer, "utf8")) + "\n// Composer-only button customization\n");
   const sync = await planPluginSourceSync(root, { pluginId: "composer" });
-  await syncPluginSource(root, { pluginId: "composer", planHash: sync.planHash }, pass);
+  await syncPluginSource(root, { pluginId: "composer", planHash: sync.planHash, resolutions: keepCurrent(sync) }, pass);
   expect(await readFile(copy)).toEqual(original);
   expect(await readFile(composer, "utf8")).toContain("Composer-only button customization");
 });
 
-it("prepares confirmed merge dependencies before editing without advancing BASE or reinstalling on adoption", async () => {
+it("prepares confirmed merge dependencies before editing without rewriting ownership or reinstalling on confirmation", async () => {
   const root = await fixture("composer", true);
   await ensurePluginApplication(root, "composer");
   const first = await planPluginSourceTakeover(root, { pluginId: "composer" });
@@ -282,7 +320,7 @@ it("does not require build scripts or run Host validation before takeover", asyn
   expect(called).toBe(false);
   expect(result.checks).toEqual([]);
 });
-it("npm upgrade and legacy migration retain edited local source, local contracts and the original BASE", async () => {
+it("npm upgrade and legacy migration retain edited local source, local contracts and source version provenance", async () => {
   const root = await fixture("composer",true); const ctx = await resourcePaths(root);
   const plan = await planPluginSourceTakeover(root,{pluginId:"composer"});
   await takeoverPluginSource(root,{pluginId:"composer",planHash:plan.planHash},pass);
@@ -412,7 +450,9 @@ it("keeps application props and composition through npm upgrade, takeover and im
   const after = await readFile(index);
   expect(after.toString()).toBe(before.replace("@za38.03/agent-ui-plugins/composer", "./source/index"));
   const owner = (await readPluginSourceOwnership(ctx.paths.metadataRoot)).plugins.composer!;
-  expect(Object.keys(owner.base).every(file => file.startsWith("source/"))).toBe(true);
+  expect(owner).not.toHaveProperty("base");
+  expect(owner.package.version).toBe(plan.package.version);
+  expect(owner.pluginVersion).toBe(plan.pluginVersion);
   const local = path.join(ctx.paths.pluginsRoot,"composer/source/adapters/textarea.tsx");
   await writeFile(local, (await readFile(local,"utf8")) + "\n// local implementation change\n");
   const pkgRoot = path.join(root,"node_modules/@za38.03/agent-ui-plugins");
@@ -420,8 +460,8 @@ it("keeps application props and composition through npm upgrade, takeover and im
   const catalog = JSON.parse(await readFile(catalogPath,"utf8"));
   const pkg = JSON.parse(await readFile(path.join(pkgRoot,"package.json"),"utf8"));
   pkg.version = catalog.package.version = "99.0.0";
-  const targetPlugin = catalog.plugins.find((p:{id:string}) => p.id === "composer");
-  const targetFile = targetPlugin.takeover.files.find((f:{target:string}) => f.target === "adapters/composer.tsx");
+  const targetPlugin = catalog.plugins.find((p:{id:string}) => p.id === "composer") as { version: string; takeover: { files: { target: string; path: string; sha256: string }[] } };
+  const targetFile = targetPlugin.takeover.files.find((f:{target:string}) => f.target === "adapters/composer.tsx")!;
   const snapshot = path.join(pkgRoot,"dist",targetFile.path);
   const updated = (await readFile(snapshot,"utf8")) + "\n// official implementation update\n";
   await writeFile(snapshot,updated); targetFile.sha256=createHash("sha256").update(updated).digest("hex");
@@ -433,7 +473,7 @@ it("keeps application props and composition through npm upgrade, takeover and im
   const syncPlan = await planPluginSourceSync(root,{pluginId:"composer"});
   expect(syncPlan.mergeFiles.some(file => file.path === "index.tsx")).toBe(true); // implementation index, not application
   await expect(syncPluginSource(root,{pluginId:"composer",planHash:syncPlan.planHash,resolutions:{"../index.tsx":"overwrite"}},pass)).rejects.toMatchObject({code:"PLUGIN_SOURCE_SYNC_SCOPE"});
-  await syncPluginSource(root,{pluginId:"composer",planHash:syncPlan.planHash},pass);
+  await syncPluginSource(root,{pluginId:"composer",planHash:syncPlan.planHash,resolutions:{...keepCurrent(syncPlan),"adapters/composer.tsx":updated}},pass);
   expect(await readFile(index)).toEqual(after);
   expect(await readFile(local,"utf8")).toContain("local implementation change");
   expect(await readFile(path.join(ctx.paths.pluginsRoot,"composer/source/adapters/composer.tsx"),"utf8")).toContain("official implementation update");
@@ -448,13 +488,21 @@ it("keeps application props and composition through npm upgrade, takeover and im
   await expect(syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash},pass)).rejects.toMatchObject({code:"PLUGIN_SOURCE_MERGE_REQUIRED"});
   const merged = nextTarget + "\n// conflicting LOCAL\n";
   let validationRan = false;
-  await syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash,resolutions:{"adapters/composer.tsx":merged}},async () => { validationRan = true; throw new Error("user build failed"); });
+  await syncPluginSource(root,{pluginId:"composer",planHash:conflict.planHash,resolutions:{...keepCurrent(conflict),"adapters/composer.tsx":merged}},async () => { validationRan = true; throw new Error("user build failed"); });
   expect(validationRan).toBe(false);
   expect(await readFile(composerPath,"utf8")).toBe(merged);
   expect(await readFile(index)).toEqual(after);
   const uiTarget = nextTarget + "\n// UI target update\n";
   await writeFile(snapshot,uiTarget); targetFile.sha256=createHash("sha256").update(uiTarget).digest("hex");
   await writeFile(catalogPath,JSON.stringify(catalog));
+  targetPlugin.version = "99.0.0";
+  const targetManifest = targetPlugin.takeover.files.find((file: { target: string }) => file.target === "manifest.json")!;
+  const targetManifestPath = path.join(pkgRoot, "dist", targetManifest.path);
+  const nextManifest = JSON.parse(await readFile(targetManifestPath, "utf8")) as Record<string, unknown>; nextManifest.version = "99.0.0";
+  const nextManifestSource = JSON.stringify(nextManifest);
+  await writeFile(targetManifestPath, nextManifestSource);
+  targetManifest.sha256 = createHash("sha256").update(nextManifestSource).digest("hex");
+  await writeFile(catalogPath, JSON.stringify(catalog));
   const service = new OwnedPluginUpdateService(pass);
   expect((await service.inspect(root))[0]).toMatchObject({delivery:"source-owned",updateAvailable:true});
   const uiPlan=await service.plan(root,"composer","installed");
@@ -464,8 +512,8 @@ it("keeps application props and composition through npm upgrade, takeover and im
   const unchangedNotice = mergeRequest.files.find(file=>file.path.endsWith("/THIRD_PARTY_NOTICES.md"));
   expect(unchangedNotice).toBeDefined();
   expect(mergeRequest.prompt).not.toContain(JSON.stringify(unchangedNotice));
-  await expect(service.adopt(root,uiPlan.id)).rejects.toThrow("PLUGIN_SOURCE_MERGE_UNRESOLVED");
   await writeFile(composerPath,uiTarget + "\n// conflicting LOCAL\n");
+  await writeFile(path.join(ctx.paths.pluginsRoot,"composer/source/manifest.json"),nextManifestSource);
   await writeFile(index,"accidental application edit");
   await expect(service.adopt(root,uiPlan.id)).rejects.toThrow("PLUGIN_SOURCE_PROTECTED_FILES_CHANGED");
   await writeFile(index,after);

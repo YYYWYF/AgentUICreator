@@ -2,6 +2,31 @@
 
 AppUIModel owns navigation layout and semantic composition. Runtime renders the selected model deterministically; the Sidebar container is optional.
 
+## Controlled Stack content
+
+Stack remains a Layout node, not a UI Plugin. Existing `children` and `activeIndex`
+remain compatible. A navigable Stack declares its own stable `id` and an optional
+`viewIds: string[]` naming each direct child in order. Explicit Stack IDs are
+unique per Agent; view IDs are unique within the Stack and match the
+child count. The authored Stack id is also its runtime layout-node identity;
+Stacks without an explicit id retain deterministic path-derived identities. Optional
+`keepMounted` retains inactive branches with hidden/inert wrappers. Its default
+preserves legacy unmounting behavior.
+
+Runtime owns one Stack navigation store per Agent and exposes the built-in
+`agent-ui.stack-navigation` Service through the existing declared Service API.
+Plugins select views with `selectView(stackId, viewId)` and subscribe to the same
+snapshot; no provider Plugin or second selection state is created. Renderer
+receives a controlled active-view map and never reads Plugin Services or business
+view names. AppUIModel stores composition and initial selection, not live clicks.
+
+The navigation-menu Plugin and conversation application callbacks consume this
+port. Each functional view remains an independent Plugin inside a normal Slot;
+whole Layout subtrees may also form branches. Reordering retains semantic
+selection and removals choose a valid fallback. Creator inspection and controlled
+layout operations preserve these identities. Closing or switching away from a
+kept-mounted chat never replaces its canonical Runtime, draft or running stream.
+
 ## Default template layout
 
 Platform presets now use ordinary Row/Panel/Slot composition for navigation and
@@ -12,7 +37,7 @@ composition operations; templates must not reverse regions with CSS. The Row
 its indices follow child identity during structural moves. The legacy
 `trailing-drawer` policy and existing Sidebar models remain compatible.
 
-Platform uses a 280px left navigation Panel. Assistant and Embedded use their selected project Shell and header composition. Sidebar remains available for custom layouts. Template synchronization must preserve Plugin identities, enablement, child Slots and application customizations; starting tools or upgrading npm does not overwrite the project model.
+Platform's left Panel hosts the navigation-menu Plugin, which composes the shared shadcn Sidebar primitives. Its header/content child Slots retain the existing identity and conversation-list Plugins. The Row uses a max-content track so Sidebar can shrink from 280px to its 48px icon rail without changing the right-hand Stack. Inactive header/history content stays mounted. Assistant and Embedded use their selected project Shell and header composition. The Layout Sidebar remains available for custom layouts. Template synchronization must preserve Plugin identities, enablement, child Slots and application customizations; starting tools or upgrading npm does not overwrite the project model.
 
 ## Contract and ownership
 

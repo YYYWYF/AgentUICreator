@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "documents": [
     { "path": "docs/agent-ui-plugin-creator-launch-plan.md", "topic": "职责与所有权", "summary": "当前架构：Creator、AppUIModel、Plugin、Runtime、AG-UI、Service 和交付边界。" },
-    { "path": "docs/architecture/npm-default-plugin-source-ownership.md", "topic": "职责与所有权", "summary": "npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。" },
+    { "path": "docs/architecture/npm-default-plugin-source-ownership.md", "topic": "职责与所有权", "summary": "npm 默认交付、项目薄应用层、源码接管授权、当前源码与目标新版合并、来源版本与更新保护。" },
     { "path": "docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md", "topic": "职责与所有权", "summary": "Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。" },
     { "path": "docs/architecture/plugin-authoring-contract.md", "topic": "插件开发与组合", "summary": "自定义插件 authoring、默认放置、容器子插槽、renderer、样式隔离和校验合同。" },
     { "path": "docs/architecture/plugin-public-props.md", "topic": "插件开发与组合", "summary": "官方插件公开 props、children、组件组合与应用层定制；类型和运行转发核对。" },

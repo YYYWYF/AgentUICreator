@@ -267,6 +267,11 @@
   line-height: 1.6;
 }
 
+:is(.rp-doc, .rspress-doc) .navigation-menu-demo img:not(.medium-zoom-image--opened) {
+  max-width: 100%;
+  max-height: none;
+}
+
 /* Plugin FAQs read as quiet article rows, including while hovered or expanded. */
 .rp-doc details.plugin-faq,
 .rp-doc details.plugin-faq:hover {

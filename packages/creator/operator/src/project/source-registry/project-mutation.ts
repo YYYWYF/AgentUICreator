@@ -286,7 +286,7 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
     const items = input.itemIds.map(id => {
       const item = input.registry.byId.get(id);
       if (!item) throw new Error(`Unknown update item ${id}`);
-      if (item.kind === "demo") throw new AgentUISourceError("AGENT_UI_EXAMPLE_PROJECT_OWNED", "Example business code has no official source baseline to adopt.");
+      if (item.kind === "demo") throw new AgentUISourceError("AGENT_UI_EXAMPLE_PROJECT_OWNED", "Example business code is not synchronized with official source.");
       if (!isAgentUISourceItemAvailable(id)) throw new AgentUISourceError("AGENT_UI_RESOURCE_DISABLED", "This resource is not available in this release.", { itemId: id });
       const inspection = before.items.find(entry => entry.id === id)!;
       if ((!input.adoptOnly && !["managed", "not-installed"].includes(inspection.status)) ||
@@ -294,19 +294,6 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
           ctx.config.agentUI.providedSourceItems?.includes(id)) throw new Error(`Unsafe upgrade item ${id}`);
       return item;
     });
-    const verify = async () => {
-      // Verify every target file before adoption, including additions and removals.
-      if (input.adoptOnly) for (const item of items) {
-        for (const file of item.loadedFiles) {
-          const relative = projectRelativePath(projectRoot, path.join(ctx.sourceRoot, file.target));
-          await assertNoSymbolicLinkTraversal(projectRoot, relative);
-          if (!(await readOptionalBuffer(path.join(projectRoot, relative)))) throw new Error(`合并缺少文件：${relative}`);
-        }
-        for (const target of Object.keys(lock.items[item.id]?.files ?? {})) {
-          if (!item.loadedFiles.some(file => file.target === target) && await readOptionalBuffer(path.join(ctx.sourceRoot, target))) throw new Error(`合并尚未处理移除文件：${target}`);
-        }
-      }
-    };
     const targets = items.flatMap(item => [...item.loadedFiles.map(file => file.target), ...Object.keys(lock.items[item.id]?.files ?? {})]);
     const originals: Original[] = [];
     for (const relative of ordered([ctx.lockPath, ...ctx.generatedPaths, ...targets.map(target => projectRelativePath(projectRoot, path.join(ctx.sourceRoot, target)))])) {
@@ -326,30 +313,31 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
       if (input.adoptOnly) {
         await regenerate();
         const regenerated = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
-        await verify();
         const verified = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
         if (verified.stateHash !== regenerated.stateHash) throw new Error("合并源码在验证期间发生变化，请重新确认。");
         // Derived outputs may legitimately change Source inspection fingerprints.
         // Every other snapshotted byte, including the lock, must stay untouched
-        // until the verified official baseline is committed below.
+        // until the user-confirmed source receipt is committed below.
         for (const original of originals.filter(entry => !ctx.generatedPaths.includes(entry.path))) {
           const current = await readOptionalBuffer(path.join(projectRoot, original.path));
-          if ((current?.toString("base64") ?? null) !== original.beforeContentBase64) throw new Error("基线推进不能修改用户源码，请重新确认。");
+          if ((current?.toString("base64") ?? null) !== original.beforeContentBase64) throw new Error("确认同步不能修改用户源码，请重新确认。");
         }
       }
       const next = structuredClone(lock);
       const mutations = new Map<string, AgentUISourceFileMutation>();
       for (const item of items) {
         if (!input.adoptOnly) {
-          for (const old of Object.keys(lock.items[item.id]?.files ?? {})) if (!item.loadedFiles.some(file => file.target === old)) mutations.set(old, { target: old });
-          for (const file of item.loadedFiles) if (lock.items[item.id]?.files[file.target]?.sha256 !== sha256(file.content)) mutations.set(file.target, { target: file.target, content: file.content });
+          for (const file of item.loadedFiles) {
+            const current = await readOptionalBuffer(path.join(ctx.sourceRoot, ...file.target.split("/")));
+            if (current && !current.equals(file.content)) throw new Error(`Existing project file requires a reviewed merge: ${file.target}`);
+            if (!current) mutations.set(file.target, { target: file.target, content: file.content });
+          }
         }
         next.items[item.id] = sourceItemLock(item, input.registry);
       }
       await commitAgentUISourceTransaction(projectRoot, ctx.config, "plugin-upgrade", [...mutations.values()], serializeAgentUISourceLock(next));
       if (!input.adoptOnly) {
         await regenerate();
-        await verify();
         const after = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
         const invalid = after.items.filter(item => input.itemIds.includes(item.id) && (item.status !== "managed" || item.dependencyIssues.length));
         if (invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "升级后的源码闭包不完整。", invalid);

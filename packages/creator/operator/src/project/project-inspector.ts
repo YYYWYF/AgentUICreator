@@ -102,6 +102,7 @@ function compactLayout(
     ...(node.type !== "stack" || node.activeIndex === undefined
       ? {}
       : { activeIndex: node.activeIndex }),
+    ...(node.type !== "stack" ? {} : { ...(node.id === undefined ? {} : { id: node.id }), ...(node.viewIds ? { viewIds: node.viewIds } : {}), ...(node.keepMounted === undefined ? {} : { keepMounted: node.keepMounted }) }),
     children: node.children.map((child, index) =>
       compactLayout(child, `${nodePath}.children[${index}]`, refIndex.byPath.get(`${nodePath}.children[${index}]`)!, refIndex),
     ),

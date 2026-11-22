@@ -32,6 +32,9 @@ export interface StackNode {
   id: string;
   children: LayoutNode[];
   active?: string | undefined;
+  /** Stable branch identities, in child order; external selection addresses this node's id. */
+  viewIds?: string[] | undefined;
+  keepMounted?: boolean | undefined;
 }
 
 export interface PanelNode {

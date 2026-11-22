@@ -28,6 +28,22 @@ it("ships standalone tool-call layout and read-only skill badges in the packaged
   ]) expect(css.includes(`${selector} {`), selector).toBe(true);
 });
 
+it("ships shared image utilities also used by composer buttons instead of dropping them from both stylesheets", async () => {
+  const compiler = await compile('@import "./dist/styles-base.css";', {
+    base: packageRoot,
+    onDependency() {},
+  });
+  const candidates = new Scanner({ sources: compiler.sources }).scan();
+  const css = compiler.build(candidates);
+  for (const selector of [".size-7", ".size-8", ".p-1", ".cursor-zoom-in"]) {
+    expect(css.includes(`${selector} {`), selector).toBe(true);
+  }
+  // Plugin CSS omits these candidates because the base entry promises them.
+  // Adding that promised set must not reveal utilities missing from the base.
+  const sharedCandidates = new Scanner({ sources: sharedStyleScanSources(path.join(packageRoot, "dist")) }).scan();
+  expect(compiler.build(sharedCandidates)).toBe(css);
+});
+
 it("keeps emitted scan patterns portable with a Windows filesystem root", () => {
   const distRoot = path.win32.resolve("C:\\Agent UI\\plugins\\dist");
   const sources = sharedStyleScanSources(distRoot);

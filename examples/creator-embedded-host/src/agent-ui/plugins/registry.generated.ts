@@ -4,7 +4,7 @@
  */
 import { createPluginCapabilityCatalog } from '@za38.03/agent-ui-runtime/ui';
 
-export const capabilityCatalogRevision = '6035d546b2926c24bd9b085059f77bf78c6f5ea6b3046a88b7146ffc3f3d7113';
+export const capabilityCatalogRevision = 'ae282b9aa1780261a1e55b8d915a1ea943d9f5c5fa1a4d189da15d0055d4e4f2';
 
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
@@ -139,20 +139,6 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () => import('./conversation-data-source/definition').then(({ default: definition }) => definition),
-  },
-  {
-    manifest: {
-      id: 'conversation-new',
-      name: 'New Conversation',
-      description: 'Starts a new conversation independently of history management.',
-      version: '0.0.1',
-      capabilities: ['conversation-create'],
-      authoring: { intents: ['start a new conversation'], visualRole: 'conversation header action' },
-    },
-    provides: [],
-    inject: [],
-    optionalInject: [],
-    loadDefinition: () => import('./conversation-new/definition').then(({ default: definition }) => definition),
   },
   {
     manifest: {
@@ -401,6 +387,29 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   },
   {
     manifest: {
+      id: 'navigation-menu',
+      name: 'Navigation Menu',
+      description: 'Extensible action and view menu with shared Sidebar and toolbar presentations.',
+      version: '0.0.1',
+      capabilities: ['content-navigation', 'conversation-create'],
+      slots: {
+        children: {
+          header: { description: 'Existing sidebar identity content', cardinality: 'one', optional: true },
+          content: {
+            description: 'Existing conversation list below the feature menu',
+            cardinality: 'one',
+            optional: true,
+          },
+        },
+      },
+    },
+    provides: [],
+    inject: ['agent-ui.stack-navigation'],
+    optionalInject: [],
+    loadDefinition: () => import('./navigation-menu/definition').then(({ default: definition }) => definition),
+  },
+  {
+    manifest: {
       id: 'reasoning',
       name: 'Conversation Reasoning Renderer',
       description:
@@ -548,14 +557,19 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
     manifest: {
       id: 'tool-result',
-      name: 'Tool Result',
-      description: 'Renders AG-UI tool result content parts with canonical image, audio, video and file presentation.',
+      name: 'Tool Call Card',
+      description:
+        'Displays tool status, arguments, approval and interrupt interactions, errors, and text/image/audio/video/document results.',
       version: '0.0.1',
       capabilities: ['conversation-tool-fallback-renderer'],
       requiresRenderScope: true,
       authoring: {
-        intents: ['render tool result content parts', 'show tool output images audio video and documents'],
-        visualRole: 'assistant tool result presentation',
+        intents: [
+          'show a complete tool call card',
+          'customize approval and interrupt cards',
+          'render text images audio video and documents',
+        ],
+        visualRole: 'assistant tool call card',
         defaultPlacement: { type: 'plugin_slot', parentPluginId: 'conversation-surface', slot: 'toolFallback' },
       },
     },

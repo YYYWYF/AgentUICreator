@@ -31,7 +31,7 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
     editable: "Project application props, children, composition and renderers; no takeover consent required.",
     implementationBoundary: asset.application.implementationOwnership === "npm"
       ? "npm implementation is read-only until explicit takeover; application metadata is not takeover authorization."
-      : "Existing source ownership permits ordinary local implementation edits; preserve vendor, Runtime, application contract and BASE.",
+      : "Existing source ownership permits ordinary local implementation edits; preserve vendor, Runtime, application composition and current code.",
   };
   let changeImpact: ReturnType<typeof presentationImpact> | undefined;
   const api = new API();

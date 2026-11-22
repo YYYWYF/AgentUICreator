@@ -4,6 +4,8 @@ title: "Agent 工作状态（agent-status-message）"
 
 # Agent 工作状态（agent-status-message）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![任务状态界面](/images/plugins/agent-status-message.png)
@@ -13,21 +15,23 @@ title: "Agent 工作状态（agent-status-message）"
 
 将一次状态工具调用展示为工作状态卡片。说明文字来自工具参数，工作中、等待中和完成状态由工具生命周期自动决定。
 
-## 随工具状态更新
+### 随工具状态更新
 
 工具运行中显示工作状态，需要用户操作时显示等待状态，工具完成后显示完成状态。业务代码无需再为同一次调用维护一份展示状态。
 
 插件根据当前工具状态更新图标和表现。服务端写入的说明文字可以解释正在进行的业务，例如“正在分析工作区”。
 
-## 显示说明和耗时
+### 显示说明和耗时
 
 状态说明读取工具参数中的 `label`；提供 `elapsed` 时同时展示耗时文字。耗时是服务端传入的内容，插件不会自行启动计时器或从说明文字推测进度。
 
-## 错误与无效参数显示工具详情
+### 错误与无效参数显示工具详情
 
 工具报错、处于未完成状态，或参数不能解析为有效状态说明时，插件回到通用工具详情。错误不会被一张普通的完成状态卡片掩盖。
 
-## 接入状态工具 {#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 接入状态工具 {#显示条件与数据来源}
 
 当前默认注册名仍为 `mock_agent_status`；服务端要使用此准确工具名，或在项目应用层显式调整具名工具注册。文案来自工具参数。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
@@ -44,9 +48,17 @@ title: "Agent 工作状态（agent-status-message）"
 
 `renderStatus(view, tool)` 提供这张状态卡片的 `state`、`label` 和可用的耗时文字，并保留原工具调用。可以组合业务状态卡片或操作按钮。读取整个会话的运行和共享业务状态，另见[通用取数入口](/development/plugin-interaction#按需求找入口)。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 调整状态卡片间距
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 调整状态卡片间距
 
 <span id="example-1"></span>
 
@@ -62,7 +74,7 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 }
 ```
 
-## 使用业务状态版式 {#自定义状态内容}
+### 使用业务状态版式 {#自定义状态内容}
 
 <span id="example-2"></span>
 
@@ -81,19 +93,24 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 
 需要完全替换内容时也在这里组合；原始参数校验和错误回退仍由插件处理。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `renderStatus?` | `(props: ConversationAgentStatusProps, tool: ConversationToolCallProps) => ReactNode` | 自定义状态内容 |
 | `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolResult`；错误、未完成或数据无效时使用 |
 
-### 当前工具调用的数据与操作
+#### 当前工具调用的数据与操作
 
 `renderStatus(view, tool)` 中，`view` 是解析后的状态文案与耗时，`tool` 是原工具调用。用 `tool.toolCallId` 关联业务任务；状态卡片的显示文字由 `view` 提供，原始 `args` / `result` 仍需按业务结构收窄。
 
@@ -103,10 +120,7 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 
 <span id="显示等待状态"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>

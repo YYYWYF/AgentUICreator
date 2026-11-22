@@ -72,7 +72,8 @@ installed-version plan and obtains explicit consent. Never copy npm implementati
 or manufacture source ownership as a workaround. After successful takeover, use
 current local ownership and refresh changed files; do not repeat the consent or
 restart the settled API-gap investigation without contradictory evidence. Preserve
-upstream, IDs, application composition and source BASE. Source sync and npm upgrades
+upstream, IDs, application composition and current project code. Project source
+has no historical BASE; users and other agents may edit it directly. Source sync and npm upgrades
 remain separate explicitly authorized operations. Do not upgrade dependencies or
 change another owner to escape a rejection. Runtime/framework remain read-only.
 Reuse the project's existing

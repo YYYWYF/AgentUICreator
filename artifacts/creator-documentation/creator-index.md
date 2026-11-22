@@ -5,7 +5,7 @@
 ## 职责与所有权
 
 - [Agent UI Plugin Creator 架构与执行边界](references/docs/agent-ui-plugin-creator-launch-plan.md)：当前架构：Creator、AppUIModel、Plugin、Runtime、AG-UI、Service 和交付边界。
-- [统一 Plugins 包、内置源码目录与按需源码托管](references/docs/architecture/npm-default-plugin-source-ownership.md)：npm 默认交付、项目薄应用层、源码接管授权、BASE/LOCAL/TARGET 与更新保护。
+- [统一 Plugins 包、内置源码目录与按需源码托管](references/docs/architecture/npm-default-plugin-source-ownership.md)：npm 默认交付、项目薄应用层、源码接管授权、当前源码与目标新版合并、来源版本与更新保护。
 - [Conversation Domain 架构](references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md)：Conversation Domain 当前所有权；assistant-ui Runtime、消息注册与 Custom Event 边界。
 
 ## 插件开发与组合

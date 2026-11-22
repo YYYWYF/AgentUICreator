@@ -70,8 +70,11 @@ export function createConversationDataSource({
   if (!baseUrl) throw new Error('CONVERSATION_ENDPOINT_REQUIRED');
 
   return {
-    async list({ signal } = {}) {
-      const response = await request(`${baseUrl}/conversations`, {
+    async list({ signal, cursor } = {}) {
+      const query = new URLSearchParams();
+      if (cursor !== undefined) query.set('cursor', cursor);
+      const suffix = query.size > 0 ? `?${query.toString()}` : '';
+      const response = await request(`${baseUrl}/conversations${suffix}`, {
         method: 'GET',
         headers: conversationConnection.headers(),
         credentials: conversationConnection.credentials,
@@ -80,7 +83,7 @@ export function createConversationDataSource({
       await assertResponseOk(response);
       const value: unknown = await response.json();
       const body = readObject(readConversationBody(value));
-      return readArray(body.conversations).map((value): ConversationSummary => {
+      const conversations = readArray(body.conversations).map((value): ConversationSummary => {
         const item = readObject(value);
         const status = item.status;
         if (status !== undefined && status !== 'regular' && status !== 'archived') {
@@ -94,6 +97,13 @@ export function createConversationDataSource({
           ...(updatedAt ? { updatedAt } : {}),
         };
       });
+      // An omitted cursor preserves existing non-paginated backend contracts.
+      if (body.next_cursor === undefined) return conversations;
+      const nextCursor = body.next_cursor;
+      if (nextCursor !== null && (typeof nextCursor !== 'string' || !nextCursor)) {
+        throw new Error('CONVERSATION_CURSOR_INVALID');
+      }
+      return { conversations, nextCursor };
     },
     async get(id, { signal } = {}) {
       const response = await request(`${baseUrl}/conversations/${encodeURIComponent(id)}`, {

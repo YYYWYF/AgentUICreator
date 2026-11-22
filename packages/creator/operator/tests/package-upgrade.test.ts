@@ -165,7 +165,7 @@ it("uses Windows package-manager helpers with inherited JS launchers", () => {
   expect(resourcePackageInvocation("npm", ["install"], "win32", { npm_execpath: "C:\\tools\\npm-cli.js" })).toMatchObject({ command: process.execPath, shell: false });
 });
 
-it("real npm upgrade preserves Composer application/BASE and permits subsequent source conflict synchronization",async()=>{
+it("real npm upgrade preserves Composer application/provenance and permits reviewed current-source synchronization",async()=>{
  const {root,service}=await setup("npm",true);const repo=path.resolve(import.meta.dirname,"../../../..");
  for(const directory of [".agent-ui","src/ui/app-ui","src/ui/plugins","src/ui/runtime","src/ui/services","src/ui/agent-ui/i18n"])await mkdir(path.join(root,directory),{recursive:true});
  await writeFile(path.join(root,".agent-ui/project.json"),JSON.stringify({mode:"assistant",sourceRoot:"src/ui"}));
@@ -188,6 +188,10 @@ it("real npm upgrade preserves Composer application/BASE and permits subsequent 
  const sync=await planPluginSourceSync(root,{pluginId:"composer"});expect(sync.package.version).toBe("0.0.2");
  await expect(syncPluginSource(root,{pluginId:"composer",planHash:sync.planHash},validate)).rejects.toMatchObject({code:"PLUGIN_SOURCE_MERGE_REQUIRED"});
  const target=Buffer.from(sync.mergeFiles.find(file=>file.path==="adapters/composer.tsx")!.target!,"base64").toString();
- await syncPluginSource(root,{pluginId:"composer",planHash:sync.planHash,resolutions:{"adapters/composer.tsx":target+"\n// kept local adapter customizations\n"}},validate);
+ const reviewed: Record<string, string | null> = Object.fromEntries(sync.mergeFiles.filter(file=>file.local!==file.target).map(file=>{
+  const desired=file.target??file.local;
+  return [file.path,desired===null?null:Buffer.from(desired,"base64").toString("utf8")];
+ }));
+ await syncPluginSource(root,{pluginId:"composer",planHash:sync.planHash,resolutions:{...reviewed,"adapters/composer.tsx":target+"\n// kept local adapter customizations\n"}},validate);
  expect(await readFile(appPath)).toEqual(application);expect(await readFile(source,"utf8")).toContain("npmUpgradeFeature");expect(await readFile(source,"utf8")).toContain("kept local adapter customizations");expect(JSON.parse(await readFile(ownershipPath,"utf8")).plugins.composer.package.version).toBe("0.0.2");
 },120000);

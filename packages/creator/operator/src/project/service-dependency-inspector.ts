@@ -3,6 +3,7 @@ import { existsSync, realpathSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { AGENT_UI_THEME_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-theme";
 import { AGENT_UI_LOCALE_SERVICE } from "@za38.03/agent-ui-runtime/ui/services/agent-ui-locale";
+import { RUNTIME_PROVIDED_SERVICES } from '@za38.03/agent-ui-runtime/contracts';
 
 import {
   collectAppUIPluginLocations,
@@ -31,7 +32,7 @@ type ServiceProperty = "provides" | "inject" | "optionalInject";
 
 // Runtime owns these public contracts. Project providers and consumers import
 // the npm seams directly; they do not need a duplicate services/** declaration.
-const runtimeServiceContracts = new Set<string>([AGENT_UI_THEME_SERVICE, AGENT_UI_LOCALE_SERVICE]);
+const runtimeServiceContracts = new Set<string>([AGENT_UI_THEME_SERVICE, AGENT_UI_LOCALE_SERVICE, ...RUNTIME_PROVIDED_SERVICES]);
 
 export interface AnalyzedDeclarations {
   plugins: PluginServiceDeclaration[];
@@ -307,7 +308,7 @@ export function resolveHardServiceActivation(
   candidates: readonly ServiceActivationCandidate[],
 ): HardServiceActivationResolution {
   const resolvedInstanceIds = new Set<string>();
-  const availableServices = new Set<string>();
+  const availableServices = new Set<string>(RUNTIME_PROVIDED_SERVICES);
   let progressed = true;
 
   while (progressed) {
@@ -430,7 +431,9 @@ export function inspectUIServiceDependenciesFromDeclarations(
     const hasActiveOptionalConsumer = optionalConsumers.some(hasActiveCandidate);
     let status: UIServiceDependencyInspection["services"][number]["status"] =
       resolvedProviderInstances.length === 1 ? "available" : "inactive";
-    if (resolvedProviderInstances.length > 1) {
+    if (RUNTIME_PROVIDED_SERVICES.includes(name) && providers.length === 0) {
+      status = 'available';
+    } else if (resolvedProviderInstances.length > 1 || (RUNTIME_PROVIDED_SERVICES.includes(name) && providers.length > 0)) {
       status = "provider-collision";
       issues.push({
         code: "service-provider-collision",

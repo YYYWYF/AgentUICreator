@@ -2,9 +2,13 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
+import { ConversationMessageMetadataContext } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
+  ConversationIf,
   useConversation,
   type ConversationMessage,
+  type ConversationMessageView,
+  type MessageSpeaker,
   type ConversationState,
   type ConversationThreadController,
   type ConversationThreadSnapshot} from "../src/index.js";
@@ -24,17 +28,18 @@ afterEach(async () => {
   vi.clearAllMocks();
 });
 
-function message(id: string): ConversationMessage {
-  return { id, role: "assistant", content: [{ type: "text", text: id }] };
+function message(id: string): ConversationMessage & { readonly createdAt: Date; readonly metadata: { readonly custom: Readonly<Record<string, unknown>> } } {
+  return { id, role: "assistant", createdAt: new Date(), content: [{ type: "text", text: id }], metadata: { custom: {} } };
 }
 
 function store() {
-  let thread: ConversationThreadSnapshot = { messages: [message("first")], isRunning: false };
+  type NativeThread = Omit<ConversationThreadSnapshot, 'messages'> & { messages: readonly ConversationMessage[] };
+  let thread: NativeThread = { messages: [message("first")], isRunning: false };
   let threads: ConversationState["threads"] = {
     isLoading: false, threadIds: ["A"], archivedThreadIds: [], threadItems: [],
   };
   let item: ConversationState["threadListItem"] = { status: "regular", custom: { agentUiDisabled: false } };
-  let currentMessage: ConversationState["message"] = { isCopied: false };
+  let currentMessage = { ...message('first'), isCopied: false };
   const listeners = new Set<() => void>();
   const client = {
     thread: { getState: vi.fn(() => thread) },
@@ -49,10 +54,11 @@ function store() {
   const notify = () => listeners.forEach(listener => listener());
   return {
     client, listeners, notify,
-    setThread(next: Partial<ConversationThreadSnapshot>) { thread = { ...thread, ...next }; notify(); },
+    setThread(next: Partial<NativeThread>) { thread = { ...thread, ...next }; notify(); },
     setLoading(isLoading: boolean) { threads = { ...threads, isLoading }; notify(); },
     setDisabled(disabled: boolean) { item = { ...item, custom: { agentUiDisabled: disabled } }; notify(); },
-    setCopied(isCopied: boolean) { currentMessage = { isCopied }; notify(); },
+    setCopied(isCopied: boolean) { currentMessage = { ...currentMessage, isCopied }; notify(); },
+    setMessage(next: typeof currentMessage) { currentMessage = next; notify(); },
   };
 }
 
@@ -62,6 +68,118 @@ function mount() {
   root = createRoot(host);
   return host;
 }
+
+it('unifies live metadata in message selectors, thread selectors and imperative snapshots without mutating native messages', async () => {
+  const source = store();
+  const native = { ...message('answer'), createdAt: new Date(), metadata: { custom: {} } };
+  source.setThread({ messages: [native] });
+  source.setMessage({ ...native, isCopied: false });
+  useAuiMock.mockReturnValue(source.client);
+  let revision = 0;
+  let custom: Readonly<Record<string, unknown>> = {};
+  const listeners = new Set<() => void>();
+  const port = {
+    read: () => custom,
+    getRevision: () => revision,
+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+  };
+  let handle!: ConversationThreadController;
+  let messages: readonly ConversationMessageView[] = [];
+  let speaker: MessageSpeaker | null | undefined;
+  const expert = { id: 'developer', name: 'Expert', avatarUrl: '/experts/developer.png' };
+  const renders = { speaker: 0, messages: 0, running: 0, handle: 0 };
+  function Speaker() { speaker = useConversation(state => state.message.speaker); renders.speaker++; return <span>{speaker?.name}</span>; }
+  function Messages() { messages = useConversation(state => state.thread.messages); renders.messages++; return null; }
+  function Running() { useConversation(state => state.thread.isRunning); renders.running++; return null; }
+  function Handle() { handle = useConversation(); renders.handle++; return null; }
+  const host = mount();
+  await act(async () => root!.render(<ConversationMessageMetadataContext.Provider value={port}>
+    <Speaker /><Messages /><Running /><Handle />
+    <ConversationIf condition={state => state.message.speaker?.id === 'developer'}><span data-testid='speaker-visible' /></ConversationIf>
+  </ConversationMessageMetadataContext.Provider>));
+  const initial = { ...renders };
+  await act(async () => { custom = { speaker: expert }; revision++; for (const listener of listeners) listener(); });
+  expect(host.textContent).toBe('Expert');
+  expect(host.querySelector('[data-testid="speaker-visible"]')).not.toBeNull();
+  expect(messages[0]?.speaker).toEqual(expert);
+  expect(messages[0]?.metadata?.custom?.speaker).toBe(expert);
+  expect(handle.getSnapshot().messages[0]?.speaker).toEqual(expert);
+  expect(handle.getSnapshot().messages[0]?.metadata?.custom?.speaker).toBe(expert);
+  expect(speaker).toEqual(expert);
+  expect(renders.speaker).toBe(initial.speaker + 1);
+  expect(renders.messages).toBe(initial.messages + 1);
+  expect(renders.running).toBe(initial.running);
+  expect(renders.handle).toBe(initial.handle);
+  expect(native.metadata.custom).toEqual({});
+  expect(native).not.toHaveProperty('speaker');
+  const snapshot = handle.getSnapshot();
+  expect(handle.getSnapshot()).toBe(snapshot);
+  const stableSpeaker = speaker;
+  const speakerRenders = renders.speaker;
+  await act(async () => { custom = { speaker: { ...expert }, trace: 'updated' }; revision++; for (const listener of listeners) listener(); });
+  expect(speaker).toBe(stableSpeaker);
+  expect(renders.speaker).toBe(speakerRenders);
+  expect(handle.getSnapshot().messages[0]?.metadata?.custom?.trace).toBe('updated');
+  const updatedSnapshot = handle.getSnapshot();
+  await act(async () => { revision++; for (const listener of listeners) listener(); });
+  expect(handle.getSnapshot()).toBe(updatedSnapshot);
+  await act(async () => root!.unmount()); root = undefined;
+  expect(listeners.size).toBe(0);
+});
+
+const speakerCases: Array<{ label: string; value: unknown; expected: MessageSpeaker | null | undefined }> = [
+  { label: 'missing', value: undefined, expected: undefined },
+  { label: 'explicitly hidden', value: null, expected: null },
+  { label: 'invalid primitive', value: 'developer', expected: undefined },
+  { label: 'invalid array', value: [], expected: undefined },
+  { label: 'blank identity', value: { id: ' ', name: 'Expert' }, expected: undefined },
+  { label: 'invalid name', value: { id: 'developer', name: 1 }, expected: undefined },
+  { label: 'invalid optional avatar', value: { id: 'developer', name: 'Expert', avatarUrl: 1 }, expected: { id: 'developer', name: 'Expert' } },
+];
+it.each(speakerCases)('normalizes $label identity consistently for scoped and historical message views', async ({ value, expected }) => {
+  const source = store();
+  const native = { ...message('history'), metadata: { custom: { speaker: value } } };
+  source.setThread({ messages: [native] });
+  source.setMessage({ ...native, isCopied: false });
+  useAuiMock.mockReturnValue(source.client);
+  let speaker: MessageSpeaker | null | undefined;
+  let handle!: ConversationThreadController;
+  function Consumer() { speaker = useConversation(state => state.message.speaker); handle = useConversation(); return null; }
+  mount();
+  await act(async () => root!.render(<Consumer />));
+  expect(speaker).toEqual(expected);
+  expect(handle.getSnapshot().messages[0]?.speaker).toEqual(expected);
+  expect(handle.getSnapshot().messages[0]?.metadata?.custom?.speaker).toBe(value);
+  expect(native).not.toHaveProperty('speaker');
+});
+
+it('keeps speaker references stable across text and copied-state updates, then reacts to avatar changes and explicit hiding', async () => {
+  const source = store();
+  const expert = { id: 'developer', name: 'Expert', avatarUrl: '/one.png' };
+  const native = { ...message('answer'), metadata: { custom: { speaker: expert } } };
+  source.setThread({ messages: [native] });
+  source.setMessage({ ...native, isCopied: false });
+  useAuiMock.mockReturnValue(source.client);
+  let current: MessageSpeaker | null | undefined;
+  let renders = 0;
+  function Consumer() { current = useConversation(state => state.message.speaker); renders++; return null; }
+  mount();
+  await act(async () => root!.render(<Consumer />));
+  const initial = current;
+  const before = renders;
+  await act(async () => {
+    source.setMessage({ ...native, content: [{ type: 'text', text: 'streamed' }], metadata: { custom: { speaker: { ...expert }, trace: 'changed' } }, isCopied: false });
+    source.setCopied(true);
+  });
+  expect(current).toBe(initial);
+  expect(renders).toBe(before);
+  await act(async () => source.setMessage({ ...native, metadata: { custom: { speaker: { ...expert, avatarUrl: '/two.png' } } }, isCopied: false }));
+  expect(current?.avatarUrl).toBe('/two.png');
+  expect(renders).toBe(before + 1);
+  await act(async () => source.setMessage({ ...native, metadata: { custom: { speaker: null } }, isCopied: false }));
+  expect(current).toBeNull();
+  expect(native.metadata.custom.speaker).toBe(expert);
+});
 
 it("reads the latest snapshot without subscribing or eagerly reading any scope", async () => {
   const source = store();

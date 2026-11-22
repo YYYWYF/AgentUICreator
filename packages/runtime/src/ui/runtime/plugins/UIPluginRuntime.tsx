@@ -401,6 +401,7 @@ function UIPluginRuntimeContent<TState = unknown>({
   const diagnostics = useOptionalPluginDiagnosticContext();
   const localeMessages = usePresentationLocale("runtime");
   const serviceRuntime = usePluginServiceRuntime();
+  const stackState = useSyncExternalStore(serviceRuntime.stackNavigation.subscribe, serviceRuntime.stackNavigation.getSnapshot, serviceRuntime.stackNavigation.getSnapshot);
   usePluginServiceRuntimeRevision();
   const application = useApplicationLifecycle();
   useLayoutEffect(() => {
@@ -512,6 +513,7 @@ function UIPluginRuntimeContent<TState = unknown>({
     <LayoutRenderer
       className={className}
       root={model.root}
+      stackActiveViews={Object.fromEntries(Object.entries(stackState.stacks).map(([id, state]) => [id, state.activeViewId]))}
       drawerLabels={drawerLabels}
       renderSidebar={(node, renderNode) => {
         const items = node.items.flatMap(item => {

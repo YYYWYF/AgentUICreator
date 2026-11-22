@@ -54,11 +54,7 @@
       },
       "CanonicalConversationThreadList": {
         "presentation": "Conversation list with optional search. It contains no new-conversation button.",
-        "composition": "Configure listProps.showSearch in the project application JSX (default true). Setting false hides search and ignores its query. Compose a separate conversation-new Plugin through AppUIModel for new conversations."
-      },
-      "CanonicalConversationNew": {
-        "presentation": "Independent new-conversation button backed by the existing canonical Conversation Runtime.",
-        "composition": "Configure showLabel in the project application JSX (default true). Assistant/Embedded initialization supplies false for an icon-only button; Platform uses the labeled default. Both variants retain localized accessibility and tooltip text. newProps, children and tooltip props remain public customization seams."
+        "composition": "Configure search and history in project application JSX. New conversations are supplied by the default extensible action of navigation-menu, outside the history list."
       },
       "ConversationSlashCommand": {
         "interaction": "A directive command inserts a serialized Agent UI command reference into composer text; it does not insert a plain sentence. Its label is a display label inside that reference. An action command invokes execute(); it does not automatically modify or submit the composer. Types describe these variants separately.",
@@ -68,6 +64,10 @@
         "presentation": "The frame contains .agent-ui-sidebar-provider, a sidebar region and .agent-ui-sidebar-inset for chat content. The sidebar has a sidebar-gap spacer and a sidebar-container containing sidebar-inner. Their widths participate together in layout; changing only the navigation content width does not resize its reserved space.",
         "interaction": "The frame measures its own container width. Below 648px it uses data-sidebar-mode=drawer and a contained Sheet, retaining a 48px navigation rail. Otherwise data-sidebar-mode=inline uses the selected navigation panel. Closing a panel and hiding the entry control are different states.",
         "styles": "The provider sets --sidebar-width inline to 280px in inline mode or 48px in drawer mode, and --sidebar-width-icon to 48px. Sidebar-gap and sidebar-container consume that variable. Project style overrides must be scoped to the intended mode and account for the inline declaration. sidebar-inner holds the rail and navigation panel; sidebar-inset holds the chat. Verify both reserved gap and visible panel geometry."
+      },
+      "NavigationMenu": {
+        "presentation": "A shared extensible action/view menu. Sidebar presentation uses existing shadcn Sidebar primitives; toolbar presentation shows icon buttons.",
+        "composition": "items accepts an array or a function of the default items. The default new-chat action uses canonical Conversation Runtime. Actions do not require Stack views. View items use agent-ui.stack-navigation. Configure presentation and item callbacks in project application JSX, never in AppUIModel."
       }
     },
     "@za38.03/agent-ui-plugins/conversation-suggestions": {

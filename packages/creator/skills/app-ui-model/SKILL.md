@@ -98,6 +98,9 @@ Composition revision; it does not need a separate Service scan.
   when the operation creates a new sized wrapper, provide `size` and
   `anchorSize` together.
 - Stack `activeIndex`, when present, is a valid child index.
+- A navigable Stack has its own explicit `id` and a `viewIds: string[]` with one
+  unique branch name per direct child. Stack IDs are unique per Agent. Update this
+  array when inserting branches; keep `keepMounted: true` for retained chat state.
 - Panel `minWidth` must not exceed `maxWidth`.
 - A Plugin child Slot must be declared by its manifest and obey cardinality.
   The declaration is Parent Plugin capability; its occupants are Composition.

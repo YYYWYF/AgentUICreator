@@ -143,18 +143,6 @@
       "sha256": "4be14c404f27ed5eccdd5d872b1bda4e10c701629c6fac68067a92a7b5b7eb9d"
     },
     {
-      "id": "conversation-new",
-      "source": "AgentUICreator",
-      "scenario": "new conversation button",
-      "file": "conversation-new.png",
-      "capturedAt": "2026-10-23T00:29:07.740523+00:00",
-      "dimensions": {
-        "width": 156,
-        "height": 88
-      },
-      "sha256": "a89bd81ca1a8ba3ec142dab189c359c4864cba895769a7492cd04fad372a8ac6"
-    },
-    {
       "id": "conversation-quote",
       "source": "AgentUICreator",
       "scenario": "selected assistant reply",
@@ -645,6 +633,87 @@
       },
       "sha256": "ffbbed4bb27041740d6d0d5a01748d27ed8086192a846712ad206eb339be6f0f",
       "capturedAt": "2026-10-28T06:19:14.857082+00:00"
+    },
+    {
+      "id": "navigation-menu-projects",
+      "file": "navigation-menu-projects.png",
+      "scenario": "Project workspace Plugin selected through the default menu; actual Stack JSON shows id, viewIds and keepMounted.",
+      "reusedFrom": "apps/creator-workbench/test-results/stack-navigation-host-proj-05123-plays-the-actual-Stack-JSON/workspace-json.png",
+      "capturedAt": "2026-11-21T14:11:47.506Z",
+      "captureMethod": "Reused native Chromium regression screenshot without editing or resizing.",
+      "sourceFiles": [
+        "apps/creator-workbench/tests/stack-navigation-host.spec.ts"
+      ],
+      "source": "AgentUICreator",
+      "pluginId": "navigation-menu",
+      "dimensions": {
+        "width": 1280,
+        "height": 900
+      },
+      "sha256": "5fbdd3868bbbfd4696d1d3896b6feb3b84013d74e083db0983cc9c5e8160d04a"
+    },
+    {
+      "id": "navigation-menu-expanded",
+      "file": "navigation-menu-expanded.png",
+      "capturedAt": "2026-11-21T14:41:33.344Z",
+      "url": "http://127.0.0.1:5180/",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 280,
+        "height": 320
+      },
+      "scenario": "Focused expanded Platform sidebar: new conversation, feature menu, search and the first history row.",
+      "pluginId": "navigation-menu",
+      "source": "AgentUICreator",
+      "captureMethod": "Native Chromium screenshot clipped to the actual UI controls; no image editing or resizing.",
+      "dimensions": {
+        "width": 280,
+        "height": 320
+      },
+      "sha256": "de8265786d18050100640dc82284deeb5247446d5321457b1cbee028f70a9aaf"
+    },
+    {
+      "id": "navigation-menu-collapsed",
+      "file": "navigation-menu-collapsed.png",
+      "capturedAt": "2026-11-21T14:41:34.087Z",
+      "url": "http://127.0.0.1:5180/",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 48,
+        "height": 220
+      },
+      "scenario": "Focused collapsed Sidebar: original action and feature icons, with projects selected.",
+      "pluginId": "navigation-menu",
+      "source": "AgentUICreator",
+      "captureMethod": "Native Chromium screenshot clipped to the actual UI controls; no image editing or resizing.",
+      "dimensions": {
+        "width": 48,
+        "height": 220
+      },
+      "sha256": "1592801416f84623a47c286ca1c36c81aa4ee429b463f2e49efdab886bd164e2"
+    },
+    {
+      "id": "navigation-menu-toolbar",
+      "file": "navigation-menu-toolbar.png",
+      "capturedAt": "2026-11-21T14:42:02.903Z",
+      "url": "http://127.0.0.1:5175/",
+      "clip": {
+        "x": 658,
+        "y": 166,
+        "width": 418,
+        "height": 80
+      },
+      "scenario": "Focused Assistant header with navigation-menu new-conversation icon beside the independent history button.",
+      "pluginId": "navigation-menu",
+      "source": "AgentUICreator",
+      "captureMethod": "Native Chromium screenshot clipped to the actual UI controls; no image editing or resizing.",
+      "dimensions": {
+        "width": 418,
+        "height": 80
+      },
+      "sha256": "a9e9452764804481983f31dafdb7bfaa4786fae525caad18e2c58968aec0a0f2"
     }
   ]
 }

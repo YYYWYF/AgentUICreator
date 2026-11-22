@@ -64,27 +64,27 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 
 ## 按展示内容找事件
 
-| 插件                                           | 触发数据                                                     | 示例与显示条件                                                  |
-| -------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- |
-| `conversation-surface`                       | `TEXT_MESSAGE_*`、消息历史及下方各类内容                             | [会话界面](/plugins/conversation-surface.md#显示条件与数据来源)       |
-| `reasoning`                                  | `REASONING_START`、`REASONING_MESSAGE_*`、`REASONING_END`  | [思考内容](/plugins/reasoning.md#显示条件与数据来源)                  |
-| `tool-group`、`tool-timeline`、`tool-fallback` | `TOOL_CALL_START/ARGS/END/RESULT`                        | [通用工具事件](#通用工具事件)                                        |
-| `tool-result`                                | 工具调用，以及序列化到 `TOOL_CALL_RESULT.content` 的内容数组             | [文本、图片、音视频和文档](/plugins/tool-result.md#显示条件与数据来源)        |
-| `ask-user-question`                          | 工具 `ask_user_question` 的调用参数；用户回答后续答                     | [提问与答案](/plugins/ask-user-question.md#agent-服务接入)        |
-| `task-group`                                 | 父工具调用、`SUBAGENT_*` 和带 `subagentRunId` 的子消息               | [SubAgent 任务](/plugins/task-group.md#显示条件与数据来源)          |
-| `agent-status-message`                       | 工具 `mock_agent_status` 的参数与调用状态                          | [状态文字](/plugins/agent-status-message.md#显示条件与数据来源)       |
-| `agent-plan-message`                         | `activityType: "agent-plan"` 的 `ACTIVITY_SNAPSHOT/DELTA` | [权威计划](/plugins/agent-plan-message.md#显示条件与数据来源)         |
-| `job-progress-message`                       | 工具 `run_ci_job`，以及 `jobs[toolCallId]` 的 `STATE_*`        | [后台进度](/plugins/job-progress-message.md#显示条件与数据来源)       |
-| `generated-file-message`                     | 工具 `generate_file` 的 JSON 结果                             | [生成文件](/plugins/generated-file-message.md#显示条件与数据来源)     |
-| `chart-message`                              | `CUSTOM`，`name: "chart"`                                 | [图表](/plugins/chart-message.md#显示条件与数据来源)                |
-| `source-citations-message`                   | 工具 `search_sources` 的 JSON 结果                            | [引用来源](/plugins/source-citations-message.md#显示条件与数据来源)   |
-| `retrieval-chunks`                           | 工具 `search_docs` 的 JSON 结果                               | [文档片段](/plugins/retrieval-chunks.md#显示条件与数据来源)           |
-| `web-search`                                 | 工具 `web_search` 的 JSON 结果                                | [网页搜索](/plugins/web-search.md#显示条件与数据来源)                 |
-| `context-retrieval-message`                  | `CUSTOM`，`name: "CONTEXT_CONTENT"`                       | [上下文检索](/plugins/context-retrieval-message.md#显示条件与数据来源) |
+| 插件                                         | 触发数据                                                     | 示例与显示条件                                                  |
+| ------------------------------------------ | -------------------------------------------------------- | -------------------------------------------------------- |
+| `conversation-surface`                     | `TEXT_MESSAGE_*`、消息历史及下方各类内容                             | [会话界面](/plugins/conversation-surface.md#显示条件与数据来源)       |
+| `reasoning`                                | `REASONING_START`、`REASONING_MESSAGE_*`、`REASONING_END`  | [思考内容](/plugins/reasoning.md#显示条件与数据来源)                  |
+| `tool-group`、`tool-timeline`、`tool-result` | `TOOL_CALL_START/ARGS/END/RESULT`                        | [通用工具事件](#通用工具事件)                                        |
+| `tool-result`                              | 工具调用，以及序列化到 `TOOL_CALL_RESULT.content` 的内容数组             | [文本、图片、音视频和文档](/plugins/tool-result.md#显示条件与数据来源)        |
+| `ask-user-question`                        | 工具 `ask_user_question` 的调用参数；用户回答后续答                     | [提问与答案](/plugins/ask-user-question.md#agent-服务接入)        |
+| `task-group`                               | 父工具调用、`SUBAGENT_*` 和带 `subagentRunId` 的子消息               | [SubAgent 任务](/plugins/task-group.md#显示条件与数据来源)          |
+| `agent-status-message`                     | 工具 `mock_agent_status` 的参数与调用状态                          | [状态文字](/plugins/agent-status-message.md#显示条件与数据来源)       |
+| `agent-plan-message`                       | `activityType: "agent-plan"` 的 `ACTIVITY_SNAPSHOT/DELTA` | [权威计划](/plugins/agent-plan-message.md#显示条件与数据来源)         |
+| `job-progress-message`                     | 工具 `run_ci_job`，以及 `jobs[toolCallId]` 的 `STATE_*`        | [后台进度](/plugins/job-progress-message.md#显示条件与数据来源)       |
+| `generated-file-message`                   | 工具 `generate_file` 的 JSON 结果                             | [生成文件](/plugins/generated-file-message.md#显示条件与数据来源)     |
+| `chart-message`                            | `CUSTOM`，`name: "chart"`                                 | [图表](/plugins/chart-message.md#显示条件与数据来源)                |
+| `source-citations-message`                 | 工具 `search_sources` 的 JSON 结果                            | [引用来源](/plugins/source-citations-message.md#显示条件与数据来源)   |
+| `retrieval-chunks`                         | 工具 `search_docs` 的 JSON 结果                               | [文档片段](/plugins/retrieval-chunks.md#显示条件与数据来源)           |
+| `web-search`                               | 工具 `web_search` 的 JSON 结果                                | [网页搜索](/plugins/web-search.md#显示条件与数据来源)                 |
+| `context-retrieval-message`                | `CUSTOM`，`name: "CONTEXT_CONTENT"`                       | [上下文检索](/plugins/context-retrieval-message.md#显示条件与数据来源) |
 
 ### 通用工具事件
 
-下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result` 或 `tool-fallback`。
+下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result`。
 
 ```jsonl
 {"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}

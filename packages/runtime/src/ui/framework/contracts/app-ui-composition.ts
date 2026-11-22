@@ -4,6 +4,7 @@ import type {
 } from "./app-ui-runtime-model.js";
 
 import type { PluginChildSlotDefinition } from "../../../contracts/index.js";
+import { RUNTIME_PROVIDED_SERVICES } from '../../../contracts/stack-navigation.js';
 export type { PluginChildSlotAccepts, PluginChildSlotDefinition } from "../../../contracts/index.js";
 
 /** Static child Slot declarations keyed by UI Plugin manifest id. */
@@ -196,6 +197,7 @@ export function resolveApplicationFoundation(
     if (consumer === undefined) continue;
     const consumerEntry = catalogEntry(catalog, consumer.pluginId);
     for (const service of consumerEntry.inject ?? []) {
+      if (RUNTIME_PROVIDED_SERVICES.includes(service)) continue;
       const providers = enabledInstances.filter((candidate) => {
         const candidateEntry = catalogEntry(catalog, candidate.pluginId);
         return (candidateEntry.provides ?? []).includes(service);

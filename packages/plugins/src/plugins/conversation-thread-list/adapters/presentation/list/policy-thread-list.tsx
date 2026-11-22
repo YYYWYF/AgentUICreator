@@ -20,6 +20,7 @@ export interface PolicyThreadListProps extends Omit<ComponentProps<typeof Conver
   searchProps?: Partial<Omit<ComponentProps<typeof ConversationThreadListSearch>, 'children' | 'defaultValue'>>;
   itemProps?: ConversationThreadListItemProps;
   components?: { ThreadListItem?: ComponentType };
+  loadMoreError?: string | undefined;
 }
 
 export function PolicyThreadList({
@@ -28,6 +29,7 @@ export function PolicyThreadList({
   searchProps,
   itemProps,
   components,
+  loadMoreError,
   ...elementProps
 }: PolicyThreadListProps) {
   const messages = useLocale('threadList');
@@ -51,7 +53,7 @@ export function PolicyThreadList({
             }}
           />
         )}
-        <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} />
+        <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} loadMoreError={loadMoreError} />
         {showArchived && (
           <ArchivedThreadList searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ''} />
         )}

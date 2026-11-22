@@ -3,7 +3,7 @@ const groups: Record<string, string[]> = {
   "conversation": [
     "conversation-surface",
     "conversation-thread-list",
-    "conversation-new",
+    "navigation-menu",
     "conversation-suggestions",
     "transient-assistant-messages"
   ],

@@ -6,7 +6,7 @@
     "foundation/core"
   ],
   "packages": {
-    "@za38.03/agent-ui-plugins": "0.0.11"
+    "@za38.03/agent-ui-plugins": "0.0.12"
   },
   "upstream": {
     "project": "assistant-ui/assistant-ui",

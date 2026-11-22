@@ -1,22 +1,20 @@
 # 会话列表（conversation-thread-list）
 
+## 功能与效果
+
 提供标题搜索、归档、会话操作和自定义时间或业务分组。
 
-
-
-
-
-## 会话列表
+### 会话列表
 
 
 ![会话列表界面](/images/plugins/conversation-thread-list.png)
 
+## 修改与启用
+
+
 按[历史服务接入](/development/history-backend.md)配置列表和详情，按业务需要支持重命名、归档与删除。
 
-重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend.md#重命名归档与取消归档)。
-
-
-## 修改位置 \{#修改位置}
+### 修改位置 \{#修改位置}
 
 默认 npm 实现先修改项目的 `plugins/conversation-thread-list/index.tsx`，保留已有服务桥接。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
 
@@ -34,7 +32,19 @@
 
 `list/primitives/` 保留基础组件的兼容展示；当前默认列表的业务操作使用上表中的 `list/thread-item*.tsx`。修改外观时保留原有回调、操作权限与请求失败处理。
 
-## 搜索、归档和菜单操作 \{#搜索归档和菜单操作}
+## 数据来源与显示条件
+
+数据源返回分页结果时，默认列表滚动到底自动加载下一页，`nextCursor: null` 后停止。加载更多失败保留现有列表和游标，点击重试继续同一页。搜索只过滤已加载会话；自定义 `renderList` 替换整张列表时需自行保留分页触发入口。
+
+重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend.md#重命名归档与取消归档)。
+
+## 常见定制
+
+
+
+
+
+### 搜索、归档和菜单操作 \{#搜索归档和菜单操作}
 
 
 此例保留搜索、隐藏归档区，仅显示重命名和删除。actions 是完整开关对象，未写成 true 的操作不会显示。界面开关不代替后端权限校验。
@@ -52,7 +62,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationThread
 ```
 
 
-## 自定义时间分组与业务分组 \{#自定义时间分组与业务分组}
+### 自定义时间分组与业务分组 \{#自定义时间分组与业务分组}
 
 下面是同一个应用层文件中的两个可选入口：`RecentHistory` 使用日期规则，`CategoryHistory` 使用业务分类。项目原有入口继续取得 snapshot、onRefresh、theme 等属性，改为渲染其中一个组件即可。
 
@@ -195,7 +205,7 @@ export function CategoryHistory(props: Props) {
 }
 ```
 
-## 自定义排列与列表项 \{#自定义排列与列表项}
+### 自定义排列与列表项 \{#自定义排列与列表项}
 
 只改列表行时，在 `plugins/conversation-thread-list/index.tsx` 的现有列表组件上传入 `components={{ ThreadListItem: ProjectThreadItem }}`，继续使用原来的搜索、日期分组和归档区。
 
@@ -255,28 +265,30 @@ const archivedRows = archivedIds.map((id, index) => (
 - 归档项的 `index` 对应 `archivedThreadIds`，同时传 `archived`；不要混用普通列表的索引。
 - 归档区需要搜索时，按标题筛选 `{ id, index }`，保留原始 `index` 再渲染。只需更换行外观时，使用前面的 `components` 配置即可，原列表会完成这些处理。
 
-## API
+## 属性与 API
 
 
+
+### API
 
 在 `CanonicalConversationThreadList` 上设置以下属性。
 
 继承 `aside` 原生属性。
 
-| 属性                  | 类型                                                                                                                                                            | 省略时 / 用途                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `showSearch?`       | `boolean`                                                                                                                                                     | 默认 `true`；设为 `false` 同时取消搜索条件对列表的过滤      |
-| `showArchived?`     | `boolean`                                                                                                                                                     | 默认 `true`，展示归档会话区                        |
-| `searchProps?`      | `Partial<Omit<ComponentProps<typeof ConversationThreadListSearch>, 'children' \| 'defaultValue'>>`                                                            | 搜索组件属性                                   |
-| `itemProps?`        | `ConversationThreadListItemProps`                                                                                                                             | 列表项属性，见下表                                |
-| `components?`       | `{ ThreadListItem?: ComponentType }`                                                                                                                          | 替换列表项组件                                  |
-| `renderList?`       | `(defaultList: ReactNode) => ReactNode`                                                                                                                       | 定制列表主体；外层错误提示与重试保留                       |
-| `headerActions?`    | `ReactNode`                                                                                                                                                   | 顶部操作区                                    |
-| `snapshot?`         | `{ activeConversationId?: string; listStatus?: string; detailStatus?: string; listError?: string; detailError?: string; detailErrorConversationId?: string }` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文        |
-| `serviceAvailable?` | `boolean`                                                                                                                                                     | 宿主页面提供的会话服务是否可用，单独使用组件时默认 `false`        |
-| `onRefresh?`        | `() => void \| Promise<void>`                                                                                                                                 | 列表加载失败后的重试方法                             |
-| `theme?`            | [`AgentUITheme`](/plugins/theme-switch.md#agentuitheme)                                                                                                       | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
-| `runStatus?`        | `string`                                                                                                                                                      | 宿主页面传入的运行状态，用于标记当前会话是否正在运行               |
+| 属性                  | 类型                                                                                                                                                                                    | 省略时 / 用途                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `showSearch?`       | `boolean`                                                                                                                                                                             | 默认 `true`；设为 `false` 同时取消搜索条件对列表的过滤      |
+| `showArchived?`     | `boolean`                                                                                                                                                                             | 默认 `true`，展示归档会话区                        |
+| `searchProps?`      | `Partial<Omit<ComponentProps<typeof ConversationThreadListSearch>, 'children' \| 'defaultValue'>>`                                                                                    | 搜索组件属性                                   |
+| `itemProps?`        | `ConversationThreadListItemProps`                                                                                                                                                     | 列表项属性，见下表                                |
+| `components?`       | `{ ThreadListItem?: ComponentType }`                                                                                                                                                  | 替换列表项组件                                  |
+| `renderList?`       | `(defaultList: ReactNode) => ReactNode`                                                                                                                                               | 定制列表主体；外层错误提示与重试保留                       |
+| `headerActions?`    | `ReactNode`                                                                                                                                                                           | 顶部操作区                                    |
+| `snapshot?`         | `{ activeConversationId?: string; listStatus?: string; detailStatus?: string; listError?: string; loadMoreError?: string; detailError?: string; detailErrorConversationId?: string }` | 宿主页面传入的会话状态；单独使用组件时默认为 `{}`，字段见下文        |
+| `serviceAvailable?` | `boolean`                                                                                                                                                                             | 宿主页面提供的会话服务是否可用，单独使用组件时默认 `false`        |
+| `onRefresh?`        | `() => void \| Promise<void>`                                                                                                                                                         | 列表加载失败后的重试方法                             |
+| `theme?`            | [`AgentUITheme`](/plugins/theme-switch.md#agentuitheme)                                                                                                                               | 宿主页面传入的主题；单独使用组件时默认 `light`，生成项目会传入自己的主题 |
+| `runStatus?`        | `string`                                                                                                                                                                              | 宿主页面传入的运行状态，用于标记当前会话是否正在运行               |
 
 | `itemProps` 字段 | 类型                                                                        | 用途      |
 | -------------- | ------------------------------------------------------------------------- | ------- |
@@ -301,9 +313,9 @@ const archivedRows = archivedIds.map((id, index) => (
 | `tooltipProps?`        | `Omit<ComponentProps<typeof AgentUITooltip>, 'children'>`            |
 | `tooltipContentProps?` | `Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>`     |
 
-需要在布局中独立放置新建会话入口时，使用 [`conversation-new`](/plugins/conversation-new.md)。
+新建会话使用 [`navigation-menu`](/plugins/navigation-menu.md) 的默认操作项；会话列表只负责已有会话。
 
-### 只开放需要的列表操作 \{#conversationthreadlistitemactions}
+#### 只开放需要的列表操作 \{#conversationthreadlistitemactions}
 
 `itemProps.actions` 控制菜单入口，不是操作回调。省略整个对象时保留默认操作；一旦传入对象，只显示值为 `true` 的项。
 
@@ -331,6 +343,9 @@ export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConver
 项目的 `useConversations()` / `useConversations()` 见[会话服务](/plugins/conversation-service.md#hook)。
 
 
+## 常见问题
+
+
 默认历史列表按什么分组？
 
 默认按 lastMessageAt 的当地自然日分为今天、昨天、更早。所有可见记录都没有日期时不分组；部分记录没有日期时，默认会将其放在今天组前面。前面的项目示例可以选择不同的缺失日期处理。
@@ -349,4 +364,3 @@ export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConver
 最终用户能创建分组、把会话移入分组吗？
 
 上述业务分组是读取和展示能力。可编辑分组还需要项目提供创建、移动等界面，以及保存分组和会话归属的业务接口。
-

@@ -4,12 +4,11 @@ title: "主题服务（theme-provider）"
 
 # 主题服务（theme-provider）
 
+## 功能与效果
+
 统一管理主题，并为自定义组件提供当前深浅配色。
 
-<span id="常见需求"></span>
-<span id="代码示例"></span>
-
-## 共享主题
+### 共享主题
 
 <figure className="plugin-preview">
 
@@ -18,7 +17,21 @@ title: "主题服务（theme-provider）"
 <figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
 </figure>
 
-## 使用已有服务切换主题 {#使用已有服务切换主题}
+## 修改与启用
+
+<span id="手动接入"></span>
+
+- 设置默认主题、修改品牌色与样式：[主题与样式](/development/theme-and-styling)。
+- 由业务页面控制主题并接收切换：[主题切换配置](/development/agent-options#主题切换)。
+- 在自定义插件中读取主题或使用主题服务：[内置领域 Hook](/development/plugin-api#内置领域-hook)。
+
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="代码示例"></span>
+
+### 使用已有服务切换主题 {#使用已有服务切换主题}
 
 <span id="example-1"></span>
 
@@ -40,7 +53,7 @@ export function DarkThemeButton() {
 
 <span id="example-2"></span>
 
-## 主题适配 {#让自定义内容随主题变化}
+### 主题适配 {#让自定义内容随主题变化}
 
 使用项目已有语义变量；不在组件内根据语言或主题硬编码两套颜色。变量表见主题与样式指南。
 
@@ -55,7 +68,7 @@ export function ThemedCard({ children }: { children: ReactNode }) {
 }
 ```
 
-## 图表配色适配 {#hook}
+### 图表配色适配 {#hook}
 
 自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useTheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
 
@@ -75,20 +88,19 @@ export function ThemeAwareChart({ renderChart }: {
 
 `renderChart` 接项目当前图表组件，收到 `light` 或 `dark`。普通文字、边框和背景优先使用前面示例中的语义 CSS 变量。
 
-<span id="从业务按钮切换主题"></span>
-
-## API
+## 属性与 API
 
 <span id="属性"></span>
+
 <span id="开发-api"></span>
 
-<span id="手动接入"></span>
+<span id="从业务按钮切换主题"></span>
 
-- 设置默认主题、修改品牌色与样式：[主题与样式](/development/theme-and-styling)。
-- 由业务页面控制主题并接收切换：[主题切换配置](/development/agent-options#主题切换)。
-- 在自定义插件中读取主题或使用主题服务：[内置领域 Hook](/development/plugin-api#内置领域-hook)。
+### API
 
-### 服务方法 {#服务}
+
+
+#### 服务方法 {#服务}
 
 提供 `agent-ui.theme`。服务标识 `AGENT_UI_THEME_SERVICE` 和类型 `AgentUIThemeService` 从 `@za38.03/agent-ui-runtime/ui/services/agent-ui-theme` 导入。
 

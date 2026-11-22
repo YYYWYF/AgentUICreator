@@ -1,6 +1,7 @@
 /** Navigation vocabulary, not implementation ownership or mutation authority.
  * Apply these names only to identities present in the inspected project. */
 const featureNames: Record<string, readonly string[]> = {
+  "navigation-menu": ["功能菜单", "新建会话", "新建对话", "新对话", "new chat", "new conversation"],
   "conversation-thread-list": ["聊天历史", "会话历史", "历史会话", "聊天记录", "chat history", "conversation history"],
   "dictation-action": ["语音输入", "听写", "voice input", "dictation"],
   "add-attachment-action": ["附件", "上传文件", "选文件", "attachment", "file picker"],
@@ -9,7 +10,6 @@ const featureNames: Record<string, readonly string[]> = {
   "feedback-actions": ["评价", "点赞", "点踩", "feedback"],
   "export-markdown-action": ["导出", "export"],
   "conversation-suggestions": ["推荐问题", "开场建议", "建议问题", "suggestions"],
-  "conversation-new": ["新建会话", "新建对话", "新对话", "new chat", "new conversation"],
   "locale-switch": ["语言切换", "切换语言", "界面语言", "中英文切换", "中英切换", "切换中英文", "中文英文切换", "中文和英文之间切换", "language switch"],
   "composer": ["输入框", "消息输入", "composer", "message input"],
   "submit-action": ["发送按钮", "停止按钮", "发送消息", "send button", "stop button"],

@@ -80,20 +80,27 @@ export function createConversationRemoteThreadListAdapter<TState>(binding: Conve
     try { await operation; } finally { pendingChanges.delete(operation); }
   };
   const adapter: RemoteThreadListAdapter = {
-    async list() {
+    async list({ after } = {}) {
       // Service notifications can trigger reload before delete finishes clearing
       // initialized metadata. Wait so that reload cannot restore the deleted row.
       await Promise.allSettled([...pendingDeletes.values(), ...pendingChanges]);
-      const snapshot = binding.getThreadListSnapshot?.();
+      const snapshot = after === undefined
+        ? binding.getThreadListSnapshot?.()
+        : await binding.loadThreadListPage?.(after);
       const items = [...(snapshot?.threads ?? []), ...(snapshot?.archivedThreads ?? [])].map(metadata).filter(item => !deletedIds.has(item.remoteId));
       const ids = new Set(items.map(item => item.remoteId));
       // A complete refreshed list may omit a record deleted by another client.
       // Keep optimistic local threads, but never reinsert known persisted rows
       // solely because a mounted thread previously cached their metadata.
-      if (snapshot !== undefined && !snapshot.isLoading) {
+      // An unloaded page may still contain a cached/active thread. Only a
+      // complete list can establish deletion by absence.
+      if (snapshot !== undefined && !snapshot.isLoading && snapshot.nextCursor === undefined) {
         for (const id of persistedIds) if (!ids.has(id)) initialized.delete(id);
       }
-      return { threads: [...items, ...[...initialized.values()].filter(item => !ids.has(item.remoteId) && !deletedIds.has(item.remoteId))] };
+      return {
+        threads: [...items, ...[...initialized.values()].filter(item => !ids.has(item.remoteId) && !deletedIds.has(item.remoteId))],
+        nextCursor: snapshot?.nextCursor,
+      };
     },
     async fetch(id) {
       if (deletedIds.has(id)) throw new Error(`Conversation "${id}" was deleted.`);

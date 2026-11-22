@@ -1,5 +1,6 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const zhCN = {
+  navigationMenu: { label: '功能菜单', newConversation: '新建会话', actionFailed: '操作失败，请重试。', chat: '聊天', projects: '项目空间', knowledge: '知识库', workflows: '工作流', collapse: '收起侧栏', expand: '展开侧栏' },
   workbenchPanel: {
   "region": "工作台侧栏",
   "tabs": "侧栏内容",

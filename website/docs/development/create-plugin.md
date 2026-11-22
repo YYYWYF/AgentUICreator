@@ -15,6 +15,18 @@ title: "创建自定义插件"
 | 新增一个能显示和交互的插件 | 从[声明插件](#1-声明插件)开始，依次完成组件、布局和注册 |
 | 让另一个插件调用它的方法或共享状态 | 完成基础注册后，展开[服务示例](#5-向其他插件提供方法) |
 
+**先认清插件接入涉及的文件：**
+
+| 文件 | 负责什么 | 怎样维护 |
+| --- | --- | --- |
+| `plugins/ticket-actions/manifest.json` | 声明插件 ID、版本、能力和可开放的子插槽。 | 自己编写；本例 ID 为 `ticket-actions`。 |
+| `plugins/ticket-actions/index.tsx` | 实现实际显示的 React 组件和交互。 | 自己编写。 |
+| `plugins/ticket-actions/definition.ts` | 将 manifest 与组件绑定，也可声明服务和消息渲染器。 | 自己编写，并默认导出插件定义。 |
+| `app-ui.json` | 选择使用这个插件的实例，配置位置、启停和父子组合。 | 在已有布局中追加实例。 |
+| `plugins/registry.generated.ts` | 保存由工具生成的插件目录和 definition 加载入口，供应用使用。 | 执行同步命令生成，不手工编辑。 |
+
+接入顺序是：**声明插件 → 编写组件并在 definition 中绑定 → 在 JSON 中放入实例 → 同步注册表**。下面用一个工单插件走完这个过程。
+
 ## 1. 声明插件 {#1-声明插件}
 
 新建 `plugins/ticket-actions/manifest.json`：
@@ -88,19 +100,36 @@ export const ticketActionsPlugin: UIPluginDefinition = {
 export default ticketActionsPlugin;
 ```
 
+`Component: TicketActions` 将组件接入插件，`export default` 供生成的注册表加载。组件文件本身不会自动完成注册。
+
 ## 3. 布局与子插槽配置 {#3-布局与子插槽配置}
 
-在 `app-ui.json` 的已有布局中新增一个插件实例。例如，在一个允许普通内容的布局插槽的 `plugins` 数组中添加：
+打开 `app-ui.json`，在 `root` 中找到准备显示工单内容的 `type: "slot"` 节点，在它的 `plugins` 数组中追加本例插件。下面展示追加后的局部结构；已有数组中还有其他插件时一并保留：
 
 ```json
-{ "pluginId": "ticket-actions", "id": "ticket-actions-main" }
+{
+  "type": "slot",
+  "plugins": [
+    { "pluginId": "ticket-actions", "id": "ticket-actions-main" }
+  ]
+}
 ```
 
-这是数组元素，不能用来覆盖整个文件。已有实例 ID 保持不变；也可以放入接受 `ticket-action` 能力的父插件子插槽。布局示例见[布局与插件组合](./layout-and-composition)。
+`pluginId` 对应 `manifest.json` 中的 `id`，`id` 是这一次使用的实例身份；已有实例 ID 保持不变。省略 `enabled` 时默认启用。如果需要新建一个显示区域，把完整的 `slot` 节点加入合适的 `row.children` 或 `column.children`，具体见[容器说明与完整 JSON 示例](./layout-and-composition#布局节点入门)。这个局部片段不能覆盖整个文件。
+
+本例是普通页面内容，也可以放入接受 `ticket-action` 能力的父插件子插槽。应用级服务或消息渲染插件则按其合同配置到 `applicationPlugins`；它们不需要单独占据一个页面区域。
 
 ## 4. 插件注册与验证 {#4-插件注册与验证}
 
-新增目录后，需要重新生成插件注册表。可以让 Creator 执行注册与检查，或在项目根目录保存开发脚本 `scripts/sync-agent-ui.mjs`：
+完成文件和实例配置后，需要同步注册表。**以下两种方式任选一种**，都会按当前插件定义和 `app-ui.json` 更新 `plugins/registry.generated.ts`。
+
+**通过 Creator 同步**
+
+在连接了目标工程的 Creator 输入框中输入 `/sync` 并发送，或从快捷命令菜单选择它。它负责更新注册表；前面的组件和实例配置仍需先完成。命令入口见[Creator 快捷命令](/guide/commands)。
+
+**手动执行同步脚本**
+
+手动脚本需要开发环境能够解析 `@za38.03/agent-ui-creator` 包。在目标项目根目录保存 `scripts/sync-agent-ui.mjs`（这个脚本位于项目根目录下，不在 `src/agent-ui/` 中）：
 
 ```js
 import { synchronizeAgentUIPluginRegistry } from '@za38.03/agent-ui-creator/project/dev';
@@ -115,9 +144,15 @@ console.log(result);
 node scripts/sync-agent-ui.mjs
 ```
 
-此命令属于开发工具，会更新生成的注册表并初始化缺少的官方项目入口；已有入口会保留。提交前检查实际文件差异。不要把这个开发脚本导入生产组件，也不要手工编辑 `registry.generated.ts`。
+`process.cwd()` 是同步操作的目标项目根目录，因此要在目标项目根目录执行命令。脚本使用 Node.js，不需要 Bash 或平台专用命令，可在 Windows、macOS 和 Linux 的终端中使用。
+
+同步会读取插件声明，并为 `app-ui.json` 引用的插件生成 definition 加载入口；只新增插件目录，还需要完成第 3 步的实例配置。它也会初始化缺少的官方项目入口，已有入口会保留。默认生成目录下的结果是 `src/agent-ui/plugins/registry.generated.ts`，可查看差异确认新插件已被收录。
+
+新增插件、修改 manifest 或 definition 声明，以及增删组合中的插件后，重新执行同步。无需手写生成文件中的 import 或插件列表。同步脚本属于开发工具，不要导入生产组件；最终前端继续独立构建和部署。
 
 运行项目已有的类型检查、测试和构建。页面应显示“工单插件已接入”，切到英文后显示“Ticket plugin is ready”；将实例设为 `enabled: false` 后文字消失，恢复后重新出现。确认这些步骤后，再用自己的业务组件替换这行文字，并验证真实交互。
+
+如果没有显示，先检查 `manifest.json` 的 ID 与 JSON 的 `pluginId` 是否一致、`definition.ts` 是否默认导出，以及实例是否已放进当前显示的布局分支并启用；修正后再次同步并检查页面。同步时报出的插槽或服务依赖错误，应按实际提示处理。
 
 ## 可选：向其他插件提供方法 {#5-向其他插件提供方法}
 

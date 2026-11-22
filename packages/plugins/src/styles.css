@@ -8,6 +8,7 @@
 @source "./internal/primitives";
 @source "./internal/composable-thread.tsx";
 @source "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.tsx";
+@source "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image";
 @source "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx";
 @source "./internal/vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.tsx";
 @source "./plugins/composer/adapters/presentation/composer.tsx";

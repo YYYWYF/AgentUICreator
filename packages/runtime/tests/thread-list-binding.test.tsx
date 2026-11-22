@@ -108,6 +108,22 @@ function RuntimeFixture({
 }
 
 describe("runtime-assistant-ui thread-list binding", () => {
+  it("does not treat a cached thread outside the loaded pages as deleted", async () => {
+    const { binding } = createBinding();
+    let nextCursor: string | undefined = "next";
+    binding.getThreadListSnapshot = () => ({
+      threads: [{ id: "live", status: "regular", title: "Current" }],
+      archivedThreads: [],
+      nextCursor,
+    });
+    binding.getThreadMetadata = async (id) => ({ id, status: "regular", title: "Not loaded yet" });
+    const { adapter } = createConversationRemoteThreadListAdapter(binding);
+    await adapter.fetch("outside-page");
+    expect((await adapter.list()).threads.map((item) => item.remoteId)).toEqual(["live", "outside-page"]);
+    nextCursor = undefined;
+    expect((await adapter.list()).threads.map((item) => item.remoteId)).toEqual(["live"]);
+  });
+
   it("removes a previously persisted cached row after another client deletes it, while retaining an unsaved local thread", async () => {
     const { binding } = createBinding();
     let items = [{ id: "live", status: "regular" as const, title: "Current" }, { id: "history", status: "regular" as const, title: "Deleted elsewhere" }];

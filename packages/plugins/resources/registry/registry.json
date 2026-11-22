@@ -129,10 +129,6 @@
       "path": "items/plugin/auth-account/item.json"
     },
     {
-      "id": "plugin/conversation-new",
-      "path": "items/plugin/conversation-new/item.json"
-    },
-    {
       "id": "plugin/add-attachment-action",
       "path": "items/plugin/add-attachment-action/item.json"
     },
@@ -243,6 +239,10 @@
     {
       "id": "plugin/workbench-panel-actions",
       "path": "items/plugin/workbench-panel-actions/item.json"
+    },
+    {
+      "id": "plugin/navigation-menu",
+      "path": "items/plugin/navigation-menu/item.json"
     }
   ]
 }

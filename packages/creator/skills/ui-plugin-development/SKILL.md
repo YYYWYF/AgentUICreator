@@ -19,7 +19,7 @@ Project-owned application props, children, renderers and scoped styles are ordin
 editable code. Inspect the exact target and any concrete unknown contract; edit
 within the user's request. Public npm component use does not require implementation
 source, extraction or takeover. Existing source-owned Plugin edits keep the current
-ownership, upstream provenance and BASE; do not repeat successful takeover consent.
+ownership, upstream provenance and current project code; do not repeat successful takeover consent.
 Only actual npm implementation edits require `takeover_plugin_source` and its
 explicit user agreement. Canonical Runtime/Context, vendor and generated registries
 remain protected. A thin wrapper's omitted public seam is not justification for
@@ -124,4 +124,4 @@ as already satisfied or reopen unrelated discovery when verification is unavaila
 
 ## 版本建议与工具更新
 
-版本清单、最低 Creator 版本及包兼容范围只作参考，不因版本差异拒绝用户升级、初始化、启用插件、规划源码接管或继续使用 Creator。检测到 Creator 新版时只提醒用户按原安装方式手动升级，不代装、不强制升级。保留文件/hash/快照/BASE、实际 API、确认和事务保护；实际安装或编译失败如实报告。详见 docs/architecture/unified-update-center.md。
+版本清单、最低 Creator 版本及包兼容范围只作参考，不因版本差异拒绝用户升级、初始化、启用插件、规划源码接管或继续使用 Creator。检测到 Creator 新版时只提醒用户按原安装方式手动升级，不代装、不强制升级。以当前项目代码为准，包括用户和其他 Agent 的修改，不保存或校验历史实现基线。保留来源版本、目标快照完整性、实际 API、确认和本次操作的并发及事务保护；实际安装或编译失败如实报告。详见 docs/architecture/unified-update-center.md。

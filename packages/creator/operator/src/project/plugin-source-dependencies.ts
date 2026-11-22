@@ -49,7 +49,7 @@ export async function inspectPluginSourceDependencies(root: string, installedRoo
 
 /** Dependencies are a separately visible part of the confirmed source plan.
  * A later source write failure leaves prepared dependencies installed;
- * source/BASE transactions do not claim to roll back package-manager effects.
+ * source transactions do not claim to roll back package-manager effects.
  */
 export async function installPluginSourceDependencies(root: string, preparation: Awaited<ReturnType<typeof inspectPluginSourceDependencies>>, run: ResourcePackageRunner) {
   await ensureResourcePackages(root, [{ packages: preparation.requirements }], (directory, command) => run(directory, { ...command, args: [...command.args, "--ignore-scripts"] }));

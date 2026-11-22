@@ -51,7 +51,7 @@ async function applicationPackageRequire(root: string): Promise<NodeJS.Require> 
   return createRequire(path.join(templateRoot, "package.json"));
 }
 
-/** Application files are deliberately absent from source-lock and implementation BASE. */
+/** Application files are deliberately absent from source-lock and implementation synchronization. */
 export async function ensurePluginApplication(root: string, id: string, context?: {paths: AgentUIProjectPaths; config: UIOperatorConfig; mode?: AgentUIMode | undefined}, options: { preview?: boolean; repair?: boolean } = {}) {
   const official = officialPackagePlugin(id);
   if (!official?.application.enabled) return { changed: false, createdPaths: [] as string[] };

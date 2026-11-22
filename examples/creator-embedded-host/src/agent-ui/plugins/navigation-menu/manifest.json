@@ -1,0 +1,24 @@
+{
+  "id": "navigation-menu",
+  "name": "Navigation Menu",
+  "description": "Extensible action and view menu with shared Sidebar and toolbar presentations.",
+  "version": "0.0.1",
+  "capabilities": [
+    "content-navigation",
+    "conversation-create"
+  ],
+  "slots": {
+    "children": {
+      "header": {
+        "description": "Existing sidebar identity content",
+        "cardinality": "one",
+        "optional": true
+      },
+      "content": {
+        "description": "Existing conversation list below the feature menu",
+        "cardinality": "one",
+        "optional": true
+      }
+    }
+  }
+}

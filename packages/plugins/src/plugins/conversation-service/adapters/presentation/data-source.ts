@@ -7,6 +7,15 @@ export interface ConversationDataSourceOptions {
   signal?: AbortSignal | undefined;
 }
 
+export interface ConversationListOptions extends ConversationDataSourceOptions {
+  cursor?: string | undefined;
+}
+
+export interface ConversationListPage {
+  conversations: ConversationSummary[];
+  nextCursor: string | null;
+}
+
 export interface ConversationDataSource {
   rename?(
     id: string,
@@ -19,7 +28,7 @@ export interface ConversationDataSource {
     options?: ConversationDataSourceOptions,
   ): Promise<void>;
   delete(id: string, options?: ConversationDataSourceOptions): Promise<void>;
-  list(options?: ConversationDataSourceOptions): Promise<ConversationSummary[]>;
+  list(options?: ConversationListOptions): Promise<ConversationSummary[] | ConversationListPage>;
   get(
     id: string,
     options?: ConversationDataSourceOptions,

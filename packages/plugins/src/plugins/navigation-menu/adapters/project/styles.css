@@ -1,0 +1,31 @@
+@layer utilities {
+  .agent-ui-root .navigation-menu { width: max-content; height: 100%; min-height: 0; }
+  .agent-ui-root .navigation-menu-provider { --sidebar-width: 280px; --sidebar-width-icon: 48px; width: max-content; height: 100%; min-height: 0; }
+  .agent-ui-root .navigation-menu-provider > [data-slot='sidebar'] { position: relative; display: block; height: 100%; }
+  .agent-ui-root .navigation-menu-sidebar { position: absolute; inset-block: 0; display: flex; height: 100%; }
+  .agent-ui-root .navigation-menu-header { position: relative; flex-direction: row; align-items: center; min-height: 52px; padding: 0 8px; gap: 0; }
+  .agent-ui-root .navigation-menu [data-state='expanded'] .navigation-menu-header { padding-inline-start: 4px; }
+  .agent-ui-root .navigation-menu-brand { flex: 1; min-width: 0; }
+  .agent-ui-root .navigation-menu-header [data-sidebar='trigger'] { flex: 0 0 32px; }
+  .agent-ui-root .navigation-menu-content { gap: 16px; overflow: hidden; padding: 0 12px 8px; }
+  .agent-ui-root .navigation-menu-content > [data-sidebar='menu'] { flex: 0 0 auto; gap: 4px; }
+  .agent-ui-root .navigation-menu-icon { display: inline-flex; flex: 0 0 16px; align-items: center; justify-content: center; width: 16px; height: 16px; }
+  .agent-ui-root .navigation-menu-icon > svg { width: 16px; height: 16px; }
+  .agent-ui-root .navigation-menu-history { flex: 1; min-height: 0; overflow: hidden; border-top: 1px solid var(--sidebar-border); padding-top: 12px; }
+  .agent-ui-root .navigation-menu [hidden] { display: none; }
+  .agent-ui-root .navigation-menu [data-collapsible='icon'] .navigation-menu-label { display: none; }
+  .agent-ui-root .navigation-menu [data-collapsible='icon'] .navigation-menu-content { padding-inline: 8px; }
+  .agent-ui-root .navigation-menu[data-presentation='toolbar'] { display: flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; }
+  .agent-ui-root .navigation-menu-toolbar-button { width: 32px; height: 32px; padding: 6px; color: var(--muted-foreground); }
+  .agent-ui-root .navigation-menu-toolbar-button .navigation-menu-icon,
+  .agent-ui-root .navigation-menu-toolbar-button .navigation-menu-icon > svg { width: 20px; height: 20px; }
+  .agent-ui-root .navigation-menu-error { position: absolute; z-index: 20; padding: 8px; color: var(--destructive); background: var(--background); }
+  @media (prefers-reduced-motion: reduce) {
+    .agent-ui-root .navigation-menu [data-slot='sidebar-gap'],
+    .agent-ui-root .navigation-menu-sidebar { transition: none; }
+  }
+}
+
+/* The list owns unlayered padding. In this Sidebar, use the shared outer gutter
+ * once; leave standalone lists and the history popover unchanged. */
+.agent-ui-root .navigation-menu-history [data-ui-plugin='conversation-thread-list'] { padding-inline: 0; }

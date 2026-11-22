@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-core",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Framework- and protocol-independent runtime contracts for Agent UI frontends",
   "type": "module",
   "engines": {
@@ -474,6 +474,181 @@
                 "@za38.03/agent-ui-renderer": "0.0.11"
               },
               "changes": []
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-22-0.0.12",
+          "publishedAt": "2026-11-22T11:36:11.564Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 <21.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.12",
+              "requires": {},
+              "historyFrom": "0.0.11",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.12",
+              "requires": {},
+              "historyFrom": "0.0.11",
+              "changes": [
+                {
+                  "id": "stack-view-state",
+                  "version": "0.0.12",
+                  "summary": "Stack 支持视图标识和 keepMounted，切换视图时可保留组件状态。",
+                  "kind": "feature"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.12",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.12",
+                "@za38.03/agent-ui-renderer": "0.0.12"
+              },
+              "historyFrom": "0.0.11",
+              "changes": [
+                {
+                  "id": "async-before-request",
+                  "version": "0.0.12",
+                  "summary": "新增可取消的异步 beforeRequest，在发送前准备业务参数并绑定业务 threadId / runId。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "stack-navigation-service",
+                  "version": "0.0.12",
+                  "summary": "提供 Stack 导航服务和视图状态，按 Stack id 与 viewIds 定位切换目标。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "conversation-message-metadata",
+                  "version": "0.0.12",
+                  "summary": "保留实时消息元数据，支持逐条助手消息的身份展示。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "conversation-pagination",
+                  "version": "0.0.12",
+                  "summary": "修正历史会话分页过程中的列表重载，保留加载游标。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.12",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.12",
+                "@za38.03/agent-ui-renderer": "0.0.12",
+                "@za38.03/agent-ui-runtime": "0.0.12"
+              },
+              "historyFrom": "0.0.11",
+              "changes": [
+                {
+                  "id": "composer-plugin-data",
+                  "version": "0.0.12",
+                  "summary": "Composer 统一通过 pluginData 收集插件数据，由组件 requestAdapter 组装请求；旧 selections 和插件级请求适配方式需要迁移。",
+                  "kind": "breaking",
+                  "pluginId": "composer"
+                },
+                {
+                  "id": "unified-composer-hook",
+                  "version": "0.0.12",
+                  "summary": "统一使用 useComposer 读取状态和操作草稿，移除旧的公开 Composer Hook；已有调用需要迁移到新 API。",
+                  "kind": "breaking",
+                  "pluginId": "composer"
+                },
+                {
+                  "id": "navigation-menu",
+                  "version": "0.0.12",
+                  "summary": "新增导航菜单，支持会话入口、自定义菜单项和 Stack 视图切换。",
+                  "kind": "feature",
+                  "pluginId": "navigation-menu"
+                },
+                {
+                  "id": "conversation-new-removal",
+                  "version": "0.0.12",
+                  "summary": "移除 conversation-new 插件及 CanonicalConversationNew 导出；已有应用需单独迁移至导航菜单或项目自有的新建会话入口。",
+                  "kind": "breaking"
+                },
+                {
+                  "id": "conversation-message-speaker",
+                  "version": "0.0.12",
+                  "summary": "支持从消息元数据解析并展示每条助手消息的名称和头像。",
+                  "kind": "feature",
+                  "pluginId": "conversation-surface"
+                },
+                {
+                  "id": "conversation-list-pagination",
+                  "version": "0.0.12",
+                  "summary": "会话列表支持分页加载；项目自有数据源保留认证、请求和业务响应映射。",
+                  "kind": "feature",
+                  "pluginId": "conversation-thread-list"
+                },
+                {
+                  "id": "skills-composer-service",
+                  "version": "0.0.12",
+                  "summary": "通过共享服务连接技能选择与输入区，统一收集技能相关 Composer 数据。",
+                  "kind": "feature",
+                  "pluginId": "skills-selection"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.12",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.12",
+                "@za38.03/agent-ui-web-component": "0.0.12",
+                "@za38.03/agent-ui-plugins": "0.0.12",
+                "@za38.03/agent-ui-runtime": "0.0.12"
+              },
+              "historyFrom": "0.0.11",
+              "changes": [
+                {
+                  "id": "current-source-authority",
+                  "version": "0.0.12",
+                  "summary": "源码接管与同步以当前磁盘实现和实际安装快照为准，保留版本来源信息，不再依赖历史 BASE 内容或锁定哈希。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "app-ui-generated-id-persistence",
+                  "version": "0.0.12",
+                  "summary": "保存 AppUIModel 时移除复制的自动生成插件实例 ID，同时保留显式设置的 ID。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "navigation-and-plugin-guidance",
+                  "version": "0.0.12",
+                  "summary": "同步导航菜单、Stack 布局、插件注册、消息身份与输入数据接入说明，并更新随包离线文档。",
+                  "kind": "feature"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.12",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.12",
+                "@za38.03/agent-ui-runtime": "0.0.12",
+                "@za38.03/agent-ui-core": "0.0.12",
+                "@za38.03/agent-ui-renderer": "0.0.12"
+              },
+              "historyFrom": "0.0.11",
+              "changes": [
+                {
+                  "id": "before-request-config",
+                  "version": "0.0.12",
+                  "summary": "Web Component 配置支持 beforeRequest，接入 Runtime 的异步发送前请求准备能力。",
+                  "kind": "feature"
+                }
+              ]
             }
           ]
         }

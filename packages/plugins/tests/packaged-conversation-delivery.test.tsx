@@ -10,18 +10,20 @@ import { createRequire } from "node:module";
 import { createRoot, type Root } from "react-dom/client";
 import { useAui, useAuiState, type AssistantRuntime } from "@assistant-ui/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { PluginServiceRuntimeContext, type PluginServiceRuntimePort } from "@za38.03/agent-ui-runtime/plugin-api";
 import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { AgentUIRoot, AgentUILocaleProvider, type AgentUILocaleCode, type AgentUILocaleOverrides } from "@za38.03/agent-ui-plugins";
 import * as Plugins from "@za38.03/agent-ui-plugins";
 import * as PluginSupport from "@za38.03/agent-ui-plugins/plugin-support";
 import listDefinition, { ConversationThreadListPlugin, ConversationThreadListRailAction } from "../dist/conversation-thread-list/index.js";
-import newDefinition, { ConversationNewPlugin } from "../dist/conversation-new/index.js";
+import menuDefinition, { NavigationMenuPlugin } from "../dist/navigation-menu/index.js";
 import quoteDefinition, { ConversationQuotePlugin } from "../dist/conversation-quote/index.js";
 import { ConversationThreadListPlugin as SourceList, ConversationThreadListRailAction as SourceRail } from "../dist/sources/takeover/conversation-thread-list/index";
-import { ConversationNewPlugin as SourceNew } from "../dist/sources/takeover/conversation-new/index";
+import { NavigationMenuPlugin as SourceMenu } from "../dist/sources/takeover/navigation-menu/index";
 import { ConversationQuotePlugin as SourceQuote } from "../dist/sources/takeover/conversation-quote/index";
-const modes=[{name:"npm",List:ConversationThreadListPlugin,Rail:ConversationThreadListRailAction,New:ConversationNewPlugin,Quote:ConversationQuotePlugin},{name:"portable",List:SourceList,Rail:SourceRail,New:SourceNew,Quote:SourceQuote}];
+const modes=[{name:"npm",List:ConversationThreadListPlugin,Rail:ConversationThreadListRailAction,Menu:NavigationMenuPlugin,Quote:ConversationQuotePlugin},{name:"portable",List:SourceList,Rail:SourceRail,Menu:SourceMenu,Quote:SourceQuote}];
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT=true;
+const menuServices: PluginServiceRuntimePort = { get: <T = unknown>(_name: string): T | undefined => undefined, subscribe: () => () => {}, getRevision: () => 0 };
 let root:Root|undefined;
 afterEach(async()=>{await act(async()=>root?.unmount());root=undefined;document.body.replaceChildren();vi.restoreAllMocks();vi.unstubAllGlobals();});
 async function until(predicate:()=>boolean){for(let i=0;i<100&&!predicate();i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,5));});expect(predicate()).toBe(true);}
@@ -34,13 +36,13 @@ async function mount(content:ReactNode,locale:AgentUILocaleCode="en-US",messages
   const binding:ConversationThreadBinding={getThreadId:()=>active,activateThread:id=>{active=id;},subscribe:()=>()=>{},loadThread:load,createNewThread:create,getThreadListSnapshot:()=>({isLoading:false,threads:[{id:"history",status:"regular",title:"First history"},{id:"other",status:"regular",title:"Second history"},{id:"blocked",status:"regular",title:"Blocked history",custom:{agentUiDisabled:true}}],archivedThreads:[]})};
   function Capture(){runtime=useAui().threads.__internal_getAssistantRuntime!();return null;}
   const host=document.createElement("div");document.body.append(host);root=createRoot(host);
-  const render=(children:ReactNode,lang=locale,overrides=messages)=>root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}><AgentUIRoot theme="light"><AgentUILocaleProvider locale={lang} messages={overrides}><Capture/>{children}</AgentUILocaleProvider></AgentUIRoot></ConversationRuntimeProvider>);
+  const render=(children:ReactNode,lang=locale,overrides=messages)=>root!.render(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}><AgentUIRoot theme="light"><AgentUILocaleProvider locale={lang} messages={overrides}><PluginServiceRuntimeContext.Provider value={menuServices}><Capture/>{children}</PluginServiceRuntimeContext.Provider></AgentUILocaleProvider></AgentUIRoot></ConversationRuntimeProvider>);
   await act(async()=>render(content));await until(()=>!!runtime&&!runtime.thread.getState().isLoading);
   return {host,load,create,get runtime(){return runtime;},render:async(children:ReactNode,lang=locale,overrides=messages)=>{await act(async()=>render(children,lang,overrides));}};
 }
 it("preserves conversation service admission and independent new-thread actions",()=>{
-  expect(listDefinition.inject).toEqual(["agent-ui.conversations"]);expect(listDefinition.optionalInject).toEqual(["agent-ui.theme","agent-ui.locale"]);expect(listDefinition.RailAction).toBeUndefined();expect(listDefinition.manifest.capabilities).not.toContain("conversation-create");
-  expect(newDefinition.manifest.id).toBe("conversation-new");expect(quoteDefinition.optionalInject).toEqual(["agent-ui.locale"]);
+  expect(listDefinition.inject).toEqual(["agent-ui.conversations"]);expect(listDefinition.optionalInject).toEqual(["agent-ui.theme","agent-ui.locale","agent-ui.stack-navigation"]);expect(listDefinition.RailAction).toBeUndefined();expect(listDefinition.manifest.capabilities).not.toContain("conversation-create");
+  expect(menuDefinition.manifest.id).toBe("navigation-menu");expect(quoteDefinition.optionalInject).toEqual(["agent-ui.locale"]);
 });
 // Execute the real initialized application template, replacing only its Host imports.
 // The popover, list, locale and canonical conversation Runtime are the actual implementations.
@@ -168,45 +170,23 @@ it.each(modes)("$name list can disable search without filtering or adding a new-
 });
 it("initialized platform application renders the AppUIModel header action Slot above search", async () => {
   const ApplicationList = await assistantListApplication("platform");
-  const renderSlot = vi.fn((name: string, fallback?: ReactNode) => name === "headerActions" ? <ConversationNewPlugin /> : fallback);
+  const renderSlot = vi.fn((name: string, fallback?: ReactNode) => name === "headerActions" ? <button data-header-action>Custom action</button> : fallback);
   const el = await mount(<ApplicationList renderSlot={renderSlot} />);
-  const button = el.host.querySelector(".conversation-new-button")!;
+  const button = el.host.querySelector("[data-header-action]")!;
   expect(renderSlot).toHaveBeenCalledWith("headerActions", null);
   expect(button.compareDocumentPosition(el.host.querySelector("input")!) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
   await el.render(<ApplicationList headerActions={<span data-custom-action>Custom action</span>} />);
   expect(el.host.querySelector("[data-custom-action]")?.textContent).toBe("Custom action");
 });
-it.each(modes)("$name list composes the independent new action above search and keeps canonical navigation", async ({ List, New }) => {
-  const el = await mount(<List headerActions={<New />} />, "zh-CN");
-  const action = el.host.querySelector<HTMLButtonElement>(".conversation-new-button")!;
-  const search = el.host.querySelector("input")!;
-  expect(el.host.querySelectorAll(".conversation-new-button")).toHaveLength(1);
-  expect(action.getAttribute("aria-label")).toBe("新建会话");
-  expect(action.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
-  await act(async () => action.click());
-  await until(() => el.runtime.threads.getState().mainThreadId !== "history");
-  await el.render(<List renderSlot={() => { throw new Error("Legacy application has no declared child Slots"); }} />);
-  expect(el.host.querySelector(".conversation-thread-list-header-actions")).toBeNull();
-  expect(el.host.querySelector(".conversation-new-button")).toBeNull();
-  expect(el.host.querySelector("input")).not.toBeNull();
-});
-it.each(modes)("$name new supports localized labeled and icon-only application variants",async({New})=>{
-  const el=await mount(<New/>,"zh-CN");
-  const button=()=>el.host.querySelector<HTMLButtonElement>('.conversation-new-button')!;
-  expect(button().textContent).toBe("新建会话");
-  expect(button().querySelector("svg.lucide-plus[data-slot=aui_thread-list-new-icon]")).not.toBeNull();
-  expect(button().querySelector("[data-slot=aui_thread-list-new-label]")?.textContent).toBe("新建会话");
-  expect(button().getAttribute("aria-label")).toBe("新建会话");
-  await el.render(<New showLabel={false}/>);
-  expect(button().textContent).toBe("");
-  expect(button().querySelector("svg")).not.toBeNull();
-  expect(button().getAttribute("aria-label")).toBe("新建会话");
-  await act(async()=>button().click());
+it.each(modes)("$name menu default action creates a canonical thread with no Stack and no history Plugin",async({Menu})=>{
+  const el=await mount(<Menu presentation="toolbar"/>,"zh-CN");
+  const button=el.host.querySelector<HTMLButtonElement>('[data-menu-item-id="new-chat"]')!;
+  expect(button.getAttribute("aria-label")).toBe("新建会话"); expect(button.querySelector(".navigation-menu-label")).toBeNull();
+  await act(async()=>button.click()); await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
+  await act(async()=>el.runtime.threads.switchToThread("history"));
+  await el.render(<Menu/>); expect(el.host.querySelector('[data-menu-item-id="new-chat"]')?.textContent).toBe("新建会话");
+  await act(async()=>el.host.querySelector<HTMLButtonElement>('[data-menu-item-id="new-chat"]')!.click());
   await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
-  await el.render(<New showLabel buttonProps={{className:"application-button"}}/>,"en-US");
-  expect(button().classList.contains("application-button")).toBe(true);
-  expect(button().classList.contains("conversation-new-button")).toBe(true);
-  expect(button().getAttribute("aria-label")).toBe(button().textContent);
 });
 it.each(modes)("$name list retains service refresh and failed history retry including disabled admission",async({List})=>{
   const refresh=vi.fn(async()=>{});const props:ComponentProps<typeof List>={serviceAvailable:true,onRefresh:refresh,snapshot:{listStatus:"error",detailStatus:"error",listError:"Network list",detailError:"Network history",detailErrorConversationId:"other",activeConversationId:"history"},renderList:()=> <span>Custom body</span>};
@@ -215,14 +195,13 @@ it.each(modes)("$name list retains service refresh and failed history retry incl
   const before=el.load.mock.calls.length;await el.render(<List {...props} snapshot={{...props.snapshot,activeConversationId:"other"}}/>);await act(async()=>el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button')[1]!.click());await until(()=>el.load.mock.calls.length>before);
   await el.render(<List {...props} serviceAvailable={false}/>);for(const button of el.host.querySelectorAll<HTMLButtonElement>('[role="alert"] button'))expect(button.disabled).toBe(true);
 });
-it.each(modes)("$name new and rail retain canonical new-thread behavior and respect prevented clicks",async({New,Rail})=>{
-  const prevent=vi.fn((event:React.MouseEvent<HTMLButtonElement>)=>event.preventDefault());const el=await mount(<New icon={<span>Make new</span>} buttonProps={{"aria-label":"custom new",style:{padding:13},onClick:prevent}}/>);
-  const button=el.host.querySelector<HTMLButtonElement>('[aria-label="custom new"]')!;expect(button.style.padding).toBe("13px");await act(async()=>button.click());expect(prevent).toHaveBeenCalledOnce();expect(el.create).not.toHaveBeenCalled();
-  await el.render(<New buttonProps={{"aria-label":"create"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="create"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
-  await act(async()=>el.runtime.threads.switchToThread("history"));
-  await el.render(<Rail enabled={false}/>);expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
-  await el.render(<Rail enabled icon={<span>Rail new</span>} buttonProps={{"aria-label":"rail new"}}/>);await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
+it.each(modes)("$name history rail retains its existing canonical action",async({Rail})=>{
+  const el=await mount(<Rail enabled={false}/>);expect(el.host.querySelector('[data-slot="aui_thread-list-new"]')).toBeNull();
+  await el.render(<Rail enabled icon={<span>Rail new</span>} buttonProps={{"aria-label":"rail new"}}/>);
+  await act(async()=>el.host.querySelector<HTMLButtonElement>('[aria-label="rail new"]')!.click());
+  await until(()=>el.runtime.threads.getState().mainThreadId!=="history");
 });
+
 it.each(modes)("$name quote exposes renderers/props and follows locale with Host overrides",async({Quote})=>{
   function Preview() { const messages=useLocale("conversationQuote"); return <span>{messages.dismiss}</span>; }
   function Toolbar() { const messages=useLocale("conversationQuote"); return <span>{messages.quote}</span>; }

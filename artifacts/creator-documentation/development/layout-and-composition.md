@@ -4,6 +4,7 @@
 
 | 你要调整什么           | 看哪一节                    | 主要修改位置                     |
 | ---------------- | ----------------------- | -------------------------- |
+| 看懂容器作用与 JSON 嵌套  | [读懂容器与完整示例](#布局节点入门)    | `src/agent-ui/app-ui.json` |
 | 插件顺序、父子组合、启用或隐藏  | [调整插件位置与启停](#调整插件位置与启停) | `src/agent-ui/app-ui.json` |
 | 列表宽度、聊天区大小、窄屏抽屉  | [调整尺寸与窄屏布局](#调整尺寸与窄屏布局) | 同一个 `app-ui.json`          |
 | 工具栏插槽、工作台右侧多内容面板 | [增加插槽或动态面板](#增加插槽或动态面板) | 布局配置及对应项目插件                |
@@ -47,6 +48,88 @@ src/agent-ui/app-ui.json
 有些插件需要其他插件提供服务，例如主题切换需要主题服务，会话列表需要会话服务。停用应用级服务前，先检查是否还有插件依赖它。
 
 业务数据、通知和页面按钮的接入，分别见[状态与事件](/guide/adjustments/state-and-events.md)和[业务页面联动](/development/react-host-control.md)。
+
+## 读懂容器与完整示例 \{#布局节点入门}
+
+`root` 是布局树的起点。容器组织页面区域，`slot` 在区域中放入插件；实际的列表、卡片和按钮由插件组件绘制。
+
+| 节点 `type` | 作用与适用场景                                      | 内容写在哪里                                           |
+| --------- | -------------------------------------------- | ------------------------------------------------ |
+| `row`     | 将多个区域从左到右排列，例如左侧列表、右侧详情。`sizes` 控制各区域的宽度。    | `children`：布局节点数组。                               |
+| `column`  | 将多个区域从上到下排列，例如上方详情、下方操作区。`sizes` 控制各区域的高度。   | `children`：布局节点数组。                               |
+| `panel`   | 包住一个区域，为它设置宽高、最小宽度等尺寸约束。                     | `child`：一个布局节点。                                  |
+| `slot`    | 在当前布局位置承载一个或多个插件，例如工单列表插件。                   | `plugins`：插件实例数组。                                |
+| `stack`   | 从多个区域中选择当前显示的一个，例如切换概览和详情。默认只挂载当前分支，可配置保持挂载。 | `children`：布局节点数组，`activeIndex` 指定初始显示项。         |
+| `sidebar` | 将可选择的侧栏内容与主体区域组合，适合带侧栏导航的布局。                 | `items`：侧栏项，`content`：主体布局；可选 `header`、`footer`。 |
+
+左右分栏选 `row`，上下分区选 `column`，给单个区域加尺寸约束用 `panel`，在区域里放功能用 `slot`。它们可以嵌套：一个 `row` 的右侧可以继续放 `column`，一个 `panel` 也可以包住完整布局树。`stack` 用于选择一个区域显示，不表示把所有区域叠在一起；它与 `sidebar` 的详细配置见[布局参考](#高级布局字段与示例)。
+
+**一个完整的最小 JSON 示例**
+
+下面是一份完整的 `app-ui.json`，布局效果是左侧工单列表，右侧上方详情、下方操作区：
+
+```text
+root：row（左右排列）
+├─ panel → slot → ticket-list
+└─ column（上下排列）
+   ├─ slot → ticket-details
+   └─ slot → ticket-actions
+```
+
+这里的 `ticket-list`、`ticket-details`、`ticket-actions` 是三个项目自定义插件，假设已按[创建自定义插件](/development/create-plugin.md)编写好组件、manifest 和 definition，且不依赖额外服务。本例因此将 `applicationPlugins` 留空；JSON 中的插件 ID 不会自动创建插件。
+
+```json
+{
+  "applicationPlugins": [],
+  "root": {
+    "type": "row",
+    "gap": 12,
+    "sizes": ["240px", "minmax(0, 1fr)"],
+    "children": [
+      {
+        "type": "panel",
+        "minWidth": 200,
+        "child": {
+          "type": "slot",
+          "plugins": [
+            { "pluginId": "ticket-list", "id": "ticket-list-main" }
+          ]
+        }
+      },
+      {
+        "type": "column",
+        "gap": 12,
+        "sizes": ["minmax(0, 1fr)", "auto"],
+        "children": [
+          {
+            "type": "slot",
+            "plugins": [
+              { "pluginId": "ticket-details", "id": "ticket-details-main" }
+            ]
+          },
+          {
+            "type": "slot",
+            "plugins": [
+              { "pluginId": "ticket-actions", "id": "ticket-actions-main" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+从外向内读这份 JSON：
+
+1. `root` 是一个 `row`，它的两个 `children` 就是左右两块区域。`sizes` 按顺序把左侧宽度设为 240px，右侧使用剩余空间；`gap: 12` 表示两块之间留 12px。
+2. 左侧是 `panel`，其中只有一个 `child`。它给列表区域设置最小宽度 200px；真正的列表插件放在里面的 `slot.plugins` 中。
+3. 右侧是 `column`，两个 `children` 上下排列。操作区使用内容所需高度（`auto`），详情区使用剩余高度；使用剩余高度需要宿主容器有可用高度。
+4. 每个 `slot` 的 `plugins` 里写插件实例。`pluginId` 必须与对应 `manifest.json` 的 `id` 一致；实例 `id` 用于区分这一次使用。省略 `enabled` 时默认启用。
+
+**布局 `slot` 与插件的 `slots` 要分清。** `type: "slot"` 是布局树中的节点，里面用 `plugins` 放插件。插件对象上的 `slots` 则配置这个插件内部已有的位置，例如 `composer.slots.leadingActions` 放附件按钮。`children` 和 `child` 接收布局节点，`plugins` 和插件内部的 `slots.<名称>` 接收插件实例；按这个层级嵌套，不能直接把 `{ "pluginId": "ticket-actions" }` 当作 `row.children` 的一项。
+
+这是一份独立的最小示例。调整现有聊天工程时，只合入需要的布局结构，保留已有的 `applicationPlugins`、插件实例 ID 和完整子插槽。新增插件及实例后，按[插件注册与验证](/development/create-plugin.md#4-插件注册与验证)同步注册表，再查看页面。
 
 ## 调整插件位置与启停 \{#调整插件位置与启停}
 
@@ -138,14 +221,7 @@ src/agent-ui/app-ui.json
 <figcaption>同一示例的窄屏状态：列表改为覆盖式抽屉，右上角可关闭。断点和抽屉行为需按项目布局一起配置。</figcaption>
 </figure>
 
-| 容器               | 适合做什么                       |
-| ---------------- | --------------------------- |
-| `row` / `column` | 将 `children` 中的区域横向 / 纵向排列。 |
-| `panel`          | 给一个 `child` 区域设置宽高与尺寸约束。    |
-| `stack`          | 在多个子区域中选择当前显示的一个。           |
-| `sidebar`        | 组织可切换的侧栏内容与主体。              |
-
-移动完整的布局节点可以改变位置。把上下排列改为左右排列，可以调整对应容器的 `column` / `row`，同时检查尺寸设置。
+各容器的作用见前面的[容器对照与完整示例](#布局节点入门)。移动完整的布局节点可以改变位置。把上下排列改为左右排列，可以调整对应容器的 `column` / `row`，同时检查尺寸设置。
 
 **页面区域尺寸**
 
@@ -432,7 +508,46 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 }
 ```
 
-`project-summary`、`project-details` 是示例中的项目自定义插件，需要先创建并注册。Stack 不生成切换按钮，也不保持未选中子区域的组件挂载。它适合互斥展示的内容，不用于保存多个助手的后台运行；这种需求使用[多助手的受控显示](/development/multiple-agents.md#多助手与受控显示)。
+`project-summary`、`project-details` 是示例中的项目自定义插件，需要先创建并注册。Stack 不生成切换按钮，默认只挂载当前分支。多个独立助手仍使用[多助手的受控显示](/development/multiple-agents.md#多助手与受控显示)。
+
+### 通过 Service 切换内容并保持挂载 \{#stack-navigation}
+
+从创建独立视图插件、扩展菜单到配置完整联动，见[功能菜单：菜单与右侧内容联动](/plugins/navigation-menu.md#content-switching)。
+
+需要左侧菜单控制右侧功能时，为 Stack 设置自身的 `id`，用 `viewIds` 数组按 children 的顺序声明视图 ID，并设置 `keepMounted: true`：
+
+```json
+{
+  "type": "stack",
+  "id": "main",
+  "viewIds": ["chat", "files"],
+  "keepMounted": true,
+  "children": [
+    { "type": "slot", "plugins": [{ "pluginId": "conversation-surface" }] },
+    { "type": "slot", "plugins": [{ "pluginId": "my-files" }] }
+  ]
+}
+```
+
+这里展示布局关系；现有聊天分支的 Composer、消息及操作子插槽应完整保留。`my-files` 是需独立注册的功能插件。每个分支也可以是 Row、Column、Panel 等完整布局树。视图 ID 是语义身份，不是插件 ID，也不是 URL。
+
+Runtime 在每个 Agent 作用域内提供 `agent-ui.stack-navigation`，无需额外的提供方插件。调用方在 definition 中声明 `inject: ['agent-ui.stack-navigation']`，组件通过现有 Service Hook 取得接口：
+
+```tsx
+import { usePluginService } from '@za38.03/agent-ui-plugins';
+import { STACK_NAVIGATION_SERVICE, type StackNavigationService } from '@za38.03/agent-ui-runtime/contracts';
+
+export function OpenView({ label }: { label: string }) {
+  const navigation = usePluginService<StackNavigationService>(STACK_NAVIGATION_SERVICE);
+  return <button type="button" onClick={() => navigation?.selectView('main', 'files')}>{label}</button>;
+}
+```
+
+`label` 使用项目统一文案。`getSnapshot()` 返回 `{ stacks: { [stackId]: { activeViewId, viewIds } } }`，`subscribe()` 订阅状态变化。未知 Stack 或视图 ID 报错；同一 Agent 中显式设置的 Stack ID 必须唯一，配置 `viewIds` 时必须提供 Stack `id`。
+
+菜单使用[功能菜单插件](/plugins/navigation-menu.md)。菜单、结果卡片、普通按钮等插件都可通过同一 Service 选择分支。运行时选择不写回 AppUIModel；模型只保存布局、语义身份和初始 `activeIndex`。分支重排保留选择，已选分支移除后回退到模型默认分支或第一项；结构编辑新增分支时同步设置对应的 `viewIds` 数组。
+
+`keepMounted: true` 隐藏未选分支并隔离键盘焦点，保留 React 子树。聊天分支切走后会话、草稿和后台运行继续由 canonical Conversation Runtime 持有；移除分支或卸载整个 Agent 才结束相应生命周期。省略此属性时，未选分支会卸载。Renderer 只读取受控激活状态，服务及状态归 Runtime，不依赖菜单插件。
 
 </details>
 

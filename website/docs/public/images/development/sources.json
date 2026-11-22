@@ -27,6 +27,39 @@
         "right": 419,
         "bottom": 448
       }
+    },
+    {
+      "file": "message-speaker.png",
+      "capturedDate": "2026-11-22",
+      "source": "Headless Chromium: disposable generated platform Host with the current npm components and local AG-UI SSE responses.",
+      "scenario": "Two completed replies in one Thread retain separate developer and designer avatars and names.",
+      "sourceFiles": [
+        "website/docs/development/message-speaker.md",
+        "apps/creator-workbench/tests/support/agent-connection-host.ts",
+        "packages/plugins/src/plugins/conversation-surface/adapters/presentation/message-identity.tsx"
+      ],
+      "sha256": "d3898044c5d565392d477c8cb3afb68a85176413a88b2b5bcc0bb7e1ddd7a84b",
+      "dimensions": {
+        "width": 1662,
+        "height": 838
+      },
+      "viewport": {
+        "width": 1160,
+        "height": 760,
+        "deviceScaleFactor": 2
+      },
+      "captureClip": {
+        "x": 281,
+        "y": 0,
+        "width": 831,
+        "height": 419
+      },
+      "notes": [
+        "Captured from actual conversation components after two SSE HTTP requests sharing one threadId; each request has its own runId and speaker.",
+        "Locally served SVG demo avatars. No production backend or model was called.",
+        "Direct browser capture of the message region, excluding navigation and composer whitespace. No added frame or annotations.",
+        "Browser evidence on macOS only; not Windows acceptance."
+      ]
     }
   ]
 }

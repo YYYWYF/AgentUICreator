@@ -5,7 +5,7 @@ const definition: UIPluginDefinition = {
   manifest: implementation.manifest,
   provides: [],
   inject: ['agent-ui.conversations'],
-  optionalInject: ['agent-ui.theme', 'agent-ui.locale'],
+  optionalInject: ['agent-ui.theme', 'agent-ui.locale', 'agent-ui.stack-navigation'],
   Component: ConversationThreadListPlugin,
 };
 export default definition;

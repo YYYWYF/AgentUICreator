@@ -1,5 +1,7 @@
 # 图表展示（chart-message）
 
+## 功能与效果
+
 
 ![图表结果界面](/images/plugins/chart-message.png)
 
@@ -7,23 +9,25 @@
 
 将 Agent 返回的结构化数据展示为条形图，自动显示标题、项目名称、数值和相对长度。
 
-## 收到图表数据后展示
+### 收到图表数据后展示
 
 有效图表消息到达后，插件按数据顺序绘制各项，不需要业务代码先计算每条柱子的宽度。图表标题和项目名称来自消息中的业务数据。
 
 每项必须有名称和有限数值；数据结构无效时不显示图表，不会用示例值补齐缺失数据。
 
-## 数值与条形长度
+### 数值与条形长度
 
 条形长度按照当前图表中的最大数值计算，比较基准至少为 1；数值文字默认直接显示原值。负数保留其数值文字，条形长度按 0 展示。
 
 插件提供的是这种相对长度的条形展示，不会自动选择折线、饼图或其他图表类型。需要其他图形时可以替换整个图表展示。
 
-## 随消息数据更新
+### 随消息数据更新
 
 会话传入的图表数据变化时，标题、项目和条形一起更新。正式回答正文和图表数据分别展示，普通回答中的一段 JSON 不会自动成为图表。
 
-## 接入图表消息 \{#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 接入图表消息 \{#显示条件与数据来源}
 
 启用后，在当前运行中发送 `CUSTOM`，消息名必须是 `chart`，`value` 为图表对象。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
@@ -40,8 +44,13 @@
 
 `renderChart(data)` 可读取图表的 `title` 和 `items`，`renderItem(item, index, data)` 可读取单项和整份数据。把它们传给项目的表格、明细或导出组件即可复用同一份结果。需要独立插件同步选择时，使用[共享 Service](/development/plugin-interaction.md#插件之间共享选择或结果)。
 
+## 常见定制
 
-## 使用本地化数值格式 \{#本地化数值格式}
+
+
+
+
+### 使用本地化数值格式 \{#本地化数值格式}
 
 
 在项目已有图表消息入口格式化数值文字，条形比例仍使用原始数值计算：
@@ -58,7 +67,7 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 }
 ```
 
-## 将同一份数据改为表格 \{#用表格展示同一份图表数据}
+### 将同一份数据改为表格 \{#用表格展示同一份图表数据}
 
 
 `renderChart` 接收已校验的数据。需要精确比较数值时，可以替换整个默认图表：
@@ -82,11 +91,13 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 
 替换后不再绘制默认条形，标题、布局和样式由新展示负责；消息读取和数据校验仍由插件处理。
 
-## API
+## 属性与 API
+
+
+
+### API
 
 以下选项用于定制已有消息展示。`data` 由已注册的消息入口提供；正常使用无需另建一份展示数据。
-
-
 
 继承 `figure` 原生属性，排除 `children`、原生 `title`。
 
@@ -99,7 +110,7 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 | `renderItem?`  | [`(item: ChartMessageItem, index: number, data: ChartMessageData) => ReactNode`](#chartmessageitem)                       | 替换单条图表内容，完整数据见 [`ChartMessageData`](#chartmessagedata) |
 | `renderChart?` | [`(data: ChartMessageData) => ReactNode`](#chartmessagedata)                                                              | 替换整个图表，自行处理根外观与标题                                      |
 
-### 图表数据与样式位置 \{#chartmessagedata}
+#### 图表数据与样式位置 \{#chartmessagedata}
 
 `renderChart(data)` 取得已经校验的数据；例如以下对象会显示两个数值项：
 
@@ -121,8 +132,5 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 | `track` / `bar`   | 条形背景／表示数值的条形   |
 
 例如 `styles={{ value: { fontWeight: 600 } }}` 只加粗数值；`renderChart` 完全替换内容时，这些默认区域由自定义内容自行实现。
-
-
-
 
 

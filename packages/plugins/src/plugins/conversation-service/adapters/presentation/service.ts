@@ -1,7 +1,7 @@
 import { createConversationServiceThreadBinding } from "./thread-binding.js";
 import type { ConversationThreadBindingFactory } from "@za38.03/agent-ui-runtime/plugin-api";
 import type { ConversationDetail, ConversationSummary } from "./contract.js";
-import type { ConversationDataSource } from "./data-source.js";
+import type { ConversationDataSource, ConversationListPage } from "./data-source.js";
 
 export const AGENT_UI_CONVERSATION_SERVICE = "agent-ui.conversations";
 
@@ -16,6 +16,9 @@ export interface ConversationSnapshot {
   listStatus: ConversationLoadStatus;
   detailStatus: ConversationLoadStatus;
   listError?: string | undefined;
+  nextCursor?: string | null | undefined;
+  listRevision?: number | undefined;
+  loadMoreError?: string | undefined;
   detailError?: string | undefined;
   detailErrorConversationId?: string | undefined;
 }
@@ -24,6 +27,7 @@ export interface ConversationService {
   getSnapshot(): ConversationSnapshot;
   subscribe(listener: () => void): () => void;
   refresh(): Promise<void>;
+  loadPage?(cursor: string): Promise<void>;
   deleteConversation(id: string): Promise<void>;
   renameConversation?(id: string, title: string): Promise<void>;
   archiveConversation?(id: string): Promise<void>;
@@ -68,7 +72,7 @@ export function createConversationService({
 }: ConversationServiceOptions): ConversationService & {
   dispose(): void;
 } {
-  let snapshot = EMPTY_CONVERSATION_SNAPSHOT;
+  let snapshot: ConversationSnapshot = { ...EMPTY_CONVERSATION_SNAPSHOT, listRevision: 0 };
   // Business detail observation only; messages in mounted runtimes remain upstream-owned.
   const historyReads = new Map<
     string,
@@ -80,6 +84,7 @@ export function createConversationService({
     }
   >();
   let listRequest: AbortController | undefined;
+  let hasLoadedMore = false;
   let detailRequest: AbortController | undefined;
   let disposed = false;
   const listeners = new Set<() => void>();
@@ -105,6 +110,14 @@ export function createConversationService({
       detailError: undefined,
       detailErrorConversationId: undefined,
     });
+  };
+
+  const normalizePage = (result: ConversationSummary[] | ConversationListPage): ConversationListPage =>
+    Array.isArray(result) ? { conversations: result, nextCursor: null } : result;
+  const mergeConversations = (first: ConversationSummary[], rest: ConversationSummary[]): ConversationSummary[] => {
+    const items = new Map(first.map((item) => [item.id, item]));
+    for (const item of rest) if (!items.has(item.id)) items.set(item.id, item);
+    return [...items.values()];
   };
 
   const changeConversation = async (
@@ -134,6 +147,7 @@ export function createConversationService({
       conversations: snapshot.conversations.map((item) =>
         item.id === normalizedId ? { ...item, ...patch } : item,
       ),
+      listRevision: (snapshot.listRevision ?? 0) + 1,
       listStatus:
         snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
       ...(snapshot.activeConversation?.id === normalizedId &&
@@ -206,6 +220,7 @@ export function createConversationService({
         conversations: snapshot.conversations.filter(
           (item) => item.id !== normalizedId,
         ),
+        listRevision: (snapshot.listRevision ?? 0) + 1,
         listStatus:
           snapshot.listStatus === "loading" ? "idle" : snapshot.listStatus,
         ...(deletingActive
@@ -229,14 +244,25 @@ export function createConversationService({
         ...snapshot,
         listStatus: "loading",
         listError: undefined,
+        loadMoreError: undefined,
       });
       try {
-        const conversations = await dataSource.list({ signal: request.signal });
+        const page = normalizePage(await dataSource.list({ signal: request.signal }));
         if (listRequest !== request || request.signal.aborted || disposed)
           return;
+        // A routine refresh updates the first page without discarding the
+        // already loaded tail or rewinding its cursor. Full-list sources keep
+        // their existing replacement semantics.
+        const retainTail = hasLoadedMore && page.nextCursor !== null;
+        const conversations = retainTail
+          ? mergeConversations(page.conversations, snapshot.conversations)
+          : page.conversations;
+        if (!retainTail) hasLoadedMore = false;
         update({
           ...snapshot,
           conversations,
+          nextCursor: retainTail ? snapshot.nextCursor : page.nextCursor,
+          listRevision: (snapshot.listRevision ?? 0) + 1,
           listStatus: "ready",
           listError: undefined,
         });
@@ -253,6 +279,33 @@ export function createConversationService({
           listStatus: "error",
           listError: errorMessage(error),
         });
+      } finally {
+        if (listRequest === request) listRequest = undefined;
+      }
+    },
+    async loadPage(cursor) {
+      if (disposed || cursor !== snapshot.nextCursor)
+        throw new DOMException("Conversation page invalidated.", "AbortError");
+      listRequest?.abort();
+      const request = new AbortController();
+      listRequest = request;
+      update({ ...snapshot, loadMoreError: undefined });
+      try {
+        const page = normalizePage(await dataSource.list({ cursor, signal: request.signal }));
+        if (disposed || listRequest !== request || request.signal.aborted)
+          throw new DOMException("Conversation page invalidated.", "AbortError");
+        hasLoadedMore = true;
+        const conversations = new Map(snapshot.conversations.map((item) => [item.id, item]));
+        for (const item of page.conversations) conversations.set(item.id, item);
+        update({
+          ...snapshot,
+          conversations: [...conversations.values()],
+          nextCursor: page.nextCursor,
+        });
+      } catch (error) {
+        if (!disposed && listRequest === request && !request.signal.aborted && !isAbortError(error))
+          update({ ...snapshot, loadMoreError: errorMessage(error) });
+        throw error;
       } finally {
         if (listRequest === request) listRequest = undefined;
       }

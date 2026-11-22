@@ -210,6 +210,7 @@ export interface GeneratePluginCatalogResult {
 export interface CompactLayoutNode {
   nodeRef: string;
   type: "row" | "column" | "stack" | "panel" | "slot" | "sidebar";
+  id?: string | undefined;
   defaultActive?: string | null | undefined;
   items?: { id: string; child: CompactLayoutNode }[] | undefined;
   header?: CompactLayoutNode | undefined;
@@ -218,6 +219,8 @@ export interface CompactLayoutNode {
   gap?: number | undefined;
   sizes?: AppUILayoutTrackSize[] | undefined;
   activeIndex?: number | undefined;
+  viewIds?: string[] | undefined;
+  keepMounted?: boolean | undefined;
   width?: AppUIPanelDimension | undefined;
   height?: AppUIPanelDimension | undefined;
   minWidth?: number | undefined;
@@ -424,7 +427,6 @@ export interface AgentUISourceFileInspection {
   path: string;
   status: AgentUISourceStatus;
   currentSha256?: string;
-  managedSha256?: string;
 }
 
 export interface AgentUISourceItemInspection {

@@ -24,6 +24,7 @@ export interface ConversationThreadListPluginProps
     listStatus?: string;
     detailStatus?: string;
     listError?: string | undefined;
+    loadMoreError?: string | undefined;
     detailError?: string | undefined;
     detailErrorConversationId?: string | undefined;
   };
@@ -53,6 +54,7 @@ export function CanonicalConversationThreadList({
   const conversationNavigation = useConversationNavigation();
   const defaultList = (
     <PolicyThreadList
+      loadMoreError={snapshot.loadMoreError}
       {...(showSearch === undefined ? {} : { showSearch })}
       {...(showArchived === undefined ? {} : { showArchived })}
       {...(searchProps === undefined ? {} : { searchProps })}
@@ -134,7 +136,7 @@ export interface ConversationThreadListRailActionProps {
   tooltipProps?: Omit<ComponentProps<typeof AgentUITooltip>, 'children'>;
   tooltipContentProps?: Omit<ComponentProps<typeof AgentUITooltipContent>, 'children'>;
 }
-/** @deprecated Place the independent conversation-new Plugin in the application layout. */
+/** @deprecated Use the default new-conversation action in the navigation-menu Plugin. */
 export function CanonicalConversationThreadListRailAction({
   enabled = true,
   icon,

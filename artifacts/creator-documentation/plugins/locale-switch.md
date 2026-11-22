@@ -1,13 +1,11 @@
 # 界面语言切换（locale-switch）
 
+## 功能与效果
+
 切换中文和英文界面，支持服务绑定和业务页面控制。
 
 
-
-
-
-
-## 语言选择
+### 语言选择
 
 
 ![语言选择界面](/images/plugins/locale-switch.png)
@@ -17,7 +15,13 @@
 
 切换英文后，欢迎语、输入提示和“New Thread”等界面文字同步变化；历史标题和业务用户资料仍保留原内容。
 
-## 紧凑的语言选择框 \{#紧凑的语言选择框}
+## 常见定制
+
+
+
+
+
+### 紧凑的语言选择框 \{#紧凑的语言选择框}
 
 
 沿用已有语言服务，只改控件大小。
@@ -33,7 +37,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 ```
 
 
-## 受控语言选择 \{#受控语言选择}
+### 受控语言选择 \{#受控语言选择}
 
 此例展示控件受控写法；业务页面还应把选中 locale 绑定到已有 Agent 语言配置，所有插件才会同步。
 
@@ -49,7 +53,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 }
 ```
 
-## 业务入口切换语言 \{#从其他组件切换语言}
+### 业务入口切换语言 \{#从其他组件切换语言}
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
@@ -65,11 +69,13 @@ export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; lab
 }
 ```
 
-## API
+## 属性与 API
+
+
+
+### API
 
 使用 `selectProps.id` 设置选择框标识；省略时自动生成唯一 ID。
-
-
 
 在 `CanonicalLocaleSwitchPlugin` 上设置以下属性。
 
@@ -86,13 +92,13 @@ export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; lab
 
 没有变化回调且没有可用服务时，组件不显示。
 
-### 语言选择怎样生效 \{#agentuilocalecode}
+#### 语言选择怎样生效 \{#agentuilocalecode}
 
 `locale` 接受 `zh-CN`（简体中文）或 `en-US`（英文）。业务页面控制该值时，在 `onLocaleChange(nextLocale)` 中更新它；只传一个固定 `locale` 会保持固定语言。项目默认文案和业务新增文案的配置见[语言服务](/plugins/locale-provider.md)。
 
 
 其他组件需要跟随当前语言显示业务内容时，使用[语言 Hook 与双语消息示例](/plugins/locale-provider.md#example-2)。切换语言调用同一服务的 `setLocale(locale)`，对应功能示例可用于业务页面已有的语言按钮；切换后各插件继续使用原 Thread 和草稿。
 
-### 服务方法 \{#服务}
+#### 服务方法 \{#服务}
 
 消费 `agent-ui.locale`；服务及 `AgentUILocaleService` 类型见 [语言服务](/plugins/locale-provider.md#服务)。传入 `service` / `locale` / `onLocaleChange` 时沿用该组件公开属性约定。

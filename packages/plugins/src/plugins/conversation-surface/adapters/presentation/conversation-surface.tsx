@@ -7,6 +7,8 @@ import {isAgentUITheme,AGENT_UI_DEFAULT_THEME} from "../../../../public.js";
 const Surface=(props:ConversationSurfacePresentationProps)=><OwnedSurface {...props} theme={isAgentUITheme(props.theme)?props.theme:AGENT_UI_DEFAULT_THEME}/>;
 function DefaultWelcome(){const messages=useLocale("conversation");return <ConversationWelcome title={messages.welcome} description={messages.welcomeDescription||undefined}/>;}
 import type { ComponentProps, ComponentType, ReactNode } from 'react';
+import { MessageIdentityContext, type MessageIdentityOptions } from './message-identity.js';
+export type { MessageSpeaker, MessageIdentityOptions } from './message-identity.js';
 export interface ConversationSurfaceAdapterProps {
   Surface?: ComponentType<ConversationSurfacePresentationProps>;
   autoFocus?: boolean;
@@ -32,6 +34,7 @@ export interface ConversationSurfacePluginProps extends Omit<ComponentProps<'div
   welcome?: ReactNode;
   suggestions?: ReactNode;
   composer?: ReactNode;
+  messageIdentity?: false | MessageIdentityOptions;
 }
 export function CanonicalConversationSurfacePlugin({
   renderSlot = (_name, fallback) => fallback,
@@ -43,6 +46,7 @@ export function CanonicalConversationSurfacePlugin({
   welcome: welcomeContent,
   suggestions: suggestionContent,
   composer: composerContent,
+  messageIdentity,
   ...rootProps
 }: ConversationSurfacePluginProps) {
   const welcome = renderSlot('emptyWelcome', welcomeContent ?? <DefaultWelcome/>);
@@ -89,17 +93,19 @@ export function CanonicalConversationSurfacePlugin({
       <div className='conversation-surface-header-actions' data-conversation-surface-slot='headerActions'>
         {headerActions}
       </div>
-      {Adapter ? (
-        <Adapter
-          Surface={Surface}
-          {...(autoFocus === undefined ? {} : { autoFocus })}
-          {...(rendererSlots === undefined ? {} : { rendererSlots })}
-          welcome={welcome}
-          suggestions={suggestions}
-          composer={composer}
-          renderScopedSlot={renderConversationScopedSlot}
-        />
-      ) : null}
+      <MessageIdentityContext.Provider value={messageIdentity}>
+        {Adapter ? (
+          <Adapter
+            Surface={Surface}
+            {...(autoFocus === undefined ? {} : { autoFocus })}
+            {...(rendererSlots === undefined ? {} : { rendererSlots })}
+            welcome={welcome}
+            suggestions={suggestions}
+            composer={composer}
+            renderScopedSlot={renderConversationScopedSlot}
+          />
+        ) : null}
+      </MessageIdentityContext.Provider>
     </div>
   );
 }

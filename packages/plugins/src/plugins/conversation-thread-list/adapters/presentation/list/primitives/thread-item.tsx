@@ -22,7 +22,7 @@ export const ThreadListItem: FC = () => {
     <ThreadListItemPrimitive.Root
       data-agent-ui-owned=''
       data-slot='aui_thread-list-item'
-      className='group hover:bg-muted focus-visible:bg-muted data-active:bg-muted has-focus-visible:bg-muted has-data-[state=open]:bg-muted relative flex h-8 items-center rounded-md transition-colors focus-visible:outline-none'
+      className='group/thread-list-item hover:bg-muted focus-visible:bg-muted data-active:bg-muted has-focus-visible:bg-muted has-data-[state=open]:bg-muted relative flex h-8 items-center rounded-md transition-colors focus-visible:outline-none'
     >
       {isRenaming ? (
         <ThreadListItemRename
@@ -36,7 +36,7 @@ export const ThreadListItem: FC = () => {
           data-agent-ui-owned=''
           ref={triggerRef}
           data-slot='aui_thread-list-item-trigger'
-          className='focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1'
+          className='focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover/thread-list-item:pe-9 group-has-focus-visible/thread-list-item:pe-9 group-has-data-[state=open]/thread-list-item:pe-9 group-data-active/thread-list-item:pe-9 focus-visible:ring-1'
         >
           {isRunning && (
             <Loader2Icon

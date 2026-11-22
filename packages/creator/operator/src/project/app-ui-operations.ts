@@ -64,16 +64,19 @@ type AppUILayoutMutationNode =
   | ({ type: "sidebar"; defaultActive: string | null; footer?: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } | undefined; header?: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } | undefined; items: { id: string; child: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
   | ({ type: "row"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined; responsive?: AppUIRowNode["responsive"] } & { localRef?: string | undefined })
   | ({ type: "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
-  | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
+  | ({ type: "stack"; id?: string | undefined; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined; viewIds?: AppUIStackNode["viewIds"]; keepMounted?: boolean | undefined } & { localRef?: string | undefined })
   | ({ type: "panel"; child: AppUILayoutMutationNode; width?: AppUIPanelDimension | undefined; height?: AppUIPanelDimension | undefined; minWidth?: number | undefined; maxWidth?: number | undefined; resizable?: boolean | undefined } & { localRef?: string | undefined })
   | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string | undefined });
 
 type LayoutNodeProps = {
+  id?: string | undefined;
   defaultActive?: string | null | undefined;
   gap?: number | undefined;
   sizes?: string[] | undefined;
   responsive?: AppUIRowNode["responsive"];
   activeIndex?: number | undefined;
+  viewIds?: AppUIStackNode["viewIds"];
+  keepMounted?: boolean | undefined;
   width?: AppUIPanelDimension | undefined;
   height?: AppUIPanelDimension | undefined;
   minWidth?: number | undefined;
@@ -82,11 +85,14 @@ type LayoutNodeProps = {
 };
 
 const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
+  id: nonBlankStringSchema.optional(),
   defaultActive: nonBlankStringSchema.nullable().optional(),
   gap: z.number().nonnegative().optional(),
   sizes: z.array(layoutTrackSizeSchema).optional(),
   responsive: rowDrawerPolicySchema.optional(),
   activeIndex: z.number().int().nonnegative().optional(),
+  viewIds: z.array(nonBlankStringSchema).optional(),
+  keepMounted: z.boolean().optional(),
   width: panelDimensionSchema.optional(),
   height: panelDimensionSchema.optional(),
   minWidth: z.number().nonnegative().optional(),
@@ -121,9 +127,12 @@ const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =
     }),
     z.strictObject({
       type: z.literal("stack"),
+      id: nonBlankStringSchema.optional(),
       localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       children: z.array(mutationLayoutNodeSchema),
       activeIndex: z.number().int().nonnegative().optional(),
+      viewIds: z.array(nonBlankStringSchema).optional(),
+      keepMounted: z.boolean().optional(),
     }),
     z.strictObject({
       type: z.literal("panel"),
@@ -419,8 +428,11 @@ function materializeMutationNode(
   } else if (input.type === "stack") {
     node = {
       type: "stack",
+      ...(input.id === undefined ? {} : { id: input.id }),
       children: input.children.map((child) => materializeMutationNode(child, context)),
       ...(input.activeIndex === undefined ? {} : { activeIndex: input.activeIndex }),
+      ...(input.viewIds === undefined ? {} : { viewIds: [...input.viewIds] }),
+      ...(input.keepMounted === undefined ? {} : { keepMounted: input.keepMounted }),
     };
   } else if (input.type === "panel") {
     node = {
@@ -1541,7 +1553,7 @@ const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
   sidebar: new Set(["defaultActive"]),
   row: new Set(["gap", "sizes", "responsive"]),
   column: new Set(["gap", "sizes"]),
-  stack: new Set(["activeIndex"]),
+  stack: new Set(["id", "activeIndex", "viewIds", "keepMounted"]),
   panel: new Set(["width", "height", "minWidth", "maxWidth", "resizable"]),
   slot: new Set(),
 };
@@ -1563,6 +1575,8 @@ interface StackActiveState {
   node: AppUIStackNode;
   activeChild: AppUILayoutNode | undefined;
   oldIndex: number | undefined;
+  viewIds: AppUIStackNode["viewIds"];
+  viewIdsByChild: ReadonlyMap<AppUILayoutNode, string>;
 }
 
 function captureStackActiveStates(model: AppUIModel): StackActiveState[] {
@@ -1573,12 +1587,20 @@ function captureStackActiveStates(model: AppUIModel): StackActiveState[] {
       node,
       activeChild: node.activeIndex === undefined ? undefined : node.children[node.activeIndex],
       oldIndex: node.activeIndex,
+      viewIds: node.viewIds,
+      viewIdsByChild: new Map(node.children.flatMap((child, index) => node.viewIds?.[index] === undefined ? [] : [[child, node.viewIds[index]!] as const])),
     }));
 }
 
 function restoreStackActiveStates(model: AppUIModel, states: readonly StackActiveState[]): void {
   for (const state of states) {
     if (currentEntry({ model, snapshot: buildLayoutRefIndex(model.root), localRefs: new Map() }, state.node) === undefined) continue;
+    if (state.viewIds && state.node.viewIds === state.viewIds) {
+      const ids = state.node.children.map(child => state.viewIdsByChild.get(child));
+      if (ids.every((id): id is string => id !== undefined)) state.node.viewIds = ids;
+      // An insertion needs explicit semantic identities in the same transaction.
+      // Leave validation to the final model rather than inventing public view IDs.
+    }
     if (state.node.children.length === 0) {
       delete state.node.activeIndex;
       continue;

@@ -2,17 +2,17 @@ import { isPluginApplication } from "./plugin-application";
 import { readPluginSourceOwnership } from "./plugin-source-ownership";
 import { lstat, readdir, readFile, rmdir } from "node:fs/promises";
 import path from "node:path";
-import { officialPackagePlugin } from "../source-catalog/index.js";
+import { officialPackagePlugin, loadAgentUISourceRegistry, projectSourceRegistryRoot } from "../source-catalog/index.js";
 import { resourcePaths } from "./optional-resource-paths";
 import { projectRelativePath } from "./agent-ui-project-paths";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "./source-registry/lock";
+import { readAgentUISourceLock, serializeAgentUISourceLock } from "./source-registry/lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "./source-registry/transaction";
 import { createRequire } from "node:module";
 import { generatePluginRegistry } from "./registry-generator";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 
-/** Only a complete, unchanged installed baseline may be removed automatically. */
+/** An explicit migration compares current source with the installed target only. */
 export async function migrateOfficialPackagePlugin(projectRoot: string, pluginId = "composer") {
   const official = officialPackagePlugin(pluginId);
   if (!official) throw new AgentUISourceError("OFFICIAL_PACKAGE_PLUGIN_UNKNOWN", "No package delivery exists for this Plugin.");
@@ -33,14 +33,17 @@ export async function migrateOfficialPackagePlugin(projectRoot: string, pluginId
   await walk(directory);
   if (!files.length) {
     if (await lstat(directory).then(() => true, error => { if (error.code === "ENOENT") return false; throw error; }))
-      throw new AgentUISourceError("LEGACY_MODIFIED_OFFICIAL_PLUGIN", "Legacy Plugin has no complete baseline; preserve it for custom migration.");
+      throw new AgentUISourceError("LEGACY_MODIFIED_OFFICIAL_PLUGIN", "Legacy Plugin has no implementation files; preserve it for explicit migration.");
     return { changed: false };
   }
   const { lock } = await readAgentUISourceLock(projectRoot, config);
-  const baseline = lock.items[official.referenceSourceItemId];
-  const fail = () => { throw new AgentUISourceError("LEGACY_MODIFIED_OFFICIAL_PLUGIN", "Legacy official source differs from its installed baseline. Preserve it and semantically port custom behavior to a new Plugin ID."); };
-  if (!baseline || files.length !== Object.keys(baseline.files).length) fail();
-  for (const file of files) if (baseline!.files[file]?.sha256 !== sha256(await readFile(path.join(paths.sourceRoot, file)))) fail();
+  const target = (await loadAgentUISourceRegistry(projectSourceRegistryRoot(projectRoot))).byId.get(official.referenceSourceItemId);
+  const fail = () => { throw new AgentUISourceError("LEGACY_MODIFIED_OFFICIAL_PLUGIN", "Current implementation differs from the installed package. Preserve it for an explicit project migration."); };
+  if (!target || files.length !== target.loadedFiles.length) fail();
+  for (const file of files) {
+    const desired = target!.loadedFiles.find(entry => entry.target === file)?.content;
+    if (!desired || !desired.equals(await readFile(path.join(paths.sourceRoot, ...file.split("/"))))) fail();
+  }
   createRequire(path.join(projectRoot, "package.json")).resolve(official.runtime.package + official.runtime.subpath.slice(1));
   const nextLock = structuredClone(lock);
   delete nextLock.items[official.referenceSourceItemId];

@@ -1,12 +1,11 @@
 # 回复重新生成（reload-action）
 
+## 功能与效果
+
 为当前整次回答重新发起生成，并沿用原有回复版本与分支生命周期。
 
 
-
-
-
-## 重新生成回复
+### 重新生成回复
 
 
 ![重新生成回复界面](/images/plugins/reload-action.png)
@@ -15,7 +14,12 @@
 
 点击重试会通过当前会话重新发起 Agent 请求，保留原 `threadId`。服务端按本次请求的 `runId` 和新消息 ID 返回[AG-UI 响应流](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-## 按钮尺寸与提示位置 \{#尺寸与提示位置}
+## 常见定制
+
+
+
+
+### 按钮尺寸与提示位置 \{#尺寸与提示位置}
 
 
 调整重新生成按钮的展示；按钮继续操作当前整次回复。
@@ -33,7 +37,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 ```
 
 
-## 禁用状态 \{#按业务状态禁用}
+### 禁用状态 \{#按业务状态禁用}
 
 
 ![重新生成回复界面](/images/plugins/features/reload-action-states.png)
@@ -52,7 +56,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 }
 ```
 
-## 点击前检查
+### 点击前检查
 
 `onClick` 先于重新生成执行。业务状态不允许重试时调用 `preventDefault()`；允许时沿用组件原有的重试流程。
 
@@ -66,9 +70,11 @@ export function CheckedReload({ canRetry }: { canRetry: () => boolean }) {
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 组件：`ConversationCanonicalResponseReloadAction`。保留提示按钮的原生样式、事件与 icon 属性；默认提示从 locales 读取。
 
@@ -78,7 +84,7 @@ export function CheckedReload({ canRetry }: { canRetry: () => boolean }) {
 | `disabled?` | `boolean`                                       | 只有当前回答允许重试（`canReload`）且此属性未设为 `true` 时，按钮才可用 |
 | `onClick?`  | `ConversationTooltipIconButtonProps['onClick']` | 调用后执行重试；`preventDefault()` 可阻止默认动作            |
 
-### 按钮属性
+#### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 

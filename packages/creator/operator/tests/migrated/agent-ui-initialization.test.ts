@@ -163,22 +163,23 @@ describe("deterministic Agent UI initializer", () => {
     expect(registry).toMatch(/provides:\s*\[\s*['"]agent-ui\.conversation-data-source['"]\s*,?\s*\]/u);
     expect(registry).toMatch(/inject:\s*\[\s*['"]agent-ui\.conversation-data-source['"]\s*,?\s*\]/u);
     if (mode === "assistant" || mode === "embedded") {
-      expect(result.installedSourceItems).toContain("plugin/conversation-new");
+      expect(result.installedSourceItems).toContain("plugin/navigation-menu");
       expect(result.installedSourceItems).toContain("plugin/conversation-thread-list");
       const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui.json"), "utf8"));
       expect(model.root.type).toBe("column");
       expect(model.root.children[0].type).toBe("row");
-      expect(model.root.children[0].children[1].plugins[0].pluginId).toBe("conversation-new");
+      expect(model.root.children[0].children[1].plugins[0].pluginId).toBe("navigation-menu");
       expect(model.root.children[0].children[2].plugins[0]).toMatchObject({
         pluginId: "conversation-thread-list",
       });
     }
     if (mode === "platform") {
-      const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui.json"), "utf8")) as {
-        root: { type: string; children: Array<{ child: { children: Array<{ plugins: Array<{ pluginId: string }> }> } }> };
-      };
+      const model = parseAppUIModelJson(await readFile(path.join(root, sourceRoot, "app-ui.json"), "utf8"));
       expect(model.root.type).toBe("row");
-      expect(model.root.children[0]?.child.children[1]?.plugins[0]?.pluginId).toBe("conversation-thread-list");
+      const locations = collectAppUIPluginLocations(model);
+      const menu = locations.find(x => x.plugin.pluginId === "navigation-menu");
+      expect(locations.find(x => x.plugin.pluginId === "conversation-thread-list")?.target)
+        .toMatchObject({ type: "plugin_slot", parentInstanceId: menu?.plugin.id, slot: "content" });
     }
     if (mode === "assistant") {
       const model = JSON.parse(deliveredModel);

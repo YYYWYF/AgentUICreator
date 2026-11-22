@@ -4,12 +4,11 @@ title: "语言服务（locale-provider）"
 
 # 语言服务（locale-provider）
 
+## 功能与效果
+
 共享界面语言和文案，支持官方字段覆盖与业务双语内容。
 
-<span id="常见需求"></span>
-<span id="代码示例"></span>
-
-## 语言与文案
+### 语言与文案
 
 <figure className="plugin-preview">
 
@@ -18,7 +17,21 @@ title: "语言服务（locale-provider）"
 <figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
 </figure>
 
-## 覆盖输入框提示 {#覆盖输入框提示}
+## 修改与启用
+
+<span id="手动接入"></span>
+
+- 设置语言、覆盖已有文案及新增业务文案：[语言与文案](/development/localization)。
+- 由业务页面管理当前语言并接收切换：[界面语言切换配置](/development/agent-options#界面语言切换)。
+- 查找可覆盖的字段及中英文默认值：[文案字段参考](/development/locale-reference)。
+
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="代码示例"></span>
+
+### 覆盖输入框提示 {#覆盖输入框提示}
 
 <span id="example-1"></span>
 
@@ -36,7 +49,7 @@ export const messages = {
 
 <span id="example-2"></span>
 
-## 新增业务领域文案 {#新增业务领域文案}
+### 新增业务领域文案 {#新增业务领域文案}
 
 共享消息模块中维护双语字段，组件读取统一 locale。不要新增独立语言状态或每插件语言 Hook。
 
@@ -53,7 +66,7 @@ export function ReportTitle() {
 }
 ```
 
-## 业务入口切换语言 {#从业务按钮切换语言}
+### 业务入口切换语言 {#从业务按钮切换语言}
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
@@ -69,16 +82,15 @@ export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; lab
 }
 ```
 
-## API
+## 属性与 API
 
 <span id="属性"></span>
+
 <span id="开发-api"></span>
 
-<span id="手动接入"></span>
+### API
 
-- 设置语言、覆盖已有文案及新增业务文案：[语言与文案](/development/localization)。
-- 由业务页面管理当前语言并接收切换：[界面语言切换配置](/development/agent-options#界面语言切换)。
-- 查找可覆盖的字段及中英文默认值：[文案字段参考](/development/locale-reference)。
+
 
 <span id="hook"></span>
 
@@ -91,7 +103,7 @@ export function SelectLocale({ locale, label }: { locale: AgentUILocaleCode; lab
 | `useLocale(namespace)` | 返回指定领域的文案。 |
 | `/plugin-support` 的 `useLocaleSnapshot(service)` | 订阅显式传入的服务；服务缺失时沿用当前 locale。 |
 
-### 服务方法 {#服务}
+#### 服务方法 {#服务}
 
 提供 `agent-ui.locale`。服务标识 `AGENT_UI_LOCALE_SERVICE`、类型 `AgentUILocaleService` / `AgentUILocaleSnapshot` 从 `@za38.03/agent-ui-runtime/ui/services/agent-ui-locale` 导入。
 

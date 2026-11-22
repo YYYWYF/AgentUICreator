@@ -4,6 +4,8 @@ title: "引用来源（source-citations-message）"
 
 # 引用来源（source-citations-message）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![引用来源界面](/images/plugins/source-citations-message.png)
@@ -13,23 +15,25 @@ title: "引用来源（source-citations-message）"
 
 将来源工具的成功结果展示为引用来源列表，自动区分网页和文档来源，并保留来源的真实标识。
 
-## 成功检索后显示来源
+### 成功检索后显示来源
 
 来源工具完成且结果有效时，插件读取 `sources` 数组，按返回顺序展示来源条目。业务代码无需再次解析工具结果或逐个判断它们何时可以显示。
 
 工具尚未完成、报错或来源结构无效时，继续展示通用工具详情；空来源数组不会凭空产生来源条目。
 
-## 网页与文档分别展示
+### 网页与文档分别展示
 
 网页来源使用标题或 URL 展示，并提供网页入口。文档来源使用文档标题、类型和可用的文件名展示；文档 ID 不是一个网页下载地址。
 
 需要为文档增加业务预览时，可以在来源展示回调中按 ID 接入项目已有入口。默认插件不会根据 ID 猜测业务文档的访问路径。
 
-## 保持来源数据完整
+## 数据来源与显示条件
+
+### 保持来源数据完整
 
 来源 ID 必须非空且在同一列表中唯一；网页来源需要有效 HTTP(S) 地址，文档来源需要标题和 MIME 类型。来源列表中存在无效条目时，插件保留工具详情，而不是展示一组缺损来源。
 
-## 接入来源结果 {#显示条件与数据来源}
+### 接入来源结果 {#显示条件与数据来源}
 
 当前默认注册工具名为 `search_sources`，从工具结果的 `sources` 数组显示来源。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
@@ -55,9 +59,17 @@ title: "引用来源（source-citations-message）"
 
 `renderSource(source, index, tool)` 读取一条来源，`renderSources(sources, tool)` 读取整组 URL／文档来源，同时保留原工具调用。可组合项目的文档预览、收藏或引用按钮；独立插件需要同步当前来源时，使用[共享 Service](/development/plugin-interaction#插件之间共享选择或结果)。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 调整来源列表间距 {#调整来源列表间距}
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 调整来源列表间距 {#调整来源列表间距}
 
 <span id="example-1"></span>
 
@@ -73,7 +85,7 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 }
 ```
 
-## 为网页来源增加业务参数 {#为-url-来源增加业务参数}
+### 为网页来源增加业务参数 {#为-url-来源增加业务参数}
 
 <span id="example-2"></span>
 
@@ -96,12 +108,17 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 替换 `renderSource` 或 `renderSources` 可以接入项目预览；整体替换时需由业务展示负责保留各类来源的打开方式。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -112,13 +129,13 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 `sourceProps` 是转换函数，不是任意 HTML 属性对象。
 
-### 当前工具调用的数据与操作
+#### 当前工具调用的数据与操作
 
 `renderSource(source, index, tool)` / `renderSources(sources, tool)` 同时提供来源对象和原工具调用。业务预览根据 `source.sourceType` 选择网页或文档处理，关联当前回答中的调用使用 `tool.toolCallId`。
 
 公共字段、状态判断和操作回调见[工具调用参数](./tool-result#当前工具调用的数据与操作)。
 
-### 按来源决定预览方式 {#conversationsourcepart}
+#### 按来源决定预览方式 {#conversationsourcepart}
 
 `sourceProps` / `renderSource` 收到的来源以 `sourceType` 区分：
 
@@ -135,10 +152,7 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 <span id="来源列表间距"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>

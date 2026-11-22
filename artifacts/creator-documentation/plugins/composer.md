@@ -1,5 +1,7 @@
 # 消息输入（composer）
 
+## 功能与效果
+
 
 ![消息输入与发送界面](/images/plugins/composer.png)
 
@@ -7,7 +9,7 @@
 
 在当前会话中输入文字，根据需要添加附件、引用消息或选择其他内容，准备好后一起发送。
 
-## 准备并发送一条消息
+### 准备并发送一条消息
 
 
 默认按 Enter 发送，按 Shift+Enter 换行。页面支持添加附件、引用消息等功能时，这些内容会和输入的文字一起发送。可用功能由页面配置决定。
@@ -26,7 +28,7 @@
 
 引用先进入预览，用户可以继续修改问题；删除引用后，这份引用不再随消息发送。默认正文和结构化数据的区别见[引用交给 Composer 的数据](/plugins/conversation-quote.md#交给-composer-的数据)。
 
-## 运行与等待用户操作
+### 运行与等待用户操作
 
 普通发送、回车和已有输入区共用提交流程。生成中显示停止入口，当前运行结束后可发送下一条消息。
 
@@ -34,7 +36,9 @@
 
 等待审批或补充信息时，普通发送受到已有保护，草稿保留；用户继续处理原操作，而不是把普通输入当作审批回答。自定义业务发送入口也应使用下面带保护的草稿控制器。
 
-## 与哪些插件共享输入和发送
+## 数据来源与显示条件
+
+### 与哪些插件共享输入和发送
 
 每个插件提供的原始数据、默认发送位置和移除规则在它自己的页面说明。这里保留联动入口，避免把各插件的格式混写成一份通用对象：
 
@@ -84,7 +88,7 @@ const employees = pluginData['employee-mention'];
 
 带名称的调用会加上子作用域。例如实例 `order-picker` 内调用 `useComposer('order').setData({ orderId: 'A1001' })`，Composer 用 `pluginData['order-picker:order']` 取到 `{ orderId: 'A1001' }`。嵌在其他插件中的提及入口可能使用 `实例ID:mention`，格式见各插件页。
 
-## Composer 接受的数据与最终请求
+### Composer 接受的数据与最终请求
 
 输入区中的内容通过两条路径参与发送：
 
@@ -111,13 +115,25 @@ const employees = pluginData['employee-mention'];
 
 附件片段在[附件页](/plugins/add-attachment-action.md#与-composer-联动)给出；正文引用和业务选择分别见前面的联动入口。它们不会因为设置了最终适配器而自动变成某种固定业务格式。
 
-## 读取本次请求与插件数据 \{#请求适配}
+### 提交后的快照、重发与会话切换
+
+提交时固定本次数据；附件准备、工具续传或中断恢复期间，后续草稿的修改不改变原次提交。已接受提交后清理本次待发送数据，不让普通下一条消息自动继承业务选择。
+
+编辑已有消息时，根据该消息仍存在的引用重新组装；移除引用后不再携带其选择。重试与续答读取原次消息的快照，最终适配器仍可能再次执行。
+
+各会话的草稿与队列分开，技能、引用的清理规则见各插件页。刷新后，正文标记可恢复标签；若还需恢复原始 `data`，历史服务需同时保存选择数据。
+
+## 常见定制
+
+
+
+
+
+### 读取本次请求与插件数据 \{#请求适配}
 
 回调接收 `{ request, pluginData, sources }`：`request` 已包含正文、附件、引用和页面参数，`pluginData` 提供各插件的选择数据。
 
 Composer 使用回调返回的请求；若页面还配置了 [`beforeRequest`](/development/connect-agent.md#发送前准备请求)，它会在之后执行。需要先请求业务接口申请 ID 或补充参数时，使用后者。
-
-旧项目若仍读取 `selections`，改为 `pluginData`，并将各输入插件的请求转换集中到 Composer；升级 npm 不会自动修改这些项目文件。
 
 `pluginData` 按插件实例分组。普通 `setData(value)` 保留原值，提及和命令等引用型选择使用数组；没有数据时可省略该键。`sources` 记录对应的插件 ID、实例 ID 和用途名。
 
@@ -161,7 +177,7 @@ Composer 使用回调返回的请求；若页面还配置了 [`beforeRequest`](/
 
 普通 `setData(value)` 不自动写入 `forwardedProps`，业务映射由最终适配器完成；不要从 `forwardedProps` 反推完整选择，也不要把所有 `pluginData` 都当作数组。各插件页提供其实际 JSON 示例。
 
-## 统一组装业务字段
+### 统一组装业务字段
 
 在项目已有 `plugins/composer/index.tsx` 的实现调用处配置一个最终适配器。下面假设 @、/、引用和建议问题的实例 ID 分别为 `employee-mention`、`task-command`、`quote`、`suggestions`，后端约定将它们放入 `forwardedProps.ctx` 的四个字段。
 
@@ -255,7 +271,7 @@ Context 的每项为 `{ description: string, value: string }`。修改 `messages
 
 一个 Agent 只配置一个 Composer 请求适配器，同步返回完整请求。返回无效数据或抛错时停止发送。重试和续答也会调用它，因此只在这里转换数据；异步准备使用 [`beforeRequest`](/development/connect-agent.md#发送前准备请求)。
 
-## 从业务卡片填入问题和参数 \{#从订单卡片填入问题并携带订单-id}
+### 从业务卡片填入问题和参数 \{#从订单卡片填入问题并携带订单-id}
 
 
 下面的按钮位于已有 Agent／Conversation 中的订单卡片插件。问题和按钮文字由项目文案提供，订单 ID 来自业务数据：
@@ -280,7 +296,7 @@ export function AskAboutOrder({ orderId, prompt, label }: {
 
 再次 `setData()` 会替换自己的旧值，绑定正文引用时可保留多项选择。`clearData()` 清除自己的数据；`setData()` 返回的清理函数只清除那次写入。
 
-## 让其他插件实时跟随草稿 \{#hook}
+### 让其他插件实时跟随草稿 \{#hook}
 
 
 其他插件需要随草稿更新界面时，使用 `useComposer(selector, name?)` 选择所需字段；无参数的 `useComposer()` 或 `useComposer(name)` 返回即时读取与操作句柄，不自动订阅数据：
@@ -321,7 +337,7 @@ export function DraftPreview({ render }: {
 
 Hook 随当前会话重新绑定；保留的旧句柄仍绑定原 Thread。长时间保存句柄的业务回调要明确其归属，不能把旧句柄当作自动指向当前会话的全局对象。
 
-## 自定义发送入口并保留运行保护 \{#实时显示草稿字数定制发送与停止操作}
+### 自定义发送入口并保留运行保护 \{#实时显示草稿字数定制发送与停止操作}
 
 
 只改样式时直接定制[发送／停止插件](/plugins/submit-action.md)。确需自己组合操作区时，继续读取当前控制器与等待用户操作状态：
@@ -355,15 +371,7 @@ export function DraftActions({ formatCount }: { formatCount: (count: number) => 
 
 `addAttachment(file)` 与 `removeAttachment(id)` 返回 Promise，调用方处理失败；前者走当前附件准备与上传配置，后者按 ID 操作草稿。它们不会把文件登记成一个 `pluginData` 条目。
 
-## 提交后的快照、重发与会话切换
-
-提交时固定本次数据；附件准备、工具续传或中断恢复期间，后续草稿的修改不改变原次提交。已接受提交后清理本次待发送数据，不让普通下一条消息自动继承业务选择。
-
-编辑已有消息时，根据该消息仍存在的引用重新组装；移除引用后不再携带其选择。重试与续答读取原次消息的快照，最终适配器仍可能再次执行。
-
-各会话的草稿与队列分开，技能、引用的清理规则见各插件页。刷新后，正文标记可恢复标签；若还需恢复原始 `data`，历史服务需同时保存选择数据。
-
-## 调整高度与发送快捷键 \{#高度和字数限制}
+### 调整高度与发送快捷键 \{#高度和字数限制}
 
 
 
@@ -387,9 +395,11 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Implemen
 
 Ctrl+Enter 在 Windows／Linux 上使用 Ctrl，在 macOS 上使用 Cmd。已经提供自定义 `input` 或输入子插件时，输入自身要接收其支持的配置；根参数不会自动改造任意编辑器。
 
-## API
+## 属性与 API
 
 
+
+### API
 
 项目已有入口使用 `@za38.03/agent-ui-plugins/composer` 的 `ConversationComposerPlugin`；组合组件 `ConversationCanonicalComposer` 使用同一组输入属性。
 
@@ -439,7 +449,7 @@ Ctrl+Enter 在 Windows／Linux 上使用 Ctrl，在 macOS 上使用 Cmd。已经
 
 默认输入提示和无障碍名称统一在 `locales.composer` 修改。原生 `inputProps` 和自定义输入组件继续用于行为与结构定制。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
-### 响应式草稿控制器
+#### 响应式草稿控制器
 
 
 Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供。标准项目通过 `createDefaultAgentUIPresentation()` 自动接入；手动使用底层 `ConversationRuntimeProvider` 时，传入 `inputControllerFactory={createComposerInputController}`，其中 `createComposerInputController` 从 `@za38.03/agent-ui-plugins` 导入。未接入时，底层 Runtime 只负责原生会话运行，不创建这些输入能力。
@@ -487,7 +497,7 @@ Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供�
 | `reference?` | `{ token: string; text: string; fallbackText: string }` | 绑定输入中的引用；删除引用时移除其数据，发送时替换 token |
 | `quote?`     | `{ text: string; messageId: string }`                   | 绑定原生引用，取消引用后排除数据                |
 
-### 等待审批与补充输入
+#### 等待审批与补充输入
 
 使用 `useComposer(state => state.awaitingReply)` 订阅等待状态。为 `true` 时，可像[上例](#example-4)一样禁用普通发送并显示 `locales.composer.awaitingReply`，让用户先处理原审批或补充问题。`send()` 始终执行等待回复保护。
 
@@ -495,7 +505,7 @@ Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供�
 
 这些状态由已有 Host 提供。普通业务插件直接读取；`ConversationComposerGuardProvider` 用于手动集成时传入已有中断状态，它本身不检测 Agent 是否暂停。
 
-### 最终请求适配器
+#### 最终请求适配器
 
 
 `ComposerRequestAdapter`、`ComposerRequestAdapterInput`、`ComposerDataSource`、`ComposerData` 与 `ComposerDataOptions` 从 `@za38.03/agent-ui-plugins` 导入。`RunAgentInput` 从 `@ag-ui/client` 导入。
@@ -510,7 +520,7 @@ Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供�
 
 最终适配器只从 Composer 组件的 `requestAdapter` 属性传入，由组件内部负责注册、更新和卸载清理；同一 Agent 只注册一个最终适配器。`useComposer(name?)` 接受可选的数据作用域名称，负责读取状态和操作草稿。
 
-### 最终请求的主要字段
+#### 最终请求的主要字段
 
 下面对应前面的完整 JSON 示例。已有运行提供这些字段；适配器展开原请求后修改业务约定，避免重新生成运行和消息身份。
 
@@ -524,10 +534,6 @@ Composer 的输入数据、引用转换和最终请求适配由 Plugins 提供�
 | `forwardedProps`     | JSON                                       | 后端约定的外带数据，可由最终适配器重新组织                       |
 
 其他由当前协议或运行提供的字段也通过 `...request` 保留。最终结果须符合项目实际安装版本的 `RunAgentInput`，不能只返回这张表中的一部分。
-
-
-
-
 
 
 

@@ -35,7 +35,7 @@ Connect or change business services in project-owned implementation code:
   the internal { id, title, history } object or ask the backend to migrate.
   Each Agent binds an independent endpoint and request transport. Preserve preview
   address/proxy selection, rotating user credentials and read cancellation signals.
-  Project methods are application code, not implementation source takeover or BASE.
+  Project methods are application code, not implementation source takeover or synchronization.
   Optional rename/archive/unarchive methods correspond to list actions. Missing or
   failed operations reject. List status is optional regular/archived; return archived
   records if users need to restore them. itemProps.actions hides individual actions;
@@ -83,8 +83,8 @@ wraps the official history converter on this path and owns conversation executio
 do not move backend-specific parsing into Runtime or confuse persisted history
 adaptation with live AG-UI event/state normalization. Project configuration edits
 do not authorize Plugin source takeover. npm upgrades preserve project decoders,
-application files and BASE; authorized owned-source updates use the existing
-BASE/LOCAL/TARGET sync and compatibility validation.
+application files and current implementations; authorized owned-source updates
+read the actual implementation and installed target without a historical BASE.
 Do not patch vendor, take over Plugin source, create a Plugin Service contract
 for a private HTTP helper, or ship Creator in
 production. Browser code holds only user-scoped credentials, never server keys.

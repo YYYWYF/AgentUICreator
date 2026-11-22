@@ -43,6 +43,7 @@ test('guide interaction examples compile against public declarations', async t =
   for (const [name, marker] of [
     ['plugin-api.md', 'export function LimitedComposer'],
     ['attachment-upload.md', 'export function notifyAttachmentRemoval'],
+    ['plugin-interaction.md', 'export function SaveWithNotice'],
     ['web-component-api.md', 'export function listenAgentReady'],
   ]) {
     const source = await readFile(path.join(repository, 'website/docs/development', name), 'utf8');
@@ -66,7 +67,7 @@ test('guide interaction examples compile against public declarations', async t =
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('plugin feature examples precede API tables and compile against public declarations', async t => {
+test('plugin pages describe usage before customization and compile against public declarations', async t => {
   const repository = fileURLToPath(new URL('../', import.meta.url));
   const root = await mkdtemp(path.join(tmpdir(), 'Creator 插件 examples '));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -93,11 +94,13 @@ test('plugin feature examples precede API tables and compile against public decl
     }
     assert(text, `Missing plugin page: ${id}`);
     const headings = [...text.matchAll(/^## (.+)$/gmu)].map(match => match[1]);
-    assert.equal(headings.at(-1), 'API', `API must follow the feature examples: ${id}`);
+    const sectionOrder = ['功能与效果', '修改与启用', '数据来源与显示条件', '常见定制', '属性与 API', '常见问题'];
+    assert.deepEqual(headings, sectionOrder.filter(section => headings.includes(section)),
+      `Keep existing content in the agreed reading order: ${id}`);
     assert(headings.length >= 3, `Missing functional outline: ${id}`);
     assert.doesNotMatch(text, /^## (?:常见需求|需求示例|代码示例|启用与使用|开发 API)$/mu,
       `Use feature names in the outline: ${id}`);
-    const features = text.split(/^## API\r?\n/mu)[0];
+    const features = text.split(/^## 属性与 API\r?\n/mu)[0];
     assert.match(features, /(?:!\[[^\]]*\]\(\/images\/|<img src="\/images\/)/u,
       `Missing real component screenshot: ${id}`);
     // Protocol field tables belong beside integration examples; component API tables follow them.

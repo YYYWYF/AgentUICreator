@@ -1,6 +1,7 @@
 import { OwnedPluginUpdateService } from "../owned-plugin-updates";
 import { isPluginApplication } from "../plugin-application";
 import { readPluginSourceOwnership } from "../plugin-source-ownership";
+import { currentPluginVersion, readCurrentPluginSource } from "../current-plugin-source";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { comparePluginVersions, isAgentUISourceItemAvailable, InstalledUpdateSourceProvider, projectSourceRegistryRoot, resolveAgentUISourceItemClosure, type UpdateSourceProvider, type ResolvedSourceRelease } from "../../source-catalog/index.js";
@@ -13,9 +14,9 @@ import { assertNoSymbolicLinkTraversal, resolveAgentUISourceRoots } from "./path
 
 import type { UpdateCompatibility, PluginUpdate, UpdateInspection, UpgradePlan } from "../../update-contract";
 export type { UpdateCompatibility, PluginUpdate, UpdateInspection, UpgradePlan } from "../../update-contract";
-interface StoredPlan { projectRoot: string; release: ResolvedSourceRelease; stateHash: string; plan: UpgradePlan; baselineHash: string; createdAt: number; mergeStarted: boolean }
+interface StoredPlan { projectRoot: string; release: ResolvedSourceRelease; stateHash: string; plan: UpgradePlan; receiptHash: string; createdAt: number; mergeStarted: boolean }
 
-/** Development Host owns provider, admission, authorization tokens and exact historical releases. */
+/** Development Host owns provider, admission, authorization tokens and current project files and installed targets. */
 export class AgentUIUpdateService {
   private readonly owned = new OwnedPluginUpdateService();
   private readonly plans = new Map<string, StoredPlan>();
@@ -60,10 +61,9 @@ export class AgentUIUpdateService {
       if (await isPluginApplication(path.join(projectPaths.sourceRoot,"plugins",id),id)) continue;
       const locked = lock.items[`plugin/${id}`];
       if (!locked) continue;
-      const currentVersion = locked.pluginVersion ?? null;
-      // Legacy locks have no trustworthy release provenance. Surface recovery instead of guessing BASE.
+      const currentVersion = currentPluginVersion(await readOptionalBuffer(path.join(projectPaths.sourceRoot, "plugins", id, "manifest.json")));
       const updateAvailable = currentVersion === null || comparePluginVersions(target.version, currentVersion) > 0;
-      plugins.push({ pluginId: id, name: pluginNames[id]!, currentVersion, targetVersion: target.version, sourceRelease: locked.sourceRelease ?? null,
+      plugins.push({ pluginId: id, name: pluginNames[id]!, currentVersion, targetVersion: target.version, sourceRelease: null,
         status: inspection.items.find(item => item.id === `plugin/${id}`)!.status, updateAvailable,
         changelog: Object.entries(release.changelogs[id] ?? {}).filter(([version]) => (!currentVersion || comparePluginVersions(version, currentVersion) > 0) && comparePluginVersions(version, target.version) <= 0)
           .sort(([a], [b]) => comparePluginVersions(a, b)).map(([version, entry]) => ({ version, entry })) });
@@ -88,35 +88,43 @@ export class AgentUIUpdateService {
     const closure = new Map(pluginIds.flatMap(id => {
       const locked = ctx.lock.items[`plugin/${id}`];
       const target = release.descriptor.plugins[id];
-      if (!locked || !target || (locked.pluginVersion && comparePluginVersions(target.version, locked.pluginVersion) <= 0)) throw new Error("插件没有可用升级。");
+      if (!locked || !target) throw new Error("插件没有可用升级。");
       return resolveAgentUISourceItemClosure(release.registry, `plugin/${id}`).map(item => [item.id, item] as const);
     }));
     const issues: string[] = [];
     const recommendations: string[] = [];
-    const items = [...closure.values()].map(item => {
+    let requiresMerge = false;
+    const items = await Promise.all([...closure.values()].map(async item => {
       const inspected = ctx.inspection.items.find(entry => entry.id === item.id)!;
       if (!isAgentUISourceItemAvailable(item.id)) issues.push(`AGENT_UI_RESOURCE_DISABLED: ${item.id}`);
-      const locked = ctx.lock.items[item.id];
       const provided = ctx.config.agentUI.providedSourceItems?.includes(item.id) ?? false;
-      if (locked?.sourceRelease && comparePluginVersions(releaseVersion, locked.sourceRelease) < 0) recommendations.push(`AGENT_UI_UPDATE_RELEASE_REGRESSION: ${item.id}: 目标 Release ${releaseVersion} 低于当前基线 ${locked.sourceRelease}，请确认是否为预期目标`);
-      const targetPluginVersion = item.id.startsWith("plugin/") ? release.descriptor.plugins[item.id.slice(7)]!.version : null;
-      if (locked?.pluginVersion && targetPluginVersion && comparePluginVersions(targetPluginVersion, locked.pluginVersion) < 0) recommendations.push(`${item.id}: 目标版本低于当前版本`);
-      // A shared dependency with no content change must keep its existing baseline.
-      const changed = provided ? inspected.status !== "managed" : inspected.updateAvailable || !locked;
-      if (["blocked", "partial"].includes(inspected.status)) issues.push(`${item.id}: ${inspected.status}`);
-      if (provided && changed) issues.push(`${item.id}: Host 提供的基础依赖无法通过插件更新修改`);
-      const paths = [...new Set([...item.loadedFiles.filter(file => locked?.files[file.target]?.sha256 !== sha256(file.content)).map(file => file.target), ...Object.keys(locked?.files ?? {}).filter(target => !item.loadedFiles.some(file => file.target === target))])].sort();
+      // Existing dependencies belong to the project; a Plugin upgrade does not
+      // silently synchronize their templates.
+      const requested = pluginIds.includes(item.id.replace(/^plugin\//, ""));
+      const targetFiles = new Map(item.loadedFiles.map(file => [file.target, file.content]));
+      const current = item.id.startsWith("plugin/")
+        ? new Map([...(await readCurrentPluginSource(path.join(sourcePaths.sourceRoot, "plugins", item.id.slice(7))))].map(([file, bytes]) => [`plugins/${item.id.slice(7)}/${file}`, bytes]))
+        : new Map(await Promise.all([...targetFiles.keys()].map(async file => [file, await readOptionalBuffer(path.join(sourcePaths.sourceRoot, ...file.split("/")))] as const)));
+      const paths = [...new Set([...current.keys(), ...targetFiles.keys()])].filter(file => {
+        const local = current.get(file), target = targetFiles.get(file);
+        return local === undefined ? target !== undefined : target === undefined || !local.equals(target);
+      }).sort();
+      const changed = !provided && (requested || !ctx.lock.items[item.id]) && paths.length > 0;
+      if (changed && paths.some(file => current.get(file) !== undefined)) requiresMerge = true;
+      if (inspected.status === "blocked") issues.push(`${item.id}: ${inspected.status}`);
       return { itemId: item.id,
-        reason: pluginIds.includes(item.id.replace(/^plugin\//, "")) ? "requested" as const : "dependency" as const,
+        reason: requested ? "requested" as const : "dependency" as const,
         requiredBy: pluginIds.filter(id => resolveAgentUISourceItemClosure(release.registry, `plugin/${id}`).some(dependency => dependency.id === item.id)),
-        status: inspected.status, changed, provided, currentVersion: locked?.pluginVersion ?? null,
-        targetVersion: targetPluginVersion, paths };
-    });
+        status: inspected.status, changed, provided,
+        currentVersion: currentPluginVersion(current.get(`plugins/${item.id.slice(7)}/manifest.json`)),
+        targetVersion: item.id.startsWith("plugin/") ? release.descriptor.plugins[item.id.slice(7)]!.version : null,
+        paths: changed ? paths : [], };
+    }));
     const compatibility = this.compatibility(release);
     const plan: UpgradePlan = { id: randomUUID(), releaseVersion, compatibility, requestedPlugins: [...pluginIds], items,
-      fileCount: new Set(items.flatMap(item => item.paths)).size, requiresMerge: items.some(item => item.changed && item.status === "customized"), blocked: issues.length > 0, issues, recommendations };
+      fileCount: new Set(items.flatMap(item => item.paths)).size, requiresMerge, blocked: issues.length > 0, issues, recommendations };
     for (const [id, stored] of this.plans) if (Date.now() - stored.createdAt > 3600000) this.plans.delete(id);
-    this.plans.set(plan.id, { projectRoot: path.resolve(projectRoot), release, stateHash: ctx.stateHash, baselineHash: ctx.lockHash, plan, createdAt: Date.now(), mergeStarted: false });
+    this.plans.set(plan.id, { projectRoot: path.resolve(projectRoot), release, stateHash: ctx.stateHash, receiptHash: ctx.lockHash, plan, createdAt: Date.now(), mergeStarted: false });
     return plan;
   }
   private stored(projectRoot: string, id: string) {
@@ -139,23 +147,17 @@ export class AgentUIUpdateService {
     const ctx = await this.context(projectRoot, stored.release);
     if (ctx.stateHash !== stored.stateHash) throw new Error("源码已改变，请重新生成升级计划。");
     const { sourceRoot } = await resolveAgentUISourceRoots(projectRoot, ctx.config);
-    const files: { itemId: string; path: string; base: string | null; local: string | null; target: string | null }[] = [];
+    const files: { itemId: string; path: string; local: string | null; target: string | null }[] = [];
     for (const entry of stored.plan.items.filter(item => item.changed && !item.provided)) {
-      const locked = ctx.lock.items[entry.itemId];
-      if (!locked?.sourceRelease && entry.status === "customized") throw new Error(`${entry.itemId} 缺少历史 Release，无法构建 BASE；请手动合并。`);
-      const historical = locked?.sourceRelease ? await this.providerFor(projectRoot).resolveRelease(locked.sourceRelease) : undefined;
-      const base = historical?.registry.byId.get(entry.itemId);
-      const baselineVersionMatches = !entry.itemId.startsWith("plugin/") || historical?.descriptor.plugins[entry.itemId.slice(7)]?.version === locked?.pluginVersion;
-      if (locked?.sourceRelease && (!baselineVersionMatches || !base || base.loadedFiles.some(file => locked.files[file.target]?.sha256 !== sha256(file.content)) || Object.keys(locked.files).length !== base.loadedFiles.length)) throw new Error("历史 Release 与 source-lock 基线不一致。");
       const target = stored.release.registry.byId.get(entry.itemId)!;
-      for (const relative of [...new Set([...Object.keys(locked?.files ?? {}), ...target.loadedFiles.map(file => file.target)])].sort()) {
+      for (const relative of entry.paths) {
         await assertNoSymbolicLinkTraversal(sourceRoot, relative);
-        files.push({ itemId: entry.itemId, path: path.posix.join(ctx.config.agentUI.sourceRoot, relative), base: base?.loadedFiles.find(file => file.target === relative)?.content.toString() ?? null,
+        files.push({ itemId: entry.itemId, path: path.posix.join(ctx.config.agentUI.sourceRoot, relative),
           local: (await readOptionalBuffer(path.join(sourceRoot, relative)))?.toString() ?? null, target: target.loadedFiles.find(file => file.target === relative)?.content.toString() ?? null });
       }
     }
     stored.mergeStarted = true;
-    return { planId, files, prompt: `用户已选择模型合并插件升级至 Source Release ${stored.plan.releaseVersion}。下面是 Host 解析的 BASE / LOCAL / TARGET。保留 LOCAL 用户改动并吸收 TARGET 更新；null 表示文件不存在。只编辑所列源码，禁止修改 source-lock 或自行推进基线。完成后运行 validate_creator_changes，并说明结果。基线由用户在更新页确认后交给 Host 验证和推进。\n${JSON.stringify(files)}` };
+    return { planId, files, prompt: `用户已选择合并插件更新至 Source Release ${stored.plan.releaseVersion}。当前项目文件是事实来源，包括用户和其他 Agent 的修改；不要推断历史原版。根据当前代码与目标新版准备更新，保留现有结构、样式、交互和项目专有文件，不要直接重置为目标模板。null 表示文件不存在；目标不存在的项目文件默认保留。只编辑所列源码，不修改 source-lock。提示用户检查合并结果，回到更新页确认完成同步。\n${JSON.stringify(files)}` };
   }
   async startManualMerge(projectRoot: string, planId: string) {
     if(this.owned.has(planId)) { const result=await this.owned.merge(projectRoot,planId); return {planId,files:result.files.map(file=>file.path)}; }
@@ -170,7 +172,7 @@ export class AgentUIUpdateService {
     const stored = this.stored(projectRoot, planId);
     if (!stored.mergeStarted) throw new Error("请先选择并完成合并。");
     const ctx = await this.context(projectRoot, stored.release);
-    if (ctx.lockHash !== stored.baselineHash) throw new Error("升级基线已改变，请重新生成计划。");
+    if (ctx.lockHash !== stored.receiptHash) throw new Error("项目资源记录已改变，请重新生成计划。");
     const result = await commitAgentUISourceUpgrade(projectRoot, { registry: stored.release.registry, itemIds: stored.plan.items.filter(item => item.changed && !item.provided).map(item => item.itemId), expectedStateHash: ctx.stateHash, adoptOnly: true });
     this.plans.delete(planId);
     return result;

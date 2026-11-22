@@ -32,8 +32,11 @@ export interface AppUIColumnNode {
 
 export interface AppUIStackNode {
   type: "stack";
+  id?: string | undefined;
   children: AppUILayoutNode[];
   activeIndex?: number | undefined;
+  viewIds?: string[] | undefined;
+  keepMounted?: boolean | undefined;
 }
 
 export interface AppUIPanelNode {
@@ -213,8 +216,11 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
     }),
     z.strictObject({
       type: z.literal("stack"),
+      id: nonBlankStringSchema.optional(),
       children: z.array(layoutNodeSchema),
       activeIndex: z.number().int().nonnegative().optional(),
+      viewIds: z.array(nonBlankStringSchema).optional(),
+      keepMounted: z.boolean().optional(),
     }),
     z.strictObject({
       type: z.literal("panel"),
@@ -319,6 +325,7 @@ export function findAppUIPlugin(
 export const appUIModelSchema = z.preprocess(stripGeneratedAppUIIds,
   appUIModelShapeSchema.transform(model => assignGeneratedAppUIIds(model)),
 ).superRefine((model, context) => {
+  const stackIds = new Set<string>();
   const visitLayout = (node: AppUILayoutNode, path: PropertyKey[]): void => {
     if (node.type === "row" || node.type === "column") {
       if (node.sizes !== undefined && node.sizes.length !== node.children.length) {
@@ -333,6 +340,16 @@ export const appUIModelSchema = z.preprocess(stripGeneratedAppUIIds,
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
     } else if (node.type === "stack") {
+      if (node.id !== undefined) {
+        if (stackIds.has(node.id)) context.addIssue({ code: 'custom', path: [...path, 'id'], message: 'Stack IDs must be unique' });
+        stackIds.add(node.id);
+      }
+      if (node.viewIds !== undefined) {
+        if (node.id === undefined) context.addIssue({ code: 'custom', path: [...path, 'id'], message: 'A navigable Stack requires an explicit id' });
+        if (node.viewIds.length !== node.children.length || new Set(node.viewIds).size !== node.viewIds.length) {
+          context.addIssue({ code: 'custom', path: [...path, 'viewIds'], message: 'Stack viewIds must identify every child exactly once' });
+        }
+      }
       if (node.activeIndex !== undefined && node.activeIndex >= node.children.length) {
         context.addIssue({ code: "custom", path: [...path, "activeIndex"], message: "activeIndex must be less than children.length", input: node.activeIndex });
       }

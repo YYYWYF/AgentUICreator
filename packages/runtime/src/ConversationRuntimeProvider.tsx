@@ -69,6 +69,7 @@ import { ConversationRequestRouting } from "./compatibility/conversation-request
 import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
 import type { AgentUIBeforeRequest } from "./before-request.js";
 import { installConversationBeforeRequest } from "./compatibility/conversation-before-request.js";
+import { ConversationMessageMetadataStore } from './compatibility/conversation-message-metadata.js';
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -397,6 +398,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
     });
     nativeRuntimeRef.current = runtime;
+    const messageMetadata = useMemo(() => new ConversationMessageMetadataStore(agent, runtime.thread), [agent, runtime]);
+    useLayoutEffect(() => {
+      messageMetadata.start();
+      return () => messageMetadata.stop();
+    }, [messageMetadata]);
     useLayoutEffect(() => inputController?.attach(owner.inputSessionId, runtime), [owner, runtime, inputController]);
     useEffect(() => {
       // The initial controlled thread is already regular, so upstream does
@@ -433,9 +439,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
     }), [runtime, ownedBinding, applicationEvents, commandForwarder, toolContinuation]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
-      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding, inputSessionId: owner.inputSessionId,
+      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding, inputSessionId: owner.inputSessionId, messageMetadata,
       ...(frontendTools === undefined ? {} : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
-    }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime]);
+    }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime, messageMetadata]);
     useLayoutEffect(() => {
       applicationEvents.start();
       agentRuntime.start();
@@ -462,7 +468,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
     return threadBinding.subscribe(() => {
       const next = threadBinding.getThreadListSnapshot?.();
       if (next === previous) return;
+      const pageUpdate = next?.revision !== undefined && next.revision === previous?.revision;
       previous = next;
+      // The native loadMore call is already applying this page. Reloading here
+      // invalidates that in-flight call and resets its cursor.
+      if (pageUpdate) return;
       void assistantRuntime.threads.reload();
     });
   }, [assistantRuntime, threadBinding]);

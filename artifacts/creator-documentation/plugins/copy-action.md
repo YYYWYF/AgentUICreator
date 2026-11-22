@@ -1,12 +1,11 @@
 # 回复复制（copy-action）
 
+## 功能与效果
+
 复制当前版本整次回答的文字，包含工具续跑后产生的多段助理内容。
 
 
-
-
-
-## 复制完整回复
+### 复制完整回复
 
 
 ![复制完整回复界面](/images/plugins/copy-action.png)
@@ -15,7 +14,12 @@
 
 回答文字由 `TEXT_MESSAGE_CONTENT.delta` 追加，复制使用当前版本的完整回答文本。事件格式见[文字回复](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-## 按钮尺寸与提示位置 \{#尺寸与提示位置}
+## 常见定制
+
+
+
+
+### 按钮尺寸与提示位置 \{#尺寸与提示位置}
 
 
 调整复制按钮的展示；按钮继续操作当前整次回复。
@@ -33,7 +37,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 ```
 
 
-## 禁用状态 \{#按业务状态禁用}
+### 禁用状态 \{#按业务状态禁用}
 
 
 ![复制完整回复界面](/images/plugins/features/copy-action-states.png)
@@ -52,9 +56,11 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 组件：`ConversationCanonicalResponseCopyAction`。保留提示按钮的原生样式、事件与 icon 属性；默认提示从 locales 读取。
 
@@ -66,7 +72,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 复制范围为当前完整回答的文本，由现有会话提供。
 
-### 按钮属性
+#### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 

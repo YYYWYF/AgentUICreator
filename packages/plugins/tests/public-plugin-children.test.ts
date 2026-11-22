@@ -25,7 +25,6 @@ import type { SourceCitationsMessagePlugin as Plugin21 } from "../dist/source-ci
 import type { RetrievalChunksPlugin as Plugin22 } from "../dist/retrieval-chunks/index.js";
 import type { WebSearchPlugin as Plugin23 } from "../dist/web-search/index.js";
 import type { ConversationThreadListPlugin as Plugin24 } from "../dist/conversation-thread-list/index.js";
-import type { ConversationNewPlugin as Plugin25 } from "../dist/conversation-new/index.js";
 import type { ConversationQuotePlugin as Plugin26 } from "../dist/conversation-quote/index.js";
 import type { AgentIdentityPlugin as Plugin27 } from "../dist/agent-identity/index.js";
 import type { AuthAccountPlugin as Plugin28 } from "../dist/auth-account/index.js";
@@ -51,7 +50,10 @@ import type { SkillsSelectionPlugin as Plugin47 } from "../dist/skills-selection
 import type { WorkbenchPanelPlugin as Plugin48 } from "../dist/workbench-panel/index.js";
 import type { WorkbenchPanelActionsPlugin as Plugin49 } from "../dist/workbench-panel-actions/index.js";
 
+import type { NavigationMenuPlugin as Plugin51 } from "../dist/navigation-menu/index.js";
+
 type PublicProps = {
+  "navigation-menu": ComponentProps<typeof Plugin51>;
   "composer": ComponentProps<typeof Plugin0>;
   "copy-action": ComponentProps<typeof Plugin1>;
   "reload-action": ComponentProps<typeof Plugin2>;
@@ -76,7 +78,6 @@ type PublicProps = {
   "retrieval-chunks": ComponentProps<typeof Plugin22>;
   "web-search": ComponentProps<typeof Plugin23>;
   "conversation-thread-list": ComponentProps<typeof Plugin24>;
-  "conversation-new": ComponentProps<typeof Plugin25>;
   "conversation-quote": ComponentProps<typeof Plugin26>;
   "agent-identity": ComponentProps<typeof Plugin27>;
   "auth-account": ComponentProps<typeof Plugin28>;
@@ -124,9 +125,6 @@ type NestedProps = {
   "response-footer.branchPickerProps": NonNullable<PublicProps["response-footer"]["branchPickerProps"]>;
   "conversation-suggestions.buttonProps": NonNullable<PublicProps["conversation-suggestions"]["buttonProps"]>;
   "conversation-thread-list.searchProps": NonNullable<PublicProps["conversation-thread-list"]["searchProps"]>;
-  "conversation-new.buttonProps": NonNullable<PublicProps["conversation-new"]["buttonProps"]>;
-  "conversation-new.tooltipProps": NonNullable<PublicProps["conversation-new"]["tooltipProps"]>;
-  "conversation-new.tooltipContentProps": NonNullable<PublicProps["conversation-new"]["tooltipContentProps"]>;
   "auth-account.buttonProps": NonNullable<PublicProps["auth-account"]["buttonProps"]>;
   "auth-account.menuProps": NonNullable<PublicProps["auth-account"]["menuProps"]>;
   "auth-account.signOutButtonProps": NonNullable<PublicProps["auth-account"]["signOutButtonProps"]>;
@@ -144,5 +142,5 @@ type UnexpectedNestedChildren = { [K in keyof NestedProps]: "children" extends k
 it("audits every catalog Plugin and excludes generic children from application options", () => {
   expectTypeOf<UnexpectedChildren>().toEqualTypeOf<never>();
   expectTypeOf<UnexpectedNestedChildren>().toEqualTypeOf<never>();
-  expect(deliveries.map(item => item.id).sort()).toEqual(["add-attachment-action", "agent-identity", "agent-plan-message", "agent-status-message", "ask-user-question", "auth-account", "auth-gate", "chart-message", "composer", "context-retrieval-message", "conversation-command-source", "conversation-data-source", "conversation-new", "conversation-quote", "conversation-service", "conversation-suggestions", "conversation-surface", "conversation-thread-list", "copy-action", "dictation-action", "export-markdown-action", "feedback-actions", "generated-file-message", "job-progress-message", "lexical-composer-input", "lexical-edit-composer", "locale-provider", "locale-switch", "mention-trigger", "reasoning", "reload-action", "response-footer", "retrieval-chunks", "skills", "skills-selection", "slash-command-trigger", "source-citations-message", "submit-action", "task-group", "theme-provider", "theme-switch", "thinking-indicator", "tool-group", "tool-result", "tool-timeline", "transient-assistant-messages", "web-search", "workbench-panel", "workbench-panel-actions"]);
+  expect(deliveries.map(item => item.id).sort()).toEqual(["add-attachment-action", "agent-identity", "agent-plan-message", "agent-status-message", "ask-user-question", "auth-account", "auth-gate", "chart-message", "composer", "context-retrieval-message", "conversation-command-source", "conversation-data-source", "conversation-quote", "conversation-service", "conversation-suggestions", "conversation-surface", "conversation-thread-list", "copy-action", "dictation-action", "export-markdown-action", "feedback-actions", "generated-file-message", "job-progress-message", "lexical-composer-input", "lexical-edit-composer", "locale-provider", "locale-switch", "mention-trigger", "navigation-menu", "reasoning", "reload-action", "response-footer", "retrieval-chunks", "skills", "skills-selection", "slash-command-trigger", "source-citations-message", "submit-action", "task-group", "theme-provider", "theme-switch", "thinking-indicator", "tool-group", "tool-result", "tool-timeline", "transient-assistant-messages", "web-search", "workbench-panel", "workbench-panel-actions"]);
 });

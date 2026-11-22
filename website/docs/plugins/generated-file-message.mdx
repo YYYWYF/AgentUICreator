@@ -4,6 +4,8 @@ title: "生成文件（generated-file-message）"
 
 # 生成文件（generated-file-message）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![文件结果界面](/images/plugins/generated-file-message.png)
@@ -13,23 +15,25 @@ title: "生成文件（generated-file-message）"
 
 将文件生成工具的成功结果展示为文件卡片，自动读取文件名、类型和访问地址，并提供对应的文件展示与下载入口。
 
-## 文件生成后显示卡片
+### 文件生成后显示卡片
 
 工具成功完成并返回有效文件结果后，插件显示文件卡片。文件名和 MIME 类型来自真实结果，业务代码无需再把结果转换成一组卡片属性。
 
 文件类型决定默认图标和展示方式；音频、视频等媒体沿用文件展示支持的播放形式。文件实际内容由结果中的地址提供。
 
-## 工具运行和失败时显示详情
+### 工具运行和失败时显示详情
 
 工具尚未完成、报告错误，或结果中缺少有效文件名、类型和 HTTP(S) 地址时，插件继续展示通用工具详情，不提前显示一张成功文件卡片。
 
-## 使用结果中的文件地址
+## 数据来源与显示条件
+
+### 使用结果中的文件地址
 
 卡片的下载或媒体访问使用工具结果中的 URL。插件负责展示已有文件，不会自行生成文件或把只有文件 ID 的结果转换为可访问地址。
 
 服务端需要返回当前用户可访问的文件地址；地址的鉴权与有效期沿用项目文件服务。
 
-## 接入文件生成结果 {#显示条件与数据来源}
+### 接入文件生成结果 {#显示条件与数据来源}
 
 当前默认注册工具名为 `generate_file`，成功结果使用本工具的 `{ filename, mimeType, url }` 业务结构。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
@@ -46,9 +50,17 @@ title: "生成文件（generated-file-message）"
 
 `renderFile(file, tool)` 可取得文件名、类型和文件数据，默认 `file.data` 为文件地址；`tool` 保留原工具调用的参数、结果和状态。可在自己的组件中增加业务预览、加入单据等按钮；跨插件传递选中文件见[插件联动与取数](/development/plugin-interaction#插件之间共享选择或结果)。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 调整文件卡片所在区域 {#统一文件卡片样式}
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 调整文件卡片所在区域 {#统一文件卡片样式}
 
 <span id="example-1"></span>
 
@@ -64,7 +76,7 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 }
 ```
 
-## 为文件增加业务说明区域 {#用自定义下载入口展示文件}
+### 为文件增加业务说明区域 {#用自定义下载入口展示文件}
 
 <span id="example-2"></span>
 
@@ -83,19 +95,24 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 
 需要改接业务下载方法时，可在该回调中替换具体入口；工具未完成、错误和无效结果的回退仍由插件处理。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `renderFile?` | `(props: ComponentProps<typeof ConversationFile>, tool: ConversationToolCallProps) => ReactNode` | 自定义文件展示 |
 | `Fallback?` | `ComponentType<ConversationToolCallProps>` | 默认 `ConversationToolResult`；工具未完成、出错或结果无效时使用 |
 
-### 当前工具调用的数据与操作
+#### 当前工具调用的数据与操作
 
 `renderFile(file, tool)` 的第二个参数是当前工具调用，可用 `tool.toolCallId` 将文件关联到业务记录。文件名和地址读取已解析的 `file`；原始参数、结果和操作回调继续由现有 renderer 传入。
 
@@ -103,10 +120,7 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 
 <span id="文件结果"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>

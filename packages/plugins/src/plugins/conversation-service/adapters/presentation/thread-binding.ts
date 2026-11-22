@@ -80,6 +80,8 @@ function sameListSnapshot(
 ): boolean {
   return (
     left.isLoading === right.isLoading &&
+    left.nextCursor === right.nextCursor &&
+    left.revision === right.revision &&
     sameItems(left.threads, right.threads) &&
     sameItems(left.archivedThreads, right.archivedThreads)
   );
@@ -112,10 +114,13 @@ function historyItem<TStatus extends "regular" | "archived">(
 
 function createListSnapshot(
   serviceSnapshot: ConversationSnapshot | undefined,
+  revision?: object,
 ): ConversationThreadListSnapshot {
   const histories = serviceSnapshot?.conversations ?? [];
   return {
     isLoading: serviceSnapshot?.listStatus === "loading",
+    nextCursor: serviceSnapshot?.nextCursor ?? undefined,
+    revision,
     threads: histories
       .filter((item) => item.status !== "archived")
       .map((item) => historyItem(item, "regular")),
@@ -140,6 +145,8 @@ export function createConversationServiceThreadBinding<TState = unknown>(
   let conversationService: ConversationService | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
   let threadListSnapshot = createListSnapshot(undefined);
+  let listRevision: number | undefined;
+  let revision: object | undefined;
   const listeners = new Set<() => void>();
   const emit = () => listeners.forEach((listener) => listener());
   const hasPersistedThread = (id: string) =>
@@ -153,7 +160,12 @@ export function createConversationServiceThreadBinding<TState = unknown>(
   };
   const rebuild = () => {
     reconcileEphemeralThreads();
-    const next = createListSnapshot(conversationService?.getSnapshot());
+    const snapshot = conversationService?.getSnapshot();
+    if (snapshot?.listRevision !== listRevision) {
+      listRevision = snapshot?.listRevision;
+      revision = listRevision === undefined ? undefined : {};
+    }
+    const next = createListSnapshot(snapshot, revision);
     if (sameListSnapshot(threadListSnapshot, next)) return;
     threadListSnapshot = next;
     emit();
@@ -269,9 +281,17 @@ export function createConversationServiceThreadBinding<TState = unknown>(
       };
     },
     getThreadListSnapshot: () => threadListSnapshot,
+    async loadThreadListPage(after) {
+      if (conversationService?.loadPage === undefined)
+        throw new Error("CONVERSATION_PAGINATION_NOT_CONFIGURED");
+      await conversationService.loadPage(after);
+      return threadListSnapshot;
+    },
     attachConversationService(service) {
       serviceUnsubscribe?.();
       conversationService = service;
+      listRevision = undefined;
+      revision = undefined;
       rebuild();
       serviceUnsubscribe = service.subscribe(rebuild);
       return () => {

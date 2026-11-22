@@ -2,162 +2,78 @@
 title: "临时通知（transient-assistant-messages）"
 ---
 
-# 临时通知（transient-assistant-messages）
+# 临时通知
 
-在当前会话插入临时提示，不发送给 Agent，也不保存到业务历史。
+## 功能与效果
 
-<span id="常见需求"></span>
-<span id="需求示例"></span>
-<span id="代码示例"></span>
-<span id="启用与使用"></span>
+在聊天中显示“保存成功”“连接已恢复”等操作提示。
 
-## 本地提示
+### 显示效果
 
 <figure className="plugin-preview">
 
-![本地提示界面](/images/plugins/transient-assistant-messages.png)
+![聊天中的临时通知](/images/plugins/transient-assistant-messages.png)
 
+<figcaption>通知出现在当前聊天中，可以居中显示，也可以使用用户或助理消息的样式。</figcaption>
 </figure>
 
-通知可以显示为用户提示、助理提示或居中的系统提示，也可以突出显示错误。启用插件后，还需要将业务事件接到通知，例如连接恢复或请求失败；可把事件和期望文案一起交给 Creator。
+错误提示会突出显示，方便用户发现操作失败的原因。
 
-通知不会发送给 Agent，也不会写入后端历史。刷新页面后会消失；“临时”不表示几秒后自动关闭。
+## 修改与启用
 
-## 调整正文样式 {#调整正文样式}
+<span id="启用与使用"></span>
 
-<span id="example-1"></span>
+### 怎么用
 
 
-仍使用当前 afterMessageId 对应的提示，不改变提示所属会话。
 
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationTransientMessages } from '@za38.03/agent-ui-plugins';
 
-export function Example(props: ComponentProps<typeof ConversationTransientMessages>) {
-  return <ConversationTransientMessages {...props}
-    styles={{ ...props.styles, text: { ...props.styles?.text, fontSize: 13 } }} />;
-}
-```
 
-<span id="example-2"></span>
-
-## 自定义提示正文 {#自定义提示正文}
-
-renderMessage 自行处理展示容器；message.text 来自调用方，不翻译消息数据。
-
-```tsx
-import type { ComponentProps } from 'react';
-import { ConversationTransientMessages } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof ConversationTransientMessages>) {
-  return <ConversationTransientMessages {...props}
-    renderMessage={message => (
-      <p role={message.type === "error" ? "alert" : "status"}>{message.text}</p>
-    )} />;
-}
-```
-
-## 业务操作提示 {#保存成功后显示本地提示}
-
-例如，业务卡片保存成功后显示一条提示。把组件放在已有临时消息上下文中，`save` 接业务方法，`successText`、`label` 来自项目文案，`onError` 接项目错误提示：
-
-```tsx
-import { useState } from 'react';
-import { useTransientMessages } from '@za38.03/agent-ui-plugins';
-
-export function SaveWithNotice({ save, label, successText, onError }: {
-  save: () => Promise<void>;
-  label: string;
-  successText: string;
-  onError: (error: unknown) => void;
-}) {
-  const { addMessage } = useTransientMessages();
-  const [pending, setPending] = useState(false);
-  return <button type="button" disabled={pending} onClick={async () => {
-    if (pending) return;
-    setPending(true);
-    try {
-      await save();
-      addMessage({ role: 'system', text: successText });
-    } catch (error: unknown) { onError(error); }
-    finally { setPending(false); }
-  }}>{label}</button>;
-}
-```
-
-成功后提示显示在当前会话的位置锚点之后，失败不会显示成功提示。切换 Thread 后各自展示自己的提示；刷新后的恢复仍由业务历史负责。
-
-## API
-
-<span id="属性"></span>
-<span id="开发-api"></span>
-
-在 `ConversationTransientMessages` 上设置以下属性。
-
-继承 `div` 原生属性，排除 `children`；外观属性作用于每条默认消息。
-
-| 属性 | 类型 | 省略时 / 用途 |
-| --- | --- | --- |
-| `afterMessageId` | `string \| null` | 消息锚点；插件入口省略时为 `null`，单独使用组件时必需 |
-| `classNames?` | `{ text?: string }` | 正文样式类 |
-| `styles?` | `{ text?: CSSProperties }` | 正文内联样式 |
-| `renderMessage?` | [`(message: TransientMessage) => ReactNode`](#transientmessage) | 替换单条消息；自定义渲染自行处理根属性与外观 |
-
-消息从现有临时消息服务读取，不传入另一份消息列表，也不会写入会话历史。
-
-### 自定义提示的位置和内容 {#transientmessage}
-
-`renderMessage(message)` 收到的一条提示由服务生成，字段均只读：
-
-| 字段 | 类型 | 自定义展示怎样用 |
-| --- | --- | --- |
-| `role` / `type` | `'user' \| 'assistant' \| 'system'` / `'normal' \| 'error'` | 区分提示角色及错误样式 |
-| `text` | `string` | 提示正文，沿用项目已解析的文案 |
-| `id` / `conversationId` | `string` | 标识提示和所属会话，供业务记录关联 |
-| `afterMessageId` | `string \| null` | 提示应位于哪条会话消息之后；无消息时为 `null` |
-| `afterMessageIndex` | `number` | 位置锚点失效后的备用索引，无消息时为 `-1` |
-
-自定义 renderer 只需要画出收到的内容；位置锚点由现有服务维护。提示不参与 Agent 请求，刷新后需要恢复时另接业务历史。
-
+<span id="保存成功后显示本地提示"></span>
+<span id="hook"></span>
 <span id="取数与联动"></span>
+<span id="服务"></span>
+<span id="使用提示"></span>
+<span id="本地提示会自动写入历史记录吗"></span>
 
-其他插件可通过 `useTransientMessages().addMessage()` 在当前对话位置显示业务提示或错误，调用方法见 [Hook](#hook)。通知不发送给 Agent、不写入后端历史；与其他插件联动时复用当前通知上下文，见[通用入口](/development/plugin-interaction#按需求找入口)。
+新建项目默认启用临时通知。需要显示自己的提示时，把**什么操作后显示、显示什么文字、希望是什么样式**告诉 Creator。例如：
+
+> 保存成功后，在当前聊天中居中显示“保存成功”；保存失败时，用错误样式显示失败原因。
+
+已有项目如果没有这项功能，也可以让 Creator 添加。完成修改后，执行一次保存，检查成功和失败时的提示是否符合预期。
+
+通知只在当前聊天中显示，不会作为问题发送给助理，也不会保存到聊天历史。刷新页面后会消失，默认不会在几秒后自动关闭。
+
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
 
 <span id="定制选项"></span>
 
-<span id="hook"></span>
+### 可以改什么
 
-业务操作完成后，需要在当前聊天里增加一条本地提示时，从 Plugins 根入口调用 `useTransientMessages()`，取得 `{ addMessage }`，用法见示例。
+<span id="api"></span>
+<span id="属性"></span>
+<span id="开发-api"></span>
 
-`addMessage({ role, type?, text }): string` 返回新提示的消息 ID。`role` 为 `user | assistant | system`；`type` 默认为 `normal`，错误提示用 `error`；`text` 从项目统一文案层取得。这些提示不会提交给 Agent 或写入后端历史。
+<span id="调整正文样式"></span>
+<span id="example-1"></span>
+<span id="自定义提示正文"></span>
+<span id="example-2"></span>
+<span id="transientmessage"></span>
 
-手动接入已有消息存储时，从 Runtime `/plugin-api` 导入 `useTransientMessages(messages => messages)` 订阅当前会话的 `readonly TransientMessage[]`；缺少上下文时返回空数组。同一入口的 `useOptionalTransientMessageContext()` 返回 `{ service, conversationId } | null`，用于确实需要检测上下文是否存在的适配组件。
-
-### 服务方法 {#服务}
-
-这里没有可注入的服务 ID；临时消息由现有 `ConversationTransientMessageProvider` 持有。`ConversationTransientMessageService` 的公开方法为：
-
-| 方法 | 返回值与用途 |
+| 可以调整 | 例如 |
 | --- | --- |
-| `addMessage({ role, type?, text })` | `string`，当前目标会话中的消息 ID |
-| `getSnapshot(conversationId)` | `readonly TransientMessage[]` |
-| `subscribe(listener)` | 取消订阅函数 |
-| `bindTarget(getTarget)` | 绑定 `{ conversationId, messageIds }` 的读取函数，返回解绑函数；由现有 Provider 管理 |
+| 显示时机 | 保存成功、请求失败、连接恢复后显示 |
+| 提示文字 | 换成符合业务场景的说明 |
+| 呈现方式 | 居中的系统提示、靠左的助理提示、靠右的用户提示，或突出显示的错误提示 |
+| 外观 | 字号、文字颜色、背景、圆角和间距 |
+| 内容样式 | 增加图标，或换成项目自己的提示样式 |
 
-`TransientMessage` 包含：
+例如，可以告诉 Creator：“把保存成功提示改成浅绿色背景，加上勾选图标，文字缩小一点。”
 
-- 消息内容：`id`、`conversationId`、`role`、`type`、`text`。
-- 位置锚点：`afterMessageId: string | null`、`afterMessageIndex: number`。
-
-`createConversationTransientMessageService()` 和 `ConversationTransientMessageProvider({ service, conversationId, children })` 用于应用装配。普通调用方直接使用 Hook，避免创建另一份未被展示的存储；临时消息不发送给 Agent，也不写入后端历史。
-
-<details className="plugin-faq" id="本地提示会自动写入历史记录吗">
-<summary>本地提示会自动写入历史记录吗？</summary>
-
-不会。它属于当前页面的临时消息展示。需要刷新后恢复的内容应通过业务后端和历史数据源保存、加载。
-
-</details>
-
-
-<span id="使用提示"></span>
+需要手动编写接入代码时，见[在对话中显示业务提示](/development/plugin-interaction#临时通知)。

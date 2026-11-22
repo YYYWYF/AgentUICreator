@@ -4,14 +4,13 @@ title: "登录认证（开发中）"
 
 # 登录认证（开发中）
 
+## 功能与效果
+
 按现有认证状态显示等待、登录表单或开放聊天，业务认证仍由项目服务处理。
 
-<span id="常见需求"></span>
-<span id="需求示例"></span>
-<span id="代码示例"></span>
 <span id="启用与使用"></span>
 
-## 登录门禁
+### 登录门禁
 
 <figure className="plugin-preview">
 
@@ -21,89 +20,7 @@ title: "登录认证（开发中）"
 
 需要真实业务认证；**客户端门禁不能保护服务端数据**。未登录、无权限和网络失败要分别给出提示。
 
-<span id="定制选项"></span>
-
-## 浏览器自动填写账号密码 {#浏览器自动填写账号密码}
-
-<span id="example-1"></span>
-
-
-保留内部的输入状态更新，只补充原生自动填写属性。真实登录需实现项目认证服务。
-
-```tsx
-import type { ComponentProps } from 'react';
-import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
-  return <CanonicalAuthGatePlugin {...props}
-    accountInputProps={{ ...props.accountInputProps, autoComplete: "username" }}
-    passwordInputProps={{ ...props.passwordInputProps, autoComplete: "current-password" }} />;
-}
-```
-
-<span id="example-2"></span>
-
-## 登录按钮与表单宽度 {#登录按钮与表单宽度}
-
-当前插件仍处于开发中，示例仅说明已有公开展示属性，不代表真实认证服务已配置。
-
-```tsx
-import type { ComponentProps } from 'react';
-import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
-
-export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
-  return <CanonicalAuthGatePlugin {...props}
-    formProps={{ ...props.formProps, style: { ...props.formProps?.style, maxWidth: 360 } }}
-    submitButtonProps={{ ...props.submitButtonProps, size: "lg" }} />;
-}
-```
-
-## 退出登录 {#在业务菜单中退出登录}
-
-例如，业务菜单需要复用当前登录服务退出。调用方在定义中声明 `inject: ['auth.session']`，保留其他依赖；以下组件放在 `plugins/<调用方>/index.tsx`：
-
-```tsx
-import { useAuthSession } from '../../services/hooks/useAuthSession';
-
-export function SignOutAction({ label, onError }: {
-  label: string;
-  onError: (error: unknown) => void;
-}) {
-  const { session } = useAuthSession();
-  const snapshot = useAuthSession(state => state);
-  return <button type="button"
-    disabled={!session || snapshot.busy || snapshot.status !== 'authenticated'}
-    onClick={async () => {
-      try { await session?.signOut(); }
-      catch (error: unknown) { onError(error); }
-    }}>{label}</button>;
-}
-```
-
-`label` 来自项目文案，失败交给 `onError` 显示。退出成功后，同一服务更新账号区和登录门禁；其他插件不必自行清空用户或再次调用 `restore()`。相对路径指向生成项目已有 Hook，移动组件时同步调整。
-
-## API
-
-登录与忙碌按钮文案在 `locales.auth.signIn` / `working` 中设置；按钮属性不接受 `children`。账号与密码的值由表单管理。
-
-<span id="属性"></span>
-<span id="开发-api"></span>
-
-在 `CanonicalAuthGatePlugin` 上设置以下属性。
-
-继承 `div` 原生属性，排除 `children` 和原生 `title`。
-
-| 属性 | 类型 | 省略时 / 用途 |
-| --- | --- | --- |
-| `title?` | `ReactNode` | 默认 `auth.title` |
-| `formProps?` | `Omit<ComponentProps<'form'>, 'children'>` | 表单属性；`onSubmit` 中 `preventDefault()` 可阻止默认登录 |
-| `accountInputProps?` | `Omit<ComponentProps<typeof Input>, 'children' \| 'value' \| 'defaultValue'>` | 账号输入框原生属性；保留内部输入状态更新 |
-| `passwordInputProps?` | `Omit<ComponentProps<typeof Input>, 'children' \| 'value' \| 'defaultValue'>` | 密码输入框原生属性；保留内部输入状态更新 |
-| `submitButtonProps?` | `Omit<ComponentProps<typeof Button>, 'children'>` | 登录按钮配置 |
-| `session?` | `{ signIn(input: { account: string; password: string }): Promise<void> }` | 现有登录服务 |
-| `state?` | [`AuthSessionSnapshot`](#authsessionsnapshot) | 现有认证状态，单独使用组件时默认检查中 |
-
-省略 `state` 时为 `{ status: 'checking', user: null, busy: false, error: null }`，显示检查提示。这些服务类型沿用项目已有 `services/` 声明；不是新增登录状态源。
+## 数据来源与显示条件
 
 ### 登录状态怎样影响界面 {#authsessionsnapshot}
 
@@ -133,7 +50,104 @@ export function SignOutAction({ label, onError }: {
 
 这个 Hook 是项目文件，不是 npm 同名导出。
 
-### 服务方法 {#服务}
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+<span id="定制选项"></span>
+
+### 浏览器自动填写账号密码 {#浏览器自动填写账号密码}
+
+<span id="example-1"></span>
+
+
+保留内部的输入状态更新，只补充原生自动填写属性。真实登录需实现项目认证服务。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
+  return <CanonicalAuthGatePlugin {...props}
+    accountInputProps={{ ...props.accountInputProps, autoComplete: "username" }}
+    passwordInputProps={{ ...props.passwordInputProps, autoComplete: "current-password" }} />;
+}
+```
+
+<span id="example-2"></span>
+
+### 登录按钮与表单宽度 {#登录按钮与表单宽度}
+
+当前插件仍处于开发中，示例仅说明已有公开展示属性，不代表真实认证服务已配置。
+
+```tsx
+import type { ComponentProps } from 'react';
+import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
+
+export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
+  return <CanonicalAuthGatePlugin {...props}
+    formProps={{ ...props.formProps, style: { ...props.formProps?.style, maxWidth: 360 } }}
+    submitButtonProps={{ ...props.submitButtonProps, size: "lg" }} />;
+}
+```
+
+### 退出登录 {#在业务菜单中退出登录}
+
+例如，业务菜单需要复用当前登录服务退出。调用方在定义中声明 `inject: ['auth.session']`，保留其他依赖；以下组件放在 `plugins/<调用方>/index.tsx`：
+
+```tsx
+import { useAuthSession } from '../../services/hooks/useAuthSession';
+
+export function SignOutAction({ label, onError }: {
+  label: string;
+  onError: (error: unknown) => void;
+}) {
+  const { session } = useAuthSession();
+  const snapshot = useAuthSession(state => state);
+  return <button type="button"
+    disabled={!session || snapshot.busy || snapshot.status !== 'authenticated'}
+    onClick={async () => {
+      try { await session?.signOut(); }
+      catch (error: unknown) { onError(error); }
+    }}>{label}</button>;
+}
+```
+
+`label` 来自项目文案，失败交给 `onError` 显示。退出成功后，同一服务更新账号区和登录门禁；其他插件不必自行清空用户或再次调用 `restore()`。相对路径指向生成项目已有 Hook，移动组件时同步调整。
+
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
+
+登录与忙碌按钮文案在 `locales.auth.signIn` / `working` 中设置；按钮属性不接受 `children`。账号与密码的值由表单管理。
+
+
+
+在 `CanonicalAuthGatePlugin` 上设置以下属性。
+
+继承 `div` 原生属性，排除 `children` 和原生 `title`。
+
+| 属性 | 类型 | 省略时 / 用途 |
+| --- | --- | --- |
+| `title?` | `ReactNode` | 默认 `auth.title` |
+| `formProps?` | `Omit<ComponentProps<'form'>, 'children'>` | 表单属性；`onSubmit` 中 `preventDefault()` 可阻止默认登录 |
+| `accountInputProps?` | `Omit<ComponentProps<typeof Input>, 'children' \| 'value' \| 'defaultValue'>` | 账号输入框原生属性；保留内部输入状态更新 |
+| `passwordInputProps?` | `Omit<ComponentProps<typeof Input>, 'children' \| 'value' \| 'defaultValue'>` | 密码输入框原生属性；保留内部输入状态更新 |
+| `submitButtonProps?` | `Omit<ComponentProps<typeof Button>, 'children'>` | 登录按钮配置 |
+| `session?` | `{ signIn(input: { account: string; password: string }): Promise<void> }` | 现有登录服务 |
+| `state?` | [`AuthSessionSnapshot`](#authsessionsnapshot) | 现有认证状态，单独使用组件时默认检查中 |
+
+省略 `state` 时为 `{ status: 'checking', user: null, busy: false, error: null }`，显示检查提示。这些服务类型沿用项目已有 `services/` 声明；不是新增登录状态源。
+
+#### 服务方法 {#服务}
 
 提供 `auth.session: AuthSessionService` 和 `auth.gate`。会话服务的成员为：
 

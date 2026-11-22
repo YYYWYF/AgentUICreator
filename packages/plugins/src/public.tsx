@@ -1,4 +1,5 @@
 import { useSuggestionRequest } from './internal/adapters-generated/assistant-ui/suggestion-request.js';
+import { parseMessageSpeaker, type MessageSpeaker } from './plugins/conversation-surface/adapters/presentation/message-speaker.js';
 import {
   type ConversationMessage,
   type ConversationThreadComponents,
@@ -204,7 +205,6 @@ import {
 import { TooltipProvider as InternalTooltipProvider } from "./internal/adapters-generated/assistant-ui/components/ui/tooltip.js";
 import {
   ActionBarPrimitive,
-  AuiIf as InternalConversationIf,
   BranchPickerPrimitive,
   ErrorPrimitive,
   MessagePrimitive,
@@ -267,7 +267,8 @@ export const AgentUIDialog: Readonly<{
 /** Styled centered Popup with its own themed Portal and Backdrop; requires package styles.css.
  * Render directly inside AgentUIDialog.Root, without an additional Portal. */
 export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
-import { forwardRef, useMemo, useSyncExternalStore } from "react";
+import { forwardRef, useContext, useMemo, useSyncExternalStore } from "react";
+import { ConversationMessageMetadataContext, type ConversationMessageMetadataTarget } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -296,6 +297,8 @@ export interface ConversationState {
   readonly thread: ConversationThreadSnapshot;
   readonly message: {
     readonly isCopied: boolean;
+    readonly speaker: MessageSpeaker | null | undefined;
+    readonly metadata: { readonly custom: Readonly<Record<string, unknown>>; readonly [key: string]: unknown };
     readonly [key: string]: unknown;
   };
   readonly threads: {
@@ -318,11 +321,7 @@ export function ConversationIf({
   condition: (state: ConversationState) => boolean;
   children?: ReactNode;
 }>) {
-  return (
-    <InternalConversationIf condition={condition as never}>
-      {children}
-    </InternalConversationIf>
-  );
+  return useConversation(condition) ? <>{children}</> : null;
 }
 
 export function ConversationCanonicalUserEditComposer({ input }: Readonly<{ input?: ReactNode }> = {}) {
@@ -942,8 +941,13 @@ export function useConversationActions(): ConversationActions {
   }, [runtime]);
 }
 
+/** Readonly application view; the canonical Runtime message remains unchanged. */
+export interface ConversationMessageView extends ConversationMessage {
+  readonly speaker: MessageSpeaker | null | undefined;
+}
+
 export interface ConversationThreadSnapshot {
-  messages: readonly ConversationMessage[];
+  messages: readonly ConversationMessageView[];
   state?: unknown;
   isRunning: boolean;
 }
@@ -968,14 +972,47 @@ export function useConversation<T>(
   selector?: (state: ConversationState) => T,
 ): ConversationThreadController | T {
   const runtime = useAui();
+  const metadataSource = useContext(ConversationMessageMetadataContext);
   const { controller, state } = useMemo(() => {
     let snapshot: ConversationThreadSnapshot | undefined;
+    let sourceMessages: ReturnType<typeof runtime.thread.getState>['messages'] | undefined;
+    let projectedMessages: readonly ConversationMessageView[] | undefined;
+    let metadataRevision = -1;
+    type ProjectedMessage = ConversationMessageMetadataTarget & Pick<ConversationMessageView, 'speaker'>;
+    const projected = new WeakMap<ConversationMessageMetadataTarget, { custom: Readonly<Record<string, unknown>> | undefined; value: ProjectedMessage }>();
+    const speakers = new WeakMap<object, Map<string, ConversationMessageView['speaker']>>();
+    const projectMessage = <TMessage extends ConversationMessageMetadataTarget>(message: TMessage): TMessage & Pick<ConversationMessageView, 'speaker'> => {
+      const custom = metadataSource?.read(message) ?? message.metadata?.custom;
+      const cached = projected.get(message);
+      if (cached && cached.custom === custom) return cached.value as TMessage & Pick<ConversationMessageView, 'speaker'>;
+      const identity = message.createdAt instanceof Date ? message.createdAt : message;
+      let messageSpeakers = speakers.get(identity);
+      if (!messageSpeakers) { messageSpeakers = new Map(); speakers.set(identity, messageSpeakers); }
+      const speaker = parseMessageSpeaker(custom?.speaker, messageSpeakers.get(message.id));
+      messageSpeakers.set(message.id, speaker);
+      const value = { ...message,
+        ...(custom !== undefined && custom !== message.metadata?.custom ? { metadata: { ...message.metadata, custom } } : {}),
+        speaker,
+      };
+      projected.set(message, { custom, value });
+      return value;
+    };
     const getSnapshot = (): ConversationThreadSnapshot => {
       const current = runtime.thread.getState();
-      if (snapshot === undefined || snapshot.messages !== current.messages ||
+      const revision = metadataSource?.getRevision() ?? 0;
+      if (sourceMessages !== current.messages || metadataRevision !== revision) {
+        const next = current.messages.map(projectMessage) as unknown as readonly ConversationMessageView[];
+        if (!projectedMessages || projectedMessages.length !== next.length || next.some((message, index) => message !== projectedMessages?.[index])) {
+          projectedMessages = next;
+        }
+        sourceMessages = current.messages;
+        metadataRevision = revision;
+      }
+      const messages = projectedMessages!;
+      if (snapshot === undefined || snapshot.messages !== messages ||
         !Object.is(snapshot.state, current.state) || snapshot.isRunning !== current.isRunning) {
         snapshot = {
-          messages: current.messages as unknown as readonly ConversationMessage[],
+          messages,
           ...(current.state === undefined ? {} : { state: current.state }),
           isRunning: current.isRunning,
         };
@@ -987,7 +1024,7 @@ export function useConversation<T>(
         return getSnapshot();
       },
       get message() {
-        return runtime.message.getState();
+        return projectMessage(runtime.message.getState());
       },
       get threads() {
         return runtime.threads.getState();
@@ -996,8 +1033,13 @@ export function useConversation<T>(
         return runtime.threadListItem.getState();
       },
     };
-    return { controller: { getSnapshot, subscribe: runtime.subscribe }, state };
-  }, [runtime]);
+    const subscribe = (listener: () => void) => {
+      const stopRuntime = runtime.subscribe(listener);
+      const stopMetadata = metadataSource?.subscribe(listener);
+      return () => { stopRuntime(); stopMetadata?.(); };
+    };
+    return { controller: { getSnapshot, subscribe }, state };
+  }, [runtime, metadataSource]);
   const read = () => {
     if (selector === undefined) return controller;
     const selected = selector(state);
@@ -1315,11 +1357,16 @@ export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[
 export function useSidebarNavigation(): () => void { return internalSidebarNavigation(); }
 
 // Product facade reuses the same Sidebar context and upstream-derived primitives.
-import { SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters-generated/assistant-ui/components/ui/sidebar.js";
+import { SidebarProvider as InternalSidebarProvider, Sidebar as InternalSidebar, SidebarContent as InternalSidebarContent, SidebarTrigger as InternalSidebarTrigger, useSidebar as internalUseSidebar, SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters-generated/assistant-ui/components/ui/sidebar.js";
+export const AgentUISidebarProvider: ComponentType<React.HTMLAttributes<HTMLDivElement> & { defaultOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void; isMobile?: boolean }> = InternalSidebarProvider;
+export const AgentUISidebar: ComponentType<React.HTMLAttributes<HTMLDivElement> & { side?: "left" | "right"; variant?: "sidebar" | "floating" | "inset"; collapsible?: "offcanvas" | "icon" | "none" }> = InternalSidebar;
+export const AgentUISidebarContent: ComponentType<React.HTMLAttributes<HTMLDivElement>> = InternalSidebarContent;
+export const AgentUISidebarTrigger: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement>> = InternalSidebarTrigger;
+export function useAgentUISidebar(): { state: "expanded" | "collapsed"; open: boolean; setOpen: (open: boolean) => void; openMobile: boolean; setOpenMobile: (open: boolean) => void; isMobile: boolean; toggleSidebar: () => void } { return internalUseSidebar(); }
 export const AgentUISidebarHeader: ComponentType<React.HTMLAttributes<HTMLDivElement>> = InternalSidebarHeader;
 export const AgentUISidebarMenu: ComponentType<React.HTMLAttributes<HTMLUListElement>> = InternalSidebarMenu;
 export const AgentUISidebarMenuItem: ComponentType<React.HTMLAttributes<HTMLLIElement>> = InternalSidebarMenuItem;
-export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement> & { render?: ReactElement; size?: "default" | "sm" | "lg"; tooltip?: string }> = InternalSidebarMenuButton;
+export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement> & { render?: ReactElement; isActive?: boolean; size?: "default" | "sm" | "lg"; tooltip?: string }> = InternalSidebarMenuButton;
 export { ConversationToolTimeline, type ConversationToolTimelineProps } from "./plugins/tool-timeline/adapters/presentation/tool-timeline.js";
 export { ConversationThinkingIndicator, type ConversationThinkingIndicatorProps } from "./plugins/thinking-indicator/adapters/presentation/thinking-indicator.js";
 
@@ -1348,8 +1395,6 @@ export { CanonicalConversationThreadList, CanonicalConversationThreadListRailAct
 export type { ConversationThreadListPluginProps, ConversationThreadListRailActionProps } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list.js";
 
 
-export { CanonicalConversationNew } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
-export type { ConversationNewPluginProps } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
 
 export { CanonicalConversationQuote } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
 export type { ConversationQuotePluginProps, ConversationQuoteData } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
@@ -1376,6 +1421,7 @@ export type { ConversationServicePluginProps } from "./plugins/conversation-serv
 
 export { CanonicalConversationSurfacePlugin } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
 export type { ConversationSurfacePluginProps, ConversationSurfaceAdapterProps } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
+export type { MessageSpeaker, MessageIdentityOptions } from './plugins/conversation-surface/adapters/presentation/message-identity.js';
 
 export { CanonicalLocaleProviderPlugin } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
 export type { LocaleProviderPluginProps } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
@@ -1450,6 +1496,8 @@ export { WORKBENCH_PANEL_SERVICE, DEFAULT_WORKBENCH_PANEL_IDS, createWorkbenchPa
 export type { WorkbenchPanelService, WorkbenchPanelSnapshot } from './plugins/workbench-panel/adapters/presentation/service.js';
 export { WorkbenchPanelActions } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
 export type { WorkbenchPanelActionsProps } from './plugins/workbench-panel-actions/adapters/presentation/workbench-panel-actions.js';
+export { NavigationMenu } from './plugins/navigation-menu/adapters/presentation/navigation-menu.js';
+export type { NavigationMenuProps, NavigationMenuItem } from './plugins/navigation-menu/adapters/presentation/navigation-menu.js';
 
 export { useComposer, readComposerMessageData, type ComposerController, type ComposerState, type ComposerAttachment, type ComposerMessageDataAdapter, type ComposerData, type ComposerDataSource, type ComposerDataOptions, type ComposerRequestAdapter, type ComposerRequestAdapterInput } from "./composer-support.js";
 export { createComposerInputController } from "./composer-support.js";
@@ -1459,3 +1507,6 @@ import { ThreadFollowupSuggestions as InternalFollowupSuggestions } from "./inte
 export function ConversationFollowupSuggestions(): ReactElement {
   return <InternalFollowupSuggestions />;
 }
+
+export { STACK_NAVIGATION_SERVICE } from '@za38.03/agent-ui-runtime/contracts';
+export type { StackNavigationService, StackNavigationSnapshot, StackViewState } from '@za38.03/agent-ui-runtime/contracts';

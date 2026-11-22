@@ -21,6 +21,7 @@ import { ThreadComponentsContext } from './thread-context.js';
 import { taskAwareGroupBy, messageGroupBy, ToolGroupHost } from './assistant-message-groups.js';
 import { MessageError } from './message-error.js';
 import { AssistantResponseFooterHost } from './response-footer-host.js';
+import { AssistantMessageIdentity } from '../message-identity.js';
 
 export const AssistantMessage: FC = () => {
   const localeMessages = useLocale();
@@ -78,6 +79,7 @@ export const AssistantMessage: FC = () => {
       data-aui-quote-selectable='false'
       className='fade-in slide-in-from-bottom-1 animate-in relative duration-150'
     >
+      <AssistantMessageIdentity />
       <div
         data-agent-ui-owned=''
         data-slot='aui_assistant-message-content'

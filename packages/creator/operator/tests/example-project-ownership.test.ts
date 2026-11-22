@@ -38,7 +38,7 @@ it("imports examples as business files without BASE hashes or official updates",
   expect((await inspectAgentUISources(root, config, registry)).items[0]).toMatchObject({ projectOwned: true, status: "customized", issues: [] });
 });
 
-it("reads legacy demo hashes as path-only records while retaining official source baselines", async () => {
+it("reads all legacy source hashes as path-only installation receipts", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "example legacy ")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui"));
   const digest = "a".repeat(64);
@@ -51,7 +51,8 @@ it("reads legacy demo hashes as path-only records while retaining official sourc
   }));
   const { lock } = await readAgentUISourceLock(root, config);
   expect(lock.examples).toEqual({ "demo/frontend-tool-dialog": { files: ["plugins/business/index.tsx"] } });
-  expect(lock.items).toEqual({ "foundation/core": { files: { "config.ts": { sha256: digest } } } });
+  expect(lock.items).toEqual({ "foundation/core": { files: { "config.ts": {} } } });
+  expect(serializeAgentUISourceLock(lock).toString()).not.toContain("sha256");
   expect(JSON.parse(serializeAgentUISourceLock(lock).toString()).items).not.toHaveProperty("demo/frontend-tool-dialog");
   // Inspection alone does not rewrite even legacy project metadata.
   expect(await readFile(path.join(root, ".agent-ui/source-lock.json"), "utf8")).toContain('"demo/frontend-tool-dialog":{"files":{');

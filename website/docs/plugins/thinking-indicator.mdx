@@ -4,6 +4,8 @@ title: "思考状态提示（thinking-indicator）"
 
 # 思考状态提示（thinking-indicator）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![思考状态界面](/images/plugins/thinking-indicator.png)
@@ -13,27 +15,29 @@ title: "思考状态提示（thinking-indicator）"
 
 在 Agent 尚未开始正式回答时提供轻量状态提示，并根据当前消息中的实际活动决定何时显示、让位或消失。
 
-## 等待回答时显示提示
+### 等待回答时显示提示
 
 当前助理消息处于运行中、尚无正式回答正文，也没有更具体的活动界面需要展示时，插件显示思考提示。普通工具正在运行且没有其他活动展示接替时，提示可以转为工作中状态。
 
 提示文字使用统一的 `thinkingIndicator` 文案。状态随消息变化更新，无需业务代码自行维护一个加载开关。
 
-## 正式回答开始后自动消失
+### 正式回答开始后自动消失
 
 消息一旦出现非空的正式回答文字，提示就让出位置；消息不再运行时也不显示。修改提示文字不会强制让已结束的消息继续显示加载状态。
 
-## 让位给更具体的活动
+### 让位给更具体的活动
 
 当前消息已由思考内容展示接替时，插件避免重复显示思考提示；已显示且仍在运行的工具时间线也会接替轻量提示。专用工具或子任务已经展示自己的运行活动时，同样让位。
 
 遇到等待用户处理的工具操作，提示也会隐藏，让用户关注原有操作入口。思考区和时间线是否展示由所在会话传入，正常接入无需在业务页面手动同步这些标志。
 
-## 耗时文字按需提供
+### 耗时文字按需提供
 
 插件不自动计时。只有调用方提供 `elapsed` 时才展示相应文字；这不会改变提示出现和消失的判断。
 
-## 接入运行与消息数据 {#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 接入运行与消息数据 {#显示条件与数据来源}
 
 思考提示读取当前助理消息的运行状态和内容。下面以普通文字回答为例；实际 HTTP 响应使用[共用 SSE 格式](./ag-ui-data#共用的-sse-格式)，`threadId` 和 `runId` 使用当前请求的值：
 
@@ -49,7 +53,17 @@ title: "思考状态提示（thinking-indicator）"
 
 `REASONING_*`、工具调用和待处理操作还会影响提示是否让位，分别沿用[思考数据](./reasoning#显示条件与数据来源)、[工具事件](./ag-ui-data#通用工具事件)和[审批／中断协议](./tool-result#显示条件与数据来源)。这些条件由运行时处理。
 
-## 使用更紧凑的提示 {#紧凑的思考提示}
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+<span id="定制选项"></span>
+
+### 使用更紧凑的提示 {#紧凑的思考提示}
 
 <span id="example-1"></span>
 
@@ -70,12 +84,17 @@ export function ConversationThinkingIndicatorPlugin(props: ComponentProps<typeof
 
 这项调整仅改变间距；提示何时让位、何时随回答消失都保持原有行为。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制当前消息中的展示。显示条件、活动状态和消息内容继续由原有会话环境提供。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 继承 `div` 原生属性，排除 `children`。插件入口将可见性参数设为可选并默认 `false`。
 
@@ -92,14 +111,10 @@ export function ConversationThinkingIndicatorPlugin(props: ComponentProps<typeof
 
 <span id="思考状态"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>
 
-<span id="定制选项"></span>
 
 <span id="example-2"></span>

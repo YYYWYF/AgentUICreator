@@ -1,5 +1,7 @@
 # 语音输入（开发中）
 
+## 功能与效果
+
 
 ![语音输入界面](/images/plugins/dictation-action.png)
 
@@ -7,13 +9,15 @@
 
 在已有语音能力可用时，开始听写并将识别结果写入当前草稿；录音期间显示停止听写入口。默认使用受支持的浏览器语音识别，需要麦克风权限和可用设备。业务转写服务接入仍在开发中，见[语音转写服务](/development/speech-to-text.md)。
 
-## 开始与停止听写
+### 开始与停止听写
 
 按钮根据当前能力与录音状态切换，不需要用户自己配置两个按钮的显示条件。停止听写只结束语音录入；用户仍可以编辑文字，再通过原有发送入口提交。
 
 实际入口是否显示取决于当前 Runtime 的听写能力。样式配置不启用浏览器不支持的识别服务，也不替代麦克风授权。
 
-## 与 Composer 联动
+## 数据来源与显示条件
+
+### 与 Composer 联动
 
 识别结果写入同一份草稿正文，`useComposer()` 的 `text` 会随之更新。录音期间的输入禁用状态也参与控制器的 `disabled`，自定义输入和发送入口应读取同一状态，见 [Composer 的草稿订阅与控制](/plugins/composer.md#hook)。
 
@@ -35,7 +39,13 @@
 
 “停止听写”与“停止 Agent 回答”是不同操作：前者停止录音，后者属于[发送／停止插件](/plugins/submit-action.md)。停止听写本身不会发送 Agent 请求。
 
-## 开始和停止使用不同样式 \{#开始和停止使用不同样式}
+## 常见定制
+
+
+
+
+
+### 开始和停止使用不同样式 \{#开始和停止使用不同样式}
 
 
 两种状态的按钮分别配置；示例不提供语音转写服务，现有开发状态不变。
@@ -52,7 +62,7 @@ export function Example(props: ComponentProps<typeof ConversationDictationAction
 ```
 
 
-## 禁用语音输入 \{#禁用语音入口}
+### 禁用语音输入 \{#禁用语音入口}
 
 业务未提供转写适配时，可按项目状态禁用入口。
 
@@ -66,9 +76,11 @@ export function Example(props: ComponentProps<typeof ConversationComposerDictate
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 插件入口：`ConversationDictationActionPlugin`。没有独立根节点；整体外观参数同时传给开始和停止按钮，子按钮参数可覆盖它们。
 
@@ -82,7 +94,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerDictate
 
 两个子按钮保留原生样式、事件和 icon 属性，根据现有听写能力和录音状态切换可见性。
 
-### 子按钮属性
+#### 子按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 
@@ -101,10 +113,6 @@ export function Example(props: ComponentProps<typeof ConversationComposerDictate
 提示按钮默认 `variant="ghost"`、`size="icon"`；普通 `Button` 默认均为 `default`，本插件的预设值以上文为准。普通 `Button` 不包含 `tooltip`、`side`。
 
 语音按钮提示及无障碍名称统一在 `locales.composer` 修改：`voiceInput`、`startVoice`、`stopDictation`、`stopVoice`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
-
-
-
-
 
 
 

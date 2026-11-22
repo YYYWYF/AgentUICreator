@@ -367,6 +367,8 @@ const onInspect = () => inspect(conversation.getSnapshot());
 
 传入 selector 时按 `Object.is` 比较选中值；选中值不变时，不会因其他数据更新而重新渲染。无参数时不自动订阅数据；手动订阅使用 `conversation.subscribe(listener)`，并在 effect 清理时取消。selector 可读 `thread.messages`、`thread.state`、`thread.isRunning` 以及公开的 `threads`、`message`、`threadListItem` 字段；后两者需要各自已有的消息或列表项作用域。选择具体字段或稳定引用，避免每次创建新对象、数组。完整示例见[读取当前会话](/plugins/conversation-surface#hook)。
 
+在已有消息组件内，通过 `useConversation(s => s.message.speaker)` 读取类型明确的发言者身份，或用 `useConversation(s => s.message.speaker?.name)` 只订阅名称。`thread.messages` 与 `getSnapshot().messages` 返回的每条 `ConversationMessageView` 也包含只读 `speaker`，类型为 `MessageSpeaker | null | undefined`：有效对象有 `id`、`name`、可选 `avatarUrl`；`undefined` 表示缺失或不合法，`null` 表示明确隐藏身份头。展示 fallback 不会混入消息身份。原始 `metadata.custom` 保留。完整实时事件、历史格式与作用域示例见[展示消息发言者的名称与头像](./message-speaker)，默认身份头的 props 见[会话界面](/plugins/conversation-surface#显示发言者头像与名称)。
+
 `useAgentRuntime` 从 `@za38.03/agent-ui-runtime` 导入。无参数返回已有 Runtime 的即时读取与操作句柄；传 selector 时订阅选中值：
 
 | Hook | 读取内容 |

@@ -73,7 +73,7 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 | --- | --- | --- |
 | `conversation-surface` | `TEXT_MESSAGE_*`、消息历史及下方各类内容 | [会话界面](./conversation-surface#显示条件与数据来源) |
 | `reasoning` | `REASONING_START`、`REASONING_MESSAGE_*`、`REASONING_END` | [思考内容](./reasoning#显示条件与数据来源) |
-| `tool-group`、`tool-timeline`、`tool-fallback` | `TOOL_CALL_START/ARGS/END/RESULT` | [通用工具事件](#通用工具事件) |
+| `tool-group`、`tool-timeline`、`tool-result` | `TOOL_CALL_START/ARGS/END/RESULT` | [通用工具事件](#通用工具事件) |
 | `tool-result` | 工具调用，以及序列化到 `TOOL_CALL_RESULT.content` 的内容数组 | [文本、图片、音视频和文档](./tool-result#显示条件与数据来源) |
 | `ask-user-question` | 工具 `ask_user_question` 的调用参数；用户回答后续答 | [提问与答案](./ask-user-question#agent-服务接入) |
 | `task-group` | 父工具调用、`SUBAGENT_*` 和带 `subagentRunId` 的子消息 | [SubAgent 任务](./task-group#显示条件与数据来源) |
@@ -89,7 +89,7 @@ data: {"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"t
 
 ### 通用工具事件
 
-下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result` 或 `tool-fallback`。
+下面的调用会交给已启用的工具展示插件；有同名专用 Tool UI 时优先使用专用展示，否则使用 `toolFallback` 位置的 `tool-result`。
 
 ```jsonl
 {"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}

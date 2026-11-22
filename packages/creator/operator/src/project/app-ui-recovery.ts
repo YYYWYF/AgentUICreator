@@ -1,4 +1,4 @@
-import { appUIModelJsonHash } from "./app-ui-serialization";
+import { appUIModelJsonHash, stripCopiedAppUIIds } from "./app-ui-serialization";
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -68,7 +68,7 @@ export async function repairAppUIModel(projectRoot: string, rawInput: unknown, o
       "APP_UI_MODEL_RECOVERY_NOT_REQUIRED", "Use semantic mutation for a valid AppUIModel.");
     const { paths, config } = await context(projectRoot);
     let admitted;
-    try { admitted = await admitAppUIModelCandidate(projectRoot, input.candidateModel, config, paths); }
+    try { admitted = await admitAppUIModelCandidate(projectRoot, stripCopiedAppUIIds(input.candidateModel, current.source), config, paths); }
     catch (error) {
       const failure = error as { code?: string; details?: { workspaceIntegrity?: boolean } };
       const code = failure.code;

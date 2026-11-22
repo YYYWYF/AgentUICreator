@@ -76,6 +76,10 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
   expect(ids).toHaveLength(49);
+  expect(ids).not.toContain('conversation-new');
+  expect(pkg.exports).not.toHaveProperty('./conversation-new');
+  expect(ids).not.toContain('content-switcher');
+  expect(pkg.exports).not.toHaveProperty('./content-switcher');
   expect(ids).not.toContain('tool-fallback');
   expect(ids.filter(id => id === 'tool-result')).toHaveLength(1);
   expect(pkg.exports).not.toHaveProperty('./tool-fallback');

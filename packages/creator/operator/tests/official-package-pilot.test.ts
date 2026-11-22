@@ -59,7 +59,7 @@ it("validates npm dependencies independently from partial reference source, reta
   const before = await inspect();
   expect(["partial", "blocked"]).toContain(before.items.find(item => item.id === npm.id)!.status);
   const consumer = before.items.find(item => item.id === demo.id)!;
-  expect(consumer.dependencyIssues.map(issue => issue.itemId)).toEqual([source.id]);
+  expect(consumer.dependencyIssues).toEqual([]); // Historical template paths are not requirements on user code.
   expect(consumer.resolvedRequirements.every(requirement => requirement.compatible)).toBe(true);
   await rm(path.join(root, "node_modules/@za38.03/agent-ui-plugins"));
   const missing = (await inspect()).items.find(item => item.id === demo.id)!;

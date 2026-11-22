@@ -61,7 +61,7 @@ export const conversationConnection: {
 
 | 你要接入的功能 | 修改哪个方法 | 需要做什么 |
 | --- | --- | --- |
-| 加载会话列表 | `list()` | 修改请求，返回 `{ id, title, ... }` 数组 |
+| 加载会话列表 | `list()` | 返回 `{ id, title, ... }` 数组，或 `{ conversations, nextCursor }` 分页结果 |
 | 点击会话后加载聊天记录 | `get(id)` | 修改请求，返回 `{ id, title, history }` |
 | 删除会话 | `delete(id)` | 调用删除接口，失败时抛错 |
 | 重命名、归档、取消归档 | `rename/archive/unarchive` | 修改各自请求，失败时抛错 |
@@ -325,7 +325,7 @@ export function AssistantPage() {
 
 | 方法 | 返回结果 |
 | --- | --- |
-| `list()` | 会话数组 `[{ id, title, ... }]` |
+| `list({ cursor?, signal? })` | 会话数组 `[{ id, title, ... }]`，或 `{ conversations: [...], nextCursor: string \| null }` |
 | `get(id)` | 会话详情 `{ id, title, history }`；历史为 `{ format: 'langchain', messages }` |
 | `delete(id)` | 成功无需返回内容，失败抛错 |
 | `rename(id, title)` | 同上，可选方法 |
@@ -348,6 +348,7 @@ export function AssistantPage() {
   "errorMsg": null,
   "body": {
     "total_conversations": 1,
+    "next_cursor": null,
     "conversations": [
       {
         "thread_id": "thread-123",
@@ -369,6 +370,10 @@ export function AssistantPage() {
 | `last_message_time` | 否 | 非空时转换为 `updatedAt`；空字符串、`null` 或缺少时省略 |
 
 `returnCode` 必须为 `SUC0000`；其他返回码会抛错并保留 `errorMsg`，不会当成空列表。
+
+分页时，`body.next_cursor` 返回下一页游标字符串；没有下一页返回 `null`。项目方法将它映射为 `nextCursor`。首次请求不带游标，列表滚动到底时，下一次请求使用 `GET /api/conversations?cursor=上次的next_cursor`，游标由 URLSearchParams 编码并原样传递。缺少 `next_cursor` 时继续兼容原有不分页列表。
+
+默认列表复用 assistant-ui 分页追加，`null` 后停止；加载失败保留原游标并提供重试。普通刷新更新第一页，同时保留已加载尾部和末尾游标；第一页已覆盖全量时替换列表。搜索只筛选已加载会话。
 
 `total_conversations`、`message_count` 是统计字段，不进入会话服务的列表模型。需要显示已归档会话时，列表也要包含这些记录，并设置 `status: "archived"`。
 

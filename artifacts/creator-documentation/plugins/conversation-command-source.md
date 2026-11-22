@@ -1,5 +1,7 @@
 # 会话命令源（conversation-command-source）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![命令注册界面](/images/plugins/slash-command-trigger.png)
@@ -9,7 +11,26 @@
 
 集中提供 `/` 菜单中的指令和动作。业务插件启用时注册自己的命令，停用时注销；菜单订阅这个集合，不需要每个业务插件自己再实现一套搜索弹层。
 
-## 与 Composer 联动
+## 修改与启用
+
+### 命令配置 \{#命令配置}
+
+命令通常在生成源码目录的 `plugins/conversation-command-source/definition.ts` 中配置；菜单展示在 `plugins/slash-command-trigger/index.tsx` 中调整。已有工程以实际文件为准。
+
+修改命令无需接管插件实现源码。更多菜单定制见[/ 快捷命令](/plugins/slash-command-trigger.md)，实际 Creator 操作记录见[自定义 @ 候选与 / 命令](/guide/adjustments/mention-and-commands.md)。
+
+<span id="开发文档"></span>
+
+- 配置入口与命令数据格式：[提及搜索与快捷命令](/development/composer-sources.md)。
+- 在自定义插件中提供或消费命令服务：[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。
+
+<span id="取数与联动"></span>
+
+业务插件可取得现有命令注册器，读取命令集合，或在启用时注册自己的命令；命令可以填入草稿或执行项目操作。注册返回的注销函数应在停用或卸载时执行，见[调用示例](#随业务插件启停注册命令)。
+
+## 数据来源与显示条件
+
+### 与 Composer 联动
 
 <span id="注册草稿指令"></span>
 
@@ -29,7 +50,17 @@ export function registerSummary(registry: ConversationCommandRegistry, label: st
 
 注册不会填入或发送草稿。真正选择后，结构化快照归**命令触发器实例**所有，不以 `conversation-command-source` 再建一个键；原始条目、默认正文格式、删除与最终适配规则见[命令交给 Composer 的数据](/plugins/slash-command-trigger.md#交给-composer-的数据)。
 
-## 注册项目动作命令 \{#注册项目动作命令}
+### 订阅命令集合
+
+调用同一注册器的 `getSnapshot()` 可读取当前命令，`subscribe(listener)` 可跟随注册与注销；取消订阅和 `register()` 返回的注销函数都要并入调用方原有清理。这里订阅的是候选集合，不是 Composer 草稿或已选指令。读取当前草稿使用 [Composer 的订阅接口](/plugins/composer.md#hook)。
+
+## 常见定制
+
+<span id="代码示例"></span>
+
+<span id="常见需求"></span>
+
+### 注册项目动作命令 \{#注册项目动作命令}
 
 <span id="example-1"></span>
 
@@ -45,7 +76,7 @@ export function registerAction(registry: ConversationCommandRegistry, label: str
 
 <span id="example-2"></span>
 
-## 命令注册与注销 \{#随业务插件启停注册命令}
+### 命令注册与注销 \{#随业务插件启停注册命令}
 
 组件与服务位于同一 Agent，并声明 `conversation.slash-command-source` 依赖。
 
@@ -68,31 +99,15 @@ export function registerProjectCommand(context: UIPluginSetupContext, label: str
 
 在调用方已有 `setup` 中执行 `registerProjectCommand(context, label)`，并保存返回的注销函数；在其清理函数中调用它，同时保留原清理逻辑。启用调用方后 `/` 菜单出现该命令，停用后移除；选择时才触发新建会话。
 
-## 订阅命令集合
-
-调用同一注册器的 `getSnapshot()` 可读取当前命令，`subscribe(listener)` 可跟随注册与注销；取消订阅和 `register()` 返回的注销函数都要并入调用方原有清理。这里订阅的是候选集合，不是 Composer 草稿或已选指令。读取当前草稿使用 [Composer 的订阅接口](/plugins/composer.md#hook)。
-
-## API
+## 属性与 API
 
 <span id="属性"></span>
+
 <span id="开发-api"></span>
 
-### 命令配置 \{#命令配置}
+### API
 
-命令通常在生成源码目录的 `plugins/conversation-command-source/definition.ts` 中配置；菜单展示在 `plugins/slash-command-trigger/index.tsx` 中调整。已有工程以实际文件为准。
-
-修改命令无需接管插件实现源码。更多菜单定制见[/ 快捷命令](/plugins/slash-command-trigger.md)，实际 Creator 操作记录见[自定义 @ 候选与 / 命令](/guide/adjustments/mention-and-commands.md)。
-
-<span id="开发文档"></span>
-
-- 配置入口与命令数据格式：[提及搜索与快捷命令](/development/composer-sources.md)。
-- 在自定义插件中提供或消费命令服务：[服务共享与状态订阅](/development/plugin-api.md#服务共享与状态订阅)。
-
-<span id="取数与联动"></span>
-
-业务插件可取得现有命令注册器，读取命令集合，或在启用时注册自己的命令；命令可以填入草稿或执行项目操作。注册返回的注销函数应在停用或卸载时执行，见[调用示例](#随业务插件启停注册命令)。
-
-### 服务方法 \{#服务}
+#### 服务方法 \{#服务}
 
 提供 `conversation.slash-command-source`，值为 `ConversationSlashCommandSource`。应用默认使用 `createConversationCommandRegistry(): ConversationCommandRegistry`。
 
@@ -110,8 +125,4 @@ export function registerProjectCommand(context: UIPluginSetupContext, label: str
 
 <span id="怎么让-creator-修改"></span>
 
-<span id="代码示例"></span>
-
 <span id="命令注册"></span>
-
-<span id="常见需求"></span>

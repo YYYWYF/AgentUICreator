@@ -21,6 +21,10 @@ custom Layout placement or geometry.
 - `row`: lays out children horizontally. Optional `sizes` correspond by index to `children`.
 - `column`: lays out children vertically. Optional `sizes` correspond by index to `children`.
 - `stack`: overlays or switches among children; `activeIndex` selects a direct child by index.
+  For external selection, give the Stack its own `id` and a `viewIds` array of
+  branch names in child order, for example `id: "main", viewIds: ["chat", "projects"]`.
+  Keep names unique and match the child count; set `keepMounted: true` to retain
+  hidden chat state. Consumers use the built-in Stack Service's `selectView`.
 - `panel`: wraps one child and may define width, height, min/max width, or resizing.
 - `slot`: is a physical structural location with an ordered `plugins` array. It has no persisted id, description, hint, or Runtime slot id.
 

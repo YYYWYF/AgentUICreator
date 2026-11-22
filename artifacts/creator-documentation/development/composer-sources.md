@@ -255,8 +255,6 @@ return [{
 
 未配置 Composer 适配器时，@ 与 / 沿用正文引用格式，不自动添加结构化外带字段。`onSelect` 继续用于自定义插入文字或取消选择。
 
-旧项目的触发器若带有 `requestAdapter`，将其中的数据转换移到 Composer；已有文件不会自动迁移。
-
 ### 第 2 步：Composer 组装最终请求 \{#composer-的-requestadapter决定最终字段}
 
 在项目已有的 `plugins/composer/index.tsx` 中，为 Composer 组件传入 `requestAdapter`，保留现有插槽和组件组合。下面示例假设 @ 与 / 的实例 ID 分别为 `employee-mention`、`command-picker`：

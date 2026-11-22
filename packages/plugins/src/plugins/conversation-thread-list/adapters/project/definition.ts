@@ -9,7 +9,7 @@ import manifestJson from './manifest.json';
 export const conversationThreadListPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
   inject: [AGENT_UI_CONVERSATION_SERVICE],
-  optionalInject: [AGENT_UI_THEME_SERVICE, AGENT_UI_LOCALE_SERVICE],
+  optionalInject: [AGENT_UI_THEME_SERVICE, AGENT_UI_LOCALE_SERVICE, 'agent-ui.stack-navigation'],
   Component: ConversationThreadListPlugin,
 };
 

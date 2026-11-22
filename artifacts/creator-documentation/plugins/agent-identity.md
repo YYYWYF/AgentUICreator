@@ -1,5 +1,7 @@
 # Agent 名称与头像（agent-identity）
 
+## 功能与效果
+
 
 ![名称与头像界面](/images/plugins/agent-identity.png)
 
@@ -7,23 +9,31 @@
 
 在界面中展示助手名称、Logo 和可选说明，并跟随统一的界面语言选择名称。
 
-## 展示助手名称与 Logo
+### 展示助手名称与 Logo
 
 配置名称和 Logo 后，插件以统一的身份区域展示；没有 Logo 时使用默认机器人图标，没有名称或当前语言缺少对应名称时使用统一文案中的默认名称。
 
 可选说明出现在名称下方。该区域属于展示标识，不会仅因修改名称或图片就创建、切换或重新连接一个助手。
 
-## 名称跟随界面语言
+### 名称跟随界面语言
 
 名称可以提供中英文版本，界面语言切换后自动选择对应版本，无需为插件维护另一套语言状态。只传字符串时，各种语言使用相同名称。
 
 默认无障碍名称和悬浮标题也跟随当前展示名称；缺少某种语言的配置时仍有默认名称可用。
 
-## 标识与真实助手身份
+## 数据来源与显示条件
+
+### 标识与真实助手身份
 
 插件显示的名称、Logo 和描述是界面内容。业务代码要识别当前逻辑助手时，应读取现有助手身份，而不是将显示名称当作稳定 ID；修改展示不会改变 Thread 的归属。
 
-## 为名称提供双语版本 \{#按界面语言显示名称}
+## 常见定制
+
+
+
+
+
+### 为名称提供双语版本 \{#按界面语言显示名称}
 
 
 在已有身份插件入口配置名称，语言选择继续沿用统一语言环境：
@@ -38,7 +48,7 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 }
 ```
 
-## 调整 Logo 和名称样式 \{#logo-尺寸与名称样式}
+### 调整 Logo 和名称样式 \{#logo-尺寸与名称样式}
 
 
 项目已配置 Logo 时，可以改变图片尺寸和名称排版，继续使用默认内容与语言选择：
@@ -54,11 +64,13 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 }
 ```
 
-## API
+## 属性与 API
+
+
+
+### API
 
 以下选项调整身份区域的展示。名称的语言选择、默认名称和缺少 Logo 时的图标由插件处理。
-
-
 
 继承 `div` 原生属性，排除 `children` 和原生 `title`；名称与 Logo 使用专用属性。
 
@@ -73,11 +85,7 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 
 
 
-
-
-
-
-### 读取当前助手标识 \{#hook}
+#### 读取当前助手标识 \{#hook}
 
 从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useAgentIdentity()`，可取得当前 Host 的 `{ agentId: string }`；没有身份上下文时返回 `undefined`。它不返回界面上的名称、Logo 或说明；这些展示内容通过本页的组件属性设置。
 

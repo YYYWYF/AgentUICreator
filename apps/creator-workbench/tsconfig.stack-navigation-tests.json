@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node"] },
+  "include": ["tests/stack-navigation-host.spec.ts", "playwright.stack-navigation.config.ts", "../../packages/renderer/src/styles.d.ts"],
+  "exclude": []
+}

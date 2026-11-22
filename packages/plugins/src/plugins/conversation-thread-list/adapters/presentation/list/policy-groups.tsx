@@ -9,6 +9,7 @@ import {
   useConversationThreadListGroups,
 } from '../../../../../public.js';
 import { ThreadListOptionsContext, PolicyThreadListItem } from './policy-context.js';
+import { ThreadListPagination } from './thread-list-pagination.js';
 
 export const PolicyThreadListSkeleton: FC = () => {
   const messages = useLocale('threadList');
@@ -71,7 +72,7 @@ export const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({ searc
   ));
 };
 
-export const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({ searchQuery = '' }) => {
+export const PolicyThreadListItems: FC<{ searchQuery?: string; loadMoreError?: string | undefined }> = ({ searchQuery = '', loadMoreError }) => {
   return (
     <div data-slot='aui_thread-list-items' className='flex flex-col gap-0.5'>
       <ConversationIf condition={(s) => s.threads.isLoading}>
@@ -80,6 +81,7 @@ export const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({ searchQuer
       <ConversationIf condition={(s) => !s.threads.isLoading}>
         <PolicyThreadListItemGroups searchQuery={searchQuery} />
       </ConversationIf>
+      <ThreadListPagination error={loadMoreError} />
     </div>
   );
 };

@@ -12,7 +12,6 @@ import type { UIOperatorConfig } from "../types";
 import {
   readAgentUISourceLock,
   serializeAgentUISourceLock,
-  sha256,
 } from "./lock";
 import {
   inspectAgentUISources,
@@ -25,7 +24,6 @@ import {
   type AgentUISourceTransactionTestOptions,
 } from "./transaction";
 import type { AgentUISourceApplyResult, AgentUISourceLock, AgentUISourceLockItem } from "./types";
-import { generatedSourceTargets } from "./generated-targets";
 import { withPackageDependency } from "./package-dependencies";
 
 export interface ApplyAgentUISourceItemInput {
@@ -77,17 +75,10 @@ function stateError(itemId: string, status: string): AgentUISourceError {
 
 export function sourceItemLock(item: LoadedAgentUISourceItem, registry: LoadedAgentUISourceRegistry): AgentUISourceLockItem {
   const manifest = item.id.startsWith("plugin/") ? item.loadedFiles.find(file => file.target === `plugins/${item.id.slice(7)}/manifest.json`) : undefined;
-  const pluginVersion = manifest ? JSON.parse(manifest.content.toString()).version as string : undefined;
-  return { files: Object.fromEntries(item.loadedFiles.map(file => [file.target, { sha256: sha256(file.content) }])),
-    ...(pluginVersion && registry.sourceRelease ? { pluginVersion, sourceRelease: registry.sourceRelease } : {}) };
-}
-
-function lockedSourceMatchesRegistry(
-  item: LoadedAgentUISourceItem,
-  locked: AgentUISourceLockItem | undefined,
-): boolean {
-  if (!locked || Object.keys(locked.files).length !== item.loadedFiles.length) return false;
-  return item.loadedFiles.every(file => locked.files[file.target]?.sha256 === sha256(file.content));
+  const value: unknown = manifest ? JSON.parse(manifest.content.toString("utf8")) : undefined;
+  const pluginVersion = value && typeof value === "object" && "version" in value && typeof value.version === "string" ? value.version : undefined;
+  return { files: Object.fromEntries(item.loadedFiles.map(file => [file.target, {}])),
+    ...(pluginVersion ? { pluginVersion } : {}), ...(registry.sourceRelease ? { sourceRelease: registry.sourceRelease } : {}) };
 }
 
 /** Installs a clean dependency closure as one Source Registry transaction. */
@@ -170,20 +161,7 @@ export async function preflightAgentUISourceApply(
       continue;
     }
     if (status === "customized" && item.id === input.itemId) throw stateError(item.id, status);
-    if (
-      status === "customized" &&
-      item.id !== input.itemId &&
-      !lockedSourceMatchesRegistry(item, lock.items[item.id])
-    ) {
-      throw new AgentUISourceError(
-        "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
-        `Agent UI source dependency ${item.id} was customized by the project and cannot be synchronized automatically; ${input.itemId} requires changed dependency source.`,
-        {
-          requestedItemId: input.itemId,
-          dependencyItemId: item.id,
-        },
-      );
-    }
+
   }
   return { loadedRegistry, closure, before, byId, lock };
 }
@@ -204,21 +182,9 @@ export async function applyAgentUISourceItem(
     if (config.agentUI.providedSourceItems?.includes(item.id)) continue;
     const inspection = byId.get(item.id);
     if (inspection?.projectOwned || inspection?.status === "customized") continue;
-    if (inspection?.status === "managed" && lockedSourceMatchesRegistry(item, lock.items[item.id])) continue;
-    const previous = nextLock.items[item.id];
-    const nextTargets = new Set(item.loadedFiles.map((file) => file.target));
-    for (const oldTarget of Object.keys(previous?.files ?? {})) {
-      if (!nextTargets.has(oldTarget)) mutations.set(oldTarget, { target: oldTarget });
-    }
-    for (const file of item.loadedFiles) {
-      // A source update can leave most files unchanged. Replacing those files
-      // needlessly invalidates their Vite modules (including shared contexts).
-      // Generated outputs are preserved until the enclosing transaction
-      // regenerates them from the installed composition.
-      if (generatedSourceTargets.includes(file.target) && previous?.files[file.target]) continue;
-      if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
-      mutations.set(file.target, { target: file.target, content: file.content });
-    }
+    // Existing project files, including edits from other agents, are retained.
+    if (inspection?.status === "managed") continue;
+    for (const file of item.loadedFiles) mutations.set(file.target, { target: file.target, content: file.content });
     if (item.loadedFiles.length) {
       if (item.kind === "demo") (nextLock.examples ??= {})[item.id] = { files: item.loadedFiles.map(file => file.target) };
       else nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);

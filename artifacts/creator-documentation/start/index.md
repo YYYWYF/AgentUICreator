@@ -204,7 +204,7 @@ src/agent-ui/                        # 生成的 Agent 前端源码
 ```text
 .agent-ui/                           # Agent UI 的工程记录与本地工具数据
 ├── project.json                     # 记录生成源码所在的目录
-├── source-lock.json                 # 记录已导入资源及源码基线
+├── source-lock.json                 # 记录已导入资源、路径与来源版本
 └── operator/entry.mjs               # 本地开发工具入口，不参与生产页面运行
 ```
 

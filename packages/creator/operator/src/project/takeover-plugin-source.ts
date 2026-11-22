@@ -17,6 +17,7 @@ import { isCreatorMetadataPath } from "./creator-metadata-path";
 import { projectRelativePath } from "./agent-ui-project-paths";
 import { runResourcePackageCommand, type ResourcePackageRunner } from "./ensure-resource-packages";
 import { inspectPluginSourceDependencies, installPluginSourceDependencies } from "./plugin-source-dependencies";
+import { readCurrentPluginSource } from "./current-plugin-source";
 
 const pluginId = z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u);
 export const planPluginSourceInputSchema = z.strictObject({ pluginId });
@@ -81,10 +82,6 @@ async function prepare(root: string, id: string, sync = false) {
     ...(plugin.application?.hostApplication ? ["host-application-v1", plugin.application.services] : []),
     ...(plugin.application?.hostBindings?.length || plugin.application?.railAction ? [plugin.application.hostBindings ?? [], plugin.application.railAction ?? null] : []),
   ])) : undefined;
-  const previousContract = ownership.plugins[id]?.applicationContractHash;
-  if (sync && ((previousContract !== undefined && previousContract !== applicationContractHash) || (previousContract === undefined && (plugin.application?.hostApplication || plugin.application?.registration || plugin.application?.hostBindings?.length || plugin.application?.railAction)))) {
-    fail("PLUGIN_SOURCE_APPLICATION_API_CHANGED", "The Plugin application contract changed; adapt and validate the application separately before adopting this source version.");
-  }
   const dependencies = await inspectPluginSourceDependencies(root, path.dirname(installedRoot), plugin.takeover.requiredDependencies);
   require.resolve(`@za38.03/agent-ui-plugins/${id}`);
   const compatibility = z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9]*$/u).max(100), z.number().int().positive()).parse(plugin.takeover.compatibility);
@@ -125,7 +122,9 @@ async function prepare(root: string, id: string, sync = false) {
     catalogHash, stateHash: digest(await stateHash(root) + JSON.stringify(dependencies.identities)), applicationChanges: [...applicationEdits.keys()], files: [...files.keys()].map(file => `${target}/${file}`).sort(), instances,
     sharedDependencies: plugin.takeover.sharedDependencies as string[], dependencyChanges: dependencies.changes,
     compatibility, recommendations, origins };
-  return { context, ownership, files, model, application, applicationEdits, applicationContractHash, dependencies, plan: { ...plan, planHash: digest(JSON.stringify(plan)) } };
+  const localFiles = sync ? await readCurrentPluginSource(path.join(paths.pluginsRoot, id, "source")) : new Map<string, Buffer>();
+  const planHash = digest(JSON.stringify(plan) + JSON.stringify([...localFiles].map(([file, bytes]) => [file, bytes.toString("base64")])));
+  return { context, ownership, files, localFiles, model, application, applicationEdits, applicationContractHash, dependencies, plan: { ...plan, planHash } };
 }
 export async function planPluginSourceTakeover(root: string, input: {pluginId: string}) {
   return (await prepare(root, input.pluginId)).plan;
@@ -148,7 +147,7 @@ async function prepareDependencies(root: string, id: string, sync: boolean, prep
 }
 
 /** A confirmed merge prepares its declared dependencies before handing source
- * to the model/manual editor. This operation never edits implementation or BASE.
+ * to the model/manual editor. This operation never edits implementation files.
  */
 export async function preparePluginSourceSyncDependencies(root: string, input: { pluginId: string; planHash: string }, run: ResourcePackageRunner = runResourcePackageCommand) {
   const prepared = await prepare(root, input.pluginId, true);
@@ -165,24 +164,18 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
   let plan = prepared.plan;
   const changes = new Map<string, Buffer | undefined>(files);
   if (sync) {
-    const previous = ownership.plugins[input.pluginId]!;
-    const scope = new Set([...Object.keys(previous.base).map(file => file.slice("source/".length)), ...files.keys()]);
+    const scope = new Set([...prepared.localFiles.keys(), ...files.keys()]);
     for (const file of Object.keys(resolutions!)) if (!scope.has(file)) fail("PLUGIN_SOURCE_SYNC_SCOPE", "Application files and unknown paths cannot enter source merge.");
+    changes.clear();
     for (const file of scope) {
-      assertSafeProjectRelativePath(file, "Implementation merge path");
-      await assertNoSymbolicLinkTraversal(paths.sourceRoot, `plugins/${input.pluginId}/source/${file}`);
-      const local = await readFile(path.join(paths.pluginsRoot, input.pluginId, "source", ...file.split("/"))).catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
-      const base = previous.base[`source/${file}`];
-      const baseBytes = base ? Buffer.from(base.contentBase64, "base64") : undefined;
+      const local = prepared.localFiles.get(file);
       const target = files.get(file);
-      const same = (a: Buffer | undefined, b: Buffer | undefined) => a === undefined ? b === undefined : b !== undefined && a.equals(b);
       let merged: Buffer | undefined;
       if (Object.hasOwn(resolutions!, file)) merged = resolutions![file] === null ? undefined : Buffer.from(resolutions![file]!);
-      else if (same(local, baseBytes)) merged = target;
-      else if (same(target, baseBytes) || same(local, target)) merged = local;
-      else fail("PLUGIN_SOURCE_MERGE_REQUIRED", "Review BASE, LOCAL and TARGET and provide a merged implementation file.");
-      if (merged === undefined && target !== undefined) fail("PLUGIN_SOURCE_MERGE_INCOMPLETE", "A complete version sync cannot omit a target implementation file.");
-      changes.set(file, merged);
+      else if (local === undefined) merged = target;
+      else if (target === undefined || local.equals(target)) merged = local;
+      else fail("PLUGIN_SOURCE_MERGE_REQUIRED", `Review the current project file and target and provide the desired implementation: ${file}`);
+      if (local === undefined ? merged !== undefined : merged === undefined || !local.equals(merged)) changes.set(file, merged);
     }
   }
   if (prepared.dependencies.changes.length) {
@@ -195,8 +188,7 @@ async function applySource(root: string, raw: z.infer<typeof takeoverPluginSourc
     package: { name: "@za38.03/agent-ui-plugins", version: plan.package.version }, pluginVersion: plan.pluginVersion,
     catalogHash: plan.catalogHash, approvedPlanHash: sync ? ownership.plugins[input.pluginId]!.approvedPlanHash : input.planHash,
     ...(sync ? { lastSyncPlanHash: input.planHash } : {}),
-    origins: Object.fromEntries(Object.entries(plan.origins).map(([file, origin]) => [application ? `source/${file}` : file, origin])), sharedDependencies: plan.sharedDependencies, compatibility: plan.compatibility,
-    base: Object.fromEntries([...files].map(([file, bytes]) => [application ? `source/${file}` : file, { sha256: digest(bytes), contentBase64: bytes.toString("base64") }])) };
+    origins: Object.fromEntries(Object.entries(plan.origins).map(([file, origin]) => [application ? `source/${file}` : file, origin])), sharedDependencies: plan.sharedDependencies, compatibility: plan.compatibility };
   const ownershipBytes = Buffer.from(JSON.stringify(ownership, null, 2) + "\n");
   const staged = await mkdtemp(path.join(tmpdir(), "agent-ui-takeover-"));
   try {
@@ -237,19 +229,15 @@ export async function recoverPluginSourceTakeover(root: string) {
 /** Explicit installed-version source synchronization. Application files never enter this plan. */
 export async function planPluginSourceSync(root: string, input: { pluginId: string }) {
   const prepared = await prepare(root, input.pluginId, true);
-  const previous = prepared.ownership.plugins[input.pluginId]!;
-  const scope = new Set([...Object.keys(previous.base).map(file => file.slice("source/".length)), ...prepared.files.keys()]);
-  const files = await Promise.all([...scope].sort().map(async file => {
-    assertSafeProjectRelativePath(file, "Implementation merge path");
-    await assertNoSymbolicLinkTraversal(prepared.context.paths.sourceRoot, `plugins/${input.pluginId}/source/${file}`);
-    const local = await readFile(path.join(prepared.context.paths.pluginsRoot, input.pluginId, "source", ...file.split("/"))).catch(error => { if (error.code === "ENOENT") return undefined; throw error; });
-    return { path: file, base: previous.base[`source/${file}`]?.contentBase64 ?? null,
-      local: local?.toString("base64") ?? null, target: prepared.files.get(file)?.toString("base64") ?? null };
+  const scope = new Set([...prepared.localFiles.keys(), ...prepared.files.keys()]);
+  const files = [...scope].sort().map(file => ({
+    path: file, local: prepared.localFiles.get(file)?.toString("base64") ?? null,
+    target: prepared.files.get(file)?.toString("base64") ?? null,
   }));
   return { ...prepared.plan, encoding: "base64" as const, mergeFiles: files };
 }
 
-/** Merged text is supplied only for reviewed conflicts; other files use three-way identity rules. */
+/** Existing differences require explicit resolutions; project-only files are preserved. */
 export async function syncPluginSource(root: string, input: { pluginId: string; planHash: string; resolutions?: Record<string, string | null>; cancelMarker?: string }, run: ResourcePackageRunner = runResourcePackageCommand) {
   return applySource(root, { pluginId: input.pluginId, planHash: input.planHash, ...(input.cancelMarker ? { cancelMarker: input.cancelMarker } : {}) }, run, input.resolutions ?? {});
 }

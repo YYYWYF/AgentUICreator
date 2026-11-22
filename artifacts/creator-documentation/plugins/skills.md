@@ -1,5 +1,7 @@
 # 技能选择（开发中）
 
+## 功能与效果
+
 > **开发中**：技能相关文档仍在完善，接口说明和示例可能调整。
 
 <figure className="plugin-preview">
@@ -11,9 +13,7 @@
 
 `skills` 提供技能选择栏，[`skills-selection`](/plugins/skills-selection.md) 显示当前选择并允许移除。发送后，用户消息中保留只读技能标签。
 
-需要完整技能输入 UI 时，在 Composer 的 `triggers` 中组合 `skills`，在 `beforeInput` 中组合 `skills-selection`，具体模型见[当前技能预览](/plugins/skills-selection.md#启用与使用)。两个插件均按需添加，初始化预设不会默认启用。
-
-## 选择技能后再输入问题
+### 选择技能后再输入问题
 
 项目通过 `items` 提供技能条目。默认前两项技能显示为快捷入口，其余条目从“更多”选择。技能的名称、说明来自项目统一文案层，`id` 是稳定业务标识。
 
@@ -30,23 +30,15 @@
 
 技能来自项目的 `items` 或调用 Service 的 `select()`。只读历史标签来自每条用户消息保存的技能元数据。
 
-## 从业务卡片选择技能 \{#从业务卡片选择技能}
+## 修改与启用
 
-在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
+<span id="启用与使用"></span>
 
-```tsx
-import { useComposer, useSkillSelection, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
+需要完整技能输入 UI 时，在 Composer 的 `triggers` 中组合 `skills`，在 `beforeInput` 中组合 `skills-selection`，具体模型见[当前技能预览](/plugins/skills-selection.md#启用与使用)。两个插件均按需添加，初始化预设不会默认启用。
 
-export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
-  const composer = useComposer();
-  const skills = useSkillSelection();
-  return <button type="button" onClick={() => skills.select(skill, composer)}>{skill.label}</button>;
-}
-```
+## 数据来源与显示条件
 
-Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收集发送数据；无需传 `key`、发送开关或会话清理配置。无参数句柄不自动订阅。取消选择调用 `skills.clear()`，两个 UI 都从 `useSkillSelection(snapshot => snapshot.selected)` 订阅选择。若卡片属于另一个独立插件，需在 definition 声明 `inject: ['conversation.skills']`，并在项目请求适配器中识别该插件的数据来源。
-
-## 交给 Composer 的数据
+### 交给 Composer 的数据
 
 <span id="自定义发送数据"></span>
 
@@ -65,7 +57,50 @@ Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收
 
 未选择技能时不额外添加 `skill`。技能不会变成正文，也不会自动发送问题。普通 `setData` 仅收集数据；`sources` 自动记录插件 ID、实例 ID 和可选的用途名，实例 ID 改名不会破坏默认映射。npm Composer 不自动生成 `ctx.skill`；默认映射属于生成项目的应用代码，用户可以改名、改结构或删除。
 
-## 改为后端约定的技能字段 \{#选择技能后发送业务标识}
+### 发送后的消息与历史
+
+发送时保存 `{ id, label }` 快照，消息标签只读，不影响下一次输入。默认请求的当前用户消息也带有 `metadata.skill`，供业务后端持久化。
+
+历史由业务后端保存并返回，前端不代替后端持久化。使用 LangChain 历史格式时，返回 `additional_kwargs.metadata.skill`：
+
+```json ag-ui
+{
+  "type": "human",
+  "id": "message-1",
+  "content": "请帮我整理资料",
+  "additional_kwargs": {
+    "metadata": {
+      "skill": { "id": "research", "label": "深度研究" }
+    }
+  }
+}
+```
+
+官方转换器将其恢复到用户消息的 `metadata.custom.skill`。无需保存私有草稿状态即可显示历史标签，并在编辑重发、重试时沿用该条消息的技能。只保存正文无法恢复技能标签；`requestAdapter` 若删除或改写请求中的元数据，需相应调整业务保存与返回映射。接入步骤见[历史会话](/development/history-backend.md)。
+
+## 常见定制
+
+<span id="代码示例"></span>
+
+<span id="需求示例"></span>
+
+### 从业务卡片选择技能 \{#从业务卡片选择技能}
+
+在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
+
+```tsx
+import { useComposer, useSkillSelection, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
+
+export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
+  const composer = useComposer();
+  const skills = useSkillSelection();
+  return <button type="button" onClick={() => skills.select(skill, composer)}>{skill.label}</button>;
+}
+```
+
+Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收集发送数据；无需传 `key`、发送开关或会话清理配置。无参数句柄不自动订阅。取消选择调用 `skills.clear()`，两个 UI 都从 `useSkillSelection(snapshot => snapshot.selected)` 订阅选择。若卡片属于另一个独立插件，需在 definition 声明 `inject: ['conversation.skills']`，并在项目请求适配器中识别该插件的数据来源。
+
+### 改为后端约定的技能字段 \{#选择技能后发送业务标识}
 
 编辑项目生成的 `plugins/composer/request-adapter.ts`，或在 Composer 应用层替换最终 `requestAdapter`。下面把默认 `ctx.skill` 改为 `ctx.skillId`，保留其他业务字段：
 
@@ -94,33 +129,11 @@ export function ProjectComposer(props: ComponentProps<typeof ConversationCanonic
 
 Composer 使用这里返回的字段，不会补回默认的 `skill`。若配置了 [`beforeRequest`](/development/connect-agent.md#发送前准备请求)，它仍可继续修改请求。技能标签展示不受这里的字段命名影响。
 
-## 发送后的消息与历史
+### 调整快捷入口和标签
 
-发送时保存 `{ id, label }` 快照，消息标签只读，不影响下一次输入。默认请求的当前用户消息也带有 `metadata.skill`，供业务后端持久化。
-
-历史由业务后端保存并返回，前端不代替后端持久化。使用 LangChain 历史格式时，返回 `additional_kwargs.metadata.skill`：
-
-```json ag-ui
-{
-  "type": "human",
-  "id": "message-1",
-  "content": "请帮我整理资料",
-  "additional_kwargs": {
-    "metadata": {
-      "skill": { "id": "research", "label": "深度研究" }
-    }
-  }
-}
-```
-
-官方转换器将其恢复到用户消息的 `metadata.custom.skill`。无需保存私有草稿状态即可显示历史标签，并在编辑重发、重试时沿用该条消息的技能。只保存正文无法恢复技能标签；`requestAdapter` 若删除或改写请求中的元数据，需相应调整业务保存与返回映射。接入步骤见[历史会话](/development/history-backend.md)。
-
-## 调整快捷入口和标签
-
-<span id="代码示例"></span>
 <span id="example-1"></span>
 
-### 调整快捷技能数量 \{#调整快捷技能数量}
+#### 调整快捷技能数量 \{#调整快捷技能数量}
 
 ```tsx
 import type { ComponentProps } from 'react';
@@ -131,21 +144,22 @@ export function Example(props: ComponentProps<typeof ConversationSkillsBar>) {
 }
 ```
 
-### 自定义标签
+#### 自定义标签
 
 在 `skills-selection` 的项目入口定制预览，或停用该插件来隐藏它；隐藏预览不清除当前选择。
 
 业务卡片可用 `useSkillSelection(snapshot => snapshot.selected)` 读取选择，再传给 `ConversationSkillSelection`。`selectedSkill` 接收 `{ id, label }`，提供 `onRemove` 才显示移除按钮，`disabled` 控制是否可移除。
 
-<span id="启用与使用"></span>
-<span id="需求示例"></span>
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
 <span id="当前技能标签"></span>
 <span id="与-composer-联动"></span>
 
-## API
-
-<span id="属性"></span>
-<span id="开发-api"></span>
+### API
 
 `ConversationSkillsBar` 使用 `ConversationSkillsPluginProps`，继承 `div` 属性并排除 `children`；选择状态由 `conversation.skills` Service 管理。
 

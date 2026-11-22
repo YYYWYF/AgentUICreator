@@ -4,6 +4,8 @@ title: "会话界面（conversation-surface）"
 
 # 会话界面（conversation-surface）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![会话展示界面](/images/plugins/conversation-surface.png)
@@ -13,12 +15,11 @@ title: "会话界面（conversation-surface）"
 
 组合消息、欢迎内容、建议和输入区，复用已有 Conversation 生命周期。
 
-<span id="常见需求"></span>
-<span id="需求示例"></span>
-<span id="代码示例"></span>
+## 修改与启用
+
 <span id="启用与使用"></span>
 
-## 修改位置 {#修改位置}
+### 修改位置 {#修改位置}
 
 默认 npm 实现先修改项目的 `plugins/conversation-surface/index.tsx`，通过已有 props 和语义插槽组合界面。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
 
@@ -39,7 +40,44 @@ title: "会话界面（conversation-surface）"
 
 这些模块属于同一个插件实现，继续消费已有 Conversation Runtime；修改单个场景无需另行注册插件。
 
-## 容器适配 {#让会话填满业务容器}
+## 数据来源与显示条件
+
+### 输入区与会话作用域
+
+Composer 和它的附件、引用、提及、技能及发送入口需要使用同一个 Agent 与 Conversation 上下文。会话界面把当前消息、输入区及其语义插槽放在这个作用域内；它本身不向 `pluginData` 再提供一份业务数据。
+
+调整会话容器或输入区位置时，保留项目现有的 Composer 插槽与 `renderSlot` 组合。这样 @ 与 / 继续写入可见输入框，技能和引用继续参与同一次发送。不要为了改布局再创建一个独立 Runtime 或第二份 Composer。
+
+其他业务插件如何读写和订阅同一草稿，见 [Composer hooks](./composer#hook)；各插件提供的数据格式从 [Composer 联动入口](./composer#与哪些插件共享输入和发送)进入对应页面。切换 Thread 后使用新作用域的草稿；异步回调中保存的旧句柄仍绑定原 Thread，不会自动改为当前会话。
+
+### 显示条件与数据来源 {#显示条件与数据来源}
+
+会话界面由已有 Runtime 的消息、运行状态和子插件组成。以下是一次普通回复的完整事件顺序。`threadId`、`runId` 使用当前请求值，三条文字事件共用 `messageId`；每行按[共用 SSE 格式](./ag-ui-data#共用的-sse-格式)发送：
+
+```jsonl
+{"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}
+{"type":"TEXT_MESSAGE_START","messageId":"answer-1","role":"assistant"}
+{"type":"TEXT_MESSAGE_CONTENT","messageId":"answer-1","delta":"以下是查询结果。"}
+{"type":"TEXT_MESSAGE_END","messageId":"answer-1"}
+{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"success"}}
+```
+
+工具、思考和自定义卡片使用[各自事件](./ag-ui-data#按展示内容找事件)，历史消息由[会话数据源](./conversation-data-source)加载。启用会话界面不会自动启用所有内容插件；无对应渲染器时不会凭事件名称创建新插件。
+
+
+<span id="会话展示"></span>
+
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+<span id="定制选项"></span>
+
+### 容器适配 {#让会话填满业务容器}
 
 <span id="example-1"></span>
 
@@ -57,7 +95,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 
 <span id="example-2"></span>
 
-## 关闭自动聚焦 {#关闭自动聚焦}
+### 关闭自动聚焦 {#关闭自动聚焦}
 
 打开对话区域后，光标留在业务页面原来的位置。欢迎文案在 application/locales.ts 的 conversation 域中配置；空 welcomeDescription 隐藏说明。
 
@@ -71,14 +109,32 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 }
 ```
 
-## 读取当前会话 {#hook}
+### 显示发言者头像与名称
+
+助手回复会显示该条消息提供的头像和名称。缺少或加载失败的图片使用默认图标；相邻助手消息的身份相同时，省略重复头部。
+
+后端实时事件、LangChain 历史消息、同一会话切换专家和 `useConversation` 取数的完整示例，见开发教程[展示消息发言者的名称与头像](/development/message-speaker)。本节说明默认身份头的展示配置。
+
+在项目 `plugins/conversation-surface/index.tsx` 给已有组件传入 `messageIdentity`：
+
+```tsx
+// 关闭身份展示
+return <Implementation {...props} messageIdentity={false} />;
+```
+
+也可以传 `{ fallback, render }`。`fallback` 是没有身份时使用的固定 `{ id, name, avatarUrl? }`；其名称来自项目文案。`render({ speaker, messageId })` 返回自定义身份头的 ReactNode，保留已有正文和消息交互。省略 `messageIdentity` 时，仅对携带合法身份的消息展示默认头部。
+
+`messageIdentity={false}` 不会清空取到的 `speaker`；fallback 不写入消息身份；后端明确返回 `speaker: null` 时，即使有 fallback 也隐藏身份头。配置影响展示，消息数据仍通过[统一取数入口](/development/message-speaker#前端取数)读取。
+
+### 读取当前会话 {#hook}
 
 需要让其他组件读取当前聊天时，从 `@za38.03/agent-ui-plugins` 导入 `useConversation`，沿用已有 Conversation 上下文。无参数时返回即时读取句柄，不自动订阅；传入 selector 时订阅选中的值：
 
 | 需求 | 调用方式 | 返回值与更新方式 |
 | --- | --- | --- |
 | 随列表加载状态更新工具栏 | `useConversation(s => s.threads.isLoading)` | `boolean`，状态变化时重新渲染；selector 只能读取公开 `ConversationState` 中的字段 |
-| 随当前 Thread 的消息更新界面 | `useConversation(s => s.thread.messages)` | `readonly ConversationMessage[]`，消息引用变化时重新渲染 |
+| 随当前 Thread 的消息更新界面 | `useConversation(s => s.thread.messages)` | `readonly ConversationMessageView[]`，每条消息包含类型明确的 `speaker`；消息引用变化时重新渲染 |
+| 在消息组件内显示专家名称和头像 | `useConversation(s => s.message.speaker)` | `MessageSpeaker \| null \| undefined`；可直接读取 `name`、`avatarUrl` |
 | 随当前 Thread 的运行状态更新界面 | `useConversation(s => s.thread.isRunning)` | `boolean`，运行状态变化时重新渲染 |
 | 点击时读取当前 Thread 的全部消息 | `conversation.getSnapshot()` | `{ messages, state?, isRunning }`；`conversation` 来自组件顶层的 `useConversation()`，调用时读取最新快照 |
 | 手动订阅更新 | `conversation.subscribe(listener)` | 返回取消订阅函数；在 listener 中重新读取快照，在 effect 清理时取消订阅 |
@@ -106,18 +162,15 @@ export function InspectConversation({ label, onInspect }: {
 
 自定义消息组件要复用当前工具 renderer 时，从 `@za38.03/agent-ui-runtime/plugin-api` 导入 `useConversationToolRenderer()`，得到工具组件或 `undefined`；传入原 renderer 的工具调用 props，缺失时由项目决定备用展示。
 
-## 输入区与会话作用域
-
-Composer 和它的附件、引用、提及、技能及发送入口需要使用同一个 Agent 与 Conversation 上下文。会话界面把当前消息、输入区及其语义插槽放在这个作用域内；它本身不向 `pluginData` 再提供一份业务数据。
-
-调整会话容器或输入区位置时，保留项目现有的 Composer 插槽与 `renderSlot` 组合。这样 @ 与 / 继续写入可见输入框，技能和引用继续参与同一次发送。不要为了改布局再创建一个独立 Runtime 或第二份 Composer。
-
-其他业务插件如何读写和订阅同一草稿，见 [Composer hooks](./composer#hook)；各插件提供的数据格式从 [Composer 联动入口](./composer#与哪些插件共享输入和发送)进入对应页面。切换 Thread 后使用新作用域的草稿；异步回调中保存的旧句柄仍绑定原 Thread，不会自动改为当前会话。
-
-## API
+## 属性与 API
 
 <span id="属性"></span>
+
 <span id="开发-api"></span>
+
+### API
+
+
 
 在 `CanonicalConversationSurfacePlugin` 上设置以下属性。
 
@@ -129,6 +182,7 @@ Composer 和它的附件、引用、提及、技能及发送入口需要使用�
 | `welcome?` | `ReactNode` | 欢迎区内容；`emptyWelcome` 插槽优先 |
 | `suggestions?` | `ReactNode` | 建议内容；`emptySuggestions` 插槽优先 |
 | `composer?` | `ReactNode` | 输入区内容；`composer` 插槽优先 |
+| `messageIdentity?` | `false \| MessageIdentityOptions` | 自动显示消息身份；可关闭，或设置固定 fallback 与身份头 render |
 | `Adapter?` | `ComponentType<ConversationSurfaceAdapterProps>` | 负责显示消息和输入区的现有会话组件；没有时不显示会话主体 |
 | `rendererSlots?` | `{ toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean; transientMessages?: boolean }` | 标明当前启用了哪些消息展示插件；继续使用项目生成的配置 |
 | `snapshot?` | `{ mode?: string; detailStatus?: string }` | 宿主页面传入的会话状态，用于给容器添加状态标记 |
@@ -148,21 +202,7 @@ Composer 和它的附件、引用、提及、技能及发送入口需要使用�
 
 需要替换结构时，使用 `welcome` / `suggestions` 的 ReactNode 属性或语义插槽。语言覆盖需保持 `en-US` / `zh-CN` 对应。
 
-### 显示条件与数据来源 {#显示条件与数据来源}
-
-会话界面由已有 Runtime 的消息、运行状态和子插件组成。以下是一次普通回复的完整事件顺序。`threadId`、`runId` 使用当前请求值，三条文字事件共用 `messageId`；每行按[共用 SSE 格式](./ag-ui-data#共用的-sse-格式)发送：
-
-```jsonl
-{"type":"RUN_STARTED","threadId":"thread-1","runId":"run-1"}
-{"type":"TEXT_MESSAGE_START","messageId":"answer-1","role":"assistant"}
-{"type":"TEXT_MESSAGE_CONTENT","messageId":"answer-1","delta":"以下是查询结果。"}
-{"type":"TEXT_MESSAGE_END","messageId":"answer-1"}
-{"type":"RUN_FINISHED","threadId":"thread-1","runId":"run-1","outcome":{"type":"success"}}
-```
-
-工具、思考和自定义卡片使用[各自事件](./ag-ui-data#按展示内容找事件)，历史消息由[会话数据源](./conversation-data-source)加载。启用会话界面不会自动启用所有内容插件；无对应渲染器时不会凭事件名称创建新插件。
-
-<span id="定制选项"></span>
+## 常见问题
 
 <details className="plugin-faq" id="传了-welcome-为什么没有显示">
 <summary>传了 welcome 为什么没有显示？</summary>
@@ -170,5 +210,3 @@ Composer 和它的附件、引用、提及、技能及发送入口需要使用�
 生成项目已配置 `emptyWelcome` 插槽时，插槽内容优先。修改该插槽里的组件，或在项目组合中调整它；单独传 welcome 不会替换已配置的插槽。
 
 </details>
-
-<span id="会话展示"></span>

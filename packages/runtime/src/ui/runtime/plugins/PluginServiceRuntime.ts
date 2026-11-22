@@ -1,3 +1,5 @@
+import { STACK_NAVIGATION_SERVICE } from '../../../contracts/stack-navigation.js';
+import { StackNavigationRuntime } from '../layout/StackNavigationRuntime.js';
 import type {
   AppUIRuntimeModel,
   AppUIRuntimePluginInstance,
@@ -115,6 +117,7 @@ export function createInstanceActions(
  */
 export class PluginServiceRuntime {
   readonly slots = new SlotRegistry();
+  readonly stackNavigation = new StackNavigationRuntime();
   readonly applicationEvents: AppEventRuntime;
   readonly applicationLifecycle = new ApplicationLifecycleRuntime();
   readonly #services = new Map<string, ServiceRecord>();
@@ -159,8 +162,11 @@ export class PluginServiceRuntime {
   readonly getRevision = (): number => this.#revision;
 
   get<T = unknown>(name: string): T | undefined {
+    if (name === STACK_NAVIGATION_SERVICE) return this.stackNavigation as T;
     return this.#services.get(name)?.value as T | undefined;
   }
+
+  #hasService(name: string): boolean { return name === STACK_NAVIGATION_SERVICE || this.#services.has(name); }
 
   getActivation(instanceId: string): PluginActivationState | undefined {
     return this.#activations.get(instanceId);
@@ -211,6 +217,7 @@ export class PluginServiceRuntime {
       return;
     }
 
+    this.stackNavigation.reconcile(model.root);
     const foundation = resolveApplicationFoundation(model, catalog);
     const gateInstanceIds = foundation.gateInstanceIds;
     const erasedRegistry = registry as PluginRegistry<unknown>;
@@ -293,6 +300,7 @@ export class PluginServiceRuntime {
   }
 
   dispose(): void {
+    this.stackNavigation.clear();
     if (
       this.#activePlugins.length === 0 &&
       this.#activations.size === 0 &&
@@ -352,6 +360,7 @@ export class PluginServiceRuntime {
           );
         }
 
+        if (name === STACK_NAVIGATION_SERVICE) throw new Error("RUNTIME_SERVICE_RESERVED");
         const current = this.#services.get(name);
         if (current !== undefined) {
           throw new Error(
@@ -637,13 +646,13 @@ export class PluginServiceRuntime {
     );
     while (pending.size > 0) {
       const hardReady = [...pending].filter(([, candidate]) =>
-        (candidate.definition.inject ?? []).every((name) => this.#services.has(name)),
+        (candidate.definition.inject ?? []).every((name) => this.#hasService(name)),
       );
       if (hardReady.length === 0) break;
       const preferred = hardReady.filter(([, candidate]) =>
         (candidate.definition.optionalInject ?? []).every(
           (name) =>
-            this.#services.has(name) ||
+            this.#hasService(name) ||
             ![...pending.values()].some((other) =>
               (other.definition.provides ?? []).includes(name),
             ),
@@ -667,7 +676,7 @@ export class PluginServiceRuntime {
       this.#activations.set(instanceId, {
         status: "pending",
         missingServices: (candidate.definition.inject ?? []).filter(
-          (name) => !this.#services.has(name),
+          (name) => !this.#hasService(name),
         ),
       });
     }
@@ -1019,7 +1028,7 @@ export class PluginServiceRuntime {
         for (const record of [...this.#activePlugins].reverse()) {
           const instance = this.#currentState?.model.pluginInstances[record.instanceId];
           const definition = instance === undefined ? undefined : this.#currentState?.registry.get(instance.pluginId);
-          const missingServices = (definition?.inject ?? []).filter(name => !this.#services.has(name));
+          const missingServices = (definition?.inject ?? []).filter(name => !this.#hasService(name));
           if (missingServices.length === 0) continue;
           this.#runCleanups(record);
           this.#activePlugins.splice(this.#activePlugins.indexOf(record), 1);

@@ -25,13 +25,14 @@ function fixture(providerEnabled = true) {
   function View() {
     const labels = useLocale('composer');
     const composer = useComposer();
+    const attachmentsEnabled = useComposer(state => state.attachmentsEnabled);
     const history = usePluginService<ConversationDataSource>(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE);
     const events = usePluginEvents(), actions = usePluginActions();
     const [result,setResult] = useState('');
     const [historyTitle,setHistoryTitle] = useState('');
     useEffect(() => events.subscribe<{ticketId:string}>(eventName,event=>{setResult(event.payload.ticketId);}),[events]);
-    useEffect(() => { let active = true; void history?.list().then(items=>{if(active)setHistoryTitle(items[0]?.title??'');}); return()=>{active=false;}; },[history]);
-    return <><input placeholder={labels.placeholder} defaultValue="draft"/><ConversationWelcomeFallback/><output>{result}</output><aside>{historyTitle}</aside><span data-attachments={String(composer.attachmentsEnabled)} />
+    useEffect(() => { let active = true; void history?.list().then(result=>{const items=Array.isArray(result)?result:result.conversations;if(active)setHistoryTitle(items[0]?.title??'');}); return()=>{active=false;}; },[history]);
+    return <><input placeholder={labels.placeholder} defaultValue="draft"/><ConversationWelcomeFallback/><output>{result}</output><aside>{historyTitle}</aside><span data-attachments={String(attachmentsEnabled)} />
       <button onClick={()=>{void actions.sendMessage('Analyze ticket');}}>send</button></>;
   }
   const view: UIPluginDefinition = {

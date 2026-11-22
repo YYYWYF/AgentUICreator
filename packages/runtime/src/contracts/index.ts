@@ -6,6 +6,7 @@ import type {
 } from "@za38.03/agent-ui-core";
 import type { ComponentType, HTMLAttributes, ReactNode } from "react";
 import { z } from "zod";
+export * from './stack-navigation.js';
 
 import type { LayoutTrackSize as AppUILayoutTrackSize } from "@za38.03/agent-ui-renderer";
 

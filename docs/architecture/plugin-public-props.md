@@ -42,7 +42,7 @@
 | `retrieval-chunks` | 直接 visibleCount 与整体样式；查询、片段和加载状态来自工具，文案使用统一 locale，保留 renderer。 |
 | `web-search` | 直接 visibleResults 与整体样式；查询、结果和加载状态来自工具，文案使用统一 locale，保留 renderer。 |
 | `conversation-thread-list` | 直接 showSearch、showArchived、searchProps、itemProps、components、整体样式；renderList(defaultList) 定制列表，保留 Host 会话服务。 |
-| `conversation-new` | 直接 showLabel、disabled、icon 与整体样式；点击仅使用 buttonProps.onClick，保留默认新建与导航。 |
+| `navigation-menu` | `items` 为动作／视图项数组或默认项扩展函数；默认新建操作由 canonical Runtime 提供；`presentation` 支持 Sidebar 与图标工具栏，视图切换使用现有 Stack Service。 |
 | `conversation-quote` | 通过 setData 提交引用数据，由 Composer 最终适配器组装请求；通过 renderPreview、renderToolbar 定制预览与工具栏；文案沿用统一 locale，无独立根样式属性。 |
 | `agent-identity` | 直接 name、logo、description、整体样式；图片保留 logoProps，排除重复 src，文字样式用 classNames/styles。 |
 | `auth-account` | 直接整体样式；独立组件为 buttonProps、menuProps、signOutButtonProps；退出文案使用 auth locale。 |

@@ -29,10 +29,6 @@
         "link": "/plugins/conversation-thread-list.html"
       },
       {
-        "label": "新建会话",
-        "link": "/plugins/conversation-new.html"
-      },
-      {
         "label": "开场建议",
         "link": "/plugins/conversation-suggestions.html"
       },
@@ -46,8 +42,8 @@
         "link": "/plugins/workbench-panel"
       },
       {
-        "label": "侧栏打开按钮",
-        "link": "/plugins/workbench-panel-actions"
+        "label": "功能菜单",
+        "link": "/plugins/navigation-menu"
       }
     ]
   },

@@ -19,7 +19,6 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 | --- | --- | --- |
 | [`conversation-surface`](./conversation-surface) | 把历史消息、回复和输入框组成完整聊天界面。 | 默认启用 |
 | [`conversation-thread-list`](./conversation-thread-list) | 在侧栏搜索、打开和管理历史会话。 | 默认启用 |
-| [`conversation-new`](./conversation-new) | 开始新对话，保留原有聊天记录。 | 默认启用 |
 | [`conversation-suggestions`](./conversation-suggestions) | 显示可点击的示例问题，帮助用户开始对话。 | 默认启用 |
 | [`transient-assistant-messages`](./transient-assistant-messages) | 在对话中显示不发送给 Agent、不写入后端历史的页面提示。 | 默认启用 |
 
@@ -30,7 +29,8 @@ Agent 服务返回什么数据才能显示卡片，见[AG-UI 数据格式与插�
 | 插件 | 用途 | 默认状态 |
 | --- | --- | --- |
 | [`workbench-panel`](./workbench-panel) | 在对话旁切换多个内容，关闭和收起时保留内容状态。 | 工作台默认启用 |
-| [`workbench-panel-actions`](./workbench-panel-actions) | 配置自己的按钮列表，通过共享服务打开指定内容。 | 默认未启用 |
+| [`navigation-menu`](./navigation-menu) | 默认提供新建会话操作；平台式显示侧栏菜单，助理式显示图标入口，视图项通过 Stack Service 切换内容。 | 默认启用 |
+| [`workbench-panel-actions`](./workbench-panel#为两个内容显示打开按钮) | 为侧栏内容配置打开按钮，接入方式见多内容侧栏。 | 默认未启用 |
 
 ## 消息输入与编辑
 

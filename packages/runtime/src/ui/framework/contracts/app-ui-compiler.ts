@@ -94,8 +94,10 @@ function compileLayout(
   if (node.type === "stack") {
     return {
       type: "stack",
-      id: resolveRuntimeLayoutNodeId(path),
+      id: node.id ?? resolveRuntimeLayoutNodeId(path),
       children,
+      ...(node.viewIds === undefined ? {} : { viewIds: [...node.viewIds] }),
+      ...(node.keepMounted === undefined ? {} : { keepMounted: node.keepMounted }),
       ...(node.activeIndex === undefined
         ? {}
         : { active: children[node.activeIndex]!.id }),

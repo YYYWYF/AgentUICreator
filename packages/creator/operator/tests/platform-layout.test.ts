@@ -30,7 +30,7 @@ describe("Platform layout ownership", () => {
       }]));
       if (model.root.type !== "row") throw new Error("Platform must retain its Row");
       expect(model.root.responsive).toMatchObject({ type: "drawer", drawerIndex: index, primaryIndex: 1 - index });
-      expect(model.root.sizes).toEqual(index === 0 ? ["280px", "minmax(0, 1fr)"] : ["minmax(0, 1fr)", "280px"]);
+      expect(model.root.sizes).toEqual(index === 0 ? ["max-content", "minmax(0, 1fr)"] : ["minmax(0, 1fr)", "max-content"]);
       expect(collectAppUIPluginLocations(model).map(({ plugin }) => plugin.id).sort()).toEqual(identities);
     }
   });

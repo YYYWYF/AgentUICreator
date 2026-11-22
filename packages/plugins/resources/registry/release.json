@@ -122,9 +122,6 @@
     "auth-account": {
       "version": "0.0.1"
     },
-    "conversation-new": {
-      "version": "0.0.1"
-    },
     "transient-assistant-messages": {
       "version": "0.0.1"
     },
@@ -147,6 +144,9 @@
       "version": "0.0.1"
     },
     "skills-selection": {
+      "version": "0.0.1"
+    },
+    "navigation-menu": {
       "version": "0.0.1"
     }
   }

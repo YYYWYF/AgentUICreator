@@ -32,7 +32,9 @@ AppUIModel 选择实际 Plugin；Runtime 解析语义 Slot。普通 content Slot
 
 ## Thread 与历史
 
-Thread 绑定在一次挂载期间保持稳定。项目的 `services/conversations/data-source.ts` 直接提供 list/get/delete/rename/archive/unarchive 方法，拥有请求、鉴权和业务响应转换。list 返回会话数组，get 返回带 history 的统一详情；npm 不提供历史 HTTP 工厂或自动识别后端包装。项目应用层按 Agent 实例绑定地址和请求传输，保留预览代理及取消信号；也可通过 `Agent.conversationDataSource` 替换数据源。
+Thread 绑定在一次挂载期间保持稳定。项目的 `services/conversations/data-source.ts` 直接提供 list/get/delete/rename/archive/unarchive 方法，拥有请求、鉴权和业务响应转换。list 返回会话数组，或分页结果 `{ conversations, nextCursor: string | null }`，接受可选 `cursor` 和取消信号；get 返回带 history 的统一详情。npm 不提供历史 HTTP 工厂或自动识别后端包装。项目应用层按 Agent 实例绑定地址和请求传输，保留预览代理及取消信号；也可通过 `Agent.conversationDataSource` 替换数据源。
+
+会话列表的分页追加、请求去重和结束状态复用 assistant-ui 的 `loadMore`。项目数据源将后端 `body.next_cursor` 映射为 `nextCursor`，并将下一页游标作为 URL query `cursor` 发送；`null` 表示结束。服务保留已加载会话缓存，通用 Thread Binding 传递分页读取和下一页游标。分页追加保持列表 revision token，避免订阅回调触发 `reload` 使正在追加的页失效；其他元数据更新替换 token。适配器整表 reload 读取当前累计快照及末尾游标。分页后的普通 refresh 更新第一页并保留已加载尾部和末尾游标；第一页已覆盖全量时替换列表。默认列表用 IntersectionObserver 触底触发原生分页，失败保留原游标并等待手动重试，搜索仍只过滤已加载会话。
 
 应用可通过可选的异步 `beforeRequest` 在首次发送时分配新会话的后端身份。未绑定的 Thread 使用 assistant-ui 本地草稿标识；回调返回的 `threadId` 或随后补全的默认 ID 在首次请求前绑定，此后保持稳定。Runtime 保留原生 Thread/消息实例，将 Host 句柄、历史管理调用和后续 AG-UI 请求映射到该正式身份；不因分配身份创建另一套 Runtime。回调对每个出站请求执行，`runId` 按本次运行确定，取消和失败不得发送迟到请求。生成项目不默认配置此回调。
 
@@ -55,6 +57,8 @@ Host 通过 `Agent.ctx` 设置默认业务参数，通过 `sendMessage(input, { 
 Structured interrupt 通过完整、匹配的响应集合恢复原有会话。用户提问卡片的客户端 Tool Result 与后端审批中断不是同一协议；不能把用户回答伪装成普通消息或从历史 renderer 发起恢复。
 
 ## 数据、事件与展示
+
+主会话文本事件的应用 metadata 由 Runtime 内的消息 metadata 补充层通过同一个 HttpAgent 订阅并读取，在上游尚未透传实时文本 metadata 的版本上提供兼容。补充数据绑定原生消息及服务端 ID，按 Thread 隔离；完整历史由原生消息 metadata 提供，快照导入后采用其权威值。统一 `useConversation` 的 `state.message.metadata.custom`、`state.thread.messages` 与 `getSnapshot().messages` 包含同一份实时补充数据。Plugins 的同一消息视图从 `metadata.custom.speaker` 派生类型明确的只读 `speaker`，当前消息、列表、即时快照与 `ConversationIf` 共用解析规则；有效对象包含 id/name/可选 avatarUrl，缺失或不合法为 undefined，显式隐藏为 null，展示 fallback 不混入数据。身份未变化时复用派生对象。这里不新增 Hook、状态仓库或 Runtime 输入字段，也不改写原生消息对象；直接使用上游状态 Hook 不包含补充数据或派生字段。正文、排序、分支、运行和取消仍只有 assistant-ui 一个 owner，补充层不订阅第二条流或运行 Agent。子 Agent 文本事件不写入主消息补充层。`conversation-surface` 读取统一消息视图的 `speaker` 并显示消息头像和名称，props 控制展示，AppUIModel 不存放身份字段。当前 LangChain 历史从 `additional_kwargs.metadata.speaker` 恢复身份；后端负责持久化。
 
 AG-UI 的消息、STATE、ACTIVITY、SUBAGENT 和 CUSTOM 保留各自语义。Runtime 做协议边界映射，Plugin 不重建投影器。应用自定义事件先经过应用 Schema，再向声明的 Plugin 发布。
 

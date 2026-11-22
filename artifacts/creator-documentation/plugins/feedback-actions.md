@@ -1,20 +1,26 @@
 # 回复评价（feedback-actions）
 
+## 功能与效果
+
 为整次回答提供赞与踩操作，通过项目反馈服务保存评价。
 
-
-
-
-
-## 回复评价
+### 回复评价
 
 
 ![回复评价界面](/images/plugins/feedback-actions.png)
 
+## 修改与启用
+
+
 默认仅保留当前会话中的评价选择。要保存到业务服务，让 Creator 修改项目的评价实现，详见[回复评价服务](/development/feedback-service.md)。
 
+## 常见定制
 
-## 分别设置按钮外观 \{#分别设置按钮外观}
+
+
+
+
+### 分别设置按钮外观 \{#分别设置按钮外观}
 
 
 两个按钮的属性独立配置；保留原有事件处理与反馈服务。
@@ -31,7 +37,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 ```
 
 
-## 禁用负面评价 \{#按业务条件禁用负面评价}
+### 禁用负面评价 \{#按业务条件禁用负面评价}
 
 示例只禁用踩按钮，赞按钮仍按现有会话与反馈适配决定是否可用。
 
@@ -45,9 +51,11 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 组件：`ConversationCanonicalResponseFeedbackActions`。插件入口将文案变为可选并填入 `conversationFeedback` 默认值；独立使用展示组件时，两个文案必需。无独立展示根节点。
 
@@ -58,7 +66,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 没有根级 `className`／`style`。仅在当前会话支持反馈功能时显示按钮。
 
-### 子按钮属性
+#### 子按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 
@@ -82,7 +90,9 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 评价结果的保存接入项目已有[反馈服务](/development/feedback-service.md)。自定义反馈入口需要关联整次回答时，在回复页脚作用域调用 `useResponse()`，读取 `group` 和 `text`，见[保存整次回答](/plugins/response-footer.md#收藏或保存整次回答)。不要用最后一条助理消息代替工具续跑后的完整回答。
 
 
+## 常见问题
+
+
 显示评价按钮后，结果会自动保存到我的后端吗？
 
 不会。组件通过项目现有反馈适配提交结果；需要在服务接入中实现持久化。按钮属性只负责呈现与交互。
-

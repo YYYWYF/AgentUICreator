@@ -2,6 +2,7 @@ export interface ConversationMessage {
   readonly id: string;
   readonly role: "user" | "assistant" | "system";
   readonly content: readonly Record<string, unknown>[];
+  readonly metadata?: { readonly custom?: Readonly<Record<string, unknown>>; readonly [key: string]: unknown };
   readonly [key: string]: unknown;
 }
 
@@ -45,6 +46,9 @@ export interface ConversationThreadListItem<
 
 export interface ConversationThreadListSnapshot {
   isLoading?: boolean | undefined;
+  nextCursor?: string | undefined;
+  /** Page appends keep this token; external metadata refreshes replace it. */
+  revision?: object | undefined;
   threads: readonly ConversationThreadListItem<"regular">[];
   archivedThreads: readonly ConversationThreadListItem<"archived">[];
 }
@@ -70,6 +74,7 @@ export interface ConversationThreadBinding<TState = unknown> {
   subscribe(listener: () => void): () => void;
   createNewThread(): Promise<string>;
   getThreadListSnapshot?(): ConversationThreadListSnapshot;
+  loadThreadListPage?(after: string): Promise<ConversationThreadListSnapshot>;
   selectThread?(
     threadId: string,
   ): Promise<ConversationLoadedThread<TState>>;

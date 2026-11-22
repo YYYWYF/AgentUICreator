@@ -1,5 +1,7 @@
 # 消息与标签编辑（lexical-edit-composer）
 
+## 功能与效果
+
 
 ![消息编辑界面](/images/plugins/lexical-edit-composer.png)
 
@@ -7,7 +9,7 @@
 
 编辑已有用户消息中的文字和引用标签，并沿用消息编辑原有的保存、取消与重新提交流程。它服务于当前被编辑的消息，和底部准备下一条问题的 Composer 具有不同的草稿作用域。
 
-## 修改已有消息并重新提交
+### 修改已有消息并重新提交
 
 
 ![用户消息旁的铅笔编辑入口](/images/plugins/lexical-edit-composer-entry.png)
@@ -18,7 +20,9 @@
 
 没有自定义 `input` 时使用 Lexical。消息含当前编辑器不支持的指令时，保留普通输入回退，让已有消息仍能继续修改，不强行丢弃未知文字。
 
-## 与 Composer 联动
+## 数据来源与显示条件
+
+### 与 Composer 联动
 
 编辑使用该消息的选择快照；仍在正文中的引用继续关联原始业务选择，移除引用后不再携带对应数据。重发请求还会经过同一个最终 [Composer `requestAdapter`](/plugins/composer.md#请求适配)。
 
@@ -26,13 +30,18 @@
 
 编辑区不应拿底部新消息的业务选择来补充旧消息。业务卡片的 `useComposer()` 操作要放在它实际要影响的输入作用域中；不要用底部输入控制器代替已有消息编辑的保存与取消。
 
-## 定制标签与输入外观
+## 常见定制
+
+
+
+
+### 定制标签与输入外观
 
 标签身份和格式化规则与[主输入框](/plugins/lexical-composer-input.md#conversationcomposerdirectivechipprops)一致。在项目已有编辑入口通过 `inputProps.directiveChip` 改展示，通过 `inputProps.className/style` 改输入样式；替换整个 `input` 时要保留已有消息编辑上下文和提交、取消入口。
 
 `inputProps.directivePluginProps.onDirectiveSelect` 是观察回调，不自动产生业务数据。自定义 `formatter` 时仍需成对提供可往返的序列化与解析，确保取消后保留原消息、保存后引用 ID 和文字顺序一致。
 
-## 快捷键与自动聚焦 \{#快捷键与自动聚焦}
+### 快捷键与自动聚焦 \{#快捷键与自动聚焦}
 
 
 Lexical 为可选输入实现，通过 /lexical 入口导入；沿用项目已有编辑与输入组合。
@@ -48,7 +57,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 ```
 
 
-## Escape 不取消编辑 \{#escape-不取消编辑}
+### Escape 不取消编辑 \{#escape-不取消编辑}
 
 关闭 Escape 取消后，用户继续通过已有取消按钮退出编辑。
 
@@ -62,9 +71,11 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 入口来自 `@za38.03/agent-ui-plugins/lexical`：`CanonicalConversationLexicalEditComposer`。样式通过 `inputProps` 配置，自定义输入内容通过 `input` 提供。
 
@@ -75,7 +86,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 没有自定义 `input` 时，默认使用 Lexical；草稿含不支持的指令时保留现有普通输入回退。保存修改和取消编辑仍由现有消息编辑组件处理。
 
-### inputProps
+#### inputProps
 
 下表是编辑输入组件的嵌套属性；输入元素还继承 `div` 原生属性。
 
@@ -94,7 +105,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 `inputProps` 还支持输入元素的 `className`、`style`、`id`、`role`、`aria-*`、`data-*` 与原生事件回调；它们属于嵌套输入属性，不是本插件的根属性。
 
-### 编辑已有消息中的引用
+#### 编辑已有消息中的引用
 
 这里的标签、候选和序列化行为与[主输入框的引用定制](/plugins/lexical-composer-input.md#conversationcomposerdirectivechipprops)相同。编辑区通过 `inputProps.directiveChip` 传入标签组件，通过 `inputProps.directivePluginProps.onDirectiveSelect` 观察选中，通过 `inputProps.formatter` 提供成对的序列化／解析方法。
 
@@ -102,8 +113,5 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 
 准备下一条问题使用 [Composer 的草稿接口](/plugins/composer.md#hook)；本页编辑已有消息，保存与取消继续使用当前消息的原生编辑上下文。
-
-
-
 
 

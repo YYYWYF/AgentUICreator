@@ -704,7 +704,8 @@
       ],
       "optionalInject": [
         "agent-ui.theme",
-        "agent-ui.locale"
+        "agent-ui.locale",
+        "agent-ui.stack-navigation"
       ]
     },
     "publicPresentationTypes": [
@@ -772,50 +773,6 @@
       "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
       "reviewedAdaptedSha256": "57988819dac748d70a91592e1df386ce4c84b642903703f60f6ffc8507531cf7",
       "module": "list/index"
-    }
-  },
-  {
-    "id": "conversation-new",
-    "component": "ConversationNewPlugin",
-    "symbol": "conversationNewPlugin",
-    "support": "pluginSupport",
-    "presentation": [
-      "conversation-new.tsx"
-    ],
-    "implementationExports": [
-      "CanonicalConversationNew",
-      "ConversationNewPluginProps"
-    ],
-    "preserveLegacySource": true,
-    "supportEntry": "plugin-support",
-    "presentationOwner": "conversation-new",
-    "implementationModule": "conversation-new",
-    "applicationAlias": "Implementation",
-    "services": {
-      "provides": [],
-      "inject": [],
-      "optionalInject": []
-    },
-    "publicPresentationTypes": true,
-    "componentSource": "adapters/component.tsx",
-    "definitionSource": "adapters/package-definition.ts",
-    "projectFiles": [
-      "styles.css",
-      "styles.css.d.ts"
-    ],
-    "applicationModeFiles": {
-      "assistant": [
-        [
-          "index.tsx",
-          "adapters/application/assistant/index.tsx"
-        ]
-      ],
-      "embedded": [
-        [
-          "index.tsx",
-          "adapters/application/assistant/index.tsx"
-        ]
-      ]
     }
   },
   {
@@ -1182,6 +1139,8 @@
       "thread/thread.tsx",
       "thread/thread-layout.tsx",
       "thread/assistant-message.tsx",
+      "message-identity.tsx",
+      "message-speaker.ts",
       "thread/assistant-message-groups.tsx",
       "thread/message-error.tsx",
       "thread/response-footer-host.tsx",
@@ -1213,6 +1172,8 @@
     },
     "publicPresentationTypes": [
       "conversation-surface.tsx",
+      "message-identity.tsx",
+      "message-speaker.ts",
       "surface.tsx",
       "welcome.tsx"
     ],
@@ -1915,5 +1876,62 @@
     "definitionExports": [
       "WorkbenchPanelActionsProps"
     ]
+  },
+  {
+    "id": "navigation-menu",
+    "component": "NavigationMenuPlugin",
+    "symbol": "navigationMenuPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "navigation-menu.tsx"
+    ],
+    "implementationExports": [
+      "NavigationMenu",
+      "NavigationMenuProps",
+      "NavigationMenuItem"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "navigation-menu",
+    "implementationModule": "navigation-menu",
+    "hostApplication": true,
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.stack-navigation"
+      ],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "applicationAlias": "Implementation",
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "applicationModeFiles": {
+      "assistant": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ]
+      ],
+      "embedded": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ]
+      ]
+    }
   }
 ]

@@ -10,6 +10,7 @@ export interface LayoutRendererProps {
   theme?: string | undefined;
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
   renderSidebar?: ((node: SidebarNode, renderNode: (node: LayoutNode) => ReactNode) => ReactNode) | undefined;
+  stackActiveViews?: Readonly<Record<string, string | null>> | undefined;
   className?: string | undefined;
   drawerLabels?: {
     open: string;
@@ -24,6 +25,7 @@ interface LayoutNodeViewProps {
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
   renderSidebar?: ((node: SidebarNode, renderNode: (node: LayoutNode) => ReactNode) => ReactNode) | undefined;
   drawerLabels?: LayoutRendererProps["drawerLabels"];
+  stackActiveViews?: LayoutRendererProps["stackActiveViews"];
 }
 
 function toTrackSize(size: LayoutTrackSize): string {
@@ -52,13 +54,14 @@ function renderChildren(
   renderSlot: LayoutNodeViewProps["renderSlot"],
   drawerLabels: LayoutNodeViewProps["drawerLabels"],
   renderSidebar: LayoutNodeViewProps["renderSidebar"],
+  stackActiveViews: LayoutNodeViewProps["stackActiveViews"],
 ): ReactNode {
   return children.map((child) => (
-    <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
+    <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
   ));
 }
 
-function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: LayoutNodeViewProps & { node: RowNode }) {
+function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar, stackActiveViews }: LayoutNodeViewProps & { node: RowNode }) {
   if (drawerLabels === undefined) {
     throw new Error("Responsive Row requires project locale drawer labels.");
   }
@@ -150,18 +153,18 @@ function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: Layout
             <button data-agent-ui-owned="" className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close} title={labels.close}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
             </button>
-            <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
+            <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
           </dialog>
-        ) : <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />)}
+        ) : <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />)}
       </div>
     </div>
   );
 }
 
-function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: LayoutNodeViewProps) {
+function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar, stackActiveViews }: LayoutNodeViewProps) {
   if (node.type === "sidebar") {
     if (!renderSidebar) throw new Error("Sidebar requires a Host renderSidebar adapter.");
-    return <div className="app-ui-layout-node app-ui-layout-sidebar" data-layout-node-id={node.id} data-layout-type="sidebar">{renderSidebar(node, child => <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />)}</div>;
+    return <div className="app-ui-layout-node app-ui-layout-sidebar" data-layout-node-id={node.id} data-layout-type="sidebar">{renderSidebar(node, child => <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />)}</div>;
   }
   if (node.type === "row") {
     if (node.responsive !== undefined && (
@@ -173,7 +176,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: Layou
       throw new Error(`Invalid responsive Row indices for "${node.id}".`);
     }
     if (node.responsive !== undefined && node.responsive.drawerIndex < node.children.length) {
-      return <ResponsiveRow node={node} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />;
+      return <ResponsiveRow node={node} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />;
     }
     const style: CSSProperties = {
       gap: node.gap,
@@ -187,7 +190,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: Layou
         data-layout-type={node.type}
         style={style}
       >
-        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar)}
+        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar, stackActiveViews)}
       </div>
     );
   }
@@ -205,24 +208,34 @@ function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: Layou
         data-layout-type={node.type}
         style={style}
       >
-        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar)}
+        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar, stackActiveViews)}
       </div>
     );
   }
 
   if (node.type === "stack") {
-    const activeChild =
+    const selected = node.viewIds ? stackActiveViews?.[node.id] : undefined;
+    const selectedIndex = selected && node.viewIds ? node.viewIds.indexOf(selected) : -1;
+    const activeChild = selectedIndex >= 0 ? node.children[selectedIndex] :
       node.children.find((child) => child.id === node.active) ?? node.children[0];
+    const activeIndex = activeChild === undefined ? -1 : node.children.indexOf(activeChild);
 
     return (
       <div
         className="app-ui-layout-node app-ui-layout-stack"
         data-active-node-id={activeChild?.id}
+        data-stack-navigation-id={node.viewIds ? node.id : undefined}
+        data-active-view={node.viewIds?.[activeIndex]}
         data-layout-node-id={node.id}
         data-layout-type={node.type}
       >
-        {activeChild === undefined ? null : (
-          <LayoutNodeView node={activeChild} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
+        {node.keepMounted ? node.children.map((child, index) => (
+          <div key={node.viewIds?.[index] ?? child.id} className="app-ui-layout-stack-view"
+            data-stack-view={node.viewIds?.[index] ?? child.id} hidden={child !== activeChild} inert={child !== activeChild}>
+            <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
+          </div>
+        )) : activeChild === undefined ? null : (
+          <LayoutNodeView node={activeChild} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
         )}
       </div>
     );
@@ -246,7 +259,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: Layou
         data-resizable={node.resizable === true}
         style={style}
       >
-        <LayoutNodeView node={node.child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
+        <LayoutNodeView node={node.child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
       </div>
     );
   }
@@ -277,6 +290,7 @@ export function LayoutRenderer({
   renderSidebar,
   className,
   drawerLabels,
+  stackActiveViews,
 }: LayoutRendererProps) {
   const rootClassName = ["app-ui-layout-root", className]
     .filter(Boolean)
@@ -287,7 +301,7 @@ export function LayoutRenderer({
       className={rootClassName}
       data-theme={theme}
     >
-      <LayoutNodeView node={root} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
+      <LayoutNodeView node={root} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} stackActiveViews={stackActiveViews} />
     </div>
   );
 }

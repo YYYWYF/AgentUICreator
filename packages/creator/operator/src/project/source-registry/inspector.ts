@@ -20,7 +20,7 @@ import type {
   UIOperatorConfig,
 } from "../types";
 import { readAgentUISourceLock, sha256 } from "./lock";
-import { generatedSourceTargets } from "./generated-targets";
+import { readCurrentPluginSource } from "../current-plugin-source";
 import { packageSourceDependency, withPackageDependency } from "./package-dependencies";
 import {
   AgentUISourceError,
@@ -45,45 +45,24 @@ async function inspectFile(
   sourceRoot: string,
   sourceRootName: string,
   target: string,
-  managedSha256?: string,
+  installed: boolean,
 ): Promise<AgentUISourceFileInspection> {
-  const absolutePath = path.join(sourceRoot, target);
+  const filePath = path.posix.join(sourceRootName, target);
   try {
     await assertNoSymbolicLinkTraversal(sourceRoot, target);
-    const fileStat = await lstat(absolutePath);
-    if (!fileStat.isFile()) {
-      return {
-        path: path.posix.join(sourceRootName, target),
-        status: managedSha256 === undefined ? "blocked" : "customized",
-        ...(managedSha256 === undefined ? {} : { managedSha256 }),
-      };
-    }
-    const currentSha256 = sha256(await readFile(absolutePath));
+    const absolutePath = path.join(sourceRoot, target);
+    if (!(await lstat(absolutePath)).isFile()) return { path: filePath, status: "blocked" };
     return {
-      path: path.posix.join(sourceRootName, target),
-      status:
-        managedSha256 === undefined
-          ? "blocked"
-          : currentSha256 === managedSha256
-            ? "managed"
-            : "customized",
-      currentSha256,
-      ...(managedSha256 === undefined ? {} : { managedSha256 }),
+      path: filePath,
+      status: installed ? "managed" : "blocked",
+      // This fingerprint only protects the current inspect/apply operation.
+      currentSha256: sha256(await readFile(absolutePath)),
     };
   } catch (error) {
-    if (error instanceof AgentUISourceError) {
-      return {
-        path: path.posix.join(sourceRootName, target),
-        status: managedSha256 === undefined ? "blocked" : "customized",
-        ...(managedSha256 === undefined ? {} : { managedSha256 }),
-      };
-    }
+    if (error instanceof AgentUISourceError) return { path: filePath, status: "blocked" };
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    return {
-      path: path.posix.join(sourceRootName, target),
-      status: managedSha256 === undefined ? "not-installed" : "partial",
-      ...(managedSha256 === undefined ? {} : { managedSha256 }),
-    };
+    // Installation paths are receipts, not a required historical source layout.
+    return { path: filePath, status: "not-installed" };
   }
 }
 
@@ -209,7 +188,12 @@ export async function inspectAgentUISources(
     const example = item.kind === "demo" ? lock.examples?.[item.id] : undefined;
     const provided = config.agentUI.providedSourceItems?.includes(item.id) ?? false;
     if (item.id.startsWith("plugin/assistant-ui-") && !locked && !provided) continue;
+    if (locked && item.id.startsWith("plugin/")) await assertNoSymbolicLinkTraversal(sourceRoot, `plugins/${item.id.slice(7)}`);
+    const currentPluginFiles = locked && item.id.startsWith("plugin/")
+      ? [...(await readCurrentPluginSource(path.join(sourceRoot, "plugins", item.id.slice(7)))).keys()].map(file => `plugins/${item.id.slice(7)}/${file}`)
+      : [];
     const targets = new Set([
+      ...currentPluginFiles,
       ...(example ? example.files : item.files.map((file) => file.target)),
       ...Object.keys(locked?.files ?? {}),
     ]);
@@ -219,19 +203,14 @@ export async function inspectAgentUISources(
           sourceRoot,
           config.agentUI.sourceRoot,
           provided ? config.agentUI.providedSourceFilePaths?.[target] ?? target : target,
-          locked?.files[target]?.sha256 ?? (provided && item.loadedFiles.some(file => file.target === target) ? sha256(item.loadedFiles.find(file => file.target === target)!.content) : undefined),
+          locked !== undefined || provided || example !== undefined,
         ),
       ),
     );
     if (example) for (const file of files) {
       if (file.currentSha256) file.status = "customized";
     }
-    // Generated registries reflect the installed composition, not the source
-    // template. Their content is owned and verified by the generators.
-    // Imported example paths are a receipt, not a required source layout. Users
-    // may rename or remove them while adapting their own business integration.
-    const status = example && files.every(file => file.status !== "blocked") ? "customized" : aggregateStatus(locked !== undefined || provided, files.filter(file =>
-      file.status !== "customized" || !generatedSourceTargets.some(target => file.path === path.posix.join(config.agentUI.sourceRoot, target))));
+    const status = example && files.every(file => file.status !== "blocked") ? "customized" : aggregateStatus(locked !== undefined || provided, files);
     const packageInspection = example ? { packages: [], issues: [] } : await inspectAgentUIPackages(projectRoot, [withPackageDependency(item)]);
     const closure = example ? [item] : resolveAgentUISourceItemClosure(loadedRegistry, item.id);
     const dependencies = closure.filter(dependency => dependency.id !== item.id);
@@ -258,10 +237,8 @@ export async function inspectAgentUISources(
       description: item.description,
       owned: locked !== undefined || provided || example !== undefined,
       ...(example ? { projectOwned: true } : {}),
-      updateAvailable: !example && locked !== undefined && (
-        Object.keys(locked.files).length !== item.loadedFiles.length ||
-        item.loadedFiles.some(file => locked.files[file.target]?.sha256 !== sha256(file.content))
-      ),
+      // Installation receipts never determine whether project code is outdated.
+      updateAvailable: false,
       status,
       files,
       requirements: packageInspection.packages,

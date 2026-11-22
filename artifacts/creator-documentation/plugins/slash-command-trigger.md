@@ -1,5 +1,7 @@
 # / 快捷命令（slash-command-trigger）
 
+## 功能与效果
+
 
 ![快捷命令界面](/images/plugins/slash-command-trigger.png)
 
@@ -7,7 +9,7 @@
 
 输入 `/` 打开命令菜单。菜单中的指令会进入草稿供本次发送使用，动作则在选择时执行项目行为；插件已区分这两种流程，无需用户为普通选项自己调用 Composer。
 
-## 选择指令，或执行一个动作
+### 选择指令，或执行一个动作
 
 `directive` 模式选中后默认插入命令引用，例如 `:command[总结]{name=summarize}`，用户继续编辑后再发送。它本身不启动 Agent 请求。
 
@@ -20,7 +22,9 @@
 
 命令可来自公开 `source`，也可由业务插件通过[会话命令源](/plugins/conversation-command-source.md#随业务插件启停注册命令)注册。服务变化后菜单跟随更新，菜单查询与键盘选择由插件处理。
 
-## 交给 Composer 的数据
+## 数据来源与显示条件
+
+### 交给 Composer 的数据
 
 
 
@@ -69,7 +73,17 @@
 
 普通触发器使用其插件实例键；嵌入其他业务插件时使用该实例的 `:command` 子键。动作默认没有上述条目，不能假设每次选择菜单都会产生 `pluginData`。
 
-## 选中后只插入纯文本 \{#选中命令后替换为纯文本}
+### 发送、编辑与再次选择
+
+插入不等于发送。正常发送使用当前有效引用快照；重试和工具续答保留原次提交的数据。编辑消息时移除命令引用，便不再携带该引用的数据。单独恢复正文标记只能恢复显示，原始业务 `data` 需随前端历史元数据保留，见 [Composer 的提交与历史规则](/plugins/composer.md#提交后的快照重发与会话切换)。
+
+## 常见定制
+
+
+
+
+
+### 选中后只插入纯文本 \{#选中命令后替换为纯文本}
 
 
 `onSelect` 接管默认指令插入和动作执行。返回值只替换当前 `/` 查询片段；下面插入名称，周围草稿由插件保留，不需要调用方拼接：
@@ -90,13 +104,11 @@ export function PlainCommand(props: ComponentProps<typeof CanonicalConversationS
 
 业务定制示例：选择查询工单命令后，输入框填入“查询我的待处理工单”，没有指令标签，仍等待用户发送。
 
-## 发送、编辑与再次选择
-
-插入不等于发送。正常发送使用当前有效引用快照；重试和工具续答保留原次提交的数据。编辑消息时移除命令引用，便不再携带该引用的数据。单独恢复正文标记只能恢复显示，原始业务 `data` 需随前端历史元数据保留，见 [Composer 的提交与历史规则](/plugins/composer.md#提交后的快照重发与会话切换)。
-
-## API
+## 属性与 API
 
 
+
+### API
 
 在 `CanonicalConversationSlashCommandTrigger` 上设置以下属性。
 
@@ -111,7 +123,7 @@ export function PlainCommand(props: ComponentProps<typeof CanonicalConversationS
 
 文案字段见统一 `conversationTriggers` 命名空间。
 
-### 命令来源与选中后的行为 \{#conversationslashcommandsource}
+#### 命令来源与选中后的行为 \{#conversationslashcommandsource}
 
 `source.getSnapshot()` 同步返回 `readonly ConversationSlashCommand[]`，`source.subscribe(listener)` 通知菜单重新读取并返回取消订阅函数。异步业务请求由项目数据源执行，完成后更新同一个注册器；普通业务插件动态加入命令见[命令注册器](/plugins/conversation-command-source.md#随业务插件启停注册命令)。
 
@@ -131,9 +143,5 @@ export function PlainCommand(props: ComponentProps<typeof CanonicalConversationS
 扩展 `/` 菜单有两个位置：在本组件传入 `source` 提供整份命令，或让其他业务插件通过[命令注册服务](/plugins/conversation-command-source.md#服务)动态加入自己的命令。`onSelect` 决定选中后的插入或动作，见[纯文本插入示例](#选中命令后替换为纯文本)。
 
 命令的业务参数直接放在来源的 `data` 中；[Composer requestAdapter](/plugins/composer.md#请求适配) 统一决定最终请求。未配置 Composer 适配器时只发送正文引用，不自动添加结构化外带字段。其他业务选择也可以通过 [Composer `setData()`](/plugins/composer.md#example-3) 写入本次草稿。
-
-
-
-
 
 

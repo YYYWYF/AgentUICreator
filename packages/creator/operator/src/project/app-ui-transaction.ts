@@ -1,4 +1,4 @@
-import { appUIModelJsonHash } from "./app-ui-serialization";
+import { appUIModelJsonHash, stripCopiedAppUIIds } from "./app-ui-serialization";
 import { admitAppUIModelCandidate } from "./app-ui-admission";
 import { stringifyAppUIModel } from "./app-ui-serialization";
 import { remapPluginIdentities, resolveCreatorPluginRefs } from "./app-ui-plugin-refs";
@@ -1305,7 +1305,7 @@ async function runTransaction(
     // Editing uses snapshot identities for the entire batch. Rebase structural
     // identities only after moves/removals and translate runtime receipt checks.
     const editedLocations = collectAppUIPluginLocations(afterModel);
-    afterModel = parseAppUIModel(afterModel);
+    afterModel = parseAppUIModel(stripCopiedAppUIIds(afterModel, beforeModelSource));
     const normalizedIds = new Map(collectAppUIPluginLocations(afterModel).map(location => [location.path, location.plugin.id]));
     identityChanges = new Map(editedLocations.map(location => [location.plugin.id, normalizedIds.get(location.path)!]));
     if (semanticComposition !== undefined) {

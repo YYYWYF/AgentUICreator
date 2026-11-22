@@ -74,8 +74,10 @@ const articles = [...pages.keys()].filter(page => page !== 'index.mdx');
 assert.deepEqual(articles.filter(page => !destinations.has(page)), [], 'Articles missing from their menu');
 
 const deliveries = json(path.join(website, '../packages/plugins/src/catalog/plugin-delivery.json'));
+// Opening controls are documented with the side panel they operate.
+const pluginArticleOwners = new Map([['workbench-panel-actions', 'workbench-panel']]);
 for (const { id } of deliveries) {
-  const page = resolvePage(`/plugins/${id}`);
+  const page = resolvePage(`/plugins/${pluginArticleOwners.get(id) ?? id}`);
   assert(page, `Missing official Plugin article: ${id}`);
 }
 

@@ -4,6 +4,8 @@ title: "文档检索片段（retrieval-chunks）"
 
 # 文档检索片段（retrieval-chunks）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![文档检索完成后的片段](/images/plugins/behavior/retrieval-finished.jpg)
@@ -13,7 +15,7 @@ title: "文档检索片段（retrieval-chunks）"
 
 将文档检索工具的查询和命中片段展示在回答中，自动切换检索中与结果状态，并显示来源、定位和相关度。
 
-## 检索过程中显示查询
+### 检索过程中显示查询
 
 工具运行时，插件从调用参数读取查询词并显示检索中的状态。此时可以尚无结果，无需业务代码自行维护加载状态或构造占位片段。
 
@@ -24,19 +26,21 @@ title: "文档检索片段（retrieval-chunks）"
 <figcaption>结果返回前保留查询词和“正在检索”提示，此时还没有片段卡片。</figcaption>
 </figure>
 
-## 检索完成后展示命中片段
+### 检索完成后展示命中片段
 
 成功结果中的每个片段展示来源名称、页码或章节等定位提示、相关度数值和正文摘要。默认展示全部已接收片段，并在摘要中显示实际片段数量。
 
 相关度会以数值和进度条表达；插件按服务返回的顺序展示，不会自行重新检索或按分数筛掉结果。正文较长时默认以摘要方式呈现。
 
-## 空结果与异常结果
+### 空结果与异常结果
 
 成功返回空 `chunks` 数组时显示零条结果，表示检索已结束且没有命中。工具报错、等待用户操作、处于未完成状态，或结束后的片段数据无效时，插件回到通用工具详情。
 
 片段中的来源名称和定位文字用于阅读与业务定位，不会自动变成可点击的文件地址。
 
-## 接入文档检索结果 {#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 接入文档检索结果 {#显示条件与数据来源}
 
 当前默认注册工具名为 `search_docs`。参数的 `query` 显示查询内容，结果从 `chunks` 数组读取。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
@@ -58,9 +62,17 @@ title: "文档检索片段（retrieval-chunks）"
 
 `renderRetrieval(view, tool)` 提供查询词、片段集合和检索状态；片段包含来源、定位、相关度和正文。可据此打开对应文档、展示业务明细，或将用户选中的片段交给其他插件，见[插件联动与取数](/development/plugin-interaction)。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 限制片段展示数量 {#展示前-4-个检索片段}
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 限制片段展示数量 {#展示前-4-个检索片段}
 
 <span id="example-1"></span>
 
@@ -79,7 +91,7 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 这不会改变服务端检索数量或结果总数摘要，也不会为隐藏片段自动增加分页入口。
 
-## 为结果增加业务容器 {#使用自定义列表容器}
+### 为结果增加业务容器 {#使用自定义列表容器}
 
 <span id="example-2"></span>
 
@@ -98,12 +110,17 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 完全替换 `renderRetrieval` 时，查询、加载状态、数量和各片段的展示也由新内容负责；错误和无效结果的回退仍在插件中处理。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -113,13 +130,13 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 原始工具数据仍先经过校验，再应用自定义展示属性。
 
-### 当前工具调用的数据与操作
+#### 当前工具调用的数据与操作
 
 `renderRetrieval(view, tool)` 提供已解析的检索内容和当前工具调用。点击片段时使用 `view.chunks` 中的来源与定位信息，业务记录可关联 `tool.toolCallId`；不要从卡片 DOM 反查片段。
 
 公共字段、状态判断和操作回调见[工具调用参数](./tool-result#当前工具调用的数据与操作)。
 
-### 将片段关联到业务文档 {#retrievalchunk}
+#### 将片段关联到业务文档 {#retrievalchunk}
 
 `renderRetrieval(view, tool)` 中的 `view.chunks` 是已解析的片段数组，每项都包含：
 
@@ -137,10 +154,7 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 <span id="检索片段"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>

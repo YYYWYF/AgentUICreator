@@ -1,5 +1,7 @@
 # 消息引用（conversation-quote）
 
+## 功能与效果
+
 
 ![消息引用界面](/images/plugins/conversation-quote.png)
 
@@ -7,7 +9,7 @@
 
 选中已有消息中的一段文字后发起引用，输入区立即显示引用预览。用户可以补充问题，也可以直接移除预览；插件已经把选择工具栏、原消息标识和当前草稿连起来。
 
-## 引用一段消息再提问
+### 引用一段消息再提问
 
 选择消息内容后使用引用入口，预览中保留这段内容。正文与引用分别编辑，关闭预览取消本次引用，不会删除原消息。默认发送时，将引用转换为 Markdown 引用段落，加在用户输入之前。
 
@@ -27,7 +29,9 @@
 
 `content` 中，`>` 开头的是引用原文，`\n\n` 后是用户输入。Composer 默认自动拼接，无需业务代码处理。需要额外传递消息标识等结构化引用字段时，使用下方的 Composer 最终适配器示例。
 
-## 交给 Composer 的数据
+## 数据来源与显示条件
+
+### 交给 Composer 的数据
 
 
 
@@ -77,13 +81,18 @@ export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) 
 
 实例键以实际 AppUIModel 实例为准，嵌入其他插件时使用该实例的 `:quote` 子键。引用插件没有局部请求适配器；需要改字段、放入 AG-UI `context` 或调整默认引用正文时，都修改 Composer 的最终适配器。重组正文时保留消息中的附件片段。
 
-## 取消、发送与恢复引用
+### 取消、发送与恢复引用
 
 关闭预览后，这份引用不再参与本次请求。普通发送被接受后释放本次待发送数据；重试和续答沿用原次快照。后续修改引用不会改写已提交请求。
 
 插件订阅原生 `composer.quote`，因此业务卡片使用 `setQuote()` 也会更新同一个预览与数据，不需要再手动调用 `setData()`。已有消息的编辑与历史恢复还需要保留前端元数据，见 [Composer 生命周期](/plugins/composer.md#提交后的快照重发与会话切换)。
 
-## 业务卡片引用 \{#hook}
+## 常见定制
+
+
+
+
+### 业务卡片引用 \{#hook}
 
 业务结果卡片要把一段文字引用到当前草稿时，使用 Composer 的 `setQuote({ text, messageId })`。`text` 是选中的原文，`messageId` 是来源消息的实际 ID：
 
@@ -105,7 +114,7 @@ export function QuotePassage({ text, messageId, label }: {
 
 只有手动组合会话边界时才需要 `useConversationQuoteLifecycle(): void`，从 Plugins 根入口导入，在边界卸载时清理该 Thread 的待引用内容。生成项目已经安装此生命周期。定位自定义引用工具栏需要的 `useThreadRootElementRef()` 从 Runtime `/plugin-api` 导入，返回已有根元素 ref 或 `null`，不创建容器。
 
-## 隐藏选择工具栏，保留引用预览 \{#隐藏选择工具栏保留引用预览}
+### 隐藏选择工具栏，保留引用预览 \{#隐藏选择工具栏保留引用预览}
 
 
 renderToolbar 返回 null 后不显示默认选择工具栏；引用仍可由项目已有引用入口或 useComposer 设置。
@@ -120,9 +129,11 @@ export function Example(props: ComponentProps<typeof CanonicalConversationQuote>
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 在 `CanonicalConversationQuote` 上设置以下属性。
 
@@ -137,8 +148,5 @@ export function Example(props: ComponentProps<typeof CanonicalConversationQuote>
 
 - **文案**：在 `locales.conversationQuote.quote` / `dismiss` 中修改引用与关闭文字，保持 `en-US` / `zh-CN` 对应。
 - **结构**：`renderPreview` 与 `renderToolbar` 是无参数的渲染回调。
-
-
-
 
 

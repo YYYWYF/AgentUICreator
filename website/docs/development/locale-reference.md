@@ -14,7 +14,7 @@ title: "文案字段参考"
 
 <!-- locale-reference:start -->
 
-以下 38 个命名空间、467 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
+以下 39 个命名空间、476 个字段从 Plugins 的中英文词典自动生成，按功能分组。字段路径相对于每种语言的覆盖对象，例如 `composer.placeholder` 对应 `locales['zh-CN'].composer.placeholder`。
 
 默认值以字符串字面量展示，`""` 表示空字符串，`\n` 表示换行；引号不属于文案。这里只列出 npm 的默认值，项目和 Host 的已有覆盖可能使实际显示不同。字段是否显示取决于启用的插件、组件和当前状态。
 
@@ -356,6 +356,15 @@ title: "文案字段参考"
 | `workbenchPanel.collapse` | <code>"收起"</code> | <code>"Collapse"</code> |
 | `workbenchPanel.closeItem` | <code>"关闭&#123;name&#125;"</code> | <code>"Close &#123;name&#125;"</code> |
 | `workbenchPanel.open` | <code>"打开侧栏"</code> | <code>"Open side panel"</code> |
+| `navigationMenu.label` | <code>"功能菜单"</code> | <code>"Features"</code> |
+| `navigationMenu.newConversation` | <code>"新建会话"</code> | <code>"New conversation"</code> |
+| `navigationMenu.actionFailed` | <code>"操作失败，请重试。"</code> | <code>"Action failed. Try again."</code> |
+| `navigationMenu.chat` | <code>"聊天"</code> | <code>"Chat"</code> |
+| `navigationMenu.projects` | <code>"项目空间"</code> | <code>"Projects"</code> |
+| `navigationMenu.knowledge` | <code>"知识库"</code> | <code>"Knowledge"</code> |
+| `navigationMenu.workflows` | <code>"工作流"</code> | <code>"Workflows"</code> |
+| `navigationMenu.collapse` | <code>"收起侧栏"</code> | <code>"Collapse sidebar"</code> |
+| `navigationMenu.expand` | <code>"展开侧栏"</code> | <code>"Expand sidebar"</code> |
 
 ### 登录与账号
 

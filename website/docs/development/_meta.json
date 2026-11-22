@@ -6,10 +6,15 @@
   },
   {
     "type": "custom-link",
-    "label": "接入现有应用",
+    "label": "接入应用",
     "collapsible": true,
     "collapsed": false,
     "items": [
+      {
+        "type": "custom-link",
+        "label": "工程结构与修改入口",
+        "link": "/development/project-structure"
+      },
       {
         "type": "custom-link",
         "label": "React 接入",
@@ -27,13 +32,8 @@
       },
       {
         "type": "custom-link",
-        "label": "用业务页面控制 Agent",
-        "link": "/development/react-host-control"
-      },
-      {
-        "type": "custom-link",
-        "label": "多 Agent 与工作流入口",
-        "link": "/development/multiple-agents"
+        "label": "连接 AG-UI 服务",
+        "link": "/development/connect-agent"
       },
       {
         "type": "custom-link",
@@ -44,7 +44,7 @@
   },
   {
     "type": "custom-link",
-    "label": "业务服务接入",
+    "label": "数据与服务接入",
     "collapsible": true,
     "collapsed": false,
     "items": [
@@ -55,13 +55,13 @@
       },
       {
         "type": "custom-link",
-        "label": "Agent 对话与工作流",
-        "link": "/development/connect-agent"
+        "label": "历史会话服务",
+        "link": "/development/history-backend"
       },
       {
         "type": "custom-link",
-        "label": "历史会话服务",
-        "link": "/development/history-backend"
+        "label": "消息发言者与专家切换",
+        "link": "/development/message-speaker"
       },
       {
         "type": "custom-link",
@@ -87,35 +87,48 @@
         "type": "custom-link",
         "label": "提及搜索与快捷命令",
         "link": "/development/composer-sources"
-      },
-      {
-        "type": "custom-link",
-        "label": "前端工具与页面操作",
-        "link": "/development/frontend-tools"
-      },
-      {
-        "type": "custom-link",
-        "label": "给 Agent 传递业务参数",
-        "link": "/development/business-context"
-      },
-      {
-        "type": "custom-link",
-        "label": "自定义 AG-UI 事件与消息渲染",
-        "link": "/development/custom-ag-ui-events"
       }
     ]
   },
   {
     "type": "custom-link",
-    "label": "插件开发与定制",
+    "label": "插件扩展",
     "collapsible": true,
     "collapsed": false,
     "items": [
       {
         "type": "custom-link",
-        "label": "工程结构与修改入口",
-        "link": "/development/project-structure"
+        "label": "创建自定义插件",
+        "link": "/development/create-plugin"
       },
+      {
+        "type": "custom-link",
+        "label": "插件联动与取数",
+        "link": "/development/plugin-interaction"
+      },
+      {
+        "type": "custom-link",
+        "label": "自定义 AG-UI 事件与消息渲染",
+        "link": "/development/custom-ag-ui-events"
+      },
+      {
+        "type": "custom-link",
+        "label": "源码接管与更新参考",
+        "link": "/development/source-takeover"
+      },
+      {
+        "type": "custom-link",
+        "label": "插件按需打包",
+        "link": "/development/plugin-bundling"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "界面定制",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
       {
         "type": "custom-link",
         "label": "布局与插件组合",
@@ -140,37 +153,40 @@
         "type": "custom-link",
         "label": "语言与文案",
         "link": "/development/localization"
-      },
-      {
-        "type": "custom-link",
-        "label": "文案字段参考",
-        "link": "/development/locale-reference"
-      },
-      {
-        "type": "custom-link",
-        "label": "创建自定义插件",
-        "link": "/development/create-plugin"
-      },
-      {
-        "type": "custom-link",
-        "label": "插件联动与取数",
-        "link": "/development/plugin-interaction"
-      },
-      {
-        "type": "custom-link",
-        "label": "插件按需打包",
-        "link": "/development/plugin-bundling"
-      },
-      {
-        "type": "custom-link",
-        "label": "源码接管与更新参考",
-        "link": "/development/source-takeover"
       }
     ]
   },
   {
     "type": "custom-link",
-    "label": "API 参考",
+    "label": "应用控制与联动",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "用业务页面控制 Agent",
+        "link": "/development/react-host-control"
+      },
+      {
+        "type": "custom-link",
+        "label": "多 Agent 与工作流入口",
+        "link": "/development/multiple-agents"
+      },
+      {
+        "type": "custom-link",
+        "label": "给 Agent 传递业务参数",
+        "link": "/development/business-context"
+      },
+      {
+        "type": "custom-link",
+        "label": "前端工具与页面操作",
+        "link": "/development/frontend-tools"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "API 与字段参考",
     "collapsible": true,
     "collapsed": false,
     "items": [
@@ -186,8 +202,13 @@
       },
       {
         "type": "custom-link",
-        "label": "插件 API",
+        "label": "公共插件 API",
         "link": "/development/plugin-api"
+      },
+      {
+        "type": "custom-link",
+        "label": "文案字段参考",
+        "link": "/development/locale-reference"
       }
     ]
   }

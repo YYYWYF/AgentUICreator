@@ -1,5 +1,7 @@
 # 附件添加（add-attachment-action）
 
+## 功能与效果
+
 
 ![附件选择界面](/images/plugins/add-attachment-action.jpg)
 
@@ -7,13 +9,15 @@
 
 通过现有附件能力把文件加入当前草稿。选择后由 Composer 显示附件项、移除入口与准备状态；配置上传服务时在发送阶段上传，用户无需自己把按钮、上传和消息正文串起来。
 
-## 选择、移除并随消息发送
+### 选择、移除并随消息发送
 
 按钮打开文件选择器，接受类型取自当前附件适配器；可多选时一次加入多个文件。草稿中的附件可以在发送前移除，正文仍可继续编辑。
 
 生成项目默认使用本地 Base64 附件适配器，单文件上限 20 MiB；这不等于已接入业务文件服务。需要地址型附件时，按[附件上传服务](/development/attachment-upload.md)接入现有 Host。上传、认证与失败处理配置属于附件服务，不是本按钮的外观属性。
 
-## 与 Composer 联动
+## 数据来源与显示条件
+
+### 与 Composer 联动
 
 附件进入原生 `composer.attachments`，**不另建 `pluginData[附件插件ID]` 条目**。发送时由当前 AG-UI 适配器把它转换到用户消息的 `content` 数组，和正文一起进入最终 `request`。
 
@@ -48,13 +52,18 @@
 
 这里的 Base64 只是格式占位，实际值由附件适配器生成。最终 [Composer `requestAdapter`](/plugins/composer.md#请求适配)接收到的 `request.messages` 已包含转换后的附件；只改业务字段时保留这些内容，避免把整个消息替换为纯文本而丢失文件。
 
-## 其他插件添加或移除附件
+## 常见定制
+
+
+
+
+### 其他插件添加或移除附件
 
 业务文件按钮使用 `useComposer().addAttachment(file)`，传入浏览器 `File`，不要把 `File` 塞进 `setData()`。用 `useComposer(state => state.attachments)` 订阅的附件列表提供 `{ id, name }`，`removeAttachment(id)` 按 ID 移除；这份展示列表不是完整的媒体请求格式或上传状态。完整示例见 [Composer 的控制器](/plugins/composer.md#响应式草稿控制器)。
 
 添加与移除返回 Promise，调用方处理失败。提交前移除的文件不进入本次消息；已接受提交的附件快照不受下一条草稿修改影响。
 
-## 文件单选 \{#单文件选择}
+### 文件单选 \{#单文件选择}
 
 
 multiple 控制文件选择器一次能选择多少文件；不限制整个草稿累计添加的附件数量，也不负责上传。
@@ -70,7 +79,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 ```
 
 
-## 按钮外观 \{#小号描边按钮}
+### 按钮外观 \{#小号描边按钮}
 
 size 和 variant 直接传给按钮，side 控制提示出现的位置。已有上传适配继续使用。
 
@@ -86,9 +95,11 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 在 `ConversationComposerAddAttachment` 上设置以下属性。
 
@@ -101,7 +112,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 
 默认提示方向为 `bottom`，按钮为 `ghost`／`icon`。上传地址和上传方法继续使用项目已有的附件服务配置。
 
-### 按钮属性
+#### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 
@@ -122,13 +133,12 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 默认提示与无障碍文案只读取 `locales.composer.addAttachment`。 所有语言覆盖均需保持 `en-US` / `zh-CN` 对应。
 
 
+
+
+## 常见问题
+
+
 multiple=
 &#x20;能限制整个会话只能上传一个文件吗？
 
 不能。它只限制一次文件选择。累计数量、类型、大小和实际上传由项目附件适配实现。
-
-
-
-
-
-

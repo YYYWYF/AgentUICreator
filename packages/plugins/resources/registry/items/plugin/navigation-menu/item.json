@@ -1,0 +1,29 @@
+{
+  "id": "plugin/navigation-menu",
+  "kind": "agent-component",
+  "description": "Extensible action and view menu with shared Sidebar and toolbar presentations.",
+  "files": [
+    {
+      "source": "files/plugins/navigation-menu/definition.ts",
+      "target": "plugins/navigation-menu/definition.ts"
+    },
+    {
+      "source": "files/plugins/navigation-menu/index.tsx",
+      "target": "plugins/navigation-menu/index.tsx"
+    },
+    {
+      "source": "files/plugins/navigation-menu/manifest.json",
+      "target": "plugins/navigation-menu/manifest.json"
+    },
+    {
+      "source": "files/plugins/navigation-menu/styles.css",
+      "target": "plugins/navigation-menu/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

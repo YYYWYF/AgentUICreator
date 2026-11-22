@@ -146,7 +146,10 @@ describe("project conversation HTTP operations", () => {
   });
 
   it("preserves archive status in the project list method", async () => {
-    const source = createConversationDataSource({ endpoint: "/api", fetch: async () => Response.json([{ id: "saved", title: "Saved", status: "archived" }]) });
+    const source = createConversationDataSource({ endpoint: "/api", fetch: async () => Response.json({
+      returnCode: "SUC0000",
+      body: { conversations: [{ thread_id: "saved", title: "Saved", status: "archived" }] },
+    }) });
     expect(await source.list()).toEqual([{ id: "saved", title: "Saved", status: "archived" }]);
   });
 

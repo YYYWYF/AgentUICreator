@@ -1,7 +1,7 @@
 {
   "id": "tool-result",
-  "name": "Tool Result",
-  "description": "Renders AG-UI tool result content parts with canonical image, audio, video and file presentation.",
+  "name": "Tool Call Card",
+  "description": "Displays tool status, arguments, approval and interrupt interactions, errors, and text/image/audio/video/document results.",
   "version": "0.0.1",
   "capabilities": [
     "conversation-tool-fallback-renderer"
@@ -9,10 +9,11 @@
   "requiresRenderScope": true,
   "authoring": {
     "intents": [
-      "render tool result content parts",
-      "show tool output images audio video and documents"
+      "show a complete tool call card",
+      "customize approval and interrupt cards",
+      "render text images audio video and documents"
     ],
-    "visualRole": "assistant tool result presentation",
+    "visualRole": "assistant tool call card",
     "defaultPlacement": {
       "type": "plugin_slot",
       "parentPluginId": "conversation-surface",

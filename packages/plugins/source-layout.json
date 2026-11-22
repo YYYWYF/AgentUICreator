@@ -650,36 +650,6 @@
       "pluginId": "auth-account"
     },
     {
-      "view": "resources/registry/items/plugin/conversation-new/files/plugins/conversation-new/definition.ts",
-      "source": "src/plugins/conversation-new/adapters/project/definition.ts",
-      "kind": "project",
-      "pluginId": "conversation-new"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-new/files/plugins/conversation-new/index.tsx",
-      "source": "src/plugins/conversation-new/adapters/project/index.tsx",
-      "kind": "project",
-      "pluginId": "conversation-new"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-new/files/plugins/conversation-new/manifest.json",
-      "source": "src/plugins/conversation-new/plugin.json",
-      "kind": "project",
-      "pluginId": "conversation-new"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-new/files/plugins/conversation-new/styles.css",
-      "source": "src/plugins/conversation-new/adapters/project/styles.css",
-      "kind": "project",
-      "pluginId": "conversation-new"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-new/changelog.json",
-      "source": "src/plugins/conversation-new/CHANGELOG.json",
-      "kind": "changelog",
-      "pluginId": "conversation-new"
-    },
-    {
       "view": "resources/registry/items/plugin/add-attachment-action/files/plugins/add-attachment-action/definition.ts",
       "source": "src/plugins/add-attachment-action/adapters/project/definition.ts",
       "kind": "project",
@@ -1967,6 +1937,36 @@
       "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file/size.ts",
       "kind": "presentation",
       "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin/navigation-menu/files/plugins/navigation-menu/definition.ts",
+      "source": "src/plugins/navigation-menu/adapters/package-definition.ts",
+      "kind": "project",
+      "pluginId": "navigation-menu"
+    },
+    {
+      "view": "resources/registry/items/plugin/navigation-menu/files/plugins/navigation-menu/index.tsx",
+      "source": "src/plugins/navigation-menu/adapters/component.tsx",
+      "kind": "project",
+      "pluginId": "navigation-menu"
+    },
+    {
+      "view": "resources/registry/items/plugin/navigation-menu/files/plugins/navigation-menu/manifest.json",
+      "source": "src/plugins/navigation-menu/plugin.json",
+      "kind": "project",
+      "pluginId": "navigation-menu"
+    },
+    {
+      "view": "resources/registry/items/plugin/navigation-menu/files/plugins/navigation-menu/styles.css",
+      "source": "src/plugins/navigation-menu/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "navigation-menu"
+    },
+    {
+      "view": "resources/registry/items/plugin/navigation-menu/changelog.json",
+      "source": "src/plugins/navigation-menu/CHANGELOG.json",
+      "kind": "project",
+      "pluginId": "navigation-menu"
     }
   ]
 }

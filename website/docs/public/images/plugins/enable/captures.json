@@ -239,32 +239,6 @@
       "sha256": "1434b185c4c2940cb75ea29ab84014ceee621d323dc3c8c24842560ec5ce96fc"
     },
     {
-      "id": "conversation-new",
-      "label": "新建会话",
-      "file": "conversation-new.jpg",
-      "capturedDate": "2026-10-27",
-      "capturedAt": "2026-10-27T01:05:24.996Z",
-      "source": "artifacts/creator-command-layout-20261027/docs-raw/conversation-new.png",
-      "sourceUrl": "http://127.0.0.1:5196/",
-      "command": "/enable conversation-new",
-      "options": [
-        "新建会话\nconversation-new\n开始新对话，保留原有聊天记录。\n已停用"
-      ],
-      "captureMethod": "Real Creator UI rendered from current source with a fixed command catalog; native browser screenshot cropped without resizing, then encoded as JPEG.",
-      "fixture": "Presentation-only catalog using the prior documentation fixture disabled/available states. No plugin mutation submitted; states are illustrative, not an inspection of a live project.",
-      "clip": {
-        "x": 132,
-        "y": 459,
-        "width": 405,
-        "height": 278
-      },
-      "dimensions": {
-        "width": 405,
-        "height": 278
-      },
-      "sha256": "d2fadec20ac9fdc0b66431fb82bea024decb71f8516e4a95db517c48dad931f2"
-    },
-    {
       "id": "conversation-quote",
       "label": "引用消息",
       "file": "conversation-quote.jpg",

@@ -1,5 +1,6 @@
 import {AGENT_UI_RUNTIME_LOCALES} from "@za38.03/agent-ui-runtime/locale";
 export const enUS = {
+  navigationMenu: { label: 'Features', newConversation: 'New conversation', actionFailed: 'Action failed. Try again.', chat: 'Chat', projects: 'Projects', knowledge: 'Knowledge', workflows: 'Workflows', collapse: 'Collapse sidebar', expand: 'Expand sidebar' },
   workbenchPanel: {
   "region": "Workbench side panel",
   "tabs": "Panel contents",

@@ -45,7 +45,7 @@
             "type": "slot",
             "plugins": [
               {
-                "pluginId": "conversation-new"
+                "pluginId": "navigation-menu"
               }
             ]
           },

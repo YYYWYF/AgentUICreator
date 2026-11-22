@@ -74,6 +74,8 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
       type: z.literal("stack"), id: nonBlankStringSchema,
       children: z.array(runtimeLayoutNodeSchema),
       active: nonBlankStringSchema.optional(),
+      viewIds: z.array(nonBlankStringSchema).optional(),
+      keepMounted: z.boolean().optional(),
     }),
     z.strictObject({
       type: z.literal("panel"), id: nonBlankStringSchema,
@@ -139,6 +141,11 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
         }
         node.children.forEach((child, index) => visit(child, [...path, "children", index]));
       } else if (node.type === "stack") {
+        if (node.viewIds) {
+          if (node.viewIds.length !== node.children.length || new Set(node.viewIds).size !== node.viewIds.length) {
+            context.addIssue({ code: 'custom', path, message: 'Invalid Stack navigation identities' });
+          }
+        }
         if (node.active !== undefined && !node.children.some((child) => child.id === node.active)) {
           context.addIssue({ code: "custom", path: [...path, "active"], message: `Stack active id "${node.active}" must reference a direct child`, input: node.active });
         }

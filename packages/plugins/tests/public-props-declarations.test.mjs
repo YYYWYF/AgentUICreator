@@ -11,7 +11,7 @@ const declarations = new Set(deliveries
 
 it("retains public conversation props while keeping split presentation implementation declarations private on Windows and POSIX", async () => {
   for (const [plugin, files] of [
-    ["conversation-surface", ["conversation-surface", "surface", "welcome"]],
+    ["conversation-surface", ["conversation-surface", "message-identity", "message-speaker", "surface", "welcome"]],
     ["conversation-thread-list", ["conversation-thread-list", "PolicyThreadList", "list/policy-thread-list"]],
   ]) {
     for (const file of files) {

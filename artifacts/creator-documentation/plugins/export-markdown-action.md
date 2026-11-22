@@ -1,12 +1,11 @@
 # Markdown 回复导出（export-markdown-action）
 
+## 功能与效果
+
 将当前版本的完整回答导出为 Markdown，支持独立按钮和菜单入口。
 
 
-
-
-
-## Markdown 导出
+### Markdown 导出
 
 
 ![Markdown 导出界面](/images/plugins/export-markdown-action.png)
@@ -15,7 +14,12 @@
 
 回答文字由 `TEXT_MESSAGE_CONTENT.delta` 追加，点击导出在前端生成 Markdown。事件格式见[文字回复](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-## 菜单中的 Markdown 导出 \{#菜单中的-markdown-导出}
+## 常见定制
+
+
+
+
+### 菜单中的 Markdown 导出 \{#菜单中的-markdown-导出}
 
 
 将组件放进项目已有菜单内容中。直接配置菜单项属性；该模式不使用按钮的 size/variant。
@@ -32,7 +36,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 ```
 
 
-## 独立的描边导出按钮 \{#独立的描边导出按钮}
+### 独立的描边导出按钮 \{#独立的描边导出按钮}
 
 按钮样式与菜单项分别配置，导出的仍是当前整次回复。
 
@@ -48,7 +52,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 }
 ```
 
-## 禁用状态
+### 禁用状态
 
 
 ![导出按钮的可用与禁用状态](/images/plugins/features/export-markdown-action-states.png)
@@ -64,9 +68,11 @@ export function DisabledExport() {
 }
 ```
 
-## API
+## 属性与 API
 
 
+
+### API
 
 组件：`ConversationCanonicalResponseExportMarkdownAction`。保留提示按钮的原生样式、事件与 icon 属性；默认提示从 locales 读取。
 
@@ -79,7 +85,7 @@ export function DisabledExport() {
 
 当前插件入口使用菜单模式并放在更多操作菜单中。菜单模式使用 `onSelect?: (event: Event) => void`，同样支持 `preventDefault()`。生成中或无正文时不能导出。
 
-### 按钮属性
+#### 按钮属性
 
 提示按钮使用 `ConversationTooltipIconButtonProps`，继承 Base UI 按钮属性：
 

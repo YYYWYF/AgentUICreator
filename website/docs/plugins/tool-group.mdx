@@ -4,6 +4,8 @@ title: "工具调用分组（tool-group）"
 
 # 工具调用分组（tool-group）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![展开后的工具分组](/images/plugins/behavior/tool-group-expanded.jpg)
@@ -13,7 +15,7 @@ title: "工具调用分组（tool-group）"
 
 将会话中归入同一组的工具调用集中展示，自动显示调用数量和运行状态，并保留每个工具原有的详情与操作。
 
-## 汇总一组工具调用
+### 汇总一组工具调用
 
 插件从会话取得当前工具分组和其中的内容，标题自动显示本组调用数量；运行中的分组带有进行中提示。普通分组初始收起，点击标题可以查看或隐藏各次调用。
 
@@ -26,17 +28,19 @@ title: "工具调用分组（tool-group）"
 
 分组和数量由现有会话渲染链提供，业务代码无需自己计数，也无需将工具名逐个拼成一组。
 
-## 待处理操作自动展开
+### 待处理操作自动展开
 
 本组出现需要用户处理的操作时，插件自动展开，方便查看详情中的审批或补充输入入口。普通工具组随后进入待处理状态时，也会触发展开。
 
 展开只是让操作入口可见；实际提交、批准或继续运行沿用各个工具已有的处理流程。离开待处理状态后，插件不会强制把当前分组收起，用户仍可自行切换。
 
-## 分组内查看工具详情
+### 分组内查看工具详情
 
 展开分组后，原有工具内容继续在组内展示。工具的输入、结果和错误由对应的工具展示处理，分组本身不会把它们改造成一段摘要，也不会替用户执行其中的操作。
 
-## 从会话取得工具分组 {#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 从会话取得工具分组 {#显示条件与数据来源}
 
 插件消费当前回复中的工具调用，由会话渲染链组织分组。下面列出同一回复中的两次工具调用；通用运行事件和 SSE 包装见[通用工具事件](./ag-ui-data#通用工具事件)：
 
@@ -57,9 +61,17 @@ title: "工具调用分组（tool-group）"
 
 需要用户审批或补充输入时，还需沿用[审批／中断事件格式](./tool-result#显示条件与数据来源)。运行时据此得到待处理状态，再触发分组自动展开；普通工具参数结束事件不会让分组进入待审批状态。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 普通工具组也初始展开 {#初始展开}
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 普通工具组也初始展开 {#初始展开}
 
 <span id="example-1"></span>
 
@@ -80,7 +92,7 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 调用数量、运行状态和待处理操作的展开逻辑仍由插件提供，用户仍可点击标题收起。
 
-## 调整工具组外观
+### 调整工具组外观
 
 <span id="example-2"></span>
 
@@ -99,12 +111,17 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 }
 ```
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有分组展示。当前分组与内部消息由会话提供，正常使用无需重新组织这些数据。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 继承公开 ToolGroupRoot 的属性，排除 `children`、`open`、`defaultOpen`、`onOpenChange`。插件入口缺少 `group` 时不渲染。
 
@@ -125,13 +142,12 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 <span id="工具分组"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>
+
+## 常见问题
 
 <details className="plugin-faq" id="defaultexpanded-与-expanded-有什么区别">
 <summary>defaultExpanded 与 expanded 有什么区别？</summary>

@@ -1,5 +1,7 @@
 # 上下文检索结果（context-retrieval-message）
 
+## 功能与效果
+
 
 ![默认收起的上下文摘要](/images/plugins/behavior/context-collapsed.jpg)
 
@@ -9,13 +11,13 @@
 
 服务端需要返回的事件和字段说明见[服务端返回的 AG-UI 数据流](#显示条件与数据来源)。
 
-## 按来源显示检索摘要
+### 按来源显示检索摘要
 
 收到有效上下文消息后，插件显示来源名称和片段总数。知识库与长期记忆使用统一文案，其他来源显示消息提供的来源值。
 
 数量是所有查询组中的片段总和，不是查询次数或文档数量；无需业务代码自行统计。
 
-## 展开查看各次查询
+### 展开查看各次查询
 
 正文默认收起，点击标题展开。每一组保留自己的查询词和片段列表，方便对照“用什么问题取回了哪些内容”。
 
@@ -26,13 +28,15 @@
 
 某次查询没有片段时，该组显示空结果提示，其他分组仍正常展示。用户切换展开状态只影响阅读，不会再次发起检索。
 
-## 由上下文消息更新
+## 数据来源与显示条件
+
+### 由上下文消息更新
 
 插件读取 `CONTEXT_CONTENT` 消息中的结构化上下文。有效的新数据传入后，来源、分组和数量跟随更新；格式无效时不显示该卡片。
 
 这里的片段是检索正文，不是文件地址。插件不会单凭一段正文自动提供业务文档预览或下载。
 
-## 服务端返回的 AG-UI 数据流 \{#显示条件与数据来源}
+### 服务端返回的 AG-UI 数据流 \{#显示条件与数据来源}
 
 在当前 AG-UI 运行中发送以下事件。`name` 必须是 `CONTEXT_CONTENT`，`value` 直接携带检索结果对象：
 
@@ -42,7 +46,7 @@
 
 以上结果显示一组查询、1 条上下文。这里展示的是 F12 EventStream **Data** 列中的事件 JSON；实际 HTTP 传输的 SSE 包装及通用运行事件见[共用格式](/plugins/ag-ui-data.md#共用的-sse-格式)。
 
-### `CONTEXT_CONTENT` 字段
+#### `CONTEXT_CONTENT` 字段
 
 | 字段                        | 类型                  | 必需 | 含义                                                      |
 | ------------------------- | ------------------- | -- | ------------------------------------------------------- |
@@ -59,7 +63,13 @@
 
 `renderContent(data, defaultContent)` 提供来源 `source`、按查询词组织的 `content` 片段和默认内容。可以保留默认片段，再组合项目的知识库明细或业务操作；数据传给独立插件的方法见[插件联动与取数](/development/plugin-interaction.md)。
 
-## 直接展示检索正文 \{#默认展开检索正文}
+## 常见定制
+
+
+
+
+
+### 直接展示检索正文 \{#默认展开检索正文}
 
 
 希望用户直接看到各组片段时，在已有上下文消息入口设置初始展开：
@@ -76,7 +86,7 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 
 分组、片段计数、空组提示继续由插件处理，用户仍可手动收起。
 
-## 给默认正文增加业务容器
+### 给默认正文增加业务容器
 
 
 `renderContent` 同时提供解析后的数据和默认正文。只增加布局时，直接复用默认正文，可保留查询分组和空结果提示：
@@ -93,11 +103,13 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 
 需要按查询词增加知识库入口时，可从第一个参数读取各组 `query`。替换正文不会改变外层来源标题、数量和展开容器；如果不再返回 `defaultContent`，查询与片段的版式由新内容负责。
 
-## API
+## 属性与 API
+
+
+
+### API
 
 以下选项用于定制已有消息展示。`data` 由已注册的消息入口提供；正常使用无需另建一份展示数据。
-
-
 
 继承 `details` 原生属性，排除 `children`、`title`、`open`、`onToggle`。
 
@@ -110,7 +122,7 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 | `onExpandedChange?` | `(expanded: boolean) => void`                                                                   | 展开变化通知                                                          |
 | `renderContent?`    | [`(data: ContextRetrievalData, defaultContent: ReactNode) => ReactNode`](#contextretrievaldata) | 替换检索正文，保留标题和展开容器                                                |
 
-### 自定义正文时取得哪些数据 \{#contextretrievaldata}
+#### 自定义正文时取得哪些数据 \{#contextretrievaldata}
 
 `renderContent(data, defaultContent)` 收到的是已经校验的检索数据，结构与前面的 `CONTEXT_CONTENT.value` 对应：
 
@@ -123,10 +135,6 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 | `group.context` | `readonly string[]` | 本组检索片段正文；不是文件 URL 或可直接下载的文件 ID |
 
 要在正文后追加业务操作，保留 `defaultContent` 并组合自己的按钮，见以下代码示例。
-
-
-
-
 
 
 

@@ -4,12 +4,15 @@ title: "会话服务（conversation-service）"
 
 # 会话服务（conversation-service）
 
+## 功能与效果
+
 共享列表、历史缓存和会话操作，支持刷新、订阅和独立详情读取。
 
-<span id="常见需求"></span>
-<span id="代码示例"></span>
+<span id="实现与项目配置"></span>
 
-## 会话管理
+本插件管理会话列表、详情加载与缓存、当前选中的会话，以及删除、重命名和归档等操作。会话数据源负责读取接口，本插件将这些数据和操作提供给界面，消息与运行继续由应用已有的 Runtime 管理。
+
+### 会话管理
 
 <figure className="plugin-preview">
 
@@ -18,7 +21,31 @@ title: "会话服务（conversation-service）"
 <figcaption>服务联动后的界面；本插件本身没有独立界面。</figcaption>
 </figure>
 
-## 刷新当前历史列表 {#刷新当前历史列表}
+## 修改与启用
+
+历史记录的持久化由业务后端完成。手动接入接口或调整操作时，按下方开发文档修改项目配置。
+
+<span id="相关接口"></span>
+
+- 接入历史接口、数据格式和会话管理操作：[接入历史会话](/development/history-backend)。
+- 从业务页面发送消息、停止运行或新建会话：[用业务页面控制 Agent](/development/react-host-control)。
+- 编写需要读取或共享服务的自定义插件：[服务共享与状态订阅](/development/plugin-api#服务共享与状态订阅)。
+
+调整列表组件的外观与属性，见[会话列表](./conversation-thread-list)。
+
+## 数据来源与显示条件
+
+<span id="取数与联动"></span>
+
+其他插件可以订阅列表和当前会话信息，也可以用 `loadConversation(id)` 读取指定历史而不切换聊天。需要统一的消息结构时再调用 `projectConversationDetail(detail)`；适合历史比较、摘要等功能，见[取数示例](/development/plugin-interaction#读取历史不切换聊天)。
+
+## 常见定制
+
+<span id="常见需求"></span>
+
+<span id="代码示例"></span>
+
+### 刷新当前历史列表 {#刷新当前历史列表}
 
 <span id="example-1"></span>
 
@@ -46,7 +73,7 @@ export function RefreshHistory({ onError }: { onError: (error: unknown) => void 
 
 <span id="example-2"></span>
 
-## 读取另一段历史而不切换当前对话 {#读取另一段历史而不切换当前对话}
+### 读取另一段历史而不切换当前对话 {#读取另一段历史而不切换当前对话}
 
 loadConversation 只读详情；不会用该历史替换当前 Thread。回调由项目显示预览或错误。
 
@@ -67,7 +94,7 @@ export function ReadHistory({ id, label, onLoaded, onError }: {
 }
 ```
 
-## 订阅会话列表 {#订阅会话列表}
+### 订阅会话列表 {#订阅会话列表}
 
 组件与服务位于同一 Agent，并声明 `agent-ui.conversations` 依赖。
 
@@ -83,28 +110,15 @@ export function ConversationCount() {
 
 `snapshot.conversations` 随刷新、重命名、删除等操作更新，`serviceAvailable` 为 `false` 时隐藏计数。这个组件不主动请求列表；需要刷新使用前面的 `RefreshHistory`。相对路径指向项目已有 Hook，移动组件时同步调整。
 
-## API
+## 属性与 API
 
 <span id="属性"></span>
+
 <span id="开发-api"></span>
 
-<span id="实现与项目配置"></span>
+### API
 
-本插件管理会话列表、详情加载与缓存、当前选中的会话，以及删除、重命名和归档等操作。会话数据源负责读取接口，本插件将这些数据和操作提供给界面，消息与运行继续由应用已有的 Runtime 管理。
 
-历史记录的持久化由业务后端完成。手动接入接口或调整操作时，按下方开发文档修改项目配置。
-
-<span id="相关接口"></span>
-
-- 接入历史接口、数据格式和会话管理操作：[接入历史会话](/development/history-backend)。
-- 从业务页面发送消息、停止运行或新建会话：[用业务页面控制 Agent](/development/react-host-control)。
-- 编写需要读取或共享服务的自定义插件：[服务共享与状态订阅](/development/plugin-api#服务共享与状态订阅)。
-
-调整列表组件的外观与属性，见[会话列表](./conversation-thread-list)。
-
-<span id="取数与联动"></span>
-
-其他插件可以订阅列表和当前会话信息，也可以用 `loadConversation(id)` 读取指定历史而不切换聊天。需要统一的消息结构时再调用 `projectConversationDetail(detail)`；适合历史比较、摘要等功能，见[取数示例](/development/plugin-interaction#读取历史不切换聊天)。
 
 <span id="hook"></span>
 
@@ -116,14 +130,15 @@ export function ConversationCount() {
 
 无 selector 的 `getSnapshot()` 在调用时读取最新值。`subscribe(listener)` 供手动集成使用，需要在 effect 清理中取消。历史列表、缓存继续由会话服务拥有，当前聊天消息由 `useConversation` 读取。
 
-### 服务方法 {#服务}
+#### 服务方法 {#服务}
 
 提供 `agent-ui.conversations` 与供 Runtime 消费的 `agent-ui.thread-binding`，依赖 `agent-ui.conversation-data-source`。
 
 | 服务成员 | 返回值与用途 |
 | --- | --- |
 | `getSnapshot()` / `subscribe(listener: () => void)` | 当前 `ConversationSnapshot` / `() => void`，订阅后重新读取快照 |
-| `refresh()` | `Promise<void>`，刷新列表 |
+| `refresh()` | `Promise<void>`，更新第一页；已分页加载时保留尾部和末尾游标，第一页已覆盖全量时替换列表 |
+| `loadPage?(cursor)` | `Promise<void>`，由 Thread Binding 接入原生分页；列表 UI 通过 assistant-ui 的 loadMore 触发 |
 | `selectConversation(id)` | `Promise<ConversationDetail \| undefined>`，服务级详情选择；UI 导航优先使用项目操作 Hook |
 | `loadConversation(id)` | `Promise<ConversationDetail>`，独立读取详情，不切换当前 Thread |
 | `deleteConversation(id: string)` | `Promise<void>`，删除业务记录并更新列表 |
@@ -136,6 +151,7 @@ export function ConversationCount() {
 
 - 会话数据：`mode`、`conversations`、`activeConversationId?`、`activeConversation?`。
 - 加载状态：`listStatus`、`detailStatus`，值为 `idle | loading | ready | error`。
+- 分页：`nextCursor?` 为下一页游标，`null` 表示结束；`loadMoreError?` 保留下一页失败信息。`listRevision?` 是列表同步用的内部版本，追加页不改变它。
 - 错误信息：`listError?`、`detailError?`、`detailErrorConversationId?`。
 
 需要将历史详情转换成统一消息结构时，从 `/conversation-service` 导入 `projectConversationDetail(detail)`，传入已取得的 `ConversationDetail`，返回投影后的消息列表；完整例子见[读取历史不切换聊天](/development/plugin-interaction#读取历史不切换聊天)。校验未知业务响应时，可以使用同入口的 `conversationSummarySchema.safeParse(value)` / `conversationDetailSchema.safeParse(value)`，先处理失败，再将合法结果交给服务。

@@ -25,6 +25,8 @@ Layout 使用 Row、Column、Stack、Panel、Slot 和 Sidebar。父 Row/Column �
 
 Runtime SlotRegistry 管理插槽与贡献的运行关系。运行期派生身份不写回 authoring 模型。当前字段以 Runtime 公开合同和受控操作 Schema 为准，不维护第二套 JSON 配置模型。
 
+Stack 可声明自身的 `id`、按 children 顺序排列的 `viewIds: string[]` 和 `keepMounted`，用于同页功能视图切换。配置 viewIds 时必须提供唯一的 Stack id，该 id 同时作为运行时布局节点身份；未配置 id 的 Stack 继续使用按路径派生的节点身份。Runtime 持有按 Agent 隔离的激活状态，并通过内置 `agent-ui.stack-navigation` Service 提供选择与订阅；Renderer 只接收受控激活状态并渲染布局分支，不读取插件 Service。菜单与功能视图仍是普通 UI Plugin。旧 Stack 的 `activeIndex` 与默认卸载行为保持兼容；切换不改写 AppUIModel，也不创建页面或 Agent Runtime。见 [Stack 与侧栏布局](architecture/generic-sidebar-layout.md)。
+
 Creator 通过 `inspect_ui_project` 获取当前 authoring refs、hash 和目录，通过 `mutate_app_ui_model` 修改健康组合。无效模型使用受控源检查和修复工具，不用通用文本编辑覆盖 AppUIModel 或生成 Registry。
 
 ## 项目应用层、实现与 Shell

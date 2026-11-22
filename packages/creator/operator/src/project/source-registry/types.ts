@@ -16,9 +16,11 @@ export interface AgentUISourceLock {
 }
 
 export interface AgentUISourceLockItem {
+  /** Imported versions describe provenance, not the current implementation. */
   pluginVersion?: string;
   sourceRelease?: string;
-  files: Record<string, { sha256: string }>;
+  /** Installation receipt only. Current project files are authoritative. */
+  files: Record<string, Record<string, never>>;
 }
 
 export interface AgentUISourceTransactionOriginalEntry {

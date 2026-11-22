@@ -14,7 +14,7 @@
 | 功能启用时向 `/` 菜单增加业务命令    | [命令注册器](/plugins/conversation-command-source.md#服务)：`register(command)`，停用或卸载时调用返回的注销函数                                                                                                                                                      |
 | 消息卡片打开详情侧栏，其他插件跟随当前标签  | [工作台侧栏服务](/plugins/workbench-panel.md#服务方法与状态)：打开、切换、关闭，以及订阅展开状态和可见标签                                                                                                                                                                        |
 | 读取已有登录服务的用户资料，或跟随主题、语言 | [账号](/plugins/auth-account.md#hook)、[主题服务](/plugins/theme-provider.md#服务)、[语言服务](/plugins/locale-provider.md#服务)；用户资料只用于展示，不代替接口鉴权                                                                                                           |
-| 在对话中显示业务提示，不发送新问题      | [临时通知](/plugins/transient-assistant-messages.md#hook)：`addMessage()`                                                                                                                                                                         |
+| 在对话中显示业务提示，不发送新问题      | [临时通知](#临时通知)：`addMessage()`                                                                                                                                                                                                                 |
 | 给当前工具增加业务按钮，读取参数、结果和状态 | 沿用 renderer 的[工具调用数据](/plugins/tool-result.md#当前工具调用的数据与操作)；提交答案、审批时使用其提供的回调，历史展示保持只读                                                                                                                                                        |
 
 ## 从结果插件取得数据
@@ -87,6 +87,36 @@ export function useReadConversationMessages() {
 ```
 
 在按钮处理函数中调用并处理失败，返回的消息可交给比较、摘要等业务组件。只需要业务历史原格式时直接读取 `detail.history`。这次读取不会切换当前聊天，也不会发送问题或启动运行。
+
+## 在对话中显示业务提示 \{#临时通知}
+
+在已有会话内的业务组件中，从 Plugins 根入口导入 `useTransientMessages()`。操作成功后调用 `addMessage()`，就会在当前聊天中显示提示。下面的 `save` 接业务保存方法，`label`、`successText` 来自项目文案，`onError` 接项目错误处理：
+
+```tsx
+import { useState } from 'react';
+import { useTransientMessages } from '@za38.03/agent-ui-plugins';
+
+export function SaveWithNotice({ save, label, successText, onError }: {
+  save: () => Promise<void>;
+  label: string;
+  successText: string;
+  onError: (error: unknown) => void;
+}) {
+  const { addMessage } = useTransientMessages();
+  const [pending, setPending] = useState(false);
+  return <button type="button" disabled={pending} onClick={async () => {
+    if (pending) return;
+    setPending(true);
+    try {
+      await save();
+      addMessage({ role: 'system', text: successText });
+    } catch (error: unknown) { onError(error); }
+    finally { setPending(false); }
+  }}>{label}</button>;
+}
+```
+
+`role` 可用 `system`、`assistant` 或 `user`，分别显示为居中、助理或用户提示。错误提示增加 `type: 'error'`。提示不发送给 Agent，也不保存到聊天历史；刷新页面后消失。
 
 ## 当前的读取范围
 

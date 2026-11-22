@@ -67,6 +67,8 @@ export function createConversationThreadBindingHost(initialThreadId?: string) {
       return target.deleteThread(id);
     },
     getThreadListSnapshot: () => target.getThreadListSnapshot?.() ?? EMPTY_LIST,
+    loadThreadListPage: async (after) =>
+      target.loadThreadListPage?.(after) ?? target.getThreadListSnapshot?.() ?? EMPTY_LIST,
     selectThread: (id) =>
       target.selectThread?.(id) ??
       target.loadThread?.(id) ??

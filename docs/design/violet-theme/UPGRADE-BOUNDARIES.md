@@ -15,7 +15,7 @@ Official Plugin owners live in `packages/plugins/src/plugins/<id>/`, with pristi
 | Quote preview and toolbar | `conversation-quote` | `previewProps`, `toolbarProps`, `renderPreview`, `renderToolbar` | Selection Portal, quote lifecycle and send context |
 | Copy, retry, feedback and export | Action Plugins | Public props and existing response scope | Default actions, errors and entire-response semantics |
 | Response footer | `response-footer` | Public action/branch composition and overall styles | One footer beneath the final assistant message in each complete response |
-| Conversation list and new conversation | `conversation-thread-list`, `conversation-new` | Direct `showSearch`, `showArchived`, `itemProps`, public actions and styles | Existing service, navigation, loading/retry and persistence |
+| Conversation list and new conversation | `conversation-thread-list`, `navigation-menu` | Direct `showSearch`, `showArchived`, `itemProps`, menu items, public actions and styles | Existing service, navigation, loading/retry and persistence |
 | Plan, status and job progress | Corresponding message Plugins | Direct presentation props and renderers | Actual state, outcome, progress and cancellation |
 | Reasoning, tool groups and timeline | `reasoning`, `tool-group`, `tool-timeline` | `expanded`, `defaultExpanded`, `onExpandedChange`, public composition | Runtime order, grouping and tool result visibility |
 | Tool details and approval | `tool-fallback`, `tool-result` | Public detail/args/result/error/approval parts | Approval, interrupt, retry and focus recovery |

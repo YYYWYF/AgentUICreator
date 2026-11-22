@@ -32,7 +32,7 @@ export function ThreadItemMenu({
             variant='ghost'
             size='icon'
             data-slot='agent-ui-thread-action-more'
-            className='data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-has-focus-visible:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100'
+            className='data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover/thread-list-item:opacity-100 group-has-focus-visible/thread-list-item:opacity-100 group-data-active/thread-list-item:opacity-100 data-[state=open]:opacity-100'
           >
             <MoreHorizontalIcon aria-hidden className='size-3.5' />
             <span data-agent-ui-owned='' className='sr-only'>

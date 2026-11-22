@@ -32,8 +32,9 @@ Agent Tool exposure 是单独的授权面：remove transport capability 不代�
 使用同一份 operation-specific Result `$defs`；envelope 的 Result union 不能替代
 request-scoped validation。内部复杂对象仅在显式标记 opaque 的局部放宽，
 AppUIModel model/layout/slot 继续由现有目标项目 Zod grammar 管理，不复制新的 grammar。
-Source inspection 使用显式 `owned` / 内容 SHA 驱动的 `updateAvailable`，不新增
-Host 没有返回的 `kind` 字段。
+Source inspection 使用显式 `owned` 和当前文件状态，不将源码与历史哈希比较；
+安装路径只作记录，具体源码更新由更新页读取当前实现与目标新版。
+不新增 Host 没有返回的 `kind` 字段。
 一次性导入的业务示例另以可选 `projectOwned` 标记；它没有官方源码 BASE，
 不参与内容更新比较，`updateAvailable` 为 false。
 

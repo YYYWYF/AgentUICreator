@@ -1,1 +1,6 @@
-null
+{
+  "transactionId": "926c19dd-00c8-4d07-ae5a-fd2fdd08d63d",
+  "appUIModelHash": "6f56d5512ea8abc0b7f8f9ee87d95f8916eebe0d93a0bc7844d77eb899bcdec9",
+  "appUIModelJsonHash": "9c5c2276bcd89d2a8dce46dd50adb9e99b543976032019fab94345171729ff8d",
+  "capabilityCatalogRevision": "ae282b9aa1780261a1e55b8d915a1ea943d9f5c5fa1a4d189da15d0055d4e4f2"
+}

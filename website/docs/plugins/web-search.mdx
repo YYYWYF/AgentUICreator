@@ -4,6 +4,8 @@ title: "网页搜索结果（web-search）"
 
 # 网页搜索结果（web-search）
 
+## 功能与效果
+
 <figure className="plugin-preview">
 
 ![网页搜索完成后的结果](/images/plugins/behavior/web-search-finished.jpg)
@@ -13,7 +15,7 @@ title: "网页搜索结果（web-search）"
 
 将网页搜索工具的查询和结果展示在回答中，自动切换搜索中与结果状态，并为有有效地址的网页提供打开入口。
 
-## 搜索过程中显示查询
+### 搜索过程中显示查询
 
 工具运行时，插件从调用参数取得查询词并显示搜索中的状态。结果尚未返回时不需要业务代码另行设置加载开关。
 
@@ -24,19 +26,21 @@ title: "网页搜索结果（web-search）"
 <figcaption>结果返回前显示查询词和“正在搜索”；完成后切换为开头的来源列表。</figcaption>
 </figure>
 
-## 搜索完成后展示网页
+### 搜索完成后展示网页
 
 成功结果到达后，插件显示实际结果数量，按返回顺序列出标题和来源域名；有摘要时一起展示。默认显示全部已接收结果。
 
 结果具有有效 HTTP(S) 地址时，标题可在新窗口打开网页。地址缺失或无法用于打开网页时，标题保留为文字，不会根据域名拼出一个链接。
 
-## 空结果与工具异常
+### 空结果与工具异常
 
 成功返回空 `results` 数组时显示零条结果。工具报错、等待用户操作、处于未完成状态，或结束后的结果结构无效时，插件回到通用工具详情。
 
 搜索过程和结果展示都来自当前工具调用，插件不会自行请求搜索服务，也不会根据摘要推测新的结果。
 
-## 接入网页搜索结果 {#显示条件与数据来源}
+## 数据来源与显示条件
+
+### 接入网页搜索结果 {#显示条件与数据来源}
 
 当前默认注册工具名为 `web_search`。参数的 `query` 显示查询内容，结果从 `results` 数组读取。以下按顺序列出本插件需要的事件；通用运行事件和 SSE 包装见[共用格式](./ag-ui-data#共用的-sse-格式)。
 
@@ -53,9 +57,17 @@ title: "网页搜索结果（web-search）"
 
 `renderSearch(view, tool)` 提供当前的 `query`、`results`、`searching`，以及原工具调用。可把结果交给项目组件，增加收藏、选择或打开业务详情等操作。需要其他插件跟随选中结果时，使用[共享 Service](/development/plugin-interaction#插件之间共享选择或结果)。
 
+## 常见定制
+
 <span id="定制选项"></span>
 
-## 限制可见网页数量 {#只显示前-3-条搜索结果}
+<span id="常见需求"></span>
+
+<span id="需求示例"></span>
+
+<span id="代码示例"></span>
+
+### 限制可见网页数量 {#只显示前-3-条搜索结果}
 
 <span id="example-1"></span>
 
@@ -74,7 +86,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 只改变已接收结果的展示数量；结果总数仍按实际数据计算，不会请求下一页或限制服务端搜索数量。
 
-## 在业务区域复用搜索结果 {#自定义搜索结果列表}
+### 在业务区域复用搜索结果 {#自定义搜索结果列表}
 
 <span id="example-2"></span>
 
@@ -93,12 +105,17 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 完全替换这个回调时，状态、空结果、链接和摘要的展示都由新内容负责。工具异常和无效结果的回退仍由插件处理。
 
-## API
+## 属性与 API
+
+<span id="属性"></span>
+
+<span id="开发-api"></span>
+
+### API
 
 以下选项用于定制已有工具展示。当前工具的参数、结果和运行状态由原入口提供，正常使用无需重新构造它们。
 
-<span id="属性"></span>
-<span id="开发-api"></span>
+
 
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
@@ -108,13 +125,13 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 原始工具数据仍先经过校验，再应用自定义展示属性。
 
-### 当前工具调用的数据与操作
+#### 当前工具调用的数据与操作
 
 `renderSearch(view, tool)` 提供查询、搜索状态、结果集合及原工具调用。业务收藏使用结果对象中的 URL 和标题，关联本次搜索使用 `tool.toolCallId`；页面显示的结果条数不等于工具只返回了这些结果。
 
 公共字段、状态判断和操作回调见[工具调用参数](./tool-result#当前工具调用的数据与操作)。
 
-### 使用搜索结果做打开或收藏操作 {#websearchresult}
+#### 使用搜索结果做打开或收藏操作 {#websearchresult}
 
 `renderSearch(view, tool)` 的 `view.results` 中，每项必需 `title: string`、`domain: string`，可选 `url: string`、`snippet: string`。
 
@@ -131,10 +148,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 <span id="网页搜索结果"></span>
 
-<span id="常见需求"></span>
 
-<span id="需求示例"></span>
 
-<span id="代码示例"></span>
 
 <span id="启用与使用"></span>

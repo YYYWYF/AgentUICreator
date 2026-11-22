@@ -29,6 +29,23 @@ const backendList = {
 };
 afterEach(() => { conversationConnection.headers = () => ({}); conversationConnection.credentials = 'same-origin'; });
 
+it.each([null, 'next+/= 中文'])('maps body.next_cursor %s without changing business list fields', async nextCursor => {
+  const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
+    ...backendList, body: { ...backendList.body, next_cursor: nextCursor },
+  }));
+  const source = createConversationDataSource({ endpoint: '/api', fetch });
+  expect(await source.list()).toEqual({
+    conversations: [{ id: detail.id, title: detail.title, status: 'archived' }], nextCursor,
+  });
+});
+
+it.each([123, {}, '', false])('rejects an invalid next_cursor %s', async nextCursor => {
+  const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({
+    ...backendList, body: { ...backendList.body, next_cursor: nextCursor },
+  }));
+  await expect(createConversationDataSource({ endpoint: '/api', fetch }).list()).rejects.toThrow('CONVERSATION_CURSOR_INVALID');
+});
+
 it('executes all six project methods with encoded identities, rotating auth and cancellation', async () => {
   let token = 'first';
   conversationConnection.headers = () => ({ Authorization: `Bearer ${token}` });
