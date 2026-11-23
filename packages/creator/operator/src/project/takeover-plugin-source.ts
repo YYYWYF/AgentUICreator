@@ -58,12 +58,11 @@ async function prepare(root: string, id: string, sync = false) {
   const context = await resourcePaths(root);
   const { paths } = context;
   const ownership = await readPluginSourceOwnership(paths.metadataRoot);
-  if (!sync && ownership.plugins[id]) fail("PLUGIN_ALREADY_SOURCE_OWNED", "This Plugin is already project-owned; edit its adapters directly.");
   const application = await isPluginApplication(path.join(paths.pluginsRoot, id), id);
   const target = `plugins/${id}${application ? "/source" : ""}`;
   await assertNoSymbolicLinkTraversal(paths.sourceRoot, target);
   if (sync && (!application || ownership.plugins[id]?.implementationRoot !== "source")) fail("PLUGIN_SOURCE_SYNC_UNAVAILABLE", "Source sync requires an isolated implementation subtree.");
-  if (!sync && await lstat(path.join(paths.sourceRoot, target)).then(() => true, error => { if (error.code === "ENOENT") return false; throw error; })) fail("PLUGIN_SOURCE_TARGET_EXISTS", "Existing source must be preserved; takeover requires an absent target directory.");
+  const targetExists = !sync && await lstat(path.join(paths.sourceRoot, ...target.split("/"))).then(() => true, (error: NodeJS.ErrnoException) => { if (error.code === "ENOENT") return false; throw error; });
   // Resolve from the target project, never from Operator's own dependency tree.
   const require = createRequire(path.join(root, "package.json"));
   const catalogPath = require.resolve("@za38.03/agent-ui-plugins/catalog.json");
@@ -114,12 +113,19 @@ async function prepare(root: string, id: string, sync = false) {
   const instances = collectAppUIPluginLocations(model).filter(location => location.plugin.pluginId === id).map(location => location.plugin.id).sort();
   const applicationEdits = new Map<string, Buffer>();
   if (application && !sync) {
-    applicationEdits.set("index.tsx", await switchApplicationImport(path.join(paths.pluginsRoot, id, "index.tsx"), `@za38.03/agent-ui-plugins/${id}`, "./source/index"));
-    applicationEdits.set("definition.ts", await switchApplicationImport(path.join(paths.pluginsRoot, id, "definition.ts"), `@za38.03/agent-ui-plugins/${id}`, "./source/definition"));
+    for (const [file, entry] of [["index.tsx", "index"], ["definition.ts", "definition"]] as const) {
+      const destination = path.join(paths.pluginsRoot, id, file);
+      const current = await readFile(destination).catch((error: NodeJS.ErrnoException) => { if (error.code === "ENOENT") return undefined; throw error; });
+      if (current) {
+        const next = await switchApplicationImport(destination, `@za38.03/agent-ui-plugins/${id}`, `./source/${entry}`);
+        if (!current.equals(next)) applicationEdits.set(file, next);
+      }
+    }
   }
   const catalogHash = digest(catalogBytes);
   const plan = { pluginId: id, package: { name: pkg.name as string, version: pkg.version as string }, pluginVersion: plugin.version as string,
     catalogHash, stateHash: digest(await stateHash(root) + JSON.stringify(dependencies.identities)), applicationChanges: [...applicationEdits.keys()], files: [...files.keys()].map(file => `${target}/${file}`).sort(), instances,
+    ...(targetExists ? { overwriteDirectory: projectRelativePath(root, path.join(paths.sourceRoot, ...target.split("/"))) } : {}),
     sharedDependencies: plugin.takeover.sharedDependencies as string[], dependencyChanges: dependencies.changes,
     compatibility, recommendations, origins };
   const localFiles = sync ? await readCurrentPluginSource(path.join(paths.pluginsRoot, id, "source")) : new Map<string, Buffer>();

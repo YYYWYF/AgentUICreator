@@ -13,7 +13,7 @@ import {
 import { SlotRegistry } from "../slots/SlotRegistry.js";
 import type {
   AgentUserInput,
-  AgentSendOptions,
+  AgentUISendOptions,
   AgentInterruptResponse,
   UIPluginActions,
   UIPluginDefinition,
@@ -36,7 +36,7 @@ import {
 } from "../application/ApplicationLifecycleRuntime.js";
 
 export interface UIPluginRuntimeActions {
-  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
+  sendMessage(input: string | AgentUserInput, options?: AgentUISendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;

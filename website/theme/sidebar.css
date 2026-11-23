@@ -202,50 +202,6 @@
   overflow-wrap: anywhere;
 }
 
-/* Component examples keep their code available without dominating the page. */
-.rp-doc details.doc-code,
-.rspress-doc details.doc-code {
-  margin-block: 16px 28px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--rp-c-divider-light);
-  border-radius: 10px;
-  background: var(--rp-c-bg);
-}
-
-.rp-doc details.doc-code > summary,
-.rspress-doc details.doc-code > summary {
-  padding: 10px 16px;
-  color: var(--rp-c-text-2);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.rp-doc details.doc-code > summary:hover,
-.rspress-doc details.doc-code > summary:hover {
-  color: var(--rp-c-brand);
-  background: var(--rp-c-bg-soft);
-}
-
-.rp-doc details.doc-code > summary:focus-visible,
-.rspress-doc details.doc-code > summary:focus-visible {
-  outline: 2px solid var(--rp-c-brand);
-  outline-offset: -3px;
-}
-
-.rp-doc details.doc-code[open] > summary,
-.rspress-doc details.doc-code[open] > summary {
-  border-block-end: 1px solid var(--rp-c-divider-light);
-}
-
-.rp-doc details.doc-code .rp-codeblock,
-.rspress-doc details.doc-code .rp-codeblock {
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-}
-
 .rp-doc figure.plugin-preview {
   margin: 16px 0 20px;
   padding: 0;

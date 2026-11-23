@@ -35,14 +35,14 @@
   height: 32px;
   padding-inline-start: 32px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
   background: color-mix(in srgb, var(--muted) 60%, var(--sidebar));
 }
 .conversation-thread-list-plugin [data-slot="aui_thread-list-search-icon"] { inset-inline-start: 10px; width: 14px; height: 14px; }
 .conversation-thread-list-plugin [data-slot="aui_thread-list-item"] { height: 34px; border-radius: 7px; }
-.conversation-thread-list-plugin [data-slot="aui_thread-list-item-trigger"] { border-radius: 7px; font-size: 13px; line-height: 20px; }
-.conversation-thread-list-plugin [data-slot="aui_thread-list-group-label"] { padding: 12px 10px 4px; font-size: 11px; line-height: 16px; font-weight: 400; }
+.conversation-thread-list-plugin [data-slot="aui_thread-list-item-trigger"] { border-radius: 7px; font-size: 14px; line-height: 20px; }
+.conversation-thread-list-plugin [data-slot="aui_thread-list-group-label"] { padding: 12px 10px 4px; font-size: 12px; line-height: 16px; font-weight: 400; }
 .conversation-thread-list-plugin [data-slot="aui_thread-list-items"] { min-height: 0; flex: 1; gap: 4px; overflow-y: auto; }
 .conversation-thread-list-error { flex-shrink: 0; padding: 0.5rem; max-height: 35%; overflow-y: auto; }
 .agent-ui-root .conversation-thread-list-rail-new {

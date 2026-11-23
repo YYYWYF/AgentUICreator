@@ -76,20 +76,14 @@ export function ApprovalConfirmation({
 export function ApprovalOptionButtons({
   options,
   locked,
-  question,
-  acceptsText,
   onOption,
   onReject,
-  dismissButton,
   ...appearance
 }: {
   options: readonly ToolApprovalOption[];
   locked: boolean;
-  question: boolean;
-  acceptsText: boolean;
   onOption: (option: ToolApprovalOption) => void;
   onReject: () => void;
-  dismissButton: React.ReactNode;
 } & ToolFallbackApprovalAppearance) {
   const messages = useLocale('toolPresentation');
   const allowOptions = options.filter((option) => isAllowKind(option.kind));
@@ -111,7 +105,7 @@ export function ApprovalOptionButtons({
           {approvalOptionLabel(option, messages)}
         </ApprovalActionButton>
       ))}
-      {rejectOptions.length === 0 && !question && (
+      {rejectOptions.length === 0 && (
         <ApprovalActionButton
           {...appearance}
           action='reject'
@@ -124,7 +118,6 @@ export function ApprovalOptionButtons({
           {messages.deny}
         </ApprovalActionButton>
       )}
-      {!acceptsText && dismissButton}
     </ApprovalActions>
   );
 }

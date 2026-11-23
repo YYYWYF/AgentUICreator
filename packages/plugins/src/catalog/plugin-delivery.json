@@ -1670,7 +1670,6 @@
       "approval/approval-actions.tsx",
       "approval/approval-model.ts",
       "approval/approval-options.tsx",
-      "approval/approval-questions.tsx",
       "approval/approval-receipt.tsx",
       "approval/approval.tsx",
       "approval/use-approval-interaction.ts",

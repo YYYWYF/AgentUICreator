@@ -7,7 +7,7 @@
     "build": "rspress build",
     "preview": "rspress preview",
     "typecheck": "tsc --noEmit",
-    "check:docs": "node scripts/generate-locale-reference.mjs --check && node --test scripts/remark-collapsed-code.test.mjs && node scripts/check-docs.mjs"
+    "check:docs": "node scripts/generate-locale-reference.mjs --check && node scripts/check-docs.mjs"
   },
   "devDependencies": {
     "@rspress/core": "2.0.23",

@@ -1,7 +1,6 @@
 import { defineConfig } from '@rspress/core';
 import { pluginPreview } from '@rspress/plugin-preview';
 import { fileURLToPath } from 'node:url';
-import { remarkCollapsedCode } from './theme/remark-collapsed-code';
 
 export default defineConfig({
   root: 'docs',
@@ -14,9 +13,6 @@ export default defineConfig({
     selector: '.rp-doc img, .rspress-doc img, .home-templates__card img',
   },
   globalStyles: fileURLToPath(new URL('./theme/sidebar.css', import.meta.url)),
-  markdown: {
-    remarkPlugins: [remarkCollapsedCode],
-  },
   // _nav.json selects modules; each module's _meta.json orders its own sidebar.
   // A root _meta.json would combine every module into one global sidebar.
   themeConfig: {

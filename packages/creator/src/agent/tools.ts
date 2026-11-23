@@ -229,7 +229,8 @@ export async function createTools(context: ToolContext) {
       if (operation.name === "takeover_plugin_source") {
         const plan = await requestOperator(context.root, "plan_plugin_source_takeover", { pluginId: input.pluginId }, context.signal);
         const key = `plugin-source-${plan.planHash}`;
-        const answer: any = interrupt({ kind: "ask_user_question", steps: [{ id: key, question: messages.takeoverQuestion.replace("{0}", input.pluginId), description: (plan.dependencyChanges?.length ? messages.takeoverDependencies + "\n\n" : "") + json(plan), options: [{ id: "approve", label: messages.approveTakeover }, { id: "decline", label: messages.cancel }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] });
+        const overwriteNotice = typeof plan.overwriteDirectory === "string" ? messages.takeoverOverwrite.replace("{0}", plan.overwriteDirectory) + "\n\n" : "";
+        const answer = z.object({ answers: z.record(z.string(), z.array(z.string())).optional() }).parse(interrupt({ kind: "ask_user_question", steps: [{ id: key, question: messages.takeoverQuestion.replace("{0}", input.pluginId), description: overwriteNotice + (plan.dependencyChanges?.length ? messages.takeoverDependencies + "\n\n" : "") + json(plan), options: [{ id: "approve", label: messages.approveTakeover }, { id: "decline", label: messages.cancel }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }));
         if (answer.answers?.[key]?.[0] !== "approve") return cancelExecution(context, operation.name);
         const current = await requestOperator(context.root, "plan_plugin_source_takeover", { pluginId: input.pluginId }, context.signal);
         if (current.planHash !== plan.planHash) throw new Error("PLUGIN_SOURCE_PLAN_STALE");

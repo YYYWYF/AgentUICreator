@@ -4,14 +4,10 @@ import { forwardRef, useRef } from 'react';
 import { Textarea, cn } from '../../../../../plugin-support.js';
 import { isSettled, offersInterruptAction, type ToolFallbackApprovalProps } from './approval-model.js';
 import { ToolFallbackApprovalReceipt } from './approval-receipt.js';
-import { ToolFallbackApprovalQuestions } from './approval-questions.js';
 import { ApprovalConfirmation, ApprovalOptionButtons } from './approval-options.js';
 import {
-  ApprovalActionButton,
-  ApprovalActions,
   ApprovalDecisionActions,
   CommandApprovalActions,
-  pressable,
 } from './approval-actions.js';
 import { useApprovalInteraction } from './use-approval-interaction.js';
 
@@ -19,6 +15,10 @@ export const ToolFallbackApproval: React.ForwardRefExoticComponent<
   ToolFallbackApprovalProps & React.RefAttributes<HTMLDivElement>
 > = forwardRef<HTMLDivElement, ToolFallbackApprovalProps>(function ToolFallbackApproval(props, ref) {
   const carryFocusRef = useRef(false);
+  // Question displays have no AG-UI mapping here and must never become decisions.
+  if (props.approval?.display !== undefined && props.approval.display !== 'decision') {
+    return null;
+  }
   return (
     <ToolFallbackApprovalImpl key={props.approval?.id} carryFocusRef={carryFocusRef} forwardedRef={ref} {...props} />
   );
@@ -61,13 +61,9 @@ function ToolFallbackApprovalImpl({
     acceptsText,
     submit,
     respond,
-    submitAnswer,
-    dismiss,
     handleOption,
     respondWithOption,
     confirming,
-    question,
-    dismissible,
   } = useApprovalInteraction({
     addResult,
     resume,
@@ -118,19 +114,6 @@ function ToolFallbackApprovalImpl({
     );
   }
 
-  const dismissButton = dismissible ? (
-    <ApprovalActionButton
-      {...appearance}
-      size='sm'
-      variant='outline'
-      className={pressable}
-      onClick={dismiss}
-      disabled={locked}
-    >
-      {messages.dismiss}
-    </ApprovalActionButton>
-  ) : null;
-
   const errorText = error ? (
     <p role='alert' className='aui-tool-fallback-approval-error text-destructive text-xs whitespace-pre-line'>
       {error}
@@ -165,48 +148,11 @@ function ToolFallbackApprovalImpl({
         value={answer}
         onChange={(event) => setAnswer(event.target.value)}
         disabled={locked}
-        aria-label={question ? (approval?.prompt ?? messages.answer) : messages.note}
-        placeholder={question ? messages.answerPlaceholder : messages.notePlaceholder}
+        aria-label={messages.note}
+        placeholder={messages.notePlaceholder}
       />
-      {question && (
-        <ApprovalActions {...appearance} className='flex items-center gap-2'>
-          <ApprovalActionButton
-            {...appearance}
-            size='sm'
-            className={pressable}
-            onClick={submitAnswer}
-            disabled={locked}
-          >
-            {messages.send}
-          </ApprovalActionButton>
-          {dismissButton}
-        </ApprovalActions>
-      )}
     </div>
   ) : null;
-
-  if (approval?.display === 'questions' && respondToApproval) {
-    return (
-      <div
-        data-slot='tool-fallback-approval'
-        tabIndex={-1}
-        className={cn('aui-tool-fallback-approval flex flex-col gap-3 pt-1', className)}
-        {...props}
-        ref={setPendingGroup}
-      >
-        {promptText}
-        <ToolFallbackApprovalQuestions
-          {...appearance}
-          questions={approval.questions ?? []}
-          dismissible={approval.dismissible === true}
-          locked={locked}
-          onSend={(answers) => submit(() => respondToApproval({ answers }))}
-          onDismiss={dismiss}
-        />
-        {errorText}
-      </div>
-    );
-  }
 
   if (confirming) {
     return (
@@ -245,36 +191,10 @@ function ToolFallbackApprovalImpl({
           {...appearance}
           options={declaredOptions}
           locked={locked}
-          question={question}
-          acceptsText={acceptsText}
           onOption={handleOption}
           onReject={() => respond(false)}
-          dismissButton={dismissButton}
         />
         {answerField}
-        {errorText}
-      </div>
-    );
-  }
-
-  // A question carries no decision to fabricate, so it renders only what the
-  // request declared, even when that leaves nothing to act on here.
-  if (question) {
-    return (
-      <div
-        data-slot='tool-fallback-approval'
-        tabIndex={-1}
-        className={cn('aui-tool-fallback-approval flex flex-col gap-2 pt-1', className)}
-        {...props}
-        ref={setPendingGroup}
-      >
-        {promptText}
-        {answerField}
-        {!acceptsText && dismissButton && (
-          <ApprovalActions {...appearance} className='flex items-center gap-2'>
-            {dismissButton}
-          </ApprovalActions>
-        )}
         {errorText}
       </div>
     );

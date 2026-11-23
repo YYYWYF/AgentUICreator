@@ -29,7 +29,7 @@ it("regenerates all repeated presentation seams and preserves protocol results",
   expect(model).toContain("const APPROVED_RESULT = 'Approved by user'");
   expect(model).toContain("const DENIED_RESULT = 'User denied tool execution'");
   expect(interaction).toContain('respondToApproval({ approved, ...typedNote() })');
-  for (const filename of ["approval.tsx", "approval-actions.tsx", "approval-options.tsx", "approval-questions.tsx", "approval-receipt.tsx"]) {
+  for (const filename of ["approval.tsx", "approval-actions.tsx", "approval-options.tsx", "approval-receipt.tsx"]) {
     expect(await readFile(new URL(filename, approvalRoot), "utf8")).not.toMatch(/\n\s+(Allow|Deny|Confirm|Dismiss)\n/);
   }
   const tasks = first.files.find(file => file.localPath.endsWith("/agent-status.aui.tsx")).source;

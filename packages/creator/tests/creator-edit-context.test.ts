@@ -1447,7 +1447,7 @@ it.each(["approve", "decline"])("uses the native source-takeover question for %s
   const context = await project("takeover-question"); passingValidation(); let applications = 0;
   state.inspect.mockImplementation(async (_root: string, name: string) => {
     if (name === "inspect_ui_plugin") return inspectResult(context.root);
-    if (name === "plan_plugin_source_takeover") return { pluginId: "composer", planHash: "a".repeat(64), version: "1.0.0" };
+    if (name === "plan_plugin_source_takeover") return { pluginId: "composer", planHash: "a".repeat(64), version: "1.0.0", overwriteDirectory: "src/ui/plugins/composer/source" };
     if (name === "takeover_plugin_source") { applications++; await writeFile(path.join(context.root, entry), original + "// owned implementation selected\n"); return { status: "applied" }; }
     return directoryFixture();
   });
@@ -1466,6 +1466,8 @@ it.each(["approve", "decline"])("uses the native source-takeover question for %s
   expect(applications).toBe(0); expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
   const key = pending.metadata.steps[0].id;
   expect(key).toBe("plugin-source-" + "a".repeat(64));
+  expect(pending.metadata.steps[0].description).toContain("src/ui/plugins/composer/source");
+  expect(pending.metadata.steps[0].description).toContain("确定要覆盖吗");
   await runtime.run({ threadId: "takeover-question", runId: "takeover-question-2", messages: [], forwardedProps: { command: { resume: { interruptId: pending.id, answers: { [key]: [choice] } } } } }, context.signal, publish);
   expect(applications).toBe(choice === "approve" ? 1 : 0);
   expect(events.filter(event => event.name === "on_interrupt")).toHaveLength(1);

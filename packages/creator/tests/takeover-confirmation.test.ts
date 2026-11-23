@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { confirmPluginSourceTakeover } from "../src/ui/commands/confirmPluginSourceTakeover.js";
-import { DEFAULT_CREATOR_MESSAGES } from "../src/ui/i18n/locale.js";
+import { CREATOR_LOCALES, DEFAULT_CREATOR_MESSAGES } from "../src/ui/i18n/locale.js";
 import type { CreatorCommandResult } from "../src/commands/types.js";
 
 const request = { id: "takeover" as const, args: { pluginId: "composer" } };
@@ -28,4 +28,16 @@ it("applies only the Host-held plan to the originally selected Plugin", async ()
   expect(execute).toHaveBeenCalledExactlyOnceWith({ id: "takeover", args: { pluginId: "composer", preparationId: "host-plan" } });
   await expect(confirmPluginSourceTakeover({ id: "takeover", args: { pluginId: "reasoning" } }, pending, DEFAULT_CREATOR_MESSAGES.commands, id => id, () => true, execute)).rejects.toThrow("PLUGIN_SOURCE_PLAN_STALE");
   expect(execute).toHaveBeenCalledTimes(1);
+});
+
+it.each(["zh-CN", "en-US"] as const)("warns before overwriting an existing folder in %s and cancellation never applies", async locale => {
+  const existing: CreatorCommandResult = { ...pending, takeover: { ...pending.takeover!, plan: { ...pending.takeover!.plan, overwriteDirectory: "src/ui/plugins/composer/source" } } };
+  const confirm = vi.fn((_message: string) => false);
+  const execute = vi.fn();
+  await confirmPluginSourceTakeover(request, existing, CREATOR_LOCALES[locale].commands, id => id, confirm, execute);
+  expect(confirm.mock.calls[0]?.[0]).toContain("src/ui/plugins/composer/source");
+  expect(confirm.mock.calls[0]?.[0]).toContain(locale === "zh-CN" ? "确定要覆盖吗" : "Overwrite?");
+  expect(execute).not.toHaveBeenCalled();
+  await confirmPluginSourceTakeover(request, existing, CREATOR_LOCALES[locale].commands, id => id, () => true, execute);
+  expect(execute).toHaveBeenCalledExactlyOnceWith({ id: "takeover", args: { pluginId: "composer", preparationId: "host-plan" } });
 });

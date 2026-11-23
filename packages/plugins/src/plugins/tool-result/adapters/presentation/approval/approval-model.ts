@@ -4,8 +4,6 @@ import type { ConversationCommandDecisionRequest, ConversationToolCallProps } fr
 import {
   DEFAULT_AGENT_UI_MESSAGES,
   type ToolApprovalOption,
-  type ToolApprovalQuestion,
-  type ToolApprovalAnswer,
   type ToolCallMessagePart,
   type ToolCallMessagePartProps,
   type ToolCallMessagePartStatus,
@@ -53,22 +51,6 @@ export const approvalOptionLabel = (
     : undefined) ??
   option.id;
 
-/**
- * A request that declares how it wants to be presented is asking a question,
- * not gating an action, so a refusal is not one of the answers it accepts
- * unless the request declares itself dismissible.
- */
-export const isQuestion = (approval: ToolCallMessagePart['approval']) =>
-  approval?.display === 'select' || approval?.display === 'text' || approval?.display === 'questions';
-
-export const questionAcceptsText = (question: ToolApprovalQuestion) =>
-  !question.options?.length || question.allowFreeform === true;
-
-export const answerLabels = (question: ToolApprovalQuestion, answer: ToolApprovalAnswer | undefined) => [
-  ...(answer?.optionIds ?? []).map((id) => question.options?.find((option) => option.id === id)?.label ?? id),
-  ...(answer?.text?.trim() ? [answer.text] : []),
-];
-
 export const isSettled = (approval: ToolCallMessagePart['approval']) =>
   approval != null && (approval.approved !== undefined || approval.resolution !== undefined);
 
@@ -101,7 +83,7 @@ export const approvalReceipt = (
       : approval.optionId === undefined
         ? undefined
         : approval.optionId;
-  const answered = isQuestion(approval) || (chosen !== undefined && !isKnownKind(chosen.kind));
+  const answered = chosen !== undefined && !isKnownKind(chosen.kind);
   const automatic = approval.isAutomatic ? messages.automatic : '';
 
   if (approval.approved) {

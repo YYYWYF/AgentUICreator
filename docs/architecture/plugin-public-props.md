@@ -62,7 +62,7 @@
 | `context-retrieval-message` | 直接 title、expanded、defaultExpanded、onExpandedChange、整体样式；保留 renderContent。 |
 | `locale-switch` | 直接整体样式、disabled、options；标识统一用 selectProps.id；使用现有唯一语言服务。 |
 | `ask-user-question` | 接收工具调用数据与整体样式，文案通过 humanQuestion locale；保留问答协议与历史只读。 |
-| `tool-result` | 唯一公开工具卡片插件，内部按标题、参数、错误、审批、问卷、回执和媒体结果拆分；保留展开、审批样式、renderDetails、renderPart、resolveFile 和 resultOnly，无内部插件子插槽。 |
+| `tool-result` | 唯一公开工具卡片插件，内部按标题、参数、错误、审批、回执和媒体结果拆分；问卷使用独立的 ask-user-question 插件；保留展开、审批样式、renderDetails、renderPart、resolveFile 和 resultOnly，无内部插件子插槽。 |
 | `skills` | `items`、`quickItemCount`、`disabled` 及根样式；通过 Service 保存选择，调用通用 `setData({ id, label })` 收集发送数据，默认生成的 Composer 应用层将其映射到 ctx，不暴露 ctx 或局部请求适配器。 |
 | `skills-selection` | `disabled` 和根 `div` 属性；依赖 `conversation.skills` Service，读取选择并通过服务取消，不从 Composer 读取 UI 状态。 |
 | `workbench-panel` | `items`、service、受控展开／选中／可见标签、回调、宽度和根样式；renderMain 提供主区域后备内容，main 插槽优先；关闭时保持内容挂载。 |

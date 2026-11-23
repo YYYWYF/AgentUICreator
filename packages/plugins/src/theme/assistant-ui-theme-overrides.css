@@ -24,7 +24,6 @@
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-code-language"] {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 13px;
   line-height: 20px;
 }
 
@@ -169,7 +168,7 @@
   min-height: 32px;
   padding: 6px 10px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 20px;
 }
 
@@ -354,7 +353,7 @@
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="composer-quote-text"] {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -405,10 +404,6 @@
   font-weight: 600;
   line-height: 1.4;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h1 { font-size: 20px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h2 { font-size: 18px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] h3 { font-size: 16px; }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(h4, h5, h6) { font-size: 14px; }
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(ul, ol) {
   margin-block: 8px;
   margin-inline-start: 20px;
@@ -467,7 +462,7 @@
 }
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] :is(th, td) {
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: inherit;
   border-color: var(--border);
 }
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] [data-slot="agent-ui-markdown"] th {

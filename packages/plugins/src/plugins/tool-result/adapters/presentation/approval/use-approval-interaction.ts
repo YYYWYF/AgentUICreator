@@ -4,14 +4,12 @@ import { useCallback, useImperativeHandle, useLayoutEffect, useRef, useState } f
 import {
   useLocale,
   useAuiState,
-  toolApprovalAcceptsText,
   type ToolApprovalOption,
 } from '../../../../../plugin-support.js';
 import {
   APPROVED_RESULT,
   DENIED_RESULT,
   isKnownKind,
-  isQuestion,
   isSettled,
   type ToolFallbackApprovalProps,
 } from './approval-model.js';
@@ -107,11 +105,9 @@ export function useApprovalInteraction({
     }
   };
 
-  // A declared option list is a host constraint: the kit never adds an
-  // approval path beyond it, and preserves a refusal path only where the
-  // request is an action the user may refuse.
+  // Preserve the host's approval choices and the existing refusal path.
   const declaredOptions = respondToApproval ? approval?.options : undefined;
-  const acceptsText = approval != null && respondToApproval != null && toolApprovalAcceptsText(approval);
+  const acceptsText = respondToApproval != null && approval?.allowFreeform === true;
 
   // A refused response leaves the request open, so the controls come back
   // rather than staying spent on a decision the runtime never recorded.
@@ -166,23 +162,6 @@ export function useApprovalInteraction({
 
   const typedNote = () => (answer.trim() ? { text: answer } : {});
 
-  // The kit does not validate an answer the request never constrained: a host
-  // that cannot record an empty one rejects it, which reopens the controls.
-  const submitAnswer = () => {
-    if (locked) {
-      return;
-    }
-    submit(() => respondToApproval?.({ text: answer }));
-  };
-
-  // A dismissal is no answer at all, so a typed draft does not travel with it.
-  const dismiss = () => {
-    if (locked) {
-      return;
-    }
-    submit(() => respondToApproval?.({ approved: false }));
-  };
-
   const handleOption = (option: ToolApprovalOption) => {
     if (option.confirm) {
       focusPendingGroup();
@@ -193,9 +172,6 @@ export function useApprovalInteraction({
   };
 
   const confirming = confirmingId != null ? declaredOptions?.find((o) => o.id === confirmingId) : undefined;
-
-  const question = isQuestion(approval);
-  const dismissible = question && respondToApproval != null && approval?.dismissible === true;
 
   return {
     messages,
@@ -215,11 +191,7 @@ export function useApprovalInteraction({
     submit,
     respond,
     respondWithOption,
-    submitAnswer,
-    dismiss,
     handleOption,
     confirming,
-    question,
-    dismissible,
   };
 }

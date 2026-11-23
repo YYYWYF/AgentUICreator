@@ -28,7 +28,7 @@ title: "工具调用卡片（tool-result）"
 | 参数、普通结果、错误 | `tool-content.tsx` |
 | 确认／拒绝按钮及外观 | `approval/approval-actions.tsx` |
 | 多审批选项、二次确认 | `approval/approval-options.tsx` |
-| 问卷与补充输入 | `approval/approval-questions.tsx` |
+| 审批备注输入 | `approval/approval.tsx` |
 | 已确认、已拒绝、已取消回执 | `approval/approval-receipt.tsx` |
 | 局部提交、错误重试和焦点状态 | `approval/use-approval-interaction.ts` |
 | 文本及结构化结果组合 | `result/result-content.tsx`、`result/content.ts` |
@@ -37,6 +37,8 @@ title: "工具调用卡片（tool-result）"
 | 文件引用解析、取消和安全 URL 校验 | `result/use-result-source.ts` |
 
 这些是同一个插件的内部模块，不需要分别注册或在 AppUIModel 配置子插槽。源码同步仍只处理已接管实现；应用入口和业务配置保持项目所有。
+
+问卷和用户问答使用独立的 [ask-user-question 插件](./ask-user-question)，`tool-result` 只提供操作审批，不提供问卷展示。
 
 ## 数据来源与显示条件
 
@@ -136,7 +138,7 @@ export function ConversationToolResultPlugin(
 
 `approvalClassNames` 使用相同键传入项目 CSS 类名：`actions` 控制操作行，`button` 控制通用操作按钮，`approveButton` / `rejectButton` 控制明确的确认 / 拒绝操作。专用样式覆盖通用按钮样式。
 
-这些分区覆盖旧 `ON_INTERRUPT` 的 `approve` / `reject`、原生审批的允许 / 拒绝选项及普通二选一审批。二次确认按选项性质使用对应分区。返回、问卷提交、取消填写和自定义选项只使用通用 `button` 样式。
+这些分区覆盖旧 `ON_INTERRUPT` 的 `approve` / `reject`、原生审批的允许 / 拒绝选项及普通二选一审批。二次确认按选项性质使用对应分区。返回和自定义选项只使用通用 `button` 样式。
 
 `approvalProps` 控制审批区外层，`buttonProps` 控制工具标题按钮。修改外观时继续传入原 `tool`，保留原有权限、提交、错误重试和焦点行为。
 

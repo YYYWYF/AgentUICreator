@@ -169,8 +169,13 @@ export type PluginDefaultPlacement =
       slot: string;
     };
 
+export interface AgentUISendOptions extends AgentSendOptions {
+  /** Override the default endpoint for this send and its continuations. */
+  endpoint?: string | undefined;
+}
+
 export interface UIPluginActions {
-  sendMessage(input: string | AgentUserInput, options?: AgentSendOptions): Promise<void>;
+  sendMessage(input: string | AgentUserInput, options?: AgentUISendOptions): Promise<void>;
   resumeInterrupts(responses: AgentInterruptResponse[]): Promise<void>;
   startNewConversation(): Promise<void>;
   abortRun(): void;

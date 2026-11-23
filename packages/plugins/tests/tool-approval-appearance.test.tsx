@@ -153,18 +153,47 @@ it('styles native options and secondary confirmation without skipping confirmati
   expect(respond).toHaveBeenCalledExactlyOnceWith({ optionId: 'refuse' });
 });
 
-it('keeps question validation, selection, response shape and non-decision button semantics', async () => {
+it.each(views)('$name ignores unsupported question displays without replacing them with approval actions', async ({ View }) => {
+  const respond = vi.fn<NonNullable<ConversationToolResultProps['respondToApproval']>>();
+  const resume = vi.fn<NonNullable<ConversationToolResultProps['resume']>>();
+  const addResult = vi.fn<NonNullable<ConversationToolResultProps['addResult']>>();
+  for (const display of ['select', 'text', 'questions'] as const) {
+    for (const settled of [false, true]) {
+      const { container } = await mount(<Host><View {...appearance} tool={{
+        ...tool, defaultExpanded: true, result: 'Tool output', status: settled ? { type: 'complete' } : tool.status,
+        approval: {
+          id: display, display, prompt: 'Choose a plan', allowFreeform: true, dismissible: true,
+          options: [{ id: 'basic', kind: 'choice', label: 'Basic' }],
+          questions: [{ id: 'choice', prompt: 'Choose a plan', options: [{ id: 'basic', label: 'Basic' }] }],
+          ...(settled ? { approved: true, text: 'Old answer', answers: { choice: { optionIds: ['basic'] } } } : {}),
+        },
+        respondToApproval: respond, resume, addResult,
+      }} /></Host>);
+      expect(container.querySelector('[data-slot^="tool-fallback-approval"]')).toBeNull();
+      expect(container.querySelector('textarea')).toBeNull();
+      expect(container.querySelector('.project-approve, .project-reject')).toBeNull();
+      expect(container.querySelector('[data-slot="tool-fallback-args"]')?.textContent).toBe('{}');
+      expect(container.querySelector('[data-slot="tool-fallback-result"]')?.textContent).toContain('Tool output');
+    }
+  }
+  expect(respond).not.toHaveBeenCalled();
+  expect(resume).not.toHaveBeenCalled();
+  expect(addResult).not.toHaveBeenCalled();
+});
+
+it('keeps optional notes attached to approval decisions', async () => {
   const respond = vi.fn<NonNullable<ConversationToolResultProps['respondToApproval']>>();
   const { container } = await mount(<Host><ConversationToolResult {...tool} {...appearance}
-    approval={{ id: 'questions', display: 'questions', dismissible: true, questions: [
-      { id: 'choice', prompt: 'Choose a plan', options: [{ id: 'basic', label: 'Basic' }] },
-    ] }} respondToApproval={respond} /></Host>);
-  expect(button(container, 'Send').disabled).toBe(true);
-  await act(async () => button(container, 'Basic').click());
-  expect(button(container, 'Send').disabled).toBe(false);
-  expect(container.querySelector('.project-approve, .project-reject')).toBeNull();
-  await act(async () => button(container, 'Send').click());
-  expect(respond).toHaveBeenCalledExactlyOnceWith({ answers: { choice: { optionIds: ['basic'] } } });
+    approval={{ id: 'decision-with-note', display: 'decision', allowFreeform: true }}
+    respondToApproval={respond} /></Host>);
+  const input = container.querySelector('textarea');
+  expect(input).not.toBeNull();
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(input, 'Keep an audit record');
+    input?.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => button(container, 'Allow').click());
+  expect(respond).toHaveBeenCalledExactlyOnceWith({ approved: true, text: 'Keep an audit record' });
 });
 
 it('keeps frontend completion result strings and readonly settled controls unchanged', async () => {

@@ -3902,6 +3902,9 @@
             "type": "string"
           }
         },
+        "overwriteDirectory": {
+          "type": "string"
+        },
         "recommendations": {
           "type": "array",
           "items": {

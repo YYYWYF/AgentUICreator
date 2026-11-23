@@ -209,7 +209,7 @@
 
 .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion-title {
   grid-column: 2;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 20px;
 }
@@ -217,7 +217,7 @@
 .agent-ui-root[data-theme] :is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) .conversation-suggestion-label {
   grid-column: 2;
   color: var(--agent-compact-suggestion-label);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 18px;
 }
 

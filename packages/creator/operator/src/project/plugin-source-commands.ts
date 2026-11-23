@@ -13,6 +13,7 @@ export interface PluginSourceTakeoverPlan {
   stateHash: string;
   planHash: string;
   applicationChanges: string[];
+  overwriteDirectory?: string;
   files: string[];
   instances: string[];
   sharedDependencies: string[];
@@ -26,7 +27,7 @@ export async function planAgentUIPluginSourceTakeover(root: string, input: { plu
   return planPluginSourceTakeover(root, input);
 }
 
-/** Existing npm applications only: never reinterpret legacy/custom source as consent. */
+/** Include previous takeovers so users can explicitly extract the source again. */
 export async function getAgentUIPluginSourceTargets(root: string): Promise<string[]> {
   const ids = await installedPackagePluginIds(root);
   if (!ids) return [];
@@ -35,7 +36,7 @@ export async function getAgentUIPluginSourceTargets(root: string): Promise<strin
   const targets: string[] = [];
   for (const id of ids) {
     planPluginSourceInputSchema.parse({ pluginId: id });
-    if (!ownership.plugins[id] && await isPluginApplication(path.join(paths.pluginsRoot, id), id)) targets.push(id);
+    if (ownership.plugins[id] || await isPluginApplication(path.join(paths.pluginsRoot, id), id)) targets.push(id);
   }
   return targets.sort();
 }

@@ -160,8 +160,13 @@ async function sendCtx(host: AgentUIHost) {
 const agentCtx: import("@za38.03/agent-ui-runtime/ui").AgentProps = { ctx };
 const fetchOnly: import("@za38.03/agent-ui-runtime/ui").AgentProps = { fetch: async (_url, init) => globalThis.fetch("/business/agent", init) };
 const runtimeFetchOnly: Omit<ConversationRuntimeProviderProps, "children"> = { threadBinding: createEphemeralConversationThreadBinding(), fetch: fetchOnly.fetch };
-const pluginCtx: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions["sendMessage"] = async (_input, options) => { void options?.ctx; };
-void [sendCtx, agentCtx, fetchOnly, runtimeFetchOnly, pluginCtx];
+const pluginCtx: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions["sendMessage"] = async (_input, options) => { void options?.ctx; void options?.endpoint; };
+async function sendPlugin(actions: import("@za38.03/agent-ui-runtime/contracts").UIPluginActions) {
+  const options: import("@za38.03/agent-ui-runtime/contracts").AgentUISendOptions = { endpoint: "/workflow", ctx };
+  await actions.sendMessage("analyze", options);
+  await actions.sendMessage("analyze", { endpoint: "/workflow", ctx });
+}
+void [sendCtx, agentCtx, fetchOnly, runtimeFetchOnly, pluginCtx, sendPlugin];
 void [AgentUIProvider, hostHook, useAgent, useAgentEvent, useAgentAppEvent, optionalUser];
 const hostTools = createAgentUIFrontendTools([{
   name: "open_record", description: "Open record", inputSchema: { type: "object" },

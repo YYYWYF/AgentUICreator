@@ -137,7 +137,15 @@ it("takes over the project's exact installed source without an Agent, preserving
     expect(ownership.plugins.composer.approvedPlanHash).toBe(confirmed.plan.planHash);
     const source = catalog.plugins.find(plugin => plugin.id === "composer")!.takeover.files.find(file => file.target === "index.tsx")!;
     expect(await readFile(path.join(sourceDirectory, "index.tsx"), "utf8")).toBe(await readFile(path.join(installed, "dist", ...source.path.split("/")), "utf8"));
-    expect(await targets()).not.toContain("composer");
+    expect(await targets()).toContain("composer");
+    const overwrite = await plan();
+    expect(overwrite.plan.overwriteDirectory).toBe("src/ui/plugins/composer/source");
+    await rm(sourceDirectory, { recursive: true, force: true });
+    const restore = await plan();
+    expect(restore.plan.overwriteDirectory).toBeUndefined();
+    expect((await execute({ pluginId: "composer", preparationId: restore.id })).body.changed).toBe(true);
+    expect(await readFile(path.join(sourceDirectory, "index.tsx"), "utf8")).toBe(await readFile(path.join(installed, "dist", ...source.path.split("/")), "utf8"));
+    expect(await readFile(applicationPath, "utf8")).toBe(application.replace("@za38.03/agent-ui-plugins/composer", "./source/index"));
     expect((await execute({ pluginId: "composer", preparationId: confirmed.id })).body.code).toBe("PLUGIN_SOURCE_PLAN_STALE");
     expect(runtimeRequests.length).toBeGreaterThan(0);
     expect(runtimeRequests.every(url => url === "/creator-command-mutation")).toBe(true);

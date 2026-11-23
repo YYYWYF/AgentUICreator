@@ -60,7 +60,7 @@ title: "插件 API"
 | 成员 | 用途 |
 | --- | --- |
 | `instance` | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息 |
-| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ ctx: { ... } }` 附带业务参数，返回 `Promise<void>` |
+| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ endpoint, ctx }` 为本次发送指定工作流 URL 和业务参数，返回 `Promise<void>` |
 | `actions.abortRun()` | 请求停止当前运行 |
 | `actions.startNewConversation()` | 新建并切换会话，返回 `Promise<void>` |
 | `actions.resumeInterrupts(responses)` | 提交审批或补充信息，返回 `Promise<void>` |
@@ -304,6 +304,17 @@ React 组件从 `@za38.03/agent-ui-plugins` 取得：
 它们由现有插件实例上下文提供，不作为 `Component` 的额外参数传入。
 
 例如 `await actions.sendMessage('分析订单', { ctx: { orderId: 'O-1042' } })`，后端从 `forwardedProps.ctx` 读取参数。更多示例见[业务参数 ctx](./business-context#业务参数-ctx)。
+
+插件组件与 `setup` 中的 `actions.sendMessage()` 都支持按次指定 `endpoint`：
+
+```ts
+await actions.sendMessage('分析订单', {
+  endpoint: '/api/workflows/order-analysis',
+  ctx: { orderId: 'O-1042' },
+});
+```
+
+它继续使用当前助手和 Thread，不新建会话。重试、前端工具续传和审批恢复沿用该次请求地址；下一次发送不传 `endpoint` 时使用助手的默认地址。运行中或等待用户响应时发送会拒绝，需处理 Promise 失败。
 
 以下示例放在 `plugins/ticket-actions/index.tsx`，发送一条项目文案中配置的工单分析请求：
 

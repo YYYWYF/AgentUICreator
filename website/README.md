@@ -47,7 +47,7 @@ message/tool bindings and operations in examples. Do not imply that users must s
 presentation props to obtain behavior the Plugin already supplies. Keep prop,
 method and data lookup tables in the final API section. Each Plugin's structure
 follows its own behavior; do not require a quota of prop demos or identical sections.
-Ant Design is a reference for feature navigation, visual examples, collapsed code
+Ant Design is a reference for feature navigation, visual examples
 and API placement, not a reason to describe a Plugin as one isolated component.
 Avoid export inventories, copied type declarations and generic outline entries
 such as “common needs”, “requirement examples” or “code examples”. Creator requests
@@ -55,13 +55,11 @@ and step-by-step integration instructions belong in their owning guides.
 Keep internal design history, provenance and release authoring out of the public
 site, and preserve the generated frontend's independence from development tools.
 
-Development code fences are collapsed by default through `theme/remark-collapsed-code.ts`.
-AG-UI event streams (JSONL, SSE and JSON event examples) use the original visible
-code block, without a disclosure wrapper or summary. Keep these stream examples
-outside explicitly collapsed guide sections as well.
-Native disclosures remain keyboard accessible and work in the static site before
-hydration. Preserve raw code fences in generated Markdown for offline readers and
-agents. Existing explicit disclosures keep their own grouping.
+Code fences render directly without automatic disclosure wrappers, including
+single-line commands and all getting-started examples. Keep AG-UI event streams
+outside explicitly collapsed guide sections as well. Preserve raw code fences in
+generated Markdown for offline readers and agents. Existing explicit disclosures
+keep their own grouping.
 
 Verify code against current public declarations with `pnpm test:documentation`.
 Explain the required context, defaults, callback behavior and expected result beside

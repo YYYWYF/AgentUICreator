@@ -9,7 +9,7 @@ import {
   CircleMinusIcon,
   type ToolCallMessagePart,
 } from '../../../../../plugin-support.js';
-import { approvalReceipt, answerLabels, type ApprovalReceipt } from './approval-model.js';
+import { approvalReceipt, type ApprovalReceipt } from './approval-model.js';
 
 const receiptIcon = (outcome: ApprovalReceipt['outcome']): React.ElementType =>
   ({
@@ -69,26 +69,6 @@ export function ToolFallbackApprovalReceipt({
           </span>
         ) : null}
       </p>
-      {approval.answers &&
-        approval.questions?.map((question) => {
-          const labels = answerLabels(
-            question,
-            approval.answers && Object.hasOwn(approval.answers, question.id)
-              ? approval.answers[question.id]
-              : undefined,
-          );
-          if (labels.length === 0) {
-            return null;
-          }
-          return (
-            <p key={question.id} className='aui-tool-fallback-approval-receipt-answer whitespace-pre-line'>
-              <span data-agent-ui-owned='' className='text-muted-foreground'>
-                {question.header ?? question.prompt}
-              </span>{' '}
-              · {labels.join(', ')}
-            </p>
-          );
-        })}
       {notes.map((text) => (
         <p key={text} className='aui-tool-fallback-approval-receipt-note text-muted-foreground whitespace-pre-line'>
           {text}

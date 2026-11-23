@@ -207,7 +207,6 @@ export async function switchApplicationImport(file: string, from: string, to: st
         edits.push({ start, end: specifier.end - 1 });
       }
     }
-    if (!edits.length) throw new AgentUISourceError("PLUGIN_APPLICATION_IMPORT_MISSING", "Preserve custom code and expose a static implementation import before takeover.");
     let text = source.text;
     for (const edit of edits.reverse()) text = text.slice(0, edit.start) + to + text.slice(edit.end);
     return Buffer.from(text);

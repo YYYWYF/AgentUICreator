@@ -1,8 +1,6 @@
-import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse, AgentSendOptions } from "@za38.03/agent-ui-core";
-export interface AgentUISendOptions extends AgentSendOptions {
-  /** Override the default endpoint for this send and its continuations. */
-  endpoint?: string | undefined;
-}
+import type { AgentRuntime, AgentRuntimeSnapshot, AgentUserInput, AgentInterruptResponse } from "@za38.03/agent-ui-core";
+import type { AgentUISendOptions } from "../contracts/index.js";
+export type { AgentUISendOptions } from "../contracts/index.js";
 /** A handle to one upstream-owned thread. Reading it never navigates the UI. */
 export interface AgentUIThread {
   getSnapshot(): AgentRuntimeSnapshot;

@@ -15,6 +15,7 @@ export async function confirmPluginSourceTakeover(
   const details = [
     `${plan.package.name}@${plan.package.version}`,
     formatLocaleMessage(messages.takeoverPluginVersion, plan.pluginVersion),
+    plan.overwriteDirectory ? formatLocaleMessage(messages.takeoverOverwrite, plan.overwriteDirectory) : "",
     formatLocaleMessage(messages.preparationFiles, plan.files.join("\n")),
     plan.applicationChanges.length ? formatLocaleMessage(messages.takeoverApplicationChanges, plan.applicationChanges.join("\n")) : "",
     plan.instances.length ? formatLocaleMessage(messages.takeoverInstances, plan.instances.join("\n")) : "",

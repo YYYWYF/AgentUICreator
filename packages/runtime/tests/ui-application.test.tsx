@@ -7,7 +7,7 @@ import { AgentApplication, createPluginCapabilityCatalog, createRuntimeCompositi
 import { AgentUIProvider, useAgent, type AgentUIHost } from "../src/public.js";
 import { usePluginActions } from "../src/plugin-api/index.js";
 import { useAgentRuntime } from "../src/agent-context/agent-runtime-hooks.js";
-import type { UIPluginActions, UIPluginDefinition } from "../src/contracts/index.js";
+import type { AgentUIContext, UIPluginActions, UIPluginDefinition } from "../src/contracts/index.js";
 
 it("stages a replacement project composition store through the existing application mount", async () => {
   const mount = document.createElement("div");
@@ -37,12 +37,14 @@ it("stages a replacement project composition store through the existing applicat
   } finally { act(() => root.unmount()); mount.remove(); }
 });
 
-it("passes Agent ctx and plugin/setup/hook send options through the complete application", async () => {
+it("routes plugin/setup sends by endpoint in the same Thread and preserves Agent ctx", async () => {
   const mount = document.createElement("div"); document.body.append(mount);
   const root = createRoot(mount);
   let host!: AgentUIHost, setupActions!: UIPluginActions, componentActions!: UIPluginActions;
   let hookActions!: import("@za38.03/agent-ui-runtime").AgentRuntimeController;
-  const requests: Record<string, any>[] = [];
+  type RunInput = { threadId: string; runId: string; forwardedProps: { ctx: AgentUIContext } };
+  const requests: RunInput[] = [];
+  const urls: string[] = [];
   const errors = vi.fn();
   const definition: UIPluginDefinition = {
     manifest: { id: "sender", name: "Sender", description: "Test sender", version: "1.0.0" },
@@ -59,14 +61,14 @@ it("passes Agent ctx and plugin/setup/hook send options through the complete app
     getConversationStarterSuggestions: () => [],
     defaultLocale: "en-US", locales: AGENT_UI_PRESENTATION_LOCALES, shell: {},
   };
-  const fetch = vi.fn(async (_url: string, init: RequestInit) => {
-    const input = JSON.parse(String(init.body)); requests.push(input);
+  const fetch = vi.fn(async (url: string, init: RequestInit) => {
+    const input = JSON.parse(String(init.body)) as RunInput; requests.push(input); urls.push(url);
     const body = [{ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
       { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId, outcome: { type: "success" } }];
     return new Response(body.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   });
   const view = (tenant: string) => <AgentUIProvider><Host /><AgentApplication project={project}
-    ctx={{ tenant }} fetch={fetch} onError={errors} /></AgentUIProvider>;
+    endpoint="https://agent.test/default" ctx={{ tenant }} fetch={fetch} onError={errors} /></AgentUIProvider>;
   async function send(action: () => Promise<void>) {
     const count = requests.length;
     let sent!: Promise<void>;
@@ -83,15 +85,23 @@ it("passes Agent ctx and plugin/setup/hook send options through the complete app
       await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
     }
     expect(host.getSnapshot().status).toBe("ready");
-    for (const [source, actions] of [["setup", setupActions], ["component", componentActions], ["hook", hookActions]] as const) {
-      await send(() => actions.sendMessage(source, { ctx: { source } }));
+    for (const [source, actions] of [["setup", setupActions], ["component", componentActions]] as const) {
+      await send(() => actions.sendMessage(source, { endpoint: `https://agent.test/${source}`, ctx: { source } }));
+      await send(() => actions.sendMessage(`${source}-default`, { ctx: { source: `${source}-default` } }));
     }
+    await send(() => hookActions.sendMessage("hook", { ctx: { source: "hook" } }));
     const threadId = requests[0]!.threadId;
     await act(async () => { root.render(view("two")); });
     await send(() => host.sendMessage("updated"));
     expect(requests.map(input => input.forwardedProps.ctx)).toEqual([
-      { tenant: "one", source: "setup" }, { tenant: "one", source: "component" },
+      { tenant: "one", source: "setup" }, { tenant: "one", source: "setup-default" },
+      { tenant: "one", source: "component" }, { tenant: "one", source: "component-default" },
       { tenant: "one", source: "hook" }, { tenant: "two" },
+    ]);
+    expect(urls).toEqual([
+      "https://agent.test/setup", "https://agent.test/default",
+      "https://agent.test/component", "https://agent.test/default",
+      "https://agent.test/default", "https://agent.test/default",
     ]);
     expect(requests.every(input => input.threadId === threadId)).toBe(true);
     expect(errors).not.toHaveBeenCalled();
