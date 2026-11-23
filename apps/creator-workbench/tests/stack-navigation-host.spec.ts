@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cp, copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { planAgentUIPluginRegistry, synchronizeAgentUIPluginRegistry } from '@za38.03/agent-ui-creator/project/dev';
 import { createConnectionHostFixture } from './support/agent-connection-host.js';
@@ -41,7 +41,8 @@ export default definition;
       'id' in value && value.id === 'main' && 'viewIds' in value && Array.isArray(value.viewIds) &&
       'children' in value && Array.isArray(value.children)) {
       const children: unknown[] = value.children;
-      return { ...value, viewIds: ['chat', 'feature'],
+      const viewIds: unknown[] = value.viewIds;
+      return { ...value, viewIds: [...viewIds, 'feature'],
         children: [...children, { type: 'slot', plugins: [{ pluginId: 'test-feature' }] }] };
     }
     return value;
@@ -51,20 +52,11 @@ export default definition;
   await synchronizeAgentUIPluginRegistry(hostRoot);
 }
 
-test('project workspace demo switches through the default menu and displays the actual Stack JSON', async ({ page }, testInfo) => {
+test('project workspace placeholder switches through the default menu and preserves the current chat', async ({ page }, testInfo) => {
   const fixture = await createConnectionHostFixture({ mode: 'platform' });
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   try {
-    const example = new URL('../../../examples/creator-host-sandbox/src/agent-ui/', import.meta.url);
-    const source = path.join(fixture.hostRoot, 'src/agent-ui');
-    await cp(new URL('plugins/project-workspace/', example), path.join(source, 'plugins/project-workspace'), { recursive: true });
-    await cp(new URL('application/i18n/', example), path.join(source, 'application/i18n'), { recursive: true });
-    await copyFile(new URL('app-ui.json', example), path.join(source, 'app-ui.json'));
-    const modelSource = await readFile(path.join(source, 'app-ui.json'), 'utf8');
-    const model: { root: { children: { child: unknown }[] } } = JSON.parse(modelSource);
-    await planAgentUIPluginRegistry(fixture.hostRoot, modelSource);
-    await synchronizeAgentUIPluginRegistry(fixture.hostRoot);
     await fixture.writeHostEntry(`import {createRoot} from 'react-dom/client';import {Agent} from './agent-ui';import './host.css';createRoot(document.getElementById('root')!).render(<Agent endpoint=${JSON.stringify(fixture.agentEndpoint)}/>);`);
     fixture.enableCors();
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -87,13 +79,11 @@ test('project workspace demo switches through the default menu and displays the 
     expect(fixture.pendingCount()).toBe(1);
     const workspace = page.locator('[data-ui-plugin="project-workspace"]');
     await expect(workspace.getByRole('heading', { name: '项目空间', exact: true })).toBeVisible();
+    await expect(workspace).toContainText('此为项目空间插件示意占位，真实业务界面需自行开发');
     expect(await workspace.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
-    await workspace.locator('summary').click();
-    const displayed: unknown = JSON.parse(await workspace.getByRole('code').last().innerText());
-    expect(displayed).toEqual(model.root.children[1]!.child);
     fixture.finishRun();
     await expect.poll(() => fixture.pendingCount()).toBe(0);
-    await page.screenshot({ path: testInfo.outputPath('workspace-json.png'), fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath('workspace-placeholder.png'), fullPage: true });
     await workspace.getByRole('button', { name: '返回当前会话', exact: true }).click();
     await expect(stack).toHaveAttribute('data-active-view', 'chat');
     await expect(composer).toHaveValue('保留在当前会话的草稿');
@@ -102,7 +92,6 @@ test('project workspace demo switches through the default menu and displays the 
     await menu.getByRole('button', { name: '收起侧栏', exact: true }).click();
     await menu.getByRole('button', { name: '项目空间', exact: true }).click();
     await expect(workspace).toBeVisible();
-    await workspace.locator('summary').click();
     await page.screenshot({ path: testInfo.outputPath('workspace-collapsed-menu.png'), fullPage: true });
     await menu.getByRole('button', { name: '新建会话', exact: true }).click();
     await expect(stack).toHaveAttribute('data-active-view', 'chat');

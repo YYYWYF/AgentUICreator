@@ -43,7 +43,8 @@ export function createDefaultAgentUIPresetRegistry<TModel>(
       sourceItems: [
         "foundation/core",
         `foundation/shell-${mode}`,
-        ...[...pluginIds].sort().map((id) => `plugin/${id}`),
+        // The workspace placeholder is project-owned example code, not an npm Plugin.
+        ...[...pluginIds].sort().map((id) => id === "project-workspace" ? "demo/project-workspace" : `plugin/${id}`),
       ],
       createAppUIModel: () => parseAppUIModel(structuredClone(model)),
     };

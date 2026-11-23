@@ -1,6 +1,10 @@
 {
   "items": [
     {
+      "id": "demo/project-workspace",
+      "path": "items/demo/project-workspace/item.json"
+    },
+    {
       "id": "plugin/agent-identity",
       "path": "items/plugin/agent-identity/item.json"
     },

@@ -1,0 +1,31 @@
+{
+  "id": "demo/project-workspace",
+  "kind": "demo",
+  "description": "Project-owned workspace placeholder for the platform preset",
+  "requires": ["foundation/core"],
+  "files": [
+    {
+      "source": "files/plugins/project-workspace/definition.ts",
+      "target": "plugins/project-workspace/definition.ts"
+    },
+    {
+      "source": "files/plugins/project-workspace/index.tsx",
+      "target": "plugins/project-workspace/index.tsx"
+    },
+    {
+      "source": "files/plugins/project-workspace/manifest.json",
+      "target": "plugins/project-workspace/manifest.json"
+    },
+    {
+      "source": "files/plugins/project-workspace/styles.css",
+      "target": "plugins/project-workspace/styles.css"
+    },
+    {
+      "source": "files/application/i18n/messages.ts",
+      "target": "application/i18n/messages.ts"
+    }
+  ],
+  "packages": {
+    "react": ">=18 <20"
+  }
+}

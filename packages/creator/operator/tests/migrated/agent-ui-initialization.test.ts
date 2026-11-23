@@ -180,6 +180,13 @@ describe("deterministic Agent UI initializer", () => {
       const menu = locations.find(x => x.plugin.pluginId === "navigation-menu");
       expect(locations.find(x => x.plugin.pluginId === "conversation-thread-list")?.target)
         .toMatchObject({ type: "plugin_slot", parentInstanceId: menu?.plugin.id, slot: "content" });
+      expect(result.installedSourceItems).toContain("demo/project-workspace");
+      expect(locations.some(location => location.plugin.pluginId === "project-workspace")).toBe(true);
+      expect(registry).toContain("./project-workspace/definition");
+      expect(await readFile(path.join(root, sourceRoot, "application/i18n/messages.ts"), "utf8"))
+        .toContain("此为项目空间插件示意占位，真实业务界面需自行开发");
+    } else {
+      await expect(lstat(path.join(root, sourceRoot, "plugins/project-workspace"))).rejects.toMatchObject({ code: "ENOENT" });
     }
     if (mode === "assistant") {
       const model = JSON.parse(deliveredModel);

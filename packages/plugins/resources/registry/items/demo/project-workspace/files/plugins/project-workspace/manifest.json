@@ -1,0 +1,7 @@
+{
+  "id": "project-workspace",
+  "name": "Project Workspace",
+  "description": "Project-owned placeholder view demonstrating menu and Stack navigation.",
+  "version": "0.0.1",
+  "capabilities": ["project-workspace", "plugin-service-consumer"]
+}
