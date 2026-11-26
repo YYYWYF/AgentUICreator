@@ -179,8 +179,9 @@ const server = new WebpackDevServer(compiler.options.devServer, compiler);
 其他封装或旧版本需要按其实际入口验收。
 
 三个适配器都只在开发页面接入已构建的 `dock-client.js`，并配置开发时 Agent 转发路径。
-Vite 由业务开发服务提供连接脚本，不检测 Creator 在线状态；Rsbuild / Webpack
-仍直接加载 Creator 脚本，需要先启动 Creator，后启动或刷新业务页面。
+Vite 由业务开发服务提供连接脚本，不检测 Creator 在线状态。Rsbuild 通过业务开发服务
+同源转发 Creator 脚本，可保留工程已有的 `html.crossorigin` 配置；Webpack 直接加载
+Creator 脚本。Rsbuild / Webpack 需要先启动 Creator，后启动或刷新业务页面。
 Rsbuild 适配器使用官方 `onBeforeStartDevServer` / `modifyHTMLTags` hooks；生产构建不注入
 浮层。没有捆绑或要求用户安装特定 Rsbuild major version。
 可选 `projectRoot` 指定开发页面对应的工程（默认配置执行目录，Vite 优先使用其 root，Webpack 使用 compiler context），

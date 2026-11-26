@@ -38,6 +38,8 @@ export default defineConfig(async ({ command }) => {
 });
 ```
 
+可以保留工程已有的 `html.crossorigin` 配置；适配器通过工程开发服务器同源转发 Dock 脚本，无需为 Creator 关闭跨域校验。
+
 安装模板后，按 [Rsbuild 样式配置](/development/react#rsbuild-样式配置)准备生成助理界面的 Tailwind CSS。
 
 ## Webpack 5

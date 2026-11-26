@@ -45,17 +45,33 @@ it("Rsbuild injects after dev startup and omits the dock during production build
     modifyHTMLTags: callback => { modify = callback; },
     modifyRsbuildConfig: callback => { config = callback; },
   });
-  const existing = { server: { proxy: { "/existing": "http://existing.test" } } };
+  const existing = { html: { crossorigin: "anonymous" }, server: { proxy: { "/existing": "http://existing.test" } } };
   config(existing);
   expect(existing.server.proxy).toHaveProperty("/existing");
+  expect(existing.html.crossorigin).toBe("anonymous");
+  expect(existing.server.proxy).toHaveProperty("/__agent-ui/creator-dock/client.js", {
+    target: "http://127.0.0.1:47832", changeOrigin: true,
+    headers: { origin: "http://127.0.0.1:47832" },
+    pathRewrite: { "^/__agent-ui/creator-dock/client\\.js": "/dock-client.js" },
+  });
   const arrayConfig = { server: { proxy: [{ pathFilter: "/existing", target: "http://existing.test" }] } };
   config(arrayConfig);
-  expect(arrayConfig.server.proxy).toHaveLength(5);
+  expect(arrayConfig.server.proxy).toHaveLength(6);
   expect(arrayConfig.server.proxy[1]!.pathFilter).toBe("/__agent-ui/agent-proxy");
+  expect(arrayConfig.server.proxy[5]).toMatchObject({
+    pathFilter: "/__agent-ui/creator-dock/client.js",
+    target: "http://127.0.0.1:47832",
+    headers: { origin: "http://127.0.0.1:47832" },
+  });
   const tags = { headTags: [], bodyTags: [] };
   expect(modify(tags).bodyTags).toHaveLength(0);
   start();
   expect(modify(tags).bodyTags).toHaveLength(1);
+  expect(modify(tags).bodyTags[0]!.attrs).toMatchObject({
+    src: "/__agent-ui/creator-dock/client.js",
+    "data-creator-url": "http://127.0.0.1:47832",
+    "data-creator-workspace": creatorDockIntegration({ projectRoot: process.cwd() }).workspaceId,
+  });
   expect(tags.bodyTags).toHaveLength(0);
   build();
   expect(modify(tags).bodyTags).toHaveLength(0);
