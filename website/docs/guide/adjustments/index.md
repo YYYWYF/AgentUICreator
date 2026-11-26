@@ -26,14 +26,11 @@ Creator 将列表宽度从 280px 改为 240px，保留现有的窄屏抽屉策�
 
 在 390px 宽度下，列表使用原有抽屉。实际检查了打开、关闭和再次打开；关闭后，右上角的打开入口仍在可视范围内。
 
-<details>
-<summary>查看窄屏关闭与打开状态</summary>
+### 窄屏关闭与打开状态
 
 ![关闭抽屉后，右上角保留可见的打开入口。](/images/guide/examples/20261106/layout-narrow-closed.jpg)
 
 ![通过右上角入口打开会话抽屉。](/images/guide/examples/20261106/layout-narrow-open.jpg)
-
-</details>
 
 ## 回复底部的操作
 
@@ -43,12 +40,9 @@ Creator 将列表宽度从 280px 改为 240px，保留现有的窄屏抽屉策�
 
 ![附件隐藏后，回复底部的导出菜单仍可用。](/images/guide/examples/20261106/actions-hidden-attachment.jpg)
 
-<details>
-<summary>查看重新生成完成的页面</summary>
+### 重新生成完成的页面
 
 ![隐藏附件后仍可重新生成，分支显示 2 / 2。](/images/guide/examples/20261106/actions-regenerate-after-hide.jpg)
-
-</details>
 
 更多检查方法见[检查修改结果](/guide/examples/verify-results)。
 

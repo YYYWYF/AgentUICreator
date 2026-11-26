@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { RunAgentInput } from "@ag-ui/core";
 import { EventSchemas } from "@ag-ui/core/schemas";
 import { createServer as createViteServer } from "vite";
@@ -8,6 +8,69 @@ import * as api from "../../src/mock-agent/index.js";
 const input: RunAgentInput = { threadId: "official-thread", runId: "official-run", messages: [], tools: [], context: [], state: {}, forwardedProps: {} };
 
 describe("public Mock API boundary", () => {
+  it("streams two experts' reasoning and answers with distinct identities in a single run", async () => {
+    vi.useFakeTimers();
+    const events = api.runOfficialMockScenario(input, "message-speaker");
+    try {
+      expect((await events.next()).value).toMatchObject({ type: "RUN_STARTED" });
+      const start = (await events.next()).value;
+      expect(start).toMatchObject({ type: "CUSTOM", metadata: {
+        speaker: { id: "frontend-expert", name: "专家1 · 前端开发", avatarUrl: expect.stringMatching(/^data:image\/svg\+xml,/) },
+      } });
+      expect((await events.next()).value).toMatchObject({ type: "REASONING_START" });
+      const remaining = (async () => {
+        const result = [];
+        for await (const event of events) result.push(event);
+        return result;
+      })();
+      await vi.runAllTimersAsync();
+      const result = await remaining;
+      const reasoningContent = result.findIndex(event => event.type === "REASONING_MESSAGE_CONTENT");
+      const reasoningEnd = result.findIndex(event => event.type === "REASONING_END");
+      const answer = result.findIndex(event => event.type === "TEXT_MESSAGE_CONTENT");
+      const firstStart = result.findIndex(event => event.type === "TEXT_MESSAGE_START");
+      expect(reasoningContent).toBeGreaterThanOrEqual(0);
+      expect(reasoningEnd).toBeGreaterThan(reasoningContent);
+      expect(answer).toBeGreaterThan(reasoningEnd);
+      expect(firstStart).toBeGreaterThan(reasoningEnd);
+      const textStart = result.find(event => event.type === "TEXT_MESSAGE_START");
+      expect(result[answer]).toMatchObject({ messageId: textStart?.messageId });
+      expect(textStart).not.toHaveProperty('metadata');
+      const secondIdentity = result.findIndex(event => event.type === "CUSTOM" && event.name === "speaker-selected");
+      const firstEnd = result.findIndex(event => event.type === "TEXT_MESSAGE_END");
+      expect(secondIdentity).toBeGreaterThan(firstEnd);
+      expect(result[secondIdentity]).toMatchObject({ metadata: { speaker: {
+        id: "design-expert", name: "专家2 · 界面设计", avatarUrl: expect.stringMatching(/^data:image\/svg\+xml,/),
+      } } });
+      const firstMetadata: unknown = start?.metadata;
+      const secondMetadata: unknown = result[secondIdentity]?.metadata;
+      expect(secondMetadata).not.toEqual(firstMetadata);
+      const secondStart = result.findIndex((event, index) => index > secondIdentity && event.type === "TEXT_MESSAGE_START");
+      const secondReasoning = result.findIndex((event, index) => index > secondIdentity && event.type === "REASONING_MESSAGE_CONTENT");
+      const secondReasoningEnd = result.findIndex((event, index) => index > secondReasoning && event.type === "REASONING_END");
+      const secondAnswer = result.findIndex((event, index) => index > secondStart && event.type === "TEXT_MESSAGE_CONTENT");
+      expect(secondReasoning).toBeGreaterThan(secondIdentity);
+      expect(secondReasoningEnd).toBeGreaterThan(secondReasoning);
+      expect(secondStart).toBeGreaterThan(secondReasoningEnd);
+      expect(secondAnswer).toBeGreaterThan(secondStart);
+      const textStarts = result.filter(event => event.type === "TEXT_MESSAGE_START");
+      expect(textStarts).toHaveLength(2);
+      expect(new Set(textStarts.map(event => event.messageId)).size).toBe(2);
+      for (const [index, message] of textStarts.entries()) {
+        const body = result.filter(event => event.type === "TEXT_MESSAGE_CONTENT" && event.messageId === message.messageId)
+          .map(event => event.type === "TEXT_MESSAGE_CONTENT" ? event.delta : '').join('');
+        expect(body).toContain(`我是专家${index + 1}`);
+        expect(message).not.toHaveProperty('metadata');
+      }
+      expect(result.some(event => event.type === "RUN_STARTED")).toBe(false);
+      expect(result.filter(event => event.type === "RUN_FINISHED")).toHaveLength(1);
+      expect(result.at(-1)?.type).toBe("RUN_FINISHED");
+    } finally {
+      await events.return(undefined);
+      vi.useRealTimers();
+    }
+  });
+
   it("exports only official Mock and JSONL playback APIs", () => {
     expect(Object.keys(api).sort()).toEqual([
       "listOfficialMockScenarios", "runOfficialMockScenario", "createMockAgentHttpHandler", "createMockAgentVitePlugin",

@@ -20,7 +20,7 @@ export function validateConnection(value: unknown): Pick<AgentConnectionState, "
     endpoint = url.href;
   }
   if (fields.activeSource === "connected" && !endpoint) throw new Error("Agent endpoint is required.");
-  return { activeSource: fields.activeSource, enabled: fields.enabled !== false, connectionMode, ...(endpoint ? { endpoint } : {}), ...(typeof fields.agentId === "string" ? { agentId: fields.agentId } : {}) };
+  return { activeSource: fields.activeSource, enabled: fields.enabled === true, connectionMode, ...(endpoint ? { endpoint } : {}), ...(typeof fields.agentId === "string" ? { agentId: fields.agentId } : {}) };
 }
 export class ConnectionStore {
   readonly file: string;
@@ -32,7 +32,7 @@ export class ConnectionStore {
       return { ...saved, configured: true, running: false };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      return { activeSource: "mock", configured: false, running: false };
+      return { activeSource: "mock", enabled: false, configured: false, running: false };
     }
   }
   async save(value: unknown): Promise<AgentConnectionState> {

@@ -38,7 +38,7 @@
 
 endpoint 选择同一助手当前 Thread 的请求 URL，续答沿用它；此操作不创建新会话。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
 
@@ -57,7 +57,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 外层配置负责组合，两种按钮分别接受自己的原生属性。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
 

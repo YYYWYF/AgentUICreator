@@ -195,11 +195,17 @@ export type MockScenarioStep =
       type: "message";
       text: string;
       intervalMs?: number | undefined;
+      metadata?: Record<string, unknown> | undefined;
+      /** Pause after START, before streaming the body. */
+      contentDelayMs?: number | undefined;
+      /** Stream reasoning after START and before the answer body. */
+      reasoning?: Extract<MockScenarioStep, { type: "reasoning" }> | undefined;
     }
   | {
       type: "custom";
       name: string;
       value: unknown;
+      metadata?: Record<string, unknown> | undefined;
       delayMs?: number | undefined;
       subagentRunId?: string | undefined;
     };
@@ -252,6 +258,9 @@ function validateSteps(
   context: ScenarioValidationContext,
 ): void {
   for (const step of steps) {
+    if (step.type === "message" && step.metadata !== undefined) {
+      validateToolArgs(scenarioId, step.metadata, "message metadata");
+    }
     if (step.type === "interrupt" && context.subagentRunId !== undefined) {
       throw new Error(
         `Scenario "${scenarioId}" contains an interrupt inside a subagent.\n` +

@@ -1,4 +1,4 @@
-import { createMockConversationApiHandler, MockDurableRunStore, type MockConversationApiHandler } from "../mock-agent/internal.js";
+import { createMockConversationApiHandler, mockConversationPaginationFixtures, MockDurableRunStore, type MockConversationApiHandler } from "../mock-agent/internal.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ConnectionStore } from "./connection-store.js";
 import { forwardAgentRequest } from "./connected-agent-proxy.js";
@@ -36,16 +36,16 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
           if (current?.id !== workspace.id) throw new Error("Workspace changed.");
           const previous = await store.read();
           const input = JSON.parse(body);
-          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), ...(previous.agentId ? { agentId: previous.agentId } : {}), enabled: previous.enabled !== false, connectionMode: previous.connectionMode ?? "proxy", ...input }));
+          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), ...(previous.agentId ? { agentId: previous.agentId } : {}), enabled: previous.enabled === true, connectionMode: previous.connectionMode ?? "proxy", ...input }));
         } finally { status.saving = false; }
         return;
       }
       if (mockData) {
         const state = await store.read();
         if (getWorkspace()?.id !== workspace.id) { json(409, { error: "Preview workspace changed. Reload the preview." }); return; }
-        if (state.enabled === false || state.activeSource !== "mock") { json(409, { error: "Mock Agent is not selected." }); return; }
+        if (state.enabled !== true || state.activeSource !== "mock") { json(409, { error: "Mock Agent is not selected." }); return; }
         let handler = mockHistory.get(workspace.id);
-        if (!handler) { handler = createMockConversationApiHandler({ endpoint: MOCK_DATA, durableStore: getMockDurableStore?.(workspace) ?? new MockDurableRunStore() }); mockHistory.set(workspace.id, handler); }
+        if (!handler) { handler = createMockConversationApiHandler({ endpoint: MOCK_DATA, durableStore: getMockDurableStore?.(workspace) ?? new MockDurableRunStore(), fixtures: mockConversationPaginationFixtures, pageSize: 10 }); mockHistory.set(workspace.id, handler); }
         response.setHeader("Cache-Control", "no-store");
         if (!await handler(request, response)) json(404, { error: "Unknown Mock history route." });
         return;
@@ -57,10 +57,10 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
         const state = await store.read();
         if (getWorkspace()?.id !== workspace.id) { json(409, { error: "Preview workspace changed. Reload the preview." }); return; }
         if (mock) {
-          if (state.enabled === false || state.activeSource !== "mock" || !handleMock) { json(409, { error: "Mock Agent is not selected." }); return; }
+          if (state.enabled !== true || state.activeSource !== "mock" || !handleMock) { json(409, { error: "Mock Agent is not selected." }); return; }
           await handleMock(request, response); return;
         }
-        if (state.enabled === false || state.activeSource !== "connected" || !state.endpoint) { json(409, { error: "Connected Agent is not selected." }); return; }
+        if (state.enabled !== true || state.activeSource !== "connected" || !state.endpoint) { json(409, { error: "Connected Agent is not selected." }); return; }
         if (state.connectionMode === "direct") { json(409, { error: "Agent forwarding is disabled." }); return; }
         const target = new URL(state.endpoint);
         if (backend) {

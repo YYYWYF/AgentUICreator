@@ -168,6 +168,7 @@ export const enUS = {
   },
   "threadList": {
     "historyTitle": "Conversation history",
+    "loadMore": "Load more",
     "retry": "Retry",
     "newChat": "New Chat",
     "moreOptions": "More options",

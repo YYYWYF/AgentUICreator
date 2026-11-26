@@ -25,6 +25,9 @@ export function createAssistantUiFrontendToolkit(
       toolkit[name] = { ...entry, render: entry.render ?? ConversationDefaultTool } as never;
       continue;
     }
+    if (entry.type === "backend") {
+      toolkit[name] = { ...entry, render: entry.render ?? ConversationDefaultTool } as never;
+    }
     const interactionType = entry.interaction?.type;
     if (interactionType !== "interrupt" && interactionType !== "command") continue;
     if (entry.type !== "human") throw new Error(`Interactive tool must be human: "${name}"`);

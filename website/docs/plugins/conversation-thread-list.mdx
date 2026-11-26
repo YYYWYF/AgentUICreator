@@ -6,7 +6,7 @@ title: "会话列表（conversation-thread-list）"
 
 ## 功能与效果
 
-提供标题搜索、归档、会话操作和自定义时间或业务分组。
+提供标题搜索、归档、会话操作和自定义时间或业务分组。默认按接口返回顺序展示，加载更多的记录追加到末尾，不按时间重新排序。
 
 ### 会话列表
 
@@ -16,33 +16,13 @@ title: "会话列表（conversation-thread-list）"
 
 </figure>
 
-## 修改与启用
+## 数据来源与显示条件
 
 <span id="启用与使用"></span>
 
 按[历史服务接入](/development/history-backend)配置列表和详情，按业务需要支持重命名、归档与删除。
 
-### 修改位置 {#修改位置}
-
-默认 npm 实现先修改项目的 `plugins/conversation-thread-list/index.tsx`，保留已有服务桥接。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
-
-| 修改场景 | 文件 |
-| --- | --- |
-| 列表外层、加载错误与重试入口 | `conversation-thread-list.tsx` |
-| 搜索、普通列表与归档区的组合开关 | `list/policy-thread-list.tsx` |
-| 搜索输入框与清空按钮 | `list/thread-search.tsx` |
-| 默认日期分组和标题过滤规则 | `list/use-thread-groups.ts` |
-| 分组标题、空列表和加载骨架 | `list/policy-groups.tsx` |
-| 已归档会话区域 | `list/archived-threads.tsx` |
-| 列表项标题、运行状态与重命名切换 | `list/thread-item.tsx` |
-| 更多菜单、重命名、归档、取消归档和删除操作 | `list/thread-item-menu.tsx` |
-| 行内重命名输入框、提交与焦点恢复 | `list/thread-item-rename.tsx` |
-
-`list/primitives/` 保留基础组件的兼容展示；当前默认列表的业务操作使用上表中的 `list/thread-item*.tsx`。修改外观时保留原有回调、操作权限与请求失败处理。
-
-## 数据来源与显示条件
-
-数据源返回分页结果时，默认列表滚动到底自动加载下一页，`nextCursor: null` 后停止。加载更多失败保留现有列表和游标，点击重试继续同一页。搜索只过滤已加载会话；自定义 `renderList` 替换整张列表时需自行保留分页触发入口。
+数据源返回分页结果时，默认列表仅在点击“加载更多”后请求下一页；滚动和压缩侧栏不会自动请求。会话行保持正常高度，超出列表区域时向下滚动。`nextCursor: null` 后不再显示加载更多。加载更多失败保留现有列表和游标，点击重试继续同一页。搜索只过滤已加载会话；自定义 `renderList` 替换整张列表时需自行保留分页触发入口。
 
 重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend#重命名归档与取消归档)。
 
@@ -63,7 +43,7 @@ title: "会话列表（conversation-thread-list）"
 
 此例保留搜索、隐藏归档区，仅显示重命名和删除。actions 是完整开关对象，未写成 true 的操作不会显示。界面开关不代替后端权限校验。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
 
@@ -87,7 +67,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationThread
 
 业务分类的数据源返回值例如：
 
-```json
+```json fold height=180
 [
   { "id": "thread-1", "title": "项目周报", "group": "work", "updatedAt": "2026-11-18T08:00:00Z" },
   { "id": "thread-2", "title": "学习计划", "group": "study", "updatedAt": "2026-11-10T08:00:00Z" },
@@ -97,7 +77,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationThread
 
 完整组件同时保留标题搜索、归档区、条目操作、禁用状态和侧栏导航；外层继续处理历史加载错误。普通条目传入的是原 `threadIds` 索引，归档条目传入的是原 `archivedThreadIds` 索引，不使用重新分组后的循环序号。已有列表定制通过 renderList 合并。
 
-```tsx
+```tsx fold height=180
 import { createContext, useContext, useState, type ComponentProps } from 'react';
 import {
   CanonicalConversationThreadList, ConversationThreadListRoot,
@@ -226,7 +206,7 @@ export function CategoryHistory(props: Props) {
 
 需要自己排列分组时，可将以下组件通过原列表的 `renderList` 返回。`query` 传入项目搜索框的当前值，不搜索时传空字符串；外层原有属性和错误重试继续保留。
 
-```tsx
+```tsx fold height=180
 import {
   ConversationThreadListRoot, ConversationThreadListItem,
   ConversationThreadListItemByIndex, useConversationThreadListGroups,
@@ -268,7 +248,7 @@ export function ProjectThreadGroups({ query }: { query: string }) {
 
 归档区单独使用 `archivedThreadIds`，在列表组件内取得数据并渲染：
 
-```tsx
+```tsx fold height=180
 const archivedIds = useConversation(s => s.threads.archivedThreadIds);
 const archivedRows = archivedIds.map((id, index) => (
   <ConversationThreadListItemByIndex key={id} index={index} archived
@@ -366,30 +346,18 @@ export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConver
 
 ## 常见问题
 
-<details className="plugin-faq" id="默认历史列表按什么分组">
-<summary>默认历史列表按什么分组？</summary>
+### 默认历史列表按什么分组？ {#默认历史列表按什么分组}
 
-默认按 lastMessageAt 的当地自然日分为今天、昨天、更早。所有可见记录都没有日期时不分组；部分记录没有日期时，默认会将其放在今天组前面。前面的项目示例可以选择不同的缺失日期处理。
+默认保留接口返回顺序，只为相邻记录加上今天、昨天、更早的日期标签，不跨记录移动或合并分组。同一日期标签可能出现多次。所有可见记录都没有日期时不分组；部分记录没有日期时，按今天标记并保留原位置。前面的项目示例可以选择不同的分组或排序规则。
 
-</details>
-
-<details className="plugin-faq" id="接口返回-group-后默认列表会自动分组吗">
-<summary>接口返回 group 后，默认列表会自动分组吗？</summary>
+### 接口返回 group 后，默认列表会自动分组吗？ {#接口返回-group-后默认列表会自动分组吗}
 
 不会。group 被保留为 custom.group，默认日期分组不读取它。使用示例中的 CategoryHistory，或自行实现同样的数据归类。
 
-</details>
-
-<details className="plugin-faq" id="可以直接传-groupby-或修改-appuimodel-吗">
-<summary>可以直接传 groupBy 或修改 AppUIModel 吗？</summary>
+### 可以直接传 groupBy 或修改 AppUIModel 吗？ {#可以直接传-groupby-或修改-appuimodel-吗}
 
 当前没有 groupBy 属性。分组规则在项目 React 组件中实现，通过 renderList 组合；AppUIModel 继续负责布局和插件组合。
 
-</details>
-
-<details className="plugin-faq" id="最终用户能创建分组把会话移入分组吗">
-<summary>最终用户能创建分组、把会话移入分组吗？</summary>
+### 最终用户能创建分组、把会话移入分组吗？ {#最终用户能创建分组把会话移入分组吗}
 
 上述业务分组是读取和展示能力。可编辑分组还需要项目提供创建、移动等界面，以及保存分组和会话归属的业务接口。
-
-</details>

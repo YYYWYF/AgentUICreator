@@ -34,7 +34,7 @@
 
 在现有输入组件上传入标签组件。`label` 继续来自引用数据，稳定 ID 保留在数据属性中，业务样式使用项目主题变量：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   CanonicalConversationLexicalComposerInput,
@@ -69,7 +69,7 @@ export function ProjectLexicalInput(props:
 
 Lexical 为可选输入实现，通过 /lexical 入口导入；沿用项目已有编辑与输入组合。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalComposerInput } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -85,7 +85,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 关闭 Escape 取消后，用户继续通过已有取消按钮退出编辑。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalComposerInput } from '@za38.03/agent-ui-plugins/lexical';
 

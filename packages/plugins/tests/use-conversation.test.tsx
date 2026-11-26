@@ -129,7 +129,7 @@ it('unifies live metadata in message selectors, thread selectors and imperative 
 
 const speakerCases: Array<{ label: string; value: unknown; expected: MessageSpeaker | null | undefined }> = [
   { label: 'missing', value: undefined, expected: undefined },
-  { label: 'explicitly hidden', value: null, expected: null },
+  { label: 'explicit fallback reset', value: null, expected: null },
   { label: 'invalid primitive', value: 'developer', expected: undefined },
   { label: 'invalid array', value: [], expected: undefined },
   { label: 'blank identity', value: { id: ' ', name: 'Expert' }, expected: undefined },
@@ -153,7 +153,7 @@ it.each(speakerCases)('normalizes $label identity consistently for scoped and hi
   expect(native).not.toHaveProperty('speaker');
 });
 
-it('keeps speaker references stable across text and copied-state updates, then reacts to avatar changes and explicit hiding', async () => {
+it('keeps speaker references stable across text and copied-state updates, then reacts to avatar changes and an explicit fallback reset', async () => {
   const source = store();
   const expert = { id: 'developer', name: 'Expert', avatarUrl: '/one.png' };
   const native = { ...message('answer'), metadata: { custom: { speaker: expert } } };

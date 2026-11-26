@@ -122,7 +122,7 @@
 - [前端工具与自定义工具 UI](/development/frontend-tools.md): 前端工具支持两种用法，按业务需要选择：
 - [Agent API](/development/react-host-api.md): 单助手页面中，AgentUIProvider 让业务组件与助理共享同一个会话。业务组件通过 useAgent() 发送消息、停止生成或新建会话，通过状态和事件 Hooks 更新页面。接入步骤、截图和完整代码见用业务页面控制 Agent。多助手页面使用助手集合接口定位各自的 Host。 本页导航：属性 · 方法 · Hooks · 状态与事件 · 错误处理。
 - [Web Component API](/development/web-component-api.md): 在业务页面通过元素属性或 config 配置服务地址、语言和主题，并监听就绪、会话切换和错误事件。 本页导航：配置 · 事件。
-- [插件 API](/development/plugin-api.md): 本页按开发任务查找插件接口、参数和示例。创建文件与注册见创建自定义插件，修改已有组件见手动修改插件。 先从速查表选择要用的能力，再展开对应条目。从其他插件取数或调用操作，见插件联动与取数。
+- [插件 API](/development/plugin-api.md): 本页按开发任务查找插件接口、参数和示例。创建文件与注册见创建自定义插件，修改已有组件见手动修改插件。 先从速查表选择要用的能力，再阅读对应小节。从其他插件取数或调用操作，见插件联动与取数。
 - [文案字段参考](/development/locale-reference.md): 查找可覆盖的界面文案字段及其中英文默认值。配置步骤和代码示例见语言与文案。 按功能查找下面的字段，再构造 Agent.locales 覆盖对象。当前项目安装版本的 AgentUILocaleOverrides 类型是可用字段的依据，编辑器可以补全字段并检查拼写；网站清单对应当前文档版本。
 
 ## 更新日志

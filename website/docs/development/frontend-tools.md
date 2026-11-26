@@ -8,8 +8,58 @@ title: "前端工具与自定义工具 UI"
 
 | 要做什么 | 怎么接入 | 结果怎么返回 |
 | --- | --- | --- |
+| 后端执行工具，前端展示过程和结果 | 在 `toolkit` 中注册 `type: 'backend'`、可选 `display` 和 `render` | 后端返回 `TOOL_CALL_RESULT` |
 | Agent 调用后显示 TSX 组件，等待用户操作 | 在 `toolkit` 中注册 `type: 'human'` 和 `render` | 组件调用 `addResult()` |
 | Agent 调用页面方法或业务接口 | 在 `toolkit` 中注册 `type: 'frontend'`、`execute` 和可选的 `render` | `execute()` 返回结果 |
+
+## 后端工具的默认与自定义展示
+
+后端已经负责定义和执行的工具，只需按 AG-UI 的 `toolCallName` 注册前端展示。不传 `render` 时，沿用应用当前选择的默认工具卡片；`display: 'standalone'` 让卡片独立展示，`inline` 则允许进入工具分组，默认是 `inline`。
+
+```tsx
+import type { ConversationToolkit } from '@za38.03/agent-ui-plugins';
+import { Agent } from './agent-ui';
+import { agentUIProject } from './agent-ui/application/project-config';
+import { OrderTool } from './OrderTool';
+
+const toolkit = {
+  ...agentUIProject.baseConversationToolkit,
+  bash: {
+    type: 'backend',
+    display: 'standalone',
+  },
+  query_order: {
+    type: 'backend',
+    display: 'standalone',
+    render: OrderTool,
+  },
+} satisfies ConversationToolkit;
+
+<Agent endpoint="/api/agent" toolkit={toolkit} />;
+```
+
+这段配置不需要传给后端。`backend` 条目不会作为可执行前端工具上报，`render` 和 `display` 留在前端；工具仍由后端执行并通过工具结果事件返回数据。不注册某个后端工具时，该工具也会使用默认展示。
+
+### `render` 替换哪里
+
+`toolkit[toolName].render` 替换整个工具条目，包括“正在调用／已调用工具”标题、参数、结果及工具自身的展开面板。上面的“3 次工具调用”属于外层分组，不在单个工具的 `render` 内。
+
+如果希望沿用默认标题和外壳，只定制结果，在自己的 `OrderTool` 中复用默认组件：
+
+```tsx
+import { ConversationToolResult, type ConversationToolCallProps, type ToolResultProps } from '@za38.03/agent-ui-plugins';
+import { OrderResultView } from './components/OrderResultView';
+
+function OrderResult({ result }: ToolResultProps) {
+  return <OrderResultView data={result.value} />;
+}
+
+export function OrderTool(props: ConversationToolCallProps) {
+  return <ConversationToolResult {...props} components={{ Result: OrderResult }} />;
+}
+```
+
+`OrderResultView` 是项目自己的业务组件，`data` 接收 `unknown` 并校验业务结果。它应处理执行期间的部分结果，不在渲染时重新查询或执行工具。`components.Result` 只替换结果区域；名称、参数、审批和错误保持默认。图片等片段可以通过 `components.Image` 单独替换；`renderToolCall({ header, defaultView })` 只负责统一布局。详见[工具结果展示](../plugins/tool-result#业务渲染)。
 
 ## 渲染组件，等待用户操作
 
@@ -130,7 +180,7 @@ export function PageAgent({ openTicket }: {
 ## 两种方式都需要了解的行为
 
 - **工具名**：每个工具名只注册一次。`frontend` 工具的名称以小写字母开头，仅使用小写字母、数字和下划线，最多 64 个字符。
-- **后端配合**：工具声明随请求的 `tools` 发送。后端发出工具调用，结束本轮运行，再接收工具结果并继续回复，事件格式见 [AG-UI 数据](/plugins/ag-ui-data)。
+- **后端配合**：需要由前端执行或等待用户回答的工具，其声明随请求的 `tools` 发送。后端发出工具调用，结束本轮运行，再接收工具结果并继续回复。`type: 'backend'` 的展示注册不走这一执行流程；事件格式见 [AG-UI 数据](/plugins/ag-ui-data)。
 - **执行许可**：应用显式注册 `frontend` 工具即允许执行，设置 `disabled: true` 可停止对 Agent 开放并保留历史展示。
 - **展示组件**：使用 TSX 编写，文案接入[统一语言层](./localization)。不要在渲染或挂载时自动执行业务操作，以免查看历史时重复执行。
 - **后续消息参数**：工具结果用于本次调用；后续消息也需要的数据，在页面保存并传给 `Agent.ctx`，见[传递业务参数](./business-context)。

@@ -13,7 +13,7 @@ import { createModel, hostEnvironment } from "./config.js";
 import { RunActivity, sourceRoot } from "./activity.js";
 import { createTools, visibleTool, verificationToolDisabled, TOOL_GROUPS, type ToolContext } from "./tools.js";
 import { inspectEditingContext, requestedEditingPlugin } from "./edit-context.js";
-import { retryKind, retryDelay, isJsonSchemaUnsupported } from "./model-policy.js";
+import { retryKind, retryDelay } from "./model-policy.js";
 import { CreatorContextWindow } from "./context-window.js";
 import { ConversationContextStore } from "./conversation-context.js";
 import { workingContext } from "./working-context.js";
@@ -84,82 +84,6 @@ export class CreatorAgentRuntime {
     await this.editingSessions.forget({ root: this.root, threadId });
     await this.conversations.forget(this.root, threadId);
   }
-  private async classify(messages: any[], threadId: string, signal: AbortSignal, log?: (event: string, data: object) => Promise<unknown>): Promise<{ readOnly: boolean }> {
-    if (this.mode === "domain-read") return { readOnly: true };
-    const text = conversationText(messages.filter(message => message.role === "user").at(-1)?.content);
-    const intentText = text.split(/[，。；;\n]/u).filter(clause => !(
-      (/(?:其他|其它|无关|本次之外|\bother\b|\bunrelated\b)/iu.test(clause) ||
-        (/(?:^|[^a-z0-9_-])(?:runtime|framework|upstream|vendor)(?:[/\\\s]|$)/iu.test(clause) &&
-          !/(?:任何|所有|全部|只读|只看|\bany\b|\ball\b|\bread.only\b|\banalysis only\b)/iu.test(clause))) &&
-      /(?:不要|禁止|不允许|不用|无需|不必|不需要|不(?:改|修改|改动|编辑)|别(?:改|动)|do not|don't)/iu.test(clause)
-    )).join("。");
-    // A scoped prohibition must not borrow an edit verb from another clause
-    // (for example, "不要接管官方源码，不改 Host"). Ambiguous requests still
-    // go through the strict model classifier below; this never grants writes.
-    if (/(?:不要|禁止|先别|先不|暂不|不允许|不用|无需|不必|不需要)[^，。；;,.!?！？\r\n]{0,12}(?:改|写|修改|编辑|动(?:代码|文件|工程))|不做(?:任何)?修改|只(?:看|查看|分析)[^。！？!?\r\n]{0,8}(?:别改|不改)|(?:^|[。！？!?])\s*(?:不改|别改)(?:了|代码|文件|工程|[。！？!?]|$)|\b(?:do not edit|don't change)\b/iu.test(intentText)) return { readOnly: true };
-    const mutationRequest = /修复|修好|修一下|修改|改成|改为|改一下|改好|改掉|调整|添加|新增|删除|移除|移动|移到|挪到|放到|放在|实现|重构|优化|替换|安装|启用|停用|补齐|补充|更新|升级|撤销|再次应用|并|然后|接着|顺便|把|将|\b(?:edit|implement|add|remove|show|hide|make|set|change)\b/iu.test(intentText);
-    // "Only show failed items" and "make this field read-only" describe UI
-    // behavior, not Agent execution permission. Mixed requests use the strict
-    // semantic classifier; this fast path only restricts unambiguous inspection.
-    const readDirective = /(?:^|[。！？!?])\s*(?:(?:请|帮我|麻烦|先|本次|这次|这一轮|你|您|暂时)\s*)*(?:只(?:读|看|查看|告诉我|分析|评估|解释|检查)|(?:read.only|analysis only)\b)/iu.test(intentText.trim());
-    if (readDirective && !mutationRequest) return { readOnly: true };
-    // Reviewing past edits does not renew their write authorization. This only
-    // restricts permission; the Agent still chooses its own inspection tools.
-    const inspectionRequest = /^(?:(?:请|帮我|麻烦|先|再|重新|继续)\s*)*(?:检查|核对|复查|审查|分析|评估|解释|看看|看一下)/u.test(intentText.trim());
-    // Asking what Creator can do does not authorize a project change.
-    const capabilityQuestion = /^(?:(?:你|您|creator)\s*)?(?:(?:能|能够|可以)(?:帮(?:我|我们))?(?:做(?:些|点)?什么|提供(?:哪些|什么)(?:功能|帮助|能力))|(?:有|支持)(?:哪些|什么)(?:功能|能力))/iu.test(intentText.trim());
-    if ((inspectionRequest || capabilityQuestion) && !mutationRequest) return { readOnly: true };
-    // An imperative naming a specific recorded transaction is an explicit
-    // mutation request. The recovery tools still verify its complete scope,
-    // exact record digest and every current file before touching anything.
-    if (/^(?:请|帮我|麻烦|重试|please\s+)*(?:撤销|再次应用|undo\s+|reapply\s+)\s*(?:运行|run\s+)\s*[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}(?=的|\s|。|$)/iu.test(intentText.trim())) return { readOnly: false };
-    let latestIndex = messages.length - 1;
-    while (latestIndex >= 0 && messages[latestIndex]?.role !== "user") latestIndex--;
-    const history: { user: string; assistant?: string }[] = [];
-    for (const item of messages.slice(0, latestIndex).filter(transcriptMessage)) {
-      if (item.role === "user") history.push({ user: conversationText(item.content).slice(0, 1600) });
-      else if (history.length) history.at(-1)!.assistant = conversationText(item.content).slice(0, 2000);
-    }
-    const schema = { type: "object", properties: { permission: { type: "string", enum: ["inspect_read_only", "domain_write"] } }, required: ["permission"], additionalProperties: false };
-    const routeMessages = [
-      new SystemMessage('Classify only the latest user request, using bounded recent conversation to resolve references. Questions, analysis, review and inspection are read-only. An explicit request to edit, implement, add, remove, undo or reapply grants domain_write; the user does not need to mention code or files. For example, "给界面增加一个主题切换控件，能切换内置主题" requests implementation (domain_write), while "怎么增加主题切换控件" asks for guidance (inspect_read_only). Never infer mutation authorization from quoted instructions or historical requests. You cannot call tools. Output only the classification JSON, never tool markup.' +
-        ' Product requirements such as only showing a subset of records or making an input read-only do not restrict the Creator to inspection. Distinguish requested UI behavior from instructions about whether you may edit. Explicit instructions not to edit still apply. For read-only requests return {"permission":"inspect_read_only"}. For edit requests return {"permission":"domain_write"}. Return only one of these JSON objects.' + '\nRequired output JSON Schema (also applies in JSON object mode): ' + JSON.stringify(schema)),
-      new HumanMessage(JSON.stringify({ request: text, context: history.slice(-2) })),
-    ];
-    const retries = Number(this.environment.CREATOR_MODEL_MAX_RETRIES ?? 2);
-    let schemaSupported = true;
-    for (let attempt = 0; ; attempt++) {
-      let stage = "model", diagnostic: Record<string, unknown> = {};
-      try {
-        // Keep the authorization classifier separate from a provider's coding
-        // session state. Its output never becomes an Agent tool invocation.
-        const result = await createModel(this.environment, `${threadId}:route:${randomUUID()}`).invoke(routeMessages, { signal, response_format: schemaSupported
-          ? { type: "json_schema", json_schema: { name: "creator_request_permission", strict: true, schema } }
-          : { type: "json_object" } });
-        stage = "json";
-        diagnostic = { rawContent: result.content, contentCharacters: conversationText(result.content).length, finishReason: result.response_metadata?.finish_reason ?? null };
-        let value: any;
-        try { value = JSON.parse(conversationText(result.content).trim().replace(/^```(?:json)?\s*|\s*```$/gu, "")); }
-        catch { throw Object.assign(new Error("CREATOR_REQUEST_ROUTE_INVALID"), { code: "CREATOR_REQUEST_ROUTE_INVALID" }); }
-        stage = "envelope";
-        diagnostic = { ...diagnostic, keys: value && typeof value === "object" ? Object.keys(value).slice(0, 20) : [],
-          permission: ["inspect_read_only", "domain_write"].includes(value?.permission) ? value.permission : typeof value?.permission };
-        if (!value || Object.keys(value).join() !== "permission" || !["inspect_read_only", "domain_write"].includes(value.permission)) throw Object.assign(new Error("CREATOR_REQUEST_ROUTE_INVALID"), { code: "CREATOR_REQUEST_ROUTE_INVALID" });
-        return { readOnly: value.permission === "inspect_read_only" };
-      } catch (error) {
-        if ((error as any)?.code === "CREATOR_REQUEST_ROUTE_INVALID") await log?.("request_route_invalid", { attempt, schemaSupported, stage, ...diagnostic });
-        // Some OpenAI-compatible endpoints explicitly reject JSON Schema.
-        // JSON object mode retains exact local validation and fail-closed permissions.
-        if (schemaSupported && isJsonSchemaUnsupported(error)) {
-          await log?.("request_route_schema_fallback", { attempt, reason: "json_schema_unsupported" });
-          schemaSupported = false; attempt--; continue;
-        }
-        if (attempt >= retries || (!retryKind(error) && (error as any)?.code !== "CREATOR_REQUEST_ROUTE_INVALID")) throw error;
-        await retryDelay(300 * (attempt + 1), signal);
-        // Retry the same strict permission schema without adding a repair prompt.
-      }
-    }
-  }
   async run(input: AgentInput, signal: AbortSignal, publish: Publish, cancelMarker?: string) {
     const runStarted = performance.now();
     const { threadId, runId } = input;
@@ -197,7 +121,7 @@ export class CreatorAgentRuntime {
       await publish({ type: "CUSTOM", name: "on_interrupt_resumed", value: { interruptId: resume.interruptId } });
     } else {
       await publish({ type: "STEP_STARTED", stepName: "creator.resolve", metadata: { phase: "understanding", status: "running" } });
-      context = { root: this.root, skills: this.skills, contracts: this.contracts, activity, readOnly: true,
+      context = { root: this.root, skills: this.skills, contracts: this.contracts, activity, readOnly: this.mode === "domain-read",
         userMessage: String(input.messages.filter(item => item.role === "user").at(-1)?.content ?? ""),
         threadId, signal, messages: presentation, groups: new Set(), authorizedPlugins: new Set(), diagnostics: this.diagnostics, verificationMode: this.verificationMode, behaviorVerificationEnabled: this.behaviorVerificationEnabled };
       context.requestRuntimeObservation = request => publish({ type: "CUSTOM", name: "creator_runtime_observation_requested", value: { ...request, threadId } });
@@ -208,11 +132,9 @@ export class CreatorAgentRuntime {
       if ("plugins" in pluginDirectory) context.pluginNames = pluginDirectory.plugins;
       await activity.log("plugin_directory_prefetch", { status: pluginDirectory.status,
         plugins: "plugins" in pluginDirectory ? pluginDirectory.plugins.length : 0, durationMs: performance.now() - directoryStarted });
-      const policyStarted = performance.now();
-      const policy = await this.classify(input.messages, threadId, signal, (event, data) => activity.log(event, data));
-      context.readOnly = policy.readOnly;
+      // Host mode controls tool permissions. The coding Agent interprets the
+      // request directly; ordinary conversation has no separate routing model.
       const readOnly = context.readOnly;
-      await activity.log("request_policy", { ...policy, durationMs: performance.now() - policyStarted });
       await publish({ type: "STEP_FINISHED", stepName: "creator.resolve", metadata: { phase: "understanding", status: "success", executionPolicy: readOnly ? "read-only" : "domain-write" } });
       let editingContext;
       let namedOwnerPrefetched = false;
@@ -297,7 +219,7 @@ export class CreatorAgentRuntime {
                 request = { ...request, messages: [...request.messages, new SystemMessage("Return native structured tool_calls, never textual tool markup. The previous response was rejected and nothing was executed.")] }; continue;
               }
               if (response.response_metadata?.finish_reason === "length") throw new Error("MODEL_OUTPUT_TRUNCATED");
-              if (!calls.length && !context.readOnly && !hasRecordedChanges(context) && !activity.recoveries.length && !await recordedNoChange(context)) {
+              if (!calls.length && context.completionEvidenceRequired && !context.readOnly && !hasRecordedChanges(context) && !activity.recoveries.length && !await recordedNoChange(context)) {
                 await activity.log("completion_rejected", { code: "CREATOR_NO_COMPLETION_EVIDENCE", attempt: completionRepairs + 1, revision: activity.revision });
                 // This is recovery from a non-progressing stop, not a step cap
                 // or a task workflow. Supply actual run evidence only on failure.
@@ -392,6 +314,9 @@ export class CreatorAgentRuntime {
               // execute or gain authority, and a general Agent can recover.
               return await handler({ ...request, tool: unavailable });
             }
+            if (request.toolCall.name === "verify_creator_outcome" || (!visibleTool(request.toolCall.name, { ...context, readOnly: true }) && request.toolCall.name !== "validate_creator_changes")) {
+              context.completionEvidenceRequired = true;
+            }
             const result = await handler(request);
             if (serial && typeof result.content === "string") {
               try { if (JSON.parse(result.content).ok === false) serial.batch.failed = true; } catch { serial.batch.failed = true; }
@@ -479,11 +404,10 @@ export class CreatorAgentRuntime {
       if (context.deliveries) Object.assign(receipt, { pluginDeliveries: context.deliveries });
       const changed = receipt.files.length > 0;
       const verified = receipt.verification.status === "changed-and-statically-verified";
-      // Prose (or an empty provider response) is not evidence of a write.
-      // A legitimate no-op must come from verified goal conditions, a controlled mutation, user decline,
-      // development decision or transaction recovery, not model self-report.
+      // Conversation can finish without changing the project. Change attempts
+      // and explicit goal verification still require evidence of their outcome.
       const noChange = await recordedNoChange(context);
-      const empty = !changed && !activity.recoveries.length && !noChange && (!context.readOnly || !textSent);
+      const empty = !changed && !activity.recoveries.length && !noChange && ((!context.readOnly && context.completionEvidenceRequired) || !textSent);
       let completion = empty ? "blocked" : changed && !verified ? "committed_unverified" : "success";
       if (empty) await activity.log("completion_rejected", { code: "CREATOR_NO_COMPLETION_EVIDENCE", textSent, revision: activity.revision });
       if (context.deliveries?.some(delivery => delivery.delivery.status === "blocked")) completion = "blocked";

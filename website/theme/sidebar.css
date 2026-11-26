@@ -1,3 +1,16 @@
+/* Keep code distinct from the article while retaining the native fold controls. */
+.rp-doc .rp-codeblock {
+  --rp-code-block-bg: #f3f6fb;
+  --rp-code-title-bg: #eaf0f8;
+  --rp-code-block-border: 1px solid #dbe3ef;
+}
+
+.dark .rp-doc .rp-codeblock {
+  --rp-code-block-bg: #202936;
+  --rp-code-title-bg: #293548;
+  --rp-code-block-border: 1px solid #36445a;
+}
+
 .home-templates {
   max-width: 1200px;
   margin: 0 auto 72px;

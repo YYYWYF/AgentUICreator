@@ -78,7 +78,7 @@ title: "文档检索片段（retrieval-chunks）"
 
 在已有检索插件入口只展示前 4 个片段，并为长列表设置滚动区域：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { RetrievalChunksPlugin as Implementation } from '@za38.03/agent-ui-plugins/retrieval-chunks';
 
@@ -97,7 +97,7 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 需要放入项目自己的列表区域时，继续复用默认检索展示，可保留检索状态、来源、分数和正文：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { RetrievalChunksPlugin as Implementation } from '@za38.03/agent-ui-plugins/retrieval-chunks';
 import { RetrievalChunks } from '@za38.03/agent-ui-plugins';

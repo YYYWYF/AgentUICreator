@@ -531,6 +531,7 @@ async function* runSteps(
         type: EventType.CUSTOM,
         name: step.name,
         value: structuredClone(step.value),
+        ...(step.metadata === undefined ? {} : { metadata: structuredClone(step.metadata) }),
         ...(step.subagentRunId === undefined
           ? context.subagentRunId === undefined
             ? {}
@@ -542,9 +543,14 @@ async function* runSteps(
 
     const messageId = createId("assistant-message");
     yield withSubagentRunId(
-      { type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant" },
+      { type: EventType.TEXT_MESSAGE_START, messageId, role: "assistant",
+        ...(step.metadata === undefined ? {} : { metadata: structuredClone(step.metadata) }) },
       context.subagentRunId,
     ) as AGUIEvent;
+    if (!await waitForDelay(normalizeDelay(step.contentDelayMs, 0), signal, timingScale)) return;
+    if (step.reasoning !== undefined) {
+      yield* runSteps(input, [step.reasoning], createId, signal, timingScale, context);
+    }
     yield* streamText(
       EventType.TEXT_MESSAGE_CONTENT,
       messageId,

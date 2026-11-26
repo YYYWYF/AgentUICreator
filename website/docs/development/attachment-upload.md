@@ -118,8 +118,7 @@ export const attachments = {
 
 需要调整附件展示或刷新后的回显时，按需求查阅。
 
-<details class="dev-guide-details" id="当前消息中的附件">
-<summary>当前消息：文件 URL、文件名与 MIME 类型</summary>
+### 当前消息：文件 URL、文件名与 MIME 类型 {#当前消息中的附件}
 
 使用上面的内置上传流程时，前端会自动组合这些信息，无需上传接口重复返回：
 
@@ -131,10 +130,7 @@ export const attachments = {
 
 默认附件卡片支持图片缩略图和点击放大；普通文件卡片显示文件图标及名称提示，**不自带下载按钮**。需要下载入口时，在项目附件展示组件中使用文件 URL 和文件名添加链接。
 
-</details>
-
-<details class="dev-guide-details" id="刷新后的历史回显">
-<summary>刷新页面后：历史消息怎样保存附件</summary>
+### 刷新页面后：历史消息怎样保存附件 {#刷新后的历史回显}
 
 刷新后能否看到附件，取决于[历史服务](./history-backend)是否保存并返回了附件内容，不能只保存消息文字。当前历史接口使用 LangChain 消息格式，字段与上面的 AG-UI 请求不同：
 
@@ -161,21 +157,15 @@ export const attachments = {
 
 图片可使用 `{ "type": "image_url", "image_url": { "url": "https://files.example.com/uploads/photo.png" } }` 作为内容项。配置后刷新页面，重新打开会话，确认图片可预览、文件名称正确，下载入口可打开文件。
 
-</details>
-
-<details class="dev-guide-details" id="文件地址要能被实际访问">
-<summary>预览与下载：文件权限、签名 URL 和下载方式</summary>
+### 预览与下载：文件权限、签名 URL 和下载方式 {#文件地址要能被实际访问}
 
 浏览器和 Agent 都需要有权限读取文件；上传请求的 Token 不会自动用于预览或下载。需要鉴权时，应提供相应读取方可访问的地址或签名 URL。历史中的签名 URL 过期后也需要由业务服务更新。点击文件链接可能打开预览页；需要直接下载时，由文件服务设置 `Content-Disposition: attachment`。
-
-</details>
 
 ## 可选：接管完整附件流程 {#进阶定制}
 
 `attachmentAdapter` 用于接管完整附件流程：`add()` 处理文件选择，`send()` 处理发送，`remove()` 处理移除。例如需要选完文件立即上传、移除时清理资源，才考虑使用它；普通 URL 上传、自定义请求或多步上传用前面的配置即可。
 
-<details class="dev-guide-details">
-<summary>在完整流程中增加移除通知</summary>
+### 在完整流程中增加移除通知
 
 已有完整适配器时，可以包装具体方法，而不是重新实现上传。例如业务页面需要在附件移除成功后同步自己的选择列表：
 
@@ -210,8 +200,6 @@ export function notifyAttachmentRemoval(adapter: ProjectAttachmentAdapter,
 | `remove(attachment)` | 当前附件，返回 `Promise<void>` | 释放该附件相关资源，失败时拒绝 Promise |
 
 提供完整适配器后，它优先于 `attachments` 配置。只使用 `attachments` 时，`dataSource` 优先于 `uploadUrl`；两者都不提供则使用默认 Base64。
-
-</details>
 
 ## 检查上传与消息结果 {#去哪里确认配置和上传成功}
 

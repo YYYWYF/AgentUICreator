@@ -64,7 +64,7 @@
 
 默认只为待处理操作自动展开。希望普通调用也从展开状态开始时，在项目已有工具组入口设置 `defaultExpanded`：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -84,7 +84,7 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 默认工具组使用无边框样式。需要将整组工具与正文明确分隔时，可增加边框：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -125,7 +125,6 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 ## 常见问题
 
-
-defaultExpanded 与 expanded 有什么区别？
+### defaultExpanded 与 expanded 有什么区别？ \{#defaultexpanded-与-expanded-有什么区别}
 
 前者决定第一次展示时的状态，后续由组件管理；后者由项目每次渲染传入，需配套处理 onExpandedChange。

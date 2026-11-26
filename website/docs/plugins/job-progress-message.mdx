@@ -94,7 +94,7 @@ title: "后台任务进度（job-progress-message）"
 
 在已有消息插件入口调整容器宽度。保留现有 `state` 和 `abortRun` 绑定，阶段、结果和停止行为继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { JobProgressMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/job-progress-message';
 
@@ -110,7 +110,7 @@ export function JobProgressMessagePlugin(props: ComponentProps<typeof Implementa
 
 需要统一页面布局时，可以复用已经组合好的默认进度属性，保留阶段、终态和取消操作：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { JobProgressMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/job-progress-message';
 import { JobProgress } from '@za38.03/agent-ui-plugins';

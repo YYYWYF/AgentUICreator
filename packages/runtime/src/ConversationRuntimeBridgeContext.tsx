@@ -8,6 +8,8 @@ import type { ConversationThreadBinding } from "./threads/types.js";
 import type { ConversationFrontendToolPort } from "./tools/types.js";
 import type { ConversationMessageMetadataStore } from './compatibility/conversation-message-metadata.js';
 import { ConversationMessageMetadataContext } from './plugin-api/message-metadata.js';
+import type { ConversationToolResultStore } from './compatibility/conversation-tool-results.js';
+import { ConversationToolOutputContext } from './plugin-api/tool-results.js';
 
 export interface ConversationRuntimeBridge<TState = unknown> {
   agentRuntime: ConversationAgentRuntimeBridge<TState>;
@@ -17,6 +19,7 @@ export interface ConversationRuntimeBridge<TState = unknown> {
   /** Input data follows the stable local session while its wire ID is assigned. */
   inputSessionId?: string | undefined;
   messageMetadata?: ConversationMessageMetadataStore | undefined;
+  toolResults?: ConversationToolResultStore | undefined;
   frontendTools?: ConversationFrontendToolPort | undefined;
 }
 
@@ -34,7 +37,9 @@ export function ConversationRuntimeBridgeProvider<TState = unknown>({
       value={bridge as unknown as ConversationRuntimeBridge}
     >
       <ConversationMessageMetadataContext.Provider value={bridge.messageMetadata}>
-        {children}
+        <ConversationToolOutputContext.Provider value={bridge.toolResults}>
+          {children}
+        </ConversationToolOutputContext.Provider>
       </ConversationMessageMetadataContext.Provider>
     </RuntimeBridgeContext.Provider>
   );

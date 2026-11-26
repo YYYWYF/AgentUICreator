@@ -45,8 +45,7 @@ export const source: ConversationMentionSource = {
 
 **第 2 步：按下面的字段返回查询结果。**
 
-<details class="dev-guide-details" id="数据格式">
-<summary>查看搜索结果字段与完整示例</summary>
+### 搜索结果字段与完整示例 \{#数据格式}
 
 `source.search()` 异步返回以下数组；没有匹配结果时返回 `[]`：
 
@@ -69,8 +68,6 @@ export const source: ConversationMentionSource = {
 | `description` | `string` | 可选，列表中的补充说明。                      |
 
 接口字段不同时，在 `source.search()` 返回前转换为上述格式。
-
-</details>
 
 ## 接入 / 快捷命令 \{#-快捷命令}
 
@@ -102,8 +99,7 @@ export const businessCommands = {
 
 **第 2 步：按命令类型返回指令或页面操作。**
 
-<details class="dev-guide-details" id="数据格式-1">
-<summary>查看命令字段、指令模式与动作示例</summary>
+### 命令字段、指令模式与动作示例 \{#数据格式-1}
 
 `businessCommands.loadCommands()` 返回以下数组；返回 `[]` 时只保留默认“新建会话”命令：
 
@@ -146,8 +142,6 @@ return [{
 
 接口返回动作类命令时，在项目代码中按命令 ID 补上 `execute()` 后再返回。
 
-</details>
-
 ## 可选：改变选中后的草稿内容 \{#改变选中行为}
 
 <span id="选中后默认发送什么"></span>
@@ -174,8 +168,7 @@ return [{
 <figcaption>启用 Lexical 输入后，引用标记显示为“@产品说明文档”和“/总结对话”标签。普通输入框直接显示上表中的标记文本。</figcaption>
 </figure>
 
-<details class="dev-guide-details" id="在项目中替换选中行为">
-<summary>用 onSelect 替换默认引用文字或动作</summary>
+### 用 onSelect 替换默认引用文字或动作 \{#在项目中替换选中行为}
 
 修改项目 `plugins/mention-trigger/index.tsx` 或 `plugins/slash-command-trigger/index.tsx` 的已有组件调用，传入 `onSelect`，无需接管源码：
 
@@ -216,8 +209,6 @@ return [{
 提供回调就完全替换默认处理，包括 `/ action` 的执行。返回后不再插入默认引用，不自动发送。抛错时保留草稿并显示本地化错误，不退回默认行为。需要异步数据时先在来源中加载；异步页面操作可继续使用默认 `action.execute()`。
 
 自定义普通文本按普通文本显示；要保留标签，应返回合法的引用标记。实际插入的非空文本仍绑定原始选中项，Composer 可以读取并组装其数据，见下文。
-
-</details>
 
 ## 可选：把选中对象作为结构化数据发送 \{#插件提供数据composer-组装请求}
 
@@ -334,8 +325,7 @@ Composer 使用回调返回的完整请求，不会补回被删除的字段；�
 
 历史消息要继续显示标签，后端保存并返回带引用标记的正文即可；只返回普通 `@张三` 或 `/总结` 文本不会恢复标签，见[历史数据格式](/development/history-backend.md#数据格式参考)。
 
-<details class="dev-guide-details" id="第三方插件用同一个接口">
-<summary>让自己的插件提交草稿数据</summary>
+#### 让自己的插件提交草稿数据 \{#第三方插件用同一个接口}
 
 在已有插件组件中：
 
@@ -369,10 +359,7 @@ export function OrderDraftData({ orderId, children }: {
 
 正文引用与原生引用的数据绑定见 [Composer API](/plugins/composer.md#hook)。这些选项只处理数据生命周期；业务数据只通过 `pluginData` 交给最终适配器。
 
-</details>
-
-<details class="dev-guide-details" id="技能引用和建议问题">
-<summary>技能、引用和建议问题怎样加入同一份请求</summary>
+#### 技能、引用和建议问题怎样加入同一份请求 \{#技能引用和建议问题}
 
 技能相关文档标记为**开发中**，见[技能选择（开发中）](/plugins/skills.md)。
 
@@ -388,10 +375,7 @@ export function OrderDraftData({ orderId, children }: {
 
 默认技能映射写在 `plugins/composer/request-adapter.ts`，可按业务修改。引用会加入正文，建议问题使用 `prompt`；详细行为见各插件页。
 
-</details>
-
-<details class="dev-guide-details" id="发送重发与恢复">
-<summary>重试、恢复和刷新后的数据生命周期</summary>
+#### 重试、恢复和刷新后的数据生命周期 \{#发送重发与恢复}
 
 | 场景           | 数据如何处理                                   |
 | ------------ | ---------------------------------------- |
@@ -401,8 +385,6 @@ export function OrderDraftData({ orderId, children }: {
 | 刷新后打开历史      | 正文引用可恢复标签；还要恢复原始 `data` 时，历史服务需另外保存选择数据。 |
 
 选择数据必须是 JSON。转换出错时保留草稿并提示；Composer 回调报错或返回无效请求时停止发送，修正后可重试。
-
-</details>
 
 ## 检查查询与发送结果 \{#检查查询与发送结果}
 

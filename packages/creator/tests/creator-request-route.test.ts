@@ -1,65 +1,87 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { AIMessage, type BaseMessage } from "@langchain/core/messages";
 import { CreatorAgentRuntime } from "../src/agent/runner.js";
-import { RunActivity } from "../src/agent/activity.js";
 
-const model = vi.hoisted(() => ({ invoke: vi.fn<(messages: BaseMessage[], options: unknown) => Promise<AIMessage>>() }));
+const state = vi.hoisted(() => ({
+  model: undefined as BaseChatModel | undefined,
+  threads: [] as string[],
+}));
 vi.mock("../src/agent/config.js", () => ({
-  hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write", CREATOR_MODEL_MAX_RETRIES: "0" }),
-  createModel: () => model,
+  hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write" }),
+  createModel: (_environment: unknown, thread: string) => {
+    state.threads.push(thread);
+    return state.model;
+  },
 }));
 
-interface PermissionClassifier {
-  classify(messages: { role: "user"; content: string }[], threadId: string, signal: AbortSignal,
-    log: (event: string, data: object) => Promise<unknown>): Promise<{ readOnly: boolean }>;
+class ConversationModel extends BaseChatModel {
+  calls = 0;
+  prompts: BaseMessage[][] = [];
+  _llmType() { return "creator-conversation-regression"; }
+  bindTools() { return this; }
+  async _generate(messages: BaseMessage[]) {
+    this.prompts.push(messages);
+    const message = this.answer(this.calls++);
+    return { generations: [{ text: "", message }] };
+  }
+  constructor(readonly answer: (index: number) => AIMessage) { super({}); }
 }
 
 const roots: string[] = [];
 afterEach(async () => {
-  model.invoke.mockReset();
+  state.model = undefined;
+  state.threads = [];
   for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true });
 });
 
-async function classifier() {
-  const root = await mkdtemp(path.join(tmpdir(), "creator route 中文 "));
+async function project() {
+  const root = await mkdtemp(path.join(tmpdir(), "creator conversation 中文 "));
   roots.push(root);
-  const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), path.join(root, "contracts"));
-  const activity = new RunActivity(root, "rename-route", new AbortController().signal);
-  const classify = (request: string) => (runtime as unknown as PermissionClassifier).classify(
-    [{ role: "user", content: request }], "rename-route", activity.signal, (event, data) => activity.log(event, data));
-  return { root, activity, classify };
+  for (const directory of [".agent-ui", "skills", "src"]) await mkdir(path.join(root, directory));
+  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ sourceRoot: "src" }));
+  await writeFile(path.join(root, "src/styles.css"), ".conversation { background-color: white; }\n");
+  return root;
 }
+const contracts = fileURLToPath(new URL("../contracts/creator", import.meta.url));
 
 it.each([
-  { request: "将助理的名字改为「小招」。", permission: "domain_write", readOnly: false },
-  { request: "现在的助理名称是什么？", permission: "inspect_read_only", readOnly: true },
-])("accepts $permission with valid JSON examples in the classification prompt", async ({ request, permission, readOnly }) => {
-  model.invoke.mockResolvedValue(new AIMessage(JSON.stringify({ permission })));
-  const { classify } = await classifier();
-  expect(await classify(request)).toEqual({ readOnly });
-  const messages = model.invoke.mock.calls[0]?.[0];
-  const prompt = messages?.[0]?.content;
-  if (typeof prompt !== "string") throw new Error("Missing classification prompt");
-  const examples = [...prompt.matchAll(/return (\{"permission":[^}]+\})/gu)].map(match => JSON.parse(match[1]!) as unknown);
-  expect(examples).toEqual([{ permission: "inspect_read_only" }, { permission: "domain_write" }]);
-  expect(prompt).not.toContain('"inspect_read_only"|"domain_write"');
+  "我想修改对话区的背景颜色，该写什么样式呢？",
+  "怎么修改对话区背景？",
+  "What CSS should I write to change the conversation background?",
+  "你能做什么？",
+  "先不要改文件，解释一下背景样式怎么写。",
+])("answers directly through the main Agent without a request classifier: %s", async request => {
+  const root = await project();
+  const answer = "可以在对话区容器上设置 background-color: #f5f5f5。";
+  const model = state.model = new ConversationModel(() => new AIMessage(answer));
+  const events: Record<string, unknown>[] = [];
+  await new CreatorAgentRuntime(root, path.join(root, "skills"), contracts).run({
+    threadId: "conversation", runId: "conversation-1", messages: [{ role: "user", content: request }],
+  }, new AbortController().signal, async event => { events.push(event); });
+  expect(state.threads).toEqual(["conversation"]);
+  expect(model.calls).toBe(1);
+  expect(JSON.stringify(model.prompts[0])).toContain(request);
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", toolProtocol: { modelCalls: 1, toolCalls: 0 } } });
+  expect(events.filter(event => event.type === "TEXT_MESSAGE_CONTENT").map(event => event.delta).join("")).toContain(answer);
+  expect(await readFile(path.join(root, "src/styles.css"), "utf8")).toBe(".conversation { background-color: white; }\n");
 });
 
-it.each([
-  { rawContent: "允许修改。\r\n{\"permission\":\"domain_write\"}", stage: "json" },
-  { rawContent: '{"permission":"inspect_read_only"|"domain_write"}', stage: "json" },
-  { rawContent: '{"permission":"domain_write","approve":true}', stage: "envelope" },
-  { rawContent: [{ type: "text" as const, text: "无法分类\r\n请重试。" }], stage: "json" },
-])("persists the original model content on $stage failure without granting writes", async ({ rawContent, stage }) => {
-  model.invoke.mockResolvedValue(new AIMessage({ content: rawContent, response_metadata: { finish_reason: "stop" } }));
-  const { root, activity, classify } = await classifier();
-  await expect(classify("将助理的名字改为「小招」。")).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
-  expect(model.invoke).toHaveBeenCalledTimes(1);
-  const lines = (await readFile(path.join(root, activity.logPath), "utf8")).trim().split("\n");
-  expect(lines).toHaveLength(1);
-  const entry: unknown = JSON.parse(lines[0]!);
-  expect(entry).toMatchObject({ event: "request_route_invalid", stage, rawContent, finishReason: "stop" });
+it("can inspect current styles and answer without requiring a project mutation", async () => {
+  const root = await project();
+  const model = state.model = new ConversationModel(index => index === 0
+    ? new AIMessage({ content: "", tool_calls: [{ name: "read_file", args: { file_path: "/src/styles.css" }, id: "styles", type: "tool_call" }] })
+    : new AIMessage("当前背景是 white，可以把 background-color 的值改为 #f5f5f5。"));
+  const events: Record<string, unknown>[] = [];
+  await new CreatorAgentRuntime(root, path.join(root, "skills"), contracts).run({
+    threadId: "styles", runId: "styles-1", messages: [{ role: "user", content: "看看现有样式，告诉我对话区背景应该怎么改，不要直接改文件。" }],
+  }, new AbortController().signal, async event => { events.push(event); });
+  expect(state.threads).toEqual(["styles"]);
+  expect(model.calls).toBe(2);
+  expect(events.at(-1)).toMatchObject({ result: { completion: "success", receipt: { files: [] }, toolProtocol: { modelCalls: 2, toolCalls: 1 } } });
+  expect(await readFile(path.join(root, "src/styles.css"), "utf8")).toContain("background-color: white");
 });

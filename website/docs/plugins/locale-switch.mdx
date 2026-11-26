@@ -42,7 +42,7 @@ title: "界面语言切换（locale-switch）"
 
 沿用已有语言服务，只改控件大小。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalLocaleSwitchPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -58,7 +58,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 
 此例展示控件受控写法；业务页面还应把选中 locale 绑定到已有 Agent 语言配置，所有插件才会同步。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { CanonicalLocaleSwitchPlugin, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 
@@ -74,7 +74,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';

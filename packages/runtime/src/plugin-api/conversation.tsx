@@ -102,6 +102,8 @@ export interface ConversationToolCallProps {
   args: unknown;
   argsText?: string | undefined;
   result?: unknown;
+  /** Display-only partial tool output; the final TOOL_CALL_RESULT remains authoritative. */
+  isPreliminary?: boolean | undefined;
   messages?: readonly ConversationMessage[];
   isError?: boolean | undefined;
   status: ConversationToolCallStatus;
@@ -129,7 +131,18 @@ export type ConversationToolkitEntry =
   | {
       /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
       interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
-      type: "backend" | "human";
+      type: "backend";
+      display?: "inline" | "standalone" | undefined;
+      /** Omit to use the application's selected default tool renderer. */
+      render?: ConversationToolCallComponent | undefined;
+      description?: string | undefined;
+      parameters?: Record<string, unknown> | undefined;
+      disabled?: boolean | undefined;
+    }
+  | {
+      /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
+      interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
+      type: "human";
       display?: "inline" | "standalone" | undefined;
       render: ConversationToolCallComponent;
       description?: string | undefined;

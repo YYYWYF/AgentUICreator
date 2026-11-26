@@ -74,8 +74,7 @@ export const conversationConnection: {
 
 后端字段与默认格式不同，就在收到响应后转换。例如列表返回 `data.items`，在 `list()` 中把它映射为 `{ id, title }` 数组。具体返回要求见[数据格式参考](#数据格式参考)。
 
-<details class="dev-guide-details">
-<summary>示例：把会话详情改为 POST 请求，并转换业务字段</summary>
+### 示例：把会话详情改为 POST 请求，并转换业务字段
 
 假设业务详情接口为 `POST /business/chat/detail`，请求体为 `{ "sessionId": "thread-123" }`，响应如下：
 
@@ -135,8 +134,6 @@ async get(id, { signal } = {}) {
 
 HTTP JSON 先作为 `unknown` 接收，再检查使用的字段。校验也可复用项目已有请求模块；复杂转换可拆为项目内的函数。
 
-</details>
-
 完成后，打开页面检查会话列表，点击一条记录确认消息能够加载，再检查你保留的管理操作。
 
 ## 方式二：复用已有请求代码 {#复用已有请求代码}
@@ -179,8 +176,7 @@ async delete(id, { signal } = {}) {
 
 导入项目已有实例，例如 `import { api } from '@/services/api'`，用它替换对应方法中的请求代码。下面假设 `api` 已设置基础地址和鉴权，详情接口为 `POST /chat/detail`。
 
-<details class="dev-guide-details">
-<summary>查看 Axios 请求及响应转换示例</summary>
+#### Axios 请求及响应转换示例
 
 先在文件中声明响应类型；项目已有接口类型时直接复用：
 
@@ -226,8 +222,6 @@ async get(id, { signal } = {}) {
 },
 ```
 
-</details>
-
 `list/delete` 等方法也可分别替换。使用 SDK 时同样在对应方法中调用并转换结果，列表和详情读取应将 `signal` 传到实际请求。
 
 **这一方式的地址和鉴权由你的请求代码负责。** 业务函数、Axios 或 SDK 沿用自身的 Cookie、Token、超时和拦截器；`conversationConnection.headers/credentials` 及默认 `request` 的预览代理不会自动应用到它们。完成后，检查实际请求的地址、鉴权和历史加载结果。
@@ -255,24 +249,17 @@ export function AssistantPage() {
 
 ## 可选：调整会话行为 {#会话行为配置}
 
-完成接入后，只展开与你的需求有关的配置。
+完成接入后，按需阅读下面的配置。
 
-<details class="dev-guide-details" id="初始化打开已有会话">
-<summary>进入页面时，直接打开指定会话</summary>
+### 进入页面时，直接打开指定会话 {#初始化打开已有会话}
 
 在 `<Agent />` 传入 `initialThreadId="thread-123"`，初始化时请求该会话详情并加载消息，见[打开已有会话](./agent-options#打开已有会话)。
 
-</details>
-
-<details class="dev-guide-details" id="重命名归档与取消归档">
-<summary>支持重命名、归档和取消归档</summary>
+### 支持重命名、归档和取消归档 {#重命名归档与取消归档}
 
 直接编辑对应方法的请求。操作成功后，列表接口应返回保存后的标题和归档状态。当前会话服务没有为这些写操作提供界面取消入口；需要超时控制时在项目请求代码中处理。
 
-</details>
-
-<details class="dev-guide-details" id="隐藏不需要的操作">
-<summary>隐藏不需要的列表操作</summary>
+### 隐藏不需要的列表操作 {#隐藏不需要的操作}
 
 在 `plugins/conversation-thread-list/index.tsx` 的已有列表组件上设置属性，保留原有导入和其他参数。例如只保留删除：
 
@@ -289,32 +276,21 @@ export function AssistantPage() {
 />
 ```
 
-</details>
-
-<details class="dev-guide-details" id="分页和标题">
-<summary>处理列表分页和会话标题</summary>
+### 处理列表分页和会话标题 {#分页和标题}
 
 `list()` 一次返回完整数组，没有“加载更多”配置。分页后端可在方法中聚合结果；分页界面或服务端搜索需要另外开发。
 
 刷新后的标题以历史接口的 `title` 为准。前端首次发送时默认使用第一条用户消息的文字作为标题；需要刷新后保持一致时，由后端保存并返回同一标题。
 
-</details>
-
-<details class="dev-guide-details" id="时间和业务分组">
-<summary>按时间或业务分类显示历史会话</summary>
+### 按时间或业务分类显示历史会话 {#时间和业务分组}
 
 `list()` 可为每条记录返回 `updatedAt` 和 `group`。`updatedAt` 使用带时区的 ISO 时间，例如 `2026-11-18T08:00:00Z`，前端按浏览器所在时区划分日期；`group` 使用稳定业务值，例如 `work` / `study`。
 
 默认列表按时间显示今天、昨天、更早。需要“近 7 天、近 30 天、更早”或“工作、学习、其他”时，在列表应用层使用[完整自定义分组示例](/plugins/conversation-thread-list#example-2)。只返回 group 不会改变默认列表，当前没有 groupBy 配置项。业务字段转换见[数据源示例](/plugins/conversation-data-source#example-1)。
 
-</details>
-
-<details class="dev-guide-details" id="刷新后继续观察长任务开发中">
-<summary>刷新后继续观察长任务（开发中，暂不支持）</summary>
+### 刷新后继续观察长任务（开发中，暂不支持） {#刷新后继续观察长任务开发中}
 
 刷新页面后可以重新加载后端已保存的历史，但不能自动重新接入尚未结束的任务并继续显示输出。同一页面内隐藏助手或切换会话时的后台运行，见[后台 Thread](./multiple-agents#观察和控制后台-thread)。
-
-</details>
 
 <span id="http-数据源"></span>
 <span id="方法需要返回什么"></span>
@@ -337,8 +313,7 @@ export function AssistantPage() {
 
 下面的默认路径以 `conversationConnection.endpoint: '/api'` 为例。
 
-<details class="dev-guide-details" id="会话列表">
-<summary>默认会话列表：GET /api/conversations</summary>
+### 默认会话列表：GET /api/conversations {#会话列表}
 
 后端响应示例：
 
@@ -371,16 +346,13 @@ export function AssistantPage() {
 
 `returnCode` 必须为 `SUC0000`；其他返回码会抛错并保留 `errorMsg`，不会当成空列表。
 
-分页时，`body.next_cursor` 返回下一页游标字符串；没有下一页返回 `null`。项目方法将它映射为 `nextCursor`。首次请求不带游标，列表滚动到底时，下一次请求使用 `GET /api/conversations?cursor=上次的next_cursor`，游标由 URLSearchParams 编码并原样传递。缺少 `next_cursor` 时继续兼容原有不分页列表。
+分页时，`body.next_cursor` 返回下一页游标字符串；没有下一页返回 `null`。项目方法将它映射为 `nextCursor`。首次请求不带游标，用户点击“加载更多”时，下一次请求使用 `GET /api/conversations?cursor=上次的next_cursor`，游标由 URLSearchParams 编码并原样传递。缺少 `next_cursor` 时继续兼容原有不分页列表。
 
 默认列表复用 assistant-ui 分页追加，`null` 后停止；加载失败保留原游标并提供重试。普通刷新更新第一页，同时保留已加载尾部和末尾游标；第一页已覆盖全量时替换列表。搜索只筛选已加载会话。
 
 `total_conversations`、`message_count` 是统计字段，不进入会话服务的列表模型。需要显示已归档会话时，列表也要包含这些记录，并设置 `status: "archived"`。
 
-</details>
-
-<details class="dev-guide-details" id="会话详情">
-<summary>默认会话详情：GET /api/conversations/&#123;id&#125;</summary>
+### 默认会话详情：GET /api/conversations/&#123;id&#125; {#会话详情}
 
 后端响应示例：
 
@@ -414,10 +386,7 @@ export function AssistantPage() {
 
 历史使用 LangChain 消息格式：用户为 `human`，助手为 `ai`，与实时 AG-UI 的 `role` 字段不同。以上仅展示文字；工具调用和图片、附件应保留相应结构及关联 ID。附件示例见[刷新后的历史回显](./attachment-upload#刷新后的历史回显)。
 
-</details>
-
-<details class="dev-guide-details" id="默认管理接口">
-<summary>默认删除、重命名和归档接口</summary>
+### 默认删除、重命名和归档接口 {#默认管理接口}
 
 | 方法 | 默认请求 | JSON 请求体 |
 | --- | --- | --- |
@@ -427,5 +396,3 @@ export function AssistantPage() {
 | `unarchive(id)` | `POST /api/conversations/{id}/unarchive` | 无 |
 
 默认方法接受成功 HTTP 状态，包括 `204`，不读取响应正文。后端通过 JSON 业务码表示成功或失败时，在对应方法中读取并检查，失败抛错。
-
-</details>

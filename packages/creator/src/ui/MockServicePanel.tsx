@@ -43,16 +43,19 @@ function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_M
   "reasoning-long-preview": localeMessages.mock.previewLongReasoning,
   "reasoning-tool-success": localeMessages.mock.reasonCallToolsAndRespond,
   "simple-chat": localeMessages.mock.streamPlainText,
+  "message-speaker": localeMessages.mock.expertIdentityBeforeText,
   "markdown-showcase": localeMessages.mock.streamMarkdown,
   "subagent-lifecycle": localeMessages.mock.subagentRunLifecycle,
   "tool-error": localeMessages.mock.errorDuringToolExecution,
   "tool-long-running": localeMessages.mock.longRunningToolsAndWaiting,
+  "tool-result-stream": localeMessages.mock.streamToolResults,
 }; }
 
 // Curated teaching focus, not an inventory of every event emitted by a demo.
 // Capability labels cover examples whose focus has no dedicated AG-UI event.
 function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<string, readonly string[]> { return {
   "simple-chat": ["TEXT_MESSAGE_*"],
+  "message-speaker": ["CUSTOM", "metadata.speaker", "REASONING_*", "TEXT_MESSAGE_*"],
   "multi-message-response": ["TEXT_MESSAGE_*", localeMessages.mock.multipleMessages],
   "markdown-showcase": ["TEXT_MESSAGE_*", "Markdown"],
   "multimodal-input": [localeMessages.mock.multimodalInput, localeMessages.mock.attachments],
@@ -62,6 +65,7 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
   "multi-tool": ["TOOL_CALL_*", localeMessages.mock.sequentialCalls],
   "parallel-tools": ["TOOL_CALL_*", localeMessages.mock.parallelCalls],
   "tool-long-running": ["TOOL_CALL_*", localeMessages.mock.longRunningTool],
+  "tool-result-stream": ["CUSTOM · TOOL_CALL_STREAM_RESULT", "TOOL_CALL_RESULT"],
   "tool-error": ["TOOL_CALL_*", "RUN_ERROR"],
   "file-output": ["TOOL_CALL_RESULT", localeMessages.mock.fileOutput],
   "frontend-tool-open-dialog": ["TOOL_CALL_*", localeMessages.mock.frontendTools],
@@ -88,8 +92,8 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
 }; }
 
 function getDemoGroups(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return [
-  { title: localeMessages.mock.messagesAndContext, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input", "composer-mention-context"] },
-  { title: localeMessages.mock.reasoningAndTools, ids: ["tool-timeline-thinking", "thinking-placeholder", "reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "web-search", "retrieval-chunks"] },
+  { title: localeMessages.mock.messagesAndContext, ids: ["simple-chat", "message-speaker", "multi-message-response", "markdown-showcase", "multimodal-input", "composer-mention-context"] },
+  { title: localeMessages.mock.reasoningAndTools, ids: ["tool-timeline-thinking", "thinking-placeholder", "reasoning-chat", "reasoning-tool-success", "tool-result-stream", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "web-search", "retrieval-chunks"] },
   { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "frontend-tool-fill-form", "approval-legacy", "approval-resume"] },
   { title: localeMessages.mock.stateAndExecutionPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
   { title: localeMessages.mock.structuredResultsAndInteractiveUI, ids: ["file-output", "source-citations", "data-message-chart", "context-retrieval"] },

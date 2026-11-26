@@ -129,15 +129,15 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
     <div className="cui:flex cui:gap-2 cui:flex-wrap">
       <Button size="sm" disabled={!state || saving || sourceBusy || !endpoint.trim()} onClick={() => void save("connected")}>{localeMessages.agentConnection.useThisAddress}</Button>
       <Button size="sm" variant="outline" disabled={!state || saving || sourceBusy} onClick={() => void save("mock")}>{localeMessages.agentConnection.useDemoAgent}</Button>
-      <Button size="sm" variant="outline" disabled={!state || saving || sourceBusy || state.enabled === false} onClick={() => state && void save(state.activeSource, false)}>{localeMessages.agentConnection.disableTemporaryConnection}</Button>
+      <Button size="sm" variant="outline" disabled={!state || saving || sourceBusy || state.enabled !== true} onClick={() => state && void save(state.activeSource, false)}>{localeMessages.agentConnection.disableTemporaryConnection}</Button>
     </div>
     <label className="cui:block cui:space-y-1">{localeMessages.agentConnection.connectionMode}<NativeSelect value={connectionMode} onChange={event => void saveConnectionMode(event.target.value as AgentConnectionMode)} disabled={!state || saving || sourceBusy}>
       <NativeSelectOption value="direct">{localeMessages.agentConnection.directConnection}</NativeSelectOption>
       <NativeSelectOption value="proxy">{localeMessages.agentConnection.enableForwarding}</NativeSelectOption>
     </NativeSelect></label>
-    {state?.enabled === false ? <p className="cui:text-xs" role="status">{localeMessages.agentConnection.currentlyUsingApplicationEndpoint}</p> : state?.configured && <p className="cui:text-xs">{state.activeSource === "connected" ? localeMessages.agentConnection.currentlyUsingYourAgentService : localeMessages.agentConnection.currentlyUsingDemoAgentMock}</p>}
-    {state?.configured && state.enabled !== false && state.activeSource === "connected" && <p className="cui:text-xs">{(state.connectionMode ?? "proxy") === "direct" ? localeMessages.agentConnection.currentDirectConnection : localeMessages.agentConnection.currentForwarding}</p>}
-    {state?.activeSource === "mock" && state.enabled !== false && state.configured && <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.chooseADemoInTheMockAgentPanel}</p>}
+    {state && state.enabled !== true ? <p className="cui:text-xs" role="status">{localeMessages.agentConnection.currentlyUsingApplicationEndpoint}</p> : state?.configured && <p className="cui:text-xs">{state.activeSource === "connected" ? localeMessages.agentConnection.currentlyUsingYourAgentService : localeMessages.agentConnection.currentlyUsingDemoAgentMock}</p>}
+    {state?.configured && state.enabled === true && state.activeSource === "connected" && <p className="cui:text-xs">{(state.connectionMode ?? "proxy") === "direct" ? localeMessages.agentConnection.currentDirectConnection : localeMessages.agentConnection.currentForwarding}</p>}
+    {state?.activeSource === "mock" && state.enabled === true && state.configured && <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.chooseADemoInTheMockAgentPanel}</p>}
     {!state && !error && <p role="status">{localeMessages.agentConnection.readingConnectionSettings}</p>}
     {saving && <p role="status">{localeMessages.agentConnection.savingConnectionSettings}</p>}
     {sourceBusy && <p role="status">{localeMessages.agentConnection.stopTheCurrentRunBeforeSwitchingAgentSources}</p>}

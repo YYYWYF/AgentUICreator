@@ -4,7 +4,7 @@ export interface MessageSpeaker {
   readonly avatarUrl?: string;
 }
 
-/** Derive presentation identity without changing the source metadata. */
+/** Derive identity without changing metadata; preserve null as the fallback reset marker. */
 export function parseMessageSpeaker(
   value: unknown,
   previous?: MessageSpeaker | null,

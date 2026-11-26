@@ -89,7 +89,7 @@ export function ToolFallbackError({
   const isCancelled = status.reason === 'cancelled';
   const headerText = isCancelled ? messages.cancelReason : messages.error;
 
-  return (
+  const defaultView = (
     <div data-slot='tool-fallback-error' className={cn('aui-tool-fallback-error', className)} {...props}>
       <p className='aui-tool-fallback-error-header text-muted-foreground font-semibold'>{headerText}</p>
       <p className='aui-tool-fallback-error-reason text-muted-foreground break-words whitespace-pre-line'>
@@ -97,4 +97,5 @@ export function ToolFallbackError({
       </p>
     </div>
   );
+  return defaultView;
 }

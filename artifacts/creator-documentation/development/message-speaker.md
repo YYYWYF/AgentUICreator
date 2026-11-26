@@ -108,15 +108,45 @@ data: {"type":"RUN_FINISHED","threadId":"chat-001","runId":"run-002"}
 
 结果是：`answer-001` 继续显示开发专家，`answer-002` 显示设计专家。切换当前选择不会改写之前消息的名称和头像。
 
-### 每条回复携带自己的身份
+### 尽早声明身份，当前运行内沿用
 
-建议在 `TEXT_MESSAGE_START` 就携带 `metadata.speaker`，正文出现前即可显示身份。后续新回复即使仍由同一个专家生成，也应再次提供身份；省略时不会自动继承上一条回复或当前选择。
+主会话的任意实时 AG-UI 事件都可以通过顶层 `metadata.speaker` 声明当前助理，包括 `RUN_STARTED`、`REASONING_*`、`CUSTOM`、工具、状态和文本事件。身份一旦确定就发送；如果请求开始时已确定，建议放在 `RUN_STARTED`，思考阶段即可显示头像和名称，无需提前发送 TEXT 事件。
 
-`TEXT_MESSAGE_START`、`TEXT_MESSAGE_CONTENT`、`TEXT_MESSAGE_END` 都支持应用 metadata，按顶层键合并，后到的同名键覆盖旧值，嵌套对象整体替换。因此，更新 `speaker` 时需要发送完整身份对象。修改同一个 `messageId` 的 `speaker` 会更新这条消息的身份；要保留两位专家各自的发言记录，应创建两条不同 ID 的消息。
+```json ag-ui
+{
+  "type": "RUN_STARTED",
+  "threadId": "chat-001",
+  "runId": "run-001",
+  "metadata": {
+    "speaker": {
+      "id": "developer",
+      "name": "高级开发工程师",
+      "avatarUrl": "https://cdn.example.com/experts/developer.png"
+    }
+  }
+}
+```
 
-身份应放在该消息的文本事件中。只放在 `RUN_STARTED`、共享状态或一个独立的 `CUSTOM` 事件里，不会自动成为消息身份。
+也可以通过 CUSTOM 声明身份：`{ "type": "CUSTOM", "name": "speaker-selected", "value": {}, "metadata": { "speaker": { "id": "developer", "name": "高级开发工程师" } } }`。`name` 是业务自定义名称，身份从事件顶层 `metadata` 读取，不从 `value`、共享 state 或嵌套字段猜测。
 
-退出专家模式后，如果希望显示普通助手，为新回复返回普通助手的身份，例如 `id: "assistant"`；如果希望隐藏身份头，使用 `metadata: { "speaker": null }`。省略身份与明确隐藏的区别见[前端返回值](#前端返回值)。
+同一次运行中，后续主助理消息省略身份时沿用最近一次声明。新请求重新声明身份，不自动继承上一次运行、历史消息或界面当前选择；取消、结束和切换 Thread 后不会串用身份。带 `subagentRunId` 的事件不改变主助理身份。
+
+切换身份时发送完整的 `speaker` 对象，当前未结束消息和后续消息采用新身份，已经结束的其他消息保留原身份。要保留两位专家各自的发言记录，应使用不同的消息 ID；直接在同一个文本 `messageId` 上更新身份，会更新整条消息的身份头。
+
+这是 Agent UI 的应用层身份规则，不改变 AG-UI 各类事件其他 metadata 的归属。TEXT 事件的其他 metadata 仍按顶层键合并到对应消息，嵌套对象整体替换；工具、CUSTOM、RUN 等事件的其他字段不会被当作助理消息 metadata。完整历史和消息快照内的身份以各条消息自身保存的值为准。
+
+退出专家模式、切回前端配置的默认助手时，发送 `metadata: { "speaker": null }`。例如：
+
+```json ag-ui
+{
+  "type": "CUSTOM",
+  "name": "speaker-selected",
+  "value": {},
+  "metadata": { "speaker": null }
+}
+```
+
+这里是 JSON 的 `null`，不是字符串 `"null"`。当前未结束消息和后续消息恢复 `messageIdentity.fallback` 的头像与名称，已经结束的专家消息保留原身份。同次运行中继续省略 `speaker`，仍沿用这次默认身份选择。没有配置 fallback 时不显示身份头；不自动生成默认名称或头像。也可以显式返回普通助手的完整身份对象。省略身份与明确重置的区别见[前端返回值](#前端返回值)。
 
 ## 保存并返回历史消息 \{#历史消息}
 
@@ -258,7 +288,7 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 
 `label` 来自项目文案，`onInspect` 接业务详情或导出逻辑。无参数 `useConversation()` 不自动订阅数据；持续展示时使用 selector，手动监听时使用现有 `conversation.subscribe(listener)` 并清理订阅。
 
-### 没有身份或需要隐藏时 \{#前端返回值}
+### 没有身份或恢复默认身份时 \{#前端返回值}
 
 `speaker` 的类型是 `MessageSpeaker | null | undefined`：
 
@@ -266,7 +296,7 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 | ----------- | -------------------------- | ----------------------------- |
 | 有效身份对象      | 有非空的 `id`、`name` 和可选头像 URL | 显示名称与头像；图片缺失或加载失败时显示默认图标      |
 | `undefined` | 未提供身份，或身份不合法               | 不显示；配置了 fallback 时使用 fallback |
-| `null`      | 后端明确要求隐藏身份头                | 不显示，忽略 fallback               |
+| `null`      | 后端明确切回前端默认身份               | 使用配置的 fallback；未配置时不显示        |
 
 同一轮相邻助手消息的发言者 ID、名称、头像都相同时，默认组件省略重复的身份头；每条消息的数据仍各自保留。出现不同身份或新的用户消息后，再显示对应身份头。
 
@@ -278,10 +308,12 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 | -------------------------------- | ------------------------------------------------ |
 | 省略 `messageIdentity`             | 对携带有效身份的助手消息显示默认名称与头像                            |
 | `messageIdentity={false}`        | 关闭身份头，不影响取到的 `speaker` 和正文                       |
-| `messageIdentity={{ fallback }}` | 对没有有效身份的消息使用固定备用身份；`speaker: null` 仍隐藏           |
+| `messageIdentity={{ fallback }}` | 对没有有效身份或 `speaker: null` 的消息使用固定默认身份             |
 | `messageIdentity={{ render }}`   | 使用 `render({ speaker, messageId })` 返回的节点替换整个身份头 |
 
 fallback 和 render 只影响展示，不改变 `useConversation` 的读取结果。固定 fallback 名称从项目统一文案读取；专家名称来自后端消息。具体属性与组件定制入口见[会话界面：发言者头像与名称](/plugins/conversation-surface.md#显示发言者头像与名称)。
+
+`speaker: null` 的语义已从隐藏身份头改为恢复 fallback。需要关闭身份头时，使用项目展示配置 `messageIdentity={false}`，或在自定义 `render` 中返回 `null`。
 
 ## 不显示时检查什么
 

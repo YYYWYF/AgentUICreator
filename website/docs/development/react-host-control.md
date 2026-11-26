@@ -128,8 +128,7 @@ function BusinessPage({ children }: { children: ReactNode }) {
 
 以下代码中的 `host` 均来自 Provider 内的 `const host = useAgent()`。
 
-<details class="dev-guide-details" id="停止运行">
-<summary>停止运行</summary>
+### 停止运行 {#停止运行}
 
 ```tsx
 function stop() {
@@ -139,10 +138,7 @@ function stop() {
 
 `abortRun()` 发出停止请求后立即返回。需要确认生成是否已停止时，继续读取 `runtime.run.status`。
 
-</details>
-
-<details class="dev-guide-details" id="新建会话后提问">
-<summary>新建会话后提问</summary>
+### 新建会话后提问 {#新建会话后提问}
 
 ```tsx
 async function askInNewConversation(prompt: string) {
@@ -152,10 +148,7 @@ async function askInNewConversation(prompt: string) {
 // 在按钮处理函数中调用，并用 try/catch 或 .catch(...) 反馈失败。
 ```
 
-</details>
-
-<details class="dev-guide-details" id="提交审批或补充信息">
-<summary>提交审批或补充信息</summary>
+### 提交审批或补充信息 {#提交审批或补充信息}
 
 ```tsx
 async function answerInterrupt(interruptId: string, payload: unknown) {
@@ -175,10 +168,7 @@ Agent 暂停等待用户处理的请求称为“中断”。上例处理一个�
 
 工具卡片中的审批展示见[工具结果的操作确认](/plugins/tool-result#操作确认)。`ask_user_question` 问题卡片通过自身的 `addResult()` 提交答案，接入方式见[询问用户](/plugins/ask-user-question#提交状态与历史展示)。
 
-</details>
-
-<details class="dev-guide-details" id="观察运行状态和事件">
-<summary>观察运行状态和事件</summary>
+### 观察运行状态和事件 {#观察运行状态和事件}
 
 ```tsx
 import { useAgentEvent, useAgent } from '@za38.03/agent-ui-runtime';
@@ -194,14 +184,11 @@ function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
 
 运行结果判断和 `AGENT_UI_SESSION_ENDED` 等错误见[状态与错误参考](/development/react-host-api#状态与事件)。
 
-</details>
-
 ## 检查页面联动 {#示例编辑页面助理集成}
 
 确认开关按钮只改变显隐，分析按钮打开面板并发送到当前会话；运行时发送按钮按状态禁用。
 
-<details class="dev-guide-details">
-<summary>查看示例页面的收起、打开与发送状态</summary>
+### 示例页面的收起、打开与发送状态
 
 下面是仓库中 `examples/creator-embedded-host` 的实际运行截图，使用官方嵌入式模板、violet 主题和本地 Mock 服务。业务按钮位于页面右上角，助理显示在编辑区右侧。
 
@@ -218,5 +205,3 @@ function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
 ![业务分析按钮打开助理并发送消息，生成期间按钮禁用](/images/integration/host-assistant-message.png)
 
 接入实际 Agent 服务后，通过 `<Agent getRunContext={...} />` 将待分析的页面内容或数据放进请求的 `context`，见[传入业务上下文](/development/agent-options#传入业务上下文)。仅在页面中显示助理，不会让 Agent 自动获得这些数据。
-
-</details>

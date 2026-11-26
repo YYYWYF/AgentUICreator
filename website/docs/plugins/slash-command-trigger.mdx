@@ -103,7 +103,7 @@ title: "/ 快捷命令（slash-command-trigger）"
 
 `onSelect` 接管默认指令插入和动作执行。返回值只替换当前 `/` 查询片段；下面插入名称，周围草稿由插件保留，不需要调用方拼接：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
 

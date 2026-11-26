@@ -32,11 +32,8 @@ Creator 修改了项目文案和推荐内容的组合方式，保留中英文对
 
 后续通过 Creator 启用语言切换后，也实际检查了英文欢迎页：名称、欢迎语与三条完整问句均为对应英文，会话列表仍在右侧。
 
-<details>
-<summary>查看本轮英文欢迎页</summary>
+### 本轮英文欢迎页
 
 ![英文名称、欢迎语和完整推荐问句，右侧会话列表保持不变。](/images/guide/examples/20261106/brand-english.jpg)
-
-</details>
 
 继续调整时，可以直接指出具体差异，例如“标题也显示完整问句”或“不要在下一行重复同一句话”。输入提示、语言切换的检查见[语言与文案](/guide/adjustments/localization.md)。

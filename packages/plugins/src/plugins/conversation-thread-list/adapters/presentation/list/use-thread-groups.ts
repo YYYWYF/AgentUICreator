@@ -38,8 +38,9 @@ export const useStartOfToday = () =>
 export type ThreadListGroup = { id: string; label: string; indices: number[] };
 
 /**
- * Filters the thread list by title and buckets the matches by last activity
- * (Today, Yesterday, Earlier). `groups` is null when no thread carries a date
+ * Filters the thread list by title and labels adjacent matches by last activity
+ * (Today, Yesterday, Earlier), preserving the runtime's server/page order.
+ * `groups` is null when no thread carries a date
  * or while the local day start is unknown during server render and hydration,
  * in which case `filteredIndices` keeps the runtime order.
  */
@@ -65,18 +66,17 @@ export const useThreadListGroups = (searchQuery = '') => {
     const yesterday = new Date(startOfToday);
     yesterday.setDate(yesterday.getDate() - 1);
     const startOfYesterday = yesterday.getTime();
-    const time = (index: number) => dates[index]?.getTime() ?? Number.MAX_SAFE_INTEGER;
-    const sorted = [...filteredIndices].sort((a, b) => time(b) - time(a));
-
     const result: ThreadListGroup[] = [];
-    for (const index of sorted) {
+    const seenLabels = new Set<string>();
+    for (const index of filteredIndices) {
       const id = dateGroupLabel(dates[index], startOfToday, startOfYesterday);
       const lastGroup = result[result.length - 1];
-      if (lastGroup?.id === id) {
+      if (lastGroup?.label === id) {
         lastGroup.indices.push(index);
       } else {
-        const label = id;
-        result.push({ id, label, indices: [index] });
+        const groupId = seenLabels.has(id) ? `${id}:${threadIds[index]}` : id;
+        seenLabels.add(id);
+        result.push({ id: groupId, label: id, indices: [index] });
       }
     }
     return {

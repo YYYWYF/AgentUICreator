@@ -67,7 +67,7 @@ title: "登录认证（开发中）"
 
 保留内部的输入状态更新，只补充原生自动填写属性。真实登录需实现项目认证服务。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -84,7 +84,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
 
 当前插件仍处于开发中，示例仅说明已有公开展示属性，不代表真实认证服务已配置。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -99,7 +99,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
 
 例如，业务菜单需要复用当前登录服务退出。调用方在定义中声明 `inject: ['auth.session']`，保留其他依赖；以下组件放在 `plugins/<调用方>/index.tsx`：
 
-```tsx
+```tsx fold height=180
 import { useAuthSession } from '../../services/hooks/useAuthSession';
 
 export function SignOutAction({ label, onError }: {

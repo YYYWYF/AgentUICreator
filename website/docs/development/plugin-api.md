@@ -6,7 +6,7 @@ title: "插件 API"
 
 本页按开发任务查找插件接口、参数和示例。创建文件与注册见[创建自定义插件](./create-plugin)，修改已有组件见[手动修改插件](./component-customization)。
 
-先从速查表选择要用的能力，再展开对应条目。从其他插件取数或调用操作，见[插件联动与取数](./plugin-interaction)。
+先从速查表选择要用的能力，再阅读对应小节。从其他插件取数或调用操作，见[插件联动与取数](./plugin-interaction)。
 
 ## 按开发需求查接口 {#公共能力速查}
 
@@ -35,8 +35,7 @@ title: "插件 API"
 编写插件定义时，从 `@za38.03/agent-ui-plugins/contracts` 导入 `UIPluginDefinition`；定义对象的实际字段见下表。组件内需要的 Hook 在相应示例中直接导入，状态与服务仍来自已有 Agent。
 
 
-<details class="dev-guide-details" id="插件定义">
-<summary>UIPluginDefinition：定义字段与实例身份</summary>
+### UIPluginDefinition：定义字段与实例身份 {#插件定义}
 
 | 字段 | 类型 | 用途 |
 | --- | --- | --- |
@@ -52,10 +51,7 @@ title: "插件 API"
 
 `manifest.id` 是插件身份；`app-ui.json` 中的实例 `id` 是这一次使用的身份，二者不同。`manifest` 的必填项为 `id`、`name`、`description`、`version`。
 
-</details>
-
-<details class="dev-guide-details" id="setup-上下文">
-<summary>setup：服务注册、订阅与清理</summary>
+### setup：服务注册、订阅与清理 {#setup-上下文}
 
 | 成员 | 用途 |
 | --- | --- |
@@ -70,14 +66,11 @@ title: "插件 API"
 
 `setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` 接口。
 
-</details>
-
 ## 组合组件与展示消息 {#组合组件与展示消息}
 
 组件属性、子插槽和 renderer 都在项目代码中配置。
 
-<details class="dev-guide-details" id="组件原生属性">
-<summary>组件原生属性</summary>
+### 组件原生属性 {#组件原生属性}
 
 组件继承某个 HTML 元素或根组件属性时，可使用其类型允许的属性：
 
@@ -89,10 +82,7 @@ title: "插件 API"
 
 这些属性设置在项目插件入口的 JSX 中，不写入 `app-ui.json`。根组件属性不会自动传给内部输入框、按钮或自定义子组件，需使用相应的嵌套属性或直接配置子组件。
 
-</details>
-
-<details class="dev-guide-details" id="组件与子插槽">
-<summary>renderSlot 与 renderScopedSlot：组合子插件</summary>
+### renderSlot 与 renderScopedSlot：组合子插件 {#组件与子插槽}
 
 `renderSlot` 和 `renderScopedSlot` 由插件运行环境通过 `UIPluginComponentProps` 提供。修改已有插件时保留其原有调用；没有子插槽的组件通常无需使用它们。
 
@@ -149,10 +139,7 @@ export function TicketCard({ renderSlot }: UIPluginComponentProps) {
 - `cardinality` 可为 `one` 或 `many`。
 - `mode: "renderer"` 的插槽必须为 `one`，组件还需提供相应渲染上下文。
 
-</details>
-
-<details class="dev-guide-details" id="消息与工具结果展示">
-<summary>dataMessageUIs 与 toolkit：注册消息和工具结果展示</summary>
+### dataMessageUIs 与 toolkit：注册消息和工具结果展示 {#消息与工具结果展示}
 
 通过 `dataMessageUIs` 注册具名消息展示。以下示例复用官方图表组件，先在新插件的 `index.tsx` 中定义展示项：
 
@@ -206,10 +193,7 @@ export const ticketToolkit = createConversationToolkit({
 
 将 `ticketToolkit` 赋给插件定义的 `toolkit`；工具名称与后端约定一致。该入口只注册展示，不注册或执行后端工具。修改已有工具 UI 时，保留已有的 `interaction` 配置、审批回调和运行状态参数。完整示例及验证场景见[已有结果的渲染定制](./component-customization#已有结果的渲染定制)。
 
-</details>
-
-<details class="dev-guide-details" id="复用会话组件与输入能力">
-<summary>复用输入框、附件、听写和发送能力</summary>
+### 复用输入框、附件、听写和发送能力 {#复用会话组件与输入能力}
 
 从 `@za38.03/agent-ui-plugins` 导入公开组件，使用明确的 props 和 renderer 扩展。按钮图标用 `icon`，列表和工具详情使用各自的 renderer；仅 Runtime 分组内容与原生编辑器扩展保留必要的 `children`。例如，自定义输入区内继续使用现有的附件、听写和发送按钮：
 
@@ -241,10 +225,7 @@ export function ComposerActions() {
 
 附件默认转 Base64，听写默认依赖受支持的浏览器语音识别，评价默认保留当前界面的选择。上传和反馈保存分别通过 `Agent attachments`、`Agent feedback` 接入，见[附件上传服务](./attachment-upload)和[回复评价服务](./feedback-service)；业务语音转写服务仍标为开发中。
 
-</details>
-
-<details class="dev-guide-details" id="主题与多语言">
-<summary>跟随项目主题，读取或新增双语文案</summary>
+### 跟随项目主题，读取或新增双语文案 {#主题与多语言}
 
 组件优先使用工程已有的 UI 库和公开样式属性，主题颜色沿用项目的 CSS 变量。官方文案通过 `@za38.03/agent-ui-plugins` 的 `useLocale()` 读取，项目通过 `Agent` 的 `locales` 属性覆盖需要修改的键。
 
@@ -287,14 +268,11 @@ export function TicketActionLabel() {
 
 业务文案在项目共享消息模块中维护，跟随当前界面语言切换。复用已有领域时保留原有键；协议名、服务名、插件 ID 和消息名保持原值。样式覆盖见[主题与样式](./theme-and-styling)，文案配置与检查方式见[语言与文案](./localization)。
 
-</details>
-
 ## 操作会话与接入业务数据 {#操作会话与接入业务数据}
 
 按发送、读取、共享服务或订阅事件选择入口。
 
-<details class="dev-guide-details" id="会话操作与实例信息">
-<summary>usePluginActions 与 usePluginInstance：操作当前会话</summary>
+### usePluginActions 与 usePluginInstance：操作当前会话 {#会话操作与实例信息}
 
 React 组件从 `@za38.03/agent-ui-plugins` 取得：
 
@@ -361,10 +339,7 @@ export function TicketActions() {
 - **异步操作**：处理失败，并在运行或等待审批时控制按钮可用性。
 - **审批回复**：`resumeInterrupts()` 接收 `AgentInterruptResponse[]`。沿用项目已有的审批数据与表单校验，不用普通消息替代审批回复。
 
-</details>
-
-<details class="dev-guide-details" id="读取会话状态">
-<summary>会话、消息、运行状态与审批 Hook</summary>
+### 会话、消息、运行状态与审批 Hook {#读取会话状态}
 
 从 `@za38.03/agent-ui-plugins` 导入 `useConversation`，可以按需订阅当前会话，也可以在点击等事件中即时读取：
 
@@ -378,7 +353,7 @@ const onInspect = () => inspect(conversation.getSnapshot());
 
 传入 selector 时按 `Object.is` 比较选中值；选中值不变时，不会因其他数据更新而重新渲染。无参数时不自动订阅数据；手动订阅使用 `conversation.subscribe(listener)`，并在 effect 清理时取消。selector 可读 `thread.messages`、`thread.state`、`thread.isRunning` 以及公开的 `threads`、`message`、`threadListItem` 字段；后两者需要各自已有的消息或列表项作用域。选择具体字段或稳定引用，避免每次创建新对象、数组。完整示例见[读取当前会话](/plugins/conversation-surface#hook)。
 
-在已有消息组件内，通过 `useConversation(s => s.message.speaker)` 读取类型明确的发言者身份，或用 `useConversation(s => s.message.speaker?.name)` 只订阅名称。`thread.messages` 与 `getSnapshot().messages` 返回的每条 `ConversationMessageView` 也包含只读 `speaker`，类型为 `MessageSpeaker | null | undefined`：有效对象有 `id`、`name`、可选 `avatarUrl`；`undefined` 表示缺失或不合法，`null` 表示明确隐藏身份头。展示 fallback 不会混入消息身份。原始 `metadata.custom` 保留。完整实时事件、历史格式与作用域示例见[展示消息发言者的名称与头像](./message-speaker)，默认身份头的 props 见[会话界面](/plugins/conversation-surface#显示发言者头像与名称)。
+在已有消息组件内，通过 `useConversation(s => s.message.speaker)` 读取类型明确的发言者身份，或用 `useConversation(s => s.message.speaker?.name)` 只订阅名称。`thread.messages` 与 `getSnapshot().messages` 返回的每条 `ConversationMessageView` 也包含只读 `speaker`，类型为 `MessageSpeaker | null | undefined`：有效对象有 `id`、`name`、可选 `avatarUrl`；`undefined` 表示缺失或不合法，`null` 表示明确恢复前端配置的 fallback，未配置时不显示身份头。展示 fallback 不会混入消息身份。原始 `metadata.custom` 保留。完整实时事件、历史格式与作用域示例见[展示消息发言者的名称与头像](./message-speaker)，默认身份头的 props 见[会话界面](/plugins/conversation-surface#显示发言者头像与名称)。
 
 `useAgentRuntime` 从 `@za38.03/agent-ui-runtime` 导入。无参数返回已有 Runtime 的即时读取与操作句柄；传 selector 时订阅选中值：
 
@@ -406,8 +381,6 @@ export function SelectedFile() {
 
 泛型只提供类型检查，不会创建后端数据或校验网络内容。新增状态字段时同步项目状态契约。组件根据已有状态渲染即可，不自行解释原始 SSE 或启动另一条事件流。
 
-</details>
-
 <span id="服务共享与状态订阅"></span>
 
 领域状态 Hook 使用同一种调用方式：无 selector 获取即时读取与操作句柄，传 selector 才订阅所需值。例如在组件顶层调用：
@@ -421,8 +394,7 @@ const status = useAgentRuntime(snapshot => snapshot.run.status);
 
 事件回调中通过 `getSnapshot()` 读取最新值并调用操作；selector 按 `Object.is` 比较返回值。多个 selector 可以分别放在各自的子组件里，隔离界面更新。服务和 Thread 身份变更仍会重新绑定句柄，保存的旧句柄保持其原作用域。各 Hook 的导入入口见下文。
 
-<details class="dev-guide-details" id="内置领域-hook">
-<summary>使用项目已有的会话、认证、主题与语言服务</summary>
+### 使用项目已有的会话、认证、主题与语言服务 {#内置领域-hook}
 
 会话与认证使用领域 Hook 统一处理服务接入和状态订阅。主题、语言保留读取 Hook；少数切换插件直接获取既有服务。
 
@@ -468,10 +440,7 @@ const { refresh } = useConversations();
 
 这些项目 Hook 仅在文件缺失时初始化，已有定制文件会保留。自行调整文件位置时，同时更新组件中的相对导入路径。
 
-</details>
-
-<details class="dev-guide-details" id="自定义服务">
-<summary>共享业务状态：依赖声明、服务实现与订阅</summary>
+### 共享业务状态：依赖声明、服务实现与订阅 {#自定义服务}
 
 服务用于共享项目业务能力。插件定义中的依赖声明与消费接口如下：
 
@@ -548,16 +517,13 @@ export function setupTicketSelection({ services }: UIPluginSetupContext) {
 
 提供方和消费方都需要在 AppUIModel 中启用。示例只保存在页面内，刷新后不会恢复；需要持久化时接入项目自己的数据源。若服务还持有连接或定时器，清理时同时释放这些资源。相同服务名只能有一个活动提供实例；不要给多个实例重复注册同名服务。也可通过扩展 `UIPluginServiceMap` 为服务名关联类型。
 
-</details>
-
 Agent 可通过以下 AG-UI 事件通知当前工单的变化。前端的类型注册、订阅和验证方法见下方步骤：
 
 ```jsonl
 {"type":"CUSTOM","name":"app.ticket.selected","value":{"ticketId":"T-1042"}}
 ```
 
-<details class="dev-guide-details" id="订阅业务事件">
-<summary>接收 Agent 业务事件：类型、注册、订阅与验证</summary>
+### 接收 Agent 业务事件：类型、注册、订阅与验证 {#订阅业务事件}
 
 下面以“Agent 选中工单后，插件更新当前选择”为例。只需显示消息卡片时，使用[自定义消息渲染](./custom-ag-ui-events)，无需配置这里的实时订阅。
 
@@ -628,8 +594,6 @@ export function setupTicketEvents({ events, services }: UIPluginSetupContext) {
 确认当前工单变为 `T-1042`。再把 `ticketId` 改成空字符串或数字，订阅回调不应执行；核对事件名与 `value` 是否符合第 1 步的定义。Schema 未注册时，声明订阅的插件无法正常启用。
 
 这条链路只接收实时通知，不重放历史。需要刷新后保留的选择，交给业务服务保存；仅写 TypeScript 泛型不会校验收到的数据。
-
-</details>
 
 ## 连接宿主页面与前端工具 {#前端工具与宿主页面联动}
 

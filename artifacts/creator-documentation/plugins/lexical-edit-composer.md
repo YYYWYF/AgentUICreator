@@ -46,7 +46,7 @@
 
 Lexical 为可选输入实现，通过 /lexical 入口导入；沿用项目已有编辑与输入组合。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalEditComposer } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -61,7 +61,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 关闭 Escape 取消后，用户继续通过已有取消按钮退出编辑。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalEditComposer } from '@za38.03/agent-ui-plugins/lexical';
 

@@ -24,7 +24,7 @@
 
 将组件放进项目已有菜单内容中。直接配置菜单项属性；该模式不使用按钮的 size/variant。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
@@ -40,7 +40,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 
 按钮样式与菜单项分别配置，导出的仍是当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
@@ -59,7 +59,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 
 两种模式统一使用 `disabled`。生成中或没有正文时，组件也会自动禁用。
 
-```tsx
+```tsx fold height=180
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
 export function DisabledExport() {

@@ -33,7 +33,7 @@
 
 同一 Agent 内的按钮和主题选择框共享服务；切换后，所有订阅该主题的组件同步更新。组件声明 `agent-ui.theme` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
@@ -52,7 +52,7 @@ export function DarkThemeButton() {
 
 使用项目已有语义变量；不在组件内根据语言或主题硬编码两套颜色。变量表见主题与样式指南。
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 
 export function ThemedCard({ children }: { children: ReactNode }) {
@@ -67,7 +67,7 @@ export function ThemedCard({ children }: { children: ReactNode }) {
 
 自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useTheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 import { useTheme } from '@za38.03/agent-ui-runtime/ui';
 import { getAgentUIThemeColorScheme, type AgentUIColorScheme }

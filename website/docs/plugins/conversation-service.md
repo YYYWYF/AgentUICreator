@@ -52,7 +52,7 @@ title: "会话服务（conversation-service）"
 
 放在同一 Agent 作用域的项目插件中，并在定义中声明 agent-ui.conversations 依赖。失败交给项目已有错误提示处理。
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService }
@@ -77,7 +77,7 @@ export function RefreshHistory({ onError }: { onError: (error: unknown) => void 
 
 loadConversation 只读详情；不会用该历史替换当前 Thread。回调由项目显示预览或错误。
 
-```tsx
+```tsx fold height=180
 import { usePluginService } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService, type ConversationDetail }
   from '@za38.03/agent-ui-plugins/conversation-service';
@@ -98,7 +98,7 @@ export function ReadHistory({ id, label, onLoaded, onError }: {
 
 组件与服务位于同一 Agent，并声明 `agent-ui.conversations` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useConversations } from '../../services/hooks/useConversations';
 
 export function ConversationCount() {

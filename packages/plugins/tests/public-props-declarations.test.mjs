@@ -69,6 +69,21 @@ it("ships the Composer declarations referenced by the public props on POSIX and 
   await expect(access(path.join(packageRoot, "dist/plugin-api/usePluginServiceSnapshot.d.ts"))).rejects.toMatchObject({ code: "ENOENT" });
 });
 
+it("ships tool-result renderer contexts and their declaration dependencies on Windows and POSIX", async () => {
+  for (const file of ['render-types', 'approval/approval-model', 'result/content']) {
+    const logical = `plugins/tool-result/adapters/presentation/${file}.d.ts`;
+    expect(isPublicPluginDeclaration(logical, declarations)).toBe(true);
+    expect(isPublicPluginDeclaration(path.win32.join(...logical.split('/')), declarations)).toBe(true);
+    await access(path.join(packageRoot, 'dist', ...logical.split('/')));
+  }
+  const root = await readFile(path.join(packageRoot, 'dist/public.d.ts'), 'utf8');
+  const entry = await readFile(path.join(packageRoot, 'dist/tool-result/index.d.ts'), 'utf8');
+  expect(entry).toContain('ConversationToolResultPlugin');
+  for (const name of ['ApprovalCardProps', 'ToolResultComponents', 'ToolImageProps', 'ToolCallRenderContext', 'ToolApprovalRenderContext', 'ToolMediaResultView', 'ToolCallMethods', 'ToolDefaultViews', 'ToolResultContext']) {
+    expect(root).toContain(name);
+  }
+});
+
 it("keeps public action prop declarations independent of private tooltip implementations", async () => {
   const declaration = await readFile(path.join(packageRoot, "dist/public.d.ts"), "utf8");
   expect(declaration).not.toContain("internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button");

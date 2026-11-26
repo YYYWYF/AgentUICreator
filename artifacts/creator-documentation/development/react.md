@@ -50,8 +50,7 @@ Tailwind CSS 4 使用模板 CSS 中的 `@theme`、`@source` 配置，不需要�
 | Webpack 5   | `@tailwindcss/postcss` 与 `postcss-loader` | [Webpack 样式配置](#webpack-5-样式配置) |
 | CRACO / CRA | 在内置 PostCSS 处理链中加入 `@tailwindcss/postcss` | [CRACO 样式配置](#craco--cra-样式配置)  |
 
-<details class="dev-guide-details" id="vite-样式配置">
-<summary>Vite 样式配置</summary>
+### Vite 样式配置 \{#vite-样式配置}
 
 安装模板的样式构建依赖，以下版本沿用本教程：
 
@@ -73,10 +72,7 @@ const plugins: PluginOption[] = [react(), tailwindcss()];
 
 将样式插件放在开发条件分支之外，让开发和生产构建都能处理模板样式。保留已有插件和其他选项，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
-
-<details class="dev-guide-details" id="rsbuild-样式配置">
-<summary>Rsbuild 样式配置</summary>
+### Rsbuild 样式配置 \{#rsbuild-样式配置}
 
 使用工程已有的 PostCSS 支持，安装模板的样式构建依赖：
 
@@ -96,10 +92,7 @@ export default {
 
 已有配置时沿用当前配置文件格式、插件顺序和其他插件，合并这一项。Rsbuild 已内置 PostCSS 支持，无需配置 Webpack loader。开发和生产均保留此配置，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
-
-<details class="dev-guide-details" id="webpack-5-样式配置">
-<summary>Webpack 5 样式配置</summary>
+### Webpack 5 样式配置 \{#webpack-5-样式配置}
 
 安装模板的样式构建依赖：
 
@@ -153,12 +146,15 @@ CSS rule 按以下方式调整：
 
 生产构建已有 CSS 提取 loader 时保留它，开发和生产均配置上述 PostCSS 处理。缺少 loader 时，按当前 Webpack 版本安装兼容版本，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
+### CRACO / CRA 样式配置 \{#craco--cra-样式配置}
 
-<details class="dev-guide-details" id="craco--cra-样式配置">
-<summary>CRACO / CRA 样式配置</summary>
+在工程根目录执行，安装 Tailwind CSS 4 构建依赖：
 
-安装与上方 Webpack 示例相同的 Tailwind CSS 4 构建依赖。在已有的 `craco.config.js` 返回配置中合并：
+```sh
+pnpm add -D tailwindcss@4.3.3 @tailwindcss/postcss@4.3.3 postcss@8.5.28
+```
+
+在已有的 `craco.config.js` 返回配置中合并：
 
 ```js
 style: {
@@ -201,8 +197,6 @@ CRA 的内置 PostCSS 配置通常关闭外部配置文件自动加载，仅新�
 上述显式配置已在 macOS / Node.js 24.22.1 下，使用 Webpack 5.75.0、CRACO 7.1.0 / CRA 5.0.1 和 Tailwind CSS 4.3.3 验证开发与生产构建，并在 Chromium 中检查工具类和隐藏文字样式。此项是样式编译验证，不代表完整 Agent 接入或 Windows 实机验收。
 
 直接在 TypeScript 工程中导入当前 Agent 包时，还需单独验证编译器版本。当前消费端已验证 TypeScript 5.9.3；TypeScript 4.9.5 无法解析当前上游依赖声明中的新语法，即使设置 `skipLibCheck: true` 也会失败。CRA 5 工程还需处理其自身的 TypeScript 版本约束；上述样式配置不解决编译器兼容问题，不要把安装依赖成功当成类型检查通过。
-
-</details>
 
 ## 第 4 步：检查页面与生产构建 \{#验证}
 

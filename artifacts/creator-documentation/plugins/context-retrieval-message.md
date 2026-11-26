@@ -74,7 +74,7 @@
 
 希望用户直接看到各组片段时，在已有上下文消息入口设置初始展开：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
 
@@ -91,7 +91,7 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 
 `renderContent` 同时提供解析后的数据和默认正文。只增加布局时，直接复用默认正文，可保留查询分组和空结果提示：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
 

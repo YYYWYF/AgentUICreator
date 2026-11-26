@@ -168,6 +168,7 @@ export const zhCN = {
   },
   "threadList": {
     "historyTitle": "历史会话",
+    "loadMore": "加载更多",
     "retry": "重试",
     "newChat": "新会话",
     "moreOptions": "更多选项",

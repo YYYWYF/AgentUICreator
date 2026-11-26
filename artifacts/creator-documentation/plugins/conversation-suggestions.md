@@ -94,7 +94,7 @@ export function ProjectThread(props: ComponentProps<typeof ConversationThread>) 
 
 用户点击后可继续编辑，再通过发送按钮提交。clearComposer 控制选择时是否清空原草稿。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
 
@@ -109,7 +109,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 
 项目在 `items` 的 `data` 中提供订单 ID 等业务字段，建议插件将所选条目交给 Composer。在项目已有的 `plugins/composer/request-adapter.ts` 中决定最终发送位置：
 
-```tsx
+```tsx fold height=180
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
 function record(value: unknown): Record<string, unknown> {
@@ -147,7 +147,7 @@ export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) 
 
 title 是卡片上的名称，label 是附加说明，prompt 是实际填入或发送的正文。下面点击建议后先填写草稿，不立即发送。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions, useLocaleCode } from '@za38.03/agent-ui-plugins';
 
@@ -166,7 +166,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 
 未传固定 `items` 时，回调取得当前运行时建议的标题、说明和完整问题。下面将可见结构改为粗体标题与说明，仍使用现有 Trigger 提交或填入草稿：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   ConversationCanonicalSuggestions, ConversationSuggestionTrigger,
@@ -187,7 +187,7 @@ export function RuntimeSuggestions(props:
 
 传入空 items 明确覆盖会话提供的建议。省略 items 则继续读取当前会话建议。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
 
@@ -260,7 +260,6 @@ getConversationStarterSuggestions: (_locale, messages) => [
 
 ## 常见问题
 
-
-为什么 renderSuggestion 没有改变固定 items 的样式？
+### 为什么 renderSuggestion 没有改变固定 items 的样式？ \{#为什么-rendersuggestion-没有改变固定-items-的样式}
 
 现在同时适用于固定 items 与运行时建议，回调接收当前项和默认展示节点。

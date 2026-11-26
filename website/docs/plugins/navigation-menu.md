@@ -71,7 +71,7 @@ items={props.items ?? (defaults => [
 
 在 `app-ui.json` 中找到右侧的 Stack，保留原有聊天分支，在 `children` 末尾追加项目插件：
 
-```json
+```json fold height=180
 {
   "type": "slot",
   "plugins": [
@@ -82,7 +82,7 @@ items={props.items ?? (defaults => [
 
 在同一个 Stack 上设置以下属性，`children` 保留原有内容和刚追加的分支：
 
-```json
+```json fold height=180
 {
   "id": "main",
   "viewIds": ["chat", "projects"],
@@ -108,7 +108,7 @@ items={props.items ?? (defaults => [
 
 在调用方插件 `definition.ts` 的原有 `inject` 数组中追加 `'agent-ui.stack-navigation'`。然后在按钮组件中取得服务，点击时选择目标内容：
 
-```tsx
+```tsx fold height=180
 import {
   Button, usePluginService, STACK_NAVIGATION_SERVICE,
   type StackNavigationService,
@@ -130,7 +130,7 @@ export function OpenProjects({ label }: { label: string }) {
 
 刷新数据等操作使用 `type: 'action'`，在 `onSelect` 中执行自己的函数。将下面的条目加入 `items`：
 
-```tsx
+```tsx fold height=180
 {
   id: 'refresh',
   type: 'action',
@@ -159,8 +159,7 @@ export function OpenProjects({ label }: { label: string }) {
 | `service` | 显式传入切换服务，通常无需设置 |
 | 原生 `nav` 属性 | 支持 `className`、`style`、`aria-label` 等；下方内容用 `content` 传入 |
 
-<details>
-<summary>切换服务的方法</summary>
+#### 切换服务的方法
 
 | 方法 | 用途 |
 | --- | --- |
@@ -169,5 +168,3 @@ export function OpenProjects({ label }: { label: string }) {
 | `subscribe(listener)` | 监听选择变化，返回取消订阅函数 |
 
 需要持续展示选中状态时，见[插件联动与取数](/development/plugin-interaction)。
-
-</details>

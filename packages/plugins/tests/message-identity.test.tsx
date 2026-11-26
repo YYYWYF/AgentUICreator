@@ -15,7 +15,7 @@ import { AgentUILocaleProvider } from '../src/locale.js';
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const expert = { id: 'developer', name: '高级开发工程师', avatarUrl: '/experts/developer.png' };
 const assistant = { id: 'assistant', name: '业务助手' };
-type Run = { input: { runId: string; threadId: string }; emit(event: Record<string, unknown>): void; finish(): void };
+type Run = { input: { runId: string; threadId: string }; emit(event: Record<string, unknown>): void; finish(metadata?: Record<string, unknown>): void };
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 150; i++) {
     if (predicate()) return;
@@ -24,7 +24,7 @@ async function until(predicate: () => boolean) {
   throw new Error('Timed out waiting for message metadata');
 }
 
-async function fixture(options: { history?: readonly unknown[]; identity?: false | MessageIdentityOptions; defaultMessage?: boolean } = {}) {
+async function fixture(options: { history?: readonly unknown[]; identity?: false | MessageIdentityOptions; defaultMessage?: boolean; runMetadata?: Record<string, unknown> } = {}) {
   let runtime!: AssistantRuntime;
   const runs: Run[] = [];
   const metadataReads = new Map<string, Readonly<Record<string, unknown>>>();
@@ -65,12 +65,14 @@ async function fixture(options: { history?: readonly unknown[]; identity?: false
         }
         controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`));
       };
-      runs.push({ input, emit, finish() {
+      runs.push({ input, emit, finish(metadata) {
         for (const [messageId, subagentRunId] of open) emit({ type: 'TEXT_MESSAGE_END', messageId, ...(subagentRunId === undefined ? {} : { subagentRunId }) });
-        emit({ type: 'RUN_FINISHED', threadId: input.threadId, runId: input.runId }); controller.close();
+        emit({ type: 'RUN_FINISHED', threadId: input.threadId, runId: input.runId,
+          ...(metadata === undefined ? {} : { metadata }) }); controller.close();
       } });
       init.signal?.addEventListener('abort', () => controller.error(new DOMException('Aborted', 'AbortError')), { once: true });
-      emit({ type: 'RUN_STARTED', threadId: input.threadId, runId: input.runId });
+      emit({ type: 'RUN_STARTED', threadId: input.threadId, runId: input.runId,
+        ...(options.runMetadata === undefined ? {} : { metadata: options.runMetadata }) });
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     }}>
     <CanonicalConversationSurfacePlugin {...(options.identity === undefined ? {} : { messageIdentity: options.identity })}
@@ -94,6 +96,116 @@ async function text(run: Run, id: string, metadata?: Record<string, unknown>) {
     run.emit({ type: 'TEXT_MESSAGE_CONTENT', messageId: id, delta: 'Hello' });
   });
 }
+
+it('shows the expert identity on START before any text or completion arrives', async () => {
+  const f = await fixture({ defaultMessage: true });
+  try {
+    const run = await f.send();
+    await act(async () => run.emit({ type: 'TEXT_MESSAGE_START', messageId: 'early-expert', role: 'assistant', metadata: { speaker: expert } }));
+    await until(() => f.host.querySelector('[data-speaker-id="developer"]') !== null);
+    expect(f.runtime.thread.getState().isRunning).toBe(true);
+    expect(f.host.querySelector('img')?.getAttribute('src')).toBe(expert.avatarUrl);
+    expect(f.host.querySelector('[data-slot="aui_assistant-message-content"]')?.textContent).not.toContain('Hello');
+    await act(async () => {
+      run.emit({ type: 'REASONING_START', messageId: 'reasoning-block' });
+      run.emit({ type: 'REASONING_MESSAGE_START', messageId: 'reasoning-text', role: 'reasoning' });
+      run.emit({ type: 'REASONING_MESSAGE_CONTENT', messageId: 'reasoning-text', delta: 'Inspecting the question' });
+    });
+    await until(() => f.host.textContent?.includes('Inspecting the question') === true);
+    expect(f.host.querySelector('[data-speaker-id="developer"]')).not.toBeNull();
+    expect(f.host.querySelector('img')?.getAttribute('src')).toBe(expert.avatarUrl);
+    expect(f.runtime.thread.getState().isRunning).toBe(true);
+    expect(f.host.querySelector('[data-slot="aui_assistant-message-content"]')?.textContent).not.toContain('Hello');
+    await act(async () => {
+      run.emit({ type: 'REASONING_MESSAGE_END', messageId: 'reasoning-text' });
+      run.emit({ type: 'REASONING_END', messageId: 'reasoning-block' });
+    });
+    await act(async () => run.emit({ type: 'TEXT_MESSAGE_CONTENT', messageId: 'early-expert', delta: 'Hello' }));
+    await until(() => f.host.querySelector('[data-slot="aui_assistant-message-content"]')?.textContent?.includes('Hello') === true);
+    expect(f.host.querySelector('[data-speaker-id="developer"]')).not.toBeNull();
+    expect(f.runtime.thread.getState().isRunning).toBe(true);
+  } finally { await f.dispose(); }
+});
+
+it.each(['run', 'reasoning', 'custom'] as const)('shows identity from %s before TEXT begins, inherits it and preserves previous speakers', async source => {
+  const f = await fixture({ defaultMessage: true, ...(source === 'run' ? { runMetadata: { speaker: expert } } : {}) });
+  try {
+    const run = await f.send();
+    if (source === 'custom') await act(async () => run.emit({ type: 'CUSTOM', name: 'speaker-changed', value: {}, metadata: { speaker: expert } }));
+    if (source !== 'reasoning') await until(() => f.host.querySelector('[data-speaker-id="developer"]') !== null);
+    await act(async () => {
+      run.emit({ type: 'REASONING_START', messageId: 'reasoning-block', ...(source === 'reasoning' ? { metadata: { speaker: expert } } : {}) });
+      run.emit({ type: 'REASONING_MESSAGE_START', messageId: 'reasoning-text', role: 'reasoning' });
+      run.emit({ type: 'REASONING_MESSAGE_CONTENT', messageId: 'reasoning-text', delta: 'Expert is thinking' });
+    });
+    await until(() => f.host.textContent?.includes('Expert is thinking') === true && f.host.querySelector('[data-speaker-id="developer"]') !== null);
+    expect(f.host.querySelector('img')?.getAttribute('src')).toBe(expert.avatarUrl);
+    expect(f.host.querySelector('[data-slot="aui_assistant-message-content"]')?.textContent).not.toContain('Hello');
+    expect(f.runtime.thread.getState().isRunning).toBe(true);
+    await act(async () => {
+      run.emit({ type: 'REASONING_MESSAGE_END', messageId: 'reasoning-text' });
+      run.emit({ type: 'REASONING_END', messageId: 'reasoning-block' });
+    });
+    await text(run, 'answer');
+    await until(() => f.speakerReads.get('answer')?.id === expert.id);
+    await act(async () => run.emit({ type: 'TEXT_MESSAGE_END', messageId: 'answer' }));
+    await act(async () => run.emit({ type: 'CUSTOM', name: 'switch-speaker', value: {}, metadata: { speaker: assistant } }));
+    await text(run, 'second-answer');
+    await until(() => f.speakerReads.get('second-answer')?.id === assistant.id);
+    expect(f.speakerReads.get('answer')).toEqual(expert);
+    await act(async () => run.finish());
+    await until(() => !f.runtime.thread.getState().isRunning);
+    expect(f.snapshot.messages.find(message => message.id === 'answer')?.speaker).toEqual(expert);
+    expect(f.snapshot.messages.find(message => message.id === 'second-answer')?.speaker).toEqual(assistant);
+  } finally { await f.dispose(); }
+});
+
+it('labels an otherwise unlabelled response when identity arrives only on RUN_FINISHED', async () => {
+  const f = await fixture();
+  try {
+    const run = await f.send();
+    await text(run, 'late-identity');
+    await until(() => f.host.querySelector('[data-message-id="late-identity"]') !== null);
+    expect(f.host.querySelector('[data-speaker-id="developer"]')).toBeNull();
+    await act(async () => run.finish({ speaker: expert }));
+    await until(() => !f.runtime.thread.getState().isRunning && f.host.querySelector('[data-speaker-id="developer"]') !== null);
+    expect(f.snapshot.messages.find(message => message.id === 'late-identity')?.speaker).toEqual(expert);
+  } finally { await f.dispose(); }
+});
+
+it('keeps each expert answer with its preceding reasoning when both reasoning sequences arrive before TEXT', async () => {
+  const f = await fixture({ defaultMessage: true });
+  try {
+    const run = await f.send();
+    for (const [id, speaker, reasoning] of [
+      ['expert-one', expert, 'First expert reasoning'],
+      ['expert-two', assistant, 'Second expert reasoning'],
+    ] as const) {
+      await act(async () => {
+        run.emit({ type: 'CUSTOM', name: 'speaker-selected', value: {}, metadata: { speaker } });
+        run.emit({ type: 'REASONING_START', messageId: `${id}-block` });
+        run.emit({ type: 'REASONING_MESSAGE_START', messageId: `${id}-thought`, role: 'reasoning' });
+        run.emit({ type: 'REASONING_MESSAGE_CONTENT', messageId: `${id}-thought`, delta: reasoning });
+        run.emit({ type: 'REASONING_MESSAGE_END', messageId: `${id}-thought` });
+        run.emit({ type: 'REASONING_END', messageId: `${id}-block` });
+      });
+      await text(run, id);
+      await until(() => f.speakerReads.get(id)?.id === speaker.id);
+      await act(async () => run.emit({ type: 'TEXT_MESSAGE_END', messageId: id }));
+    }
+    await act(async () => run.finish());
+    await until(() => !f.runtime.thread.getState().isRunning);
+    const first = f.host.querySelector('[data-message-id="expert-one"]');
+    const second = f.host.querySelector('[data-message-id="expert-two"]');
+    // Completed reasoning is collapsed in the default UI; inspect its canonical owner.
+    const reasoningFor = (id: string) => f.runtime.thread.getState().messages.find(message => message.id === id)
+      ?.content.flatMap(part => part.type === 'reasoning' ? [part.text] : []).join('');
+    expect(reasoningFor('expert-one')).toBe('First expert reasoning');
+    expect(reasoningFor('expert-two')).toBe('Second expert reasoning');
+    expect(first?.querySelector('[data-speaker-id="developer"]')).not.toBeNull();
+    expect(second?.querySelector('[data-speaker-id="assistant"]')).not.toBeNull();
+  } finally { await f.dispose(); }
+});
 
 it('reads START/CONTENT/END metadata live without changing native metadata or runtime identity', async () => {
   const f = await fixture();
@@ -169,7 +281,7 @@ it('displays the identity in the maintained default assistant message component'
   } finally { await f.dispose(); }
 });
 
-it('groups consecutive speaker headers, shows a new speaker and respects explicit null with a fallback', async () => {
+it('groups consecutive speaker headers, including explicit resets to the same fallback', async () => {
   const f = await fixture({ identity: { fallback: assistant } });
   try {
     const run = await f.send(); await text(run, 'segment-1', { speaker: expert });
@@ -183,9 +295,49 @@ it('groups consecutive speaker headers, shows a new speaker and respects explici
     await until(() => f.host.querySelector('[data-message-id="segment-3"] [data-speaker-id="assistant"]') !== null);
     expect(f.host.querySelectorAll('[data-slot="assistant-message-identity"]')).toHaveLength(2);
     await act(async () => run.emit({ type: 'TEXT_MESSAGE_END', messageId: 'segment-3' }));
-    await text(run, 'hidden', { speaker: null });
-    await until(() => f.host.querySelector('[data-message-id="hidden"]') !== null);
-    expect(f.host.querySelector('[data-message-id="hidden"] [data-slot="assistant-message-identity"]')).toBeNull();
+    await text(run, 'reset-default', { speaker: null });
+    await until(() => f.host.querySelector('[data-message-id="reset-default"]') !== null);
+    expect(f.speakerReads.get('reset-default')).toBeNull();
+    expect(f.host.querySelector('[data-message-id="reset-default"] [data-slot="assistant-message-identity"]')).toBeNull();
+    expect(f.host.querySelectorAll('[data-slot="assistant-message-identity"]')).toHaveLength(2);
+  } finally { await f.dispose(); }
+});
+
+it.each(['CUSTOM', 'TEXT_MESSAGE_START'] as const)('switches from expert to the configured fallback on null from %s and inherits the reset', async eventType => {
+  const fallback = { ...assistant, avatarUrl: '/defaults/assistant.png' };
+  const f = await fixture({ identity: { fallback } });
+  try {
+    const run = await f.send();
+    await text(run, 'expert-reply', { speaker: expert });
+    await until(() => f.host.querySelector('[data-speaker-id="developer"]') !== null);
+    await act(async () => run.emit({ type: 'TEXT_MESSAGE_END', messageId: 'expert-reply' }));
+    if (eventType === 'CUSTOM') await act(async () => run.emit({ type: 'CUSTOM', name: 'speaker-selected', value: {}, metadata: { speaker: null } }));
+    await text(run, 'default-reply', eventType === 'TEXT_MESSAGE_START' ? { speaker: null } : undefined);
+    await until(() => f.host.querySelector('[data-message-id="default-reply"] [data-speaker-id="assistant"]') !== null);
+    expect(f.host.querySelector('[data-message-id="default-reply"] img')?.getAttribute('src')).toBe(fallback.avatarUrl);
+    expect(f.speakerReads.get('default-reply')).toBeNull();
+    expect(f.speakerReads.get('expert-reply')).toEqual(expert);
+    await act(async () => run.emit({ type: 'TEXT_MESSAGE_END', messageId: 'default-reply' }));
+    await text(run, 'still-default');
+    await until(() => f.host.querySelector('[data-message-id="still-default"]') !== null);
+    expect(f.speakerReads.get('still-default')).toBeNull();
+    expect(f.host.querySelector('[data-message-id="still-default"] [data-slot="assistant-message-identity"]')).toBeNull();
+    expect(f.host.querySelectorAll('[data-slot="assistant-message-identity"]')).toHaveLength(2);
+    await act(async () => run.finish());
+    await until(() => !f.runtime.thread.getState().isRunning);
+    expect(f.snapshot.messages.find(message => message.id === 'default-reply')?.speaker).toBeNull();
+  } finally { await f.dispose(); }
+});
+
+it.each([true, false])('restores a saved null speaker using the configured fallback when present (%s)', async configured => {
+  const f = await fixture({
+    ...(configured ? { identity: { fallback: assistant } } : {}),
+    history: [{ type: 'ai', id: 'saved-default', content: 'Saved reply', additional_kwargs: { metadata: { speaker: null } } }],
+  });
+  try {
+    await until(() => f.host.querySelector('[data-message-id="saved-default"]') !== null);
+    expect(f.speakerReads.get('saved-default')).toBeNull();
+    expect(f.host.querySelector('[data-speaker-id="assistant"]') !== null).toBe(configured);
   } finally { await f.dispose(); }
 });
 

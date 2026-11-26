@@ -114,9 +114,16 @@ export const offersInterruptAction = (
 
 export type ToolFallbackApprovalProps = React.ComponentPropsWithoutRef<'div'> &
   ToolFallbackApprovalAppearance &
-  Partial<Pick<ToolCallMessagePartProps, 'addResult' | 'resume' | 'respondToApproval' | 'status'>> & {
+  { [Key in 'addResult' | 'resume' | 'respondToApproval' | 'status']?: ToolCallMessagePartProps<unknown, unknown>[Key] | undefined } & {
+    tool?: Readonly<ConversationToolCallProps> | undefined;
     interrupt?: ToolCallMessagePart['interrupt'];
     approval?: ToolCallMessagePart['approval'];
     decisionRequest?: ConversationCommandDecisionRequest | undefined;
     submitDecision?: ConversationToolCallProps['submitDecision'] | undefined;
+    resumeInterrupt?: ConversationToolCallProps['resumeInterrupt'] | undefined;
+    commandRecord?: {
+      request: ConversationCommandDecisionRequest;
+      pending: boolean;
+      decision?: string | undefined;
+    } | undefined;
   };

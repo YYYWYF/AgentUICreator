@@ -6,6 +6,7 @@ import { parseMessageSpeaker, type MessageSpeaker } from './message-speaker.js';
 export type { MessageSpeaker } from './message-speaker.js';
 
 export interface MessageIdentityOptions {
+  /** Default identity when a speaker is absent or explicitly reset with null. */
   readonly fallback?: MessageSpeaker;
   readonly render?: (props: { speaker: MessageSpeaker; messageId: string }) => ReactNode;
 }
@@ -26,15 +27,15 @@ export function AssistantMessageIdentity() {
   const speaker = useConversation(state => state.message.speaker);
   const messageId = useAuiState(state => state.message.id);
   const index = useAuiState(state => state.message.index);
-  const previousSpeaker = useConversation(state => {
+  const previousMessage = useConversation(state => {
     const message = state.thread.messages[index - 1];
-    return message?.role === 'assistant' ? message.speaker : null;
+    return message?.role === 'assistant' ? message : undefined;
   });
-  if (options === false || speaker === null) return null;
+  if (options === false) return null;
   const fallback = parseMessageSpeaker(options?.fallback);
   const current = speaker ?? fallback;
   if (!current) return null;
-  const preceding = previousSpeaker === null ? undefined : previousSpeaker ?? fallback;
+  const preceding = previousMessage ? previousMessage.speaker ?? fallback : undefined;
   if (preceding?.id === current.id && preceding.name === current.name && preceding.avatarUrl === current.avatarUrl) return null;
   return <div data-agent-ui-owned='' data-slot='assistant-message-identity' data-speaker-id={current.id}
     style={{ display: 'flex', alignItems: 'center', gap: 8, marginBlockEnd: 12, color: 'var(--foreground)' }}>

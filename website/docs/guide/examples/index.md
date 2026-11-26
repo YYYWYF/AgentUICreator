@@ -21,8 +21,7 @@ description: 在招行客户服务工作台中，通过 Creator 调整助理并�
 
 ![招行 AI 工作台的平台式助理，左侧为聊天区域，右侧为会话列表。](/images/guide/examples/20261106/cmb-platform-right-before.jpg)
 
-<details>
-<summary>查看服务工单与业务协同入口</summary>
+### 服务工单与业务协同入口
 
 服务工单保留悬浮球入口：
 
@@ -35,8 +34,6 @@ description: 在招行客户服务工作台中，通过 Creator 调整助理并�
 平台助理完成样式调整后，也重新打开了服务工单的悬浮面板；它仍使用独立的助理界面：
 
 ![服务工单仍保留悬浮球展开的助理面板。](/images/guide/examples/20261106/cmb-tickets-assistant-final.jpg)
-
-</details>
 
 ## 按需求查看示例
 

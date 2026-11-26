@@ -5,6 +5,7 @@ import type { ConversationToolkit, ConversationToolkitEntry } from "../src/plugi
 import { createAgentUIFrontendTools } from "../src/host/frontend-tools.js";
 import { createAssistantUiFrontendToolkit } from "../src/tools/assistant-ui-frontend-tool-adapter.js";
 import { useFrontendToolkit } from "../src/tools/use-frontend-tool-source.js";
+import { ConversationDefaultTool } from "../src/presentation.js";
 
 const schema = { type: "object", properties: {} };
 const render = () => null;
@@ -17,6 +18,14 @@ function entry(toolkit: ReturnType<typeof createAssistantUiFrontendToolkit>, nam
 }
 
 describe("unified toolkit permissions and presentation", () => {
+  it.each(["inline", "standalone"] as const)("uses the selected default renderer for a renderless %s backend tool", display => {
+    const toolkit: ConversationToolkit = { bash: { type: "backend", display } };
+    const resolved = entry(createAssistantUiFrontendToolkit(undefined, toolkit), "bash");
+    expect(resolved).toEqual({ type: "backend", display, render: ConversationDefaultTool });
+    expect(resolved).not.toHaveProperty("execute");
+    expect(toolkit.bash).not.toHaveProperty("render");
+  });
+
   it("uses a backend renderer for an authorized source, then keeps only history presentation when unavailable", async () => {
     const execute = vi.fn(() => ({ opened: true }));
     const source = createAgentUIFrontendTools([{ name: "open_dialog", description: "Open", inputSchema: schema, execute }]);

@@ -149,6 +149,22 @@
         "height": 136
       },
       "hostWidth": 728
+    },
+    {
+      "file": "custom-tool-streaming.jpg",
+      "scenario": "Standalone custom render expanded during TOOL_CALL_STREAM_RESULT updates; isPreliminary true.",
+      "sha256": "daa30b2d6bd06160030daef1475d12106acc8191139c70dc6eb9a0278ce26039",
+      "source": "artifacts/custom-tool-preview-20261125/streaming.jpg",
+      "capturedDate": "2026-11-25",
+      "url": "http://127.0.0.1:5196/custom-render.html"
+    },
+    {
+      "file": "custom-tool-completed.jpg",
+      "scenario": "Same custom render automatically collapsed after final TOOL_CALL_RESULT; status complete and isPreliminary false.",
+      "sha256": "d8fbbd2763005c90d7a9b93318541ba7daebfc0e2ea1596240bc4c42dfec0ff6",
+      "source": "artifacts/custom-tool-preview-20261125/completed.jpg",
+      "capturedDate": "2026-11-25",
+      "url": "http://127.0.0.1:5196/custom-render.html"
     }
   ]
 }

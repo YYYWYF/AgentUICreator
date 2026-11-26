@@ -63,7 +63,7 @@
 
 在已有来源消息入口调整间距，列表解析、网页与文档的展示区分继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { SourceCitationsMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/source-citations-message';
 
@@ -78,7 +78,7 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 `sourceProps` 处理已校验的来源。下面只调整网页链接，文档来源继续使用原数据：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { SourceCitationsMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/source-citations-message';
 

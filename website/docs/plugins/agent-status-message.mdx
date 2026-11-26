@@ -64,7 +64,7 @@ title: "Agent 工作状态（agent-status-message）"
 
 在已有消息插件入口调整留白，状态继续从工具生命周期推导：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentStatusMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-status-message';
 
@@ -80,7 +80,7 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 
 需要换成项目已有的状态组件时，`renderStatus` 收到已解析的状态说明、耗时和生命周期状态。下面保留默认状态展示，只为它增加业务容器：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentStatusMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-status-message';
 import { AgentStatus } from '@za38.03/agent-ui-plugins';

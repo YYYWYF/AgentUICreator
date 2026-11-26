@@ -39,6 +39,9 @@
   font: inherit;
   line-height: 1;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   background: transparent;
   isolation: isolate;
   transition: scale 180ms ease-out;
@@ -124,7 +127,12 @@
   pointer-events: none;
 }
 
-.agent-ui-assistant-trigger:active {
+.agent-ui-assistant-trigger[data-dragging] {
+  cursor: grabbing;
+  will-change: transform;
+}
+
+.agent-ui-assistant-trigger:active:not([data-dragging]) {
   scale: 0.96;
 }
 

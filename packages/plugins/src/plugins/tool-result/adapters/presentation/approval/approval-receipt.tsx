@@ -46,15 +46,8 @@ export function ToolFallbackApprovalReceipt({
     ),
   ];
 
-  return (
-    <div
-      ref={receiptRef}
-      data-slot='tool-fallback-approval-receipt'
-      data-outcome={receipt.outcome}
-      tabIndex={-1}
-      className={cn('aui-tool-fallback-approval-receipt flex flex-col gap-1.5 pt-1', className)}
-      {...props}
-    >
+  const defaultContent = (
+    <>
       {approval.prompt ? (
         <p className='aui-tool-fallback-approval-prompt text-muted-foreground whitespace-pre-line'>{approval.prompt}</p>
       ) : null}
@@ -74,6 +67,18 @@ export function ToolFallbackApprovalReceipt({
           {text}
         </p>
       ))}
+    </>
+  );
+  return (
+    <div
+      ref={receiptRef}
+      data-slot='tool-fallback-approval-receipt'
+      data-outcome={receipt.outcome}
+      tabIndex={-1}
+      className={cn('aui-tool-fallback-approval-receipt flex flex-col gap-1.5 pt-1', className)}
+      {...props}
+    >
+      {defaultContent}
     </div>
   );
 }

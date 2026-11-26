@@ -21,6 +21,7 @@ afterEach(async () => {
   dispose = undefined;
   document.body.replaceChildren();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 async function until(predicate: () => boolean) {
@@ -76,18 +77,18 @@ function daysAgo(days: number) {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate() - days, 12).toISOString();
 }
 
-it.each(["en-US", "zh-CN"] as const)("%s groups persisted conversations by local day and moves them after refresh", async locale => {
+it.each(["en-US", "zh-CN"] as const)("%s preserves server order while labeling local days and refreshing metadata", async locale => {
   const records: ConversationSummary[] = [
     { id: "older", title: "Older conversation", updatedAt: daysAgo(3) },
     { id: "yesterday", title: "Yesterday conversation", updatedAt: daysAgo(1) },
     { id: "today", title: "Today conversation", updatedAt: daysAgo(0) },
   ];
   const f = await fixture(records, locale);
-  const labels = locale === "zh-CN" ? ["今天", "昨天", "更早"] : ["Today", "Yesterday", "Earlier"];
+  const labels = locale === "zh-CN" ? ["更早", "昨天", "今天"] : ["Earlier", "Yesterday", "Today"];
   expect(f.labels()).toEqual(labels);
   const list = f.host.querySelector('[data-slot="aui_thread-list-items"]')!;
   expect([...list.children].map(node => node.querySelector('[data-slot="aui_thread-list-item-trigger"]')?.textContent ?? node.textContent)).toEqual([
-    labels[0], "Today conversation", labels[1], "Yesterday conversation", labels[2], "Older conversation",
+    labels[0], "Older conversation", labels[1], "Yesterday conversation", labels[2], "Today conversation",
   ]);
   expect(f.runtime.threads.getItemById("yesterday").getState().lastMessageAt).toEqual(new Date(daysAgo(1)));
 
@@ -95,7 +96,34 @@ it.each(["en-US", "zh-CN"] as const)("%s groups persisted conversations by local
   await act(async () => { await f.service.refresh(); });
   await until(() => f.labels().length === 2);
   expect(f.labels()).toEqual([labels[0], labels[2]]);
+  expect([...f.host.querySelectorAll('[data-slot="aui_thread-list-item-title"]')].map(node => node.textContent))
+    .toEqual(records.map(item => item.title));
   expect(f.runtime.threads.getItemById("yesterday").getState().lastMessageAt).toEqual(new Date(daysAgo(0)));
+});
+
+it("keeps interleaved dates and missing timestamps in server order without duplicate group keys", async () => {
+  const errors = vi.spyOn(console, "error");
+  const records: ConversationSummary[] = [
+    { id: "old", title: "Old first", updatedAt: daysAgo(3) },
+    { id: "today-a", title: "Today second", updatedAt: daysAgo(0) },
+    { id: "yesterday", title: "Yesterday third", updatedAt: daysAgo(1) },
+    { id: "today-b", title: "Today fourth", updatedAt: daysAgo(0) },
+    { id: "missing", title: "Missing fifth" },
+    { id: "invalid", title: "Invalid sixth", updatedAt: "invalid" },
+  ];
+  const f = await fixture(records);
+  expect([...f.host.querySelectorAll('[data-slot="aui_thread-list-item-title"]')].map(node => node.textContent))
+    .toEqual(records.map(item => item.title));
+  expect(f.labels()).toEqual(["Earlier", "Today", "Yesterday", "Today"]);
+  const search = f.host.querySelector<HTMLInputElement>('[data-slot="aui_thread-list-search"] input')!;
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    setter.call(search, "Today");
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  expect([...f.host.querySelectorAll('[data-slot="aui_thread-list-item-title"]')].map(node => node.textContent))
+    .toEqual(["Today second", "Today fourth"]);
+  expect(errors.mock.calls.some(([message]) => typeof message === "string" && message.includes("same key"))).toBe(false);
 });
 
 it("keeps missing or invalid timestamps ungrouped and preserves valid archived timestamps", async () => {

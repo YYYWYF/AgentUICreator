@@ -19,8 +19,8 @@ title: "Agent API"
 | 属性 | 类型 | 省略时 / 用途 |
 | --- | --- | --- |
 | `frontendTools` | `AgentFrontendToolSource` | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。 |
-| `endpoint` | `string` | 可选，无默认值。自定义 `fetch` 自行决定地址时可省略；浏览器默认 fetch 使用项目提供的地址。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](./multiple-agents#同一助手的工作流入口)。Creator 开发预览期间使用面板选择的连接。 |
-| `request` | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。 |
+| `endpoint` | `string` | 可选，无默认值。自定义 `fetch` 自行决定地址时可省略；浏览器默认 fetch 使用项目提供的地址。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](./multiple-agents#同一助手的工作流入口)。Creator 默认沿用应用配置，主动开启临时连接后才使用面板选择的连接。 |
+| `request` | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；主动开启 Creator 临时连接后会清除此配置。示例见[请求头与鉴权](/development/connect-agent#请求头与鉴权)。 |
 | `fetch` | `(url: string, init: RequestInit) => Promise<Response>` | 可选。自定义 AG-UI 请求函数，返回流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent#自定义请求函数)。 |
 | `beforeRequest` | `AgentUIBeforeRequest` | 可选。每次 AG-UI 请求前同步或异步返回部分请求字段，与当前输入合并；首次返回的 `threadId` 绑定到会话，`runId` 按运行确定。见[发送前准备请求](/development/connect-agent#发送前准备请求)。 |
 | `getRunContext` | `ConversationRunContextGetter` | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options#传入业务上下文)。 |

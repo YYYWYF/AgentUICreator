@@ -24,7 +24,7 @@
 
 调整复制按钮的展示；按钮继续操作当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
 
@@ -46,7 +46,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例直接禁用；实际项目把 true 换成自己的权限或业务状态表达式。组件仍叠加当前会话的可用性判断。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
 

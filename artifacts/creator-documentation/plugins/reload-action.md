@@ -24,7 +24,7 @@
 
 调整重新生成按钮的展示；按钮继续操作当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
@@ -46,7 +46,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例直接禁用；实际项目把 true 换成自己的权限或业务状态表达式。组件仍叠加当前会话的可用性判断。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
@@ -60,7 +60,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 `onClick` 先于重新生成执行。业务状态不允许重试时调用 `preventDefault()`；允许时沿用组件原有的重试流程。
 
-```tsx
+```tsx fold height=180
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
 export function CheckedReload({ canRetry }: { canRetry: () => boolean }) {

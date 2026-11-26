@@ -58,8 +58,11 @@ site, and preserve the generated frontend's independence from development tools.
 Code fences render directly without automatic disclosure wrappers, including
 single-line commands and all getting-started examples. Keep AG-UI event streams
 outside explicitly collapsed guide sections as well. Preserve raw code fences in
-generated Markdown for offline readers and agents. Existing explicit disclosures
-keep their own grouping.
+generated Markdown for offline readers and agents. Present explanations, examples,
+screenshots and FAQs as ordinary sections with visible headings and contents.
+Readers should find them through the page outline without opening disclosure
+boxes. Avoid code folding, including inside another collapsed section.
+`check:docs` rejects nested disclosures in source and built pages.
 
 Verify code against current public declarations with `pnpm test:documentation`.
 Explain the required context, defaults, callback behavior and expected result beside

@@ -28,6 +28,7 @@ export function AssistantRobot({ hovered, clickSignal, completionSignal, activit
     if (!context) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const wrapper = canvas.parentElement!, trigger = wrapper.closest('button')!;
+    let displayWidth = wrapper.clientWidth || 80, displayHeight = wrapper.clientHeight || 80;
     const face = faceRef.current;
     const eyeGroups = Array.from(face?.querySelectorAll<SVGGElement>('[data-eye]') ?? []);
     const openEyes = eyeGroups.map(group => group.querySelector<SVGPathElement>('[data-open]')!);
@@ -69,6 +70,17 @@ export function AssistantRobot({ hovered, clickSignal, completionSignal, activit
     let images: HTMLImageElement[] = [];
     const draw = (now: number) => {
       if (disposed || document.hidden || !images.length) return;
+      // Keep up to 2x display-pixel samples for the gentle float/rotation, which
+      // otherwise softens an already 1x bitmap. Never exceed the source size.
+      const density = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.min(robotFrames.size, Math.round(displayWidth * density * 2)));
+      const height = Math.max(1, Math.min(robotFrames.size, Math.round(displayHeight * density * 2)));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width; canvas.height = height;
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        previous = -1;
+      }
       const pose = motion.current.update(now);
       if (Math.abs(pose.yaw) > .08) nearSide = pose.yaw > 0 ? -1 : 1;
       if (reduced.matches) clearBubbles();
@@ -92,11 +104,11 @@ export function AssistantRobot({ hovered, clickSignal, completionSignal, activit
       if (index !== previous) {
         const slot = index % robotFrames.perPage;
         const page = images[Math.floor(index / robotFrames.perPage)]!;
-        context.clearRect(0, 0, robotFrames.size, robotFrames.size);
+        context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(page,
           slot % robotFrames.columns * robotFrames.cell + robotFrames.gutter,
           Math.floor(slot / robotFrames.columns) * robotFrames.cell + robotFrames.gutter,
-          robotFrames.size, robotFrames.size, 0, 0, robotFrames.size, robotFrames.size);
+          robotFrames.size, robotFrames.size, 0, 0, canvas.width, canvas.height);
         previous = index;
       }
       const geometryChanged = faceView !== view;
@@ -131,20 +143,42 @@ export function AssistantRobot({ hovered, clickSignal, completionSignal, activit
       if (!reduced.matches) request = requestAnimationFrame(draw);
     };
     const resume = () => { cancelAnimationFrame(request); if (document.hidden) clearBubbles(); draw(performance.now()); };
+    let densityQuery: MediaQueryList;
+    const watchDensity = () => {
+      densityQuery?.removeEventListener('change', densityChanged);
+      densityQuery = matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+      densityQuery.addEventListener('change', densityChanged);
+    };
+    function densityChanged() { watchDensity(); resume(); }
+    const resize = () => {
+      displayWidth = wrapper.clientWidth || 80; displayHeight = wrapper.clientHeight || 80;
+      resume();
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(entries => {
+      const size = entries[0]?.contentRect;
+      if (!size || size.width <= 0 || size.height <= 0 || (size.width === displayWidth && size.height === displayHeight)) return;
+      displayWidth = size.width; displayHeight = size.height;
+      resume();
+    });
+    observer?.observe(wrapper);
+    watchDensity();
     reduced.addEventListener('change', resume);
     document.addEventListener('visibilitychange', resume);
+    window.addEventListener('resize', resize);
     void Promise.all(pages).then(loaded => {
       if (disposed) return;
       images = loaded;
-      canvas.width = canvas.height = robotFrames.size;
       draw(performance.now());
       setReady(true);
     }).catch(() => { /* Keep the complete still if an animation page cannot load. */ });
     return () => {
       disposed = true;
       cancelAnimationFrame(request);
+      observer?.disconnect();
+      densityQuery.removeEventListener('change', densityChanged);
       reduced.removeEventListener('change', resume);
       document.removeEventListener('visibilitychange', resume);
+      window.removeEventListener('resize', resize);
       trigger.style.removeProperty('--robot-shadow-x');
       trigger.style.removeProperty('--robot-glow');
       delete trigger.dataset.robotState;

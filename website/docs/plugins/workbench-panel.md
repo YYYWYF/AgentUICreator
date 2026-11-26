@@ -78,7 +78,7 @@ title: 多内容侧栏
 
 调用方的 `definition.ts` 在原有 `inject` 中追加侧栏服务：
 
-```ts
+```ts fold height=180
 inject: ['agent-ui.workbench-panel'],
 ```
 
@@ -86,7 +86,7 @@ inject: ['agent-ui.workbench-panel'],
 
 调用方组件取得服务，点击时调用 `open(内容ID)`：
 
-```tsx
+```tsx fold height=180
 import {
   WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService,
 } from '@za38.03/agent-ui-plugins';
@@ -108,7 +108,7 @@ export function OpenContent({ label }: { label: string }) {
 
 需要现成的按钮列表时，在已有调用方的应用层使用 `WorkbenchPanelActionsPlugin`，同样声明上述服务依赖：
 
-```tsx
+```tsx fold height=180
 import { WorkbenchPanelActionsPlugin } from '@za38.03/agent-ui-plugins/workbench-panel-actions';
 
 export function PanelButtons({ labels }: { labels: { report: string; sources: string } }) {
@@ -130,7 +130,7 @@ export function PanelButtons({ labels }: { labels: { report: string; sources: st
 
 panelWidth 单位为像素。主区域较窄时，面板仍不会超过整个容器宽度的 45%。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
 
@@ -146,7 +146,7 @@ export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
 
 open 由项目管理，onOpenChange 同步用户收起/展开操作；已有 service 和 items 继续传入。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
 
@@ -162,7 +162,7 @@ export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
 
 业务工具栏需要高亮当前内容时，声明 `agent-ui.workbench-panel` 依赖，用 `usePluginService()` 取得同一 Agent 的服务，再用 `usePluginService()` 订阅：
 
-```tsx
+```tsx fold height=180
 import { WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService, type WorkbenchPanelSnapshot } from '@za38.03/agent-ui-plugins';
 
 const fallback: WorkbenchPanelSnapshot = {
@@ -256,9 +256,6 @@ export function ReportTab({ label }: { label: string }) {
 
 ## 常见问题
 
-<details className="plugin-faq" id="设置-opentrue-为什么仍然没有内容">
-<summary>设置 open=true 为什么仍然没有内容？</summary>
+### 设置 open=true 为什么仍然没有内容？ {#设置-opentrue-为什么仍然没有内容}
 
 需要有效的 items 和可见的选中内容。默认工作台没有内置内容；按本页接入步骤登记项目内容，再展开。
-
-</details>

@@ -80,11 +80,7 @@ describe("tool result content", () => {
     await act(async () => root.render(<ConversationToolResultContent result={result} />));
     expect(el.querySelector("img")).toBeNull(); expect(el.querySelector("[role=status]")).not.toBeNull();
   });
-  it("offers presentation overrides without changing stored content", async () => {
-    const renderPart = vi.fn((part, index, content) => index === 0 ? <b>{part.text}</b> : content);
-    const { el } = await mount(<ConversationToolResultContent result={parts} renderPart={renderPart} />);
-    expect(el.querySelector("b")?.textContent).toBe("Tool output"); expect(renderPart).toHaveBeenCalledTimes(5);
-  });
+
 });
 const tool = { type: "tool-call" as const, toolCallId: "call", toolName: "media", args: {}, argsText: "{}", result: parts };
 function Registration({ custom = false }: { custom?: boolean }) {
@@ -134,7 +130,7 @@ it("default frontend-tool renderers follow plugin selection while named custom U
 });
 it.each([{ name: "npm", Plugin: PackagePlugin }, { name: "portable source", Plugin: PortablePlugin }])("$name plugin forwards the scoped tool and application props", async ({ Plugin }) => {
   expect(definition.manifest.id).toBe("tool-result"); expect(definition.toolkit).toBeUndefined();
-  function Host() { const runtime = useLocalRuntime({ async *run() {} }); return <AssistantRuntimeProvider runtime={runtime}><Plugin renderSlot={() => null} renderScopedSlot={() => null} tool={{ ...tool, status: { type: "complete" } }} renderPart={(part, index, content) => index === 0 ? <strong>{part.type}</strong> : content} /></AssistantRuntimeProvider>; }
+  function Host() { const runtime = useLocalRuntime({ async *run() {} }); return <AssistantRuntimeProvider runtime={runtime}><Plugin renderSlot={() => null} renderScopedSlot={() => null} tool={{ ...tool, status: { type: "complete" } }} components={{Text: props => <strong>{props.part?.type}</strong>}} /></AssistantRuntimeProvider>; }
   const { el } = await mount(<Host />);
   expect(el.querySelector("strong")?.textContent).toBe("text"); expect(el.querySelector("audio")).not.toBeNull();
 });

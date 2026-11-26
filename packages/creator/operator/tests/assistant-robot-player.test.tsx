@@ -7,6 +7,7 @@ import { AssistantRobot } from '../../../plugins/resources/registry/items/founda
 it('keeps a frontal still under reduced motion and cleans up visibility/animation listeners', async () => {
   const reduced = new EventTarget() as EventTarget & { matches: boolean };
   reduced.matches = true;
+  const density = Object.assign(new EventTarget(), { matches: true });
   let hidden = false;
   const context = { clearRect: vi.fn(), drawImage: vi.fn() };
   const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as never);
@@ -19,7 +20,7 @@ it('keeps a frontal still under reduced motion and cleans up visibility/animatio
   Object.defineProperty(HTMLElement.prototype, 'animate', { configurable: true, value: animate });
   vi.stubGlobal('requestAnimationFrame', request); vi.stubGlobal('cancelAnimationFrame', cancel);
   vi.stubGlobal('CanvasRenderingContext2D', function () {});
-  vi.stubGlobal('matchMedia', () => reduced);
+  vi.stubGlobal('matchMedia', (query: string) => query.includes('prefers-reduced-motion') ? reduced : density);
   vi.stubGlobal('Image', class {
     onload?: () => void;
     set src(_source: string) { queueMicrotask(() => this.onload?.()); }
@@ -35,6 +36,16 @@ it('keeps a frontal still under reduced motion and cleans up visibility/animatio
     expect(host.querySelector('svg.agent-ui-assistant-face')?.getAttribute('visibility')).toBe('visible');
     expect(host.querySelector('[data-open]')?.getAttribute('d')).toMatch(/^M.+Z$/);
     expect(host.querySelector('[data-mouth]')?.getAttribute('d')).toContain('Q');
+    const canvas = host.querySelector('canvas')!;
+    expect(canvas.width).toBe(160);
+    // Windows scaling / moving between monitors must also redraw a reduced-motion still.
+    for (const [ratio, pixels] of [[1.25, 192], [1.5, 192], [2, 192], [3, 192], [1, 160]] as const) {
+      vi.stubGlobal('devicePixelRatio', ratio);
+      act(() => density.dispatchEvent(new Event('change')));
+      expect(canvas.width).toBe(pixels);
+      expect(canvas.height).toBe(pixels);
+      expect(context.drawImage).toHaveBeenLastCalledWith(expect.anything(), expect.any(Number), expect.any(Number), 192, 192, 0, 0, pixels, pixels);
+    }
     expect(request).not.toHaveBeenCalled();
     expect(animate).not.toHaveBeenCalled();
     await act(async () => { root.render(<button><AssistantRobot {...props} hovered clickSignal={1} /></button>); });
@@ -54,7 +65,7 @@ it('keeps a frontal still under reduced motion and cleans up visibility/animatio
     act(() => root.unmount());
     expect(bubbles.every(bubble => bubble.cancel.mock.calls.length > 0)).toBe(true);
     const calls = request.mock.calls.length;
-    document.dispatchEvent(new Event('visibilitychange')); reduced.dispatchEvent(new Event('change'));
+    document.dispatchEvent(new Event('visibilitychange')); reduced.dispatchEvent(new Event('change')); density.dispatchEvent(new Event('change'));
     expect(request).toHaveBeenCalledTimes(calls);
     expect(cancel).toHaveBeenCalled();
   } finally {

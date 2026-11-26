@@ -2,9 +2,9 @@
 
 Creator owns one workspace-local development connection in
 `.agent-ui/connection.local.json`. It contains `activeSource` (`mock` or
-`connected`) and an optional HTTP(S) AG-UI `endpoint`. A missing file triggers
-first-choice onboarding. Settings → Agent preserves the connected endpoint
-when selecting Mock. The store writes an exact `/connection.local.json` entry
+`connected`) and an optional HTTP(S) AG-UI `endpoint`. A missing file leaves the
+temporary connection disabled and uses the application's connection. Settings →
+Agent preserves the connected endpoint when selecting Mock. The store writes an exact `/connection.local.json` entry
 to `.agent-ui/.gitignore`; recordings remain shareable. Credentials in URL userinfo
 are rejected. Authentication secrets are not part of this contract.
 
@@ -16,8 +16,11 @@ and its origin must match the connected Host. Both direct and forwarding modes
 persist and use the resolved absolute URL. An unavailable Host URL fails explicitly;
 Creator's own origin is never a fallback. Server/store inputs remain absolute.
 
-The optional `enabled` flag defaults to true for existing settings. Turning off
-the temporary connection persists `enabled: false` while retaining the selected
+The optional `enabled` flag defaults to false, including existing settings that
+omit it. Only an explicit `enabled: true` activates the temporary connection;
+previously saved explicit choices survive reconnect/reload. Selecting “Use this
+address” or “Use demo Agent” enables it; changing the connection mode alone does
+not. Turning off the temporary connection persists `enabled: false` while retaining the selected
 source, endpoint and connection mode. The authenticated preview bridge clears its
 override and the Host resumes its application endpoint, history and session
 configuration. The choice survives reconnect/reload; selecting an address or Mock

@@ -31,7 +31,7 @@
 
 selectProps.size 是组件尺寸 sm/default，不是原生 select 展示行数。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalThemeSwitchPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -46,7 +46,7 @@ export function Example(props: ComponentProps<typeof CanonicalThemeSwitchPlugin>
 
 使用受控属性时，业务页面负责保存并应用主题。只改变选择框状态不会自动替你更新外层 Agent 的主题。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { CanonicalThemeSwitchPlugin, type AgentUITheme } from '@za38.03/agent-ui-plugins';
 
@@ -62,7 +62,7 @@ export function Example(props: ComponentProps<typeof CanonicalThemeSwitchPlugin>
 
 组件与服务位于同一 Agent，并声明 `agent-ui.theme` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';

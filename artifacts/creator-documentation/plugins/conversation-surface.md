@@ -9,31 +9,8 @@
 
 组合消息、欢迎内容、建议和输入区，复用已有 Conversation 生命周期。
 
-## 修改与启用
-
-
-### 修改位置 \{#修改位置}
-
-默认 npm 实现先修改项目的 `plugins/conversation-surface/index.tsx`，通过已有 props 和语义插槽组合界面。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
-
-| 修改场景                  | 文件                                    |
-| --------------------- | ------------------------------------- |
-| 插槽转发与插件组合             | `conversation-surface.tsx`            |
-| 主题容器与会话外层             | `surface.tsx`                         |
-| 默认欢迎标题、描述和空态组合        | `welcome.tsx`                         |
-| 消息区、输入区、滚动与临时通知的位置    | `thread/thread-layout.tsx`            |
-| 历史加载骨架、滚动到底部按钮与备用欢迎内容 | `thread/thread-empty-state.tsx`       |
-| 用户消息、引用和附件的排列         | `thread/user-message.tsx`             |
-| 助手消息及各类内容的展示          | `thread/assistant-message.tsx`        |
-| 工具与任务分组规则             | `thread/assistant-message-groups.tsx` |
-| 消息编辑输入框及取消、更新按钮       | `thread/message-edit-composer.tsx`    |
-| 消息操作与分支切换             | `thread/message-actions.tsx`          |
-| 回复底部操作区的位置            | `thread/response-footer-host.tsx`     |
-| 消息错误提示                | `thread/message-error.tsx`            |
-
-这些模块属于同一个插件实现，继续消费已有 Conversation Runtime；修改单个场景无需另行注册插件。
-
 ## 数据来源与显示条件
+
 
 ### 输入区与会话作用域
 
@@ -69,7 +46,7 @@ Composer 和它的附件、引用、提及、技能及发送入口需要使用�
 
 容器高度由业务页面提供。保留现有 Adapter 和插槽转发，外层使用 flex 布局时允许内容收缩。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSurfacePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -84,7 +61,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 
 打开对话区域后，光标留在业务页面原来的位置。欢迎文案在 application/locales.ts 的 conversation 域中配置；空 welcomeDescription 隐藏说明。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSurfacePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -102,14 +79,14 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 
 在项目 `plugins/conversation-surface/index.tsx` 给已有组件传入 `messageIdentity`：
 
-```tsx
+```tsx fold height=180
 // 关闭身份展示
 return <Implementation {...props} messageIdentity={false} />;
 ```
 
 也可以传 `{ fallback, render }`。`fallback` 是没有身份时使用的固定 `{ id, name, avatarUrl? }`；其名称来自项目文案。`render({ speaker, messageId })` 返回自定义身份头的 ReactNode，保留已有正文和消息交互。省略 `messageIdentity` 时，仅对携带合法身份的消息展示默认头部。
 
-`messageIdentity={false}` 不会清空取到的 `speaker`；fallback 不写入消息身份；后端明确返回 `speaker: null` 时，即使有 fallback 也隐藏身份头。配置影响展示，消息数据仍通过[统一取数入口](/development/message-speaker.md#前端取数)读取。
+`messageIdentity={false}` 不会清空取到的 `speaker`；fallback 不写入消息身份。后端返回 JSON `speaker: null` 时，表示切回配置的 fallback；未配置 fallback 时不显示身份头。`useConversation` 仍返回 `speaker: null`，不会把前端默认名称和头像写入消息数据。配置影响展示，消息数据仍通过[统一取数入口](/development/message-speaker.md#前端取数)读取。
 
 ### 读取当前会话 \{#hook}
 
@@ -129,7 +106,7 @@ selector 按 `Object.is` 比较结果，选中值不变时不会因其他数据�
 
 例如，工具栏“查看会话数据”按钮需要把当前消息交给业务详情面板：
 
-```tsx
+```tsx fold height=180
 import { useConversation, type ConversationThreadSnapshot }
   from '@za38.03/agent-ui-plugins';
 
@@ -185,7 +162,6 @@ export function InspectConversation({ label, onInspect }: {
 
 ## 常见问题
 
-
-传了 welcome 为什么没有显示？
+### 传了 welcome 为什么没有显示？ \{#传了-welcome-为什么没有显示}
 
 生成项目已配置 `emptyWelcome` 插槽时，插槽内容优先。修改该插槽里的组件，或在项目组合中调整它；单独传 welcome 不会替换已配置的插槽。

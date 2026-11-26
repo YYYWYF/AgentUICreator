@@ -30,12 +30,14 @@ import { reasoningChatScenario } from "./reasoning-chat.js";
 import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
 import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
 import { simpleChatScenario } from "./simple-chat.js";
+import { messageSpeakerScenario } from "./message-speaker.js";
 import { resumableAgentPlanScenario } from "./resumable-agent-plan.js";
 import { resumableLongRunScenario } from "./resumable-long-run.js";
 import { markdownShowcaseScenario } from "./markdown-showcase.js";
 import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
 import { toolErrorScenario } from "./tool-error.js";
 import { toolLongRunningScenario } from "./tool-long-running.js";
+import { toolResultStreamScenario } from './tool-result-stream.js';
 import type { MockScenario } from "../scenario.js";
 
 export {
@@ -72,12 +74,14 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
+  messageSpeakerScenario,
   resumableAgentPlanScenario,
   resumableLongRunScenario,
   markdownShowcaseScenario,
   subagentLifecycleScenario,
   toolErrorScenario,
   toolLongRunningScenario,
+  toolResultStreamScenario,
 };
 
 export const backendReferenceMockScenarios: MockScenario[] = [
@@ -88,10 +92,12 @@ export const backendReferenceMockScenarios: MockScenario[] = [
   multimodalInputScenario,
   concurrentConversationsScenario,
   simpleChatScenario,
+  messageSpeakerScenario,
   markdownShowcaseScenario,
   reasoningChatScenario,
   reasoningToolSuccessScenario,
   parallelToolsScenario,
+  toolResultStreamScenario,
   toolErrorScenario,
   approvalResumeScenario,
   approvalLegacyScenario,

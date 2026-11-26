@@ -100,7 +100,7 @@ data: {"type":"RUN_FINISHED","threadId":"thread-123","runId":"run-456","outcome"
 
 `AgentApplication` 和 `AgentUIApplication` 也支持相同的 `request` 属性。此配置用于 AG-UI 请求；历史、上传、转写和评价接口的鉴权需在各自的服务配置中设置，见[会话服务](/development/history-backend#地址与鉴权配置)和[业务服务接入总览](/development/service-integration#服务鉴权配置)。
 
-**Creator 开发预览当前会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此预览请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请关闭临时连接并在普通业务页面测试。
+**主动开启 Creator 临时连接后，会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此临时连接请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请保持临时连接关闭。
 
 ## 发送前准备请求
 
@@ -219,7 +219,7 @@ export function AssistantPage() {
 
 ## 临时连接测试
 
-在 Creator 的「设置 → 连接 Agent」中填写 AG-UI 地址，可临时连接 Agent 服务进行测试。**此设置仅在开发态生效，生产环境以应用代码中的 `endpoint` 配置为准。**
+Creator 默认使用应用代码中的 `endpoint`、`fetch` 等配置。需要临时测试时，在「设置 → 连接 Agent」中点击「使用此地址」或「使用示例 Agent」才会开启临时连接；只修改连接方式不会开启。已保存的明确开启或关闭状态会保留，旧配置未记录开启状态时默认关闭。**临时连接仅在开发态生效，生产环境以应用代码中的配置为准。**
 
 临时连接可填写完整 HTTP(S) 地址或相对路径。相对路径按**业务页面地址**解析，保存后显示并使用完整 URL，不会拼接 Creator 服务地址。
 

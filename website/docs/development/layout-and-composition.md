@@ -265,17 +265,13 @@ root：row（左右排列）
 
 只有需要增加新的放置位置或动态内容区域时，才继续配置。
 
-<details class="dev-guide-details" id="工作台右侧动态面板">
-<summary>工作台右侧动态面板</summary>
+### 工作台右侧动态面板 {#工作台右侧动态面板}
 
 需要在对话右侧打开多个内容、顶部标签切换并保留状态时，使用官方 [多内容侧栏](/plugins/workbench-panel)。AppUIModel 将原有完整对话实例放入容器的 `main`，通过内容子插槽放入自己的插件；标签与可打开的内容 ID 在项目侧栏入口中配置，具体接入与外部调用见该教程。
 
 展开、收起与关闭标签由侧栏服务控制，容器随状态调整分栏宽度，无需运行时修改 `row.sizes` 或重新生成 `app-ui.json`。本页下方的 `sidebar` 是侧栏导航布局节点；工作台右侧多标签面板由 `workbench-panel` 插件实现，两者使用各自的配置与状态。
 
-</details>
-
-<details class="dev-guide-details" id="插槽扩展">
-<summary>增加页面插槽或自定义插件内部插槽</summary>
+### 增加页面插槽或自定义插件内部插槽 {#插槽扩展}
 
 **插槽扩展的适用范围**
 
@@ -305,8 +301,6 @@ root：row（左右排列）
 没有操作时隐藏，窄屏允许换行。
 ```
 
-</details>
-
 ## 检查效果与维护定制 {#定制更新与检查}
 
 <span id="工程检查与页面验证"></span>
@@ -315,14 +309,11 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 渲染插件需要触发对应消息或工具调用才能检查；服务类插件要检查依赖它的功能。涉及布局时也检查窄屏、滚动和按钮可达性。
 
-<details class="dev-guide-details" id="定制与更新">
-<summary>后续升级时怎样保留定制</summary>
+### 后续升级时怎样保留定制 {#定制与更新}
 
 项目定制入口与官方实现分开维护。调整公开属性、组件组合和样式，是普通项目代码修改；只有需要维护官方实现源码时才接管，并先确认具体插件和范围。
 
 后续 **npm 依赖升级**与**已接管源码同步**是两个步骤。升级依赖应保留项目的配置和定制入口，接管后的本地实现也不会自动变成新版。需要采用官方改动时，按[更新日志](/updates/)另行处理。
-
-</details>
 
 **相关定制指南**
 
@@ -335,10 +326,9 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 ## 参考：插件、插槽与布局字段 {#高级布局字段与示例}
 
-按需要展开概念、插槽清单或具体布局示例。
+按需要查阅下面的概念、插槽清单或具体布局示例。
 
-<details class="dev-guide-details" id="插件概述">
-<summary>插件能做什么，以及怎样启用</summary>
+### 插件能做什么，以及怎样启用 {#插件概述}
 
 <span id="插件功能分类"></span>
 
@@ -373,10 +363,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 例如，语音按钮需要放进输入区并启用；图表插件还需要收到它支持的数据。**启用插件不会自动生成业务数据，也不会让 Agent 获得新的后端工具。**
 
-</details>
-
-<details class="dev-guide-details" id="插槽与子插件">
-<summary>插件怎样组合，以及常用插槽名称</summary>
+### 插件怎样组合，以及常用插槽名称 {#插槽与子插件}
 
 <span id="插槽定义与分类"></span>
 
@@ -437,8 +424,6 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 这不是完整清单，以项目中父插件的定义为准。JSON 里的 `slots` 只列出当前配置的位置，未写出的位置也可能可用。开发者可以从对应插件定义的 `manifest.slots.children` 查看完整声明，包括用途、数量和允许的插件能力。
 
-</details>
-
 以下字段写在 **AppUIModel 的 authoring JSON** 中：
 
 - 布局节点不填写运行时派生的 `id`／`slotId`；`stack` 使用 `activeIndex`。
@@ -446,8 +431,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 不要把 Renderer 的运行时结构复制回 `app-ui.json`。
 
-<details class="dev-guide-details" id="rowcolumn-与-panel">
-<summary>Row、Column 与 Panel</summary>
+### Row、Column 与 Panel {#rowcolumn-与-panel}
 
 | 节点／字段 | 用法 |
 | --- | --- |
@@ -461,10 +445,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 父级轨道与 Panel 尺寸会共同影响最终宽度；Panel 拖动不能代替父级 `sizes` 配置。百分比高度还要求业务容器有可用高度。内层组件的边距与按钮换行仍在项目组件代码里调整。
 
-</details>
-
-<details class="dev-guide-details" id="宽屏并排窄屏抽屉">
-<summary>宽屏并排、窄屏抽屉</summary>
+### 宽屏并排、窄屏抽屉 {#宽屏并排窄屏抽屉}
 
 假设现有 Row 的两个 children 依次为会话列表和聊天区。下面是 `root` 的结构示例；应用到现有工程时保留两项内部完整的 Plugin 配置与子插槽，不用简化示例覆盖它们：
 
@@ -494,10 +475,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 生成工程自带抽屉打开、关闭及 Esc 交互，按钮使用当前界面语言。直接集成 `LayoutRenderer` 时，抽屉文案通过 `drawerLabels` 提供，sidebar 展示通过 `renderSidebar` 配置。
 
-</details>
-
-<details class="dev-guide-details" id="stack选择一个内容区域">
-<summary>Stack：选择一个内容区域</summary>
+### Stack：选择一个内容区域 {#stack选择一个内容区域}
 
 `stack.activeIndex` 指向 children 中从 0 开始的位置。省略时显示第一项；显式索引必须小于 children 长度。下面显示第二项：
 
@@ -514,7 +492,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 `project-summary`、`project-details` 是示例中的项目自定义插件，需要先创建并注册。Stack 不生成切换按钮，默认只挂载当前分支。多个独立助手仍使用[多助手的受控显示](./multiple-agents#多助手与受控显示)。
 
-### 通过 Service 切换内容并保持挂载 {#stack-navigation}
+#### 通过 Service 切换内容并保持挂载 {#stack-navigation}
 
 从创建独立视图插件、扩展菜单到配置完整联动，见[功能菜单：菜单与右侧内容联动](/plugins/navigation-menu#content-switching)。
 
@@ -553,10 +531,7 @@ export function OpenView({ label }: { label: string }) {
 
 `keepMounted: true` 隐藏未选分支并隔离键盘焦点，保留 React 子树。聊天分支切走后会话、草稿和后台运行继续由 canonical Conversation Runtime 持有；移除分支或卸载整个 Agent 才结束相应生命周期。省略此属性时，未选分支会卸载。Renderer 只读取受控激活状态，服务及状态归 Runtime，不依赖菜单插件。
 
-</details>
-
-<details class="dev-guide-details" id="sidebar侧栏导航与主体">
-<summary>Sidebar：侧栏导航与主体</summary>
+### Sidebar：侧栏导航与主体 {#sidebar侧栏导航与主体}
 
 Sidebar 提供一组可选择的侧栏内容，`content` 是始终独立排列的主体。下面同样只展示布局结构，现有插件内部组合应保留：
 
@@ -602,11 +577,6 @@ Sidebar 提供一组可选择的侧栏内容，`content` 是始终独立排列�
 
 默认 Sidebar 展示适配会按其容器宽度自动选择内联侧栏或抽屉，不通过 `row.responsive` 配置，也不会自动持久化当前选项。切换侧栏内容不等于新建 Thread；不要把需持续挂载的助手或服务放在会被切换移除的侧栏内容里。
 
-</details>
-
-<details class="dev-guide-details" id="自定义外壳的入口">
-<summary>自定义外壳的入口</summary>
+### 自定义外壳的入口 {#自定义外壳的入口}
 
 改变整个助手的悬浮入口、固定位置、外框和收起动画时，编辑 `application/shell/`；改变外壳内的列表、聊天区和插件位置时，编辑本页的 AppUIModel。Shell 通过 `createAgentUIProject({ Shell })` 静态绑定，具体的组件、CSS、容器观察和保持后台运行示例见[自定义 Shell](./shell-customization)。
-
-</details>

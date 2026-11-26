@@ -61,7 +61,7 @@ title: "语音输入（开发中）"
 
 两种状态的按钮分别配置；示例不提供语音转写服务，现有开发状态不变。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationDictationActionPlugin } from '@za38.03/agent-ui-plugins/dictation-action';
 
@@ -78,7 +78,7 @@ export function Example(props: ComponentProps<typeof ConversationDictationAction
 
 业务未提供转写适配时，可按项目状态禁用入口。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerDictate } from '@za38.03/agent-ui-plugins';
 

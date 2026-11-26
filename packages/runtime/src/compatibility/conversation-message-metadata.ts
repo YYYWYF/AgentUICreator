@@ -47,6 +47,9 @@ export class ConversationMessageMetadataStore {
   private readonly pending = new Map<string, ConversationMessageMetadata>();
   private readonly blocked = new Set<string>();
   private readonly snapshotIds = new Set<string>();
+  private readonly runMessages = new Map<string, Date>();
+  private readonly endedTextIds = new Set<string>();
+  private speaker: { readonly value: unknown } | undefined;
   private runId: string | undefined;
   private revision = 0;
   private stops: Array<() => void> = [];
@@ -78,6 +81,9 @@ export class ConversationMessageMetadataStore {
         this.pending.clear();
         this.blocked.clear();
         this.snapshotIds.clear();
+        this.runMessages.clear();
+        this.endedTextIds.clear();
+        this.speaker = undefined;
         for (const message of this.thread.getState().messages) {
           if (message.role !== 'assistant' || (message.status?.type !== 'running' && message.status?.type !== 'requires-action')) {
             this.blocked.add(wireId(message));
@@ -86,6 +92,25 @@ export class ConversationMessageMetadataStore {
       },
       onEvent: ({ event, input }) => {
         if (this.runId !== input.runId || !this.thread.getState().isRunning) return;
+        const source = event as { messageId?: string; subagentRunId?: string; metadata?: unknown };
+        if (source.subagentRunId !== undefined) return;
+        const textEvent = event.type === 'TEXT_MESSAGE_START' || event.type === 'TEXT_MESSAGE_CONTENT' ||
+          event.type === 'TEXT_MESSAGE_END' || event.type === 'TEXT_MESSAGE_CHUNK';
+        if (textEvent && source.messageId && this.blocked.has(source.messageId)) return;
+        const metadata = record(source.metadata);
+        // Application identity is run-scoped. Other metadata keeps its protocol destination.
+        if (metadata && Object.hasOwn(metadata, 'speaker')) {
+          this.speaker = { value: structuredClone(metadata.speaker) };
+          if ((!textEvent || !source.messageId) && event.type !== 'MESSAGES_SNAPSHOT') {
+            const current = [...this.thread.getState().messages].reverse().find(message =>
+              message.role === 'assistant' && !this.blocked.has(wireId(message)));
+            if (current && ((!this.endedTextIds.has(wireId(current)) &&
+              (current.status?.type === 'running' || current.status?.type === 'requires-action')) ||
+              !Object.hasOwn(this.read(current), 'speaker'))) {
+              this.mergePending(current, { speaker: this.speaker.value });
+            }
+          }
+        }
         if (event.type === 'MESSAGES_SNAPSHOT') {
           // Snapshot messages already carry authoritative native metadata through the converter.
           const snapshot = event as { messages?: readonly { id: string; subagentRunId?: string }[] };
@@ -96,18 +121,11 @@ export class ConversationMessageMetadataStore {
           }
           return;
         }
-        if (event.type !== 'TEXT_MESSAGE_START' && event.type !== 'TEXT_MESSAGE_CONTENT' && event.type !== 'TEXT_MESSAGE_END') return;
-        const text = event as { messageId?: string; subagentRunId?: string; metadata?: unknown };
-        if (text.subagentRunId !== undefined || !text.messageId || this.blocked.has(text.messageId)) return;
-        const metadata = record(text.metadata);
-        if (!metadata || Object.keys(metadata).length === 0) return;
-        const current = this.thread.getState().messages.find(message => wireId(message) === text.messageId);
-        const supplement = current && this.supplements.get(current.id);
-        const existing = this.pending.get(text.messageId) ??
-          (supplement?.createdAt === current?.createdAt ? supplement?.metadata : undefined);
-        const next = { ...existing, ...structuredClone(metadata) };
-        if (existing && Object.keys(next).every(key => Object.is(existing[key], next[key]))) return;
-        this.pending.set(text.messageId, next);
+        if (textEvent && source.messageId && metadata && Object.keys(metadata).length > 0) {
+          const current = this.thread.getState().messages.find(message => wireId(message) === source.messageId);
+          this.mergePending(current ?? source.messageId, structuredClone(metadata));
+        }
+        if (event.type === 'TEXT_MESSAGE_END' && source.messageId) this.endedTextIds.add(source.messageId);
         this.sync();
       },
       onRunFinalized: ({ input }) => {
@@ -116,6 +134,9 @@ export class ConversationMessageMetadataStore {
         this.runId = undefined;
         this.pending.clear();
         this.snapshotIds.clear();
+        this.runMessages.clear();
+        this.endedTextIds.clear();
+        this.speaker = undefined;
       },
     };
     const subscription = this.agent.subscribe(subscriber);
@@ -129,15 +150,30 @@ export class ConversationMessageMetadataStore {
     this.runId = undefined;
     this.pending.clear();
     this.snapshotIds.clear();
+    this.runMessages.clear();
+    this.endedTextIds.clear();
+    this.speaker = undefined;
+  }
+
+  private mergePending(message: ConversationMessageMetadataTarget | string, metadata: ConversationMessageMetadata): void {
+    const id = typeof message === 'string' ? message : wireId(message);
+    const supplement = typeof message === 'string' ? undefined : this.supplements.get(message.id);
+    const existing = this.pending.get(id) ??
+      (typeof message !== 'string' && supplement?.createdAt === message.createdAt ? supplement.metadata : undefined);
+    this.pending.set(id, { ...existing, ...metadata });
   }
 
   private sync(): void {
     let changed = false;
-    for (const message of this.thread.getState().messages) {
+    const thread = this.thread.getState();
+    for (const message of thread.messages) {
       if (message.role !== 'assistant') continue;
       const previous = this.supplements.get(message.id);
       const sameMessage = previous?.createdAt === message.createdAt;
       const native = readNativeMessageMetadata(message);
+      const newRunMessage = this.runId !== undefined && thread.isRunning && !this.blocked.has(wireId(message)) &&
+        this.runMessages.get(message.id) !== message.createdAt;
+      if (newRunMessage) this.runMessages.set(message.id, message.createdAt);
       // Let upstream finish importing before withdrawing the old supplement, avoiding a blank header frame.
       if (this.snapshotIds.has(wireId(message)) && (!sameMessage || previous?.native !== native)) {
         this.supplements.delete(message.id);
@@ -146,7 +182,11 @@ export class ConversationMessageMetadataStore {
         continue;
       }
       const pending = this.pending.get(wireId(message));
-      const metadata = pending ?? (sameMessage ? previous.metadata : undefined);
+      let metadata = pending ?? (sameMessage ? previous.metadata : undefined);
+      if (newRunMessage && this.speaker && !Object.hasOwn(native, 'speaker') && !Object.hasOwn(metadata ?? {}, 'speaker')) {
+        metadata = { ...metadata, speaker: this.speaker.value };
+        this.pending.set(wireId(message), metadata);
+      }
       if (!metadata) continue;
       if (sameMessage && previous.metadata === metadata && previous.native === native) continue;
       this.supplements.set(message.id, {

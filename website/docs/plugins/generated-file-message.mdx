@@ -66,7 +66,7 @@ title: "生成文件（generated-file-message）"
 
 在已有文件消息插件入口调整留白，文件解析和成功条件继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { GeneratedFileMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/generated-file-message';
 
@@ -82,7 +82,7 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 
 `renderFile` 收到已校验、已组合的文件属性。复用默认文件展示时，原有类型识别和下载入口仍在：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { GeneratedFileMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/generated-file-message';
 import { ConversationFile } from '@za38.03/agent-ui-plugins';

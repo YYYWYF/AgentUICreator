@@ -64,7 +64,7 @@
 
 在已有任务组入口增加项目样式类，保留任务分组和运行环境的绑定：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -84,7 +84,7 @@ export function TaskGroupPlugin(props: ComponentProps<typeof Implementation>) {
 
 需要调整整组任务所在的布局时，在 `renderGroup` 中复用默认任务组：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';

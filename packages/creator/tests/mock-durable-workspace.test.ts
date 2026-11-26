@@ -26,6 +26,8 @@ it.each(["resumable-long-run", "resumable-agent-plan"])("isolates internal %s cr
   const a = { id: "workspace-A", projectRoot: path.join(root, "A") };
   const b = { id: "workspace-B", projectRoot: path.join(root, "B") };
   await mkdir(a.projectRoot); await mkdir(b.projectRoot);
+  await new ConnectionStore(a.projectRoot).save({ activeSource: "mock", enabled: true });
+  await new ConnectionStore(b.projectRoot).save({ activeSource: "mock", enabled: true });
   let selected = a;
   const mock = new CreatorMockService({ port: 0 }); services.push(mock);
   mock.setProjectResolver(() => selected);

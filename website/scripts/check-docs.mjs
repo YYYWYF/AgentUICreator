@@ -85,6 +85,14 @@ let localLinks = 0;
 for (const [name, file] of pages) {
   const markdown = read(file);
   const source = markdown.replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\s*$/gmu, '');
+  let disclosureDepth = 0;
+  for (const [tag] of source.matchAll(/<\/?details\b[^>]*>/gu)) {
+    if (tag.startsWith('</details')) disclosureDepth--;
+    else disclosureDepth++;
+    assert(disclosureDepth >= 0 && disclosureDepth <= 1,
+      `Use at most one disclosure level; show its contents directly: ${name}`);
+  }
+  assert.equal(disclosureDepth, 0, `Unclosed disclosure: ${name}`);
   for (const [, href] of source.matchAll(/!?\[[^\]]*\]\(([^\s)]+)\)/gu)) {
     if (!href.startsWith('.') && !href.startsWith('/') && !href.startsWith('#')) continue;
     const [target, anchor] = href.split(/#(.*)/su);
@@ -109,12 +117,15 @@ for (const [name, file] of pages) {
       .filter(([, , info]) => info.split(/\s/u).includes('ag-ui'))
       .map(([, , , code]) => code.trim().replace(/\r\n/gu, '\n')));
     const missingData = new Set(visibleData);
-    // Event streams remain plain code blocks; development examples use disclosures.
+    // Code is visible directly or inside one explicit disclosure, never nested.
     const disclosures = [];
     for (const match of html.matchAll(/<\/?details\b[^>]*>|<div\b[^>]*class="[^"]*\brp-codeblock(?:\s|")[^>]*>/gu)) {
       const [tag] = match;
       if (tag.startsWith('</details')) disclosures.pop();
-      else if (tag.startsWith('<details')) disclosures.push(!/\sopen(?:[\s=>])/u.test(tag));
+      else if (tag.startsWith('<details')) {
+        assert.equal(disclosures.length, 0, `Nested disclosure in built page: ${name}`);
+        disclosures.push(tag);
+      }
       else {
         const language = tag.match(/\blanguage-([\w-]+)/u)?.[1];
         const codeStart = html.indexOf('<code', match.index);
@@ -130,7 +141,6 @@ for (const [name, file] of pages) {
           ([undefined, 'json', 'text', 'plaintext'].includes(language) &&
             /"type"\s*:\s*"(?:CUSTOM|RAW|(?:RUN|TEXT_MESSAGE|TOOL_CALL|REASONING|STATE|ACTIVITY|MESSAGES|STEP|SUBAGENT)_[A-Z_]+)"/u.test(content));
         if (eventStream) assert.equal(disclosures.length, 0, `AG-UI events must use a plain visible code block: ${name}`);
-        else assert(disclosures.some(closed => closed), `Development code must be collapsed by default: ${name}`);
       }
     }
     assert.equal(missingData.size, 0, `AG-UI payload examples missing from built page: ${name}`);

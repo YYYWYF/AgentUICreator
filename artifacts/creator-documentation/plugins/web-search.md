@@ -59,7 +59,7 @@
 
 在已有搜索插件入口将列表限制为前 3 项，并设置滚动区域：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
 
@@ -77,7 +77,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 `renderSearch` 提供已解析的查询、结果和搜索状态。增加业务容器并复用默认展示，可以保留标题链接的处理与搜索状态：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
 import { WebSearch } from '@za38.03/agent-ui-plugins';

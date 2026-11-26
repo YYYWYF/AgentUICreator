@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-runtime",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Canonical Conversation runtime adapter for Agent UI frontends",
   "type": "module",
   "engines": {
@@ -63,7 +63,7 @@
     "@za38.03/agent-ui-renderer": "workspace:*"
   },
   "peerDependencies": {
-    "@za38.03/agent-ui-core": "0.0.12",
+    "@za38.03/agent-ui-core": "0.0.13",
     "react": ">=18 <20",
     "react-dom": ">=18 <20"
   },
@@ -694,6 +694,191 @@
                   "version": "0.0.12",
                   "summary": "Web Component 配置支持 beforeRequest，接入 Runtime 的异步发送前请求准备能力。",
                   "kind": "feature"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "agent-ui-2026-11-26-0.0.13",
+          "publishedAt": "2026-11-26T01:29:06.728Z",
+          "channel": "stable",
+          "node": ">=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 <21.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=22.0.0 <23.0.0-0 || >=20.0.0 >=20.0.0 >=20.0.0 >=20.0.0 >=24.22.1 <25.0.0-0",
+          "react": ">=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0 >=18.0.0 <20.0.0-0",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.13",
+              "requires": {},
+              "historyFrom": "0.0.12",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.13",
+              "requires": {},
+              "historyFrom": "0.0.12",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.13",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.13",
+                "@za38.03/agent-ui-renderer": "0.0.13"
+              },
+              "historyFrom": "0.0.12",
+              "changes": [
+                {
+                  "id": "backend-tool-default-renderer",
+                  "version": "0.0.13",
+                  "summary": "后端工具可省略 render，使用应用选择的默认工具卡片，支持 inline 和 standalone 展示。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "streamed-tool-results",
+                  "version": "0.0.13",
+                  "summary": "支持通过 CUSTOM / TOOL_CALL_STREAM_RESULT 展示工具执行中的部分结果，最终结果以 TOOL_CALL_RESULT 为准，并隔离不同会话、运行和工具调用。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "speaker-metadata-lifecycle",
+                  "version": "0.0.13",
+                  "summary": "修正消息身份在文本开始前到达、消息更新与历史加载时的保留和重置。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "history-load-failure-recovery",
+                  "version": "0.0.13",
+                  "summary": "历史加载失败后不再永久禁用输入，保留会话后续操作能力。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "approval-decision-scope",
+                  "version": "0.0.13",
+                  "summary": "审批提交校验当前请求与会话作用域，避免过期动作误提交到新的确认请求。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.13",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.13",
+                "@za38.03/agent-ui-renderer": "0.0.13",
+                "@za38.03/agent-ui-runtime": "0.0.13"
+              },
+              "historyFrom": "0.0.12",
+              "changes": [
+                {
+                  "id": "tool-card-component-customization",
+                  "version": "0.0.13",
+                  "summary": "工具卡片提供标题、入参、审批、结果、错误及各类媒体的独立组件替换和默认视图组合，保留框架交互与焦点处理。",
+                  "kind": "feature",
+                  "pluginId": "tool-result"
+                },
+                {
+                  "id": "tool-stream-presentation",
+                  "version": "0.0.13",
+                  "summary": "工具卡片展示流式部分结果，最终完成后收起详情，并保留受控展开状态与历史卡片的默认展开配置。",
+                  "kind": "feature",
+                  "pluginId": "tool-result"
+                },
+                {
+                  "id": "tool-approval-interaction",
+                  "version": "0.0.13",
+                  "summary": "完善审批备注、确认、重试、回执和只读状态下的交互保护。",
+                  "kind": "fix",
+                  "pluginId": "tool-result"
+                },
+                {
+                  "id": "manual-conversation-pagination",
+                  "version": "0.0.13",
+                  "summary": "会话列表改为手动加载更多，按接口分页顺序展示，并支持加载失败后重试。",
+                  "kind": "fix",
+                  "pluginId": "conversation-thread-list"
+                },
+                {
+                  "id": "message-identity-fallback",
+                  "version": "0.0.13",
+                  "summary": "修正助手身份回退与相邻消息去重，支持显式重置后使用默认身份。",
+                  "kind": "fix",
+                  "pluginId": "conversation-surface"
+                },
+                {
+                  "id": "assistant-shell-interaction",
+                  "version": "0.0.13",
+                  "summary": "更新助手浮窗模板的机器人与面板交互；已有项目自有 Shell 保持不变。",
+                  "kind": "fix"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.13",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.13",
+                "@za38.03/agent-ui-web-component": "0.0.13",
+                "@za38.03/agent-ui-plugins": "0.0.13",
+                "@za38.03/agent-ui-runtime": "0.0.13"
+              },
+              "historyFrom": "0.0.12",
+              "changes": [
+                {
+                  "id": "creator-conversation-completion",
+                  "version": "0.0.13",
+                  "summary": "Creator 可直接完成说明与交流，只有实际修改尝试或显式目标验证才要求变更结果证据，移除额外的请求分类模型调用。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "preview-agent-opt-in",
+                  "version": "0.0.13",
+                  "summary": "预览 Agent 连接需要明确启用，未启用时不转发真实或 Mock 请求。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "mock-stream-speaker-pagination",
+                  "version": "0.0.13",
+                  "summary": "Mock Agent 新增工具流式结果与消息身份演示，并提供会话分页样例。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "plugin-takeover-confirmation",
+                  "version": "0.0.13",
+                  "summary": "完善插件源码接管确认后的应用层导入切换与校验。",
+                  "kind": "fix"
+                },
+                {
+                  "id": "platform-workspace-placeholder",
+                  "version": "0.0.13",
+                  "summary": "平台初始化预设加入项目工作区占位，便于继续定制业务区域。",
+                  "kind": "feature"
+                },
+                {
+                  "id": "updated-plugin-documentation",
+                  "version": "0.0.13",
+                  "summary": "更新插件配置、工具卡片定制、消息身份、会话分页及接入说明，并同步随包离线文档。",
+                  "kind": "feature"
+                }
+              ]
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.13",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.13",
+                "@za38.03/agent-ui-runtime": "0.0.13",
+                "@za38.03/agent-ui-core": "0.0.13",
+                "@za38.03/agent-ui-renderer": "0.0.13"
+              },
+              "historyFrom": "0.0.12",
+              "changes": [
+                {
+                  "id": "bundled-agent-ui-updates",
+                  "version": "0.0.13",
+                  "summary": "随独立 Web Component 构建纳入本次 Runtime 与 Plugins 的工具展示、消息身份及会话交互更新。",
+                  "kind": "fix"
                 }
               ]
             }

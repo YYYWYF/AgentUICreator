@@ -20,7 +20,6 @@ import { preparePluginDirectory, projectPluginDirectory } from "../src/agent/plu
 import { assertInstanceRetention, cancelExecution, removalInstanceIds } from "../src/agent/execution-decision.js";
 import { namesRequestedPlugins } from "../src/agent/plugin-target-names.js";
 import { localModuleReferences } from "../src/agent/edit-context-sources.js";
-import { isJsonSchemaUnsupported } from "../src/agent/model-policy.js";
 
 const state = vi.hoisted(() => ({ model: undefined as any, inspect: vi.fn() }));
 vi.mock("../src/agent/config.js", () => ({ hostEnvironment: () => ({ CREATOR_AGENT_MODE: "domain-write", CREATOR_VERIFICATION_MODE: "static_only" }), createModel: () => state.model }));
@@ -565,17 +564,16 @@ it("refreshes first-call Plugin facts in each run rather than replaying old enab
   expect(state.inspect).toHaveBeenCalledTimes(2);
 });
 
-it("provides Plugin metadata before the first execution model call while keeping permission classification separate", async () => {
+it("provides Plugin metadata to the main Agent before its first model call", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) { expect(JSON.stringify(messages)).not.toContain("projectPlugins"); expect(JSON.stringify(messages)).not.toContain("applicationPath"); return new AIMessage('{"permission":"domain_write"}'); }
-    if (index === 1) {
+    if (index === 0) {
       const input = JSON.stringify(messages);
       expect(input).toContain("pluginDirectory"); expect(input).toContain("翻看之前聊过什么");
       expect(input).toContain("语音输入"); expect(input).toContain("not_composed"); expect(input).toContain(entry);
       return call("read_file", { file_path: entry }, "read-owner");
     }
-    return index === 2 ? call("edit_file", { file_path: entry, old_string: "48", new_string: "56" }, "edit-owner") : new AIMessage("done");
+    return index === 1 ? call("edit_file", { file_path: entry, old_string: "48", new_string: "56" }, "edit-owner") : new AIMessage("done");
   });
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "directory", runId: "directory-1", messages: [{ role: "user", content: "把输入框加高一点" }] }, context.signal, async event => { events.push(event); });
@@ -588,13 +586,12 @@ it("prefetches a uniquely named Plugin's fresh source and API before execution w
   const context = await project(); passingValidation();
   state.inspect.mockImplementation(async (_root, operation) => operation === "inspect_ui_plugin" ? inspectResult(context.root) : directoryFixture());
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) {
+    if (index === 0) {
       const data = JSON.stringify(messages);
       expect(data).toContain("editingContext"); expect(data).toContain("publicApi"); expect(data).toContain("inputProps"); expect(data).toContain("minHeight: 48");
       return call("edit_file_from_read", { file_path: entry, mode: "replace_lines", start_line: 1, replacement: original.replace("48", "56") }, "edit-prefetched");
     }
-    if (index === 2) return call("validate_creator_changes", { includeBuild: false }, "validate-prefetched");
+    if (index === 1) return call("validate_creator_changes", { includeBuild: false }, "validate-prefetched");
     return new AIMessage("Updated the input height and validated the changes.");
   });
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
@@ -602,7 +599,7 @@ it("prefetches a uniquely named Plugin's fresh source and API before execution w
   expect(events.filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallName)).toEqual(["edit_file_from_read", "validate_creator_changes"]);
   expect(await readFile(path.join(context.root, entry), "utf8")).toContain("minHeight: 56");
   expect(events.at(-1)?.result.completion).toBe("success");
-  expect(state.model.calls).toBe(4);
+  expect(state.model.calls).toBe(3);
 });
 
 it("keeps general file inspection usable when project Plugin discovery is unavailable", async () => {
@@ -620,7 +617,6 @@ it("keeps general file inspection usable when project Plugin discovery is unavai
 it("ends a cancelled purge without another model call, mutation, or confirmation", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   state.model = new ScriptedModel(index => [
-    new AIMessage('{"permission":"domain_write"}'),
     call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "purge"),
     call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations: [{ type: "remove_plugin", instanceId: "history-instance" }] }, "must-not-run"),
   ][index]!);
@@ -629,7 +625,7 @@ it("ends a cancelled purge without another model call, mutation, or confirmation
   await runtime.run({ threadId: "cancel-purge", runId: "purge-1", messages: [{ role: "user", content: "把会话历史连同源码删除" }] }, context.signal, publish);
   const pending = events.find(event => event.name === "on_interrupt").value;
   await runtime.run({ threadId: "cancel-purge", runId: "purge-2", messages: [], forwardedProps: { command: { resume: { interruptId: pending.id, answers: { "plugin-removal": ["cancel"] } } } } }, context.signal, publish);
-  expect(state.model.calls).toBe(2);
+  expect(state.model.calls).toBe(1);
   expect(runtime.pending.size).toBe(0);
   expect(state.inspect.mock.calls.every(([, operation]) => !["purge_ui_plugin", "mutate_app_ui_model"].includes(operation))).toBe(true);
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", noChangeOutcome: { status: "user_cancelled" }, receipt: { files: [] } } });
@@ -641,8 +637,7 @@ it("ends a cancelled purge without another model call, mutation, or confirmation
   state.model = new ScriptedModel(index => index === 0 ? call("read_file", { file_path: entry }, "new-read") : new AIMessage("checked"));
   await runtime.run({ threadId: "cancel-purge", runId: "purge-3", messages: [{ role: "user", content: "只读检查输入框文件" }] }, context.signal, publish);
   expect(events.at(-1).result.completion).toBe("success"); expect(state.model.calls).toBe(2);
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("read_file", { file_path: entry }, "fresh-read"),
+  state.model = new ScriptedModel(index => [call("read_file", { file_path: entry }, "fresh-read"),
     call("edit_file", { file_path: entry, old_string: "48", new_string: "56" }, "fresh-edit"), new AIMessage("changed"),
   ][index]!);
   await runtime.run({ threadId: "cancel-purge", runId: "purge-4", messages: [{ role: "user", content: "改主意了，把输入框高度改成56" }] }, context.signal, publish);
@@ -676,7 +671,6 @@ it.each([
     return fixture;
   });
   state.model = new ScriptedModel(index => [
-    new AIMessage('{"permission":"domain_write"}'),
     call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations }, "add-locale"),
     new AIMessage("Added the language control."),
   ][index]!);
@@ -687,7 +681,7 @@ it.each([
   expect(saved.find((item: any) => item.id === "attachment").enabled).toBe(!hideAttachment);
   expect(events.at(-1).result).toMatchObject({ completion: "success", receipt: { verification: { status: "changed-and-statically-verified" } } });
   expect(state.inspect.mock.calls.filter(([, operation]) => operation === "mutate_app_ui_model")).toHaveLength(1);
-  expect(state.model.calls).toBe(3);
+  expect(state.model.calls).toBe(2);
 });
 
 it.each([
@@ -715,13 +709,8 @@ it.each([
     expect(operation).toBe("inspect_ui_project"); return fixture;
   });
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) {
-      expect(JSON.stringify(messages)).not.toContain("projectPlugins");
-      expect(JSON.stringify(messages)).not.toContain("removalTarget");
-      return new AIMessage('{"permission":"domain_write"}');
-    }
-    if (index === 1) return call("inspect_ui_project", { view: "composition" }, "inspect-thinking");
-    if (index === 2) {
+    if (index === 0) return call("inspect_ui_project", { view: "composition" }, "inspect-thinking");
+    if (index === 1) {
       expect(JSON.stringify(messages)).toContain("p11");
       return call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations }, "replace-thinking");
     }
@@ -733,13 +722,12 @@ it.each([
   expect(events.at(-1).result).toMatchObject({ completion: "success", receipt: { verification: { status: "changed-and-statically-verified" } } });
   expect(state.inspect.mock.calls.filter(([, operation]) => operation === "mutate_app_ui_model")).toHaveLength(1);
   expect(JSON.parse(await readFile(path.join(context.root, file), "utf8"))).toContainEqual(expect.objectContaining({ id: "p11", enabled: false }));
-  expect(state.model.calls).toBe(4);
+  expect(state.model.calls).toBe(3);
 });
 
 it("lets the Agent ask about genuinely ambiguous project evidence without a Host-generated terminal reply", async () => {
   const context = await project(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
-    : index === 1 ? call("inspect_ui_project", { view: "composition" }, "inspect-unknown")
+  state.model = new ScriptedModel(index =>  index === 0 ? call("inspect_ui_project", { view: "composition" }, "inspect-unknown")
     : call("ask_user_question", { steps: [{ id: "feature", question: "你指的是哪个位置？", options: [{ id: "sidebar", label: "侧栏" }, { id: "message", label: "消息区" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "clarify-feature"));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "ambiguous", runId: "ambiguous-1", messages: [{ role: "user", content: "不要那个绘画历史面板" }] }, context.signal, async event => { events.push(event); });
@@ -751,8 +739,7 @@ it("lets the Agent ask about genuinely ambiguous project evidence without a Host
 
 it("keeps source purge behind its concrete confirmation for a natural feature description", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
-    : call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "propose-purge"));
+  state.model = new ScriptedModel(index =>  call("purge_ui_plugin", { pluginId: "history", appUIModelHash: "a".repeat(64), sourceStateHash: "b".repeat(64) }, "propose-purge"));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "purge-plan", runId: "purge-plan-1", messages: [{ role: "user", content: "把之前聊过的那些记录入口和源码移除" }] }, context.signal, async event => { events.push(event); });
   const question = events.find(event => event.name === "on_interrupt");
@@ -805,13 +792,12 @@ it("does not hide cancellation behind an unavailable Plugin directory", async ()
   expect(state.inspect).not.toHaveBeenCalled();
 });
 
-it("completes a consecutive edit with no model discovery/read call and recomputes read-only permissions on the next request", async () => {
+it("completes consecutive edits and answers the following inspection without classification", async () => {
   const context = await project(); passingValidation();
   state.inspect.mockImplementation(() => inspectResult(context.root));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   const run = (runId: string, content: string) => runtime.run({ threadId: "consecutive", runId, messages: [{ role: "user", content }] }, context.signal, async event => { events.push(event); });
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("inspect_ui_edit_context", { pluginId: "composer" }, "locate"),
+  state.model = new ScriptedModel(index => [call("inspect_ui_edit_context", { pluginId: "composer" }, "locate"),
     call("edit_file_from_read", { file_path: entry, mode: "replace_lines", start_line: 1, replacement: original.replace("48", "56") }, "edit-1"),
     new AIMessage("done"),
   ][index]!);
@@ -819,24 +805,22 @@ it("completes a consecutive edit with no model discovery/read call and recompute
   expect(events.at(-1)?.result.completion).toBe("success");
   const previous = events.length;
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
     expect(JSON.stringify(messages)).toContain("Host editing context");
     expect(JSON.stringify(messages)).toContain("minHeight: 56");
-    return index === 1 ? call("edit_file_from_read", { file_path: entry, mode: "replace_lines", start_line: 1, replacement: original.replace("48", "52") }, "edit-2") : new AIMessage("done");
+    return index === 0 ? call("edit_file_from_read", { file_path: entry, mode: "replace_lines", start_line: 1, replacement: original.replace("48", "52") }, "edit-2") : new AIMessage("done");
   });
   await run("second", "再降低4像素");
   expect(events.slice(previous).filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallName)).toEqual(["edit_file_from_read"]);
   expect(await readFile(path.join(context.root, entry), "utf8")).toContain("minHeight: 52");
   expect(state.inspect.mock.calls.filter(([, operation]) => operation === "inspect_ui_plugin")).toHaveLength(1);
-  expect(state.model.calls).toBe(3); // Includes the separate permission classifier.
+  expect(state.model.calls).toBe(2);
   state.model = new ScriptedModel((_index, messages) => { expect(JSON.stringify(messages)).toContain("minHeight: 52"); return new AIMessage("read only"); });
   await run("readonly", "只分析一下当前输入框");
-  expect(events.at(-1)?.result.executionPolicy).toBe("read-only");
-  expect(state.model.bound.every((names: string[]) => !names.includes("edit_file_from_read"))).toBe(true);
+  expect(events.at(-1)?.result.executionPolicy).toBe("domain-write");
+  expect(events.at(-1)?.result.receipt.files).toEqual([]);
   expect(visibleTool("inspect_ui_edit_context", { ...context, readOnly: true })).toBe(true);
   expect(await readFile(path.join(context.root, entry), "utf8")).toContain("minHeight: 52");
 });
-
 
 it("automatically follows an ordinary project inspection and config edit without a selected edit tool", async () => {
   const context = await project(), sessions = new EditingSessionStore(); passingValidation();
@@ -971,7 +955,7 @@ it("combines required source conditions with static validation without claiming 
 
 it("continues a multi-file implementation after an intermediate static pass", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  const calls = [new AIMessage('{"permission":"domain_write"}'),
+  const calls = [
     call("create_ui_source_file", { path: "src/应用/helpers/first.ts", content: "export const first = 1;" }, "first"),
     call("validate_creator_changes", {}, "midpoint"),
     call("create_ui_source_file", { path: "src/应用/helpers/second.ts", content: "export const second = 2;" }, "second"),
@@ -987,7 +971,7 @@ it("continues a multi-file implementation after an intermediate static pass", as
 it("keeps source-condition failures open until the remaining code is repaired", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   const file = "src/应用/helpers/flag.ts";
-  const sequence = [new AIMessage('{"permission":"domain_write"}'),
+  const sequence = [
     call("create_ui_source_file", {path:file,content:"export const flag = 1;"}, "create-flag"),
     call("validate_creator_changes", {postconditions:[{kind:"file_text",path:file,text:"flag = 2",present:true}]}, "check-flag"),
     new AIMessage("done"),
@@ -1015,9 +999,11 @@ it("does not let a committed source preview grant fresh edit-line ranges", async
   expect(JSON.parse(await lineEdit.invoke({file_path:entry,mode:"replace_lines",start_line:1,replacement:"changed"}))).toMatchObject({ok:false,error:{code:"READ_RANGE_REQUIRED"}});
 });
 
-it.each(["", "已完成"])("rejects a write completion with no project change even when the model says %s", async reply => {
+it.each(["", "已完成"])("rejects completion after a failed edit even when the model says %s", async reply => {
   const context = await project();
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}') : new AIMessage(reply));
+  state.model = new ScriptedModel(index => index === 0
+    ? call("edit_file", { file_path: entry, old_string: "missing text", new_string: "56" }, "failed-edit")
+    : new AIMessage(reply));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "empty", runId: "empty-1", messages: [{ role: "user", content: "把输入框加高" }] }, context.signal, async event => { events.push(event); });
   expect(events.at(-1)).toMatchObject({ result: { completion: "blocked", creatorRunOutcome: { status: "failed", code: "CREATOR_NO_COMPLETION_EVIDENCE", changeStatus: "none" } } });
@@ -1025,8 +1011,7 @@ it.each(["", "已完成"])("rejects a write completion with no project change ev
 
 it("accepts a controlled no-op instead of requiring unnecessary edits", async () => {
   const context = await project(); passingValidation();
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("read_file", { file_path: entry }, "read"),
+  state.model = new ScriptedModel(index => [call("read_file", { file_path: entry }, "read"),
     call("edit_file", { file_path: entry, old_string: "48", new_string: "48" }, "noop"), new AIMessage("已经是48")][index]!);
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "noop", runId: "noop-1", messages: [{ role: "user", content: "高度改成48" }] }, context.signal, async event => { events.push(event); });
@@ -1034,12 +1019,12 @@ it("accepts a controlled no-op instead of requiring unnecessary edits", async ()
   expect(await readFile(path.join(context.root, entry), "utf8")).toBe(original);
 });
 
-it("continues a prose-only write stop from actual completion evidence without changing the system prompt", async () => {
+it("continues a failed edit from actual completion evidence without changing the system prompt", async () => {
   const context = await project(); passingValidation();
   state.model = new ScriptedModel((index, messages) => {
     if (index === 3) { expect(JSON.stringify(messages)).toContain("Completion check: no project change"); expect(JSON.stringify(messages)).not.toContain("文件已新鲜读取，我直接改成56。"); }
-    return [new AIMessage('{"permission":"domain_write"}'),
-      call("read_file", { file_path: entry }, "read"),
+    return [call("read_file", { file_path: entry }, "read"),
+      call("edit_file", { file_path: entry, old_string: "missing text", new_string: "56" }, "failed-edit"),
       new AIMessage("文件已新鲜读取，我直接改成56。"),
       call("edit_file", { file_path: entry, old_string: "48", new_string: "56" }, "actual-edit"),
       new AIMessage("done")][index]!;
@@ -1048,7 +1033,7 @@ it("continues a prose-only write stop from actual completion evidence without ch
   await runtime.run({ threadId: "continue", runId: "continue-1", messages: [{ role: "user", content: "高度改成56" }] }, context.signal, async event => { events.push(event); });
   expect(events.at(-1)).toMatchObject({ result: { completion: "success" } });
   expect(await readFile(path.join(context.root, entry), "utf8")).toContain("minHeight: 56");
-  expect(events.filter(e => e.type === "TOOL_CALL_START").map(e => e.toolCallName)).toEqual(["read_file", "edit_file"]);
+  expect(events.filter(e => e.type === "TOOL_CALL_START").map(e => e.toolCallName)).toEqual(["read_file", "edit_file", "edit_file"]);
 });
 
 it("keeps logical working-set paths portable when sourceRoot uses Windows separators", async () => {
@@ -1076,20 +1061,17 @@ it("falls back to fresh Operator and validation checks when a project exceeds th
 
 it("accepts a fresh controlled file no-op without a whole-project cache fingerprint", async () => {
   const context = await project(); passingValidation(); await writeFile(path.join(context.root, "large-fixture.bin"), Buffer.alloc(1_000_001));
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("read_file", { file_path: entry }, "read"), call("edit_file", { file_path: entry, old_string: "48", new_string: "48" }, "noop"), new AIMessage("已是目标状态")][index]!);
+  state.model = new ScriptedModel(index => [call("read_file", { file_path: entry }, "read"), call("edit_file", { file_path: entry, old_string: "48", new_string: "48" }, "noop"), new AIMessage("已是目标状态")][index]!);
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "large-noop", runId: "large-noop-1", messages: [{ role: "user", content: "高度改成48" }] }, context.signal, async event => { events.push(event); });
   expect(events.at(-1)).toMatchObject({ result: { completion: "success", noChangeOutcome: { status: "already_current" } } });
 });
-
 
 it("does not swallow cancellation when cache fingerprinting falls back", async () => {
   const context = await project(), controller = new AbortController(); controller.abort(new Error("test cancellation"));
   await expect(inspectProject({ ...context, signal: controller.signal }, { view: "composition" })).rejects.toThrow("test cancellation");
   expect(state.inspect).not.toHaveBeenCalled();
 });
-
 
 it("rechecks validation when an existing warning becomes an explicit repair target", async () => {
   const context = await project(), debugging = new DebuggingEvidence();
@@ -1101,78 +1083,6 @@ it("rechecks validation when an existing warning becomes an explicit repair targ
   const targetId = staticTargetId(message);debugging.observeStatic({ revision: 0, diagnostics: [{ targetId, file: "src/warn.ts", message }] });debugging.select(targetId, 0);
   expect(await validation.validate({})).toMatchObject({ status: "failed", targetRemaining: [targetId] });
   expect(script).toHaveBeenCalledTimes(3);
-});
-
-it("uses structured permissions with the latest request separated from bounded historical data", async () => {
-  const context = await project();
-  const model = { invoke: vi.fn().mockResolvedValue(new AIMessage('{"permission":"domain_write"}')) };
-  state.model = model;
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
-  const messages = [
-    { role: "user", content: "old user request" }, { role: "assistant", content: "old reply" },
-    { role: "user", content: "改推荐问题" }, ...Array.from({ length: 10 }, () => ({ role: "assistant", content: "进度".repeat(5000) })),
-    { role: "user", content: "第二项再改短一点，其余不要动" },
-  ];
-  expect(await (runtime as any).classify(messages, "structured", context.signal)).toEqual({ readOnly: false });
-  const [input, options] = model.invoke.mock.calls[0]!;
-  expect(input).toHaveLength(2);
-  expect(options.response_format).toMatchObject({ type: "json_schema", json_schema: { strict: true, schema: { additionalProperties: false } } });
-  const data = JSON.parse(input[1].content);
-  expect(data.request).toBe(messages.at(-1)!.content);
-  expect(data.context).toHaveLength(2);
-  expect(data.context[1].assistant.length).toBe(2000);
-  expect(input[0].content).toContain("Never infer mutation authorization");
-});
-
-it.each([
-  Object.assign(new Error("response_format json_schema is not supported"), { status: 400 }),
-  Object.assign(new Error("400 Upstream request failed: [invalid_request_error] this feature is not yet supported by atlas (request_id: diagnostic)"), { status: 400 }),
-  new Error('Streaming response failed: [400] Grammar error: Unimplemented keys: ["uniqueItems"]'),
-])("falls back only for an explicitly unsupported schema format and still rejects invalid authorization: %s", async rejection => {
-  const context = await project();
-  const invoke = vi.fn().mockRejectedValueOnce(rejection)
-    .mockResolvedValueOnce(new AIMessage('{"permission":"inspect_read_only"}'));
-  state.model = { invoke };
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
-  expect(await (runtime as any).classify([{ role: "user", content: "现在是什么配置？" }], "fallback-schema", context.signal)).toEqual({ readOnly: true });
-  expect(invoke.mock.calls[1]![1].response_format).toEqual({ type: "json_object" });
-  invoke.mockReset().mockResolvedValue(new AIMessage('{"permission":"domain_write","approve":true}'));
-  await expect((runtime as any).classify([{ role: "user", content: "再改小一点" }], "invalid-schema", context.signal)).rejects.toThrow("CREATOR_REQUEST_ROUTE_INVALID");
-  expect(invoke).toHaveBeenCalledTimes(3);
-});
-
-it.each([401, 403, 429, 500])("does not treat status %s as a schema capability decision", status => {
-  expect(isJsonSchemaUnsupported(Object.assign(new Error("[invalid_request_error] this feature is not yet supported by gateway"), { status }))).toBe(false);
-});
-it("does not reinterpret an unrelated invalid request as unsupported structured output", () => {
-  expect(isJsonSchemaUnsupported(Object.assign(new Error("[invalid_request_error] unknown model"), { status: 400 }))).toBe(false);
-});
-
-it("honors a current read-only request even after historical edits and ignores unrelated-file exclusions", async () => {
-  const context = await project(), invoke = vi.fn().mockResolvedValue(new AIMessage('{"permission":"domain_write"}'));
-  state.model = { invoke };
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
-  expect(await (runtime as any).classify([{ role: "user", content: "把名称改掉" }, { role: "user", content: "现在只分析，先不要改代码" }], "read-only", context.signal)).toEqual({ readOnly: true });
-  for (const content of ["先查一下聊天历史按钮是哪个插件做的，只看别改", "选文件的加号对应哪个插件？只查看，不改。", "先看一下，不要动代码", "输入框旁边上传附件那个按钮用什么插件？先只告诉我。", "这件事先不改了，所有插件保持原样。", "先算了，保留现在所有功能，不做修改。", "先检查工具结果。\n不要修改任何文件。"]) {
-    expect(await (runtime as any).classify([{ role: "user", content }], "inspect-phrasing", context.signal)).toEqual({ readOnly: true });
-  }
-  expect(invoke).not.toHaveBeenCalled();
-  expect(await (runtime as any).classify([{ role: "user", content: "把名称改成小助手，其他文件不要改" }], "write", context.signal)).toEqual({ readOnly: false });
-});
-
-it.each([",", "，", "。", "\r\n"])("does not turn a source-ownership prohibition into a global write ban across %j", async separator => {
-  const context = await project();
-  const invoke = vi.fn().mockResolvedValue(new AIMessage('{"permission":"domain_write"}'));
-  state.model = { invoke };
-  const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts);
-  const messages = [{ role: "user", content: `请把 query_tickets 的结果改成工单卡片。不要接管官方源码${separator}不改 Host 或其他模板。` }];
-  expect(await (runtime as any).classify(messages, "scoped-prohibition", context.signal)).toEqual({ readOnly: false });
-  expect(invoke).toHaveBeenCalledTimes(1);
-  // Removing a false local veto does not grant authority: the classifier can
-  // still decide that the current request only permits inspection.
-  invoke.mockResolvedValue(new AIMessage('{"permission":"inspect_read_only"}'));
-  expect(await (runtime as any).classify(messages, "scoped-inspection", context.signal)).toEqual({ readOnly: true });
-  expect(invoke).toHaveBeenCalledTimes(2);
 });
 
 it.each(["\n", "\r\n"])("edits a freshly read middle line with native %j boundaries and preserves later lines", async eol => {
@@ -1203,8 +1113,7 @@ it("verifies already-absent/effectively disabled Plugins without edits, reads or
 
 it("finishes an already-satisfied write request with rechecked exact conditions and zero mutations", async () => {
   const context = await project(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("verify_creator_outcome", { checks: [{ kind: "plugin_enabled", pluginId: "dictation", enabled: false }, { kind: "file_text", path: entry, text: "minHeight: 48", present: true }] }, "verify"),
+  state.model = new ScriptedModel(index => [call("verify_creator_outcome", { checks: [{ kind: "plugin_enabled", pluginId: "dictation", enabled: false }, { kind: "file_text", path: entry, text: "minHeight: 48", present: true }] }, "verify"),
     new AIMessage("当前已经关闭，保留代码。")][index]!);
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "satisfied", runId: "satisfied-1", messages: [{ role: "user", content: "关闭语音输入并保持高度48" }] }, context.signal, async event => { events.push(event); });
@@ -1215,8 +1124,7 @@ it("finishes an already-satisfied write request with rechecked exact conditions 
 it("revokes a successful goal verification if the file changes before completion", async () => {
   const context = await project(); state.inspect.mockResolvedValue(directoryFixture());
   state.model = new ScriptedModel(index => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) return call("verify_creator_outcome", { checks: [{ kind: "file_text", path: entry, text: "minHeight: 48", present: true }] }, "verify-stale");
+    if (index === 0) return call("verify_creator_outcome", { checks: [{ kind: "file_text", path: entry, text: "minHeight: 48", present: true }] }, "verify-stale");
     return new AIMessage("already done");
   });
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
@@ -1240,7 +1148,8 @@ it("allows exact text verification without source-edit evidence and denies prote
 
 it("bounds unsupported completion retries across intervening read-only tool calls at the same revision", async () => {
   const context = await project();
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
+  state.model = new ScriptedModel(index => index === 0
+    ? call("edit_file", { file_path: entry, old_string: "missing text", new_string: "56" }, "failed-edit")
     : index % 2 ? new AIMessage("done") : call("read_file", { file_path: entry, offset: index, limit: 1 }, "read-" + index));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await runtime.run({ threadId: "stop-retries", runId: "stop-retries-1", messages: [{ role: "user", content: "高度改成56" }] }, context.signal, async event => { events.push(event); });
@@ -1270,7 +1179,7 @@ it("does not turn unavailable project evidence into an already-satisfied conditi
 
 it("allows static validation and outcome inspection together without allowing mutation batches", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'), new AIMessage({ content: "", tool_calls: [
+  state.model = new ScriptedModel(index => [new AIMessage({ content: "", tool_calls: [
     { name: "validate_creator_changes", args: { includeBuild: false }, id: "check-static", type: "tool_call" },
     { name: "verify_creator_outcome", args: { checks: [{ kind: "plugin_enabled", pluginId: "dictation", enabled: false }] }, id: "check-composition", type: "tool_call" },
   ] }), new AIMessage("已关闭，无需修改。")][index]!);
@@ -1282,7 +1191,7 @@ it("allows static validation and outcome inspection together without allowing mu
 
 it("does not admit a build beside other calls as a read-only validation batch", async () => {
   const context = await project(); passingValidation();
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}') : new AIMessage({ content: "", tool_calls: [
+  state.model = new ScriptedModel(index =>  new AIMessage({ content: "", tool_calls: [
     { name: "validate_creator_changes", args: { includeBuild: true }, id: "build", type: "tool_call" },
     { name: "read_file", args: { file_path: entry }, id: "read", type: "tool_call" },
   ] }));
@@ -1293,8 +1202,7 @@ it("does not admit a build beside other calls as a read-only validation batch", 
 
 it("executes a native ordinary file-edit batch in order with fresh per-step checks", async () => {
   const context = await project(); passingValidation();
-  state.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
-    call("read_file", { file_path: entry }, "read-serial"), new AIMessage({ content: "", tool_calls: [
+  state.model = new ScriptedModel(index => [call("read_file", { file_path: entry }, "read-serial"), new AIMessage({ content: "", tool_calls: [
       { name: "edit_file", args: { file_path: entry, old_string: "48", new_string: "56" }, id: "first-edit", type: "tool_call" },
       { name: "edit_file", args: { file_path: entry, old_string: "56", new_string: "60" }, id: "second-edit", type: "tool_call" },
     ] }), new AIMessage("done")][index]!);
@@ -1308,9 +1216,8 @@ it("executes a native ordinary file-edit batch in order with fresh per-step chec
 it("skips later native file edits after a failed batch step without executing them", async () => {
   const context = await project(); passingValidation();
   state.model = new ScriptedModel(index => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) return call("read_file", { file_path: entry }, "read-failed-batch");
-    if (index === 2) return new AIMessage({ content: "", tool_calls: [
+    if (index === 0) return call("read_file", { file_path: entry }, "read-failed-batch");
+    if (index === 1) return new AIMessage({ content: "", tool_calls: [
       { name: "edit_file", args: { file_path: entry, old_string: "not present", new_string: "56" }, id: "failed-edit", type: "tool_call" },
       { name: "edit_file", args: { file_path: entry, old_string: "48", new_string: "60" }, id: "skipped-edit", type: "tool_call" },
     ] });
@@ -1338,12 +1245,11 @@ it("keeps generated Vite cache out of transaction snapshots without bypassing li
 it("ends a non-recoverable Host capacity failure without inviting further model retries", async () => {
   const context = await project(); passingValidation(); state.inspect.mockResolvedValue(directoryFixture());
   vi.spyOn(RunActivity.prototype, "captureSource").mockRejectedValue(new Error("CREATOR_TRANSACTION_SNAPSHOT_TOO_LARGE"));
-  state.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}')
-    : call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "history-1", enabled: false }] }, "capacity-" + index));
+  state.model = new ScriptedModel(index =>  call("mutate_app_ui_model", { appUIModelHash: "a".repeat(64), operations: [{ type: "set_plugin_enabled", instanceId: "history-1", enabled: false }] }, "capacity-" + index));
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];
   await expect(runtime.run({ threadId: "capacity", runId: "capacity-1", messages: [{ role: "user", content: "隐藏会话历史入口" }] }, context.signal, async event => { events.push(event); })).rejects.toThrow("CREATOR_TRANSACTION_SNAPSHOT_TOO_LARGE");
   expect(events.filter(event => event.type === "TOOL_CALL_START")).toHaveLength(1);
-  expect(state.model.calls).toBe(2);
+  expect(state.model.calls).toBe(1);
 });
 
 it("edits a history-delete implementation through the real graph without an extra confirmation", async () => {
@@ -1354,14 +1260,13 @@ it("edits a history-delete implementation through the real graph without an extr
   await writeFile(path.join(context.root, target), original);
   state.inspect.mockImplementation(async (_root, operation) => operation === "inspect_ui_services" ? { services: [] } : directoryFixture());
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) return call("enable_creator_tools", { groups: ["services"] }, "service-tools");
-    if (index === 2) return call("read_file", { file_path: target }, "read-history");
-    if (index === 3) return call("prepare_ui_service_implementation_change", {
+    if (index === 0) return call("enable_creator_tools", { groups: ["services"] }, "service-tools");
+    if (index === 1) return call("read_file", { file_path: target }, "read-history");
+    if (index === 2) return call("prepare_ui_service_implementation_change", {
       implementationPath: "services/conversations/data-source.ts",
       edits: [{ oldText: "/conversations/", newText: "/history/" }], impactSummary: "修改单条历史会话删除路径，影响所有使用此实现的删除调用，保留其他历史操作。",
     }, "prepare-history");
-    if (index === 4) {
+    if (index === 3) {
       const result = JSON.parse(String([...messages].reverse().find(message => message.type === "tool")!.content));
       expect(result).toMatchObject({ ok: true, result: { status: "ready" } });
       return call("apply_ui_service_implementation_change", { planId: result.result.planId }, "apply-history");
@@ -1394,17 +1299,16 @@ it("resumes one joint development decision through LangGraph and writes its Plug
     deliveryContract: { capability: "dismiss", renderingCategory: "semantic-slot", placement: "composer.actions", lifecycle: "with composer", dependencies: ["help.card"], verificationMethod: "runtime" },
   };
   state.model = new ScriptedModel((index, messages) => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) return call("read_file", { file_path: "/" + entry }, "owner");
-    if (index === 2) return call("prepare_ui_plugin_development", proposal, "proposal");
-    if (index === 3) return call("enable_creator_tools", { groups: ["services"] }, "enable-services");
-    if (index === 4) return call("prepare_ui_service_contract_change", { changeKind: "create", serviceName: "help.card", contractPath: "services/help-card.ts", ownerPluginId: "composer", consumers: [{ pluginId: "dismiss", dependencyMode: "required" }], reason: "Share the requested action" }, "preflight-service");
-    if (index === 5) {
+    if (index === 0) return call("read_file", { file_path: "/" + entry }, "owner");
+    if (index === 1) return call("prepare_ui_plugin_development", proposal, "proposal");
+    if (index === 2) return call("enable_creator_tools", { groups: ["services"] }, "enable-services");
+    if (index === 3) return call("prepare_ui_service_contract_change", { changeKind: "create", serviceName: "help.card", contractPath: "services/help-card.ts", ownerPluginId: "composer", consumers: [{ pluginId: "dismiss", dependencyMode: "required" }], reason: "Share the requested action" }, "preflight-service");
+    if (index === 4) {
       const ready = JSON.parse(String([...messages].reverse().find(message => message.type === "tool")!.content));
       expect(ready.result.status).toBe("ready");
       return call("create_ui_service_contract", { planId: ready.result.planId, content: "export interface HelpCard { collapse(): void; }" }, "service");
     }
-    if (index === 6) return call("create_ui_plugin", { pluginId: "dismiss", files: [
+    if (index === 5) return call("create_ui_plugin", { pluginId: "dismiss", files: [
       { relativePath: "manifest.json", content: '{"id":"dismiss","name":"Dismiss","version":"0.0.1"}' },
       { relativePath: "definition.ts", content: "export default {};" }, { relativePath: "index.tsx", content: "export const Dismiss = () => null;" },
     ] }, "plugin");
@@ -1452,11 +1356,10 @@ it.each(["approve", "decline"])("uses the native source-takeover question for %s
     return directoryFixture();
   });
   state.model = new ScriptedModel(index => {
-    if (index === 0) return new AIMessage('{"permission":"domain_write"}');
-    if (index === 1) return call("enable_creator_tools", { groups: ["plugin_authoring"] }, "takeover-group");
-    if (index === 2) return call("takeover_plugin_source", { pluginId: "composer" }, "takeover");
-    if (index === 3) return call("read_file", { file_path: entry }, "owned-read");
-    if (index === 4) return call("edit_file", { file_path: entry, old_string: "minHeight: 48", new_string: "minHeight: 64" }, "owned-edit");
+    if (index === 0) return call("enable_creator_tools", { groups: ["plugin_authoring"] }, "takeover-group");
+    if (index === 1) return call("takeover_plugin_source", { pluginId: "composer" }, "takeover");
+    if (index === 2) return call("read_file", { file_path: entry }, "owned-read");
+    if (index === 3) return call("edit_file", { file_path: entry, old_string: "minHeight: 48", new_string: "minHeight: 64" }, "owned-edit");
     return new AIMessage("已接管并修改输入框。");
   });
   const runtime = new CreatorAgentRuntime(context.root, context.skills, contracts), events: any[] = [];

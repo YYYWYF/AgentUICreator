@@ -89,7 +89,7 @@
 
 用户停止输入 300ms 后执行候选搜索。实际查询仍由项目提供的 source 完成。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationMentionTrigger } from '@za38.03/agent-ui-plugins';
 

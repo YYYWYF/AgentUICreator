@@ -37,7 +37,7 @@ title: "账号信息与退出登录（auth-account）"
 
 hostUser 传入用户时显示业务身份；显式传 null 表示当前无业务用户，不回退到插件身份。此模式不显示插件自己的退出菜单。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -58,7 +58,7 @@ export function Example({ user, ...props }: Props & {
 
 只调整位置和大小，保留退出处理与已有用户快照。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -73,7 +73,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthAccountPlugin>
 
 组件与服务位于同一 Agent，并声明 `auth.session` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useAuthSession } from '../../services/hooks/useAuthSession';
 
 export function CurrentAccount() {
@@ -132,9 +132,6 @@ export function CurrentAccount() {
 
 ## 常见问题
 
-<details className="plugin-faq" id="为什么设置-hostuser-后没有退出菜单">
-<summary>为什么设置 hostUser 后没有退出菜单？</summary>
+### 为什么设置 hostUser 后没有退出菜单？ {#为什么设置-hostuser-后没有退出菜单}
 
 该模式把身份和退出流程交给业务 Host。业务页面提供自己的退出入口；需要插件登录服务的退出菜单时省略 hostUser。
-
-</details>

@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
   "packageName": "@za38.03/agent-ui-creator",
-  "packageVersion": "0.0.11",
+  "packageVersion": "0.0.12",
   "versions": {
-    "@za38.03/agent-ui-core": "0.0.11",
-    "@za38.03/agent-ui-renderer": "0.0.11",
-    "@za38.03/agent-ui-runtime": "0.0.11",
-    "@za38.03/agent-ui-plugins": "0.0.11",
-    "@za38.03/agent-ui-web-component": "0.0.11",
-    "@za38.03/agent-ui-creator": "0.0.11"
+    "@za38.03/agent-ui-core": "0.0.12",
+    "@za38.03/agent-ui-renderer": "0.0.12",
+    "@za38.03/agent-ui-runtime": "0.0.12",
+    "@za38.03/agent-ui-plugins": "0.0.12",
+    "@za38.03/agent-ui-web-component": "0.0.12",
+    "@za38.03/agent-ui-creator": "0.0.12"
   },
-  "sourceDigest": "b7088f7026c1207c162add08340dbe368a841394f5efb8d722c247e718f471a3",
+  "sourceDigest": "16aec15ae5371996957ae8bd88991a5ce9161da21ed2348c36dd1c3f76a48154",
   "files": [
     {
       "path": "agent-index.json",
-      "bytes": 263260,
-      "sha256": "e5b1fd88ec0f38b2164630e5ed2b7aeaa24dbd9687b962629e1daa490dfb6fd1"
+      "bytes": 284509,
+      "sha256": "6088e742fb448b307712675e9ae53bf173723aeba8e619802c18900608eafe73"
     },
     {
       "path": "creator-index.md",
@@ -29,8 +29,8 @@
     },
     {
       "path": "development/attachment-upload.md",
-      "bytes": 13035,
-      "sha256": "56433022cfc83b06c30f6e4231ccd2dd0f9f13b0865e81b84323548a3f434e52"
+      "bytes": 12780,
+      "sha256": "62b67cc8c5c6b867f9136ea9eb91d0c3ce70c6056a94375fd1cbea5c18b0884d"
     },
     {
       "path": "development/auth-service.md",
@@ -44,28 +44,28 @@
     },
     {
       "path": "development/component-customization.md",
-      "bytes": 35618,
-      "sha256": "78eb1234d7d750d073c33565a47c9ab47270caa095d856d5076ed3a922a2ea29"
+      "bytes": 34825,
+      "sha256": "a94a6f7b2856f7deae67606b4a60190641f726b7876df4a4d133667bdc783b66"
     },
     {
       "path": "development/composer-sources.md",
-      "bytes": 20097,
-      "sha256": "a3bc7d93ff9e6f154eeca71e5a4bb3d341aa41c663a0ae87c533b27e9c22ee39"
+      "bytes": 19704,
+      "sha256": "5792e4b1962f920d60ed055fa56a762e24b5629b9657d119d3961a49e76feae4"
     },
     {
       "path": "development/connect-agent.md",
-      "bytes": 13851,
-      "sha256": "9d8313d958dc603f92a5acdd46ba03c93134890b7f7d67ac82a3084d4467b20f"
+      "bytes": 14072,
+      "sha256": "551f0bd1d01eefccdfb84869fff0b14e72c0886c83332bcb6d7c0e8524dd1e74"
     },
     {
       "path": "development/create-plugin.md",
-      "bytes": 16711,
-      "sha256": "2179d01bb0edb94b1134faccce0bd0c201db4a0660ac9030706777c6ba5e51a3"
+      "bytes": 16627,
+      "sha256": "5942254c87ed235d5dbb9f787f7f8f4591c86277d1767a2e7939c57fcf85fb09"
     },
     {
       "path": "development/custom-ag-ui-events.md",
-      "bytes": 4494,
-      "sha256": "d59d4f4996e327d709ffca3b0ceabe446a18ef801f004d958c9ce8231fe378b2"
+      "bytes": 6596,
+      "sha256": "b7a52f2b9b7139afe14b4148500ac68124b2c5fd84075c00f6a0f9f0a64ca585"
     },
     {
       "path": "development/feedback-service.md",
@@ -74,13 +74,13 @@
     },
     {
       "path": "development/frontend-tools.md",
-      "bytes": 6948,
-      "sha256": "928dbdbb44b2db04cf8f90fcb7b1ce081c160364f9f7c5cc7c7808a4808f2335"
+      "bytes": 9693,
+      "sha256": "bebdf172cdff507c581d99a510e66a599d9d270306141620ab701cb186a2b026"
     },
     {
       "path": "development/history-backend.md",
-      "bytes": 21305,
-      "sha256": "35fb690e0228c5c9caa737dae0077697f0f78aca0cbf39e0459ca59c71f2991f"
+      "bytes": 20588,
+      "sha256": "371f478c7911c5626b9fee3bb3d2abbdd877f3698e3d97b825e8f9778ca1b382"
     },
     {
       "path": "development/index.md",
@@ -89,8 +89,8 @@
     },
     {
       "path": "development/layout-and-composition.md",
-      "bytes": 34353,
-      "sha256": "4303e2c09e8269f0b5c29118fd276442c475f950f98f02aea7b1580ae9d9a551"
+      "bytes": 33723,
+      "sha256": "72c5c0348a22ed12445bf7b3ca4b3d4efe5aa0b7adfb8c742729a29f63d8f9ad"
     },
     {
       "path": "development/locale-reference.md",
@@ -104,18 +104,18 @@
     },
     {
       "path": "development/message-speaker.md",
-      "bytes": 15110,
-      "sha256": "5d448b853bee6e3fa8bb1c5a20f721dcfbd99be76837624cdd36df7a9f2230ee"
+      "bytes": 16902,
+      "sha256": "8ce94867bfe6ed72d5a785a5e6a14323c10d8c99921eb43a887ee69c8a729962"
     },
     {
       "path": "development/multiple-agents.md",
-      "bytes": 19010,
-      "sha256": "7bb3ff9698ac819252621386ae6b11fe6f0b31beaf7e657587166ad3e58e692e"
+      "bytes": 18690,
+      "sha256": "02e81064b55232a21d94ae8f498d7ed7afecafb5a3c6e77fe9d430ec641a4811"
     },
     {
       "path": "development/plugin-api.md",
-      "bytes": 42823,
-      "sha256": "a4f88b38b9eacc2c3b67d493bbcc8c0dd8de777bce612adb728fa97316be2426"
+      "bytes": 42770,
+      "sha256": "2c4ab052f4cba36c29ea4552794ffe0baeae38c4bcd783004ea6ade480831cb7"
     },
     {
       "path": "development/plugin-bundling.md",
@@ -134,18 +134,18 @@
     },
     {
       "path": "development/react-host-api.md",
-      "bytes": 29304,
-      "sha256": "e439e5751662c1090fb74592272fc06a426578bd71367f81ec90cfe6c1842e9c"
+      "bytes": 29674,
+      "sha256": "6c0d844ecedabde30d17ed655d297b301b0cf80ac86f42b3d0d811c7d8514b84"
     },
     {
       "path": "development/react-host-control.md",
-      "bytes": 10044,
-      "sha256": "36c67c402e81a9c36ad24afea838f07fe192453e40e500c02c274087316c9af3"
+      "bytes": 9719,
+      "sha256": "f1a9c323dbd669882613c9b703690d19a4ab0d2f7ffb0cf9a4fe4c754e28c23a"
     },
     {
       "path": "development/react.md",
-      "bytes": 12355,
-      "sha256": "ce7465deec9959a3d1a043e1a2eba9916d9e956aaec53aa2385db5129d27f046"
+      "bytes": 12178,
+      "sha256": "5829e0b6f2e5412fc2813c78058e53bb4dfbd2f55ae639ff0a61a12861714568"
     },
     {
       "path": "development/service-integration.md",
@@ -159,8 +159,8 @@
     },
     {
       "path": "development/source-takeover.md",
-      "bytes": 2679,
-      "sha256": "5c84eb7b28e4b48ce64371b8cce9658d0b2f31b7df845efedb8efccabcb268a0"
+      "bytes": 2982,
+      "sha256": "36e6374a56e70fbe34e01203f066c0ab403a7bf2ffba182f50e77477445080ee"
     },
     {
       "path": "development/speech-to-text.md",
@@ -204,8 +204,8 @@
     },
     {
       "path": "guide/adjustments/index.md",
-      "bytes": 2670,
-      "sha256": "d17b4f960f0dbd0c8ff84b995dff1789e988b6da7708cb16cc5bcac34f823e0e"
+      "bytes": 2584,
+      "sha256": "fa2e807ef092ff0936a7816b137260b29555c54f8119719b015e5c4d120534a4"
     },
     {
       "path": "guide/adjustments/localization.md",
@@ -254,13 +254,13 @@
     },
     {
       "path": "guide/examples/brand-copy.md",
-      "bytes": 2433,
-      "sha256": "b1627b8bc832b3c502feb8ab832725c09c7c620d1c97870541bf73815ee605ad"
+      "bytes": 2390,
+      "sha256": "10ab4b9b6bea8a8fdfb7fd9ec04790915f520ab6238c8dfaedcfef2367b6f000"
     },
     {
       "path": "guide/examples/index.md",
-      "bytes": 3843,
-      "sha256": "5f8586fb6f339c6d6232cd71ff39808c12435d542795c3acc827a1c31d0d0742"
+      "bytes": 3800,
+      "sha256": "d5e23e63c9a62fc219d51608b196ae0271fc6d8ef0f65bda5192e43648328c4b"
     },
     {
       "path": "guide/examples/understand-project.md",
@@ -284,13 +284,13 @@
     },
     {
       "path": "llms-full.txt",
-      "bytes": 1070981,
-      "sha256": "364dff9ebffd8dccc6f0b7c08e9b5883946297a52e18fa233c83409eba4c7cd3"
+      "bytes": 1094633,
+      "sha256": "ddf4d4be5a073713e3777d2a833024f2dce18ec246f4e96512838134dd1428c7"
     },
     {
       "path": "llms.txt",
       "bytes": 19947,
-      "sha256": "c63c443ee3590443b80d214618f0b74cb7945a57392cf15815321afb1abfee81"
+      "sha256": "49402d494c39929a61d44893c6c54443e8f0e813f75024b6ec440a02b11ccd12"
     },
     {
       "path": "mock/builtin-scenarios.md",
@@ -314,8 +314,8 @@
     },
     {
       "path": "plugins/add-attachment-action.md",
-      "bytes": 6568,
-      "sha256": "096e31f13770e56be873d7862dfe263c775abfc25ca7d5e4e706116622bbcae9"
+      "bytes": 6606,
+      "sha256": "c4c23ff64e52a53a66fd30e3a55a010d183ff247b4928fdbae79676004fc47bc"
     },
     {
       "path": "plugins/ag-ui-data.md",
@@ -324,88 +324,88 @@
     },
     {
       "path": "plugins/agent-identity.md",
-      "bytes": 4893,
-      "sha256": "1eee3e74e75e74a5b8691c5acc6ff3b7af786e612168d8c16a56bd91e402fa98"
+      "bytes": 4925,
+      "sha256": "5b95954338856a3315af402463b7b140c47f176a078e7b0255452030bab2df4c"
     },
     {
       "path": "plugins/agent-plan-message.md",
-      "bytes": 6259,
-      "sha256": "69f517d521fb1199be23ced2a91c4414cdea1a4724a1189800b4ee6aa91ba14f"
+      "bytes": 6291,
+      "sha256": "8f5c34cc7d62b23a5045fe7f93dced6fa45e3f509d326db1df84ab92705fa0f4"
     },
     {
       "path": "plugins/agent-status-message.md",
-      "bytes": 5267,
-      "sha256": "acb8b723c82df5fb63b07086faf32d64b01fb9b9d61a91905dd5f620ed577718"
+      "bytes": 5299,
+      "sha256": "66045f921aae09a0e91cb9c362cf7514c884d3cd44a58b7d35e49e2021e48a64"
     },
     {
       "path": "plugins/ask-user-question.md",
-      "bytes": 17463,
-      "sha256": "3fb706c5d70fcd403911da9b9c97e8a0acc56d992d7d5d1b7b754b30329e2dcb"
+      "bytes": 17482,
+      "sha256": "e4112557385b6550ee3fa52c7154a0027a325d77d71e7fd69633470f7fe939b4"
     },
     {
       "path": "plugins/auth-account.md",
-      "bytes": 5664,
-      "sha256": "cd5013aaac84e8928a6f6ff69ad01a630ea69444de9da62fbe502511c2e110b8"
+      "bytes": 5766,
+      "sha256": "798eed9fd773dd9c4f924c5eed32a3420d5be2ec3be3b3ae868a80e2a795ac80"
     },
     {
       "path": "plugins/auth-gate.md",
-      "bytes": 9442,
-      "sha256": "4ae7786a632102811adcc27a15e0c16df4ae4b5181dfc3266fdf82d9ae67864b"
+      "bytes": 9490,
+      "sha256": "1de94fc025533e8b5c5367b996ab613d5757e30ea357f3c8be02c43d23e889d8"
     },
     {
       "path": "plugins/chart-message.md",
-      "bytes": 7103,
-      "sha256": "5bfd6cef76571b5bccac1fd165da0f07e07b36cb5228d8325cf0bde01023815b"
+      "bytes": 7135,
+      "sha256": "a61caf89169d2ebbe7f7256aee469d428bb45572144e86305f2224c2ca9d6669"
     },
     {
       "path": "plugins/composer.md",
-      "bytes": 37138,
-      "sha256": "785f030a7b2569ea4fb0f6e77cd909e18dbfaf786d6efc80b80352b3ec5bb80b"
+      "bytes": 37250,
+      "sha256": "ebefe29019b8515c94634167440c7eb10b0c99621c55517ca8dc2356731abd27"
     },
     {
       "path": "plugins/context-retrieval-message.md",
-      "bytes": 8580,
-      "sha256": "d9348431d8a58c0fd490d0b659916e43041f25ba0051d66dae78f46f6156557e"
+      "bytes": 8612,
+      "sha256": "bbc2f942e3dc3124415f1a8eedf74de002e3081788b76ad74ec261d5b77abe02"
     },
     {
       "path": "plugins/conversation-command-source.md",
-      "bytes": 6193,
-      "sha256": "d6aa5f3efab6a7ca964d59476b11a1e0fc478e9fa985594885ed9a2739fcd7b6"
+      "bytes": 6225,
+      "sha256": "ec706cfb769f28cbff5ea0817c5e1859eb8c269b7e625568b815d087f9a6d55a"
     },
     {
       "path": "plugins/conversation-data-source.md",
-      "bytes": 7277,
-      "sha256": "57b8735f0a184ea7ea940eaf9e7115ca49e9cc63a78e940fca7bd4a61e12f268"
+      "bytes": 7325,
+      "sha256": "d0f67cab84ea7452b4790718bca4a9c89a00f62673b5f78fddc01aaf29be6f3d"
     },
     {
       "path": "plugins/conversation-quote.md",
-      "bytes": 6410,
-      "sha256": "37f5fd49287f99b1011e3337e8bb9662f967e8dffab1f84e2c934cbf164aeed1"
+      "bytes": 6442,
+      "sha256": "c13fe9dc026a302c5c22069e3b372aff3e98ae72f3b07ffbe37a6f679b9b599a"
     },
     {
       "path": "plugins/conversation-service.md",
-      "bytes": 9826,
-      "sha256": "4f1fd867561eedc917b9c5f8c81c7e1b262061563397c9619818d271c6b95bef"
+      "bytes": 9874,
+      "sha256": "9fec226b7b5253f7f5eaf9d13495396222f22deb49466beb0b36bea9fff6d3f8"
     },
     {
       "path": "plugins/conversation-suggestions.md",
-      "bytes": 12733,
-      "sha256": "164a7d46c7baedbd298545306a9e697076564a9250f80891f7c56ee3e3e863df"
+      "bytes": 12882,
+      "sha256": "b057f149df437857a7d779246d700b5207cc4f83c43138d1100bb84dc2865da3"
     },
     {
       "path": "plugins/conversation-surface.md",
-      "bytes": 13359,
-      "sha256": "76eaa86437ff0675c69daeafb2b2f035d9dc9b0dc9e20287aa8c398040f3c0d4"
+      "bytes": 11986,
+      "sha256": "f9c14123d840694cd1249565f1b689694eb33e1c1acf84ec9e63abce04aaa555"
     },
     {
       "path": "plugins/conversation-thread-list.md",
-      "bytes": 21802,
-      "sha256": "7e2f32479d16d9cd9da3b2a826454da22cfaca2f7677e59c993c9d8157a3ed60"
+      "bytes": 21076,
+      "sha256": "c07cfa979f7eca1d93d76d51b97d4bb7492b58bba34ddf91237101c186c04eaa"
     },
     {
       "path": "plugins/copy-action.md",
-      "bytes": 4442,
-      "sha256": "ff9049e3baa3e6574ef5186f7096387fb7377ecade792398869e301fef0ccbee"
+      "bytes": 4474,
+      "sha256": "dfe4699c2c4bfc8fe0e48d910e94724903bc9a997cd16f29298f57f571017835"
     },
     {
       "path": "plugins/default-plugins.md",
@@ -414,23 +414,23 @@
     },
     {
       "path": "plugins/dictation-action.md",
-      "bytes": 5675,
-      "sha256": "41dfe918da685b14e614ca0b07dfa146f1f1f534850d06ab239935fb64012ac8"
+      "bytes": 5707,
+      "sha256": "57113d24d34be9b7c07d691feee10376b26d5dd34443bab8723553e881f2db37"
     },
     {
       "path": "plugins/export-markdown-action.md",
-      "bytes": 5362,
-      "sha256": "c8c2c4e7e1cf74a4eed53d343b936205ec73b2d96e0d69d0d8c24bec25e88958"
+      "bytes": 5410,
+      "sha256": "9cf4ef85493f93b544586b94a30a6731954350488046ee6dbc374c66bc6f6f6f"
     },
     {
       "path": "plugins/feedback-actions.md",
-      "bytes": 4500,
-      "sha256": "dea92c5bf202c839b173cfd30c26169dc4779752356de3f675531173492bc042"
+      "bytes": 4600,
+      "sha256": "7fced2f5c77aef02773377ace846faedd40db39f96727babd38c36a42787b232"
     },
     {
       "path": "plugins/generated-file-message.md",
-      "bytes": 5628,
-      "sha256": "51835173f4c3b741ab040a18726ee153340df49659c1284ae2e4b40eb63ab9e9"
+      "bytes": 5660,
+      "sha256": "b064810a603ffa0cb6c0364800615595b88be070e7f918cb4bd64ed8c1cde9ae"
     },
     {
       "path": "plugins/index.md",
@@ -439,118 +439,118 @@
     },
     {
       "path": "plugins/job-progress-message.md",
-      "bytes": 8460,
-      "sha256": "c2038707a6a1656c5cd0ff52e98c9f9d15e9b97c7c8b1089009bd3761255d501"
+      "bytes": 8492,
+      "sha256": "e57db1196add4409271d26da1e5e973d33e4d8a5802b00dc424f3cb02cff3795"
     },
     {
       "path": "plugins/lexical-composer-input.md",
-      "bytes": 9347,
-      "sha256": "e1796ab9b67e2ecf24517974a6f13daf093101307cc26f0ce9d830bf45dcd827"
+      "bytes": 9395,
+      "sha256": "eccc055fc55d3808d8bea33b41ff7c55aa33efec60fd8960cafac64520d6c612"
     },
     {
       "path": "plugins/lexical-edit-composer.md",
-      "bytes": 9453,
-      "sha256": "2944aac93f4ccc1aa5707380a9d8acd2f19d8f120fa74932f9375e0c2e1aa773"
+      "bytes": 9485,
+      "sha256": "558993174b7a1b28578a8fead7f487e3e7ca035708497ffdcc2322b9d8f7545f"
     },
     {
       "path": "plugins/locale-provider.md",
-      "bytes": 4780,
-      "sha256": "66ca70bf8993c28ec0d116b43d9cfabf2e299ba4d6dd05e7225a8ba6f149363d"
+      "bytes": 4828,
+      "sha256": "19b53c743b7f6f73a8dfa36645a0cbf91561b0fd03505b952f351666dee3d81d"
     },
     {
       "path": "plugins/locale-switch.md",
-      "bytes": 5512,
-      "sha256": "ae74d4c5594c2e1719234123b1b19b52df9022a46cc0f0c049f93d738378ef0c"
+      "bytes": 5560,
+      "sha256": "33d343355dbef8cb6727bdfc1233d5d5c1391220caefb689538972f7c6a0bd7b"
     },
     {
       "path": "plugins/mention-trigger.md",
-      "bytes": 6886,
-      "sha256": "6d764228b12b643efa150ac2ec3e59bbdcb7a96096b76e9cbe09466547d5fae7"
+      "bytes": 6902,
+      "sha256": "58d1279c88853e2609978fdd764e1112c9f2e96a5bb25f2a99e0c9179a7cbcfd"
     },
     {
       "path": "plugins/navigation-menu.md",
-      "bytes": 7438,
-      "sha256": "aedb26822d7711e7411ce367933c2e67bfb454399a65dbffc0dda5e79561acd9"
+      "bytes": 7466,
+      "sha256": "7d3d3fa332a27cfaaee59dec30f689ee4509477cb2383529ddd70aa34a42b401"
     },
     {
       "path": "plugins/reasoning.md",
-      "bytes": 7952,
-      "sha256": "8082be6c198b3dd10ec83e30564948d774e77af08e79c276aa672cbf0a080124"
+      "bytes": 8036,
+      "sha256": "00bd2c41e96ede142313eb5e20092725c12856deda87a3a732e8d99de005ff0e"
     },
     {
       "path": "plugins/reload-action.md",
-      "bytes": 4821,
-      "sha256": "286c5d5b552ac6ee11a327926fca1d5ee02a5bfbe8a652e2dec413902c7568d1"
+      "bytes": 4869,
+      "sha256": "dea4be2961aeeb20142c47231e71174a714c60b9ed26faa7014128429c3ffa82"
     },
     {
       "path": "plugins/response-footer.md",
-      "bytes": 9586,
-      "sha256": "37457fb129ad2e4afa6fedd7cdb03b42ac129c0a0ac46fa911be1ceb1feb3856"
+      "bytes": 9706,
+      "sha256": "3570b308109a38d6894aad4751a81a5d24c940c7e5ef13cc1cfe7357fac81c55"
     },
     {
       "path": "plugins/retrieval-chunks.md",
-      "bytes": 7258,
-      "sha256": "b47b59c1d5ee3ca295c23da98428978083f851b0edb320f36170a3040a7d0a6e"
+      "bytes": 7290,
+      "sha256": "1585335a3249466092703ce80a94488d1889ede3c410e8740e4b5dfc8b257bac"
     },
     {
       "path": "plugins/skills-selection.md",
-      "bytes": 3479,
-      "sha256": "2f722b608cb675bd40a684b3dab086b5c219a14c6942386f984ad8d9014956da"
+      "bytes": 3495,
+      "sha256": "3647362b585f92c7ddf81c163edf9c54ea79662e1de013c29204ebb937926b68"
     },
     {
       "path": "plugins/skills.md",
-      "bytes": 10899,
-      "sha256": "9cbf1dd092bca8d3c775522cc7b763f9685220029e0280f4eeb05f435bdbb7ab"
+      "bytes": 10947,
+      "sha256": "f04ca2702d728f318c36de6510fa6bc9a64d4202a33e53c52225c0b6beed6c2b"
     },
     {
       "path": "plugins/slash-command-trigger.md",
-      "bytes": 7941,
-      "sha256": "fe8434844ed599f24e619bf2abd47ca498625eb1c96a30616838f048096e9452"
+      "bytes": 7957,
+      "sha256": "e9ed9e305a3045eb30a96580c76c8a9770f68f3a9c49597489666150c74c0185"
     },
     {
       "path": "plugins/source-citations-message.md",
-      "bytes": 7870,
-      "sha256": "a4429f74e1b8b0603982810459c4ffa5eedb47f129f1625e67b01cc8a29568aa"
+      "bytes": 7902,
+      "sha256": "185ab51012a74590b1a7e0f3e05a2f38ba7a3e8d527a524c429e1e9ca71bf1f2"
     },
     {
       "path": "plugins/submit-action.md",
-      "bytes": 6656,
-      "sha256": "08b931f5c5ad892c1714473311131e03fe235267b38ed979d2984745ef9ec608"
+      "bytes": 6688,
+      "sha256": "cfc951fba4dd4cfeb9a455628fc227e50dfc63fa58008fe8944764ea2b838b7d"
     },
     {
       "path": "plugins/task-group.md",
-      "bytes": 8482,
-      "sha256": "10ed62fdadfdbc5e1fcdc2cbded228c8ff0a2a9f9c9789786718017c928f7a01"
+      "bytes": 8514,
+      "sha256": "2c0e2c735b9ef486788874b4e2d5d275948e9aebcdaf69d0158f3e03cd0418e4"
     },
     {
       "path": "plugins/theme-provider.md",
-      "bytes": 4417,
-      "sha256": "96e8fb7c0ca184d6a67935073c3cee4a846cec1040338251f2a6cf9d544e6e06"
+      "bytes": 4465,
+      "sha256": "3de42e8118abb914fa1a7501c08ad9f80d50e7fbcfbc58d125ebb6786f948a45"
     },
     {
       "path": "plugins/theme-switch.md",
-      "bytes": 5417,
-      "sha256": "1ab3ef83671d750415f873c4eb69a213b61fa387717f10659b5c2c58d4a38556"
+      "bytes": 5465,
+      "sha256": "3a03915dcd5c4fd4010793637b44699dad9bb38d85b2d43df239bb397849d374"
     },
     {
       "path": "plugins/thinking-indicator.md",
-      "bytes": 5030,
-      "sha256": "a6ce887ebb835ff8833abfb22eb9aead2db4b5cf1bad273e70459d66942c8ac6"
+      "bytes": 5046,
+      "sha256": "692f30e68687c0e566219085215ca655d787fa10ab4f438efd48add12d3f58d0"
     },
     {
       "path": "plugins/tool-group.md",
-      "bytes": 7943,
-      "sha256": "1297d3d9f1c94b93516379d6409f7cb5939384b497492e7576fc8cc810b05e1f"
+      "bytes": 8027,
+      "sha256": "688148b7a73658f531f86a304bc3aa811bab41c2c5d9c8552a89ee60daf44a95"
     },
     {
       "path": "plugins/tool-result.md",
-      "bytes": 12390,
-      "sha256": "a62c8a270ea960a620a970e83b5eee7cae98c43528856c4f1290d012f2cdfc6f"
+      "bytes": 32504,
+      "sha256": "9fdc0e2acf44f50b6b3e251d42cdb45862f3ffff203766eec771a135ecb38889"
     },
     {
       "path": "plugins/tool-timeline.md",
-      "bytes": 5762,
-      "sha256": "8062caf3fe5244e907328904ddb342ec11f6bf2179386f98811ca5c15fe7c1b8"
+      "bytes": 5778,
+      "sha256": "90ccf80e8607701160f718106e1be34e365183e761dbe45e617e48fe89cff4c0"
     },
     {
       "path": "plugins/transient-assistant-messages.md",
@@ -559,13 +559,13 @@
     },
     {
       "path": "plugins/web-search.md",
-      "bytes": 6886,
-      "sha256": "c4c5f43f1497f20dd681aa9fa937b7ce680170fb6f376b1988d1c58eb34b8594"
+      "bytes": 6918,
+      "sha256": "8f6f6bb4e945ff23a35ca4c51d1c4d6fd9e08320037fc87bcca897c0946b6d5f"
     },
     {
       "path": "plugins/workbench-panel.md",
-      "bytes": 12566,
-      "sha256": "c919ce550168e40a4925806a1cca1cbd452345694213492f67e82d1abd2d291a"
+      "bytes": 12601,
+      "sha256": "0c5b56f0cebec4b3019a30f28f4dca648e3d26ee977af78754a659d407b65d52"
     },
     {
       "path": "references/docs/agent-ui-plugin-creator-launch-plan.md",
@@ -574,8 +574,8 @@
     },
     {
       "path": "references/docs/architecture/agent-connection-preview-source.md",
-      "bytes": 10545,
-      "sha256": "5a3a04b7d130a052b37079934627046736c54ddf60847e4cdb5fcd29d45733e4"
+      "bytes": 10855,
+      "sha256": "316b0dae9a565e5304aa29f25713364d89140d6a4e7ef8f724ac1577f6ae07a2"
     },
     {
       "path": "references/docs/architecture/assistant-response-footer.md",
@@ -639,13 +639,13 @@
     },
     {
       "path": "references/docs/architecture/npm-default-plugin-source-ownership.md",
-      "bytes": 39719,
-      "sha256": "081663939d243a2ed464f5c0a851ebeba9f26e067be6ea420df11559f9bc9061"
+      "bytes": 40047,
+      "sha256": "bf41aebf9a23b9bec97b70816b1506e23654358add88a0e6ab4313d4affb6547"
     },
     {
       "path": "references/docs/architecture/p3r-0-assistant-ui-conversation-domain-rebaseline.md",
-      "bytes": 11908,
-      "sha256": "aabff7e23fee227edfc8c9d834574971fef338aee7e514581c2df7cb9770b4d9"
+      "bytes": 13437,
+      "sha256": "65c3143d371a3a49d056075e230ee9c48168286607ed7cccb78602a27437e80d"
     },
     {
       "path": "references/docs/architecture/plugin-authoring-contract.md",
@@ -659,8 +659,8 @@
     },
     {
       "path": "references/docs/architecture/plugin-public-props.md",
-      "bytes": 9684,
-      "sha256": "3a4309a6b51488aabd58983b09a7f183088721864fd618eaffc3044a05102bf8"
+      "bytes": 9970,
+      "sha256": "dbf2e31292aee3784bc3a87176b594dc36b65774a48aa66d04bacc12c6b3d5e2"
     },
     {
       "path": "references/docs/architecture/scoped-renderer-plugin.md",

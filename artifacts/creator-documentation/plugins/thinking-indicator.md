@@ -58,7 +58,7 @@
 
 在原有插件入口收紧上下留白，继续使用所在消息传入的展示状态和插件自己的显示判断：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationThinkingIndicatorPlugin as Implementation } from '@za38.03/agent-ui-plugins/thinking-indicator';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';

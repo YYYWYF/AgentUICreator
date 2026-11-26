@@ -67,7 +67,7 @@ title: "图表展示（chart-message）"
 
 在项目已有图表消息入口格式化数值文字，条形比例仍使用原始数值计算：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
 import { useLocaleCode } from '@za38.03/agent-ui-plugins';
@@ -85,7 +85,7 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 
 `renderChart` 接收已校验的数据。需要精确比较数值时，可以替换整个默认图表：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
 

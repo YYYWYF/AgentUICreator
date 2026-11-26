@@ -70,6 +70,8 @@ import { HostThreadNavigation } from "./host/ConversationThreadNavigation.js";
 import type { AgentUIBeforeRequest } from "./before-request.js";
 import { installConversationBeforeRequest } from "./compatibility/conversation-before-request.js";
 import { ConversationMessageMetadataStore } from './compatibility/conversation-message-metadata.js';
+import { ConversationToolResultStore } from './compatibility/conversation-tool-results.js';
+import { withStreamedToolResults } from './tools/streamed-tool-renderer.js';
 
 export interface ConversationAgentFactoryConfig {
   endpoint: string;
@@ -211,7 +213,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     () => frontendTools?.getRevision() ?? 0,
   );
   const resolvedToolkit = useMemo(
-    () => createAssistantUiFrontendToolkit(frontendTools, toolkit),
+    () => withStreamedToolResults(createAssistantUiFrontendToolkit(frontendTools, toolkit)),
     [frontendTools, toolkit, toolRevision],
   );
   // Updating presentation/adapters must update mounted threads, not replace the
@@ -293,20 +295,13 @@ export function ConversationRuntimeProvider<TState = unknown>({
     // upstream publishes the tool cancellation receipt and attempts continuation.
     useAuiEvent("composer.cancel", () => toolContinuation.cancel());
     useLayoutEffect(() => () => toolContinuation.cancel(), [toolContinuation, frontendTools]);
-    const [historyFailed, setHistoryFailed] = useState(false);
     const resumeRef = useRef<ConversationRunResume | undefined>(undefined);
     const history = useMemo<ThreadHistoryAdapter>(() => ({
       async load() {
         resumeRef.current = undefined;
         submittedMessagesRef.current.clear();
-        let loaded: ConversationLoadedThread<TState>;
-        try {
-          loaded = item.remoteId === undefined ? { messages: [] } :
-            await (threadBinding.loadThread?.(owner.getId()) ?? threadBinding.selectThread?.(owner.getId()) ?? Promise.resolve({ messages: [] }));
-        } catch (error) {
-          setHistoryFailed(true);
-          throw error;
-        }
+        const loaded: ConversationLoadedThread<TState> = item.remoteId === undefined ? { messages: [] } :
+          await (threadBinding.loadThread?.(owner.getId()) ?? threadBinding.selectThread?.(owner.getId()) ?? Promise.resolve({ messages: [] }));
         const messages = loaded.messages.map(message => message as unknown as ThreadMessage);
         inputController?.onHistoryLoaded?.(owner.inputSessionId, messages);
         for (const message of messages) {
@@ -379,7 +374,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       }
     }, [getRunContext]);
     const runtime = useAgUiRuntime({
-      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
+      agent, isDisabled, showThinking: true, unstable_enableMessageQueue: false,
       resumeTranscript: "appended",
       ...(readRunContext === undefined ? {} : { getRunContext: readRunContext }),
       adapters: {
@@ -398,6 +393,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
     });
     nativeRuntimeRef.current = runtime;
+    const toolResults = useMemo(() => new ConversationToolResultStore(agent, runtime.thread), [agent, runtime]);
+    useLayoutEffect(() => {
+      toolResults.start();
+      return () => toolResults.stop();
+    }, [toolResults]);
     const messageMetadata = useMemo(() => new ConversationMessageMetadataStore(agent, runtime.thread), [agent, runtime]);
     useLayoutEffect(() => {
       messageMetadata.start();
@@ -439,9 +439,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
     }), [runtime, ownedBinding, applicationEvents, commandForwarder, toolContinuation]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
-      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding, inputSessionId: owner.inputSessionId, messageMetadata,
+      agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding, inputSessionId: owner.inputSessionId, messageMetadata, toolResults,
       ...(frontendTools === undefined ? {} : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
-    }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime, messageMetadata]);
+    }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime, messageMetadata, toolResults]);
     useLayoutEffect(() => {
       applicationEvents.start();
       agentRuntime.start();
@@ -553,7 +553,12 @@ function ConversationComposerGuard({ bridge, transientMessages, children }: { br
     const request = bridge.agentRuntime.getCommandDecisionRequest(execution.id);
     if (request !== undefined) commandDecisions.set(execution.id, {
       request,
-      submit: decisionType => bridge.agentRuntime.submitCommandDecision(execution.id, decisionType),
+      submit: decisionType => {
+        if (bridge.agentRuntime.getCommandDecisionRequest(execution.id) !== request) {
+          return Promise.reject(new Error('COMMAND_DECISION_REQUEST_CHANGED'));
+        }
+        return bridge.agentRuntime.submitCommandDecision(execution.id, decisionType);
+      },
     });
   }
   const pendingToolCallIds = snapshot.run.status === "awaiting-input"
@@ -564,7 +569,7 @@ function ConversationComposerGuard({ bridge, transientMessages, children }: { br
       ...snapshot.interrupts.map(interrupt => interrupt.id),
       ...pendingToolCallIds,
     ].sort())}>
-      <ConversationCommandDecisionProvider decisions={commandDecisions}>
+      <ConversationCommandDecisionProvider decisions={commandDecisions} scope={bridge}>
         {children}
       </ConversationCommandDecisionProvider>
     </ConversationComposerGuardProvider>

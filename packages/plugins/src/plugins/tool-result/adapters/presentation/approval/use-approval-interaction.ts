@@ -1,6 +1,12 @@
 'use client';
 
-import { useCallback, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   useLocale,
   useAuiState,
@@ -30,15 +36,19 @@ type ApprovalInteractionProps = {
 export function useApprovalInteraction({
   addResult,
   resume,
+  resumeInterrupt,
+  tool,
   interrupt,
   approval,
   respondToApproval,
   status,
   forwardedRef,
   carryFocusRef,
-}: ApprovalInteractionProps) {
+}: ApprovalInteractionProps &
+  Pick<ToolFallbackApprovalProps, 'resumeInterrupt' | 'tool'>) {
   const messages = useLocale('toolPresentation');
   const [submitted, setSubmitted] = useState(false);
+  const submittedRef = useRef(false);
   const voiceActive = useAuiState((s) => s.thread.voice !== undefined);
   const canAnswer = useAuiState((s) => s.thread.capabilities.answerToolCall);
   const locked = submitted || voiceActive;
@@ -46,15 +56,25 @@ export function useApprovalInteraction({
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState<string | null>(null);
   const isRequiresAction = status?.type === 'requires-action';
-  const [prevRequiresAction, setPrevRequiresAction] = useState(isRequiresAction);
+  const available = useRef({ canAnswer, voiceActive, isRequiresAction });
+  available.current = { canAnswer, voiceActive, isRequiresAction };
+  const [prevRequiresAction, setPrevRequiresAction] =
+    useState(isRequiresAction);
+  const identity = JSON.stringify([tool?.toolCallId, approval?.id]);
+  const [previousIdentity, setPreviousIdentity] = useState(identity);
   const [attempt, setAttempt] = useState(0);
   const attemptRef = useRef(attempt);
   useLayoutEffect(() => {
     attemptRef.current = attempt;
   }, [attempt]);
-  if (isRequiresAction !== prevRequiresAction) {
+  if (
+    isRequiresAction !== prevRequiresAction ||
+    identity !== previousIdentity
+  ) {
     setPrevRequiresAction(isRequiresAction);
+    setPreviousIdentity(identity);
     if (isRequiresAction) {
+      submittedRef.current = false;
       setSubmitted(false);
       setConfirmingId(null);
       setAnswer('');
@@ -72,7 +92,8 @@ export function useApprovalInteraction({
     }
     return () => {
       const element = pendingGroupRef.current ?? receiptRef.current;
-      carryFocusRef.current = element?.contains(element.ownerDocument.activeElement) ?? false;
+      carryFocusRef.current =
+        element?.contains(element.ownerDocument.activeElement) ?? false;
     };
   }, [carryFocusRef]);
   useImperativeHandle<HTMLDivElement | null, HTMLDivElement | null>(
@@ -82,7 +103,10 @@ export function useApprovalInteraction({
   const setPendingGroup = useCallback(
     (element: HTMLDivElement | null) => {
       const group = pendingGroupRef.current;
-      focusReceiptRef.current = !element && group?.contains(group.ownerDocument.activeElement) ? approval?.id : null;
+      focusReceiptRef.current =
+        !element && group?.contains(group.ownerDocument.activeElement)
+          ? approval?.id
+          : null;
       pendingGroupRef.current = element;
     },
     [approval?.id],
@@ -107,40 +131,65 @@ export function useApprovalInteraction({
 
   // Preserve the host's approval choices and the existing refusal path.
   const declaredOptions = respondToApproval ? approval?.options : undefined;
-  const acceptsText = respondToApproval != null && approval?.allowFreeform === true;
+  const acceptsText =
+    respondToApproval != null && approval?.allowFreeform === true;
 
   // A refused response leaves the request open, so the controls come back
   // rather than staying spent on a decision the runtime never recorded.
-  const submit = (send: () => Promise<void> | void) => {
+  const submit = async (send: () => Promise<void> | void): Promise<void> => {
+    if (
+      !available.current.canAnswer ||
+      available.current.voiceActive ||
+      !available.current.isRequiresAction ||
+      attemptRef.current !== attempt ||
+      locked ||
+      submittedRef.current
+    ) {
+      return;
+    }
+    submittedRef.current = true;
     focusPendingGroup();
     setSubmitted(true);
     setConfirmingId(null);
     setError(null);
-    void (async () => {
-      try {
-        await send();
-      } catch (sendError) {
-        if (attemptRef.current !== attempt) {
-          return;
-        }
-        setSubmitted(false);
-        setError(sendError instanceof Error ? sendError.message : String(sendError));
-      }
-    })();
+    try {
+      await send();
+    } catch (sendError) {
+      if (attemptRef.current !== attempt) throw sendError;
+      submittedRef.current = false;
+      setSubmitted(false);
+      setError(
+        sendError instanceof Error ? sendError.message : String(sendError),
+      );
+      throw sendError;
+    }
   };
 
   const respond = (approved: boolean) => {
     if (locked) {
       return;
     }
-    if (approval != null && approval.approved === undefined && respondToApproval) {
-      submit(() => respondToApproval({ approved, ...typedNote() }));
+    if (
+      approval != null &&
+      approval.approved === undefined &&
+      respondToApproval
+    ) {
+      void submit(() => respondToApproval({ approved, ...typedNote() })).catch(
+        () => {},
+      );
     } else if (interrupt) {
-      submit(() => resume?.({ approved }));
-    } else if (status?.type === 'requires-action' && status.reason === 'interrupt') {
+      void submit(() =>
+        resume ? resume({ approved }) : resumeInterrupt?.({ approved }),
+      ).catch(() => {});
+    } else if (
+      status?.type === 'requires-action' &&
+      status.reason === 'interrupt'
+    ) {
       return;
     } else {
-      submit(() => addResult?.(approved ? APPROVED_RESULT : DENIED_RESULT));
+      void submit(() =>
+        addResult?.(approved ? APPROVED_RESULT : DENIED_RESULT),
+      ).catch(() => {});
     }
   };
 
@@ -151,18 +200,21 @@ export function useApprovalInteraction({
     // A custom kind has no decision class for the runtime to derive, and
     // responding without one throws; picking a declared option is an answer,
     // so it resolves as approved.
-    submit(() =>
+    void submit(() =>
       respondToApproval?.(
         isKnownKind(option.kind)
           ? { optionId: option.id, ...typedNote() }
           : { optionId: option.id, approved: true, ...typedNote() },
       ),
-    );
+    ).catch(() => {});
   };
 
   const typedNote = () => (answer.trim() ? { text: answer } : {});
 
   const handleOption = (option: ToolApprovalOption) => {
+    if (!canAnswer || locked || submittedRef.current) {
+      return;
+    }
     if (option.confirm) {
       focusPendingGroup();
       setConfirmingId(option.id);
@@ -171,10 +223,14 @@ export function useApprovalInteraction({
     }
   };
 
-  const confirming = confirmingId != null ? declaredOptions?.find((o) => o.id === confirmingId) : undefined;
+  const confirming =
+    confirmingId != null
+      ? declaredOptions?.find((o) => o.id === confirmingId)
+      : undefined;
 
   return {
     messages,
+    submitted,
     locked,
     canAnswer,
     answer,

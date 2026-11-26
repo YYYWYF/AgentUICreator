@@ -53,7 +53,7 @@
 
 这是收到业务接口响应之后的转换函数，可由项目 list() 调用。服务端标题属于业务数据；无需用界面文案替换。设置 group 本身不改变默认分组，列表应用层使用[自定义分组示例](/plugins/conversation-thread-list.md#example-2)。
 
-```tsx
+```tsx fold height=180
 import type { ConversationSummary } from '@za38.03/agent-ui-plugins/conversation-service';
 
 interface BusinessRow {
@@ -77,7 +77,7 @@ export function mapConversation(row: BusinessRow): ConversationSummary {
 
 disabled 是前端选择限制，真实权限仍由业务接口校验。不要仅通过隐藏菜单来表达记录权限。
 
-```tsx
+```tsx fold height=180
 import type { ConversationSummary } from '@za38.03/agent-ui-plugins/conversation-service';
 
 export function applyAccess(rows: readonly ConversationSummary[], allowedIds: ReadonlySet<string>) {
@@ -89,7 +89,7 @@ export function applyAccess(rows: readonly ConversationSummary[], allowedIds: Re
 
 组件与服务位于同一 Agent，并声明 `agent-ui.conversation-data-source` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useEffect, useState } from 'react';
 import { usePluginService } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource }

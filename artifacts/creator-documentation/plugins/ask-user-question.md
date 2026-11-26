@@ -135,7 +135,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 保留工具参数、addResult 与可回答状态，沿用完整插件的提交和历史回显行为。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAskUserQuestion } from '@za38.03/agent-ui-plugins';
 
@@ -151,7 +151,7 @@ export function Example(props: ComponentProps<typeof CanonicalAskUserQuestion>) 
 
 choice 传入保存的答案后展示回执，不提供新的提交入口。steps 和 choice 由调用方提供；文字题仍使用完整插件。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationQuestionFlow } from '@za38.03/agent-ui-plugins';
 
@@ -167,7 +167,7 @@ export function Example(props: ComponentProps<typeof ConversationQuestionFlow>) 
 
 需要从业务数据恢复问卷回执时，先验证请求，再按该请求验证答案：
 
-```tsx
+```tsx fold height=180
 import {
   parseHumanQuestionRequest, parseHumanQuestionResult,
 } from '@za38.03/agent-ui-plugins';
@@ -189,7 +189,7 @@ export function readQuestionReceipt(args: unknown, result: unknown) {
 
 回调成功后，组件显示本次选择的回执。失败提示会显示回调抛出的错误信息，项目应先转换为统一语言层中的业务文案。需要从已保存答案直接恢复回执时，使用下方 `ConversationQuestionFlow.choice`；公开的 `ConversationOptionListProps` 没有 `choice` 属性。
 
-```tsx
+```tsx fold height=180
 import { ConversationOptionList, type ConversationOption } from '@za38.03/agent-ui-plugins';
 
 export function SingleQuestion({ options, save }: {
@@ -206,7 +206,7 @@ export function SingleQuestion({ options, save }: {
 
 回调成功后，调用方需要更新 `choice`，组件才会结束最终提交等待并进入回执。示例接收项目自己的异步保存方法，保存成功后在本地显示回执；传入历史 `choice` 或 `readOnly` 时关闭提交入口：
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import {
   ConversationQuestionFlow,
@@ -301,9 +301,6 @@ export function BusinessQuestionnaire({
 
 ## 常见问题
 
-<details className="plugin-faq" id="为什么单独传-submittext-或-labels-没有效果">
-<summary>为什么单独传 submitText 或 labels 没有效果？</summary>
+### 为什么单独传 submitText 或 labels 没有效果？ \{#为什么单独传-submittext-或-labels-没有效果}
 
 完整插件的按钮文案使用 locales.humanQuestion，没有这两个展示属性。独立复用问卷时也沿用统一语言层。
-
-</details>

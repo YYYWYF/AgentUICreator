@@ -70,7 +70,7 @@ export function registerSummary(registry: ConversationCommandRegistry, label: st
 
 在现有 setup 中取得同作用域注册器，调用本函数，返回并合并注销函数。label 从项目共享文案传入。
 
-```tsx
+```tsx fold height=180
 import type { ConversationCommandRegistry } from '@za38.03/agent-ui-plugins/composer-triggers';
 
 export function registerAction(registry: ConversationCommandRegistry, label: string, open: () => void) {
@@ -84,7 +84,7 @@ export function registerAction(registry: ConversationCommandRegistry, label: str
 
 组件与服务位于同一 Agent，并声明 `conversation.slash-command-source` 依赖。
 
-```tsx
+```tsx fold height=180
 import type { UIPluginSetupContext } from '@za38.03/agent-ui-plugins/contracts';
 import { CONVERSATION_COMMAND_SOURCE, type ConversationCommandRegistry }
   from '@za38.03/agent-ui-plugins/composer-triggers';

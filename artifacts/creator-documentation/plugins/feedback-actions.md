@@ -25,7 +25,7 @@
 
 两个按钮的属性独立配置；保留原有事件处理与反馈服务。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFeedbackActions } from '@za38.03/agent-ui-plugins';
 
@@ -41,7 +41,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例只禁用踩按钮，赞按钮仍按现有会话与反馈适配决定是否可用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFeedbackActions } from '@za38.03/agent-ui-plugins';
 
@@ -92,7 +92,6 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 ## 常见问题
 
-
-显示评价按钮后，结果会自动保存到我的后端吗？
+### 显示评价按钮后，结果会自动保存到我的后端吗？ \{#显示评价按钮后结果会自动保存到我的后端吗}
 
 不会。组件通过项目现有反馈适配提交结果；需要在服务接入中实现持久化。按钮属性只负责呈现与交互。

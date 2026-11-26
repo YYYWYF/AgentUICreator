@@ -29,20 +29,22 @@ async function until(predicate: () => boolean) {
 }
 
 async function fixture(locale: 'en-US' | 'zh-CN' = 'en-US', terminal = false) {
-  const visible = new Set<(entries: { isIntersecting: boolean }[]) => void>();
+  const intersectionObserver = vi.fn();
   vi.stubGlobal('IntersectionObserver', class {
-    constructor(private callback: (entries: { isIntersecting: boolean }[]) => void) {}
-    observe() { visible.add(this.callback); }
-    disconnect() { visible.delete(this.callback); }
+    constructor() { intersectionObserver(); }
+    observe() {}
+    disconnect() {}
   });
   vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value() {} });
   const cursors = ['next+/= 中文', 'last&cursor'];
   let fail = false;
+  let pageGate: Promise<void> | undefined;
   const fetch = vi.fn<typeof globalThis.fetch>(async (input, init) => {
     const url = new URL(String(input), 'https://test.local');
     if (init?.method !== 'GET') return new Response(null, { status: 204 });
     const cursor = url.searchParams.get('cursor');
+    if (cursor !== null) await pageGate;
     if (fail && cursor !== null) throw new Error('Page unavailable');
     const page = cursor === null ? 0 : cursors.indexOf(cursor) + 1;
     if (page === 0 && url.pathname !== '/history/conversations') return Response.json({
@@ -50,7 +52,10 @@ async function fixture(locale: 'en-US' | 'zh-CN' = 'en-US', terminal = false) {
     });
     const ids = page === 0 ? ['a'] : page === 1 ? ['a', 'b'] : ['c'];
     return Response.json({ returnCode: 'SUC0000', body: {
-      conversations: ids.map((id) => ({ thread_id: id, title: id.toUpperCase() })),
+      conversations: ids.map((id) => ({
+        thread_id: id, title: id.toUpperCase(),
+        last_message_time: `2026-09-0${id === 'a' ? 7 : id === 'b' ? 8 : 9}T12:00:00Z`,
+      })),
       next_cursor: terminal ? null : cursors[page] ?? null,
     } });
   });
@@ -73,33 +78,42 @@ async function fixture(locale: 'en-US' | 'zh-CN' = 'en-US', terminal = false) {
       <AgentUIRoot theme='light'><AgentUILocaleProvider locale={locale}><List /></AgentUILocaleProvider></AgentUIRoot>
     </ConversationRuntimeProvider>,
   ));
-  await until(() => !!runtime && !runtime.threads.getState().isLoading && (terminal || visible.size > 0));
+  await until(() => !!runtime && !runtime.threads.getState().isLoading);
   const listRequests = () => fetch.mock.calls.filter(([url]) => new URL(String(url), 'https://test.local').pathname === '/history/conversations');
   return {
-    service, binding, fetch, host, runtime, cursors, listRequests,
+    service, binding, fetch, host, runtime, cursors, listRequests, intersectionObserver,
     setFail(value: boolean) { fail = value; },
-    async reachBottom(isIntersecting = true) {
+    setPageGate(value: Promise<void>) { pageGate = value; },
+    async resizeAndScroll() {
       await act(async () => {
-        for (const callback of [...visible]) {
-          callback([{ isIntersecting }]);
-          callback([{ isIntersecting }]);
-        }
+        host.style.height = '80px';
+        const list = host.querySelector<HTMLElement>('[data-slot="aui_thread-list-items"]')!;
+        list.scrollTop = list.scrollHeight;
+        list.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
       });
+    },
+    async clickLoadMore() {
+      const button = host.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-list-load-more"]');
+      if (!button) throw new Error('Missing load more button');
+      await act(async () => { button.click(); button.click(); });
     },
   };
 }
 
-it('loads native pages on intersection, preserves the tail across refresh/reload, and stops at null', async () => {
+it('loads native pages only on click, preserves the tail across refresh/reload, and stops at null', async () => {
   const f = await fixture();
   const reload = vi.spyOn(f.runtime.threads, 'reload');
-  expect(f.host.querySelector('[data-slot="agent-ui-thread-list-sentinel"]')?.parentElement?.getAttribute('data-slot'))
-    .toBe('aui_thread-list-items');
-  await f.reachBottom(false);
+  expect(f.host.querySelector('[data-slot="agent-ui-thread-list-load-more"]')?.closest('[data-slot="aui_thread-list-items"]')).not.toBeNull();
+  await f.resizeAndScroll();
+  expect(f.intersectionObserver).not.toHaveBeenCalled();
   expect(f.listRequests()).toHaveLength(1);
-  await f.reachBottom();
+  await f.clickLoadMore();
   await until(() => f.service.getSnapshot().conversations.length === 2 && !f.runtime.threads.getState().isLoadingMore);
   expect(reload).not.toHaveBeenCalled();
   expect(f.runtime.threads.getState().threadIds).toHaveLength(2);
+  expect([...f.host.querySelectorAll('[data-slot="aui_thread-list-item-title"]')].map(node => node.textContent))
+    .toEqual(['A', 'B']);
   expect(f.service.getSnapshot().nextCursor).toBe(f.cursors[1]);
 
   await act(async () => { await f.runtime.threads.reload(); });
@@ -108,22 +122,47 @@ it('loads native pages on intersection, preserves the tail across refresh/reload
   await until(() => !f.runtime.threads.getState().isLoading);
   expect(f.runtime.threads.getState().threadIds).toHaveLength(2);
   expect(f.service.getSnapshot().nextCursor).toBe(f.cursors[1]);
-  await f.reachBottom();
+  await f.clickLoadMore();
   await until(() => !f.runtime.threads.getState().hasMore);
   expect(f.service.getSnapshot().conversations.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+  expect([...f.host.querySelectorAll('[data-slot="aui_thread-list-item-title"]')].map(node => node.textContent))
+    .toEqual(['A', 'B', 'C']);
   expect(f.service.getSnapshot().nextCursor).toBeNull();
   expect(f.listRequests().map(([url]) => new URL(String(url), 'https://test.local').searchParams.get('cursor')))
     .toEqual([null, f.cursors[0], null, f.cursors[1]]);
   const count = f.listRequests().length;
-  await f.reachBottom();
+  expect(f.host.querySelector('[data-slot="agent-ui-thread-list-load-more"]')).toBeNull();
+  await f.resizeAndScroll();
   await act(async () => { await f.runtime.threads.loadMore(); });
   expect(f.listRequests()).toHaveLength(count);
   expect(f.runtime.threads.mainItem.getState().remoteId).toBe('a');
 });
 
+it('disables load more while a page is pending and never queues an automatic next page', async () => {
+  const f = await fixture();
+  let release!: () => void;
+  f.setPageGate(new Promise<void>((resolve) => { release = resolve; }));
+  try {
+    await f.clickLoadMore();
+    await until(() => f.runtime.threads.getState().isLoadingMore);
+    const button = f.host.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-list-load-more"]')!;
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    await f.clickLoadMore();
+    await f.resizeAndScroll();
+    expect(f.listRequests()).toHaveLength(2);
+  } finally {
+    await act(async () => { release(); });
+  }
+  await until(() => !f.runtime.threads.getState().isLoadingMore);
+  expect(f.listRequests()).toHaveLength(2);
+  expect(f.host.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-list-load-more"]')?.disabled).toBe(false);
+});
+
 it('does not request another page when the first response has a null cursor', async () => {
   const f = await fixture('en-US', true);
-  await f.reachBottom();
+  expect(f.host.querySelector('[data-slot="agent-ui-thread-list-load-more"]')).toBeNull();
+  await f.resizeAndScroll();
   await act(async () => { await f.runtime.threads.loadMore(); });
   expect(f.listRequests()).toHaveLength(1);
   expect(f.service.getSnapshot().nextCursor).toBeNull();
@@ -132,7 +171,7 @@ it('does not request another page when the first response has a null cursor', as
 
 it('preserves pagination through rename, archive, unarchive and delete', async () => {
   const f = await fixture();
-  await f.reachBottom();
+  await f.clickLoadMore();
   await until(() => f.runtime.threads.getState().threadIds.length === 2);
   await act(async () => { await f.runtime.threads.getItemById('b').rename('Renamed'); });
   await act(async () => { await f.runtime.threads.getItemById('b').archive(); });
@@ -141,7 +180,7 @@ it('preserves pagination through rename, archive, unarchive and delete', async (
   expect(f.service.getSnapshot().nextCursor).toBe(f.cursors[1]);
   expect(f.runtime.threads.getState().hasMore).toBe(true);
   expect(f.runtime.threads.getState().threadIds).toHaveLength(1);
-  await f.reachBottom();
+  await f.clickLoadMore();
   await until(() => !f.runtime.threads.getState().hasMore);
   expect(f.service.getSnapshot().conversations.map((item) => item.id)).toEqual(['a', 'c']);
   expect(new URL(String(f.listRequests().at(-1)![0]), 'https://test.local').searchParams.get('cursor')).toBe(f.cursors[1]);
@@ -150,15 +189,16 @@ it('preserves pagination through rename, archive, unarchive and delete', async (
 it.each(['en-US', 'zh-CN'] as const)('%s keeps existing rows and the cursor after a failed page, then retries it', async (locale) => {
   const f = await fixture(locale);
   vi.spyOn(console, 'error').mockImplementation(() => {});
+  expect(f.host.querySelector('[data-slot="agent-ui-thread-list-load-more"]')?.textContent).toBe(locale === 'zh-CN' ? '加载更多' : 'Load more');
   f.setFail(true);
-  await f.reachBottom();
+  await f.clickLoadMore();
   await until(() => !!f.host.querySelector('[role="alert"]') && !f.runtime.threads.getState().isLoadingMore);
   expect(f.service.getSnapshot().conversations).toHaveLength(1);
   expect(f.service.getSnapshot().nextCursor).toBe(f.cursors[0]);
   expect(f.runtime.threads.getState().hasMore).toBe(true);
-  await f.reachBottom();
+  await f.resizeAndScroll();
   expect(f.listRequests()).toHaveLength(2);
-  const button = f.host.querySelector<HTMLButtonElement>('[role="alert"] button')!;
+  const button = f.host.querySelector<HTMLButtonElement>('[data-slot="agent-ui-thread-list-load-more"]')!;
   expect(button.textContent).toBe(locale === 'zh-CN' ? '重试' : 'Retry');
   f.setFail(false);
   await act(async () => { button.click(); });

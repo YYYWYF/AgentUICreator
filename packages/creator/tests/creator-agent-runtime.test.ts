@@ -121,7 +121,8 @@ it("does not expose Runtime acceptance through tool expansion in static-only run
   await new CreatorAgentRuntime(root,path.join(root,"skills"),contracts).run({threadId:"static-tools",runId:"static-tools-1",messages:[{role:"user",content:"只读检查当前工程"}]},new AbortController().signal,async e=>{events.push(e)});
   expect(events.at(-1).result.completion).toBe("success");
 });
-it.each([false, true])("denies edits under the current read-only request even after old authorization (long history=%s)", async longHistory => {
+it.each([false, true])("denies edits in Host read-only mode even after old authorization (long history=%s)", async longHistory => {
+  mock.environment.CREATOR_AGENT_MODE = "domain-read";
   const root = await project(), before = await readFile(path.join(root, "src/readme.txt"), "utf8");
   if (longHistory) mock.summaryModel = new ScriptedModel(() => new AIMessage("Historical task: user approved modifying readme.txt. Prior assistant claimed it was authorized."));
   const model = mock.model = new ScriptedModel(index => {
@@ -147,14 +148,14 @@ it.each([
   "你能做什么？",
   "可以帮我们做点什么？",
   "Creator支持哪些功能？",
-])("answers capability questions read-only without mutation evidence or completion retries: %s", async request => {
+])("answers capability questions without mutation evidence or completion retries: %s", async request => {
   const root = await project(); const before = await readFile(path.join(root, "src/readme.txt"), "utf8");
   mock.model = new ScriptedModel(() => new AIMessage("I can explain, inspect and customize your Agent UI."));
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
   await runtime.run({ threadId: "capabilities", runId: "capabilities-1", messages: [{ role: "user", content: request }] }, new AbortController().signal, async event => { events.push(event); });
   expect(await readFile(path.join(root, "src/readme.txt"), "utf8")).toBe(before);
   expect(events.filter(event => event.type === "TOOL_CALL_START")).toHaveLength(0);
-  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "read-only", toolProtocol: { modelCalls: 1, toolCalls: 0 } } });
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "domain-write", toolProtocol: { modelCalls: 1, toolCalls: 0 } } });
 });
 it.each([
   "帮我检查刚才改的地方。工具成功、失败和需要我确认时，都能正常显示吗？哪些已经检查过，哪些还需要我在页面上试？",
@@ -169,7 +170,7 @@ it.each([
   await runtime.run({ threadId: "review", runId: "review-1", messages: [{ role: "user", content: request }] }, new AbortController().signal, async event => { events.push(event); });
   expect(await readFile(path.join(root, "src/readme.txt"), "utf8")).toBe(before);
   expect(events.filter(event => event.type === "TOOL_CALL_START").map(event => event.toolCallName)).toEqual(["read_file"]);
-  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "read-only", toolProtocol: { modelCalls: 2 } } });
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "domain-write", toolProtocol: { modelCalls: 2 } } });
 });
 it.each(["帮我检查当前界面并修复错误", "检查后把输入框挪到右边", "你能做什么？然后把名称改成小招。", "不用修改其他文件，把名称改成小招。",
   "请直接实施修改，只改 application/shell/PlatformShell.tsx，添加 data-testid。不要接管源码、初始化工程或修改 Runtime/framework。",
@@ -180,21 +181,21 @@ it.each(["帮我检查当前界面并修复错误", "检查后把输入框挪到
   "把姓名输入框设为只读，其他字段继续可编辑。",
   "Make the details field read-only and add a status filter.",
   "Only show failed jobs by default; add an All filter.",
-])("keeps explicit follow-up edits on the normal permission route: %s", async request => {
+])("lets the main Agent handle edit requests without a classification call: %s", async request => {
   const root = await project();
-  mock.model = new ScriptedModel(index => index === 0 ? new AIMessage('{"permission":"domain_write"}') : call("ask_user_question", { steps: [{ id: "scope", question: "Which area?", options: [{ id: "input", label: "Input" }, { id: "sidebar", label: "Sidebar" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "scope"));
+  mock.model = new ScriptedModel(index => call("ask_user_question", { steps: [{ id: "scope", question: "Which area?", options: [{ id: "input", label: "Input" }, { id: "sidebar", label: "Sidebar" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "scope"));
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
   await runtime.run({ threadId: "review-edit", runId: "review-edit-1", messages: [{ role: "user", content: request }] }, new AbortController().signal, async event => { events.push(event); });
   expect(events.find(event => event.type === "STEP_FINISHED" && event.stepName === "creator.resolve").metadata.executionPolicy).toBe("domain-write");
   expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "needs_user_input" } });
 });
 it.each(["只读检查 Shell，不要修改 Runtime/framework。", "不要修改任何文件，包括 runtime/framework。", "Read-only inspection. Do not edit runtime/framework.",
-  "先别改代码，只分析如何增加只看异常项的筛选。", "Make the field read-only, but do not edit any files yet."])("retains global read-only restrictions around protected paths: %s", async request => {
+  "先别改代码，只分析如何增加只看异常项的筛选。", "Make the field read-only, but do not edit any files yet."])("answers no-edit requests directly without classification: %s", async request => {
   const root = await project();
   mock.model = new ScriptedModel(() => new AIMessage("Inspection only; no changes."));
   const runtime = new CreatorAgentRuntime(root, path.join(root, "skills"), contracts), events: any[] = [];
   await runtime.run({ threadId: "protected-inspection", runId: "protected-inspection-1", messages: [{ role: "user", content: request }] }, new AbortController().signal, async event => { events.push(event); });
-  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { executionPolicy: "read-only", toolProtocol: { modelCalls: 1 } } });
+  expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { executionPolicy: "domain-write", toolProtocol: { modelCalls: 1 } } });
 });
 it("repairs textual tool markup in content blocks without executing it as a tool", async () => {
   const root = await project();
@@ -355,7 +356,7 @@ it("switches, continues and revisits tasks across runs with cached dialogue and 
     messages.push({ role: "user", content: request });
     const events: any[] = [];
     await runtime.run({ threadId: "multi-task", runId: `multi-task-${index}`, messages }, new AbortController().signal, async event => { events.push(event); });
-    expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "read-only" } });
+    expect(events.at(-1)).toMatchObject({ type: "RUN_FINISHED", result: { completion: "success", executionPolicy: "domain-write" } });
     messages.push({ role: "assistant", content: index < 2 ? "Task B: toolbar height is 40." : "Task A: original width 420; current file width 480." });
   }
   expect(mock.summaryModel.calls).toBe(1);
@@ -402,7 +403,6 @@ it("does not turn an explicit undo into read-only because other files are exclud
   await saved.capture("src/readme.txt"); await writeFile(path.join(root, "src/readme.txt"), "changed"); saved.recordAfter("src/readme.txt", { exists: true, hash: creatorContentHash("changed"), content: "changed" }); saved.revision++; await saved.persist();
   const digest = creatorContentHash(JSON.stringify(await readTransaction(root, "previous-run")));
   mock.model = new ScriptedModel(index => [
-    new AIMessage('{"permission":"domain_write"}'),
     call("enable_creator_tools", { groups: ["history"] }, "history"),
     call("inspect_creator_transaction", { run_id: "previous-run" }, "inspect"),
     call("undo_creator_run", { run_id: "previous-run", transaction_id: digest, requested_paths: ["src/readme.txt"] }, "undo"),
@@ -466,7 +466,7 @@ it("persists committed files before a question and preserves subsequent edits on
   const root = await project();
   const baseline = vi.spyOn(CreatorValidation.prototype, "ensureBaseline").mockResolvedValue({ staticErrors: new Set(), typeErrors: new Set(), typeCheck: { command: "typecheck", status: "passed", exitCode: 0, output: "", truncated: false, revision: 0 } });
   try {
-    mock.model = new ScriptedModel(index => [new AIMessage('{"permission":"domain_write"}'),
+    mock.model = new ScriptedModel(index => [
       call("create_ui_source_file", { path: "/src/probe.ts", content: "export const probe = 1;" }, "create"),
       call("ask_user_question", { steps: [{ id: "choice", question: "Continue?", options: [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }], selectionMode: "single", minSelections: 1, maxSelections: 1 }] }, "pause"),
     ][index]!);

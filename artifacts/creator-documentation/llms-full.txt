@@ -785,31 +785,8 @@ url: /plugins/conversation-surface.md
 
 组合消息、欢迎内容、建议和输入区，复用已有 Conversation 生命周期。
 
-## 修改与启用
-
-
-### 修改位置 \{#修改位置}
-
-默认 npm 实现先修改项目的 `plugins/conversation-surface/index.tsx`，通过已有 props 和语义插槽组合界面。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
-
-| 修改场景                  | 文件                                    |
-| --------------------- | ------------------------------------- |
-| 插槽转发与插件组合             | `conversation-surface.tsx`            |
-| 主题容器与会话外层             | `surface.tsx`                         |
-| 默认欢迎标题、描述和空态组合        | `welcome.tsx`                         |
-| 消息区、输入区、滚动与临时通知的位置    | `thread/thread-layout.tsx`            |
-| 历史加载骨架、滚动到底部按钮与备用欢迎内容 | `thread/thread-empty-state.tsx`       |
-| 用户消息、引用和附件的排列         | `thread/user-message.tsx`             |
-| 助手消息及各类内容的展示          | `thread/assistant-message.tsx`        |
-| 工具与任务分组规则             | `thread/assistant-message-groups.tsx` |
-| 消息编辑输入框及取消、更新按钮       | `thread/message-edit-composer.tsx`    |
-| 消息操作与分支切换             | `thread/message-actions.tsx`          |
-| 回复底部操作区的位置            | `thread/response-footer-host.tsx`     |
-| 消息错误提示                | `thread/message-error.tsx`            |
-
-这些模块属于同一个插件实现，继续消费已有 Conversation Runtime；修改单个场景无需另行注册插件。
-
 ## 数据来源与显示条件
+
 
 ### 输入区与会话作用域
 
@@ -845,7 +822,7 @@ Composer 和它的附件、引用、提及、技能及发送入口需要使用�
 
 容器高度由业务页面提供。保留现有 Adapter 和插槽转发，外层使用 flex 布局时允许内容收缩。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSurfacePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -860,7 +837,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 
 打开对话区域后，光标留在业务页面原来的位置。欢迎文案在 application/locales.ts 的 conversation 域中配置；空 welcomeDescription 隐藏说明。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSurfacePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -878,14 +855,14 @@ export function Example(props: ComponentProps<typeof CanonicalConversationSurfac
 
 在项目 `plugins/conversation-surface/index.tsx` 给已有组件传入 `messageIdentity`：
 
-```tsx
+```tsx fold height=180
 // 关闭身份展示
 return <Implementation {...props} messageIdentity={false} />;
 ```
 
 也可以传 `{ fallback, render }`。`fallback` 是没有身份时使用的固定 `{ id, name, avatarUrl? }`；其名称来自项目文案。`render({ speaker, messageId })` 返回自定义身份头的 ReactNode，保留已有正文和消息交互。省略 `messageIdentity` 时，仅对携带合法身份的消息展示默认头部。
 
-`messageIdentity={false}` 不会清空取到的 `speaker`；fallback 不写入消息身份；后端明确返回 `speaker: null` 时，即使有 fallback 也隐藏身份头。配置影响展示，消息数据仍通过[统一取数入口](/development/message-speaker.md#前端取数)读取。
+`messageIdentity={false}` 不会清空取到的 `speaker`；fallback 不写入消息身份。后端返回 JSON `speaker: null` 时，表示切回配置的 fallback；未配置 fallback 时不显示身份头。`useConversation` 仍返回 `speaker: null`，不会把前端默认名称和头像写入消息数据。配置影响展示，消息数据仍通过[统一取数入口](/development/message-speaker.md#前端取数)读取。
 
 ### 读取当前会话 \{#hook}
 
@@ -905,7 +882,7 @@ selector 按 `Object.is` 比较结果，选中值不变时不会因其他数据�
 
 例如，工具栏“查看会话数据”按钮需要把当前消息交给业务详情面板：
 
-```tsx
+```tsx fold height=180
 import { useConversation, type ConversationThreadSnapshot }
   from '@za38.03/agent-ui-plugins';
 
@@ -961,8 +938,7 @@ export function InspectConversation({ label, onInspect }: {
 
 ## 常见问题
 
-
-传了 welcome 为什么没有显示？
+### 传了 welcome 为什么没有显示？ \{#传了-welcome-为什么没有显示}
 
 生成项目已配置 `emptyWelcome` 插槽时，插槽内容优先。修改该插槽里的组件，或在项目组合中调整它；单独传 welcome 不会替换已配置的插槽。
 
@@ -976,39 +952,19 @@ url: /plugins/conversation-thread-list.md
 
 ## 功能与效果
 
-提供标题搜索、归档、会话操作和自定义时间或业务分组。
+提供标题搜索、归档、会话操作和自定义时间或业务分组。默认按接口返回顺序展示，加载更多的记录追加到末尾，不按时间重新排序。
 
 ### 会话列表
 
 
 ![会话列表界面](/images/plugins/conversation-thread-list.png)
 
-## 修改与启用
+## 数据来源与显示条件
 
 
 按[历史服务接入](/development/history-backend.md)配置列表和详情，按业务需要支持重命名、归档与删除。
 
-### 修改位置 \{#修改位置}
-
-默认 npm 实现先修改项目的 `plugins/conversation-thread-list/index.tsx`，保留已有服务桥接。已接管源码时，以下路径相对于该插件的 `source/adapters/`：
-
-| 修改场景                  | 文件                             |
-| --------------------- | ------------------------------ |
-| 列表外层、加载错误与重试入口        | `conversation-thread-list.tsx` |
-| 搜索、普通列表与归档区的组合开关      | `list/policy-thread-list.tsx`  |
-| 搜索输入框与清空按钮            | `list/thread-search.tsx`       |
-| 默认日期分组和标题过滤规则         | `list/use-thread-groups.ts`    |
-| 分组标题、空列表和加载骨架         | `list/policy-groups.tsx`       |
-| 已归档会话区域               | `list/archived-threads.tsx`    |
-| 列表项标题、运行状态与重命名切换      | `list/thread-item.tsx`         |
-| 更多菜单、重命名、归档、取消归档和删除操作 | `list/thread-item-menu.tsx`    |
-| 行内重命名输入框、提交与焦点恢复      | `list/thread-item-rename.tsx`  |
-
-`list/primitives/` 保留基础组件的兼容展示；当前默认列表的业务操作使用上表中的 `list/thread-item*.tsx`。修改外观时保留原有回调、操作权限与请求失败处理。
-
-## 数据来源与显示条件
-
-数据源返回分页结果时，默认列表滚动到底自动加载下一页，`nextCursor: null` 后停止。加载更多失败保留现有列表和游标，点击重试继续同一页。搜索只过滤已加载会话；自定义 `renderList` 替换整张列表时需自行保留分页触发入口。
+数据源返回分页结果时，默认列表仅在点击“加载更多”后请求下一页；滚动和压缩侧栏不会自动请求。会话行保持正常高度，超出列表区域时向下滚动。`nextCursor: null` 后不再显示加载更多。加载更多失败保留现有列表和游标，点击重试继续同一页。搜索只过滤已加载会话；自定义 `renderList` 替换整张列表时需自行保留分页触发入口。
 
 重命名、归档与取消归档通过项目的业务接口执行；接口缺失或请求失败会报错。已归档记录显示在「已归档会话」区域，可在那里取消归档；列表接口需返回对应的归档状态。请求约定和接入位置见[会话管理接口](/development/history-backend.md#重命名归档与取消归档)。
 
@@ -1023,7 +979,7 @@ url: /plugins/conversation-thread-list.md
 
 此例保留搜索、隐藏归档区，仅显示重命名和删除。actions 是完整开关对象，未写成 true 的操作不会显示。界面开关不代替后端权限校验。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationThreadList } from '@za38.03/agent-ui-plugins';
 
@@ -1046,7 +1002,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationThread
 
 业务分类的数据源返回值例如：
 
-```json
+```json fold height=180
 [
   { "id": "thread-1", "title": "项目周报", "group": "work", "updatedAt": "2026-11-18T08:00:00Z" },
   { "id": "thread-2", "title": "学习计划", "group": "study", "updatedAt": "2026-11-10T08:00:00Z" },
@@ -1056,7 +1012,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationThread
 
 完整组件同时保留标题搜索、归档区、条目操作、禁用状态和侧栏导航；外层继续处理历史加载错误。普通条目传入的是原 `threadIds` 索引，归档条目传入的是原 `archivedThreadIds` 索引，不使用重新分组后的循环序号。已有列表定制通过 renderList 合并。
 
-```tsx
+```tsx fold height=180
 import { createContext, useContext, useState, type ComponentProps } from 'react';
 import {
   CanonicalConversationThreadList, ConversationThreadListRoot,
@@ -1185,7 +1141,7 @@ export function CategoryHistory(props: Props) {
 
 需要自己排列分组时，可将以下组件通过原列表的 `renderList` 返回。`query` 传入项目搜索框的当前值，不搜索时传空字符串；外层原有属性和错误重试继续保留。
 
-```tsx
+```tsx fold height=180
 import {
   ConversationThreadListRoot, ConversationThreadListItem,
   ConversationThreadListItemByIndex, useConversationThreadListGroups,
@@ -1227,7 +1183,7 @@ export function ProjectThreadGroups({ query }: { query: string }) {
 
 归档区单独使用 `archivedThreadIds`，在列表组件内取得数据并渲染：
 
-```tsx
+```tsx fold height=180
 const archivedIds = useConversation(s => s.threads.archivedThreadIds);
 const archivedRows = archivedIds.map((id, index) => (
   <ConversationThreadListItemByIndex key={id} index={index} archived
@@ -1319,23 +1275,19 @@ export function RenameAndDeleteOnly(props: ComponentProps<typeof CanonicalConver
 
 ## 常见问题
 
+### 默认历史列表按什么分组？ \{#默认历史列表按什么分组}
 
-默认历史列表按什么分组？
+默认保留接口返回顺序，只为相邻记录加上今天、昨天、更早的日期标签，不跨记录移动或合并分组。同一日期标签可能出现多次。所有可见记录都没有日期时不分组；部分记录没有日期时，按今天标记并保留原位置。前面的项目示例可以选择不同的分组或排序规则。
 
-默认按 lastMessageAt 的当地自然日分为今天、昨天、更早。所有可见记录都没有日期时不分组；部分记录没有日期时，默认会将其放在今天组前面。前面的项目示例可以选择不同的缺失日期处理。
-
-
-接口返回 group 后，默认列表会自动分组吗？
+### 接口返回 group 后，默认列表会自动分组吗？ \{#接口返回-group-后默认列表会自动分组吗}
 
 不会。group 被保留为 custom.group，默认日期分组不读取它。使用示例中的 CategoryHistory，或自行实现同样的数据归类。
 
-
-可以直接传 groupBy 或修改 AppUIModel 吗？
+### 可以直接传 groupBy 或修改 AppUIModel 吗？ \{#可以直接传-groupby-或修改-appuimodel-吗}
 
 当前没有 groupBy 属性。分组规则在项目 React 组件中实现，通过 renderList 组合；AppUIModel 继续负责布局和插件组合。
 
-
-最终用户能创建分组、把会话移入分组吗？
+### 最终用户能创建分组、把会话移入分组吗？ \{#最终用户能创建分组把会话移入分组吗}
 
 上述业务分组是读取和展示能力。可编辑分组还需要项目提供创建、移动等界面，以及保存分组和会话归属的业务接口。
 
@@ -1441,7 +1393,7 @@ export function ProjectThread(props: ComponentProps<typeof ConversationThread>) 
 
 用户点击后可继续编辑，再通过发送按钮提交。clearComposer 控制选择时是否清空原草稿。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
 
@@ -1456,7 +1408,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 
 项目在 `items` 的 `data` 中提供订单 ID 等业务字段，建议插件将所选条目交给 Composer。在项目已有的 `plugins/composer/request-adapter.ts` 中决定最终发送位置：
 
-```tsx
+```tsx fold height=180
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
 function record(value: unknown): Record<string, unknown> {
@@ -1494,7 +1446,7 @@ export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) 
 
 title 是卡片上的名称，label 是附加说明，prompt 是实际填入或发送的正文。下面点击建议后先填写草稿，不立即发送。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions, useLocaleCode } from '@za38.03/agent-ui-plugins';
 
@@ -1513,7 +1465,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalSugges
 
 未传固定 `items` 时，回调取得当前运行时建议的标题、说明和完整问题。下面将可见结构改为粗体标题与说明，仍使用现有 Trigger 提交或填入草稿：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   ConversationCanonicalSuggestions, ConversationSuggestionTrigger,
@@ -1534,7 +1486,7 @@ export function RuntimeSuggestions(props:
 
 传入空 items 明确覆盖会话提供的建议。省略 items 则继续读取当前会话建议。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalSuggestions } from '@za38.03/agent-ui-plugins';
 
@@ -1607,8 +1559,7 @@ getConversationStarterSuggestions: (_locale, messages) => [
 
 ## 常见问题
 
-
-为什么 renderSuggestion 没有改变固定 items 的样式？
+### 为什么 renderSuggestion 没有改变固定 items 的样式？ \{#为什么-rendersuggestion-没有改变固定-items-的样式}
 
 现在同时适用于固定 items 与运行时建议，回调接收当前项和默认展示节点。
 
@@ -1762,7 +1713,7 @@ url: /plugins/workbench-panel.md
 
 调用方的 `definition.ts` 在原有 `inject` 中追加侧栏服务：
 
-```ts
+```ts fold height=180
 inject: ['agent-ui.workbench-panel'],
 ```
 
@@ -1770,7 +1721,7 @@ inject: ['agent-ui.workbench-panel'],
 
 调用方组件取得服务，点击时调用 `open(内容ID)`：
 
-```tsx
+```tsx fold height=180
 import {
   WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService,
 } from '@za38.03/agent-ui-plugins';
@@ -1792,7 +1743,7 @@ export function OpenContent({ label }: { label: string }) {
 
 需要现成的按钮列表时，在已有调用方的应用层使用 `WorkbenchPanelActionsPlugin`，同样声明上述服务依赖：
 
-```tsx
+```tsx fold height=180
 import { WorkbenchPanelActionsPlugin } from '@za38.03/agent-ui-plugins/workbench-panel-actions';
 
 export function PanelButtons({ labels }: { labels: { report: string; sources: string } }) {
@@ -1813,7 +1764,7 @@ export function PanelButtons({ labels }: { labels: { report: string; sources: st
 
 panelWidth 单位为像素。主区域较窄时，面板仍不会超过整个容器宽度的 45%。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
 
@@ -1829,7 +1780,7 @@ export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
 
 open 由项目管理，onOpenChange 同步用户收起/展开操作；已有 service 和 items 继续传入。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { WorkbenchPanel } from '@za38.03/agent-ui-plugins';
 
@@ -1845,7 +1796,7 @@ export function Example(props: ComponentProps<typeof WorkbenchPanel>) {
 
 业务工具栏需要高亮当前内容时，声明 `agent-ui.workbench-panel` 依赖，用 `usePluginService()` 取得同一 Agent 的服务，再用 `usePluginService()` 订阅：
 
-```tsx
+```tsx fold height=180
 import { WORKBENCH_PANEL_SERVICE, usePluginService, type WorkbenchPanelService, type WorkbenchPanelSnapshot } from '@za38.03/agent-ui-plugins';
 
 const fallback: WorkbenchPanelSnapshot = {
@@ -1937,12 +1888,9 @@ export function ReportTab({ label }: { label: string }) {
 
 ## 常见问题
 
-<details className="plugin-faq" id="设置-opentrue-为什么仍然没有内容">
-<summary>设置 open=true 为什么仍然没有内容？</summary>
+### 设置 open=true 为什么仍然没有内容？ \{#设置-opentrue-为什么仍然没有内容}
 
 需要有效的 items 和可见的选中内容。默认工作台没有内置内容；按本页接入步骤登记项目内容，再展开。
-
-</details>
 
 
 
@@ -2019,7 +1967,7 @@ items={props.items ?? (defaults => [
 
 在 `app-ui.json` 中找到右侧的 Stack，保留原有聊天分支，在 `children` 末尾追加项目插件：
 
-```json
+```json fold height=180
 {
   "type": "slot",
   "plugins": [
@@ -2030,7 +1978,7 @@ items={props.items ?? (defaults => [
 
 在同一个 Stack 上设置以下属性，`children` 保留原有内容和刚追加的分支：
 
-```json
+```json fold height=180
 {
   "id": "main",
   "viewIds": ["chat", "projects"],
@@ -2056,7 +2004,7 @@ items={props.items ?? (defaults => [
 
 在调用方插件 `definition.ts` 的原有 `inject` 数组中追加 `'agent-ui.stack-navigation'`。然后在按钮组件中取得服务，点击时选择目标内容：
 
-```tsx
+```tsx fold height=180
 import {
   Button, usePluginService, STACK_NAVIGATION_SERVICE,
   type StackNavigationService,
@@ -2078,7 +2026,7 @@ export function OpenProjects({ label }: { label: string }) {
 
 刷新数据等操作使用 `type: 'action'`，在 `onSelect` 中执行自己的函数。将下面的条目加入 `items`：
 
-```tsx
+```tsx fold height=180
 {
   id: 'refresh',
   type: 'action',
@@ -2107,8 +2055,7 @@ export function OpenProjects({ label }: { label: string }) {
 | `service`            | 显式传入切换服务，通常无需设置                                                  |
 | 原生 `nav` 属性          | 支持 `className`、`style`、`aria-label` 等；下方内容用 `content` 传入         |
 
-<details>
-<summary>切换服务的方法</summary>
+#### 切换服务的方法
 
 | 方法                            | 用途                                                  |
 | ----------------------------- | --------------------------------------------------- |
@@ -2117,8 +2064,6 @@ export function OpenProjects({ label }: { label: string }) {
 | `subscribe(listener)`         | 监听选择变化，返回取消订阅函数                                     |
 
 需要持续展示选中状态时，见[插件联动与取数](/development/plugin-interaction.md)。
-
-</details>
 
 
 
@@ -2311,7 +2256,7 @@ Composer 使用回调返回的请求；若页面还配置了 [`beforeRequest`](/
 
 **只有本次提交了对应数据，才添加业务字段。** `Object.hasOwn` 判断的是键是否存在，因此插件明确提交的空数组、`null`、`false`、`0` 或空字符串都保留原值；没有任何相关数据时直接返回已有请求。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
@@ -2378,7 +2323,7 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Implemen
 
 若后端使用标准 AG-UI Context，也可以将 JSON 编码为字符串后追加到已有 Context：
 
-```tsx
+```tsx fold height=180
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
 export const addBusinessContext: ComposerRequestAdapter = ({ request, pluginData }) => {
@@ -2404,7 +2349,7 @@ Context 的每项为 `{ description: string, value: string }`。修改 `messages
 
 下面的按钮位于已有 Agent／Conversation 中的订单卡片插件。问题和按钮文字由项目文案提供，订单 ID 来自业务数据：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function AskAboutOrder({ orderId, prompt, label }: {
@@ -2429,7 +2374,7 @@ export function AskAboutOrder({ orderId, prompt, label }: {
 
 其他插件需要随草稿更新界面时，使用 `useComposer(selector, name?)` 选择所需字段；无参数的 `useComposer()` 或 `useComposer(name)` 返回即时读取与操作句柄，不自动订阅数据：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftSummary({ format }: {
@@ -2445,7 +2390,7 @@ export function DraftSummary({ format }: {
 
 确实需要完整快照的响应式展示时，显式选择整个快照。事件回调中使用无参数句柄的 `getSnapshot()` 或 `getState()` 即时读取：
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
@@ -2470,7 +2415,7 @@ Hook 随当前会话重新绑定；保留的旧句柄仍绑定原 Thread。长�
 
 只改样式时直接定制[发送／停止插件](/plugins/submit-action.md)。确需自己组合操作区时，继续读取当前控制器与等待用户操作状态：
 
-```tsx
+```tsx fold height=180
 import { useLocale, useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftActions({ formatCount }: { formatCount: (count: number) => string }) {
@@ -2511,7 +2456,7 @@ export function DraftActions({ formatCount }: { formatCount: (count: number) => 
 
 在项目已有输入入口设置根级行数、长度与提交方式，继续保留子插件转发：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
 
@@ -2717,7 +2662,7 @@ url: /plugins/submit-action.md
 
 endpoint 选择同一助手当前 Thread 的请求 URL，续答沿用它；此操作不创建新会话。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
 
@@ -2736,7 +2681,7 @@ export function Example(props: ComponentProps<typeof ConversationSubmitActionPlu
 
 外层配置负责组合，两种按钮分别接受自己的原生属性。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSubmitActionPlugin } from '@za38.03/agent-ui-plugins/submit-action';
 
@@ -2866,7 +2811,7 @@ url: /plugins/add-attachment-action.md
 
 multiple 控制文件选择器一次能选择多少文件；不限制整个草稿累计添加的附件数量，也不负责上传。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
 
@@ -2881,7 +2826,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 
 size 和 variant 直接传给按钮，side 控制提示出现的位置。已有上传适配继续使用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
 
@@ -2935,9 +2880,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 
 ## 常见问题
 
-
-multiple=
-&#x20;能限制整个会话只能上传一个文件吗？
+### `multiple={false}` 能限制整个会话只能上传一个文件吗？
 
 不能。它只限制一次文件选择。累计数量、类型、大小和实际上传由项目附件适配实现。
 
@@ -3045,7 +2988,7 @@ export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) 
 
 业务结果卡片要把一段文字引用到当前草稿时，使用 Composer 的 `setQuote({ text, messageId })`。`text` 是选中的原文，`messageId` 是来源消息的实际 ID：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function QuotePassage({ text, messageId, label }: {
@@ -3068,7 +3011,7 @@ export function QuotePassage({ text, messageId, label }: {
 
 renderToolbar 返回 null 后不显示默认选择工具栏；引用仍可由项目已有引用入口或 useComposer 设置。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
 
@@ -3154,7 +3097,7 @@ url: /plugins/lexical-edit-composer.md
 
 Lexical 为可选输入实现，通过 /lexical 入口导入；沿用项目已有编辑与输入组合。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalEditComposer } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -3169,7 +3112,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 关闭 Escape 取消后，用户继续通过已有取消按钮退出编辑。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalEditComposer } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -3321,7 +3264,7 @@ url: /plugins/mention-trigger.md
 
 用户停止输入 300ms 后执行候选搜索。实际查询仍由项目提供的 source 完成。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationMentionTrigger } from '@za38.03/agent-ui-plugins';
 
@@ -3461,7 +3404,7 @@ url: /plugins/slash-command-trigger.md
 
 `onSelect` 接管默认指令插入和动作执行。返回值只替换当前 `/` 查询片段；下面插入名称，周围草稿由插件保留，不需要调用方拼接：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationSlashCommandTrigger } from '@za38.03/agent-ui-plugins';
 
@@ -3561,7 +3504,7 @@ url: /plugins/lexical-composer-input.md
 
 在现有输入组件上传入标签组件。`label` 继续来自引用数据，稳定 ID 保留在数据属性中，业务样式使用项目主题变量：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   CanonicalConversationLexicalComposerInput,
@@ -3596,7 +3539,7 @@ export function ProjectLexicalInput(props:
 
 Lexical 为可选输入实现，通过 /lexical 入口导入；沿用项目已有编辑与输入组合。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalComposerInput } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -3612,7 +3555,7 @@ export function Example(props: ComponentProps<typeof CanonicalConversationLexica
 
 关闭 Escape 取消后，用户继续通过已有取消按钮退出编辑。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationLexicalComposerInput } from '@za38.03/agent-ui-plugins/lexical';
 
@@ -3716,7 +3659,7 @@ url: /plugins/dictation-action.md
 
 两种状态的按钮分别配置；示例不提供语音转写服务，现有开发状态不变。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationDictationActionPlugin } from '@za38.03/agent-ui-plugins/dictation-action';
 
@@ -3732,7 +3675,7 @@ export function Example(props: ComponentProps<typeof ConversationDictationAction
 
 业务未提供转写适配时，可按项目状态禁用入口。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerDictate } from '@za38.03/agent-ui-plugins';
 
@@ -3879,7 +3822,7 @@ url: /plugins/skills.md
 
 在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
 
-```tsx
+```tsx fold height=180
 import { useComposer, useSkillSelection, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
 
 export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
@@ -3895,7 +3838,7 @@ Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收
 
 编辑项目生成的 `plugins/composer/request-adapter.ts`，或在 Composer 应用层替换最终 `requestAdapter`。下面把默认 `ctx.skill` 改为 `ctx.skillId`，保留其他业务字段：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalComposer } from '@za38.03/agent-ui-plugins';
 import { readConversationSkillData } from '@za38.03/agent-ui-plugins';
@@ -3926,7 +3869,7 @@ Composer 使用这里返回的字段，不会补回默认的 `skill`。若配置
 
 #### 调整快捷技能数量 \{#调整快捷技能数量}
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
 
@@ -4041,7 +3984,7 @@ url: /plugins/skills-selection.md
 
 在 `plugins/skills-selection/index.tsx` 中向已有实现传 props：
 
-```tsx
+```tsx fold height=180
 import { SkillsSelectionPlugin as Implementation } from '@za38.03/agent-ui-plugins/skills-selection';
 import type { ComponentProps } from 'react';
 
@@ -4097,7 +4040,7 @@ url: /plugins/response-footer.md
 
 hideWhenRunning 隐藏生成中的操作栏；autohide=never 让回复完成后无需鼠标悬停即可看到操作。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
 
@@ -4112,7 +4055,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 合并嵌套对象后修改样式，原有 actions 插槽与回复级作用域继续使用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
 
@@ -4128,7 +4071,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 以下展示组件在现有回复作用域内组合复制和独立导出按钮。生成项目已使用 actions 插槽时，优先在该插槽中调整操作插件；直接传 actions 不会覆盖已配置的插槽。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   ConversationCanonicalResponseFooter,
@@ -4156,7 +4099,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 以下 `save` 接项目已有的收藏、知识库或业务记录方法，`label` 来自项目文案，`onError` 接业务错误提示：
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import { useResponse } from '@za38.03/agent-ui-plugins';
 
@@ -4242,8 +4185,7 @@ export function SaveResponse({ save, label, onError }: {
 
 ## 常见问题
 
-
-为什么 actions 属性没有替换现有按钮？
+### 为什么 actions 属性没有替换现有按钮？ \{#为什么-actions-属性没有替换现有按钮}
 
 项目已配置 actions 插槽时，先修改该插槽中的插件组合。操作内容统一通过 actions 或已有 actions 插槽组合。
 
@@ -4279,7 +4221,7 @@ url: /plugins/copy-action.md
 
 调整复制按钮的展示；按钮继续操作当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
 
@@ -4301,7 +4243,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例直接禁用；实际项目把 true 换成自己的权限或业务状态表达式。组件仍叠加当前会话的可用性判断。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseCopyAction } from '@za38.03/agent-ui-plugins';
 
@@ -4382,7 +4324,7 @@ url: /plugins/reload-action.md
 
 调整重新生成按钮的展示；按钮继续操作当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
@@ -4404,7 +4346,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例直接禁用；实际项目把 true 换成自己的权限或业务状态表达式。组件仍叠加当前会话的可用性判断。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
@@ -4418,7 +4360,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 `onClick` 先于重新生成执行。业务状态不允许重试时调用 `preventDefault()`；允许时沿用组件原有的重试流程。
 
-```tsx
+```tsx fold height=180
 import { ConversationCanonicalResponseReloadAction } from '@za38.03/agent-ui-plugins';
 
 export function CheckedReload({ canRetry }: { canRetry: () => boolean }) {
@@ -4497,7 +4439,7 @@ url: /plugins/export-markdown-action.md
 
 将组件放进项目已有菜单内容中。直接配置菜单项属性；该模式不使用按钮的 size/variant。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
@@ -4513,7 +4455,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 
 按钮样式与菜单项分别配置，导出的仍是当前整次回复。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
@@ -4532,7 +4474,7 @@ export function Example(props: Extract<ComponentProps<typeof ConversationCanonic
 
 两种模式统一使用 `disabled`。生成中或没有正文时，组件也会自动禁用。
 
-```tsx
+```tsx fold height=180
 import { ConversationCanonicalResponseExportMarkdownAction } from '@za38.03/agent-ui-plugins';
 
 export function DisabledExport() {
@@ -4614,7 +4556,7 @@ url: /plugins/feedback-actions.md
 
 两个按钮的属性独立配置；保留原有事件处理与反馈服务。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFeedbackActions } from '@za38.03/agent-ui-plugins';
 
@@ -4630,7 +4572,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 示例只禁用踩按钮，赞按钮仍按现有会话与反馈适配决定是否可用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFeedbackActions } from '@za38.03/agent-ui-plugins';
 
@@ -4681,8 +4623,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 ## 常见问题
 
-
-显示评价按钮后，结果会自动保存到我的后端吗？
+### 显示评价按钮后，结果会自动保存到我的后端吗？ \{#显示评价按钮后结果会自动保存到我的后端吗}
 
 不会。组件通过项目现有反馈适配提交结果；需要在服务接入中实现持久化。按钮属性只负责呈现与交互。
 
@@ -4766,7 +4707,7 @@ Agent 服务通过 reasoning 事件传递内容。以下按顺序列出思考事
 
 需要直接展示完整思考过程时，在项目已有 `plugins/reasoning/index.tsx` 的实现调用处增加 `defaultExpanded`。下面保留当前思考分组与正文的绑定：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -4786,7 +4727,7 @@ export function ConversationReasoningPlugin(props: ComponentProps<typeof Impleme
 
 柔和背景和正文高度只影响展示，自动展开、收起和滚动跟随继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -4829,8 +4770,7 @@ export function ConversationReasoningPlugin(props: ComponentProps<typeof Impleme
 
 ## 常见问题
 
-
-defaultExpanded 与 expanded 有什么区别？
+### defaultExpanded 与 expanded 有什么区别？ \{#defaultexpanded-与-expanded-有什么区别}
 
 `defaultExpanded` 决定未手动操作时的静止展开状态，思考中仍自动展开。`expanded` 则交由项目控制，会替代自动策略，需配合 `onExpandedChange` 更新。
 
@@ -4906,7 +4846,7 @@ url: /plugins/tool-group.md
 
 默认只为待处理操作自动展开。希望普通调用也从展开状态开始时，在项目已有工具组入口设置 `defaultExpanded`：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -4926,7 +4866,7 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 默认工具组使用无边框样式。需要将整组工具与正文明确分隔时，可增加边框：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -4967,8 +4907,7 @@ export function ConversationToolGroupPlugin(props: ComponentProps<typeof Impleme
 
 ## 常见问题
 
-
-defaultExpanded 与 expanded 有什么区别？
+### defaultExpanded 与 expanded 有什么区别？ \{#defaultexpanded-与-expanded-有什么区别}
 
 前者决定第一次展示时的状态，后续由组件管理；后者由项目每次渲染传入，需配套处理 onExpandedChange。
 
@@ -4982,38 +4921,43 @@ url: /plugins/tool-result.md
 
 ## 功能与效果
 
+
+![展开的工具卡片显示调用参数和 JSON 结果](/images/plugins/tool-fallback.jpg)
+
+展开一次工具调用后，可以查看工具名、调用参数和返回结果；点击标题可以收起详情。
+
 展示一次工具调用的状态、参数、错误、审批和结果。结果支持普通文字、JSON，以及约定格式的图片、音频、视频和文档片段。
 
-`tool-result` 是唯一公开的官方工具卡片插件。用户模板把它放在 `conversation-surface` 的 `toolFallback` 插槽；插槽名表示通用工具回退位置，不是第二个插件。专用工具 renderer 优先。
-
-## 修改与启用
+### 操作审批
 
 
-### 修改位置 \{#修改位置}
+![工具卡片中的操作说明与允许、拒绝按钮](/images/plugins/tool-fallback-approval.jpg)
 
-以下路径相对于生成目录，默认为 `src/agent-ui/`。
+需要用户确认时，卡片显示操作说明和审批入口，用户提交决定后由后端继续执行。
 
-- 默认 npm 实现：修改 `plugins/tool-result/index.tsx`，保留已有作用域桥接，通过公开属性配置卡片。
-- 已接管源码：在该插件的 `source/adapters/` 中修改对应场景模块。首次接管需要明确同意，见[源码接管与更新](/development/source-takeover.md)。
+### 多模态结果
 
-| 想修改的部分              | 实现模块，位于 `source/adapters/`                      |
-| ------------------- | ----------------------------------------------- |
-| 整张卡片的组合与结果选择        | `tool-result.tsx`、`tool-call-card.tsx`          |
-| 标题、状态、耗时和展开面板       | `tool-card.tsx`                                 |
-| 参数、普通结果、错误          | `tool-content.tsx`                              |
-| 确认／拒绝按钮及外观          | `approval/approval-actions.tsx`                 |
-| 多审批选项、二次确认          | `approval/approval-options.tsx`                 |
-| 问卷与补充输入             | `approval/approval-questions.tsx`               |
-| 已确认、已拒绝、已取消回执       | `approval/approval-receipt.tsx`                 |
-| 局部提交、错误重试和焦点状态      | `approval/use-approval-interaction.ts`          |
-| 文本及结构化结果组合          | `result/result-content.tsx`、`result/content.ts` |
-| 图片、音频、视频展示          | `result/result-media.tsx`                       |
-| 文档和下载文件             | `result/result-file.tsx`                        |
-| 文件引用解析、取消和安全 URL 校验 | `result/use-result-source.ts`                   |
 
-这些是同一个插件的内部模块，不需要分别注册或在 AppUIModel 配置子插槽。源码同步仍只处理已接管实现；应用入口和业务配置保持项目所有。
+![同一次工具调用返回图片、音频、视频和 PDF 文档](/images/plugins/tool-result.png)
+
+同一次调用可以按返回顺序展示多种结果：图片预览、音视频播放器和文档下载入口。
+
+### 自定义卡片的展开与收起
+
+自定义 `render` 可以根据工具状态实现“调用时展开，成功完成后收起”。下面两张图来自同一个 `standalone` 卡片的实际 Mock 演示；实现方式见[自定义卡片示例](#自定义卡片自动展开收起)。
+
+
+![自定义卡片在调用中展开并逐段显示工具结果](/images/plugins/behavior/custom-tool-streaming.jpg)
+
+调用中：卡片保持展开，工具输出逐段追加；图中的 isPreliminary 为 true。
+
+
+![自定义卡片收到最终结果后自动收起](/images/plugins/behavior/custom-tool-completed.jpg)
+
+成功完成后：卡片自动收起，保留标题；用户仍可点击标题查看完整结果。这一行为由示例组件自己的状态逻辑实现。
 
 ## 数据来源与显示条件
+
 
 ### 操作确认与中断 \{#操作确认}
 
@@ -5067,28 +5011,31 @@ url: /plugins/tool-result.md
 
 文件引用不会被猜测成 URL。`resolveFile(source, { signal })` 返回地址或 Promise；更换来源、卸载时取消旧解析。媒体不自动播放，无效地址或 MIME 使用统一语言提示。普通 JSON 和不符合片段约定的结果继续使用通用结果展示。
 
-每项可带 `id` 和 `metadata`；`metadata.filename` 提供文件名。`renderPart(part, index, defaultContent)` 可定制单个已识别片段，保留现有 `defaultContent` 即保留原展示。
+每项可带 `id` 和 `metadata`；`metadata.filename` 提供文件名。`components` 按片段类型替换组件，例如 `Image: MyImage`；未指定的片段保持默认。结果组件还能从 `result.parts` 读取按原顺序排列的数据和展示节点。
 
 ## 常见定制
 
 
 
-### 调整确认与拒绝按钮样式 \{#审批按钮样式}
+除“自定义卡片自动展开收起”外，下面每个示例都是一个完整的 `plugins/tool-result/index.tsx`，可单独使用。示例采用默认 npm 实现；已接管源码的项目保留现有 `Implementation` 导入路径。所有可用配置见下方 [API](#api)。
 
-直接修改项目现有的 `plugins/tool-result/index.tsx`：
+### 修改审批按钮样式 \{#审批按钮样式}
 
-```tsx
+修改 `plugins/tool-result/index.tsx`，把默认审批按钮改成蓝色确认、红色拒绝，并增大按钮间距：
+
+```tsx fold height=180
+import type { ComponentProps } from 'react';
 import { ConversationToolResultPlugin as Implementation }
   from '@za38.03/agent-ui-plugins/tool-result';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
-import type { ComponentProps } from 'react';
 
-export function ConversationToolResultPlugin(
-  props: ComponentProps<typeof Implementation>,
-) {
-  const scope = usePluginRenderScope<Partial<ComponentProps<typeof Implementation>>>();
+type PluginProps = ComponentProps<typeof Implementation>;
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
   if (scope?.kind !== 'conversation.tool-fallback') return null;
   const input = { ...scope.value, ...props };
+
   return <Implementation {...input}
     approvalStyles={{
       ...input.approvalStyles,
@@ -5101,95 +5048,459 @@ export function ConversationToolResultPlugin(
         ...input.approvalStyles?.rejectButton,
         color: '#b42318', borderRadius: 10,
       },
-    }} />;
+    }}
+  />;
 }
 ```
 
-`approvalClassNames` 使用相同键传入项目 CSS 类名：`actions` 控制操作行，`button` 控制通用操作按钮，`approveButton` / `rejectButton` 控制明确的确认 / 拒绝操作。专用样式覆盖通用按钮样式。
+这里只修改 `approvalStyles`：`actions` 控制操作行，`approveButton`、`rejectButton` 分别控制确认和拒绝按钮，原有审批行为保留。
 
-这些分区覆盖旧 `ON_INTERRUPT` 的 `approve` / `reject`、原生审批的允许 / 拒绝选项及普通二选一审批。二次确认按选项性质使用对应分区。返回、问卷提交、取消填写和自定义选项只使用通用 `button` 样式。
-
-`approvalProps` 控制审批区外层，`buttonProps` 控制工具标题按钮。修改外观时继续传入原 `tool`，保留原有权限、提交、错误重试和焦点行为。
-
-### 工具详情与结果 \{#展开详情并限制内容高度}
+### 设置展开与内容高度 \{#展开详情并限制内容高度}
 
 
 
-公开展示组件是 `ConversationToolResult`。例如，默认展开并限制详情高度：
+修改 `plugins/tool-result/index.tsx`，默认展开工具详情，内容超过 360px 时在详情区内滚动：
 
-```tsx
-import {
-  ConversationToolResult, type ConversationToolResultProps,
-} from '@za38.03/agent-ui-plugins';
+```tsx fold height=180
+import type { ComponentProps } from 'react';
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
 
-export function ExpandedTool(props: ConversationToolResultProps) {
-  return <ConversationToolResult {...props}
+type PluginProps = ComponentProps<typeof Implementation>;
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+
+  return <Implementation {...input}
     defaultExpanded
     contentProps={{
-      ...props.contentProps,
-      style: { ...props.contentProps?.style, maxHeight: 360, overflow: 'auto' },
-    }} />;
+      ...input.contentProps,
+      style: {
+        ...input.contentProps?.style,
+        maxHeight: 360,
+        overflow: 'auto',
+      },
+    }}
+  />;
 }
 ```
 
-`expanded` / `onExpandedChange` 用于受控展开；`renderDetails(defaultDetails)` 定制详情区域，可复用传入节点保留默认参数、错误、审批和结果。普通结果可通过 `renderResult(result)` 定制；已经识别的媒体片段使用 `renderPart`。
+`defaultExpanded` 设置初始展开状态；`contentProps.style` 设置详情区的样式。
 
-### 自定义命令审批 \{#hook}
+### 自定义卡片自动展开收起 \{#自定义卡片自动展开收起}
 
-已有 `ON_INTERRUPT` 卡片需要替换业务界面时，在当前工具 renderer 内使用公开的命令绑定：
+这个示例放在业务侧的 Agent 引用文件（如 `src/App.tsx`）：替换 `check_workspace` 工具的整张卡片，调用时展开，成功完成后收起。
 
-```tsx
-import { useState } from 'react';
-import { useConversationCommandDecision }
-  from '@za38.03/agent-ui-runtime/plugin-api';
+```tsx fold height=180
+import { useEffect, useId, useState } from 'react';
+import type { ConversationToolCallProps, ConversationToolkit } from '@za38.03/agent-ui-plugins';
+import { Agent } from './agent-ui';
+import { agentUIProject } from './agent-ui/application/project-config';
 
-export function CommandDecisions({ toolCallId, labelFor, onError }: {
-  toolCallId: string;
-  labelFor: (decision: string) => string;
-  onError: (error: unknown) => void;
-}) {
-  const binding = useConversationCommandDecision(toolCallId);
-  const [pending, setPending] = useState(false);
-  if (!binding) return null;
-  return <div>{binding.request.allowedDecisions.map(decision => (
-    <button key={decision} type="button" disabled={pending} onClick={async () => {
-      if (pending) return;
-      setPending(true);
-      try { await binding.submit(decision); }
-      catch (error: unknown) { onError(error); }
-      finally { setPending(false); }
-    }}>{labelFor(decision)}</button>
-  ))}</div>;
+function CustomStreamTool({ toolName, status, result, isPreliminary, isError }: ConversationToolCallProps) {
+  const completed = status.type === 'complete' && !isPreliminary && !isError;
+  const [expanded, setExpanded] = useState(!completed);
+  const detailsId = useId();
+
+  useEffect(() => {
+    setExpanded(!completed);
+  }, [completed]);
+
+  const output = result === undefined ? ''
+    : typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+
+  return <section>
+    <button type="button" aria-expanded={expanded} aria-controls={detailsId}
+      onClick={() => setExpanded(value => !value)}>
+      {toolName}
+    </button>
+    <div id={detailsId} hidden={!expanded}>
+      <pre>{output}</pre>
+    </div>
+  </section>;
+}
+
+const toolkit = {
+  ...agentUIProject.baseConversationToolkit,
+  check_workspace: {
+    type: 'backend',
+    display: 'standalone',
+    render: CustomStreamTool,
+  },
+} satisfies ConversationToolkit;
+
+export default function App() {
+  return <Agent endpoint="/api/agent" toolkit={toolkit} />;
 }
 ```
 
-`labelFor` 沿用项目统一语言层；提交值仍是后端原决策。该接口只接受决策字符串，不表示可以提交任意业务表单。完整卡片不需要重新实现这个绑定。
+把 `check_workspace` 换成后端实际工具名。`status.type === 'complete'` 且 `isPreliminary`、`isError` 都不为 true 时视为成功完成；`display: 'standalone'` 让该卡片独立于工具分组显示。
+
+### 替换工具名称和入参 \{#业务渲染}
+
+修改 `plugins/tool-result/index.tsx`，用自己的按钮显示工具名，用自己的代码块显示入参，保留默认结果和审批区域：
+
+```tsx fold height=180
+import type { ComponentProps } from 'react';
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import type { ToolHeaderProps, ToolArgsProps }
+  from '@za38.03/agent-ui-plugins';
+
+type PluginProps = ComponentProps<typeof Implementation>;
+
+function MyHeader({
+  tool, expanded, onExpandedChange,
+}: ToolHeaderProps) {
+  return <button type="button" aria-expanded={expanded}
+    onClick={() => onExpandedChange(!expanded)}>
+    {tool.toolName}
+  </button>;
+}
+
+function MyArguments({ args }: ToolArgsProps) {
+  return <pre style={{ padding: 12, background: '#f5f5f5' }}>
+    {JSON.stringify(args, null, 2)}
+  </pre>;
+}
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+
+  return <Implementation {...input}
+    components={{
+      ...input.components,
+      Header: MyHeader,
+      Args: MyArguments,
+    }}
+  />;
+}
+```
+
+`components.Header`、`components.Args` 分别指定这两个区域使用的组件。`tool.toolName` 是工具名，`args` 是入参；按钮通过 `expanded`、`onExpandedChange` 保留展开和收起操作。
+
+### 自定义审批卡片 \{#自己画审批卡片和按钮}
+
+修改 `plugins/tool-result/index.tsx`，只替换审批工具的名称、入参、结果和按钮，其他工具保持默认。这个示例用于后端提供“允许、拒绝”两种动作的审批：
+
+```tsx fold height=180
+import type { ComponentProps } from 'react';
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import { useLocale, type ApprovalCardProps }
+  from '@za38.03/agent-ui-plugins';
+
+type PluginProps = ComponentProps<typeof Implementation>;
+
+function MyApprovalCard({
+  tool, approval, result, views,
+}: ApprovalCardProps) {
+  const messages = useLocale('toolPresentation');
+
+  return <section {...approval.containerProps}
+    style={{ padding: 16, border: '1px solid #ddd', borderRadius: 12 }}>
+    <h3>{tool.toolName}</h3>
+    <pre>{JSON.stringify(tool.args, null, 2)}</pre>
+    <p>{approval.prompt}</p>
+
+    <button disabled={approval.disabled}
+      onClick={() => approval.approve()}>
+      {messages.allow}
+    </button>
+    <button disabled={approval.disabled}
+      onClick={() => approval.reject()}>
+      {messages.deny}
+    </button>
+
+    {approval.error && <p role="alert">{approval.error}</p>}
+    {approval.receipt?.label}
+    {views.error}
+    {result.kind !== 'none' && <pre>{result.text}</pre>}
+  </section>;
+}
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+
+  return <Implementation {...input}
+    components={{
+      ...input.components,
+      ApprovalCard: MyApprovalCard,
+    }}
+  />;
+}
+```
+
+`components.ApprovalCard` 让审批调用使用 `MyApprovalCard`，框架自动传入数据和方法。`tool` 提供名称、入参；`result.text` 提供格式化结果；`views.error` 保留工具执行错误提示。
+
+按钮直接调用 `approval.approve()` / `reject()`。`disabled` 控制能否点击，`error` 显示提交失败原因，`receipt.label` 显示已允许或已拒绝的回执。`containerProps` 挂到审批区域根元素以保留焦点处理。
+
+### 替换图片组件
+
+修改 `plugins/tool-result/index.tsx`，将工具结果里的图片交给自己的 `MyImage`，保留工具标题、入参和其他结果：
+
+```tsx fold height=180
+import type { ComponentProps } from 'react';
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+import type { ToolImageProps } from '@za38.03/agent-ui-plugins';
+
+type PluginProps = ComponentProps<typeof Implementation>;
+
+function MyImage({ src, filename }: ToolImageProps) {
+  return <figure style={{ margin: 0, padding: 12, border: '1px solid #ddd' }}>
+    <img src={src} alt={filename ?? ''}
+      style={{ maxWidth: '100%', borderRadius: 12 }} />
+    {filename && <figcaption>{filename}</figcaption>}
+  </figure>;
+}
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+
+  return <Implementation {...input}
+    components={{
+      ...input.components,
+      Image: MyImage,
+    }}
+  />;
+}
+```
+
+关键配置是 `components.Image: MyImage`。框架把已解析的图片地址作为 `src`、可选文件名作为 `filename` 传入，因此用户不需要判断工具类型或遍历结果。
+
+### 统一卡片布局 \{#统一布局}
+
+修改 `plugins/tool-result/index.tsx`，把每次工具调用的默认名称、入参和内容放进一个带间距的容器：
+
+```tsx fold height=180
+import type { ComponentProps } from 'react';
+import { ConversationToolResultPlugin as Implementation }
+  from '@za38.03/agent-ui-plugins/tool-result';
+import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
+
+type PluginProps = ComponentProps<typeof Implementation>;
+
+export function ConversationToolResultPlugin(props: PluginProps) {
+  const scope = usePluginRenderScope<Partial<PluginProps>>();
+  if (scope?.kind !== 'conversation.tool-fallback') return null;
+  const input = { ...scope.value, ...props };
+
+  return <Implementation {...input}
+    renderToolCall={({ header, defaultView }) => (
+      <div style={{ display: 'grid', gap: 16 }}>
+        {header}
+        {defaultView}
+      </div>
+    )}
+  />;
+}
+```
+
+`header` 包含默认名称、状态和入参；`defaultView` 是不含 header 的错误、审批及结果区域。示例同时引用两者，因此保留默认内容，只调整排列和间距。
 
 ## 属性与 API
 
 
 
-### API \{#api}
 
 
-唯一插件入口是 `ConversationToolResultPlugin`，npm 子路径为 `@za38.03/agent-ui-plugins/tool-result`；公开展示组件为根入口的 `ConversationToolResult`。插件入口接收 `tool?` 及展示属性，组件直接接收 `ConversationToolResultProps`。
+以下配置传给插件入口的 `Implementation`；工具调用数据由现有作用域提供。复杂属性可点击名称查看下面的子属性表。`—` 表示未设置。
 
-| 属性                                              | 用途                                                     |
-| ----------------------------------------------- | ------------------------------------------------------ |
-| `expanded`、`defaultExpanded`、`onExpandedChange` | 受控或默认展开                                                |
-| `className`、`style`、原生无障碍属性                     | 卡片外观与可访问性                                              |
-| `buttonProps`                                   | 工具标题按钮属性                                               |
-| `contentProps`                                  | 详情容器属性                                                 |
-| `argsProps`、`resultProps`、`errorProps`          | 参数、普通结果、错误区外观                                          |
-| `approvalProps`                                 | 审批区外层属性                                                |
-| `approvalClassNames`、`approvalStyles`           | `actions`、`button`、`approveButton`、`rejectButton` 分区样式 |
-| `renderDetails(defaultDetails)`                 | 详情区域组合                                                 |
-| `renderResult(result)`                          | 普通结果内容展示                                               |
-| `renderPart(part, index, defaultContent)`       | 已识别结果片段展示                                              |
-| `resolveFile(source, { signal })`               | 项目文件引用解析                                               |
-| `resultOnly`                                    | 只显示结果，会省略参数、错误和审批区                                     |
+| 参数                                           | 说明                     | 类型                                                  | 默认值                      |
+| -------------------------------------------- | ---------------------- | --------------------------------------------------- | ------------------------ |
+| [`components`](#components)                  | 替换指定区域或结果组件，未配置的使用默认组件 | 组件映射                                                | —                        |
+| [`renderToolCall`](#render-tool-call)        | 统一组合工具调用的布局            | `({ header, defaultView }) => ReactNode`            | —                        |
+| `expanded`                                   | 受控展开状态                 | `boolean`                                           | —                        |
+| `defaultExpanded`                            | 初始展开状态                 | `boolean`                                           | 待操作时为 `true`，其余为 `false` |
+| `onExpandedChange`                           | 展开状态改变时回调              | `(expanded: boolean) => void`                       | —                        |
+| `className`                                  | 根容器的 CSS 类名            | `string`                                            | —                        |
+| `style`                                      | 根容器样式                  | `CSSProperties`                                     | —                        |
+| `buttonProps`                                | 默认工具标题按钮的属性            | 按钮属性                                                | —                        |
+| `contentProps`                               | 默认详情容器的属性，如高度、滚动样式     | 容器属性                                                | —                        |
+| `argsProps`                                  | 默认入参区域的属性              | 容器属性                                                | —                        |
+| `resultProps`                                | 默认普通结果区域的属性            | 容器属性                                                | —                        |
+| `errorProps`                                 | 默认执行错误区域的属性            | 容器属性                                                | —                        |
+| `approvalProps`                              | 默认审批区域外层的属性            | `div` 属性                                            | —                        |
+| [`approvalClassNames`](#approval-appearance) | 默认审批各区域的 CSS 类名        | 类名映射                                                | —                        |
+| [`approvalStyles`](#approval-appearance)     | 默认审批各区域的行内样式           | 样式映射                                                | —                        |
+| [`resolveFile`](#resolve-file)               | 将业务文件引用解析为资源地址         | `(source, { signal }) => string \| Promise<string>` | —                        |
+| `resultOnly`                                 | 只显示结果，跳过名称、入参和审批区域     | `boolean`                                           | `false`                  |
 
-公开类型包括 `ConversationToolResultProps`、`ToolCardPresentationProps`、`ToolApprovalClassNames`、`ToolApprovalStyles`、`ToolResultContentProps`、`ToolResultPart`、`ToolResultSource`。内部模块不作为第二套公开卡片或独立插件交付。
+根容器还支持 `id`、`role`、`onClick`、`aria-label` 和 `aria-describedby`。外观属性作用于默认区域，自定义组件自行决定其 UI。
+
+普通工具成功完成时自动收起，之后仍可手动展开；流式中间结果、失败和取消不会触发成功收起。设置 `expanded` 后由应用控制。`resultOnly` 仍应用 Result 和片段组件，但不调用 Header、ApprovalCard 或 `renderToolCall`。
+
+### components \{#components}
+
+`components` 的每个值都是一个 React 组件。组件在模块顶层定义，框架负责选择何时渲染，并注入下表参数。
+
+| 键              | 替换范围                               | 接收的参数                                                                     |
+| -------------- | ---------------------------------- | ------------------------------------------------------------------------- |
+| `Header`       | 工具名、状态和展开按钮                        | [通用参数](#component-props) + [Header 参数](#header-args-props)                |
+| `Args`         | 入参区域                               | [通用参数](#component-props) + [Args 参数](#header-args-props)                  |
+| `Approval`     | 审批提示、备注、按钮和回执区域                    | [通用参数](#component-props)，且 `approval` 保证存在                                |
+| `ApprovalCard` | 审批工具的完整卡片，含名称、入参和结果                | [通用参数](#component-props)，且 `approval` 保证存在；另有[整卡参数](#approval-card-props) |
+| `Result`       | 整个结果区域                             | [通用参数](#component-props)                                                  |
+| `Error`        | 工具执行错误区域                           | [通用参数](#component-props)，且 `error` 保证存在                                   |
+| `Text`         | 普通文字、格式化 JSON 或文字片段                | [文字参数](#text-props)                                                       |
+| `Image`        | 结构化结果中的图片片段                        | [媒体参数](#media-props)                                                      |
+| `Audio`        | 结构化结果中的音频片段                        | [媒体参数](#media-props)                                                      |
+| `Video`        | 结构化结果中的视频片段                        | [媒体参数](#media-props)                                                      |
+| `File`         | 结构化结果中的文档／文件片段（`type: 'document'`） | [媒体参数](#media-props)                                                      |
+
+替换父区域后，其内部内容由自定义组件决定。例如 Result 自己画结果时，不会再自动追加 Image；它若引用收到的 `defaultView`，其中已经应用 Image 等片段配置。
+
+这些配置作用于 tool-result 负责的调用，已有 toolkit 专属渲染和外层分组保持原来的选择关系。
+
+#### 区域组件参数 \{#component-props}
+
+Header、Args、Approval、ApprovalCard、Result、Error 接收以下参数：
+
+| 参数            | 内容                                                                                       |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| `tool`        | 工具调用数据，常用字段为 `toolCallId`、`toolName`、`args`、`argsText`、`status`、`result`、`isPreliminary` |
+| `methods`     | 当前可用的原有工具操作，见[methods](#tool-methods)                                                    |
+| `approval`    | [approval](#hook)；普通工具可能为空                                                               |
+| `result`      | [result](#result-props)                                                                  |
+| `error`       | 执行错误；没有时为空。有值时包含原始 `error`、格式化 `errorText`、`status` 和取消标记 `cancelled`                    |
+| `defaultView` | 对应区域的默认 React 节点，已应用内部组件配置；ApprovalCard 中为不含 header 的默认内容区                               |
+
+##### approval：审批数据与操作 \{#hook}
+
+| approval 参数                              | 内容                                                       |
+| ---------------------------------------- | -------------------------------------------------------- |
+| `approve(optionId?)`、`reject(optionId?)` | 同意／拒绝，沿用原提交通道、防重复提交、失败重试和续跑流程                            |
+| `disabled`                               | 当前不能提交时为 `true`，用于按钮 `disabled`                          |
+| `kind`                                   | `command`、`approval`、`interrupt`、`frontend`              |
+| `phase`                                  | `pending`、`confirming`、`submitting`、`settled`、`readonly` |
+| `prompt`                                 | 审批说明                                                     |
+| `actions`                                | 当前按钮描述，包含 `id`、`label`、`kind`、`disabled`；可据此决定显示哪些按钮     |
+| `options`、`confirming`                   | 审批选项、当前二次确认的选项                                           |
+| `acceptsNote`、`note`、`setNote(text)`     | 是否允许备注、备注内容及更新方法                                         |
+| `error`                                  | 提交失败提示；与工具执行错误 `error` 区分                                |
+| `receipt`                                | 回执，包含 `outcome`、`label`、可选 `option`                      |
+| `containerProps`                         | 挂到自定义审批区域根元素，保留焦点处理                                      |
+| `approval`、`interrupt`、`decisionRequest` | 原始审批／中断／命令请求数据                                           |
+
+多个同类选项时，用 `approve(optionId)` / `reject(optionId)` 指定选择。需要二次确认时，第一次调用进入 `confirming`，再次调用同一动作确认提交。
+
+##### methods：工具操作 \{#tool-methods}
+
+`methods` 只提供当前可用的方法，使用前判断是否存在。审批按钮优先使用 `approval.approve()` / `reject()`。
+
+| 方法                                           | 用途                            |
+| -------------------------------------------- | ----------------------------- |
+| `addResult(result)`                          | 提交前端工具结果                      |
+| `respondToApproval(response)`                | 提交原生审批回答                      |
+| `resume(payload)`、`resumeInterrupt(payload)` | 提交中断回答并恢复运行                   |
+| `submitDecision(decision)`                   | 提交命令审批决定，如 `approve`、`reject` |
+| `unstable_recordInteraction(input)`          | 上游提供时，记录工具交互                  |
+
+##### result：结果数据 \{#result-props}
+
+| result 参数 | 内容                                           |
+| --------- | -------------------------------------------- |
+| `value`   | 原始结果                                         |
+| `text`    | 格式化文字，可用于自己的文字／JSON 结果卡片                     |
+| `kind`    | `none` 无结果、`plain` 普通结果、`parts` 结构化片段        |
+| `parts`   | 按原顺序排列的片段描述；每项有 `part`、`index`、`defaultView` |
+
+`parts` 的文字项另有 `text`；媒体项另有 `url`、`mimeType`、`filename`、`pending`、`available`。这里的 `defaultView` 是可复用的片段节点。
+
+#### Header、Args 参数 \{#header-args-props}
+
+除[通用参数](#component-props)外，这两个组件分别接收：
+
+| 组件     | 参数                 | 说明          | 类型                            |
+| ------ | ------------------ | ----------- | ----------------------------- |
+| Header | `expanded`         | 当前展开状态      | `boolean`                     |
+| Header | `onExpandedChange` | 更新展开状态      | `(expanded: boolean) => void` |
+| Args   | `args`             | 原始工具入参      | `unknown`                     |
+| Args   | `argsText`         | 入参文本，可能尚未生成 | `string \| undefined`         |
+
+#### ApprovalCard 参数 \{#approval-card-props}
+
+ApprovalCard 除通用参数外，还接收：
+
+| 参数                            | 内容                                                 |
+| ----------------------------- | -------------------------------------------------- |
+| `header`                      | 完整的默认调用信息区，含名称、状态、入参和展开行为；引用才保留，省略即可自行重画           |
+| `views`                       | 默认节点集合：`header`、`args`、`approval`、`result`、`error` |
+| `expanded`、`onExpandedChange` | 调用信息区的展开状态和更新方法                                    |
+
+`views.header` 与 `header` 相同，已包含入参，避免再重复拼上 `views.args`。`views.approval` 是可直接复用的审批交互区域，默认包含已接好提交的按钮；自己画按钮时使用 `approval.approve()` / `reject()`。
+
+#### Text 参数 \{#text-props}
+
+| 参数             | 内容                       |
+| -------------- | ------------------------ |
+| `value`、`text` | 原始展示值、格式化文字              |
+| `part`、`index` | 结构化文字片段及其序号；普通结果中没有这两个字段 |
+| `defaultView`  | 默认文字／JSON 展示节点           |
+
+#### Image、Audio、Video、File 参数 \{#media-props}
+
+Image、Audio、Video、File 接收：
+
+| 参数                    | 内容                   |
+| --------------------- | -------------------- |
+| `src`                 | 已解析并校验的资源地址          |
+| `filename`            | 可选文件名                |
+| `mimeType`            | MIME 类型              |
+| `part`、`index`        | 原始片段及其在结果中的序号        |
+| `pending`、`available` | 解析状态与可用状态            |
+| `defaultView`         | 对应资源的默认图片、播放器或文件展示节点 |
+
+解析中或不可用时显示默认提示，资源可用后才挂载这些自定义组件。图片预览、播放器等被替换组件自身的 UI 交互由自定义组件实现。
+
+### renderToolCall \{#render-tool-call}
+
+`renderToolCall` 只接收一个对象，包含两个 React 节点：
+
+| 参数            | 内容                                        |
+| ------------- | ----------------------------------------- |
+| `header`      | 默认名称、状态、入参及其展开行为                          |
+| `defaultView` | 不含 header 的默认错误、审批和结果区域，已应用 components 配置 |
+
+引用哪个节点就保留哪个；返回 `null` 隐藏本次卡片。完整 ApprovalCard 优先接管审批调用，因此不再进入这个通用布局回调。
+
+### approvalClassNames / approvalStyles \{#approval-appearance}
+
+两者使用相同的键。`approvalClassNames` 的值为 CSS 类名字符串，`approvalStyles` 的值为 `CSSProperties` 样式对象。
+
+| 键               | 作用区域   |
+| --------------- | ------ |
+| `actions`       | 审批按钮容器 |
+| `button`        | 所有审批按钮 |
+| `approveButton` | 同意按钮   |
+| `rejectButton`  | 拒绝按钮   |
+
+专用按钮样式覆盖通用 `button` 样式；替换审批组件后，使用自定义组件自己的样式。
+
+### resolveFile \{#resolve-file}
+
+仅解析 `source.type: 'file'` 的业务文件引用，返回 HTTP(S) 或 Blob URL，可返回 Promise。
+
+| 参数                | 说明           | 类型                    |
+| ----------------- | ------------ | --------------------- |
+| `source.type`     | 文件引用标记       | `'file'`              |
+| `source.value`    | 业务文件标识       | `string`              |
+| `source.provider` | 可选的文件服务标识    | `string \| undefined` |
+| `source.mimeType` | 可选的 MIME 类型  | `string \| undefined` |
+| `options.signal`  | 用于取消已过期的解析请求 | `AbortSignal`         |
 
 
 
@@ -5334,7 +5645,7 @@ React 接入可从 `@za38.03/agent-ui-plugins/ask-user-question` 导入 `askUser
 
 保留工具参数、addResult 与可回答状态，沿用完整插件的提交和历史回显行为。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAskUserQuestion } from '@za38.03/agent-ui-plugins';
 
@@ -5350,7 +5661,7 @@ export function Example(props: ComponentProps<typeof CanonicalAskUserQuestion>) 
 
 choice 传入保存的答案后展示回执，不提供新的提交入口。steps 和 choice 由调用方提供；文字题仍使用完整插件。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationQuestionFlow } from '@za38.03/agent-ui-plugins';
 
@@ -5366,7 +5677,7 @@ export function Example(props: ComponentProps<typeof ConversationQuestionFlow>) 
 
 需要从业务数据恢复问卷回执时，先验证请求，再按该请求验证答案：
 
-```tsx
+```tsx fold height=180
 import {
   parseHumanQuestionRequest, parseHumanQuestionResult,
 } from '@za38.03/agent-ui-plugins';
@@ -5388,7 +5699,7 @@ export function readQuestionReceipt(args: unknown, result: unknown) {
 
 回调成功后，组件显示本次选择的回执。失败提示会显示回调抛出的错误信息，项目应先转换为统一语言层中的业务文案。需要从已保存答案直接恢复回执时，使用下方 `ConversationQuestionFlow.choice`；公开的 `ConversationOptionListProps` 没有 `choice` 属性。
 
-```tsx
+```tsx fold height=180
 import { ConversationOptionList, type ConversationOption } from '@za38.03/agent-ui-plugins';
 
 export function SingleQuestion({ options, save }: {
@@ -5405,7 +5716,7 @@ export function SingleQuestion({ options, save }: {
 
 回调成功后，调用方需要更新 `choice`，组件才会结束最终提交等待并进入回执。示例接收项目自己的异步保存方法，保存成功后在本地显示回执；传入历史 `choice` 或 `readOnly` 时关闭提交入口：
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import {
   ConversationQuestionFlow,
@@ -5500,12 +5811,9 @@ export function BusinessQuestionnaire({
 
 ## 常见问题
 
-<details className="plugin-faq" id="为什么单独传-submittext-或-labels-没有效果">
-<summary>为什么单独传 submitText 或 labels 没有效果？</summary>
+### 为什么单独传 submitText 或 labels 没有效果？ \{#为什么单独传-submittext-或-labels-没有效果}
 
 完整插件的按钮文案使用 locales.humanQuestion，没有这两个展示属性。独立复用问卷时也沿用统一语言层。
-
-</details>
 
 
 
@@ -5573,7 +5881,7 @@ url: /plugins/thinking-indicator.md
 
 在原有插件入口收紧上下留白，继续使用所在消息传入的展示状态和插件自己的显示判断：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationThinkingIndicatorPlugin as Implementation } from '@za38.03/agent-ui-plugins/thinking-indicator';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -5682,7 +5990,7 @@ url: /plugins/tool-timeline.md
 
 希望直接展示执行过程时，在已有时间线入口设置初始展开，并将可见步骤限制为前 5 项：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolTimelinePlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-timeline';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -5795,7 +6103,7 @@ url: /plugins/task-group.md
 
 在已有任务组入口增加项目样式类，保留任务分组和运行环境的绑定：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -5815,7 +6123,7 @@ export function TaskGroupPlugin(props: ComponentProps<typeof Implementation>) {
 
 需要调整整组任务所在的布局时，在 `renderGroup` 中复用默认任务组：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { TaskGroupPlugin as Implementation } from '@za38.03/agent-ui-plugins/task-group';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -5948,7 +6256,7 @@ url: /plugins/agent-status-message.md
 
 在已有消息插件入口调整留白，状态继续从工具生命周期推导：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentStatusMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-status-message';
 
@@ -5963,7 +6271,7 @@ export function AgentStatusMessagePlugin(props: ComponentProps<typeof Implementa
 
 需要换成项目已有的状态组件时，`renderStatus` 收到已解析的状态说明、耗时和生命周期状态。下面保留默认状态展示，只为它增加业务容器：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentStatusMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-status-message';
 import { AgentStatus } from '@za38.03/agent-ui-plugins';
@@ -6072,7 +6380,7 @@ url: /plugins/agent-plan-message.md
 
 在已有消息插件入口调整外观，继续让计划消息决定当前步骤：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentPlanMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-plan-message';
 
@@ -6087,7 +6395,7 @@ export function AgentPlanMessagePlugin(props: ComponentProps<typeof Implementati
 
 `renderPlan` 接收已解析的计划。需要替换整个版式时，应继续表达已完成和当前步骤，而不是把它们降为一组普通文字：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentPlanMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-plan-message';
 
@@ -6225,7 +6533,7 @@ url: /plugins/job-progress-message.md
 
 在已有消息插件入口调整容器宽度。保留现有 `state` 和 `abortRun` 绑定，阶段、结果和停止行为继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { JobProgressMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/job-progress-message';
 
@@ -6240,7 +6548,7 @@ export function JobProgressMessagePlugin(props: ComponentProps<typeof Implementa
 
 需要统一页面布局时，可以复用已经组合好的默认进度属性，保留阶段、终态和取消操作：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { JobProgressMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/job-progress-message';
 import { JobProgress } from '@za38.03/agent-ui-plugins';
@@ -6372,7 +6680,7 @@ url: /plugins/context-retrieval-message.md
 
 希望用户直接看到各组片段时，在已有上下文消息入口设置初始展开：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
 
@@ -6389,7 +6697,7 @@ export function ContextRetrievalMessagePlugin(props: ComponentProps<typeof Imple
 
 `renderContent` 同时提供解析后的数据和默认正文。只增加布局时，直接复用默认正文，可保留查询分组和空结果提示：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ContextRetrievalMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/context-retrieval-message';
 
@@ -6500,7 +6808,7 @@ url: /plugins/generated-file-message.md
 
 在已有文件消息插件入口调整留白，文件解析和成功条件继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { GeneratedFileMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/generated-file-message';
 
@@ -6515,7 +6823,7 @@ export function GeneratedFileMessagePlugin(props: ComponentProps<typeof Implemen
 
 `renderFile` 收到已校验、已组合的文件属性。复用默认文件展示时，原有类型识别和下载入口仍在：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { GeneratedFileMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/generated-file-message';
 import { ConversationFile } from '@za38.03/agent-ui-plugins';
@@ -6612,7 +6920,7 @@ url: /plugins/chart-message.md
 
 在项目已有图表消息入口格式化数值文字，条形比例仍使用原始数值计算：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
 import { useLocaleCode } from '@za38.03/agent-ui-plugins';
@@ -6629,7 +6937,7 @@ export function ChartMessagePlugin(props: ComponentProps<typeof Implementation>)
 
 `renderChart` 接收已校验的数据。需要精确比较数值时，可以替换整个默认图表：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ChartMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/chart-message';
 
@@ -6763,7 +7071,7 @@ url: /plugins/source-citations-message.md
 
 在已有来源消息入口调整间距，列表解析、网页与文档的展示区分继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { SourceCitationsMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/source-citations-message';
 
@@ -6778,7 +7086,7 @@ export function SourceCitationsMessagePlugin(props: ComponentProps<typeof Implem
 
 `sourceProps` 处理已校验的来源。下面只调整网页链接，文档来源继续使用原数据：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { SourceCitationsMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/source-citations-message';
 
@@ -6906,7 +7214,7 @@ url: /plugins/retrieval-chunks.md
 
 在已有检索插件入口只展示前 4 个片段，并为长列表设置滚动区域：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { RetrievalChunksPlugin as Implementation } from '@za38.03/agent-ui-plugins/retrieval-chunks';
 
@@ -6924,7 +7232,7 @@ export function RetrievalChunksPlugin(props: ComponentProps<typeof Implementatio
 
 需要放入项目自己的列表区域时，继续复用默认检索展示，可保留检索状态、来源、分数和正文：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { RetrievalChunksPlugin as Implementation } from '@za38.03/agent-ui-plugins/retrieval-chunks';
 import { RetrievalChunks } from '@za38.03/agent-ui-plugins';
@@ -7044,7 +7352,7 @@ url: /plugins/web-search.md
 
 在已有搜索插件入口将列表限制为前 3 项，并设置滚动区域：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
 
@@ -7062,7 +7370,7 @@ export function WebSearchPlugin(props: ComponentProps<typeof Implementation>) {
 
 `renderSearch` 提供已解析的查询、结果和搜索状态。增加业务容器并复用默认展示，可以保留标题链接的处理与搜索状态：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { WebSearchPlugin as Implementation } from '@za38.03/agent-ui-plugins/web-search';
 import { WebSearch } from '@za38.03/agent-ui-plugins';
@@ -7160,7 +7468,7 @@ url: /plugins/agent-identity.md
 
 在已有身份插件入口配置名称，语言选择继续沿用统一语言环境：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentIdentityPlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-identity';
 
@@ -7175,7 +7483,7 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 
 项目已配置 Logo 时，可以改变图片尺寸和名称排版，继续使用默认内容与语言选择：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentIdentityPlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-identity';
 
@@ -7267,7 +7575,7 @@ url: /plugins/theme-switch.md
 
 selectProps.size 是组件尺寸 sm/default，不是原生 select 展示行数。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalThemeSwitchPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7282,7 +7590,7 @@ export function Example(props: ComponentProps<typeof CanonicalThemeSwitchPlugin>
 
 使用受控属性时，业务页面负责保存并应用主题。只改变选择框状态不会自动替你更新外层 Agent 的主题。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { CanonicalThemeSwitchPlugin, type AgentUITheme } from '@za38.03/agent-ui-plugins';
 
@@ -7298,7 +7606,7 @@ export function Example(props: ComponentProps<typeof CanonicalThemeSwitchPlugin>
 
 组件与服务位于同一 Agent，并声明 `agent-ui.theme` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
@@ -7379,7 +7687,7 @@ url: /plugins/locale-switch.md
 
 沿用已有语言服务，只改控件大小。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalLocaleSwitchPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7394,7 +7702,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 
 此例展示控件受控写法；业务页面还应把选中 locale 绑定到已有 Agent 语言配置，所有插件才会同步。
 
-```tsx
+```tsx fold height=180
 import { useState, type ComponentProps } from 'react';
 import { CanonicalLocaleSwitchPlugin, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 
@@ -7410,7 +7718,7 @@ export function Example(props: ComponentProps<typeof CanonicalLocaleSwitchPlugin
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';
@@ -7487,7 +7795,7 @@ url: /plugins/auth-account.md
 
 hostUser 传入用户时显示业务身份；显式传 null 表示当前无业务用户，不回退到插件身份。此模式不显示插件自己的退出菜单。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7507,7 +7815,7 @@ export function Example({ user, ...props }: Props & {
 
 只调整位置和大小，保留退出处理与已有用户快照。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthAccountPlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7522,7 +7830,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthAccountPlugin>
 
 组件与服务位于同一 Agent，并声明 `auth.session` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useAuthSession } from '../../services/hooks/useAuthSession';
 
 export function CurrentAccount() {
@@ -7575,8 +7883,7 @@ export function CurrentAccount() {
 
 ## 常见问题
 
-
-为什么设置 hostUser 后没有退出菜单？
+### 为什么设置 hostUser 后没有退出菜单？ \{#为什么设置-hostuser-后没有退出菜单}
 
 该模式把身份和退出流程交给业务 Host。业务页面提供自己的退出入口；需要插件登录服务的退出菜单时省略 hostUser。
 
@@ -7639,7 +7946,7 @@ url: /plugins/auth-gate.md
 
 保留内部的输入状态更新，只补充原生自动填写属性。真实登录需实现项目认证服务。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7655,7 +7962,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
 
 当前插件仍处于开发中，示例仅说明已有公开展示属性，不代表真实认证服务已配置。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalAuthGatePlugin } from '@za38.03/agent-ui-plugins';
 
@@ -7670,7 +7977,7 @@ export function Example(props: ComponentProps<typeof CanonicalAuthGatePlugin>) {
 
 例如，业务菜单需要复用当前登录服务退出。调用方在定义中声明 `inject: ['auth.session']`，保留其他依赖；以下组件放在 `plugins/<调用方>/index.tsx`：
 
-```tsx
+```tsx fold height=180
 import { useAuthSession } from '../../services/hooks/useAuthSession';
 
 export function SignOutAction({ label, onError }: {
@@ -7803,7 +8110,7 @@ url: /plugins/conversation-data-source.md
 
 这是收到业务接口响应之后的转换函数，可由项目 list() 调用。服务端标题属于业务数据；无需用界面文案替换。设置 group 本身不改变默认分组，列表应用层使用[自定义分组示例](/plugins/conversation-thread-list.md#example-2)。
 
-```tsx
+```tsx fold height=180
 import type { ConversationSummary } from '@za38.03/agent-ui-plugins/conversation-service';
 
 interface BusinessRow {
@@ -7827,7 +8134,7 @@ export function mapConversation(row: BusinessRow): ConversationSummary {
 
 disabled 是前端选择限制，真实权限仍由业务接口校验。不要仅通过隐藏菜单来表达记录权限。
 
-```tsx
+```tsx fold height=180
 import type { ConversationSummary } from '@za38.03/agent-ui-plugins/conversation-service';
 
 export function applyAccess(rows: readonly ConversationSummary[], allowedIds: ReadonlySet<string>) {
@@ -7839,7 +8146,7 @@ export function applyAccess(rows: readonly ConversationSummary[], allowedIds: Re
 
 组件与服务位于同一 Agent，并声明 `agent-ui.conversation-data-source` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useEffect, useState } from 'react';
 import { usePluginService } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, type ConversationDataSource }
@@ -7950,7 +8257,7 @@ url: /plugins/conversation-service.md
 
 放在同一 Agent 作用域的项目插件中，并在定义中声明 agent-ui.conversations 依赖。失败交给项目已有错误提示处理。
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService }
@@ -7975,7 +8282,7 @@ export function RefreshHistory({ onError }: { onError: (error: unknown) => void 
 
 loadConversation 只读详情；不会用该历史替换当前 Thread。回调由项目显示预览或错误。
 
-```tsx
+```tsx fold height=180
 import { usePluginService } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_CONVERSATION_SERVICE, type ConversationService, type ConversationDetail }
   from '@za38.03/agent-ui-plugins/conversation-service';
@@ -7996,7 +8303,7 @@ export function ReadHistory({ id, label, onLoaded, onError }: {
 
 组件与服务位于同一 Agent，并声明 `agent-ui.conversations` 依赖。
 
-```tsx
+```tsx fold height=180
 import { useConversations } from '../../services/hooks/useConversations';
 
 export function ConversationCount() {
@@ -8101,7 +8408,7 @@ url: /plugins/locale-provider.md
 
 把 messages 合并到项目已有 Agent.locales 配置，保留其他语言域。它只覆盖已有官方键，不注册任意新键。
 
-```tsx
+```tsx fold height=180
 import type { AgentUILocaleOverrides } from '@za38.03/agent-ui-plugins';
 
 export const messages = {
@@ -8116,7 +8423,7 @@ export const messages = {
 
 共享消息模块中维护双语字段，组件读取统一 locale。不要新增独立语言状态或每插件语言 Hook。
 
-```tsx
+```tsx fold height=180
 import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 const reportMessages = {
@@ -8133,7 +8440,7 @@ export function ReportTitle() {
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';
@@ -8225,7 +8532,7 @@ url: /plugins/theme-provider.md
 
 同一 Agent 内的按钮和主题选择框共享服务；切换后，所有订阅该主题的组件同步更新。组件声明 `agent-ui.theme` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, useLocale } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-theme';
@@ -8244,7 +8551,7 @@ export function DarkThemeButton() {
 
 使用项目已有语义变量；不在组件内根据语言或主题硬编码两套颜色。变量表见主题与样式指南。
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 
 export function ThemedCard({ children }: { children: ReactNode }) {
@@ -8259,7 +8566,7 @@ export function ThemedCard({ children }: { children: ReactNode }) {
 
 自定义图表需要选择深浅配色时，从 `@za38.03/agent-ui-runtime/ui` 导入 `useTheme()`，它随当前主题变化重新渲染。将主题转换为色彩模式后交给项目图表：
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 import { useTheme } from '@za38.03/agent-ui-runtime/ui';
 import { getAgentUIThemeColorScheme, type AgentUIColorScheme }
@@ -8380,7 +8687,7 @@ export function registerSummary(registry: ConversationCommandRegistry, label: st
 
 在现有 setup 中取得同作用域注册器，调用本函数，返回并合并注销函数。label 从项目共享文案传入。
 
-```tsx
+```tsx fold height=180
 import type { ConversationCommandRegistry } from '@za38.03/agent-ui-plugins/composer-triggers';
 
 export function registerAction(registry: ConversationCommandRegistry, label: string, open: () => void) {
@@ -8394,7 +8701,7 @@ export function registerAction(registry: ConversationCommandRegistry, label: str
 
 组件与服务位于同一 Agent，并声明 `conversation.slash-command-source` 依赖。
 
-```tsx
+```tsx fold height=180
 import type { UIPluginSetupContext } from '@za38.03/agent-ui-plugins/contracts';
 import { CONVERSATION_COMMAND_SOURCE, type ConversationCommandRegistry }
   from '@za38.03/agent-ui-plugins/composer-triggers';
@@ -8527,8 +8834,7 @@ url: /guide/examples/index.md
 
 ![招行 AI 工作台的平台式助理，左侧为聊天区域，右侧为会话列表。](/images/guide/examples/20261106/cmb-platform-right-before.jpg)
 
-<details>
-<summary>查看服务工单与业务协同入口</summary>
+### 服务工单与业务协同入口
 
 服务工单保留悬浮球入口：
 
@@ -8541,8 +8847,6 @@ url: /guide/examples/index.md
 平台助理完成样式调整后，也重新打开了服务工单的悬浮面板；它仍使用独立的助理界面：
 
 ![服务工单仍保留悬浮球展开的助理面板。](/images/guide/examples/20261106/cmb-tickets-assistant-final.jpg)
-
-</details>
 
 ## 按需求查看示例
 
@@ -8610,12 +8914,9 @@ Creator 修改了项目文案和推荐内容的组合方式，保留中英文对
 
 后续通过 Creator 启用语言切换后，也实际检查了英文欢迎页：名称、欢迎语与三条完整问句均为对应英文，会话列表仍在右侧。
 
-<details>
-<summary>查看本轮英文欢迎页</summary>
+### 本轮英文欢迎页
 
 ![英文名称、欢迎语和完整推荐问句，右侧会话列表保持不变。](/images/guide/examples/20261106/brand-english.jpg)
-
-</details>
 
 继续调整时，可以直接指出具体差异，例如“标题也显示完整问句”或“不要在下一行重复同一句话”。输入提示、语言切换的检查见[语言与文案](/guide/adjustments/localization.md)。
 
@@ -8649,14 +8950,11 @@ Creator 将列表宽度从 280px 改为 240px，保留现有的窄屏抽屉策�
 
 在 390px 宽度下，列表使用原有抽屉。实际检查了打开、关闭和再次打开；关闭后，右上角的打开入口仍在可视范围内。
 
-<details>
-<summary>查看窄屏关闭与打开状态</summary>
+### 窄屏关闭与打开状态
 
 ![关闭抽屉后，右上角保留可见的打开入口。](/images/guide/examples/20261106/layout-narrow-closed.jpg)
 
 ![通过右上角入口打开会话抽屉。](/images/guide/examples/20261106/layout-narrow-open.jpg)
-
-</details>
 
 ## 回复底部的操作
 
@@ -8666,12 +8964,9 @@ Creator 将列表宽度从 280px 改为 240px，保留现有的窄屏抽屉策�
 
 ![附件隐藏后，回复底部的导出菜单仍可用。](/images/guide/examples/20261106/actions-hidden-attachment.jpg)
 
-<details>
-<summary>查看重新生成完成的页面</summary>
+### 重新生成完成的页面
 
 ![隐藏附件后仍可重新生成，分支显示 2 / 2。](/images/guide/examples/20261106/actions-regenerate-after-hide.jpg)
-
-</details>
 
 更多检查方法见[检查修改结果](/guide/examples/verify-results.md)。
 
@@ -10100,8 +10395,7 @@ Tailwind CSS 4 使用模板 CSS 中的 `@theme`、`@source` 配置，不需要�
 | Webpack 5   | `@tailwindcss/postcss` 与 `postcss-loader` | [Webpack 样式配置](#webpack-5-样式配置) |
 | CRACO / CRA | 在内置 PostCSS 处理链中加入 `@tailwindcss/postcss` | [CRACO 样式配置](#craco--cra-样式配置)  |
 
-<details class="dev-guide-details" id="vite-样式配置">
-<summary>Vite 样式配置</summary>
+### Vite 样式配置 \{#vite-样式配置}
 
 安装模板的样式构建依赖，以下版本沿用本教程：
 
@@ -10123,10 +10417,7 @@ const plugins: PluginOption[] = [react(), tailwindcss()];
 
 将样式插件放在开发条件分支之外，让开发和生产构建都能处理模板样式。保留已有插件和其他选项，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
-
-<details class="dev-guide-details" id="rsbuild-样式配置">
-<summary>Rsbuild 样式配置</summary>
+### Rsbuild 样式配置 \{#rsbuild-样式配置}
 
 使用工程已有的 PostCSS 支持，安装模板的样式构建依赖：
 
@@ -10146,10 +10437,7 @@ export default {
 
 已有配置时沿用当前配置文件格式、插件顺序和其他插件，合并这一项。Rsbuild 已内置 PostCSS 支持，无需配置 Webpack loader。开发和生产均保留此配置，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
-
-<details class="dev-guide-details" id="webpack-5-样式配置">
-<summary>Webpack 5 样式配置</summary>
+### Webpack 5 样式配置 \{#webpack-5-样式配置}
 
 安装模板的样式构建依赖：
 
@@ -10203,12 +10491,15 @@ CSS rule 按以下方式调整：
 
 生产构建已有 CSS 提取 loader 时保留它，开发和生产均配置上述 PostCSS 处理。缺少 loader 时，按当前 Webpack 版本安装兼容版本，然后按[第 4 步检查样式与构建](#验证)检查。
 
-</details>
+### CRACO / CRA 样式配置 \{#craco--cra-样式配置}
 
-<details class="dev-guide-details" id="craco--cra-样式配置">
-<summary>CRACO / CRA 样式配置</summary>
+在工程根目录执行，安装 Tailwind CSS 4 构建依赖：
 
-安装与上方 Webpack 示例相同的 Tailwind CSS 4 构建依赖。在已有的 `craco.config.js` 返回配置中合并：
+```sh
+pnpm add -D tailwindcss@4.3.3 @tailwindcss/postcss@4.3.3 postcss@8.5.28
+```
+
+在已有的 `craco.config.js` 返回配置中合并：
 
 ```js
 style: {
@@ -10251,8 +10542,6 @@ CRA 的内置 PostCSS 配置通常关闭外部配置文件自动加载，仅新�
 上述显式配置已在 macOS / Node.js 24.22.1 下，使用 Webpack 5.75.0、CRACO 7.1.0 / CRA 5.0.1 和 Tailwind CSS 4.3.3 验证开发与生产构建，并在 Chromium 中检查工具类和隐藏文字样式。此项是样式编译验证，不代表完整 Agent 接入或 Windows 实机验收。
 
 直接在 TypeScript 工程中导入当前 Agent 包时，还需单独验证编译器版本。当前消费端已验证 TypeScript 5.9.3；TypeScript 4.9.5 无法解析当前上游依赖声明中的新语法，即使设置 `skipLibCheck: true` 也会失败。CRA 5 工程还需处理其自身的 TypeScript 版本约束；上述样式配置不解决编译器兼容问题，不要把安装依赖成功当成类型检查通过。
-
-</details>
 
 ## 第 4 步：检查页面与生产构建 \{#验证}
 
@@ -10615,7 +10904,7 @@ data: {"type":"RUN_FINISHED","threadId":"thread-123","runId":"run-456","outcome"
 
 `AgentApplication` 和 `AgentUIApplication` 也支持相同的 `request` 属性。此配置用于 AG-UI 请求；历史、上传、转写和评价接口的鉴权需在各自的服务配置中设置，见[会话服务](/development/history-backend.md#地址与鉴权配置)和[业务服务接入总览](/development/service-integration.md#服务鉴权配置)。
 
-**Creator 开发预览当前会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此预览请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请关闭临时连接并在普通业务页面测试。
+**主动开启 Creator 临时连接后，会覆盖应用传入的 `endpoint` 并清除 `request` 配置**，因此临时连接请求不会携带这里配置的自定义 headers 或 Cookie 策略。「连接 Agent」面板目前只配置地址和连接方式；验证应用的鉴权配置时，请保持临时连接关闭。
 
 ## 发送前准备请求
 
@@ -10734,7 +11023,7 @@ export function AssistantPage() {
 
 ## 临时连接测试
 
-在 Creator 的「设置 → 连接 Agent」中填写 AG-UI 地址，可临时连接 Agent 服务进行测试。**此设置仅在开发态生效，生产环境以应用代码中的 `endpoint` 配置为准。**
+Creator 默认使用应用代码中的 `endpoint`、`fetch` 等配置。需要临时测试时，在「设置 → 连接 Agent」中点击「使用此地址」或「使用示例 Agent」才会开启临时连接；只修改连接方式不会开启。已保存的明确开启或关闭状态会保留，旧配置未记录开启状态时默认关闭。**临时连接仅在开发态生效，生产环境以应用代码中的配置为准。**
 
 临时连接可填写完整 HTTP(S) 地址或相对路径。相对路径按**业务页面地址**解析，保存后显示并使用完整 URL，不会拼接 Creator 服务地址。
 
@@ -11113,8 +11402,7 @@ export const conversationConnection: {
 
 后端字段与默认格式不同，就在收到响应后转换。例如列表返回 `data.items`，在 `list()` 中把它映射为 `{ id, title }` 数组。具体返回要求见[数据格式参考](#数据格式参考)。
 
-<details class="dev-guide-details">
-<summary>示例：把会话详情改为 POST 请求，并转换业务字段</summary>
+### 示例：把会话详情改为 POST 请求，并转换业务字段
 
 假设业务详情接口为 `POST /business/chat/detail`，请求体为 `{ "sessionId": "thread-123" }`，响应如下：
 
@@ -11174,8 +11462,6 @@ async get(id, { signal } = {}) {
 
 HTTP JSON 先作为 `unknown` 接收，再检查使用的字段。校验也可复用项目已有请求模块；复杂转换可拆为项目内的函数。
 
-</details>
-
 完成后，打开页面检查会话列表，点击一条记录确认消息能够加载，再检查你保留的管理操作。
 
 ## 方式二：复用已有请求代码 \{#复用已有请求代码}
@@ -11218,8 +11504,7 @@ async delete(id, { signal } = {}) {
 
 导入项目已有实例，例如 `import { api } from '@/services/api'`，用它替换对应方法中的请求代码。下面假设 `api` 已设置基础地址和鉴权，详情接口为 `POST /chat/detail`。
 
-<details class="dev-guide-details">
-<summary>查看 Axios 请求及响应转换示例</summary>
+#### Axios 请求及响应转换示例
 
 先在文件中声明响应类型；项目已有接口类型时直接复用：
 
@@ -11265,8 +11550,6 @@ async get(id, { signal } = {}) {
 },
 ```
 
-</details>
-
 `list/delete` 等方法也可分别替换。使用 SDK 时同样在对应方法中调用并转换结果，列表和详情读取应将 `signal` 传到实际请求。
 
 **这一方式的地址和鉴权由你的请求代码负责。** 业务函数、Axios 或 SDK 沿用自身的 Cookie、Token、超时和拦截器；`conversationConnection.headers/credentials` 及默认 `request` 的预览代理不会自动应用到它们。完成后，检查实际请求的地址、鉴权和历史加载结果。
@@ -11294,24 +11577,17 @@ export function AssistantPage() {
 
 ## 可选：调整会话行为 \{#会话行为配置}
 
-完成接入后，只展开与你的需求有关的配置。
+完成接入后，按需阅读下面的配置。
 
-<details class="dev-guide-details" id="初始化打开已有会话">
-<summary>进入页面时，直接打开指定会话</summary>
+### 进入页面时，直接打开指定会话 \{#初始化打开已有会话}
 
 在 `<Agent />` 传入 `initialThreadId="thread-123"`，初始化时请求该会话详情并加载消息，见[打开已有会话](/development/agent-options.md#打开已有会话)。
 
-</details>
-
-<details class="dev-guide-details" id="重命名归档与取消归档">
-<summary>支持重命名、归档和取消归档</summary>
+### 支持重命名、归档和取消归档 \{#重命名归档与取消归档}
 
 直接编辑对应方法的请求。操作成功后，列表接口应返回保存后的标题和归档状态。当前会话服务没有为这些写操作提供界面取消入口；需要超时控制时在项目请求代码中处理。
 
-</details>
-
-<details class="dev-guide-details" id="隐藏不需要的操作">
-<summary>隐藏不需要的列表操作</summary>
+### 隐藏不需要的列表操作 \{#隐藏不需要的操作}
 
 在 `plugins/conversation-thread-list/index.tsx` 的已有列表组件上设置属性，保留原有导入和其他参数。例如只保留删除：
 
@@ -11328,32 +11604,21 @@ export function AssistantPage() {
 />
 ```
 
-</details>
-
-<details class="dev-guide-details" id="分页和标题">
-<summary>处理列表分页和会话标题</summary>
+### 处理列表分页和会话标题 \{#分页和标题}
 
 `list()` 一次返回完整数组，没有“加载更多”配置。分页后端可在方法中聚合结果；分页界面或服务端搜索需要另外开发。
 
 刷新后的标题以历史接口的 `title` 为准。前端首次发送时默认使用第一条用户消息的文字作为标题；需要刷新后保持一致时，由后端保存并返回同一标题。
 
-</details>
-
-<details class="dev-guide-details" id="时间和业务分组">
-<summary>按时间或业务分类显示历史会话</summary>
+### 按时间或业务分类显示历史会话 \{#时间和业务分组}
 
 `list()` 可为每条记录返回 `updatedAt` 和 `group`。`updatedAt` 使用带时区的 ISO 时间，例如 `2026-11-18T08:00:00Z`，前端按浏览器所在时区划分日期；`group` 使用稳定业务值，例如 `work` / `study`。
 
 默认列表按时间显示今天、昨天、更早。需要“近 7 天、近 30 天、更早”或“工作、学习、其他”时，在列表应用层使用[完整自定义分组示例](/plugins/conversation-thread-list.md#example-2)。只返回 group 不会改变默认列表，当前没有 groupBy 配置项。业务字段转换见[数据源示例](/plugins/conversation-data-source.md#example-1)。
 
-</details>
-
-<details class="dev-guide-details" id="刷新后继续观察长任务开发中">
-<summary>刷新后继续观察长任务（开发中，暂不支持）</summary>
+### 刷新后继续观察长任务（开发中，暂不支持） \{#刷新后继续观察长任务开发中}
 
 刷新页面后可以重新加载后端已保存的历史，但不能自动重新接入尚未结束的任务并继续显示输出。同一页面内隐藏助手或切换会话时的后台运行，见[后台 Thread](/development/multiple-agents.md#观察和控制后台-thread)。
-
-</details>
 
 <span id="http-数据源"></span>
 <span id="方法需要返回什么"></span>
@@ -11376,8 +11641,7 @@ export function AssistantPage() {
 
 下面的默认路径以 `conversationConnection.endpoint: '/api'` 为例。
 
-<details class="dev-guide-details" id="会话列表">
-<summary>默认会话列表：GET /api/conversations</summary>
+### 默认会话列表：GET /api/conversations \{#会话列表}
 
 后端响应示例：
 
@@ -11410,16 +11674,13 @@ export function AssistantPage() {
 
 `returnCode` 必须为 `SUC0000`；其他返回码会抛错并保留 `errorMsg`，不会当成空列表。
 
-分页时，`body.next_cursor` 返回下一页游标字符串；没有下一页返回 `null`。项目方法将它映射为 `nextCursor`。首次请求不带游标，列表滚动到底时，下一次请求使用 `GET /api/conversations?cursor=上次的next_cursor`，游标由 URLSearchParams 编码并原样传递。缺少 `next_cursor` 时继续兼容原有不分页列表。
+分页时，`body.next_cursor` 返回下一页游标字符串；没有下一页返回 `null`。项目方法将它映射为 `nextCursor`。首次请求不带游标，用户点击“加载更多”时，下一次请求使用 `GET /api/conversations?cursor=上次的next_cursor`，游标由 URLSearchParams 编码并原样传递。缺少 `next_cursor` 时继续兼容原有不分页列表。
 
 默认列表复用 assistant-ui 分页追加，`null` 后停止；加载失败保留原游标并提供重试。普通刷新更新第一页，同时保留已加载尾部和末尾游标；第一页已覆盖全量时替换列表。搜索只筛选已加载会话。
 
 `total_conversations`、`message_count` 是统计字段，不进入会话服务的列表模型。需要显示已归档会话时，列表也要包含这些记录，并设置 `status: "archived"`。
 
-</details>
-
-<details class="dev-guide-details" id="会话详情">
-<summary>默认会话详情：GET /api/conversations/&#123;id&#125;</summary>
+### 默认会话详情：GET /api/conversations/\{id} \{#会话详情}
 
 后端响应示例：
 
@@ -11453,10 +11714,7 @@ export function AssistantPage() {
 
 历史使用 LangChain 消息格式：用户为 `human`，助手为 `ai`，与实时 AG-UI 的 `role` 字段不同。以上仅展示文字；工具调用和图片、附件应保留相应结构及关联 ID。附件示例见[刷新后的历史回显](/development/attachment-upload.md#刷新后的历史回显)。
 
-</details>
-
-<details class="dev-guide-details" id="默认管理接口">
-<summary>默认删除、重命名和归档接口</summary>
+### 默认删除、重命名和归档接口 \{#默认管理接口}
 
 | 方法                  | 默认请求                                     | JSON 请求体              |
 | ------------------- | ---------------------------------------- | --------------------- |
@@ -11466,8 +11724,6 @@ export function AssistantPage() {
 | `unarchive(id)`     | `POST /api/conversations/{id}/unarchive` | 无                     |
 
 默认方法接受成功 HTTP 状态，包括 `204`，不读取响应正文。后端通过 JSON 业务码表示成功或失败时，在对应方法中读取并检查，失败抛错。
-
-</details>
 
 
 
@@ -11585,15 +11841,45 @@ data: {"type":"RUN_FINISHED","threadId":"chat-001","runId":"run-002"}
 
 结果是：`answer-001` 继续显示开发专家，`answer-002` 显示设计专家。切换当前选择不会改写之前消息的名称和头像。
 
-### 每条回复携带自己的身份
+### 尽早声明身份，当前运行内沿用
 
-建议在 `TEXT_MESSAGE_START` 就携带 `metadata.speaker`，正文出现前即可显示身份。后续新回复即使仍由同一个专家生成，也应再次提供身份；省略时不会自动继承上一条回复或当前选择。
+主会话的任意实时 AG-UI 事件都可以通过顶层 `metadata.speaker` 声明当前助理，包括 `RUN_STARTED`、`REASONING_*`、`CUSTOM`、工具、状态和文本事件。身份一旦确定就发送；如果请求开始时已确定，建议放在 `RUN_STARTED`，思考阶段即可显示头像和名称，无需提前发送 TEXT 事件。
 
-`TEXT_MESSAGE_START`、`TEXT_MESSAGE_CONTENT`、`TEXT_MESSAGE_END` 都支持应用 metadata，按顶层键合并，后到的同名键覆盖旧值，嵌套对象整体替换。因此，更新 `speaker` 时需要发送完整身份对象。修改同一个 `messageId` 的 `speaker` 会更新这条消息的身份；要保留两位专家各自的发言记录，应创建两条不同 ID 的消息。
+```json ag-ui
+{
+  "type": "RUN_STARTED",
+  "threadId": "chat-001",
+  "runId": "run-001",
+  "metadata": {
+    "speaker": {
+      "id": "developer",
+      "name": "高级开发工程师",
+      "avatarUrl": "https://cdn.example.com/experts/developer.png"
+    }
+  }
+}
+```
 
-身份应放在该消息的文本事件中。只放在 `RUN_STARTED`、共享状态或一个独立的 `CUSTOM` 事件里，不会自动成为消息身份。
+也可以通过 CUSTOM 声明身份：`{ "type": "CUSTOM", "name": "speaker-selected", "value": {}, "metadata": { "speaker": { "id": "developer", "name": "高级开发工程师" } } }`。`name` 是业务自定义名称，身份从事件顶层 `metadata` 读取，不从 `value`、共享 state 或嵌套字段猜测。
 
-退出专家模式后，如果希望显示普通助手，为新回复返回普通助手的身份，例如 `id: "assistant"`；如果希望隐藏身份头，使用 `metadata: { "speaker": null }`。省略身份与明确隐藏的区别见[前端返回值](#前端返回值)。
+同一次运行中，后续主助理消息省略身份时沿用最近一次声明。新请求重新声明身份，不自动继承上一次运行、历史消息或界面当前选择；取消、结束和切换 Thread 后不会串用身份。带 `subagentRunId` 的事件不改变主助理身份。
+
+切换身份时发送完整的 `speaker` 对象，当前未结束消息和后续消息采用新身份，已经结束的其他消息保留原身份。要保留两位专家各自的发言记录，应使用不同的消息 ID；直接在同一个文本 `messageId` 上更新身份，会更新整条消息的身份头。
+
+这是 Agent UI 的应用层身份规则，不改变 AG-UI 各类事件其他 metadata 的归属。TEXT 事件的其他 metadata 仍按顶层键合并到对应消息，嵌套对象整体替换；工具、CUSTOM、RUN 等事件的其他字段不会被当作助理消息 metadata。完整历史和消息快照内的身份以各条消息自身保存的值为准。
+
+退出专家模式、切回前端配置的默认助手时，发送 `metadata: { "speaker": null }`。例如：
+
+```json ag-ui
+{
+  "type": "CUSTOM",
+  "name": "speaker-selected",
+  "value": {},
+  "metadata": { "speaker": null }
+}
+```
+
+这里是 JSON 的 `null`，不是字符串 `"null"`。当前未结束消息和后续消息恢复 `messageIdentity.fallback` 的头像与名称，已经结束的专家消息保留原身份。同次运行中继续省略 `speaker`，仍沿用这次默认身份选择。没有配置 fallback 时不显示身份头；不自动生成默认名称或头像。也可以显式返回普通助手的完整身份对象。省略身份与明确重置的区别见[前端返回值](#前端返回值)。
 
 ## 保存并返回历史消息 \{#历史消息}
 
@@ -11735,7 +12021,7 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 
 `label` 来自项目文案，`onInspect` 接业务详情或导出逻辑。无参数 `useConversation()` 不自动订阅数据；持续展示时使用 selector，手动监听时使用现有 `conversation.subscribe(listener)` 并清理订阅。
 
-### 没有身份或需要隐藏时 \{#前端返回值}
+### 没有身份或恢复默认身份时 \{#前端返回值}
 
 `speaker` 的类型是 `MessageSpeaker | null | undefined`：
 
@@ -11743,7 +12029,7 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 | ----------- | -------------------------- | ----------------------------- |
 | 有效身份对象      | 有非空的 `id`、`name` 和可选头像 URL | 显示名称与头像；图片缺失或加载失败时显示默认图标      |
 | `undefined` | 未提供身份，或身份不合法               | 不显示；配置了 fallback 时使用 fallback |
-| `null`      | 后端明确要求隐藏身份头                | 不显示，忽略 fallback               |
+| `null`      | 后端明确切回前端默认身份               | 使用配置的 fallback；未配置时不显示        |
 
 同一轮相邻助手消息的发言者 ID、名称、头像都相同时，默认组件省略重复的身份头；每条消息的数据仍各自保留。出现不同身份或新的用户消息后，再显示对应身份头。
 
@@ -11755,10 +12041,12 @@ export function InspectMessageSpeakers({ label, onInspect }: {
 | -------------------------------- | ------------------------------------------------ |
 | 省略 `messageIdentity`             | 对携带有效身份的助手消息显示默认名称与头像                            |
 | `messageIdentity={false}`        | 关闭身份头，不影响取到的 `speaker` 和正文                       |
-| `messageIdentity={{ fallback }}` | 对没有有效身份的消息使用固定备用身份；`speaker: null` 仍隐藏           |
+| `messageIdentity={{ fallback }}` | 对没有有效身份或 `speaker: null` 的消息使用固定默认身份             |
 | `messageIdentity={{ render }}`   | 使用 `render({ speaker, messageId })` 返回的节点替换整个身份头 |
 
 fallback 和 render 只影响展示，不改变 `useConversation` 的读取结果。固定 fallback 名称从项目统一文案读取；专家名称来自后端消息。具体属性与组件定制入口见[会话界面：发言者头像与名称](/plugins/conversation-surface.md#显示发言者头像与名称)。
+
+`speaker: null` 的语义已从隐藏身份头改为恢复 fallback。需要关闭身份头时，使用项目展示配置 `messageIdentity={false}`，或在自定义 `render` 中返回 `null`。
 
 ## 不显示时检查什么
 
@@ -11891,8 +12179,7 @@ export const attachments = {
 
 需要调整附件展示或刷新后的回显时，按需求查阅。
 
-<details class="dev-guide-details" id="当前消息中的附件">
-<summary>当前消息：文件 URL、文件名与 MIME 类型</summary>
+### 当前消息：文件 URL、文件名与 MIME 类型 \{#当前消息中的附件}
 
 使用上面的内置上传流程时，前端会自动组合这些信息，无需上传接口重复返回：
 
@@ -11904,10 +12191,7 @@ export const attachments = {
 
 默认附件卡片支持图片缩略图和点击放大；普通文件卡片显示文件图标及名称提示，**不自带下载按钮**。需要下载入口时，在项目附件展示组件中使用文件 URL 和文件名添加链接。
 
-</details>
-
-<details class="dev-guide-details" id="刷新后的历史回显">
-<summary>刷新页面后：历史消息怎样保存附件</summary>
+### 刷新页面后：历史消息怎样保存附件 \{#刷新后的历史回显}
 
 刷新后能否看到附件，取决于[历史服务](/development/history-backend.md)是否保存并返回了附件内容，不能只保存消息文字。当前历史接口使用 LangChain 消息格式，字段与上面的 AG-UI 请求不同：
 
@@ -11934,21 +12218,15 @@ export const attachments = {
 
 图片可使用 `{ "type": "image_url", "image_url": { "url": "https://files.example.com/uploads/photo.png" } }` 作为内容项。配置后刷新页面，重新打开会话，确认图片可预览、文件名称正确，下载入口可打开文件。
 
-</details>
-
-<details class="dev-guide-details" id="文件地址要能被实际访问">
-<summary>预览与下载：文件权限、签名 URL 和下载方式</summary>
+### 预览与下载：文件权限、签名 URL 和下载方式 \{#文件地址要能被实际访问}
 
 浏览器和 Agent 都需要有权限读取文件；上传请求的 Token 不会自动用于预览或下载。需要鉴权时，应提供相应读取方可访问的地址或签名 URL。历史中的签名 URL 过期后也需要由业务服务更新。点击文件链接可能打开预览页；需要直接下载时，由文件服务设置 `Content-Disposition: attachment`。
-
-</details>
 
 ## 可选：接管完整附件流程 \{#进阶定制}
 
 `attachmentAdapter` 用于接管完整附件流程：`add()` 处理文件选择，`send()` 处理发送，`remove()` 处理移除。例如需要选完文件立即上传、移除时清理资源，才考虑使用它；普通 URL 上传、自定义请求或多步上传用前面的配置即可。
 
-<details class="dev-guide-details">
-<summary>在完整流程中增加移除通知</summary>
+### 在完整流程中增加移除通知
 
 已有完整适配器时，可以包装具体方法，而不是重新实现上传。例如业务页面需要在附件移除成功后同步自己的选择列表：
 
@@ -11983,8 +12261,6 @@ export function notifyAttachmentRemoval(adapter: ProjectAttachmentAdapter,
 | `remove(attachment)`         | 当前附件，返回 `Promise<void>`                        | 释放该附件相关资源，失败时拒绝 Promise |
 
 提供完整适配器后，它优先于 `attachments` 配置。只使用 `attachments` 时，`dataSource` 优先于 `uploadUrl`；两者都不提供则使用默认 Base64。
-
-</details>
 
 ## 检查上传与消息结果 \{#去哪里确认配置和上传成功}
 
@@ -12225,8 +12501,7 @@ export const source: ConversationMentionSource = {
 
 **第 2 步：按下面的字段返回查询结果。**
 
-<details class="dev-guide-details" id="数据格式">
-<summary>查看搜索结果字段与完整示例</summary>
+### 搜索结果字段与完整示例 \{#数据格式}
 
 `source.search()` 异步返回以下数组；没有匹配结果时返回 `[]`：
 
@@ -12249,8 +12524,6 @@ export const source: ConversationMentionSource = {
 | `description` | `string` | 可选，列表中的补充说明。                      |
 
 接口字段不同时，在 `source.search()` 返回前转换为上述格式。
-
-</details>
 
 ## 接入 / 快捷命令 \{#-快捷命令}
 
@@ -12282,8 +12555,7 @@ export const businessCommands = {
 
 **第 2 步：按命令类型返回指令或页面操作。**
 
-<details class="dev-guide-details" id="数据格式-1">
-<summary>查看命令字段、指令模式与动作示例</summary>
+### 命令字段、指令模式与动作示例 \{#数据格式-1}
 
 `businessCommands.loadCommands()` 返回以下数组；返回 `[]` 时只保留默认“新建会话”命令：
 
@@ -12326,8 +12598,6 @@ return [{
 
 接口返回动作类命令时，在项目代码中按命令 ID 补上 `execute()` 后再返回。
 
-</details>
-
 ## 可选：改变选中后的草稿内容 \{#改变选中行为}
 
 <span id="选中后默认发送什么"></span>
@@ -12354,8 +12624,7 @@ return [{
 <figcaption>启用 Lexical 输入后，引用标记显示为“@产品说明文档”和“/总结对话”标签。普通输入框直接显示上表中的标记文本。</figcaption>
 </figure>
 
-<details class="dev-guide-details" id="在项目中替换选中行为">
-<summary>用 onSelect 替换默认引用文字或动作</summary>
+### 用 onSelect 替换默认引用文字或动作 \{#在项目中替换选中行为}
 
 修改项目 `plugins/mention-trigger/index.tsx` 或 `plugins/slash-command-trigger/index.tsx` 的已有组件调用，传入 `onSelect`，无需接管源码：
 
@@ -12396,8 +12665,6 @@ return [{
 提供回调就完全替换默认处理，包括 `/ action` 的执行。返回后不再插入默认引用，不自动发送。抛错时保留草稿并显示本地化错误，不退回默认行为。需要异步数据时先在来源中加载；异步页面操作可继续使用默认 `action.execute()`。
 
 自定义普通文本按普通文本显示；要保留标签，应返回合法的引用标记。实际插入的非空文本仍绑定原始选中项，Composer 可以读取并组装其数据，见下文。
-
-</details>
 
 ## 可选：把选中对象作为结构化数据发送 \{#插件提供数据composer-组装请求}
 
@@ -12514,8 +12781,7 @@ Composer 使用回调返回的完整请求，不会补回被删除的字段；�
 
 历史消息要继续显示标签，后端保存并返回带引用标记的正文即可；只返回普通 `@张三` 或 `/总结` 文本不会恢复标签，见[历史数据格式](/development/history-backend.md#数据格式参考)。
 
-<details class="dev-guide-details" id="第三方插件用同一个接口">
-<summary>让自己的插件提交草稿数据</summary>
+#### 让自己的插件提交草稿数据 \{#第三方插件用同一个接口}
 
 在已有插件组件中：
 
@@ -12549,10 +12815,7 @@ export function OrderDraftData({ orderId, children }: {
 
 正文引用与原生引用的数据绑定见 [Composer API](/plugins/composer.md#hook)。这些选项只处理数据生命周期；业务数据只通过 `pluginData` 交给最终适配器。
 
-</details>
-
-<details class="dev-guide-details" id="技能引用和建议问题">
-<summary>技能、引用和建议问题怎样加入同一份请求</summary>
+#### 技能、引用和建议问题怎样加入同一份请求 \{#技能引用和建议问题}
 
 技能相关文档标记为**开发中**，见[技能选择（开发中）](/plugins/skills.md)。
 
@@ -12568,10 +12831,7 @@ export function OrderDraftData({ orderId, children }: {
 
 默认技能映射写在 `plugins/composer/request-adapter.ts`，可按业务修改。引用会加入正文，建议问题使用 `prompt`；详细行为见各插件页。
 
-</details>
-
-<details class="dev-guide-details" id="发送重发与恢复">
-<summary>重试、恢复和刷新后的数据生命周期</summary>
+#### 重试、恢复和刷新后的数据生命周期 \{#发送重发与恢复}
 
 | 场景           | 数据如何处理                                   |
 | ------------ | ---------------------------------------- |
@@ -12581,8 +12841,6 @@ export function OrderDraftData({ orderId, children }: {
 | 刷新后打开历史      | 正文引用可恢复标签；还要恢复原始 `data` 时，历史服务需另外保存选择数据。 |
 
 选择数据必须是 JSON。转换出错时保留草稿并提示；Composer 回调报错或返回无效请求时停止发送，修正后可重试。
-
-</details>
 
 ## 检查查询与发送结果 \{#检查查询与发送结果}
 
@@ -12607,7 +12865,7 @@ url: /development/create-plugin.md
 | 你要完成什么            | 阅读路径                            |
 | ----------------- | ------------------------------- |
 | 新增一个能显示和交互的插件     | 从[声明插件](#1-声明插件)开始，依次完成组件、布局和注册 |
-| 让另一个插件调用它的方法或共享状态 | 完成基础注册后，展开[服务示例](#5-向其他插件提供方法)  |
+| 让另一个插件调用它的方法或共享状态 | 完成基础注册后，阅读[服务示例](#5-向其他插件提供方法)  |
 
 **先认清插件接入涉及的文件：**
 
@@ -12754,8 +13012,7 @@ node scripts/sync-agent-ui.mjs
 
 服务名和方法名由项目定义，不需要在 manifest 中新增 `actions` 字段。`usePluginActions()` 提供的是发送消息、停止运行等已有会话操作，不会自动收录自定义方法。组件之间的本地调用也不走 AG-UI 业务事件。
 
-<details class="dev-guide-details">
-<summary>展开完整示例：定义、注册、订阅并调用工单选择服务</summary>
+### 定义、注册、订阅并调用工单选择服务
 
 <span id="定义接口与实现"></span>
 
@@ -12934,8 +13191,6 @@ export default ticketOpenerPlugin;
 再次运行第 4 节的注册脚本和项目检查。两个实例都要启用，并位于同一个 Agent 的插件服务作用域中。`inject` 是必需依赖，提供方缺失时调用方无法启用；提供方恢复后可重新激活。若能力确实可选，改用 `optionalInject` 并实现可用的降级交互。读取未声明的服务会报错，不能只写 Hook 而遗漏依赖声明。这些 Hook 用于插件上下文，不能直接移到任意业务页面调用。
 
 验证点击“打开示例工单”后，提供方显示 `T-1042`；点击“清除选择”后清空。停用提供方，确认必需依赖的调用方不可用；恢复后重新操作。切换语言，检查按钮文案。完整接口与非 React 生命周期中的消费方式见[自定义服务](/development/plugin-api.md#自定义服务)。
-
-</details>
 
 **继续接入业务能力**
 
@@ -13225,6 +13480,24 @@ T-1042：无法登录工作台
 
 需要让其他插件订阅实时业务通知时，见[订阅业务事件](/development/plugin-api.md#订阅业务事件)。
 
+## 工具结果流式输出
+
+工具执行期间，可以在同一条 AG-UI 流中发送 `CUSTOM` 事件，名称固定为 `TOOL_CALL_STREAM_RESULT`。先正常发送该工具的 `TOOL_CALL_START`、参数和 `TOOL_CALL_END`，再发送输出片段：
+
+```jsonl
+{"type":"CUSTOM","name":"TOOL_CALL_STREAM_RESULT","value":{"toolCallId":"call_1","messageId":"result_1","content":"第一行输出\n"}}
+{"type":"CUSTOM","name":"TOOL_CALL_STREAM_RESULT","value":{"toolCallId":"call_1","messageId":"result_1","content":"第二行输出\n"}}
+{"type":"TOOL_CALL_RESULT","toolCallId":"call_1","messageId":"result_1","content":"第一行输出\n第二行输出\n","role":"tool"}
+```
+
+- `value.toolCallId` 必须对应当前运行已开始的工具调用；`value.content` 是本次新增的字符串，不是累计全文。`value.messageId` 可省略，不作为归并依据。
+- 前端按工具调用分别累加并更新已有工具卡片；多个工具交错输出也不会混在一起。子 Agent 事件在顶层携带与工具调用一致的 `subagentRunId`。
+- 中间结果通过工具 renderer 的 `result` 展示，`isPreliminary` 为 `true`；不会创建已完成的工具消息，也不会提交客户端工具结果。默认工具卡片保留原有折叠设置，展开后可查看实时输出。
+- 标准 `TOOL_CALL_RESULT` 表示结束，其完整内容替换临时累计内容，不再追加。最终结果仍支持原有 JSON 和多模态内容格式；结束后的迟到片段会被忽略。
+- 取消或失败时保留已经显示的片段，状态遵循原会话生命周期。临时片段不会自动持久化，刷新后的结果以业务后端提供的历史为准。
+
+此能力由 Runtime 自动接入，不需要新增插件、Data Message UI 或 `appEventSchemas`。统一 `useConversation` 的消息 `content` 也包含中间 `result`；直接读取 assistant-ui 原生工具调用的 `result` 不包含这份展示补充，向模型发送的历史仍采用标准工具结果。若业务另外订阅该 `CUSTOM` 事件，仍按本页的业务事件订阅规则声明 Schema 和订阅。
+
 
 
 ---
@@ -13246,7 +13519,9 @@ url: /development/source-takeover.md
 
 首次接管时，Creator 会展示具体插件、当前版本、文件与影响范围，确认后将实现提取到项目。成功接管后，可继续编辑该插件的项目文件；接管其他插件时，再分别确认对应计划。
 
-在 Creator 输入 `/takeover`，选择项目中的 npm 插件；也可输入 `/takeover composer` 等完整命令。查看实际安装的包版本、插件版本、文件、依赖和受影响实例，确认后直接提取，无需配置或调用模型。已接管和自定义插件无需重复接管。
+在 Creator 输入 `/takeover`，选择项目中的官方插件；也可输入 `/takeover composer` 等完整命令。查看实际安装的包版本、插件版本、文件、依赖和受影响实例，确认后直接提取，无需配置或调用模型。
+
+已接管插件的源码被手动删除后，可以用同一命令重新提取。目标目录已存在时，会提示目录位置并询问是否覆盖；确认后覆盖同名源码文件，其他文件保留。重新接管会替换同名实现文件中的定制；日常修改可直接编辑已有源码，合并官方更新则使用源码同步。
 
 源码来自当前工程实际安装的 Plugins 包，不会下载最新版。确认期间工程或安装包变化时，需要重新查看计划。接管保留现有参数、组合和布局；若需要准备依赖，会按工程现有包管理器执行，源码写入失败时已准备的依赖可能保留。
 
@@ -13574,17 +13849,13 @@ root：row（左右排列）
 
 只有需要增加新的放置位置或动态内容区域时，才继续配置。
 
-<details class="dev-guide-details" id="工作台右侧动态面板">
-<summary>工作台右侧动态面板</summary>
+### 工作台右侧动态面板 \{#工作台右侧动态面板}
 
 需要在对话右侧打开多个内容、顶部标签切换并保留状态时，使用官方 [多内容侧栏](/plugins/workbench-panel.md)。AppUIModel 将原有完整对话实例放入容器的 `main`，通过内容子插槽放入自己的插件；标签与可打开的内容 ID 在项目侧栏入口中配置，具体接入与外部调用见该教程。
 
 展开、收起与关闭标签由侧栏服务控制，容器随状态调整分栏宽度，无需运行时修改 `row.sizes` 或重新生成 `app-ui.json`。本页下方的 `sidebar` 是侧栏导航布局节点；工作台右侧多标签面板由 `workbench-panel` 插件实现，两者使用各自的配置与状态。
 
-</details>
-
-<details class="dev-guide-details" id="插槽扩展">
-<summary>增加页面插槽或自定义插件内部插槽</summary>
+### 增加页面插槽或自定义插件内部插槽 \{#插槽扩展}
 
 **插槽扩展的适用范围**
 
@@ -13614,8 +13885,6 @@ root：row（左右排列）
 没有操作时隐藏，窄屏允许换行。
 ```
 
-</details>
-
 ## 检查效果与维护定制 \{#定制更新与检查}
 
 <span id="工程检查与页面验证"></span>
@@ -13624,14 +13893,11 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 渲染插件需要触发对应消息或工具调用才能检查；服务类插件要检查依赖它的功能。涉及布局时也检查窄屏、滚动和按钮可达性。
 
-<details class="dev-guide-details" id="定制与更新">
-<summary>后续升级时怎样保留定制</summary>
+### 后续升级时怎样保留定制 \{#定制与更新}
 
 项目定制入口与官方实现分开维护。调整公开属性、组件组合和样式，是普通项目代码修改；只有需要维护官方实现源码时才接管，并先确认具体插件和范围。
 
 后续 **npm 依赖升级**与**已接管源码同步**是两个步骤。升级依赖应保留项目的配置和定制入口，接管后的本地实现也不会自动变成新版。需要采用官方改动时，按[更新日志](/updates/index.md)另行处理。
-
-</details>
 
 **相关定制指南**
 
@@ -13644,10 +13910,9 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 ## 参考：插件、插槽与布局字段 \{#高级布局字段与示例}
 
-按需要展开概念、插槽清单或具体布局示例。
+按需要查阅下面的概念、插槽清单或具体布局示例。
 
-<details class="dev-guide-details" id="插件概述">
-<summary>插件能做什么，以及怎样启用</summary>
+### 插件能做什么，以及怎样启用 \{#插件概述}
 
 <span id="插件功能分类"></span>
 
@@ -13682,10 +13947,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 例如，语音按钮需要放进输入区并启用；图表插件还需要收到它支持的数据。**启用插件不会自动生成业务数据，也不会让 Agent 获得新的后端工具。**
 
-</details>
-
-<details class="dev-guide-details" id="插槽与子插件">
-<summary>插件怎样组合，以及常用插槽名称</summary>
+### 插件怎样组合，以及常用插槽名称 \{#插槽与子插件}
 
 <span id="插槽定义与分类"></span>
 
@@ -13746,8 +14008,6 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 这不是完整清单，以项目中父插件的定义为准。JSON 里的 `slots` 只列出当前配置的位置，未写出的位置也可能可用。开发者可以从对应插件定义的 `manifest.slots.children` 查看完整声明，包括用途、数量和允许的插件能力。
 
-</details>
-
 以下字段写在 **AppUIModel 的 authoring JSON** 中：
 
 - 布局节点不填写运行时派生的 `id`／`slotId`；`stack` 使用 `activeIndex`。
@@ -13755,8 +14015,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 不要把 Renderer 的运行时结构复制回 `app-ui.json`。
 
-<details class="dev-guide-details" id="rowcolumn-与-panel">
-<summary>Row、Column 与 Panel</summary>
+### Row、Column 与 Panel \{#rowcolumn-与-panel}
 
 | 节点／字段                              | 用法                                                                                                      |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -13770,10 +14029,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 父级轨道与 Panel 尺寸会共同影响最终宽度；Panel 拖动不能代替父级 `sizes` 配置。百分比高度还要求业务容器有可用高度。内层组件的边距与按钮换行仍在项目组件代码里调整。
 
-</details>
-
-<details class="dev-guide-details" id="宽屏并排窄屏抽屉">
-<summary>宽屏并排、窄屏抽屉</summary>
+### 宽屏并排、窄屏抽屉 \{#宽屏并排窄屏抽屉}
 
 假设现有 Row 的两个 children 依次为会话列表和聊天区。下面是 `root` 的结构示例；应用到现有工程时保留两项内部完整的 Plugin 配置与子插槽，不用简化示例覆盖它们：
 
@@ -13803,10 +14059,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 生成工程自带抽屉打开、关闭及 Esc 交互，按钮使用当前界面语言。直接集成 `LayoutRenderer` 时，抽屉文案通过 `drawerLabels` 提供，sidebar 展示通过 `renderSidebar` 配置。
 
-</details>
-
-<details class="dev-guide-details" id="stack选择一个内容区域">
-<summary>Stack：选择一个内容区域</summary>
+### Stack：选择一个内容区域 \{#stack选择一个内容区域}
 
 `stack.activeIndex` 指向 children 中从 0 开始的位置。省略时显示第一项；显式索引必须小于 children 长度。下面显示第二项：
 
@@ -13823,7 +14076,7 @@ JSON 格式正确，还需要插件存在、插槽匹配、数量和依赖满足
 
 `project-summary`、`project-details` 是示例中的项目自定义插件，需要先创建并注册。Stack 不生成切换按钮，默认只挂载当前分支。多个独立助手仍使用[多助手的受控显示](/development/multiple-agents.md#多助手与受控显示)。
 
-### 通过 Service 切换内容并保持挂载 \{#stack-navigation}
+#### 通过 Service 切换内容并保持挂载 \{#stack-navigation}
 
 从创建独立视图插件、扩展菜单到配置完整联动，见[功能菜单：菜单与右侧内容联动](/plugins/navigation-menu.md#content-switching)。
 
@@ -13862,10 +14115,7 @@ export function OpenView({ label }: { label: string }) {
 
 `keepMounted: true` 隐藏未选分支并隔离键盘焦点，保留 React 子树。聊天分支切走后会话、草稿和后台运行继续由 canonical Conversation Runtime 持有；移除分支或卸载整个 Agent 才结束相应生命周期。省略此属性时，未选分支会卸载。Renderer 只读取受控激活状态，服务及状态归 Runtime，不依赖菜单插件。
 
-</details>
-
-<details class="dev-guide-details" id="sidebar侧栏导航与主体">
-<summary>Sidebar：侧栏导航与主体</summary>
+### Sidebar：侧栏导航与主体 \{#sidebar侧栏导航与主体}
 
 Sidebar 提供一组可选择的侧栏内容，`content` 是始终独立排列的主体。下面同样只展示布局结构，现有插件内部组合应保留：
 
@@ -13911,14 +14161,9 @@ Sidebar 提供一组可选择的侧栏内容，`content` 是始终独立排列�
 
 默认 Sidebar 展示适配会按其容器宽度自动选择内联侧栏或抽屉，不通过 `row.responsive` 配置，也不会自动持久化当前选项。切换侧栏内容不等于新建 Thread；不要把需持续挂载的助手或服务放在会被切换移除的侧栏内容里。
 
-</details>
-
-<details class="dev-guide-details" id="自定义外壳的入口">
-<summary>自定义外壳的入口</summary>
+### 自定义外壳的入口 \{#自定义外壳的入口}
 
 改变整个助手的悬浮入口、固定位置、外框和收起动画时，编辑 `application/shell/`；改变外壳内的列表、聊天区和插件位置时，编辑本页的 AppUIModel。Shell 通过 `createAgentUIProject({ Shell })` 静态绑定，具体的组件、CSS、容器观察和保持后台运行示例见[自定义 Shell](/development/shell-customization.md)。
-
-</details>
 
 
 
@@ -14163,12 +14408,11 @@ export const ConversationComposerPlugin = (props: ComponentProps<typeof Composer
 
 ## 调整样式、文案与组件组合 \{#调整样式与文案}
 
-只调整外观时，展开对应示例即可。需要“获取草稿”按钮时，接着完成下一节的业务文案、请求与组件。
+只调整外观时，阅读对应示例即可。需要“获取草稿”按钮时，接着完成下一节的业务文案、请求与组件。
 
 <span id="3-插件样式定制"></span>
 
-<details class="dev-guide-details" id="默认薄入口替换">
-<summary>调整输入框行数、字号与局部样式</summary>
+### 调整输入框行数、字号与局部样式 \{#默认薄入口替换}
 
 对于上面的默认入口，将 `plugins/composer/index.tsx` 改为：
 
@@ -14238,12 +14482,9 @@ export const ConversationComposerPlugin = (props: ComponentProps<typeof Composer
 
 **如果没有变化：**&#x68C0;查 `composer.slots.input` 是否已有独立输入插件，或应用入口是否已经传了自定义 `input`。它们优先于默认 textarea，此时应改那个输入组件的项目入口。Lexical 等可选输入也应沿用其自身公开接口。
 
-</details>
-
 <span id="4-文案与组件结构定制"></span>
 
-<details class="dev-guide-details" id="提示文案覆盖">
-<summary>修改已有的输入框提示</summary>
+### 修改已有的输入框提示 \{#提示文案覆盖}
 
 在 `application/locales.ts` 的已有语言对象中合并 `composer.placeholder`，保留其他领域。例如一个尚无覆盖的新文件可写成：
 
@@ -14258,19 +14499,13 @@ export const locales: Record<AgentUILocaleCode, AgentUILocaleOverrides> = {
 
 当前模板的 `application/project-config.tsx` 已绑定 `locales`。业务页面 `Agent locales` 对同名字段的覆盖优先；发现文案不变时检查该属性。
 
-</details>
-
-<details class="dev-guide-details" id="组件内容组合">
-<summary>在现有组件前后或子插槽中放置内容</summary>
+### 在现有组件前后或子插槽中放置内容 \{#组件内容组合}
 
 [业务按钮示例](#5-插件业务逻辑定制)会把业务工具条放在 `<Composer />` 前，提示放在其后，保留内部的输入、附件、引用和发送插槽。若要放入现有语义子插槽，继续使用原来的 `renderSlot()` / `renderScopedSlot()`；不要删除它们。
 
 `beforeInput` 等 props 有时是**空插槽的 fallback**：相应 Slot 已有子插件时，不能假设这个 prop 会与子插件自动拼接。固定业务内容可在应用层包裹组件；需要独立启停、排序的内容则创建子插件并放入现有 Slot，见[创建插件](/development/create-plugin.md)。
 
-</details>
-
-<details class="dev-guide-details" id="已有结果的渲染定制">
-<summary>修改已有图表或工具结果的展示</summary>
+### 修改已有图表或工具结果的展示 \{#已有结果的渲染定制}
 
 已有图表或工具结果需要不同的样式和展示结构时，在对应插件的项目入口修改公开属性或 renderer。这里沿用原有数据协议；要新增一种业务事件或消息类型，另见[自定义 AG-UI 事件与消息渲染](/development/custom-ag-ui-events.md)。
 
@@ -14312,8 +14547,6 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 修改后分别触发有数据、空数据、失败、流式更新和历史回放，确认展示更新且原交互保留。这些修改属于项目应用层，无需先接管官方实现。
 
-</details>
-
 ## 接入业务请求与按钮 \{#5-插件业务逻辑定制}
 
 本例点击“获取草稿”，请求业务接口，再填入当前空草稿。**不会自动发送消息。** 请求和填入逻辑都在下面的项目文件中完成。
@@ -14338,8 +14571,7 @@ export const chartMessageUI = defineDataMessageUI<unknown>({
 
 **第 2～5 步：依次完成下面四个项目文件。**
 
-<details class="dev-guide-details" id="新增业务文案">
-<summary>第 2 步：准备按钮和错误提示的业务文案</summary>
+### 第 2 步：准备按钮和错误提示的业务文案 \{#新增业务文案}
 
 新建 `application/i18n/messages.ts`；已有消息模块时合并 `composerCustomization` 领域，并复用已有统一读取函数：
 
@@ -14368,10 +14600,7 @@ export function getProjectMessages(locale: AgentUILocaleCode) { return messages[
 
 新增领域不直接塞入官方 `Agent.locales`。后面组件用 `useLocaleCode()` 读取统一语言，再消费这个业务领域，不创建另一份语言状态。
 
-</details>
-
-<details class="dev-guide-details" id="请求适配器实现">
-<summary>第 3 步：在 services/ 中实现请求与响应转换</summary>
+### 第 3 步：在 services/ 中实现请求与响应转换 \{#请求适配器实现}
 
 新建 `services/draft-template.ts`，也可以在此复用项目已有的业务请求方法：
 
@@ -14397,10 +14626,7 @@ export async function loadDraftTemplate(input: {
 
 请求体、业务成功码或返回字段不同时，就在这个文件改映射。已有 Axios、签名或登录凭据模块也在这里调用，继续传下 `signal`。不要把 HTTP 200 当成业务成功，更不要失败后返回一份假草稿。
 
-</details>
-
-<details class="dev-guide-details" id="业务按钮实现">
-<summary>第 4 步：实现获取草稿、取消和失败处理</summary>
+### 第 4 步：实现获取草稿、取消和失败处理 \{#业务按钮实现}
 
 新建 `plugins/composer/DraftTemplateAction.tsx`：
 
@@ -14476,10 +14702,7 @@ export function DraftTemplateAction({ maxLength = 2000 }: { maxLength?: number }
 
 只在点击后发请求，挂载或历史展示不会调用业务接口。已有草稿时禁用获取，用户输入、开始运行、切换会话／语言、取消或卸载后忽略迟到结果。`type="button"` 避免工具按钮触发表单提交。
 
-</details>
-
-<details class="dev-guide-details" id="输入区按钮集成">
-<summary>第 5 步：把按钮放回已有输入区</summary>
+### 第 5 步：把按钮放回已有输入区 \{#输入区按钮集成}
 
 将前面样式示例中的 `plugins/composer/index.tsx` 完整更新为：
 
@@ -14512,10 +14735,7 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Composer
 
 预期：工具条与提示出现在输入区附近；点击获取后填入草稿，再用原发送按钮发送。已有附件、引用、工具触发器和发送／停止插件继续由原 Slots 渲染。`key` 只让这一个业务按钮在切换会话时重置，不给整个 Agent 加 key 或重建会话。
 
-</details>
-
-<details class="dev-guide-details" id="回调扩展与默认行为">
-<summary>需要替换默认动作时，怎样处理事件回调</summary>
+### 需要替换默认动作时，怎样处理事件回调 \{#回调扩展与默认行为}
 
 事件回调在 `index.tsx` 的 JSX 中传入，先调用已有回调，并检查 `event.defaultPrevented`。仅记录点击时不要调用 `preventDefault()`；确实替换当前入口的默认动作时才同步阻止默认行为，再执行自己的流程。
 
@@ -14527,16 +14747,13 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Composer
 
 因此，**只加 onSubmit 不能覆盖所有发送，只禁用发送按钮也不能代表 Enter 等入口已被校验。** 本例不拦截发送，避免绕过已有附件、队列、审批与工作流路由。业务要求统一发送前校验时，需逐一确认所有入口和当前公开扩展点，不能自行重建消息链。
 
-</details>
-
 ## 可选：跨插件共享状态 \{#6-跨插件业务能力共享}
 
 只有输入区使用的请求函数，保留在 `services/draft-template.ts` 即可；按钮的 pending/failed 使用局部状态。多个插件需要同一份可变状态时，才使用 Plugin Service。
 
 下面可选扩展让 `submit-action` 的下拉框修改输入上限，`composer` 随之更新。它是前端输入约束，不代替后端限制；本例不截断已有草稿，也不修改 Agent 协议。
 
-<details class="dev-guide-details">
-<summary>展开完整示例：发送插件与输入区共享字数上限</summary>
+### 发送插件与输入区共享字数上限
 
 <span id="定义共享服务"></span>
 
@@ -14697,14 +14914,11 @@ node scripts/sync-agent-ui.mjs
 
 本例接口最多返回 2000 字符，短档可能只允许 1000。前面的业务按钮会按传入上限检查长度，过长时显示本地化提示并保留原草稿，不截断业务文字。原生 maxLength 本身不覆盖所有程序写入和发送路径；业务后端仍独立校验。
 
-</details>
-
 ## 可选：接管本地实现 \{#7-本地实现接管与定制}
 
 前面样式、业务请求、组件组合与服务修改都是项目应用代码，不要求源码接管。只有确需维护官方实现内部逻辑时，才进入本节。
 
-<details class="dev-guide-details">
-<summary>展开接管范围、附件布局示例与后续升级方式</summary>
+### 接管范围、附件布局示例与后续升级方式
 
 <span id="源码接管范围"></span>
 
@@ -14754,8 +14968,6 @@ plugins/composer/
 
 升级依赖后，本地实现和定制仍会保留。需要新版官方改动时，另外执行源码同步，处理冲突并检查效果后确认完成；组件调用方式若有变化，再单独调整，见[更新与源码维护](/development/source-takeover.md)。
 
-</details>
-
 ## 检查改动效果 \{#8-改动验证}
 
 沿用项目自己的包管理器和 `package.json` 中的 typecheck、test、build。修改公开入口不新增 UI 库或改变主版本；可选输入实现需要其自身依赖。Windows 中同样运行项目现有脚本，路径按实际目录填写，不使用 Bash 专用命令。
@@ -14770,8 +14982,7 @@ plugins/composer/
 | 共享服务   | 选择上限同步到默认输入；缺服务有 fallback；多个 Agent 状态隔离               |
 | 本地实现排布 | 附件预览只出现一次；添加、移除、上传失败与历史展示正常                           |
 
-<details class="dev-guide-details" id="常见问题">
-<summary>遇到样式、服务或异步结果问题时排查</summary>
+### 遇到样式、服务或异步结果问题时排查 \{#常见问题}
 
 - **CSS 文件存在但不生效：**&#x68C0;查是否实际 import、className 是否传到目标元素、自定义 input 是否替代了默认组件，及生产样式入口是否保留。
 - **新函数从来没有执行：**&#x521B;建 services 文件不会自动接入，检查组件导入和回调是否绑定到当前实例。
@@ -14782,8 +14993,6 @@ plugins/composer/
 - **升级后定制丢失：**&#x68C0;查是否改过 node_modules 或生成文件；项目应用层与已授权本地实现应独立维护。
 
 类型检查证明接口签名，构建证明可编译；真实业务请求、取消、流式与视觉效果仍需在目标页面验证。完整接口查[插件 API](/development/plugin-api.md)，具体组件属性查[插件目录](/plugins/index.md)。
-
-</details>
 
 
 
@@ -15070,8 +15279,7 @@ function BusinessPage({ children }: { children: ReactNode }) {
 
 以下代码中的 `host` 均来自 Provider 内的 `const host = useAgent()`。
 
-<details class="dev-guide-details" id="停止运行">
-<summary>停止运行</summary>
+### 停止运行 \{#停止运行}
 
 ```tsx
 function stop() {
@@ -15081,10 +15289,7 @@ function stop() {
 
 `abortRun()` 发出停止请求后立即返回。需要确认生成是否已停止时，继续读取 `runtime.run.status`。
 
-</details>
-
-<details class="dev-guide-details" id="新建会话后提问">
-<summary>新建会话后提问</summary>
+### 新建会话后提问 \{#新建会话后提问}
 
 ```tsx
 async function askInNewConversation(prompt: string) {
@@ -15094,10 +15299,7 @@ async function askInNewConversation(prompt: string) {
 // 在按钮处理函数中调用，并用 try/catch 或 .catch(...) 反馈失败。
 ```
 
-</details>
-
-<details class="dev-guide-details" id="提交审批或补充信息">
-<summary>提交审批或补充信息</summary>
+### 提交审批或补充信息 \{#提交审批或补充信息}
 
 ```tsx
 async function answerInterrupt(interruptId: string, payload: unknown) {
@@ -15117,10 +15319,7 @@ Agent 暂停等待用户处理的请求称为“中断”。上例处理一个�
 
 工具卡片中的审批展示见[工具结果的操作确认](/plugins/tool-result.md#操作确认)。`ask_user_question` 问题卡片通过自身的 `addResult()` 提交答案，接入方式见[询问用户](/plugins/ask-user-question.md#提交状态与历史展示)。
 
-</details>
-
-<details class="dev-guide-details" id="观察运行状态和事件">
-<summary>观察运行状态和事件</summary>
+### 观察运行状态和事件 \{#观察运行状态和事件}
 
 ```tsx
 import { useAgentEvent, useAgent } from '@za38.03/agent-ui-runtime';
@@ -15136,14 +15335,11 @@ function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
 
 运行结果判断和 `AGENT_UI_SESSION_ENDED` 等错误见[状态与错误参考](/development/react-host-api.md#状态与事件)。
 
-</details>
-
 ## 检查页面联动 \{#示例编辑页面助理集成}
 
 确认开关按钮只改变显隐，分析按钮打开面板并发送到当前会话；运行时发送按钮按状态禁用。
 
-<details class="dev-guide-details">
-<summary>查看示例页面的收起、打开与发送状态</summary>
+### 示例页面的收起、打开与发送状态
 
 下面是仓库中 `examples/creator-embedded-host` 的实际运行截图，使用官方嵌入式模板、violet 主题和本地 Mock 服务。业务按钮位于页面右上角，助理显示在编辑区右侧。
 
@@ -15160,8 +15356,6 @@ function RunObserver({ onRunEnd }: { onRunEnd: (status: string) => void }) {
 ![业务分析按钮打开助理并发送消息，生成期间按钮禁用](/images/integration/host-assistant-message.png)
 
 接入实际 Agent 服务后，通过 `<Agent getRunContext={...} />` 将待分析的页面内容或数据放进请求的 `context`，见[传入业务上下文](/development/agent-options.md#传入业务上下文)。仅在页面中显示助理，不会让 Agent 自动获得这些数据。
-
-</details>
 
 
 
@@ -15265,8 +15459,7 @@ export function Assistants() {
 
 `agentId` 用于区分助手，`endpoint` 是该助手的默认请求 URL，`project` 决定它使用的 UI 配置。同一 URL 也可以用于多个助手。
 
-<details class="dev-guide-details" id="共用-ui各自创建业务服务">
-<summary>多个助手共用 UI 时，怎样隔离业务服务</summary>
+### 多个助手共用 UI 时，怎样隔离业务服务 \{#共用-ui各自创建业务服务}
 
 多个助手可以继续使用同一份 `project`，并通过各自的 `createServices` 创建独立服务。在挂载助手的业务页面配置，例如沿用[自定义服务示例](/development/create-plugin.md#5-向其他插件提供方法)中的工单选择服务：
 
@@ -15287,8 +15480,6 @@ const createServices = () => ({
 ```
 
 每个助手挂载时分别调用一次工厂；不要在工厂外创建并返回同一个可变服务对象。服务名沿用插件已有的 `provides`，提供方和消费方仍需启用。通过 `hidden` 切换显示会保留各自服务；卸载后重新挂载会重新创建。
-
-</details>
 
 ## 控制指定助手与后台任务 \{#控制指定助手与后台任务}
 
@@ -15334,8 +15525,7 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 
 发送输入框中已有的草稿、附件与引用时，使用 `agents.agent(agentId).sendComposer()`；也可传 `{ endpoint }`。它使用当前 Thread 的原生 Composer，工作流发送在运行中会拒绝，不把草稿取出后另建消息链。调用前同样检查就绪状态，并处理失败。
 
-<details class="dev-guide-details" id="助手集合接口">
-<summary>查阅助手集合 Hook、身份与服务约束</summary>
+### 助手集合 Hook、身份与服务约束 \{#助手集合接口}
 
 以下 Hooks 和类型从 `@za38.03/agent-ui-runtime` 导入。
 
@@ -15353,8 +15543,6 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 同一集合内 `agentId` 必须唯一、无首尾空白且长度不超过 100。两个助手即使后端返回相同 `threadId`，也必须用 `{ agentId, threadId }` 一起定位。每个助手有独立的可变运行组合与服务；共享 UI 配置不等于共享运行。
 
 这些操作不会替业务页面修改 `hidden`。例如打开研究助手的历史后，若需要同时显示它，业务页面还需把自己的 `visible` 改为 `research`。保持 `agentId` 和默认 `endpoint` 稳定；更换它们会重建该应用的会话边界，不用于切换工作流。
-
-</details>
 
 **观察和控制后台 Thread。**
 
@@ -15419,10 +15607,9 @@ export function useMountedThreads(agentId: string) {
 
 ## 可选：独立页面与多端复用 \{#独立页面与多端复用}
 
-已有多个业务页面，或需要 Vue/HTML、PC 与移动端复用时，再展开对应示例。
+已有多个业务页面，或需要 Vue/HTML、PC 与移动端复用时，阅读下面对应的示例。
 
-<details class="dev-guide-details" id="业务页面独立助手">
-<summary>让不同业务页面分别拥有自己的助手</summary>
+### 让不同业务页面分别拥有自己的助手 \{#业务页面独立助手}
 
 以下两个组件分别交给业务工程已有的 `/customer` 和 `/report` 路由，不引入新的路由系统：
 
@@ -15458,10 +15645,7 @@ export function ReportPage() {
 
 各页面的普通发送按钮直接发送给本页助手。两页可以共享布局配置，也可以分别传入不同的 `project`。
 
-</details>
-
-<details class="dev-guide-details" id="跨端接口复用与界面适配">
-<summary>同一个后端 Agent 复用 PC 与移动端界面</summary>
+### 同一个后端 Agent 复用 PC 与移动端界面 \{#跨端接口复用与界面适配}
 
 同一个后端 Agent 可以同时服务 PC 和移动端。前端只挂载一个助手，根据终端选择不同的 UI 配置，`agentId` 和 `endpoint` 保持一致。
 
@@ -15499,10 +15683,7 @@ export function Assistant({ isMobile }: { isMobile: boolean }) {
 
 例如，PC 外壳可以提供侧栏和较大的操作区，移动端外壳可以提供全屏面板和紧凑操作区；两端发送都请求 `/api/agent`。这个例子通过 `Shell` 区分外壳与样式。内部 Plugin 布局也不同时，给 `pcProject`、`mobileProject` 分别设置各自的 `appUIModelSource`（AppUIModel 的 JSON 字符串），并保留布局所需的 Plugin 定义。
 
-</details>
-
-<details class="dev-guide-details" id="web-component-与-creator">
-<summary>在 Vue/HTML Host 控制多个助手与预览连接</summary>
+### 在 Vue/HTML Host 控制多个助手与预览连接 \{#web-component-与-creator}
 
 Vue/HTML Host 使用 React 生产的 Web Component，业务 Host 控制每项 `hidden`：
 
@@ -15518,8 +15699,6 @@ element.config = {
 更多参数见[Web Component API](/development/web-component-api.md)。
 
 Creator 可以修改上述项目配置、Shell 和发送按钮。开发时，在临时连接面板填写对应 `agentId`，即可为指定助手配置预览连接。
-
-</details>
 
 ## 检查会话身份与后台运行 \{#验证}
 
@@ -15621,10 +15800,60 @@ url: /development/frontend-tools.md
 
 前端工具支持两种用法，按业务需要选择：
 
-| 要做什么                      | 怎么接入                                                       | 结果怎么返回             |
-| ------------------------- | ---------------------------------------------------------- | ------------------ |
-| Agent 调用后显示 TSX 组件，等待用户操作 | 在 `toolkit` 中注册 `type: 'human'` 和 `render`                 | 组件调用 `addResult()` |
-| Agent 调用页面方法或业务接口         | 在 `toolkit` 中注册 `type: 'frontend'`、`execute` 和可选的 `render` | `execute()` 返回结果   |
+| 要做什么                      | 怎么接入                                                       | 结果怎么返回                  |
+| ------------------------- | ---------------------------------------------------------- | ----------------------- |
+| 后端执行工具，前端展示过程和结果          | 在 `toolkit` 中注册 `type: 'backend'`、可选 `display` 和 `render`  | 后端返回 `TOOL_CALL_RESULT` |
+| Agent 调用后显示 TSX 组件，等待用户操作 | 在 `toolkit` 中注册 `type: 'human'` 和 `render`                 | 组件调用 `addResult()`      |
+| Agent 调用页面方法或业务接口         | 在 `toolkit` 中注册 `type: 'frontend'`、`execute` 和可选的 `render` | `execute()` 返回结果        |
+
+## 后端工具的默认与自定义展示
+
+后端已经负责定义和执行的工具，只需按 AG-UI 的 `toolCallName` 注册前端展示。不传 `render` 时，沿用应用当前选择的默认工具卡片；`display: 'standalone'` 让卡片独立展示，`inline` 则允许进入工具分组，默认是 `inline`。
+
+```tsx
+import type { ConversationToolkit } from '@za38.03/agent-ui-plugins';
+import { Agent } from './agent-ui';
+import { agentUIProject } from './agent-ui/application/project-config';
+import { OrderTool } from './OrderTool';
+
+const toolkit = {
+  ...agentUIProject.baseConversationToolkit,
+  bash: {
+    type: 'backend',
+    display: 'standalone',
+  },
+  query_order: {
+    type: 'backend',
+    display: 'standalone',
+    render: OrderTool,
+  },
+} satisfies ConversationToolkit;
+
+<Agent endpoint="/api/agent" toolkit={toolkit} />;
+```
+
+这段配置不需要传给后端。`backend` 条目不会作为可执行前端工具上报，`render` 和 `display` 留在前端；工具仍由后端执行并通过工具结果事件返回数据。不注册某个后端工具时，该工具也会使用默认展示。
+
+### `render` 替换哪里
+
+`toolkit[toolName].render` 替换整个工具条目，包括“正在调用／已调用工具”标题、参数、结果及工具自身的展开面板。上面的“3 次工具调用”属于外层分组，不在单个工具的 `render` 内。
+
+如果希望沿用默认标题和外壳，只定制结果，在自己的 `OrderTool` 中复用默认组件：
+
+```tsx
+import { ConversationToolResult, type ConversationToolCallProps, type ToolResultProps } from '@za38.03/agent-ui-plugins';
+import { OrderResultView } from './components/OrderResultView';
+
+function OrderResult({ result }: ToolResultProps) {
+  return <OrderResultView data={result.value} />;
+}
+
+export function OrderTool(props: ConversationToolCallProps) {
+  return <ConversationToolResult {...props} components={{ Result: OrderResult }} />;
+}
+```
+
+`OrderResultView` 是项目自己的业务组件，`data` 接收 `unknown` 并校验业务结果。它应处理执行期间的部分结果，不在渲染时重新查询或执行工具。`components.Result` 只替换结果区域；名称、参数、审批和错误保持默认。图片等片段可以通过 `components.Image` 单独替换；`renderToolCall({ header, defaultView })` 只负责统一布局。详见[工具结果展示](/plugins/tool-result.md#业务渲染)。
 
 ## 渲染组件，等待用户操作
 
@@ -15745,7 +15974,7 @@ export function PageAgent({ openTicket }: {
 ## 两种方式都需要了解的行为
 
 - **工具名**：每个工具名只注册一次。`frontend` 工具的名称以小写字母开头，仅使用小写字母、数字和下划线，最多 64 个字符。
-- **后端配合**：工具声明随请求的 `tools` 发送。后端发出工具调用，结束本轮运行，再接收工具结果并继续回复，事件格式见 [AG-UI 数据](/plugins/ag-ui-data.md)。
+- **后端配合**：需要由前端执行或等待用户回答的工具，其声明随请求的 `tools` 发送。后端发出工具调用，结束本轮运行，再接收工具结果并继续回复。`type: 'backend'` 的展示注册不走这一执行流程；事件格式见 [AG-UI 数据](/plugins/ag-ui-data.md)。
 - **执行许可**：应用显式注册 `frontend` 工具即允许执行，设置 `disabled: true` 可停止对 Agent 开放并保留历史展示。
 - **展示组件**：使用 TSX 编写，文案接入[统一语言层](/development/localization.md)。不要在渲染或挂载时自动执行业务操作，以免查看历史时重复执行。
 - **后续消息参数**：工具结果用于本次调用；后续消息也需要的数据，在页面保存并传给 `Agent.ctx`，见[传递业务参数](/development/business-context.md)。
@@ -15770,32 +15999,32 @@ url: /development/react-host-api.md
 
 服务地址、主题、语言和适配器等**配置始终传给 `<Agent />`**，有外层 Provider 时也一样。下表说明各属性的用途，以及不传入时的行为。
 
-| 属性                                                       | 类型                                                                       | 省略时 / 用途                                                                                                                                                     |
-| -------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `frontendTools`                                          | `AgentFrontendToolSource`                                                | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。                                                                                                                           |
-| `endpoint`                                               | `string`                                                                 | 可选，无默认值。自定义 `fetch` 自行决定地址时可省略；浏览器默认 fetch 使用项目提供的地址。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](/development/multiple-agents.md#同一助手的工作流入口)。Creator 开发预览期间使用面板选择的连接。 |
-| `request`                                                | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；开发预览当前会清除此配置。示例见[请求头与鉴权](/development/connect-agent.md#请求头与鉴权)。                                                                |
-| `fetch`                                                  | `(url: string, init: RequestInit) => Promise<Response>`                  | 可选。自定义 AG-UI 请求函数，返回流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent.md#自定义请求函数)。                                                                   |
-| `beforeRequest`                                          | `AgentUIBeforeRequest`                                                   | 可选。每次 AG-UI 请求前同步或异步返回部分请求字段，与当前输入合并；首次返回的 `threadId` 绑定到会话，`runId` 按运行确定。见[发送前准备请求](/development/connect-agent.md#发送前准备请求)。                                 |
-| `getRunContext`                                          | `ConversationRunContextGetter`                                           | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options.md#传入业务上下文)。                                                           |
-| `ctx`                                                    | `AgentUIContext`                                                         | 可选。每次发送携带的默认业务参数，后端从 `forwardedProps.ctx` 读取。见[使用示例](/development/business-context.md#业务参数-ctx)。                                                             |
-| `theme`                                                  | `AgentUITheme`                                                           | 可传 `light`、`dark`、`violet`；不传时使用内置紫色主题并允许内置切换。传入后由业务页面控制。                                                                                                    |
-| `onThemeChange`                                          | `(theme: AgentUITheme) => void`                                          | 可选。用户切换主题时调用；业务页面在回调中更新 `theme`。                                                                                                                             |
-| `locale`                                                 | `AgentUILocaleCode`                                                      | 默认中文；当前支持 `zh-CN`、`en-US`，不发给 AG-UI。                                                                                                                         |
-| `defaultLocale`                                          | `AgentUILocaleCode`                                                      | 设置初始语言并允许内置切换；默认 `zh-CN`。`locale` 用于页面控制当前语言。                                                                                                                |
-| `onLocaleChange`                                         | `(locale: AgentUILocaleCode) => void`                                    | 可选。用户切换语言时调用；业务页面在回调中更新 `locale`。                                                                                                                            |
-| `user`                                                   | `AgentUser` 或 `null`                                                     | 省略时继承外层 Provider 的展示资料；两者都省略时显示项目登录服务（`auth.session`）中的用户资料；null 显示未登录状态。可含 `userId`、`userName`、`avatar`，不用于认证。                                              |
-| `initialThreadId`                                        | `string`                                                                 | 不传则新建会话；传入时初始化打开已有会话，修改此值不会直接切换当前会话。                                                                                                                         |
-| `transientMessages`                                      | `ConversationTransientMessageService`                                    | 可选。传入同一个临时消息服务，在页面内显示提示；常规插件直接用[本地提示 Hook](/development/plugin-interaction.md#临时通知)，不另建存储。                                                                   |
-| `appEventSchemas`                                        | `AppEventSchemas`                                                        | 按事件名称配置项目实际 Schema；注册、校验和订阅见[业务事件示例](/development/plugin-api.md#订阅业务事件)。显示自定义消息卡片无需设置。                                                                       |
-| `locales`                                                | `Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>>`             | 按语言和领域覆盖官方文案，保留未覆盖字段；见[覆盖示例](/development/localization.md)。                                                                                                  |
-| `assistantPanelWidth`                                    | `number`                                                                 | 悬浮助理宽度，受视口限制。                                                                                                                                                |
-| `attachments`、`dictation`、`feedback`                     | 对应 `ConversationRuntimeProviderProps` 字段                                 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。                                                                                                 |
-| `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段                                 | 自定义业务适配器，优先于对应通用配置。                                                                                                                                          |
-| `conversationDataSource`                                 | `ConversationDataSource`                                                 | 实现 list/get/delete 及可选管理方法的历史数据源；保留对应插件启用，返回格式与接入见[历史服务](/development/history-backend.md)。                                                                   |
-| `toolkit`                                                | `ConversationToolkit`                                                    | 注册组件交互、前端执行方法和工具展示，见[前端工具](/development/frontend-tools.md)。                                                                                                  |
-| `integrations`                                           | `ComponentType<{ children: ReactNode }>`                                 | 额外集成包装组件，保留已生成的 integration。                                                                                                                                 |
-| `onError`                                                | `(error: Error) => void`                                                 | 可选。应用或 Agent 运行出错时调用；业务代码调用异步方法时，还需用 try/catch 处理报错。                                                                                                         |
+| 属性                                                       | 类型                                                                       | 省略时 / 用途                                                                                                                                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontendTools`                                          | `AgentFrontendToolSource`                                                | 可选。提供宿主页面允许 Agent 调用的操作，与项目已有工具合并。                                                                                                                                        |
+| `endpoint`                                               | `string`                                                                 | 可选，无默认值。自定义 `fetch` 自行决定地址时可省略；浏览器默认 fetch 使用项目提供的地址。更改它会重建会话并结束当前连接；同会话切工作流用[按次指定 URL](/development/multiple-agents.md#同一助手的工作流入口)。Creator 默认沿用应用配置，主动开启临时连接后才使用面板选择的连接。 |
+| `request`                                                | `{ headers?: Record<string, string>; credentials?: RequestCredentials }` | 可选。AG-UI 请求的自定义请求头与 Cookie 策略；主动开启 Creator 临时连接后会清除此配置。示例见[请求头与鉴权](/development/connect-agent.md#请求头与鉴权)。                                                                 |
+| `fetch`                                                  | `(url: string, init: RequestInit) => Promise<Response>`                  | 可选。自定义 AG-UI 请求函数，返回流式响应；省略时使用浏览器 fetch。见[自定义请求函数](/development/connect-agent.md#自定义请求函数)。                                                                                |
+| `beforeRequest`                                          | `AgentUIBeforeRequest`                                                   | 可选。每次 AG-UI 请求前同步或异步返回部分请求字段，与当前输入合并；首次返回的 `threadId` 绑定到会话，`runId` 按运行确定。见[发送前准备请求](/development/connect-agent.md#发送前准备请求)。                                              |
+| `getRunContext`                                          | `ConversationRunContextGetter`                                           | 可选。每次请求（包括审批恢复）同步读取业务数据，返回 AG-UI `context` 条目；示例见[传入业务上下文](/development/agent-options.md#传入业务上下文)。                                                                        |
+| `ctx`                                                    | `AgentUIContext`                                                         | 可选。每次发送携带的默认业务参数，后端从 `forwardedProps.ctx` 读取。见[使用示例](/development/business-context.md#业务参数-ctx)。                                                                          |
+| `theme`                                                  | `AgentUITheme`                                                           | 可传 `light`、`dark`、`violet`；不传时使用内置紫色主题并允许内置切换。传入后由业务页面控制。                                                                                                                 |
+| `onThemeChange`                                          | `(theme: AgentUITheme) => void`                                          | 可选。用户切换主题时调用；业务页面在回调中更新 `theme`。                                                                                                                                          |
+| `locale`                                                 | `AgentUILocaleCode`                                                      | 默认中文；当前支持 `zh-CN`、`en-US`，不发给 AG-UI。                                                                                                                                      |
+| `defaultLocale`                                          | `AgentUILocaleCode`                                                      | 设置初始语言并允许内置切换；默认 `zh-CN`。`locale` 用于页面控制当前语言。                                                                                                                             |
+| `onLocaleChange`                                         | `(locale: AgentUILocaleCode) => void`                                    | 可选。用户切换语言时调用；业务页面在回调中更新 `locale`。                                                                                                                                         |
+| `user`                                                   | `AgentUser` 或 `null`                                                     | 省略时继承外层 Provider 的展示资料；两者都省略时显示项目登录服务（`auth.session`）中的用户资料；null 显示未登录状态。可含 `userId`、`userName`、`avatar`，不用于认证。                                                           |
+| `initialThreadId`                                        | `string`                                                                 | 不传则新建会话；传入时初始化打开已有会话，修改此值不会直接切换当前会话。                                                                                                                                      |
+| `transientMessages`                                      | `ConversationTransientMessageService`                                    | 可选。传入同一个临时消息服务，在页面内显示提示；常规插件直接用[本地提示 Hook](/development/plugin-interaction.md#临时通知)，不另建存储。                                                                                |
+| `appEventSchemas`                                        | `AppEventSchemas`                                                        | 按事件名称配置项目实际 Schema；注册、校验和订阅见[业务事件示例](/development/plugin-api.md#订阅业务事件)。显示自定义消息卡片无需设置。                                                                                    |
+| `locales`                                                | `Partial<Record<AgentUILocaleCode, AgentUILocaleOverrides>>`             | 按语言和领域覆盖官方文案，保留未覆盖字段；见[覆盖示例](/development/localization.md)。                                                                                                               |
+| `assistantPanelWidth`                                    | `number`                                                                 | 悬浮助理宽度，受视口限制。                                                                                                                                                             |
+| `attachments`、`dictation`、`feedback`                     | 对应 `ConversationRuntimeProviderProps` 字段                                 | 上传、转写、反馈配置；支持 `dataSource` 注入业务方法或保留 URL 接法，传 false 可关闭对应能力。                                                                                                              |
+| `attachmentAdapter`、`dictationAdapter`、`feedbackAdapter` | 对应 `ConversationRuntimeProviderProps` 字段                                 | 自定义业务适配器，优先于对应通用配置。                                                                                                                                                       |
+| `conversationDataSource`                                 | `ConversationDataSource`                                                 | 实现 list/get/delete 及可选管理方法的历史数据源；保留对应插件启用，返回格式与接入见[历史服务](/development/history-backend.md)。                                                                                |
+| `toolkit`                                                | `ConversationToolkit`                                                    | 注册组件交互、前端执行方法和工具展示，见[前端工具](/development/frontend-tools.md)。                                                                                                               |
+| `integrations`                                           | `ComponentType<{ children: ReactNode }>`                                 | 额外集成包装组件，保留已生成的 integration。                                                                                                                                              |
+| `onError`                                                | `(error: Error) => void`                                                 | 可选。应用或 Agent 运行出错时调用；业务代码调用异步方法时，还需用 try/catch 处理报错。                                                                                                                      |
 
 业务服务的 URL、鉴权和适配代码放在项目实现中，逐项手动接入步骤见[业务服务接入总览](/development/service-integration.md)。
 
@@ -16149,7 +16378,7 @@ url: /development/plugin-api.md
 
 本页按开发任务查找插件接口、参数和示例。创建文件与注册见[创建自定义插件](/development/create-plugin.md)，修改已有组件见[手动修改插件](/development/component-customization.md)。
 
-先从速查表选择要用的能力，再展开对应条目。从其他插件取数或调用操作，见[插件联动与取数](/development/plugin-interaction.md)。
+先从速查表选择要用的能力，再阅读对应小节。从其他插件取数或调用操作，见[插件联动与取数](/development/plugin-interaction.md)。
 
 ## 按开发需求查接口 \{#公共能力速查}
 
@@ -16177,8 +16406,7 @@ url: /development/plugin-api.md
 
 编写插件定义时，从 `@za38.03/agent-ui-plugins/contracts` 导入 `UIPluginDefinition`；定义对象的实际字段见下表。组件内需要的 Hook 在相应示例中直接导入，状态与服务仍来自已有 Agent。
 
-<details class="dev-guide-details" id="插件定义">
-<summary>UIPluginDefinition：定义字段与实例身份</summary>
+### UIPluginDefinition：定义字段与实例身份 \{#插件定义}
 
 | 字段               | 类型                                                        | 用途                         |
 | ---------------- | --------------------------------------------------------- | -------------------------- |
@@ -16194,32 +16422,26 @@ url: /development/plugin-api.md
 
 `manifest.id` 是插件身份；`app-ui.json` 中的实例 `id` 是这一次使用的身份，二者不同。`manifest` 的必填项为 `id`、`name`、`description`、`version`。
 
-</details>
+### setup：服务注册、订阅与清理 \{#setup-上下文}
 
-<details class="dev-guide-details" id="setup-上下文">
-<summary>setup：服务注册、订阅与清理</summary>
-
-| 成员                                     | 用途                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| `instance`                             | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息                                  |
-| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ ctx: { ... } }` 附带业务参数，返回 `Promise<void>` |
-| `actions.abortRun()`                   | 请求停止当前运行                                                                 |
-| `actions.startNewConversation()`       | 新建并切换会话，返回 `Promise<void>`                                               |
-| `actions.resumeInterrupts(responses)`  | 提交审批或补充信息，返回 `Promise<void>`                                             |
-| `services.get(name)`                   | 获取服务，缺失时返回 undefined                                                     |
-| `services.provide(name, value)`        | 注册服务，返回取消注册函数                                                            |
-| `events.subscribe(name, listener)`     | 订阅业务事件，返回取消订阅函数                                                          |
+| 成员                                     | 用途                                                                                      |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `instance`                             | 当前实例的 `id`、`pluginId`、`enabled` 和可选挂载信息                                                 |
+| `actions.sendMessage(input, options?)` | 发送字符串或 `AgentUserInput`；可通过 `{ endpoint, ctx }` 为本次发送指定工作流 URL 和业务参数，返回 `Promise<void>` |
+| `actions.abortRun()`                   | 请求停止当前运行                                                                                |
+| `actions.startNewConversation()`       | 新建并切换会话，返回 `Promise<void>`                                                              |
+| `actions.resumeInterrupts(responses)`  | 提交审批或补充信息，返回 `Promise<void>`                                                            |
+| `services.get(name)`                   | 获取服务，缺失时返回 undefined                                                                    |
+| `services.provide(name, value)`        | 注册服务，返回取消注册函数                                                                           |
+| `events.subscribe(name, listener)`     | 订阅业务事件，返回取消订阅函数                                                                         |
 
 `setup` 是同步生命周期，清理函数也同步返回。把外部订阅和资源清理放进返回函数中，处理停用、切换和卸载。服务消费沿用项目既有 `usePluginService` 接口。
-
-</details>
 
 ## 组合组件与展示消息 \{#组合组件与展示消息}
 
 组件属性、子插槽和 renderer 都在项目代码中配置。
 
-<details class="dev-guide-details" id="组件原生属性">
-<summary>组件原生属性</summary>
+### 组件原生属性 \{#组件原生属性}
 
 组件继承某个 HTML 元素或根组件属性时，可使用其类型允许的属性：
 
@@ -16231,10 +16453,7 @@ url: /development/plugin-api.md
 
 这些属性设置在项目插件入口的 JSX 中，不写入 `app-ui.json`。根组件属性不会自动传给内部输入框、按钮或自定义子组件，需使用相应的嵌套属性或直接配置子组件。
 
-</details>
-
-<details class="dev-guide-details" id="组件与子插槽">
-<summary>renderSlot 与 renderScopedSlot：组合子插件</summary>
+### renderSlot 与 renderScopedSlot：组合子插件 \{#组件与子插槽}
 
 `renderSlot` 和 `renderScopedSlot` 由插件运行环境通过 `UIPluginComponentProps` 提供。修改已有插件时保留其原有调用；没有子插槽的组件通常无需使用它们。
 
@@ -16291,10 +16510,7 @@ export function TicketCard({ renderSlot }: UIPluginComponentProps) {
 - `cardinality` 可为 `one` 或 `many`。
 - `mode: "renderer"` 的插槽必须为 `one`，组件还需提供相应渲染上下文。
 
-</details>
-
-<details class="dev-guide-details" id="消息与工具结果展示">
-<summary>dataMessageUIs 与 toolkit：注册消息和工具结果展示</summary>
+### dataMessageUIs 与 toolkit：注册消息和工具结果展示 \{#消息与工具结果展示}
 
 通过 `dataMessageUIs` 注册具名消息展示。以下示例复用官方图表组件，先在新插件的 `index.tsx` 中定义展示项：
 
@@ -16348,10 +16564,7 @@ export const ticketToolkit = createConversationToolkit({
 
 将 `ticketToolkit` 赋给插件定义的 `toolkit`；工具名称与后端约定一致。该入口只注册展示，不注册或执行后端工具。修改已有工具 UI 时，保留已有的 `interaction` 配置、审批回调和运行状态参数。完整示例及验证场景见[已有结果的渲染定制](/development/component-customization.md#已有结果的渲染定制)。
 
-</details>
-
-<details class="dev-guide-details" id="复用会话组件与输入能力">
-<summary>复用输入框、附件、听写和发送能力</summary>
+### 复用输入框、附件、听写和发送能力 \{#复用会话组件与输入能力}
 
 从 `@za38.03/agent-ui-plugins` 导入公开组件，使用明确的 props 和 renderer 扩展。按钮图标用 `icon`，列表和工具详情使用各自的 renderer；仅 Runtime 分组内容与原生编辑器扩展保留必要的 `children`。例如，自定义输入区内继续使用现有的附件、听写和发送按钮：
 
@@ -16383,10 +16596,7 @@ export function ComposerActions() {
 
 附件默认转 Base64，听写默认依赖受支持的浏览器语音识别，评价默认保留当前界面的选择。上传和反馈保存分别通过 `Agent attachments`、`Agent feedback` 接入，见[附件上传服务](/development/attachment-upload.md)和[回复评价服务](/development/feedback-service.md)；业务语音转写服务仍标为开发中。
 
-</details>
-
-<details class="dev-guide-details" id="主题与多语言">
-<summary>跟随项目主题，读取或新增双语文案</summary>
+### 跟随项目主题，读取或新增双语文案 \{#主题与多语言}
 
 组件优先使用工程已有的 UI 库和公开样式属性，主题颜色沿用项目的 CSS 变量。官方文案通过 `@za38.03/agent-ui-plugins` 的 `useLocale()` 读取，项目通过 `Agent` 的 `locales` 属性覆盖需要修改的键。
 
@@ -16429,14 +16639,11 @@ export function TicketActionLabel() {
 
 业务文案在项目共享消息模块中维护，跟随当前界面语言切换。复用已有领域时保留原有键；协议名、服务名、插件 ID 和消息名保持原值。样式覆盖见[主题与样式](/development/theme-and-styling.md)，文案配置与检查方式见[语言与文案](/development/localization.md)。
 
-</details>
-
 ## 操作会话与接入业务数据 \{#操作会话与接入业务数据}
 
 按发送、读取、共享服务或订阅事件选择入口。
 
-<details class="dev-guide-details" id="会话操作与实例信息">
-<summary>usePluginActions 与 usePluginInstance：操作当前会话</summary>
+### usePluginActions 与 usePluginInstance：操作当前会话 \{#会话操作与实例信息}
 
 React 组件从 `@za38.03/agent-ui-plugins` 取得：
 
@@ -16446,6 +16653,17 @@ React 组件从 `@za38.03/agent-ui-plugins` 取得：
 它们由现有插件实例上下文提供，不作为 `Component` 的额外参数传入。
 
 例如 `await actions.sendMessage('分析订单', { ctx: { orderId: 'O-1042' } })`，后端从 `forwardedProps.ctx` 读取参数。更多示例见[业务参数 ctx](/development/business-context.md#业务参数-ctx)。
+
+插件组件与 `setup` 中的 `actions.sendMessage()` 都支持按次指定 `endpoint`：
+
+```ts
+await actions.sendMessage('分析订单', {
+  endpoint: '/api/workflows/order-analysis',
+  ctx: { orderId: 'O-1042' },
+});
+```
+
+它继续使用当前助手和 Thread，不新建会话。重试、前端工具续传和审批恢复沿用该次请求地址；下一次发送不传 `endpoint` 时使用助手的默认地址。运行中或等待用户响应时发送会拒绝，需处理 Promise 失败。
 
 以下示例放在 `plugins/ticket-actions/index.tsx`，发送一条项目文案中配置的工单分析请求：
 
@@ -16492,10 +16710,7 @@ export function TicketActions() {
 - **异步操作**：处理失败，并在运行或等待审批时控制按钮可用性。
 - **审批回复**：`resumeInterrupts()` 接收 `AgentInterruptResponse[]`。沿用项目已有的审批数据与表单校验，不用普通消息替代审批回复。
 
-</details>
-
-<details class="dev-guide-details" id="读取会话状态">
-<summary>会话、消息、运行状态与审批 Hook</summary>
+### 会话、消息、运行状态与审批 Hook \{#读取会话状态}
 
 从 `@za38.03/agent-ui-plugins` 导入 `useConversation`，可以按需订阅当前会话，也可以在点击等事件中即时读取：
 
@@ -16509,7 +16724,7 @@ const onInspect = () => inspect(conversation.getSnapshot());
 
 传入 selector 时按 `Object.is` 比较选中值；选中值不变时，不会因其他数据更新而重新渲染。无参数时不自动订阅数据；手动订阅使用 `conversation.subscribe(listener)`，并在 effect 清理时取消。selector 可读 `thread.messages`、`thread.state`、`thread.isRunning` 以及公开的 `threads`、`message`、`threadListItem` 字段；后两者需要各自已有的消息或列表项作用域。选择具体字段或稳定引用，避免每次创建新对象、数组。完整示例见[读取当前会话](/plugins/conversation-surface.md#hook)。
 
-在已有消息组件内，通过 `useConversation(s => s.message.speaker)` 读取类型明确的发言者身份，或用 `useConversation(s => s.message.speaker?.name)` 只订阅名称。`thread.messages` 与 `getSnapshot().messages` 返回的每条 `ConversationMessageView` 也包含只读 `speaker`，类型为 `MessageSpeaker | null | undefined`：有效对象有 `id`、`name`、可选 `avatarUrl`；`undefined` 表示缺失或不合法，`null` 表示明确隐藏身份头。展示 fallback 不会混入消息身份。原始 `metadata.custom` 保留。完整实时事件、历史格式与作用域示例见[展示消息发言者的名称与头像](/development/message-speaker.md)，默认身份头的 props 见[会话界面](/plugins/conversation-surface.md#显示发言者头像与名称)。
+在已有消息组件内，通过 `useConversation(s => s.message.speaker)` 读取类型明确的发言者身份，或用 `useConversation(s => s.message.speaker?.name)` 只订阅名称。`thread.messages` 与 `getSnapshot().messages` 返回的每条 `ConversationMessageView` 也包含只读 `speaker`，类型为 `MessageSpeaker | null | undefined`：有效对象有 `id`、`name`、可选 `avatarUrl`；`undefined` 表示缺失或不合法，`null` 表示明确恢复前端配置的 fallback，未配置时不显示身份头。展示 fallback 不会混入消息身份。原始 `metadata.custom` 保留。完整实时事件、历史格式与作用域示例见[展示消息发言者的名称与头像](/development/message-speaker.md)，默认身份头的 props 见[会话界面](/plugins/conversation-surface.md#显示发言者头像与名称)。
 
 `useAgentRuntime` 从 `@za38.03/agent-ui-runtime` 导入。无参数返回已有 Runtime 的即时读取与操作句柄；传 selector 时订阅选中值：
 
@@ -16537,8 +16752,6 @@ export function SelectedFile() {
 
 泛型只提供类型检查，不会创建后端数据或校验网络内容。新增状态字段时同步项目状态契约。组件根据已有状态渲染即可，不自行解释原始 SSE 或启动另一条事件流。
 
-</details>
-
 <span id="服务共享与状态订阅"></span>
 
 领域状态 Hook 使用同一种调用方式：无 selector 获取即时读取与操作句柄，传 selector 才订阅所需值。例如在组件顶层调用：
@@ -16552,8 +16765,7 @@ const status = useAgentRuntime(snapshot => snapshot.run.status);
 
 事件回调中通过 `getSnapshot()` 读取最新值并调用操作；selector 按 `Object.is` 比较返回值。多个 selector 可以分别放在各自的子组件里，隔离界面更新。服务和 Thread 身份变更仍会重新绑定句柄，保存的旧句柄保持其原作用域。各 Hook 的导入入口见下文。
 
-<details class="dev-guide-details" id="内置领域-hook">
-<summary>使用项目已有的会话、认证、主题与语言服务</summary>
+### 使用项目已有的会话、认证、主题与语言服务 \{#内置领域-hook}
 
 会话与认证使用领域 Hook 统一处理服务接入和状态订阅。主题、语言保留读取 Hook；少数切换插件直接获取既有服务。
 
@@ -16599,10 +16811,7 @@ const { refresh } = useConversations();
 
 这些项目 Hook 仅在文件缺失时初始化，已有定制文件会保留。自行调整文件位置时，同时更新组件中的相对导入路径。
 
-</details>
-
-<details class="dev-guide-details" id="自定义服务">
-<summary>共享业务状态：依赖声明、服务实现与订阅</summary>
+### 共享业务状态：依赖声明、服务实现与订阅 \{#自定义服务}
 
 服务用于共享项目业务能力。插件定义中的依赖声明与消费接口如下：
 
@@ -16679,16 +16888,13 @@ export function setupTicketSelection({ services }: UIPluginSetupContext) {
 
 提供方和消费方都需要在 AppUIModel 中启用。示例只保存在页面内，刷新后不会恢复；需要持久化时接入项目自己的数据源。若服务还持有连接或定时器，清理时同时释放这些资源。相同服务名只能有一个活动提供实例；不要给多个实例重复注册同名服务。也可通过扩展 `UIPluginServiceMap` 为服务名关联类型。
 
-</details>
-
 Agent 可通过以下 AG-UI 事件通知当前工单的变化。前端的类型注册、订阅和验证方法见下方步骤：
 
 ```jsonl
 {"type":"CUSTOM","name":"app.ticket.selected","value":{"ticketId":"T-1042"}}
 ```
 
-<details class="dev-guide-details" id="订阅业务事件">
-<summary>接收 Agent 业务事件：类型、注册、订阅与验证</summary>
+### 接收 Agent 业务事件：类型、注册、订阅与验证 \{#订阅业务事件}
 
 下面以“Agent 选中工单后，插件更新当前选择”为例。只需显示消息卡片时，使用[自定义消息渲染](/development/custom-ag-ui-events.md)，无需配置这里的实时订阅。
 
@@ -16759,8 +16965,6 @@ export function setupTicketEvents({ events, services }: UIPluginSetupContext) {
 确认当前工单变为 `T-1042`。再把 `ticketId` 改成空字符串或数字，订阅回调不应执行；核对事件名与 `value` 是否符合第 1 步的定义。Schema 未注册时，声明订阅的插件无法正常启用。
 
 这条链路只接收实时通知，不重放历史。需要刷新后保留的选择，交给业务服务保存；仅写 TypeScript 泛型不会校验收到的数据。
-
-</details>
 
 ## 连接宿主页面与前端工具 \{#前端工具与宿主页面联动}
 

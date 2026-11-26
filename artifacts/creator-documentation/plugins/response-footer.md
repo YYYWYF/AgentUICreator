@@ -22,7 +22,7 @@
 
 hideWhenRunning 隐藏生成中的操作栏；autohide=never 让回复完成后无需鼠标悬停即可看到操作。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
 
@@ -37,7 +37,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 合并嵌套对象后修改样式，原有 actions 插槽与回复级作用域继续使用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalResponseFooter } from '@za38.03/agent-ui-plugins';
 
@@ -53,7 +53,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 以下展示组件在现有回复作用域内组合复制和独立导出按钮。生成项目已使用 actions 插槽时，优先在该插槽中调整操作插件；直接传 actions 不会覆盖已配置的插槽。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import {
   ConversationCanonicalResponseFooter,
@@ -81,7 +81,7 @@ export function Example(props: ComponentProps<typeof ConversationCanonicalRespon
 
 以下 `save` 接项目已有的收藏、知识库或业务记录方法，`label` 来自项目文案，`onError` 接业务错误提示：
 
-```tsx
+```tsx fold height=180
 import { useState } from 'react';
 import { useResponse } from '@za38.03/agent-ui-plugins';
 
@@ -167,7 +167,6 @@ export function SaveResponse({ save, label, onError }: {
 
 ## 常见问题
 
-
-为什么 actions 属性没有替换现有按钮？
+### 为什么 actions 属性没有替换现有按钮？ \{#为什么-actions-属性没有替换现有按钮}
 
 项目已配置 actions 插槽时，先修改该插槽中的插件组合。操作内容统一通过 actions 或已有 actions 插槽组合。

@@ -3,6 +3,7 @@ import { type ConversationThinkingIndicatorRenderScope, type ConversationUserEdi
 import { ConversationCanonicalUserEditComposer } from "../../../presentation.js";
 
 import type { UIPluginComponentProps } from "../../../contracts/index.js";
+import { useStreamedToolResult } from '../../../plugin-api/tool-results.js';
 
 type RenderScopedSlot = UIPluginComponentProps["renderScopedSlot"];
 const ScopedRendererBridgeContext = createContext<RenderScopedSlot | null>(null);
@@ -59,9 +60,10 @@ export function ScopedTaskGroup({ group, children }: { group: unknown; children?
 }
 
 export function ScopedToolFallback(tool: ConversationToolCallProps) {
+  const resolvedTool = useStreamedToolResult(tool);
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   if (renderScopedSlot === null) return null;
-  const fallbackValue: ConversationToolFallbackRenderScope = { tool };
+  const fallbackValue: ConversationToolFallbackRenderScope = { tool: resolvedTool };
   return renderScopedSlot("toolFallback", {
     kind: "conversation.tool-fallback",
     value: fallbackValue,

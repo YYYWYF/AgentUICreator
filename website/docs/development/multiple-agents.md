@@ -98,8 +98,7 @@ export function Assistants() {
 
 `agentId` 用于区分助手，`endpoint` 是该助手的默认请求 URL，`project` 决定它使用的 UI 配置。同一 URL 也可以用于多个助手。
 
-<details class="dev-guide-details" id="共用-ui各自创建业务服务">
-<summary>多个助手共用 UI 时，怎样隔离业务服务</summary>
+### 多个助手共用 UI 时，怎样隔离业务服务 {#共用-ui各自创建业务服务}
 
 多个助手可以继续使用同一份 `project`，并通过各自的 `createServices` 创建独立服务。在挂载助手的业务页面配置，例如沿用[自定义服务示例](./create-plugin#5-向其他插件提供方法)中的工单选择服务：
 
@@ -120,8 +119,6 @@ const createServices = () => ({
 ```
 
 每个助手挂载时分别调用一次工厂；不要在工厂外创建并返回同一个可变服务对象。服务名沿用插件已有的 `provides`，提供方和消费方仍需启用。通过 `hidden` 切换显示会保留各自服务；卸载后重新挂载会重新创建。
-
-</details>
 
 ## 控制指定助手与后台任务 {#控制指定助手与后台任务}
 
@@ -167,8 +164,7 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 
 发送输入框中已有的草稿、附件与引用时，使用 `agents.agent(agentId).sendComposer()`；也可传 `{ endpoint }`。它使用当前 Thread 的原生 Composer，工作流发送在运行中会拒绝，不把草稿取出后另建消息链。调用前同样检查就绪状态，并处理失败。
 
-<details class="dev-guide-details" id="助手集合接口">
-<summary>查阅助手集合 Hook、身份与服务约束</summary>
+### 助手集合 Hook、身份与服务约束 {#助手集合接口}
 
 以下 Hooks 和类型从 `@za38.03/agent-ui-runtime` 导入。
 
@@ -186,8 +182,6 @@ export function AssistantControls({ agentId, prompt, labels, onError }: {
 同一集合内 `agentId` 必须唯一、无首尾空白且长度不超过 100。两个助手即使后端返回相同 `threadId`，也必须用 `{ agentId, threadId }` 一起定位。每个助手有独立的可变运行组合与服务；共享 UI 配置不等于共享运行。
 
 这些操作不会替业务页面修改 `hidden`。例如打开研究助手的历史后，若需要同时显示它，业务页面还需把自己的 `visible` 改为 `research`。保持 `agentId` 和默认 `endpoint` 稳定；更换它们会重建该应用的会话边界，不用于切换工作流。
-
-</details>
 
 **观察和控制后台 Thread。**
 
@@ -252,10 +246,9 @@ export function useMountedThreads(agentId: string) {
 
 ## 可选：独立页面与多端复用 {#独立页面与多端复用}
 
-已有多个业务页面，或需要 Vue/HTML、PC 与移动端复用时，再展开对应示例。
+已有多个业务页面，或需要 Vue/HTML、PC 与移动端复用时，阅读下面对应的示例。
 
-<details class="dev-guide-details" id="业务页面独立助手">
-<summary>让不同业务页面分别拥有自己的助手</summary>
+### 让不同业务页面分别拥有自己的助手 {#业务页面独立助手}
 
 以下两个组件分别交给业务工程已有的 `/customer` 和 `/report` 路由，不引入新的路由系统：
 
@@ -291,10 +284,7 @@ export function ReportPage() {
 
 各页面的普通发送按钮直接发送给本页助手。两页可以共享布局配置，也可以分别传入不同的 `project`。
 
-</details>
-
-<details class="dev-guide-details" id="跨端接口复用与界面适配">
-<summary>同一个后端 Agent 复用 PC 与移动端界面</summary>
+### 同一个后端 Agent 复用 PC 与移动端界面 {#跨端接口复用与界面适配}
 
 同一个后端 Agent 可以同时服务 PC 和移动端。前端只挂载一个助手，根据终端选择不同的 UI 配置，`agentId` 和 `endpoint` 保持一致。
 
@@ -332,10 +322,7 @@ export function Assistant({ isMobile }: { isMobile: boolean }) {
 
 例如，PC 外壳可以提供侧栏和较大的操作区，移动端外壳可以提供全屏面板和紧凑操作区；两端发送都请求 `/api/agent`。这个例子通过 `Shell` 区分外壳与样式。内部 Plugin 布局也不同时，给 `pcProject`、`mobileProject` 分别设置各自的 `appUIModelSource`（AppUIModel 的 JSON 字符串），并保留布局所需的 Plugin 定义。
 
-</details>
-
-<details class="dev-guide-details" id="web-component-与-creator">
-<summary>在 Vue/HTML Host 控制多个助手与预览连接</summary>
+### 在 Vue/HTML Host 控制多个助手与预览连接 {#web-component-与-creator}
 
 Vue/HTML Host 使用 React 生产的 Web Component，业务 Host 控制每项 `hidden`：
 
@@ -351,8 +338,6 @@ element.config = {
 更多参数见[Web Component API](/development/web-component-api)。
 
 Creator 可以修改上述项目配置、Shell 和发送按钮。开发时，在临时连接面板填写对应 `agentId`，即可为指定助手配置预览连接。
-
-</details>
 
 ## 检查会话身份与后台运行 {#验证}
 

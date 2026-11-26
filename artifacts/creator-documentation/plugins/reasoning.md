@@ -72,7 +72,7 @@ Agent 服务通过 reasoning 事件传递内容。以下按顺序列出思考事
 
 需要直接展示完整思考过程时，在项目已有 `plugins/reasoning/index.tsx` 的实现调用处增加 `defaultExpanded`。下面保留当前思考分组与正文的绑定：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -92,7 +92,7 @@ export function ConversationReasoningPlugin(props: ComponentProps<typeof Impleme
 
 柔和背景和正文高度只影响展示，自动展开、收起和滚动跟随继续由插件处理：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationReasoningPlugin as Implementation } from '@za38.03/agent-ui-plugins/reasoning';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';
@@ -135,7 +135,6 @@ export function ConversationReasoningPlugin(props: ComponentProps<typeof Impleme
 
 ## 常见问题
 
-
-defaultExpanded 与 expanded 有什么区别？
+### defaultExpanded 与 expanded 有什么区别？ \{#defaultexpanded-与-expanded-有什么区别}
 
 `defaultExpanded` 决定未手动操作时的静止展开状态，思考中仍自动展开。`expanded` 则交由项目控制，会替代自动策略，需配合 `onExpandedChange` 更新。

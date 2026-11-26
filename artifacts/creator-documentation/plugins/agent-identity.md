@@ -38,7 +38,7 @@
 
 在已有身份插件入口配置名称，语言选择继续沿用统一语言环境：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentIdentityPlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-identity';
 
@@ -53,7 +53,7 @@ export function AgentIdentityPlugin(props: ComponentProps<typeof Implementation>
 
 项目已配置 Logo 时，可以改变图片尺寸和名称排版，继续使用默认内容与语言选择：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentIdentityPlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-identity';
 

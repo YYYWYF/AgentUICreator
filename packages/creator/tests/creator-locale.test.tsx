@@ -10,6 +10,28 @@ let root: Root | undefined;
 afterEach(async () => { if (root) await act(async () => root!.unmount()); root = undefined; document.body.replaceChildren(); vi.unstubAllGlobals(); });
 
 describe("Creator presentation locale", () => {
+  it.each(["mock", "connected"] as const)("keeps %s inactive when changing mode and enables it only on explicit selection", async activeSource => {
+    let state = { activeSource, configured: false, running: false, endpoint: "http://localhost:8000/agent", enabled: false };
+    const fetch = vi.fn(async (_url: unknown, init?: RequestInit) => {
+      if (init?.method === "POST") state = { ...state, ...JSON.parse(String(init.body)) as Record<string, unknown>, configured: true };
+      return new Response(JSON.stringify(state, (key: string, value: unknown) => key === "agentId" && value === null ? undefined : value), { headers: { "Content-Type": "application/json" } });
+    });
+    vi.stubGlobal("fetch", fetch);
+    const container = document.createElement("div"); document.body.append(container); root = createRoot(container);
+    await act(async () => root!.render(<CreatorLocaleProvider locale="zh-CN"><AgentConnectionPanel workspaceId="workspace" visible /></CreatorLocaleProvider>));
+    expect(container.querySelector('[role="status"]')?.textContent).toBe("临时连接已关闭，当前使用应用代码中的 endpoint。");
+    const close = [...container.querySelectorAll("button")].find(button => button.textContent === "关闭临时连接")!;
+    expect(close.disabled).toBe(true);
+    const mode = container.querySelector("select")!;
+    await act(async () => { mode.value = "direct"; mode.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(state.enabled).toBe(false);
+    expect(JSON.parse(String(fetch.mock.calls[1]![1]!.body))).not.toHaveProperty("enabled");
+    const enable = [...container.querySelectorAll("button")].find(button => button.textContent === (activeSource === "mock" ? "使用示例 Agent" : "使用此地址"))!;
+    await act(async () => enable.click());
+    expect(state).toMatchObject({ activeSource, enabled: true, connectionMode: "direct" });
+    expect(close.disabled).toBe(false);
+  });
+
   it("switches real connection controls without clearing the endpoint draft or sending an update", async () => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ activeSource: "connected", configured: true, running: false, endpoint: "http://localhost:8000/agent" }), { headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetch);
@@ -32,8 +54,8 @@ describe("Creator presentation locale", () => {
   it.each(["mock", "connected"] as const)("closes the %s connection and restores the localized application status", async activeSource => {
     let state = { activeSource, configured: true, running: false, endpoint: "http://localhost:8000/agent", enabled: true };
     const fetch = vi.fn(async (_url: unknown, init?: RequestInit) => {
-      if (init?.method === "POST") state = { ...state, ...JSON.parse(String(init.body)) };
-      return new Response(JSON.stringify(state), { headers: { "Content-Type": "application/json" } });
+      if (init?.method === "POST") state = { ...state, ...JSON.parse(String(init.body)) as Record<string, unknown> };
+      return new Response(JSON.stringify(state, (key: string, value: unknown) => key === "agentId" && value === null ? undefined : value), { headers: { "Content-Type": "application/json" } });
     });
     vi.stubGlobal("fetch", fetch);
     const container = document.createElement("div"); document.body.append(container); root = createRoot(container);
@@ -43,9 +65,9 @@ describe("Creator presentation locale", () => {
     expect(close.disabled).toBe(true);
     await act(async () => { window.dispatchEvent(new CustomEvent("agent-ui-creator:preview-running", { detail: { running: false } })); });
     await act(async () => close.click());
-    expect(JSON.parse(String(fetch.mock.calls[1]![1]!.body))).toEqual({ activeSource, enabled: false, connectionMode: "proxy" });
+    expect(JSON.parse(String(fetch.mock.calls[1]![1]!.body))).toEqual({ activeSource, enabled: false, connectionMode: "proxy", agentId: null });
     expect(container.querySelector('[role="status"]')?.textContent).toBe("临时连接已关闭，当前使用应用代码中的 endpoint。");
-    expect(container.querySelector("input")!.value).toBe("http://localhost:8000/agent");
+    expect(container.querySelectorAll("input")[1]!.value).toBe("http://localhost:8000/agent");
     expect(close.disabled).toBe(true);
     await act(async () => root!.render(<CreatorLocaleProvider locale="en-US"><AgentConnectionPanel workspaceId="workspace" visible /></CreatorLocaleProvider>));
     expect(container.querySelector('[role="status"]')?.textContent).toBe("Temporary connection is off. Using the endpoint from the application code.");

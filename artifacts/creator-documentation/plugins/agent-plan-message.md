@@ -66,7 +66,7 @@
 
 在已有消息插件入口调整外观，继续让计划消息决定当前步骤：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentPlanMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-plan-message';
 
@@ -81,7 +81,7 @@ export function AgentPlanMessagePlugin(props: ComponentProps<typeof Implementati
 
 `renderPlan` 接收已解析的计划。需要替换整个版式时，应继续表达已完成和当前步骤，而不是把它们降为一组普通文字：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { AgentPlanMessagePlugin as Implementation } from '@za38.03/agent-ui-plugins/agent-plan-message';
 

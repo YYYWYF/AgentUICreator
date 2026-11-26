@@ -227,5 +227,22 @@ export const mockConversationFixtures: readonly MockConversationFixture[] = [
 
 export const mockConversationList: ConversationSummary[] = mockConversationFixtures.map(fixture => fixture.summary);
 
+/** Workbench pagination fixture; existing history examples retain their IDs and contents. */
+export const mockConversationPaginationFixtures: readonly MockConversationFixture[] = [
+  ...mockConversationFixtures,
+  ...Array.from({ length: 24 }, (_, index): MockConversationFixture => {
+    const sequence = String(index + 1).padStart(2, "0");
+    const id = `mock-history-pagination-${sequence}`;
+    const title = `历史：分页测试 ${sequence}`;
+    return {
+      summary: { id, title, group: "Mock History", updatedAt: "2026-09-07T12:30:00Z" },
+      detail: { id, title, history: { format: "langchain", messages: [
+        { id: `${id}-human`, type: "human", content: `打开第 ${index + 1} 条分页测试记录。` },
+        { id: `${id}-ai`, type: "ai", content: `这是分页测试记录 ${sequence} 的模拟历史内容。` },
+      ] } },
+    };
+  }),
+];
+
 export const mockConversationDetails: MockConversationFixture["detail"][] =
   mockConversationFixtures.map((fixture) => fixture.detail);

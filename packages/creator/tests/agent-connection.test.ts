@@ -31,16 +31,43 @@ async function setup(upstream: Server) {
   const origin = await listen(upstream);
   const selected = await workspace();
   const store = new ConnectionStore(selected.projectRoot);
-  await store.save({ activeSource: "connected", endpoint: `${origin}/agent?configured=1` });
+  await store.save({ activeSource: "connected", enabled: true, endpoint: `${origin}/agent?configured=1` });
   const handler = createConnectionHandler(() => selected);
   const creator = await listen(createServer((request, response) => { void handler(request, response, () => { response.writeHead(404); response.end(); }); }));
   return { creator, origin, store, headers: { [CREATOR_WORKSPACE_ID_HEADER]: selected.id } };
 }
 describe("workspace Agent connection", () => {
+  it.each(["missing", "legacy-mock", "legacy-connected"] as const)("keeps %s settings inactive until explicitly enabled", async settings => {
+    const selected = await workspace();
+    const store = new ConnectionStore(selected.projectRoot);
+    const endpoint = "http://localhost:8000/agent";
+    if (settings !== "missing") {
+      await mkdir(path.dirname(store.file), { recursive: true });
+      await writeFile(store.file, JSON.stringify({ activeSource: settings === "legacy-mock" ? "mock" : "connected", endpoint }));
+    }
+    const handler = createConnectionHandler(() => selected, async (_request, response) => { response.end("explicit Mock"); });
+    const creator = await listen(createServer((request, response) => { void handler(request, response, () => response.end()); }));
+    const headers = { [CREATOR_WORKSPACE_ID_HEADER]: selected.id };
+    const initial: unknown = await (await fetch(`${creator}${CONNECTION_API}`, { headers })).json();
+    expect(initial).toMatchObject({ enabled: false, configured: settings !== "missing" });
+    expect(resolvePreviewAgentSource(await store.read())).toEqual({ type: "application" });
+    const update = (body: object) => fetch(`${creator}${CONNECTION_API}`, { method: "POST", headers, body: JSON.stringify(body) });
+    // Editing an address or mode must not implicitly opt into preview routing.
+    expect(await (await update({ activeSource: "connected", endpoint, connectionMode: "direct" })).json()).toMatchObject({ enabled: false });
+    for (const route of [AGENT_PROXY, `${BACKEND_PROXY}/history`, "/__agent-ui/mock", "/__agent-ui/mock-data/conversations"]) {
+      expect((await fetch(`${creator}${route}`, { headers })).status).toBe(409);
+    }
+    expect(await (await update({ activeSource: "mock", enabled: true })).json()).toMatchObject({ enabled: true });
+    expect(await (await fetch(`${creator}/__agent-ui/mock`, { headers })).text()).toBe("explicit Mock");
+    const restarted = await new ConnectionStore(selected.projectRoot).read();
+    expect(restarted).toMatchObject({ enabled: true, endpoint, connectionMode: "direct" });
+    expect(resolvePreviewAgentSource(restarted).type).toBe("mock");
+  });
+
   it("retains a scoped preview target and supports explicitly clearing it", async () => {
     const selected = await workspace();
     const store = new ConnectionStore(selected.projectRoot);
-    await store.save({ activeSource: "mock", agentId: "writer" });
+    await store.save({ activeSource: "mock", enabled: true, agentId: "writer" });
     const state = await store.read();
     expect(state.agentId).toBe("writer");
     expect(resolvePreviewAgentSource(state)).toMatchObject({ agentId: "writer", runtimeEndpoint: "/__agent-ui/mock" });
@@ -65,7 +92,7 @@ describe("workspace Agent connection", () => {
     await writeFile(path.join(legacyCreator, "logs", "run.jsonl"), "creator-log\n");
 
     const connection = await new ConnectionStore(projectRoot).read();
-    expect(connection).toMatchObject({ configured: true, activeSource: "connected", endpoint: "http://localhost:8000/agent" });
+    expect(connection).toMatchObject({ configured: true, enabled: false, activeSource: "connected", endpoint: "http://localhost:8000/agent" });
     expect(await readFile(path.join(projectRoot, ".agent-ui", "project.json"), "utf8")).toBe("{\"mode\":\"platform\"}\n");
     expect(await readFile(path.join(projectRoot, ".agent-ui", "mocks", "saved.jsonl"), "utf8")).toBe("mock-data\n");
     expect(await readFile(path.join(projectRoot, ".agent-ui", ".gitignore"), "utf8")).toBe("/connection.local.json\n");
@@ -87,15 +114,15 @@ describe("workspace Agent connection", () => {
     expect(() => validateConnection({ activeSource: "connected", endpoint })).toThrow();
   });
   it("resolves one runtime and keeps connected history product-owned", () => {
-    const mock = resolvePreviewAgentSource({ activeSource: "mock", configured: true, running: false });
+    const mock = resolvePreviewAgentSource({ activeSource: "mock", enabled: true, configured: true, running: false });
     if (mock.type !== "mock") throw new Error("Expected Mock source");
     expect(mock.conversationDataEndpointOverride).toBe("/__agent-ui/mock-data");
-    const connected = resolvePreviewAgentSource({ activeSource: "connected", endpoint: "http://localhost:8000/agent", configured: true, running: false });
+    const connected = resolvePreviewAgentSource({ activeSource: "connected", enabled: true, endpoint: "http://localhost:8000/agent", configured: true, running: false });
     if (connected.type !== "connected") throw new Error("Expected connected source");
     expect(connected.runtimeEndpoint).toBe(AGENT_PROXY);
     expect(connected.conversationDataEndpointOverride).toBeUndefined();
     expect(connected.identity).not.toBe(mock.identity);
-    const direct = resolvePreviewAgentSource({ activeSource: "connected", endpoint: "http://localhost:8000/agent", connectionMode: "direct", configured: true, running: false });
+    const direct = resolvePreviewAgentSource({ activeSource: "connected", enabled: true, endpoint: "http://localhost:8000/agent", connectionMode: "direct", configured: true, running: false });
     if (direct.type !== "connected") throw new Error("Expected direct source");
     expect(direct.runtimeEndpoint).toBe("http://localhost:8000/agent");
     expect(direct.backendProxyPrefix).toBe("http://localhost:8000");
@@ -103,7 +130,9 @@ describe("workspace Agent connection", () => {
   });
   it("defaults legacy settings to forwarding and persists direct mode", async () => {
     expect(validateConnection({ activeSource: "mock" }).connectionMode).toBe("proxy");
-    expect(validateConnection({ activeSource: "mock" }).enabled).toBe(true);
+    expect(validateConnection({ activeSource: "mock" }).enabled).toBe(false);
+    expect(resolvePreviewAgentSource({ activeSource: "mock", configured: false, running: false })).toEqual({ type: "application" });
+    expect(resolvePreviewAgentSource({ activeSource: "connected", endpoint: "http://localhost:8000/agent", configured: true, running: false })).toEqual({ type: "application" });
     expect(() => validateConnection({ activeSource: "mock", enabled: "false" })).toThrow();
     expect(() => validateConnection({ activeSource: "mock", connectionMode: "invalid" })).toThrow();
     const selected = await workspace();
@@ -114,7 +143,7 @@ describe("workspace Agent connection", () => {
     let calls = 0;
     const { creator, headers, store, origin } = await setup(createServer((_request, response) => { calls++; response.end(); }));
     const endpoint = `${origin}/agent`;
-    await store.save({ activeSource, endpoint, connectionMode: "direct" });
+    await store.save({ activeSource, enabled: true, endpoint, connectionMode: "direct" });
     const update = (body: object) => fetch(`${creator}${CONNECTION_API}`, { method: "POST", headers, body: JSON.stringify(body) });
     expect(await (await update({ activeSource, enabled: false })).json()).toMatchObject({ activeSource, enabled: false, endpoint, connectionMode: "direct" });
     const restarted = await new ConnectionStore(store.projectRoot).read();
@@ -130,7 +159,7 @@ describe("workspace Agent connection", () => {
   it("retains direct mode when selecting Mock and disables forwarding routes", async () => {
     let calls = 0;
     const { creator, headers, store, origin } = await setup(createServer((_request, response) => { calls++; response.end(); }));
-    await store.save({ activeSource: "connected", connectionMode: "direct", endpoint: `${origin}/agent` });
+    await store.save({ activeSource: "connected", enabled: true, connectionMode: "direct", endpoint: `${origin}/agent` });
     expect((await fetch(`${creator}${AGENT_PROXY}`, { method: "POST", headers })).status).toBe(409);
     expect((await fetch(`${creator}${BACKEND_PROXY}/history`, { headers })).status).toBe(409);
     expect(calls).toBe(0);
@@ -147,6 +176,7 @@ describe("workspace Agent connection", () => {
   it("Creator serves Mock history without a Host Mock plugin and rejects mismatched sources", async () => {
     const selected = await workspace();
     const store = new ConnectionStore(selected.projectRoot);
+    await store.save({ activeSource: "mock", enabled: true });
     const handler = createConnectionHandler(() => selected);
     const creator = await listen(createServer((request, response) => { void handler(request, response, () => { response.writeHead(404); response.end(); }); }));
     const headers = { [CREATOR_WORKSPACE_ID_HEADER]: selected.id };
@@ -154,9 +184,22 @@ describe("workspace Agent connection", () => {
     expect((await fetch(history)).status).toBe(409);
     const list = await fetch(history, { headers });
     expect(list.headers.get("cache-control")).toBe("no-store");
-    expect(await list.json()).toMatchObject({ returnCode: 'SUC0000', body: {
+    const firstPage: unknown = await list.json();
+    expect(firstPage).toMatchObject({ returnCode: 'SUC0000', body: {
+      total_conversations: 30, next_cursor: '10',
       conversations: expect.arrayContaining([expect.objectContaining({ thread_id: 'mock-history-basic' })]),
     } });
+    expect(firstPage).toHaveProperty('body.conversations.length', 10);
+    for (const [cursor, nextCursor, firstId] of [
+      ['10', '20', 'mock-history-pagination-05'],
+      ['20', null, 'mock-history-pagination-15'],
+    ] as const) {
+      const page: unknown = await (await fetch(`${history}?cursor=${cursor}`, { headers })).json();
+      expect(page).toMatchObject({ returnCode: 'SUC0000', body: { total_conversations: 30, next_cursor: nextCursor } });
+      expect(page).toHaveProperty('body.conversations.length', 10);
+      expect(page).toHaveProperty('body.conversations.0.thread_id', firstId);
+    }
+    expect((await fetch(`${history}?cursor=invalid`, { headers })).status).toBe(400);
     expect(await (await fetch(`${history}/mock-history-basic`, { headers })).json()).toMatchObject({
       returnCode: 'SUC0000', body: {
         thread_id: 'mock-history-basic', max_message_checkpoint: { channel_values: { messages: expect.any(Array) } },
@@ -168,6 +211,7 @@ describe("workspace Agent connection", () => {
   it("isolates Mock history deletion between workspaces", async () => {
     let selected = await workspace();
     const first = selected;
+    await new ConnectionStore(first.projectRoot).save({ activeSource: "mock", enabled: true });
     const handler = createConnectionHandler(() => selected);
     const creator = await listen(createServer((request, response) => { void handler(request, response, () => { response.writeHead(404); response.end(); }); }));
     const detail = `${creator}/__agent-ui/mock-data/conversations/mock-history-basic`;
@@ -175,6 +219,7 @@ describe("workspace Agent connection", () => {
     expect((await fetch(detail, { method: "DELETE", headers })).status).toBe(204);
     expect((await fetch(detail, { headers })).status).toBe(404);
     selected = { ...await workspace(), id: "second-workspace" };
+    await new ConnectionStore(selected.projectRoot).save({ activeSource: "mock", enabled: true });
     expect((await fetch(detail, { headers: { [CREATOR_WORKSPACE_ID_HEADER]: selected.id } })).status).toBe(200);
     selected = first;
     expect((await fetch(detail, { headers })).status).toBe(404);

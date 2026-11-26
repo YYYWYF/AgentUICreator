@@ -96,7 +96,7 @@ export const requestAdapter: ComposerRequestAdapter = ({ request, pluginData }) 
 
 业务结果卡片要把一段文字引用到当前草稿时，使用 Composer 的 `setQuote({ text, messageId })`。`text` 是选中的原文，`messageId` 是来源消息的实际 ID：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function QuotePassage({ text, messageId, label }: {
@@ -119,7 +119,7 @@ export function QuotePassage({ text, messageId, label }: {
 
 renderToolbar 返回 null 后不显示默认选择工具栏；引用仍可由项目已有引用入口或 useComposer 设置。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { CanonicalConversationQuote } from '@za38.03/agent-ui-plugins';
 

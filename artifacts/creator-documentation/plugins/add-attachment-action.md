@@ -68,7 +68,7 @@
 
 multiple 控制文件选择器一次能选择多少文件；不限制整个草稿累计添加的附件数量，也不负责上传。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
 
@@ -83,7 +83,7 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 
 size 和 variant 直接传给按钮，side 控制提示出现的位置。已有上传适配继续使用。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerAddAttachment } from '@za38.03/agent-ui-plugins';
 
@@ -137,8 +137,6 @@ export function Example(props: ComponentProps<typeof ConversationComposerAddAtta
 
 ## 常见问题
 
-
-multiple=
-&#x20;能限制整个会话只能上传一个文件吗？
+### `multiple={false}` 能限制整个会话只能上传一个文件吗？
 
 不能。它只限制一次文件选择。累计数量、类型、大小和实际上传由项目附件适配实现。

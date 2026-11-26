@@ -137,3 +137,21 @@ T-1042：无法登录工作台
 再检查中英文切换是否生效。
 
 需要让其他插件订阅实时业务通知时，见[订阅业务事件](/development/plugin-api.md#订阅业务事件)。
+
+## 工具结果流式输出
+
+工具执行期间，可以在同一条 AG-UI 流中发送 `CUSTOM` 事件，名称固定为 `TOOL_CALL_STREAM_RESULT`。先正常发送该工具的 `TOOL_CALL_START`、参数和 `TOOL_CALL_END`，再发送输出片段：
+
+```jsonl
+{"type":"CUSTOM","name":"TOOL_CALL_STREAM_RESULT","value":{"toolCallId":"call_1","messageId":"result_1","content":"第一行输出\n"}}
+{"type":"CUSTOM","name":"TOOL_CALL_STREAM_RESULT","value":{"toolCallId":"call_1","messageId":"result_1","content":"第二行输出\n"}}
+{"type":"TOOL_CALL_RESULT","toolCallId":"call_1","messageId":"result_1","content":"第一行输出\n第二行输出\n","role":"tool"}
+```
+
+- `value.toolCallId` 必须对应当前运行已开始的工具调用；`value.content` 是本次新增的字符串，不是累计全文。`value.messageId` 可省略，不作为归并依据。
+- 前端按工具调用分别累加并更新已有工具卡片；多个工具交错输出也不会混在一起。子 Agent 事件在顶层携带与工具调用一致的 `subagentRunId`。
+- 中间结果通过工具 renderer 的 `result` 展示，`isPreliminary` 为 `true`；不会创建已完成的工具消息，也不会提交客户端工具结果。默认工具卡片保留原有折叠设置，展开后可查看实时输出。
+- 标准 `TOOL_CALL_RESULT` 表示结束，其完整内容替换临时累计内容，不再追加。最终结果仍支持原有 JSON 和多模态内容格式；结束后的迟到片段会被忽略。
+- 取消或失败时保留已经显示的片段，状态遵循原会话生命周期。临时片段不会自动持久化，刷新后的结果以业务后端提供的历史为准。
+
+此能力由 Runtime 自动接入，不需要新增插件、Data Message UI 或 `appEventSchemas`。统一 `useConversation` 的消息 `content` 也包含中间 `result`；直接读取 assistant-ui 原生工具调用的 `result` 不包含这份展示补充，向模型发送的历史仍采用标准工具结果。若业务另外订阅该 `CUSTOM` 事件，仍按本页的业务事件订阅规则声明 Schema 和订阅。

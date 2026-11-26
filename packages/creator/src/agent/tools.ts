@@ -37,6 +37,7 @@ export interface ToolContext {
   documentationRoot?: string;
   contextWindow?: import("./context-window.js").CreatorContextWindow;
   root: string; skills: string; contracts: string; activity: RunActivity;
+  completionEvidenceRequired?: boolean;
   readOnly: boolean; userMessage: string; threadId: string; signal: AbortSignal;
   groups: Set<string>; authorizedPlugins: Set<string>;
   diagnostics: Map<string, any>; verificationMode: string;

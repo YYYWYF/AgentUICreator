@@ -214,6 +214,7 @@ import {
   defineToolkit,
   useAuiState as useInternalConversationState,
   useAui,
+  type ThreadMessage,
 } from "@assistant-ui/react";
 import {
   ThreadListNew as InternalConversationThreadListNew,
@@ -268,7 +269,7 @@ export const AgentUIDialog: Readonly<{
  * Render directly inside AgentUIDialog.Root, without an additional Portal. */
 export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
 import { forwardRef, useContext, useMemo, useSyncExternalStore } from "react";
-import { ConversationMessageMetadataContext, type ConversationMessageMetadataTarget } from '@za38.03/agent-ui-runtime/plugin-api';
+import { ConversationMessageMetadataContext, ConversationToolOutputContext, type ConversationMessageMetadataTarget } from '@za38.03/agent-ui-runtime/plugin-api';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -973,40 +974,45 @@ export function useConversation<T>(
 ): ConversationThreadController | T {
   const runtime = useAui();
   const metadataSource = useContext(ConversationMessageMetadataContext);
+  const toolResults = useContext(ConversationToolOutputContext);
   const { controller, state } = useMemo(() => {
     let snapshot: ConversationThreadSnapshot | undefined;
     let sourceMessages: ReturnType<typeof runtime.thread.getState>['messages'] | undefined;
     let projectedMessages: readonly ConversationMessageView[] | undefined;
     let metadataRevision = -1;
+    let toolResultRevision = -1;
     type ProjectedMessage = ConversationMessageMetadataTarget & Pick<ConversationMessageView, 'speaker'>;
-    const projected = new WeakMap<ConversationMessageMetadataTarget, { custom: Readonly<Record<string, unknown>> | undefined; value: ProjectedMessage }>();
+    const projected = new WeakMap<ConversationMessageMetadataTarget, { custom: Readonly<Record<string, unknown>> | undefined; content: ThreadMessage['content']; value: ProjectedMessage }>();
     const speakers = new WeakMap<object, Map<string, ConversationMessageView['speaker']>>();
-    const projectMessage = <TMessage extends ConversationMessageMetadataTarget>(message: TMessage): TMessage & Pick<ConversationMessageView, 'speaker'> => {
+    const projectMessage = <TMessage extends ThreadMessage>(message: TMessage): TMessage & Pick<ConversationMessageView, 'speaker'> => {
       const custom = metadataSource?.read(message) ?? message.metadata?.custom;
+      const presented = toolResults?.readMessage(message) ?? message;
       const cached = projected.get(message);
-      if (cached && cached.custom === custom) return cached.value as TMessage & Pick<ConversationMessageView, 'speaker'>;
+      if (cached && cached.custom === custom && cached.content === presented.content) return cached.value as TMessage & Pick<ConversationMessageView, 'speaker'>;
       const identity = message.createdAt instanceof Date ? message.createdAt : message;
       let messageSpeakers = speakers.get(identity);
       if (!messageSpeakers) { messageSpeakers = new Map(); speakers.set(identity, messageSpeakers); }
       const speaker = parseMessageSpeaker(custom?.speaker, messageSpeakers.get(message.id));
       messageSpeakers.set(message.id, speaker);
-      const value = { ...message,
+      const value = { ...presented,
         ...(custom !== undefined && custom !== message.metadata?.custom ? { metadata: { ...message.metadata, custom } } : {}),
         speaker,
       };
-      projected.set(message, { custom, value });
+      projected.set(message, { custom, content: presented.content, value });
       return value;
     };
     const getSnapshot = (): ConversationThreadSnapshot => {
       const current = runtime.thread.getState();
       const revision = metadataSource?.getRevision() ?? 0;
-      if (sourceMessages !== current.messages || metadataRevision !== revision) {
+      const outputRevision = toolResults?.getRevision() ?? 0;
+      if (sourceMessages !== current.messages || metadataRevision !== revision || toolResultRevision !== outputRevision) {
         const next = current.messages.map(projectMessage) as unknown as readonly ConversationMessageView[];
         if (!projectedMessages || projectedMessages.length !== next.length || next.some((message, index) => message !== projectedMessages?.[index])) {
           projectedMessages = next;
         }
         sourceMessages = current.messages;
         metadataRevision = revision;
+        toolResultRevision = outputRevision;
       }
       const messages = projectedMessages!;
       if (snapshot === undefined || snapshot.messages !== messages ||
@@ -1036,10 +1042,11 @@ export function useConversation<T>(
     const subscribe = (listener: () => void) => {
       const stopRuntime = runtime.subscribe(listener);
       const stopMetadata = metadataSource?.subscribe(listener);
-      return () => { stopRuntime(); stopMetadata?.(); };
+      const stopToolResults = toolResults?.subscribe(listener);
+      return () => { stopRuntime(); stopMetadata?.(); stopToolResults?.(); };
     };
     return { controller: { getSnapshot, subscribe }, state };
-  }, [runtime, metadataSource]);
+  }, [runtime, metadataSource, toolResults]);
   const read = () => {
     if (selector === undefined) return controller;
     const selected = selector(state);
@@ -1462,7 +1469,14 @@ export * from "./plugin-api/ApplicationLifecycleContext.js";
 export { CanonicalAskUserQuestion, type AskUserQuestionProps } from "./plugins/ask-user-question/adapters/presentation/ask-user-question.js";
 export { askUserQuestionParameters, parseHumanQuestionRequest, parseHumanQuestionResult, type HumanQuestionOption, type HumanQuestionStep, type HumanQuestionRequest, type HumanQuestionResult } from "./plugins/ask-user-question/adapters/presentation/contract.js";
 
-export { ConversationToolResult, type ConversationToolResultProps, type ToolCardPresentationProps, type ToolApprovalClassNames, type ToolApprovalStyles, type ToolResultContentProps, type ToolResultPart, type ToolResultSource } from "./plugins/tool-result/adapters/presentation/tool-result.js";
+export { ToolCallCardRoot, ToolCallCardContent, ConversationToolResult, type ConversationToolResultProps, type ToolCardPresentationProps, type ToolApprovalClassNames, type ToolApprovalStyles, type ToolResultContentProps, type ToolResultPart, type ToolResultSource } from "./plugins/tool-result/adapters/presentation/tool-result.js";
+export type {
+  ToolCallRenderContext, ToolCallComponentProps, ToolResultComponents,
+  ToolHeaderProps, ToolArgsProps, ToolApprovalProps, ApprovalCardProps,
+  ToolResultProps, ToolErrorProps, ToolTextProps, ToolImageProps, ToolAudioProps, ToolVideoProps, ToolFileProps,
+  ToolErrorRenderContext, ToolApprovalRenderContext,
+  ToolApprovalRenderAction, ToolCallData, ToolCallMethods, ToolDefaultViews, ToolResultContext, ToolTextResultView, ToolMediaResultView,
+} from "./plugins/tool-result/adapters/presentation/tool-result.js";
 import { useConversationToolRenderer } from "./internal/tool-renderer-context.js";
 import { ConversationToolResult as DefaultToolResult } from "./plugins/tool-result/adapters/presentation/tool-result.js";
 /** Default frontend-tool UI follows the thread's semantic renderer selection. */

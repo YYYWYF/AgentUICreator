@@ -38,7 +38,7 @@ title: "语言服务（locale-provider）"
 
 把 messages 合并到项目已有 Agent.locales 配置，保留其他语言域。它只覆盖已有官方键，不注册任意新键。
 
-```tsx
+```tsx fold height=180
 import type { AgentUILocaleOverrides } from '@za38.03/agent-ui-plugins';
 
 export const messages = {
@@ -53,7 +53,7 @@ export const messages = {
 
 共享消息模块中维护双语字段，组件读取统一 locale。不要新增独立语言状态或每插件语言 Hook。
 
-```tsx
+```tsx fold height=180
 import { useLocaleCode } from '@za38.03/agent-ui-plugins';
 
 const reportMessages = {
@@ -70,7 +70,7 @@ export function ReportTitle() {
 
 组件与服务位于同一 Agent，并声明 `agent-ui.locale` 依赖。
 
-```tsx
+```tsx fold height=180
 import { usePluginService, type AgentUILocaleCode } from '@za38.03/agent-ui-plugins';
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService }
   from '@za38.03/agent-ui-runtime/ui/services/agent-ui-locale';

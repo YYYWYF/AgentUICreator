@@ -183,7 +183,7 @@ Composer 使用回调返回的请求；若页面还配置了 [`beforeRequest`](/
 
 **只有本次提交了对应数据，才添加业务字段。** `Object.hasOwn` 判断的是键是否存在，因此插件明确提交的空数组、`null`、`false`、`0` 或空字符串都保留原值；没有任何相关数据时直接返回已有请求。
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
@@ -250,7 +250,7 @@ export function ConversationComposerPlugin(props: ComponentProps<typeof Implemen
 
 若后端使用标准 AG-UI Context，也可以将 JSON 编码为字符串后追加到已有 Context：
 
-```tsx
+```tsx fold height=180
 import type { ComposerRequestAdapter } from '@za38.03/agent-ui-plugins';
 
 export const addBusinessContext: ComposerRequestAdapter = ({ request, pluginData }) => {
@@ -276,7 +276,7 @@ Context 的每项为 `{ description: string, value: string }`。修改 `messages
 
 下面的按钮位于已有 Agent／Conversation 中的订单卡片插件。问题和按钮文字由项目文案提供，订单 ID 来自业务数据：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function AskAboutOrder({ orderId, prompt, label }: {
@@ -301,7 +301,7 @@ export function AskAboutOrder({ orderId, prompt, label }: {
 
 其他插件需要随草稿更新界面时，使用 `useComposer(selector, name?)` 选择所需字段；无参数的 `useComposer()` 或 `useComposer(name)` 返回即时读取与操作句柄，不自动订阅数据：
 
-```tsx
+```tsx fold height=180
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftSummary({ format }: {
@@ -317,7 +317,7 @@ export function DraftSummary({ format }: {
 
 确实需要完整快照的响应式展示时，显式选择整个快照。事件回调中使用无参数句柄的 `getSnapshot()` 或 `getState()` 即时读取：
 
-```tsx
+```tsx fold height=180
 import type { ReactNode } from 'react';
 import { useComposer } from '@za38.03/agent-ui-plugins';
 
@@ -342,7 +342,7 @@ Hook 随当前会话重新绑定；保留的旧句柄仍绑定原 Thread。长�
 
 只改样式时直接定制[发送／停止插件](/plugins/submit-action.md)。确需自己组合操作区时，继续读取当前控制器与等待用户操作状态：
 
-```tsx
+```tsx fold height=180
 import { useLocale, useComposer } from '@za38.03/agent-ui-plugins';
 
 export function DraftActions({ formatCount }: { formatCount: (count: number) => string }) {
@@ -383,7 +383,7 @@ export function DraftActions({ formatCount }: { formatCount: (count: number) => 
 
 在项目已有输入入口设置根级行数、长度与提交方式，继续保留子插件转发：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationComposerPlugin as Implementation } from '@za38.03/agent-ui-plugins/composer';
 

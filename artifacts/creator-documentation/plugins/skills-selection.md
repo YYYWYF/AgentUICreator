@@ -52,7 +52,7 @@
 
 在 `plugins/skills-selection/index.tsx` 中向已有实现传 props：
 
-```tsx
+```tsx fold height=180
 import { SkillsSelectionPlugin as Implementation } from '@za38.03/agent-ui-plugins/skills-selection';
 import type { ComponentProps } from 'react';
 

@@ -12,6 +12,7 @@ export interface MockConversationApiHandlerOptions {
   fixtures?: readonly MockConversationFixture[] | undefined;
   listDelayMs?: number | undefined;
   detailDelayMs?: number | undefined;
+  pageSize?: number | undefined;
 }
 
 export type MockConversationApiHandler = (
@@ -56,7 +57,10 @@ export function createMockConversationApiHandler({
   fixtures = mockConversationFixtures,
   listDelayMs = 400,
   detailDelayMs = 700,
+  pageSize,
 }: MockConversationApiHandlerOptions = {}): MockConversationApiHandler {
+  if (pageSize !== undefined && (!Number.isSafeInteger(pageSize) || pageSize <= 0))
+    throw new Error("MOCK_CONVERSATION_PAGE_SIZE_INVALID");
   const baseEndpoint = normalizeEndpoint(endpoint);
   const conversationsEndpoint = `${baseEndpoint}/conversations`;
   const detailsById = new Map(
@@ -128,11 +132,20 @@ export function createMockConversationApiHandler({
             .map(fixture => summaries.get(fixture.summary.id)!).concat(durableStore.list()
               .filter(item => !deletedIds.has(item.id))
               .map(({ id, title }) => summaries.get(id) ?? { id, title }));
+        const cursor = url.searchParams.get("cursor");
+        const offset = cursor === null ? 0 : Number(cursor);
+        if (pageSize !== undefined && cursor !== null && (!/^\d+$/.test(cursor) || !Number.isSafeInteger(offset))) {
+          sendJson(response, 400, { error: "MOCK_CONVERSATION_CURSOR_INVALID" });
+          return true;
+        }
+        const page = pageSize === undefined ? items : items.slice(offset, offset + pageSize);
+        const nextOffset = offset + page.length;
         sendJson(response, 200, {
           returnCode: 'SUC0000', errorMsg: null,
           body: {
             total_conversations: items.length,
-            conversations: items.map(item => ({
+            ...(pageSize === undefined ? {} : { next_cursor: nextOffset < items.length ? String(nextOffset) : null }),
+            conversations: page.map(item => ({
               thread_id: item.id, title: item.title,
               ...(item.status === undefined ? {} : { status: item.status }),
               ...(item.updatedAt === undefined ? {} : { last_message_time: item.updatedAt }),

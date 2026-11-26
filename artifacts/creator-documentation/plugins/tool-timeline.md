@@ -63,7 +63,7 @@
 
 希望直接展示执行过程时，在已有时间线入口设置初始展开，并将可见步骤限制为前 5 项：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationToolTimelinePlugin as Implementation } from '@za38.03/agent-ui-plugins/tool-timeline';
 import { usePluginRenderScope } from '@za38.03/agent-ui-plugins';

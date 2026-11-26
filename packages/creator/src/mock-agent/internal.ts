@@ -75,6 +75,7 @@ export {
 } from "./builtins/index.js";
 
 export { createMockConversationApiHandler, type MockConversationApiHandler } from "./conversations/handler.js";
+export { mockConversationPaginationFixtures } from "./conversations/fixtures.js";
 export { createMockConversationApiVitePlugin } from "./conversations/vite-plugin.js";
 export { withPreviewAgentState } from "./preview/mock-scenario-preview.js";
 

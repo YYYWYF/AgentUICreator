@@ -5,6 +5,7 @@ export * from "./PluginServiceContext.js";
 export * from "./ApplicationLifecycleContext.js";
 export * from "./conversation.js";
 export * from './message-metadata.js';
+export { ConversationToolOutputContext, useStreamedToolResult, type ConversationToolResultPort } from './tool-results.js';
 export * from "./data-message-ui.js";
 export * from "../conversation-support/conversation-command-decisions.js";
 export * from "../conversation-support/assistant-response-runtime.js";

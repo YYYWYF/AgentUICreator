@@ -88,7 +88,7 @@
 
 在 `skills` 的项目应用层组合卡片，使用同一 Service 选择技能：
 
-```tsx
+```tsx fold height=180
 import { useComposer, useSkillSelection, type ConversationSkillData } from '@za38.03/agent-ui-plugins';
 
 export function SelectSkill({ skill }: { skill: ConversationSkillData }) {
@@ -104,7 +104,7 @@ Service 保存 `{ id, label }`，并调用 `composer.setData({ id, label })` 收
 
 编辑项目生成的 `plugins/composer/request-adapter.ts`，或在 Composer 应用层替换最终 `requestAdapter`。下面把默认 `ctx.skill` 改为 `ctx.skillId`，保留其他业务字段：
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationCanonicalComposer } from '@za38.03/agent-ui-plugins';
 import { readConversationSkillData } from '@za38.03/agent-ui-plugins';
@@ -135,7 +135,7 @@ Composer 使用这里返回的字段，不会补回默认的 `skill`。若配置
 
 #### 调整快捷技能数量 \{#调整快捷技能数量}
 
-```tsx
+```tsx fold height=180
 import type { ComponentProps } from 'react';
 import { ConversationSkillsBar } from '@za38.03/agent-ui-plugins';
 
